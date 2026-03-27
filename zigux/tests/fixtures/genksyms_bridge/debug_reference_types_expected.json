@@ -1,0 +1,30 @@
+{
+  "tool": "scripts/genksyms/genksyms",
+  "stdin": "cpp-stream",
+  "stdout": "symversions",
+  "argv": [
+    "scripts/genksyms/genksyms",
+    "-d",
+    "-d",
+    "-D",
+    "-w",
+    "-p",
+    "-r",
+    "foo.symref",
+    "-r",
+    "bar.symref",
+    "-T",
+    "out.symtypes"
+  ],
+  "options": {
+    "debug_level": 2,
+    "warnings": true,
+    "dump_defs": true,
+    "preserve": true,
+    "reference_files": [
+      "foo.symref",
+      "bar.symref"
+    ],
+    "dump_types_file": "out.symtypes"
+  }
+}
