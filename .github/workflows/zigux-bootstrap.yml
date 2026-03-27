@@ -55,6 +55,9 @@ jobs:
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
 
+      - name: Check Phase 1 helper benchmark output
+        run: python3 scripts/zigux/check-phase1-bench.py
+
       - name: Check bounded fixdep artifact parity
         run: python3 scripts/zigux/check-fixdep-diff.py
 

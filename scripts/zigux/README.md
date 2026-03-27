@@ -13,6 +13,7 @@ Current bootstrap helpers
 - `check-zig-toolchain.py`
 - `validate-bootstrap.py`
 - `validate-phase1.py`
+- `check-phase1-bench.py`
 - `validate-phase1-closure.py`
 - `validate-phase2.py`
 - `check-phase1-parity.py`

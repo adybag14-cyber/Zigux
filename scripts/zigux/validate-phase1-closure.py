@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
+#!/usr/bin/env python3
+from __future__ import annotations
+
 from pathlib import Path
+import json
 import sys
 
 
@@ -7,7 +11,10 @@ ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
     ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
 ]
 
@@ -24,18 +31,22 @@ closure = (ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md').read_text(enc
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
+manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8'))
 
 required_closure_markers = [
     'PHASE1_STATUS=closed',
     'PHASE1_HELPER_COUNT=13',
+    'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
+    'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
     'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
     'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
 ]
 required_workflow_markers = [
     'python3 scripts/zigux/validate-phase1-closure.py',
+    'python3 scripts/zigux/check-phase1-bench.py',
     'zig build bench --build-file zigux/tests/build.zig',
 ]
 required_build_markers = [
@@ -59,6 +70,20 @@ for marker in required_build_markers:
 for marker in required_ledger_markers:
     if marker not in ledger:
         missing_markers.append(f'ledger:{marker}')
+
+manifest_helpers = manifest.get('helpers', [])
+manifest_count = manifest.get('helper_count')
+if manifest.get('phase') != 'Phase 1':
+    missing_markers.append('manifest:phase=Phase 1')
+if manifest.get('status') != 'closed':
+    missing_markers.append('manifest:status=closed')
+if manifest_count != 13:
+    missing_markers.append('manifest:helper_count=13')
+if len(manifest_helpers) != 13:
+    missing_markers.append(f'manifest:helpers_len={len(manifest_helpers)}')
+for rel in manifest_helpers:
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE1_CLOSURE_VALIDATION=fail')

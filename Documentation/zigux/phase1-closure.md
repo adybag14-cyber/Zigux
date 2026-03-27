@@ -28,6 +28,7 @@ The bounded Phase 1 helper set is:
 - `tools/lib/zalloc.zig`
 
 - `PHASE1_HELPER_COUNT=13`
+- manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`
 
 No additional helper should be called Phase 1 work unless this document and the bootstrap validators are deliberately reopened.
 
@@ -44,12 +45,16 @@ Phase 1 is only considered closed when all of the following are green:
 3. helper benchmark smoke
 - `zig build bench --build-file zigux/tests/build.zig`
 
-4. closure validation
+4. benchmark validation
+- `python3 scripts/zigux/check-phase1-bench.py`
+
+5. closure validation
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
 - `PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py`
 - `PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig`
 - `PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig`
+- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`
 - `PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py`
 
 ## Performance Policy
@@ -64,6 +69,7 @@ Instead, Phase 1 uses:
 
 - a benchmark smoke executable for representative helper paths
 - stable checksum and iteration outputs so the benchmark cannot silently optimize away the hot loops
+- machine-readable benchmark expectations in `zigux/tests/fixtures/phase1_bench_expectations.json`
 - manual review of timing deltas before expanding helper scope
 
 This is a smoke-grade performance gate, not a release-grade perf contract.
