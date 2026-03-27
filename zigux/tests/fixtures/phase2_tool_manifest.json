@@ -1,9 +1,10 @@
 {
   "phase": "Phase 2",
   "status": "closed",
-  "tool_count": 5,
+  "tool_count": 6,
   "tools": [
     "scripts/zigux/fixdep.zig",
+    "scripts/zigux/genksyms.zig",
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/mk_elfconfig.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",

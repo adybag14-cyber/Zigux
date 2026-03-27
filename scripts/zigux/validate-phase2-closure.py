@@ -10,12 +10,19 @@ ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase2-closure.py',
+    ROOT / 'scripts' / 'zigux' / 'genksyms.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
     ROOT / 'zigux' / 'Makefile',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'debug_reference_types_expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'long_options_expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'quiet_overrides_warning_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
@@ -45,32 +52,41 @@ targets_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_c
 
 required_closure_markers = [
     'PHASE2_STATUS=closed',
-    'PHASE2_TOOL_COUNT=5',
+    'PHASE2_TOOL_COUNT=6',
     'PHASE2_CROSS_TARGET_COUNT=3',
+    'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
+    'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-kconfig-bridge.py',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/validate-phase2-closure.py',
+    'zig test scripts/zigux/genksyms.zig',
     'zig test scripts/zigux/kconfig/conf_bridge.zig',
     'zig test scripts/zigux/kconfig/confdata_bridge.zig',
 ]
 required_ledger_markers = [
+    'feat(scripts/zigux): add bounded Phase 2 genksyms wrapper lane',
+    'ci(zigux): widen Phase 2 closure matrix',
+    'docs(zigux): reopen and close broadened Phase 2 tranche',
     'feat(scripts/zigux): add bounded Phase 2 kconfig bridge scaffolding',
     'ci(zigux): add Phase 2 cross-arch build matrix',
     'docs(zigux): close bounded Phase 2 toolchain tranche',
 ]
 required_readme_markers = [
+    'check-genksyms-bridge.py',
     'check-kconfig-bridge.py',
     'check-phase2-cross.py',
+    'genksyms.zig',
     'kconfig/conf_bridge.zig',
     'kconfig/confdata_bridge.zig',
 ]
 required_doc_markers = [
+    'genksyms_bridge',
     'kconfig_bridge',
     'phase2_cross_targets.json',
 ]
@@ -78,6 +94,8 @@ required_makefile_markers = [
     'phase2-validate:',
     'phase2-kconfig:',
     'phase2-cross:',
+    'check-genksyms-bridge.py',
+    '$(ZIG) test scripts/zigux/genksyms.zig',
 ]
 
 missing_markers = []
@@ -104,9 +122,9 @@ if tool_manifest.get('phase') != 'Phase 2':
     missing_markers.append('manifest:phase=Phase 2')
 if tool_manifest.get('status') != 'closed':
     missing_markers.append('manifest:status=closed')
-if tool_manifest.get('tool_count') != 5:
-    missing_markers.append('manifest:tool_count=5')
-if len(tool_manifest.get('tools', [])) != 5:
+if tool_manifest.get('tool_count') != 6:
+    missing_markers.append('manifest:tool_count=6')
+if len(tool_manifest.get('tools', [])) != 6:
     missing_markers.append(f'manifest:tools_len={len(tool_manifest.get("tools", []))}')
 for rel in tool_manifest.get('tools', []):
     if not (ROOT / rel).exists():
