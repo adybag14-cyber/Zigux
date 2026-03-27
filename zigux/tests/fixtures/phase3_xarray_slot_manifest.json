@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "xarray-slot-view-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/tests/phase3_xarray_slot_dump.zig",
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c",
+    "scripts/zigux/check-phase3-xarray-slot.py"
+  ]
+}

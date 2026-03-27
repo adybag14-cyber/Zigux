@@ -40,6 +40,11 @@ int main(void)
 		"\"offsets\":{\"errno_code\":%zu,\"flags\":%zu,\"reserved\":%zu}},"
 		"\"zigux_xa_value_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"raw_addr\":%zu,\"decoded_value\":%zu,\"flags\":%zu}},"
+		"\"zigux_xa_slot_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"slots_addr\":%zu,\"slot_count\":%zu,\"max_scan\":%zu}},"
+		"\"zigux_xa_slot_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"scanned_count\":%zu,\"null_count\":%zu,\"value_count\":%zu,"
+		"\"error_count\":%zu,\"plain_count\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -122,6 +127,19 @@ int main(void)
 		offsetof(struct zigux_xa_value_summary, raw_addr),
 		offsetof(struct zigux_xa_value_summary, decoded_value),
 		offsetof(struct zigux_xa_value_summary, flags),
+		sizeof(struct zigux_xa_slot_view),
+		_Alignof(struct zigux_xa_slot_view),
+		offsetof(struct zigux_xa_slot_view, slots_addr),
+		offsetof(struct zigux_xa_slot_view, slot_count),
+		offsetof(struct zigux_xa_slot_view, max_scan),
+		sizeof(struct zigux_xa_slot_summary),
+		_Alignof(struct zigux_xa_slot_summary),
+		offsetof(struct zigux_xa_slot_summary, scanned_count),
+		offsetof(struct zigux_xa_slot_summary, null_count),
+		offsetof(struct zigux_xa_slot_summary, value_count),
+		offsetof(struct zigux_xa_slot_summary, error_count),
+		offsetof(struct zigux_xa_slot_summary, plain_count),
+		offsetof(struct zigux_xa_slot_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

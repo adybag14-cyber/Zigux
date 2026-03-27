@@ -12,6 +12,7 @@ const list_view = @import("list_view");
 const hlist_view = @import("hlist_view");
 const err_ptr = @import("err_ptr");
 const xa_value = @import("xa_value");
+const xarray_slot_view = @import("xarray_slot_view");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -30,6 +31,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.HListSummary, 8);
         layout_assert.assertSize(abi.ErrPtrSummary, 8);
         layout_assert.assertSize(abi.XaValueSummary, @sizeOf(usize) + 8);
+        layout_assert.assertSize(abi.XaSlotView, @sizeOf(usize) + 8);
+        layout_assert.assertSize(abi.XaSlotSummary, 24);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -38,6 +41,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.HListView, "max_nodes", @sizeOf(usize));
         layout_assert.assertOffset(abi.ErrPtrSummary, "flags", 4);
         layout_assert.assertOffset(abi.XaValueSummary, "decoded_value", @sizeOf(usize));
+        layout_assert.assertOffset(abi.XaSlotView, "slot_count", @sizeOf(usize));
+        layout_assert.assertOffset(abi.XaSlotSummary, "flags", 20);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -154,4 +159,35 @@ test "phase3 err_ptr and encoded value helpers stay aligned with the ABI substra
     try std.testing.expectEqual(@as(u32, 37), xa_value.toValue(encoded));
     try std.testing.expectEqual(@as(u32, 37), encoded_summary.decoded_value);
     try std.testing.expectEqual(@as(u32, abi.XA_VALUE_FLAG_VALUE), encoded_summary.flags);
+}
+
+test "phase3 xarray slot interop helpers stay aligned with the ABI substrate" {
+    const slots = [_]usize{
+        0,
+        0x2000,
+        xa_value.make(11),
+        err_ptr.fromErrno(-2),
+        xa_value.make(29),
+        err_ptr.fromErrno(-12),
+    };
+
+    const truncated_view = xarray_slot_view.viewFromEntries(slots[0..], 5);
+    const truncated_summary = xarray_slot_view.summarize(truncated_view);
+    try std.testing.expect(xarray_slot_view.isValid(truncated_view));
+    try std.testing.expectEqual(@as(usize, slots[3]), xarray_slot_view.entryAt(truncated_view, 3));
+    try std.testing.expectEqual(@as(u32, 5), truncated_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 1), truncated_summary.null_count);
+    try std.testing.expectEqual(@as(u32, 2), truncated_summary.value_count);
+    try std.testing.expectEqual(@as(u32, 1), truncated_summary.error_count);
+    try std.testing.expectEqual(@as(u32, 1), truncated_summary.plain_count);
+    try std.testing.expectEqual(@as(u32, abi.XA_SLOT_FLAG_TRUNCATED), truncated_summary.flags);
+
+    const full_view = xarray_slot_view.viewFromEntries(slots[0..], 6);
+    const full_summary = xarray_slot_view.summarize(full_view);
+    try std.testing.expectEqual(@as(u32, 6), full_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 1), full_summary.null_count);
+    try std.testing.expectEqual(@as(u32, 2), full_summary.value_count);
+    try std.testing.expectEqual(@as(u32, 2), full_summary.error_count);
+    try std.testing.expectEqual(@as(u32, 1), full_summary.plain_count);
+    try std.testing.expectEqual(@as(u32, 0), full_summary.flags);
 }

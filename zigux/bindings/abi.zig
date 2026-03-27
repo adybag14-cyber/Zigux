@@ -14,6 +14,7 @@ pub const ERR_PTR_FLAG_ERROR: u16 = 1;
 pub const ERR_PTR_FLAG_NULL: u16 = 2;
 pub const XA_VALUE_FLAG_VALUE: u32 = 1;
 pub const XA_VALUE_FLAG_PLAIN: u32 = 2;
+pub const XA_SLOT_FLAG_TRUNCATED: u32 = 1;
 
 pub const Facility = enum(u16) {
     kernel = 1,
@@ -125,6 +126,21 @@ pub const XaValueSummary = extern struct {
     flags: u32,
 };
 
+pub const XaSlotView = extern struct {
+    slots_addr: usize,
+    slot_count: u32,
+    max_scan: u32,
+};
+
+pub const XaSlotSummary = extern struct {
+    scanned_count: u32,
+    null_count: u32,
+    value_count: u32,
+    error_count: u32,
+    plain_count: u32,
+    flags: u32,
+};
+
 pub const MmioRange = extern struct {
     base_addr: usize,
     length: u32,
@@ -156,6 +172,7 @@ test "phase3 abi constants stay stable" {
     try std.testing.expectEqual(@as(u32, 4), HLIST_FLAG_TERMINATED);
     try std.testing.expectEqual(@as(u16, 1), ERR_PTR_FLAG_ERROR);
     try std.testing.expectEqual(@as(u32, 1), XA_VALUE_FLAG_VALUE);
+    try std.testing.expectEqual(@as(u32, 1), XA_SLOT_FLAG_TRUNCATED);
 }
 
 test "phase3 abi layouts stay stable" {
@@ -174,6 +191,8 @@ test "phase3 abi layouts stay stable" {
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(HListSummary));
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(ErrPtrSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(XaValueSummary));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(XaSlotView));
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(XaSlotSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(MmioRange));
     try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
 }

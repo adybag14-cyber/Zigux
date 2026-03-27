@@ -31,6 +31,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-list-hlist.py` compares that committed JSON fixture against both the bounded C harness and the Zig list/hlist dump.
 - `zigux/tests/fixtures/phase3_errptr_xarray/expected.json` fixes the first permanent err_ptr and encoded value-entry interop claim on top of that substrate.
 - `scripts/zigux/check-phase3-errptr-xarray.py` compares that committed JSON fixture against both the bounded C harness and the Zig err_ptr/value-entry dump.
+- `zigux/tests/fixtures/phase3_xarray_slot/expected.json` fixes the first bounded xarray slot-array classification claim on top of the err_ptr/value-entry substrate.
+- `scripts/zigux/check-phase3-xarray-slot.py` compares that committed JSON fixture against both the bounded C harness and the Zig xarray slot dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -40,4 +42,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot interop claims before any broader interop substrate expansion

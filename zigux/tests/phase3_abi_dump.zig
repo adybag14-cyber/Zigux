@@ -126,6 +126,21 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.XaValueSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_xa_slot_view", @sizeOf(abi.XaSlotView), @alignOf(abi.XaSlotView));
+    try writeOffset(writer, "slots_addr", @offsetOf(abi.XaSlotView, "slots_addr"), true);
+    try writeOffset(writer, "slot_count", @offsetOf(abi.XaSlotView, "slot_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.XaSlotView, "max_scan"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_xa_slot_summary", @sizeOf(abi.XaSlotSummary), @alignOf(abi.XaSlotSummary));
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.XaSlotSummary, "scanned_count"), true);
+    try writeOffset(writer, "null_count", @offsetOf(abi.XaSlotSummary, "null_count"), true);
+    try writeOffset(writer, "value_count", @offsetOf(abi.XaSlotSummary, "value_count"), true);
+    try writeOffset(writer, "error_count", @offsetOf(abi.XaSlotSummary, "error_count"), true);
+    try writeOffset(writer, "plain_count", @offsetOf(abi.XaSlotSummary, "plain_count"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.XaSlotSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

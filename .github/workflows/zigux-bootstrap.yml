@@ -99,6 +99,9 @@ jobs:
       - name: Check bounded Phase 3 err_ptr/xarray interop parity
         run: python3 scripts/zigux/check-phase3-errptr-xarray.py
 
+      - name: Check bounded Phase 3 xarray slot interop parity
+        run: python3 scripts/zigux/check-phase3-xarray-slot.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

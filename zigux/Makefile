@@ -40,5 +40,6 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-bitmap-cpumask.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-list-hlist.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-errptr-xarray.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-xarray-slot.py
 
 phase3: phase3-validate phase3-abi phase3-interop
