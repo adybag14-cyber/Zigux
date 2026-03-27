@@ -12,17 +12,21 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-abi-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-list-hlist-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-errptr-xarray-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-bitmap-cpumask.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-list-hlist.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-errptr-xarray.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
     ROOT / 'zigux' / 'helpers' / 'cpumask_view.zig',
     ROOT / 'zigux' / 'helpers' / 'list_view.zig',
     ROOT / 'zigux' / 'helpers' / 'hlist_view.zig',
+    ROOT / 'zigux' / 'helpers' / 'err_ptr.zig',
+    ROOT / 'zigux' / 'helpers' / 'xa_value.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -36,6 +40,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_abi_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_bitmap_cpumask_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_list_hlist_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_errptr_xarray_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -45,6 +50,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist' / 'phase3_list_hlist_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_errptr_xarray' / 'phase3_errptr_xarray_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_errptr_xarray' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_errptr_xarray_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -60,6 +68,7 @@ roadmap = (ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md').read_text(e
 phase_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-abi-slice.md').read_text(encoding='utf-8')
 phase_bitmap_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-slice.md').read_text(encoding='utf-8')
 phase_list_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-list-hlist-slice.md').read_text(encoding='utf-8')
+phase_errptr_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-errptr-xarray-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -70,6 +79,7 @@ artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text
 manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json').read_text(encoding='utf-8'))
 bitmap_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask_manifest.json').read_text(encoding='utf-8'))
 list_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist_manifest.json').read_text(encoding='utf-8'))
+errptr_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_errptr_xarray_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -101,11 +111,19 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-list-hlist.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_errptr_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=errptr-xarray-value-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-errptr-xarray.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
         'python3 scripts/zigux/check-phase3-bitmap-cpumask.py',
         'python3 scripts/zigux/check-phase3-list-hlist.py',
+        'python3 scripts/zigux/check-phase3-errptr-xarray.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -116,12 +134,14 @@ required_markers = {
         'check-phase3-abi.py',
         'check-phase3-bitmap-cpumask.py',
         'check-phase3-list-hlist.py',
+        'check-phase3-errptr-xarray.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
         'check-phase3-abi.py',
         'check-phase3-bitmap-cpumask.py',
         'check-phase3-list-hlist.py',
+        'check-phase3-errptr-xarray.py',
         'validate-phase3.py',
     ],
     'tests': [
@@ -129,14 +149,17 @@ required_markers = {
         'phase3_abi_dump.zig',
         'phase3_bitmap_cpumask_dump.zig',
         'phase3_list_hlist_dump.zig',
+        'phase3_errptr_xarray_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
         'phase3_list_hlist_manifest.json',
+        'phase3_errptr_xarray_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
         'phase3-bitmap-cpumask-slice.md',
         'phase3-list-hlist-slice.md',
+        'phase3-errptr-xarray-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
@@ -145,11 +168,14 @@ required_markers = {
         'check-phase3-bitmap-cpumask.py',
         'phase3_list_hlist',
         'check-phase3-list-hlist.py',
+        'phase3_errptr_xarray',
+        'check-phase3-errptr-xarray.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
         'feat(zigux): add bounded Phase 3 bitmap/cpumask interop slice',
         'feat(zigux): add bounded Phase 3 list/hlist interop slice',
+        'feat(zigux): add bounded Phase 3 err_ptr/xarray interop slice',
     ],
 }
 
@@ -166,6 +192,9 @@ for marker in required_markers['phase_bitmap_doc']:
 for marker in required_markers['phase_list_doc']:
     if marker not in phase_list_doc:
         missing_markers.append(f'phase_list_doc:{marker}')
+for marker in required_markers['phase_errptr_doc']:
+    if marker not in phase_errptr_doc:
+        missing_markers.append(f'phase_errptr_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -229,6 +258,20 @@ if len(list_manifest.get('files', [])) != 4:
 for rel in list_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'list_manifest_file:{rel}')
+
+if errptr_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('errptr_manifest:phase=Phase 3')
+if errptr_manifest.get('status') != 'active':
+    missing_markers.append('errptr_manifest:status=active')
+if errptr_manifest.get('slice') != 'errptr-xarray-value-interop':
+    missing_markers.append(f'errptr_manifest:slice={errptr_manifest.get("slice")}')
+if errptr_manifest.get('file_count') != 4:
+    missing_markers.append(f'errptr_manifest:file_count={errptr_manifest.get("file_count")}')
+if len(errptr_manifest.get('files', [])) != 4:
+    missing_markers.append(f'errptr_manifest:files_len={len(errptr_manifest.get("files", []))}')
+for rel in errptr_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'errptr_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')

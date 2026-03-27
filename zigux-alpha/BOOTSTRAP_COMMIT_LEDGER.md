@@ -241,3 +241,21 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+29. `feat(zigux): add bounded Phase 3 err_ptr/xarray interop slice`
+- `zigux/helpers/err_ptr.zig`
+- `zigux/helpers/xa_value.zig`
+- `zigux/tests/phase3_errptr_xarray_dump.zig`
+- `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
+- `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
+- `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+- `scripts/zigux/check-phase3-errptr-xarray.py`
+- `Documentation/zigux/phase3-errptr-xarray-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

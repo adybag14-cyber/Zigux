@@ -28,6 +28,7 @@ Current bootstrap helpers
 - `check-phase3-abi.py`
 - `check-phase3-bitmap-cpumask.py`
 - `check-phase3-list-hlist.py`
+- `check-phase3-errptr-xarray.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

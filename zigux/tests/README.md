@@ -19,6 +19,7 @@ Current entrypoint
 - `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/phase3_bitmap_cpumask_dump.zig`
 - `zigux/tests/phase3_list_hlist_dump.zig`
+- `zigux/tests/phase3_errptr_xarray_dump.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
@@ -42,3 +43,5 @@ Current entrypoint
 - `zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json`
 - `zigux/tests/fixtures/phase3_list_hlist_manifest.json`
 - `zigux/tests/fixtures/phase3_list_hlist/expected.json`
+- `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+- `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`

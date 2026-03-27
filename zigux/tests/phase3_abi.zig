@@ -10,6 +10,8 @@ const bitmap_view = @import("bitmap_view");
 const cpumask_view = @import("cpumask_view");
 const list_view = @import("list_view");
 const hlist_view = @import("hlist_view");
+const err_ptr = @import("err_ptr");
+const xa_value = @import("xa_value");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -26,12 +28,16 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.CpuMaskSummary, 16);
         layout_assert.assertSize(abi.ListSummary, 8);
         layout_assert.assertSize(abi.HListSummary, 8);
+        layout_assert.assertSize(abi.ErrPtrSummary, 8);
+        layout_assert.assertSize(abi.XaValueSummary, @sizeOf(usize) + 8);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
         layout_assert.assertOffset(abi.ListView, "max_nodes", @sizeOf(usize));
         layout_assert.assertOffset(abi.HListNodeRef, "pprev_addr", @sizeOf(usize));
         layout_assert.assertOffset(abi.HListView, "max_nodes", @sizeOf(usize));
+        layout_assert.assertOffset(abi.ErrPtrSummary, "flags", 4);
+        layout_assert.assertOffset(abi.XaValueSummary, "decoded_value", @sizeOf(usize));
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -125,4 +131,27 @@ test "phase3 list/hlist interop helpers stay aligned with the ABI substrate" {
     try std.testing.expect(hlist_view.isValid(hlist));
     try std.testing.expectEqual(@as(u32, 2), hlist_summary.length);
     try std.testing.expectEqual(@as(u32, abi.HLIST_FLAG_TERMINATED), hlist_summary.flags);
+}
+
+test "phase3 err_ptr and encoded value helpers stay aligned with the ABI substrate" {
+    const err_addr = err_ptr.fromErrno(-22);
+    const err_summary = err_ptr.summarize(err_addr);
+    const null_summary = err_ptr.summarize(0);
+    const plain_addr: usize = 0x1000;
+    const plain_summary = xa_value.summarize(plain_addr);
+    const encoded = xa_value.make(37);
+    const encoded_summary = xa_value.summarize(encoded);
+
+    try std.testing.expect(err_ptr.isErr(err_addr));
+    try std.testing.expectEqual(@as(i32, -22), err_ptr.toErrno(err_addr));
+    try std.testing.expectEqual(@as(i32, -22), err_summary.errno_code);
+    try std.testing.expectEqual(@as(u16, abi.ERR_PTR_FLAG_ERROR), err_summary.flags);
+    try std.testing.expectEqual(@as(u16, abi.ERR_PTR_FLAG_NULL), null_summary.flags);
+
+    try std.testing.expect(!xa_value.isValue(plain_addr));
+    try std.testing.expectEqual(@as(u32, abi.XA_VALUE_FLAG_PLAIN), plain_summary.flags);
+    try std.testing.expect(xa_value.isValue(encoded));
+    try std.testing.expectEqual(@as(u32, 37), xa_value.toValue(encoded));
+    try std.testing.expectEqual(@as(u32, 37), encoded_summary.decoded_value);
+    try std.testing.expectEqual(@as(u32, abi.XA_VALUE_FLAG_VALUE), encoded_summary.flags);
 }

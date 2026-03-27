@@ -96,6 +96,9 @@ jobs:
       - name: Check bounded Phase 3 list/hlist interop parity
         run: python3 scripts/zigux/check-phase3-list-hlist.py
 
+      - name: Check bounded Phase 3 err_ptr/xarray interop parity
+        run: python3 scripts/zigux/check-phase3-errptr-xarray.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

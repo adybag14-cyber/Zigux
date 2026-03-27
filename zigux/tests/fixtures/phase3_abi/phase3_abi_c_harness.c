@@ -36,6 +36,10 @@ int main(void)
 		"\"offsets\":{\"head_addr\":%zu,\"max_nodes\":%zu,\"reserved\":%zu}},"
 		"\"zigux_hlist_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"length\":%zu,\"flags\":%zu}},"
+		"\"zigux_err_ptr_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"errno_code\":%zu,\"flags\":%zu,\"reserved\":%zu}},"
+		"\"zigux_xa_value_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"raw_addr\":%zu,\"decoded_value\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -108,6 +112,16 @@ int main(void)
 		_Alignof(struct zigux_hlist_summary),
 		offsetof(struct zigux_hlist_summary, length),
 		offsetof(struct zigux_hlist_summary, flags),
+		sizeof(struct zigux_err_ptr_summary),
+		_Alignof(struct zigux_err_ptr_summary),
+		offsetof(struct zigux_err_ptr_summary, errno_code),
+		offsetof(struct zigux_err_ptr_summary, flags),
+		offsetof(struct zigux_err_ptr_summary, reserved),
+		sizeof(struct zigux_xa_value_summary),
+		_Alignof(struct zigux_xa_value_summary),
+		offsetof(struct zigux_xa_value_summary, raw_addr),
+		offsetof(struct zigux_xa_value_summary, decoded_value),
+		offsetof(struct zigux_xa_value_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

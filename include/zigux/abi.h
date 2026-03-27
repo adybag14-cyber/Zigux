@@ -45,6 +45,12 @@ typedef int32_t zigux_s32;
 #define ZIGUX_HLIST_FLAG_TERMINATED 4U
 #define ZIGUX_HLIST_FLAG_TRUNCATED 8U
 
+#define ZIGUX_ERR_PTR_FLAG_ERROR 1U
+#define ZIGUX_ERR_PTR_FLAG_NULL 2U
+
+#define ZIGUX_XA_VALUE_FLAG_VALUE 1U
+#define ZIGUX_XA_VALUE_FLAG_PLAIN 2U
+
 struct zigux_boundary_header {
 	zigux_u32 size;
 	zigux_u16 abi_version;
@@ -116,6 +122,18 @@ struct zigux_hlist_view {
 
 struct zigux_hlist_summary {
 	zigux_u32 length;
+	zigux_u32 flags;
+};
+
+struct zigux_err_ptr_summary {
+	zigux_s32 errno_code;
+	zigux_u16 flags;
+	zigux_u16 reserved;
+};
+
+struct zigux_xa_value_summary {
+	unsigned long raw_addr;
+	zigux_u32 decoded_value;
 	zigux_u32 flags;
 };
 

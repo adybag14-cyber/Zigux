@@ -12,6 +12,7 @@
 #include <zigux/abi.h>
 
 #define ZIGUX_BITS_PER_LONG ((zigux_u32)(sizeof(unsigned long) * 8U))
+#define ZIGUX_MAX_ERRNO 4095U
 
 #ifdef __KERNEL__
 #define zigux_ptr_addr(ptr) ((unsigned long)(ptr))
@@ -511,6 +512,78 @@ zigux_hlist_summarize(const struct zigux_hlist_view *view)
 	else
 		summary.flags |= ZIGUX_HLIST_FLAG_TRUNCATED;
 	return summary;
+}
+
+static inline unsigned long zigux_err_addr_from_errno(zigux_s32 errno_code)
+{
+	return (unsigned long)(long)errno_code;
+}
+
+static inline bool zigux_err_addr_is_err(unsigned long raw_addr)
+{
+	return raw_addr >= (unsigned long)(long)(-((zigux_s32)ZIGUX_MAX_ERRNO));
+}
+
+static inline bool zigux_err_addr_is_null(unsigned long raw_addr)
+{
+	return raw_addr == 0;
+}
+
+static inline bool zigux_err_addr_is_null_or_err(unsigned long raw_addr)
+{
+	return zigux_err_addr_is_null(raw_addr) || zigux_err_addr_is_err(raw_addr);
+}
+
+static inline zigux_s32 zigux_err_addr_to_errno(unsigned long raw_addr)
+{
+	return (zigux_s32)(long)raw_addr;
+}
+
+static inline struct zigux_err_ptr_summary
+zigux_err_addr_summarize(unsigned long raw_addr)
+{
+	struct zigux_err_ptr_summary summary = {0, 0, 0};
+
+	if (zigux_err_addr_is_err(raw_addr)) {
+		summary.errno_code = zigux_err_addr_to_errno(raw_addr);
+		summary.flags |= ZIGUX_ERR_PTR_FLAG_ERROR;
+	}
+	if (zigux_err_addr_is_null(raw_addr))
+		summary.flags |= ZIGUX_ERR_PTR_FLAG_NULL;
+	return summary;
+}
+
+static inline unsigned long zigux_xa_mk_value(zigux_u32 value)
+{
+	return ((unsigned long)value << 1) | 1UL;
+}
+
+static inline bool zigux_xa_is_value(unsigned long raw_addr)
+{
+	return (raw_addr & 1UL) != 0;
+}
+
+static inline zigux_u32 zigux_xa_to_value(unsigned long raw_addr)
+{
+	return (zigux_u32)(raw_addr >> 1);
+}
+
+static inline struct zigux_xa_value_summary
+zigux_xa_summarize(unsigned long raw_addr)
+{
+	if (zigux_xa_is_value(raw_addr)) {
+		return (struct zigux_xa_value_summary){
+			.raw_addr = raw_addr,
+			.decoded_value = zigux_xa_to_value(raw_addr),
+			.flags = ZIGUX_XA_VALUE_FLAG_VALUE,
+		};
+	}
+
+	return (struct zigux_xa_value_summary){
+		.raw_addr = raw_addr,
+		.decoded_value = 0,
+		.flags = ZIGUX_XA_VALUE_FLAG_PLAIN,
+	};
 }
 
 #endif

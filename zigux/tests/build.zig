@@ -201,6 +201,18 @@ pub fn build(b: *std.Build) void {
     });
     hlist_view_module.addImport("abi_bindings", abi_bindings_module);
     hlist_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const err_ptr_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    err_ptr_module.addImport("abi_bindings", abi_bindings_module);
+    const xa_value_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xa_value_module.addImport("abi_bindings", abi_bindings_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -230,6 +242,8 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("cpumask_view", cpumask_view_module);
     phase3_root_module.addImport("list_view", list_view_module);
     phase3_root_module.addImport("hlist_view", hlist_view_module);
+    phase3_root_module.addImport("err_ptr", err_ptr_module);
+    phase3_root_module.addImport("xa_value", xa_value_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -288,4 +302,20 @@ pub fn build(b: *std.Build) void {
     const run_phase3_list_hlist_dump = b.addRunArtifact(phase3_list_hlist_dump);
     const phase3_list_hlist_dump_step = b.step("phase3-list-hlist-dump", "Run Phase 3 list/hlist interop dump");
     phase3_list_hlist_dump_step.dependOn(&run_phase3_list_hlist_dump.step);
+
+    const phase3_errptr_xarray_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_errptr_xarray_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_errptr_xarray_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_errptr_xarray_dump_module.addImport("err_ptr", err_ptr_module);
+    phase3_errptr_xarray_dump_module.addImport("xa_value", xa_value_module);
+    const phase3_errptr_xarray_dump = b.addExecutable(.{
+        .name = "phase3-errptr-xarray-dump",
+        .root_module = phase3_errptr_xarray_dump_module,
+    });
+    const run_phase3_errptr_xarray_dump = b.addRunArtifact(phase3_errptr_xarray_dump);
+    const phase3_errptr_xarray_dump_step = b.step("phase3-errptr-xarray-dump", "Run Phase 3 err_ptr/xarray interop dump");
+    phase3_errptr_xarray_dump_step.dependOn(&run_phase3_errptr_xarray_dump.step);
 }

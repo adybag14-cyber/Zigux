@@ -114,6 +114,18 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.HListSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_err_ptr_summary", @sizeOf(abi.ErrPtrSummary), @alignOf(abi.ErrPtrSummary));
+    try writeOffset(writer, "errno_code", @offsetOf(abi.ErrPtrSummary, "errno_code"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.ErrPtrSummary, "flags"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.ErrPtrSummary, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_xa_value_summary", @sizeOf(abi.XaValueSummary), @alignOf(abi.XaValueSummary));
+    try writeOffset(writer, "raw_addr", @offsetOf(abi.XaValueSummary, "raw_addr"), true);
+    try writeOffset(writer, "decoded_value", @offsetOf(abi.XaValueSummary, "decoded_value"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.XaValueSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);
