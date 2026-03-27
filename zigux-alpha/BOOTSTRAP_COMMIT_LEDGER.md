@@ -49,3 +49,24 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase1_helpers.json`
 - `zigux/tests/phase1_helpers.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+10. `feat(tools/lib): add phase-1 memory and formatting helper ports`
+- `tools/lib/slab.zig`
+- `tools/lib/str_error_r.zig`
+- `tools/lib/vsprintf.zig`
+- `tools/lib/zalloc.zig`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+- `zigux/tests/fixtures/phase1_helpers.json`
+
+11. `feat(scripts/zigux): add bounded Phase 2 fixdep dual-implementation lane`
+- `scripts/zigux/fixdep.zig`
+- `scripts/zigux/check-fixdep-diff.py`
+- `scripts/zigux/validate-phase2.py`
+- `zigux/tests/fixtures/fixdep/sample.d`
+- `zigux/tests/fixtures/fixdep/sample.c`
+- `zigux/tests/fixtures/fixdep/sample.h`
+- `zigux/tests/fixtures/fixdep/sample-config.h`
+- `zigux/tests/fixtures/fixdep/sample.rmeta`
+- `zigux/tests/fixtures/fixdep/sample_expected.txt`
+- `.github/workflows/zigux-bootstrap.yml`

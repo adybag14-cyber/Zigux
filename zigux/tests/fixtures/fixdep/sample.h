@@ -1,0 +1,7 @@
+#ifndef ZIGUX_SAMPLE_H
+#define ZIGUX_SAMPLE_H
+
+/* CONFIG_ZIGUX_HEADER */
+/* CONFIG_ZIGUX_SHARED */
+
+#endif

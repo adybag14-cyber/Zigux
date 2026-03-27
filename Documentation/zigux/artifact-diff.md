@@ -7,6 +7,10 @@ Current Phase 1 use
 - `scripts/zigux/check-phase1-parity.py` rebuilds that artifact and compares it against the committed JSON.
 - `scripts/zigux/artifact_diff.py` is the generic comparison layer that future Phase 2 tooling work will reuse.
 
+Current Phase 2 use
+- `zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.
+- `scripts/zigux/check-fixdep-diff.py` compares the committed sample output against both the C tool and `scripts/zigux/fixdep.zig`.
+
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
 - fixture scope must stay small and reviewable

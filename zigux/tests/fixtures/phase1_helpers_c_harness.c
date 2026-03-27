@@ -8,8 +8,11 @@
 #include <linux/bitmap.h>
 #include <linux/ctype.h>
 #include <linux/kernel.h>
+#include <linux/list.h>
 #include <linux/rbtree.h>
+#include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/zalloc.h>
 
 struct rb_entry_fixture {
 	int key;
@@ -284,6 +287,106 @@ static void run_hweight_section(void)
 	printf("}");
 }
 
+static void run_zalloc_section(void)
+{
+	void *ptr = zalloc(8);
+	bool zeroed = true;
+	for (size_t i = 0; i < 8; i++) {
+		if (((unsigned char *)ptr)[i] != 0) {
+			zeroed = false;
+			break;
+		}
+	}
+	zfree(&ptr);
+
+	struct {
+		uint32_t a;
+		bool b;
+	} *value = zalloc(sizeof(*value));
+	bool value_zeroed = value->a == 0 && !value->b;
+	zfree(&value);
+
+	printf("\"zalloc\":{");
+	printf("\"zeroed\":%s,", zeroed ? "true" : "false");
+	printf("\"freed_is_null\":%s,", ptr == NULL ? "true" : "false");
+	printf("\"value_zeroed\":%s,", value_zeroed ? "true" : "false");
+	printf("\"value_freed_is_null\":%s", value == NULL ? "true" : "false");
+	printf("}");
+}
+
+static void run_str_error_r_section(void)
+{
+	char buffer[64];
+	char unknown[64];
+
+	str_error_r(2, buffer, sizeof(buffer));
+	str_error_r(4096, unknown, sizeof(unknown));
+
+	printf("\"str_error_r\":{");
+	printf("\"enoent\":\"%s\",", buffer);
+	printf("\"unknown\":\"%s\"", unknown);
+	printf("}");
+}
+
+static void run_slab_section(void)
+{
+	void *plain;
+	void *array;
+	bool array_zeroed = true;
+	bool null_without_reclaim;
+
+	kmalloc_nr_allocated = 0;
+	null_without_reclaim = kmalloc(8, 0) == NULL;
+	plain = kmalloc(8, GFP_KERNEL | __GFP_ZERO);
+	bool zero_after_kmalloc = true;
+	for (size_t i = 0; i < 8; i++) {
+		if (((unsigned char *)plain)[i] != 0) {
+			zero_after_kmalloc = false;
+			break;
+		}
+	}
+	int alloc_count_after_kmalloc = kmalloc_nr_allocated;
+	kfree(plain);
+	int alloc_count_after_kmalloc_free = kmalloc_nr_allocated;
+
+	array = kmalloc_array(4, 2, GFP_KERNEL);
+	for (size_t i = 0; i < 8; i++) {
+		if (((unsigned char *)array)[i] != 0) {
+			array_zeroed = false;
+			break;
+		}
+	}
+	int alloc_count_after_kmalloc_array = kmalloc_nr_allocated;
+	kfree(array);
+	int alloc_count_after_kmalloc_array_free = kmalloc_nr_allocated;
+
+	printf("\"slab\":{");
+	printf("\"null_without_reclaim\":%s,", null_without_reclaim ? "true" : "false");
+	printf("\"alloc_count_after_kmalloc\":%d,", alloc_count_after_kmalloc);
+	printf("\"zero_after_kmalloc\":%s,", zero_after_kmalloc ? "true" : "false");
+	printf("\"alloc_count_after_kmalloc_free\":%d,", alloc_count_after_kmalloc_free);
+	printf("\"array_zeroed\":%s,", array_zeroed ? "true" : "false");
+	printf("\"alloc_count_after_kmalloc_array\":%d,", alloc_count_after_kmalloc_array);
+	printf("\"alloc_count_after_kmalloc_array_free\":%d,", alloc_count_after_kmalloc_array_free);
+	printf("\"slab_is_available\":%s", slab_is_available() ? "true" : "false");
+	printf("}");
+}
+
+static void run_vsprintf_section(void)
+{
+	char fmt[16] = {0};
+	char pad[9] = {0};
+	int fmt_len = scnprintf(fmt, sizeof(fmt), "%s:%d", "zigux", 7);
+	int pad_len = scnprintf_pad(pad, sizeof(pad) - 1, "id=%d", 7);
+
+	printf("\"vsprintf\":{");
+	printf("\"scnprintf_text\":\"%s\",", fmt);
+	printf("\"scnprintf_len\":%d,", fmt_len);
+	printf("\"pad_text\":\"%s\",", pad);
+	printf("\"pad_len\":%d", pad_len);
+	printf("}");
+}
+
 int main(void)
 {
 	printf("{");
@@ -302,6 +405,14 @@ int main(void)
 	run_ctype_section();
 	printf(",");
 	run_hweight_section();
+	printf(",");
+	run_zalloc_section();
+	printf(",");
+	run_str_error_r_section();
+	printf(",");
+	run_slab_section();
+	printf(",");
+	run_vsprintf_section();
 	printf("}\n");
 	return 0;
 }

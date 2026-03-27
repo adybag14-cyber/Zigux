@@ -17,3 +17,5 @@ Current entrypoint
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helpers.json`
 - `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+- `zigux/tests/fixtures/fixdep/sample.d`
+- `zigux/tests/fixtures/fixdep/sample_expected.txt`

@@ -43,11 +43,20 @@ jobs:
       - name: Validate Phase 1 helper files
         run: python3 scripts/zigux/validate-phase1.py
 
+      - name: Validate Phase 2 fixdep files
+        run: python3 scripts/zigux/validate-phase2.py
+
       - name: Check Zig toolchain policy
         run: python3 scripts/zigux/check-zig-toolchain.py
 
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
+
+      - name: Check bounded fixdep artifact parity
+        run: python3 scripts/zigux/check-fixdep-diff.py
+
+      - name: Run bounded fixdep unit tests
+        run: zig test scripts/zigux/fixdep.zig
 
       - name: Run Phase 1 helper tests
         run: zig build test --build-file zigux/tests/build.zig

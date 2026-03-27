@@ -6,7 +6,11 @@ const ctype = @import("ctype");
 const find_bit = @import("find_bit");
 const hweight = @import("hweight");
 const rbtree = @import("rbtree");
+const slab = @import("slab");
+const str_error_r = @import("str_error_r");
 const string = @import("string");
+const vsprintf = @import("vsprintf");
+const zalloc = @import("zalloc");
 
 const CmdlineValueFixture = struct {
     value: u64,
@@ -92,6 +96,32 @@ const Fixture = struct {
         w64: u64,
         wlong: usize,
     },
+    zalloc: struct {
+        zeroed: bool,
+        freed_is_null: bool,
+        value_zeroed: bool,
+        value_freed_is_null: bool,
+    },
+    str_error_r: struct {
+        enoent: []const u8,
+        unknown: []const u8,
+    },
+    slab: struct {
+        null_without_reclaim: bool,
+        alloc_count_after_kmalloc: isize,
+        zero_after_kmalloc: bool,
+        alloc_count_after_kmalloc_free: isize,
+        array_zeroed: bool,
+        alloc_count_after_kmalloc_array: isize,
+        alloc_count_after_kmalloc_array_free: isize,
+        slab_is_available: bool,
+    },
+    vsprintf: struct {
+        scnprintf_text: []const u8,
+        scnprintf_len: usize,
+        pad_text: []const u8,
+        pad_len: usize,
+    },
 };
 
 fn loadFixture(allocator: std.mem.Allocator) !std.json.Parsed(Fixture) {
@@ -113,7 +143,11 @@ test "phase 1 helper modules import cleanly" {
     _ = find_bit;
     _ = hweight;
     _ = rbtree;
+    _ = slab;
+    _ = str_error_r;
     _ = string;
+    _ = vsprintf;
+    _ = zalloc;
 }
 
 test "phase 1 helper ports match committed parity fixture" {
@@ -228,6 +262,69 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.hweight.w32, hweight.swHweight32(0xf0f0_f0f0));
     try std.testing.expectEqual(fixture.hweight.w64, hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
     try std.testing.expectEqual(fixture.hweight.wlong, hweight.hweightLong(0xf0f0));
+
+    var zalloc_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 8);
+    defer zalloc.zfreeBytes(allocator, &zalloc_bytes);
+    var zalloc_zeroed = true;
+    for (zalloc_bytes.?) |value| {
+        if (value != 0) {
+            zalloc_zeroed = false;
+            break;
+        }
+    }
+    try std.testing.expectEqual(fixture.zalloc.zeroed, zalloc_zeroed);
+    zalloc.zfreeBytes(allocator, &zalloc_bytes);
+    try std.testing.expectEqual(fixture.zalloc.freed_is_null, zalloc_bytes == null);
+
+    const ZallocValue = struct {
+        a: u32,
+        b: bool,
+    };
+    var zalloc_value: ?*ZallocValue = try zalloc.zallocValue(allocator, ZallocValue);
+    defer zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expectEqual(fixture.zalloc.value_zeroed, zalloc_value.?.a == 0 and !zalloc_value.?.b);
+    zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expectEqual(fixture.zalloc.value_freed_is_null, zalloc_value == null);
+
+    var strerror_buffer: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(fixture.str_error_r.enoent, str_error_r.strErrorR(2, &strerror_buffer));
+    try std.testing.expectEqualStrings(fixture.str_error_r.unknown, str_error_r.strErrorR(4096, &strerror_buffer));
+
+    slab.kmalloc_nr_allocated = 0;
+    try std.testing.expectEqual(fixture.slab.null_without_reclaim, slab.kmallocBytes(8, 0) == null);
+    const slab_plain = slab.kmallocBytes(8, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc, slab.kmalloc_nr_allocated);
+    for (slab_plain) |*value| {
+        value.* = 0xaa;
+    }
+    slab.kfree(slab_plain);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_free, slab.kmalloc_nr_allocated);
+
+    var slab_array: ?[]u8 = slab.kmallocArray(4, 2, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer slab.kfree(slab_array);
+    var slab_array_zeroed = true;
+    for (slab_array.?) |value| {
+        if (value != 0) {
+            slab_array_zeroed = false;
+            break;
+        }
+    }
+    try std.testing.expectEqual(fixture.slab.array_zeroed, slab_array_zeroed);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_array, slab.kmalloc_nr_allocated);
+    try std.testing.expectEqual(fixture.slab.slab_is_available, slab.slabIsAvailable());
+    slab.kfree(slab_array);
+    slab_array = null;
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_array_free, slab.kmalloc_nr_allocated);
+
+    var vsprintf_buffer: [16]u8 = undefined;
+    const scnprintf_len = vsprintf.scnprintf(&vsprintf_buffer, "{s}:{d}", .{ "zigux", 7 });
+    try std.testing.expectEqual(fixture.vsprintf.scnprintf_len, scnprintf_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.scnprintf_text, vsprintf_buffer[0..scnprintf_len]);
+
+    var vsprintf_pad_buffer: [9]u8 = undefined;
+    const scnprintf_pad_len = vsprintf.scnprintfPad(&vsprintf_pad_buffer, vsprintf_pad_buffer.len - 1, "id={d}", .{7});
+    try std.testing.expectEqual(fixture.vsprintf.pad_len, scnprintf_pad_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.pad_text, vsprintf_pad_buffer[0 .. vsprintf_pad_buffer.len - 1]);
 
     const Entry = struct {
         key: i32,

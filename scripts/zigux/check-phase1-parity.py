@@ -23,9 +23,12 @@ SOURCES = [
     ROOT / 'tools' / 'lib' / 'ctype.c',
     ROOT / 'tools' / 'lib' / 'find_bit.c',
     ROOT / 'tools' / 'lib' / 'hweight.c',
+    ROOT / 'tools' / 'lib' / 'slab.c',
+    ROOT / 'tools' / 'lib' / 'str_error_r.c',
     ROOT / 'tools' / 'lib' / 'string.c',
     ROOT / 'tools' / 'lib' / 'rbtree.c',
     ROOT / 'tools' / 'lib' / 'vsprintf.c',
+    ROOT / 'tools' / 'lib' / 'zalloc.c',
 ]
 
 
@@ -45,7 +48,11 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
 
 def write_host_shims(root: Path) -> None:
     asm_dir = root / 'asm'
+    linux_dir = root / 'linux'
+    urcu_dir = root / 'urcu'
     asm_dir.mkdir(parents=True, exist_ok=True)
+    linux_dir.mkdir(parents=True, exist_ok=True)
+    urcu_dir.mkdir(parents=True, exist_ok=True)
     (asm_dir / 'types.h').write_text(
         '\n'.join([
             '#ifndef __ZIGUX_HOST_ASM_TYPES_H__',
@@ -65,6 +72,34 @@ def write_host_shims(root: Path) -> None:
     )
     (asm_dir / 'posix_types.h').write_text('#include <asm-generic/posix_types.h>\n', encoding='utf-8')
     (asm_dir / 'bitsperlong.h').write_text('#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)\n', encoding='utf-8')
+    (linux_dir / 'slab.h').write_text(
+        '\n'.join([
+            '#ifndef __ZIGUX_HOST_LINUX_SLAB_H__',
+            '#define __ZIGUX_HOST_LINUX_SLAB_H__',
+            '#include <linux/types.h>',
+            '#include <linux/gfp.h>',
+            'void *kmalloc(size_t size, gfp_t gfp);',
+            'void kfree(void *p);',
+            'void *kmalloc_array(size_t n, size_t size, gfp_t gfp);',
+            'extern int kmalloc_nr_allocated;',
+            'extern int kmalloc_verbose;',
+            'static inline bool slab_is_available(void) { return true; }',
+            '#endif',
+            '',
+        ]),
+        encoding='utf-8',
+    )
+    (urcu_dir / 'uatomic.h').write_text(
+        '\n'.join([
+            '#ifndef __ZIGUX_HOST_URCU_UATOMIC_H__',
+            '#define __ZIGUX_HOST_URCU_UATOMIC_H__',
+            '#define uatomic_inc(ptr) (++(*(ptr)))',
+            '#define uatomic_dec(ptr) (--(*(ptr)))',
+            '#endif',
+            '',
+        ]),
+        encoding='utf-8',
+    )
 
 
 def include_flags(shim_dir: Path) -> list[str]:
