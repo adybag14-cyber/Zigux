@@ -12,6 +12,7 @@ Initial responsibilities
 Current bootstrap helpers
 - `check-zig-toolchain.py`
 - `validate-bootstrap.py`
+- `install-zig.py`
 - `validate-phase1.py`
 - `check-phase1-bench.py`
 - `validate-phase1-closure.py`

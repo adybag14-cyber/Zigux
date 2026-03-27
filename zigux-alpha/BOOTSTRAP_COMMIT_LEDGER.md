@@ -120,3 +120,8 @@ This ledger turns the roadmap into the first product commit train.
 - `.github/workflows/zigux-bootstrap.yml`
 - `Documentation/zigux/phase1-closure.md`
 - `scripts/zigux/validate-phase1-closure.py`
+
+18. `build(zigux): remove node-20-bound Zig action from phase-1 closure path`
+- `scripts/zigux/install-zig.py`
+- `.github/workflows/zigux-bootstrap.yml`
+- `scripts/zigux/validate-phase1-closure.py`

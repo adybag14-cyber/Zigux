@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
+    ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
@@ -48,6 +49,8 @@ required_workflow_markers = [
     'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
     'uses: actions/checkout@v6.0.2',
     'uses: actions/setup-python@v6.2.0',
+    'python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain',
+    'run: zig version',
     'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
     'zig build bench --build-file zigux/tests/build.zig',
@@ -73,6 +76,9 @@ for marker in required_build_markers:
 for marker in required_ledger_markers:
     if marker not in ledger:
         missing_markers.append(f'ledger:{marker}')
+
+if 'mlugg/setup-zig@' in workflow:
+    missing_markers.append('workflow:remove mlugg/setup-zig@')
 
 manifest_helpers = manifest.get('helpers', [])
 manifest_count = manifest.get('helper_count')

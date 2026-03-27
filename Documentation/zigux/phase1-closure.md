@@ -87,6 +87,7 @@ That means:
 - current supported GitHub Action major versions where available
 - explicit opt-in to Node 24 action execution on GitHub-hosted runners
 - no known dependency on the deprecated Node 20 runtime
+- Zig installation through an in-repo official-download step instead of a Node 20-bound action
 
 This is part of closure because a closed validation tranche that is about to stop executing is not actually closed.
 
