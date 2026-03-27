@@ -133,3 +133,25 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/genksyms_crc/inputs.txt`
 - `zigux/tests/fixtures/genksyms_crc/expected.json`
 - `.github/workflows/zigux-bootstrap.yml`
+
+20. `feat(scripts/zigux): add bounded Phase 2 kconfig bridge scaffolding`
+- `scripts/zigux/kconfig/conf_bridge.zig`
+- `scripts/zigux/kconfig/confdata_bridge.zig`
+- `scripts/zigux/check-kconfig-bridge.py`
+- `zigux/tests/fixtures/kconfig_bridge/cases.json`
+- `zigux/tests/fixtures/kconfig_bridge/olddefconfig_expected.json`
+- `zigux/tests/fixtures/kconfig_bridge/syncconfig_expected.json`
+- `zigux/tests/fixtures/kconfig_bridge/sample.config`
+- `zigux/tests/fixtures/kconfig_bridge/sample_expected.json`
+
+21. `ci(zigux): add Phase 2 cross-arch build matrix`
+- `scripts/zigux/check-phase2-cross.py`
+- `zigux/tests/fixtures/phase2_cross_targets.json`
+- `.github/workflows/zigux-bootstrap.yml`
+
+22. `docs(zigux): close bounded Phase 2 toolchain tranche`
+- `Documentation/zigux/phase2-closure.md`
+- `scripts/zigux/validate-phase2-closure.py`
+- `zigux/tests/fixtures/phase2_tool_manifest.json`
+- `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`

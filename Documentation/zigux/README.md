@@ -17,6 +17,10 @@ Rules
 - require validation and rollback language for every new active port target
 - align all new product docs with `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 
+Current closure records
+- `Documentation/zigux/phase1-closure.md`
+- `Documentation/zigux/phase2-closure.md`
+
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
 - otherwise case-colliding Linux paths will create false working-tree dirt on Windows

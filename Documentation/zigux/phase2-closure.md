@@ -1,0 +1,107 @@
+# Phase 2 Closure
+
+This document closes the bounded Phase 2 toolchain and Kbuild tranche for Zigux.
+
+## Status
+
+- `PHASE2_STATUS=closed`
+- scope: bounded host-tool and bridge tranche only
+- product boundary: `scripts/zigux/*`, `scripts/zigux/kconfig/*`, `zigux/Makefile`
+- authority: current Linux C tools remain authoritative for risky parser-heavy behavior
+
+## Closed Tool Set
+
+The bounded Phase 2 tool set is:
+
+- `scripts/zigux/fixdep.zig`
+- `scripts/zigux/genksyms_crc.zig`
+- `scripts/zigux/mk_elfconfig.zig`
+- `scripts/zigux/kconfig/conf_bridge.zig`
+- `scripts/zigux/kconfig/confdata_bridge.zig`
+
+- `PHASE2_TOOL_COUNT=5`
+- manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`
+
+## Closed Cross Target Set
+
+The bounded Phase 2 cross-target compile set is:
+
+- `x86_64-linux-musl`
+- `aarch64-linux-musl`
+- `riscv64-linux-musl`
+
+- `PHASE2_CROSS_TARGET_COUNT=3`
+- manifest: `zigux/tests/fixtures/phase2_cross_targets.json`
+
+## Closure Gates
+
+Phase 2 is only considered closed when all of the following are green:
+
+1. bounded fixdep artifact parity
+- `python3 scripts/zigux/check-fixdep-diff.py`
+
+2. bounded genksyms CRC artifact parity
+- `python3 scripts/zigux/check-genksyms-crc-diff.py`
+
+3. bounded mk_elfconfig artifact parity
+- `python3 scripts/zigux/check-mk-elfconfig-diff.py`
+
+4. bounded kconfig bridge parity
+- `python3 scripts/zigux/check-kconfig-bridge.py`
+
+5. bounded phase2 cross-target compile gate
+- `python3 scripts/zigux/check-phase2-cross.py`
+
+6. bounded phase2 unit gates
+- `zig test scripts/zigux/fixdep.zig`
+- `zig test scripts/zigux/genksyms_crc.zig`
+- `zig test scripts/zigux/mk_elfconfig.zig`
+- `zig test scripts/zigux/kconfig/conf_bridge.zig`
+- `zig test scripts/zigux/kconfig/confdata_bridge.zig`
+
+7. closure validation
+- `python3 scripts/zigux/validate-phase2-closure.py`
+
+- `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
+- `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
+- `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
+
+## Linux-Style Entry Point
+
+The bounded Phase 2 entry point is:
+
+- `zigux/Makefile`
+
+This exists to keep the tranche callable in a Linux-style workflow without pretending that Zigux already replaces the native Kbuild flow.
+
+## Rollback
+
+Rollback owner:
+- Zigux product maintainers working in `scripts/zigux` and `Documentation/zigux`
+
+Fallback rule:
+- if a tool or bridge regresses, keep the current Linux C tool authoritative and remove the failing Zigux lane from workflow wiring
+
+Disable path:
+- remove the failing bridge or tool from `.github/workflows/zigux-bootstrap.yml`
+- remove the failing bridge or tool from `zigux/Makefile`
+- reduce `zigux/tests/fixtures/phase2_tool_manifest.json` only if scope is deliberately reopened
+
+- `PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring`
+
+## Boundary
+
+Phase 2 closure does not imply:
+
+- full `scripts/genksyms/genksyms.c` parser parity
+- full `scripts/kconfig/conf.c` rewrite
+- full `scripts/kconfig/confdata.c` rewrite
+- a full Kbuild replacement
+- runtime kernel ABI closure
+
+Phase 2 closes the bounded product tranche:
+
+- selected dual implementations where behavior is small enough to prove
+- wrapper-first bridge scaffolding for parser-heavy tooling
+- deterministic artifact checks
+- explicit cross-target compile gating

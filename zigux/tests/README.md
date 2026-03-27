@@ -26,5 +26,9 @@ Current entrypoint
 - `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`
 - `zigux/tests/fixtures/genksyms_crc/inputs.txt`
 - `zigux/tests/fixtures/genksyms_crc/expected.json`
+- `zigux/tests/fixtures/kconfig_bridge/cases.json`
+- `zigux/tests/fixtures/kconfig_bridge/sample_expected.json`
+- `zigux/tests/fixtures/phase2_tool_manifest.json`
+- `zigux/tests/fixtures/phase2_cross_targets.json`
 - `zigux/tests/fixtures/mk_elfconfig/cases.json`
 - `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json`
