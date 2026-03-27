@@ -1,0 +1,43 @@
+{
+  "constants": {
+    "bits_per_long": 64
+  },
+  "bitmap": {
+    "word_count": 2,
+    "valid": true,
+    "first_set": 1,
+    "first_zero": 0,
+    "weight": 5,
+    "test_bit_4": false,
+    "test_bit_63": true,
+    "summary": {
+      "first_set": 1,
+      "first_zero": 0,
+      "weight": 5
+    }
+  },
+  "empty_bitmap": {
+    "first_set": 0,
+    "first_zero": 0,
+    "weight": 0
+  },
+  "cpumask": {
+    "word_count": 1,
+    "valid": true,
+    "first_cpu": 0,
+    "next_cpu_after_first": 2,
+    "weight": 4,
+    "test_cpu_3": false,
+    "test_cpu_9": true,
+    "summary": {
+      "first_cpu": 0,
+      "next_cpu": 2,
+      "weight": 4
+    }
+  },
+  "empty_cpumask": {
+    "first_cpu": 0,
+    "next_cpu": 0,
+    "weight": 0
+  }
+}

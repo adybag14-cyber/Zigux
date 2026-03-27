@@ -12,10 +12,18 @@ pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {
     return @ptrFromInt(byteOffset(base, offset));
 }
 
+pub fn constSliceAt(comptime T: type, base: usize, len: usize) []const T {
+    const ptr: [*]const T = @ptrFromInt(base);
+    return ptr[0..len];
+}
+
 test "phase3 narrow unsafe wrappers stay bounded" {
     var value: u32 = 0;
     const base = addressOf(&value);
     const ptr = pointerAt(u32, base, 0);
     ptr.* = 11;
     try std.testing.expectEqual(@as(u32, 11), value);
+
+    const slice = constSliceAt(u32, base, 1);
+    try std.testing.expectEqual(@as(u32, 11), slice[0]);
 }

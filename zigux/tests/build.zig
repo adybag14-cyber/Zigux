@@ -172,6 +172,21 @@ pub fn build(b: *std.Build) void {
     });
     mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);
     mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const bitmap_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/bitmap_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_view_module.addImport("abi_bindings", abi_bindings_module);
+    bitmap_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const cpumask_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/cpumask_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cpumask_view_module.addImport("abi_bindings", abi_bindings_module);
+    cpumask_view_module.addImport("bitmap_view", bitmap_view_module);
+    cpumask_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -197,6 +212,8 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("atomic_helpers", atomic_helpers_module);
     phase3_root_module.addImport("barrier_helpers", barrier_helpers_module);
     phase3_root_module.addImport("mmio_helpers", mmio_helpers_module);
+    phase3_root_module.addImport("bitmap_view", bitmap_view_module);
+    phase3_root_module.addImport("cpumask_view", cpumask_view_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -222,4 +239,20 @@ pub fn build(b: *std.Build) void {
     const run_phase3_dump = b.addRunArtifact(phase3_dump);
     const phase3_dump_step = b.step("phase3-dump", "Run Phase 3 ABI dump");
     phase3_dump_step.dependOn(&run_phase3_dump.step);
+
+    const phase3_bitmap_cpumask_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_bitmap_cpumask_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_bitmap_cpumask_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_bitmap_cpumask_dump_module.addImport("bitmap_view", bitmap_view_module);
+    phase3_bitmap_cpumask_dump_module.addImport("cpumask_view", cpumask_view_module);
+    const phase3_bitmap_cpumask_dump = b.addExecutable(.{
+        .name = "phase3-bitmap-cpumask-dump",
+        .root_module = phase3_bitmap_cpumask_dump_module,
+    });
+    const run_phase3_bitmap_cpumask_dump = b.addRunArtifact(phase3_bitmap_cpumask_dump);
+    const phase3_bitmap_cpumask_dump_step = b.step("phase3-bitmap-cpumask-dump", "Run Phase 3 bitmap/cpumask interop dump");
+    phase3_bitmap_cpumask_dump_step.dependOn(&run_phase3_bitmap_cpumask_dump.step);
 }

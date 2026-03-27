@@ -10,11 +10,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-abi-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-bitmap-cpumask.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
+    ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
+    ROOT / 'zigux' / 'helpers' / 'cpumask_view.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -26,9 +30,13 @@ required_files = [
     ROOT / 'zigux' / 'unsafe' / 'narrow.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_abi.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_abi_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_bitmap_cpumask_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask' / 'phase3_bitmap_cpumask_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -42,6 +50,7 @@ if missing:
 
 roadmap = (ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md').read_text(encoding='utf-8')
 phase_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-abi-slice.md').read_text(encoding='utf-8')
+phase_bitmap_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -50,6 +59,7 @@ docs_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encodin
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
 manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json').read_text(encoding='utf-8'))
+bitmap_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -67,36 +77,53 @@ required_markers = {
         'PHASE3_ABI_GATE=python3 scripts/zigux/check-phase3-abi.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_bitmap_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=bitmap-cpumask-view-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-bitmap-cpumask.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
+        'python3 scripts/zigux/check-phase3-bitmap-cpumask.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
         'phase3-validate:',
         'phase3-abi:',
+        'phase3-interop:',
         'phase3:',
         'check-phase3-abi.py',
+        'check-phase3-bitmap-cpumask.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
         'check-phase3-abi.py',
+        'check-phase3-bitmap-cpumask.py',
         'validate-phase3.py',
     ],
     'tests': [
         'phase3_abi.zig',
         'phase3_abi_dump.zig',
+        'phase3_bitmap_cpumask_dump.zig',
         'phase3_abi_manifest.json',
+        'phase3_bitmap_cpumask_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
+        'phase3-bitmap-cpumask-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
         'check-phase3-abi.py',
+        'phase3_bitmap_cpumask',
+        'check-phase3-bitmap-cpumask.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
+        'feat(zigux): add bounded Phase 3 bitmap/cpumask interop slice',
     ],
 }
 
@@ -107,6 +134,9 @@ for marker in required_markers['roadmap']:
 for marker in required_markers['phase_doc']:
     if marker not in phase_doc:
         missing_markers.append(f'phase_doc:{marker}')
+for marker in required_markers['phase_bitmap_doc']:
+    if marker not in phase_bitmap_doc:
+        missing_markers.append(f'phase_bitmap_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -142,6 +172,20 @@ if len(manifest.get('files', [])) != 12:
 for rel in manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'manifest_file:{rel}')
+
+if bitmap_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('bitmap_manifest:phase=Phase 3')
+if bitmap_manifest.get('status') != 'active':
+    missing_markers.append('bitmap_manifest:status=active')
+if bitmap_manifest.get('slice') != 'bitmap-cpumask-view-interop':
+    missing_markers.append(f'bitmap_manifest:slice={bitmap_manifest.get("slice")}')
+if bitmap_manifest.get('file_count') != 4:
+    missing_markers.append(f'bitmap_manifest:file_count={bitmap_manifest.get("file_count")}')
+if len(bitmap_manifest.get('files', [])) != 4:
+    missing_markers.append(f'bitmap_manifest:files_len={len(bitmap_manifest.get("files", []))}')
+for rel in bitmap_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'bitmap_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')

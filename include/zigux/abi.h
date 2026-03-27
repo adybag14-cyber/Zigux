@@ -59,6 +59,20 @@ struct zigux_cpumask_view {
 	zigux_u32 reserved;
 };
 
+struct zigux_bitmap_summary {
+	zigux_u32 first_set;
+	zigux_u32 first_zero;
+	zigux_u32 weight;
+	zigux_u32 reserved;
+};
+
+struct zigux_cpumask_summary {
+	zigux_u32 first_cpu;
+	zigux_u32 next_cpu;
+	zigux_u32 weight;
+	zigux_u32 reserved;
+};
+
 struct zigux_mmio_range {
 	unsigned long base_addr;
 	zigux_u32 length;

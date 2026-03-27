@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "bitmap-cpumask-view-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/bitmap_view.zig",
+    "zigux/helpers/cpumask_view.zig",
+    "zigux/tests/phase3_bitmap_cpumask_dump.zig",
+    "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c"
+  ]
+}

@@ -203,3 +203,22 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/Makefile`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+27. `feat(zigux): add bounded Phase 3 bitmap/cpumask interop slice`
+- `zigux/helpers/bitmap_view.zig`
+- `zigux/helpers/cpumask_view.zig`
+- `zigux/tests/phase3_bitmap_cpumask_dump.zig`
+- `zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c`
+- `zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json`
+- `zigux/tests/fixtures/phase3_bitmap_cpumask_manifest.json`
+- `scripts/zigux/check-phase3-bitmap-cpumask.py`
+- `Documentation/zigux/phase3-bitmap-cpumask-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/unsafe/narrow.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

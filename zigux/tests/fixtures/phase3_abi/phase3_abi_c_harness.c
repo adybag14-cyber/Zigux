@@ -18,6 +18,10 @@ int main(void)
 		"\"offsets\":{\"words_addr\":%zu,\"nbits\":%zu,\"word_count\":%zu}},"
 		"\"zigux_cpumask_view\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"bits_addr\":%zu,\"nr_cpu_ids\":%zu,\"reserved\":%zu}},"
+		"\"zigux_bitmap_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"first_set\":%zu,\"first_zero\":%zu,\"weight\":%zu,\"reserved\":%zu}},"
+		"\"zigux_cpumask_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"first_cpu\":%zu,\"next_cpu\":%zu,\"weight\":%zu,\"reserved\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -49,6 +53,18 @@ int main(void)
 		offsetof(struct zigux_cpumask_view, bits_addr),
 		offsetof(struct zigux_cpumask_view, nr_cpu_ids),
 		offsetof(struct zigux_cpumask_view, reserved),
+		sizeof(struct zigux_bitmap_summary),
+		_Alignof(struct zigux_bitmap_summary),
+		offsetof(struct zigux_bitmap_summary, first_set),
+		offsetof(struct zigux_bitmap_summary, first_zero),
+		offsetof(struct zigux_bitmap_summary, weight),
+		offsetof(struct zigux_bitmap_summary, reserved),
+		sizeof(struct zigux_cpumask_summary),
+		_Alignof(struct zigux_cpumask_summary),
+		offsetof(struct zigux_cpumask_summary, first_cpu),
+		offsetof(struct zigux_cpumask_summary, next_cpu),
+		offsetof(struct zigux_cpumask_summary, weight),
+		offsetof(struct zigux_cpumask_summary, reserved),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

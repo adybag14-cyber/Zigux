@@ -44,6 +44,26 @@
         "reserved": 12
       }
     },
+    "zigux_bitmap_summary": {
+      "size": 16,
+      "align": 4,
+      "offsets": {
+        "first_set": 0,
+        "first_zero": 4,
+        "weight": 8,
+        "reserved": 12
+      }
+    },
+    "zigux_cpumask_summary": {
+      "size": 16,
+      "align": 4,
+      "offsets": {
+        "first_cpu": 0,
+        "next_cpu": 4,
+        "weight": 8,
+        "reserved": 12
+      }
+    },
     "zigux_mmio_range": {
       "size": 16,
       "align": 8,

@@ -1,5 +1,5 @@
 PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
-PHONY += phase3-validate phase3-abi phase3
+PHONY += phase3-validate phase3-abi phase3-interop phase3
 
 PYTHON ?= python3
 ZIG ?= zig
@@ -36,4 +36,7 @@ phase3-abi:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig
 
-phase3: phase3-validate phase3-abi
+phase3-interop:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-bitmap-cpumask.py
+
+phase3: phase3-validate phase3-abi phase3-interop

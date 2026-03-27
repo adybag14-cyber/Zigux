@@ -64,6 +64,20 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "reserved", @offsetOf(abi.CpuMaskView, "reserved"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_bitmap_summary", @sizeOf(abi.BitmapSummary), @alignOf(abi.BitmapSummary));
+    try writeOffset(writer, "first_set", @offsetOf(abi.BitmapSummary, "first_set"), true);
+    try writeOffset(writer, "first_zero", @offsetOf(abi.BitmapSummary, "first_zero"), true);
+    try writeOffset(writer, "weight", @offsetOf(abi.BitmapSummary, "weight"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.BitmapSummary, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_cpumask_summary", @sizeOf(abi.CpuMaskSummary), @alignOf(abi.CpuMaskSummary));
+    try writeOffset(writer, "first_cpu", @offsetOf(abi.CpuMaskSummary, "first_cpu"), true);
+    try writeOffset(writer, "next_cpu", @offsetOf(abi.CpuMaskSummary, "next_cpu"), true);
+    try writeOffset(writer, "weight", @offsetOf(abi.CpuMaskSummary, "weight"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.CpuMaskSummary, "reserved"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

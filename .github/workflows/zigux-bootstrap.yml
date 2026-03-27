@@ -90,6 +90,9 @@ jobs:
       - name: Check bounded Phase 3 ABI layout parity
         run: python3 scripts/zigux/check-phase3-abi.py
 
+      - name: Check bounded Phase 3 bitmap/cpumask interop parity
+        run: python3 scripts/zigux/check-phase3-bitmap-cpumask.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

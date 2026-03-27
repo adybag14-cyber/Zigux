@@ -51,6 +51,20 @@ pub const CpuMaskView = extern struct {
     reserved: u32,
 };
 
+pub const BitmapSummary = extern struct {
+    first_set: u32,
+    first_zero: u32,
+    weight: u32,
+    reserved: u32,
+};
+
+pub const CpuMaskSummary = extern struct {
+    first_cpu: u32,
+    next_cpu: u32,
+    weight: u32,
+    reserved: u32,
+};
+
 pub const MmioRange = extern struct {
     base_addr: usize,
     length: u32,
@@ -85,6 +99,8 @@ test "phase3 abi layouts stay stable" {
     try std.testing.expectEqual(@as(usize, 8), @sizeOf(ExportStatus));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(BitmapView));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(CpuMaskView));
+    try std.testing.expectEqual(@as(usize, 16), @sizeOf(BitmapSummary));
+    try std.testing.expectEqual(@as(usize, 16), @sizeOf(CpuMaskSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(MmioRange));
     try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
 }
