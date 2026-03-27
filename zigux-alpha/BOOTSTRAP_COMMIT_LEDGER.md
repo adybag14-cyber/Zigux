@@ -155,3 +155,26 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
+
+23. `feat(scripts/zigux): add bounded Phase 2 genksyms wrapper lane`
+- `scripts/zigux/genksyms.zig`
+- `scripts/zigux/check-genksyms-bridge.py`
+- `zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c`
+- `zigux/tests/fixtures/genksyms_bridge/cases.json`
+- `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`
+
+24. `ci(zigux): widen Phase 2 closure matrix`
+- `.github/workflows/zigux-bootstrap.yml`
+- `scripts/zigux/validate-phase2.py`
+- `scripts/zigux/validate-phase2-closure.py`
+- `zigux/Makefile`
+- `zigux/tests/fixtures/phase2_tool_manifest.json`
+
+25. `docs(zigux): reopen and close broadened Phase 2 tranche`
+- `Documentation/zigux/phase2-closure.md`
+- `Documentation/zigux/artifact-diff.md`
+- `scripts/zigux/README.md`
+- `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
