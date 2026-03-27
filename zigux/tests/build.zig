@@ -99,4 +99,31 @@ pub fn build(b: *std.Build) void {
     const run_tests = b.addRunArtifact(tests);
     const test_step = b.step("test", "Run Phase 1 helper tests");
     test_step.dependOn(&run_tests.step);
+
+    const bench_root_module = b.createModule(.{
+        .root_source_file = b.path("phase1_bench.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bench_root_module.addImport("bitmap", bitmap_module);
+    bench_root_module.addImport("find_bit", find_bit_module);
+    bench_root_module.addImport("string", string_module);
+    bench_root_module.addImport("rbtree", rbtree_module);
+    bench_root_module.addImport("argv_split", argv_split_module);
+    bench_root_module.addImport("cmdline", cmdline_module);
+    bench_root_module.addImport("ctype", ctype_module);
+    bench_root_module.addImport("hweight", hweight_module);
+    bench_root_module.addImport("list_sort", list_sort_module);
+    bench_root_module.addImport("slab", slab_module);
+    bench_root_module.addImport("str_error_r", str_error_r_module);
+    bench_root_module.addImport("vsprintf", vsprintf_module);
+    bench_root_module.addImport("zalloc", zalloc_module);
+
+    const bench = b.addExecutable(.{
+        .name = "phase1-bench",
+        .root_module = bench_root_module,
+    });
+    const run_bench = b.addRunArtifact(bench);
+    const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");
+    bench_step.dependOn(&run_bench.step);
 }

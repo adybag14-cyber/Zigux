@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+required_files = [
+    ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
+    ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
+]
+
+missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
+if missing:
+    print('PHASE1_CLOSURE_VALIDATION=fail')
+    print('MISSING_PHASE1_CLOSURE_FILES_START')
+    for item in missing:
+        print(item)
+    print('MISSING_PHASE1_CLOSURE_FILES_END')
+    sys.exit(1)
+
+closure = (ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md').read_text(encoding='utf-8')
+workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
+ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
+
+required_closure_markers = [
+    'PHASE1_STATUS=closed',
+    'PHASE1_HELPER_COUNT=13',
+    'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
+    'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
+    'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
+    'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
+    'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
+]
+required_workflow_markers = [
+    'python3 scripts/zigux/validate-phase1-closure.py',
+    'zig build bench --build-file zigux/tests/build.zig',
+]
+required_build_markers = [
+    'phase1_bench.zig',
+    'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
+]
+required_ledger_markers = [
+    'docs(zigux): close bounded phase-1 helper tranche',
+]
+
+missing_markers = []
+for marker in required_closure_markers:
+    if marker not in closure:
+        missing_markers.append(f'closure:{marker}')
+for marker in required_workflow_markers:
+    if marker not in workflow:
+        missing_markers.append(f'workflow:{marker}')
+for marker in required_build_markers:
+    if marker not in tests_build:
+        missing_markers.append(f'build:{marker}')
+for marker in required_ledger_markers:
+    if marker not in ledger:
+        missing_markers.append(f'ledger:{marker}')
+
+if missing_markers:
+    print('PHASE1_CLOSURE_VALIDATION=fail')
+    print('MISSING_PHASE1_CLOSURE_MARKERS_START')
+    for marker in missing_markers:
+        print(marker)
+    print('MISSING_PHASE1_CLOSURE_MARKERS_END')
+    sys.exit(1)
+
+print('PHASE1_CLOSURE_VALIDATION=pass')
+print(f'PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
+print(f'PHASE1_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers)}')

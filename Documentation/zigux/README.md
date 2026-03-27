@@ -6,6 +6,7 @@ Scope
 - product charter
 - review rules
 - freeze map
+- phase closure records
 - phase policy
 - future porting guides
 - validation and artifact-diff policy

@@ -43,6 +43,9 @@ jobs:
       - name: Validate Phase 1 helper files
         run: python3 scripts/zigux/validate-phase1.py
 
+      - name: Validate Phase 1 closure
+        run: python3 scripts/zigux/validate-phase1-closure.py
+
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
@@ -66,3 +69,6 @@ jobs:
 
       - name: Run Phase 1 helper tests
         run: zig build test --build-file zigux/tests/build.zig
+
+      - name: Run Phase 1 helper benchmark smoke
+        run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe

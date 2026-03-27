@@ -1,0 +1,143 @@
+const std = @import("std");
+const bitmap = @import("bitmap");
+const find_bit = @import("find_bit");
+const hweight = @import("hweight");
+const list_sort = @import("list_sort");
+const string = @import("string");
+
+const Io = std.Io;
+
+const Entry = struct {
+    key: i32,
+    ordinal: usize,
+    node: list_sort.ListHead = .{},
+};
+
+const iterations_bitmap = 20_000;
+const iterations_find_bit = 20_000;
+const iterations_string = 40_000;
+const iterations_hweight = 100_000;
+const iterations_list_sort = 1_000;
+
+fn bitmapBench() struct { checksum: u64 } {
+    var map = [_]bitmap.Word{0} ** bitmap.bitsToWords(4096);
+    bitmap.setRange(&map, 5, 32);
+    bitmap.setRange(&map, 256, 64);
+    bitmap.setRange(&map, 2048, 17);
+
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_bitmap) : (idx += 1) {
+        checksum +%= @intCast(bitmap.weight(&map, 4096));
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn findBitBench() struct { checksum: u64 } {
+    var map = [_]find_bit.Word{0} ** find_bit.bitsToWords(4096);
+    map[0] |= (@as(find_bit.Word, 1) << 3);
+    map[7] |= (@as(find_bit.Word, 1) << 9);
+    map[15] |= (@as(find_bit.Word, 1) << 17);
+    map[31] |= (@as(find_bit.Word, 1) << 1);
+
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_find_bit) : (idx += 1) {
+        checksum +%= @intCast(find_bit.findNextBit(&map, 4096, idx % 1024));
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn stringBench() !struct { checksum: u64 } {
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_string) : (idx += 1) {
+        const enabled = try string.strtobool(if ((idx & 1) == 0) "on" else "0");
+        var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
+        const trimmed = string.trimSpaces(&trim_buf);
+        checksum +%= @as(u64, @intFromBool(enabled));
+        checksum +%= @intCast(trimmed.len);
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn hweightBench() struct { checksum: u64 } {
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_hweight) : (idx += 1) {
+        const value: u32 = @truncate(0xf0f0_a5a5 ^ @as(u32, @intCast(idx)));
+        checksum +%= hweight.swHweight32(value);
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn listSortBench() struct { checksum: u64 } {
+    const cmp = struct {
+        fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -1;
+            if (lhs.key > rhs.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var checksum: u64 = 0;
+    var iter: usize = 0;
+    while (iter < iterations_list_sort) : (iter += 1) {
+        var head: list_sort.ListHead = .{};
+        head.init();
+        var entries: [128]Entry = undefined;
+        for (&entries, 0..) |*entry, idx| {
+            entry.* = .{
+                .key = @intCast((127 - idx) % 11),
+                .ordinal = idx,
+            };
+            list_sort.listAddTail(&entry.node, &head);
+        }
+        list_sort.listSort(null, &head, cmp);
+
+        var current = head.next;
+        while (current != &head) : (current = current.?.next) {
+            const entry: *const Entry = @fieldParentPtr("node", current.?);
+            checksum +%= @intCast(entry.key + @as(i32, @intCast(entry.ordinal & 1)));
+        }
+    }
+
+    return .{ .checksum = checksum };
+}
+
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    var stdout_buffer: [2048]u8 = undefined;
+    var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
+
+    const bitmap_result = bitmapBench();
+    const find_bit_result = findBitBench();
+    const string_result = try stringBench();
+    const hweight_result = hweightBench();
+    const list_sort_result = listSortBench();
+
+    std.debug.assert(bitmap_result.checksum != 0);
+    std.debug.assert(find_bit_result.checksum != 0);
+    std.debug.assert(string_result.checksum != 0);
+    std.debug.assert(hweight_result.checksum != 0);
+    std.debug.assert(list_sort_result.checksum != 0);
+
+    try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\n", .{iterations_bitmap});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM={d}\n", .{bitmap_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_CHECKSUM={d}\n", .{string_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_HWEIGHT_ITERATIONS={d}\n", .{iterations_hweight});
+    try stdout_writer.interface.print("PHASE1_BENCH_HWEIGHT_CHECKSUM={d}\n", .{hweight_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_LIST_SORT_ITERATIONS={d}\n", .{iterations_list_sort});
+    try stdout_writer.interface.print("PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\n", .{list_sort_result.checksum});
+    try stdout_writer.interface.flush();
+}

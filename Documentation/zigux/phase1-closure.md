@@ -1,0 +1,96 @@
+# Phase 1 Closure
+
+This document closes the bounded Phase 1 helper tranche for Zigux.
+
+## Status
+
+- `PHASE1_STATUS=closed`
+- scope: bounded host-side helper ports only
+- product boundary: `tools/lib/*.zig`
+- authority: current Linux C behavior remains the parity source
+
+## Closed Helper Set
+
+The bounded Phase 1 helper set is:
+
+- `tools/lib/argv_split.zig`
+- `tools/lib/bitmap.zig`
+- `tools/lib/cmdline.zig`
+- `tools/lib/ctype.zig`
+- `tools/lib/find_bit.zig`
+- `tools/lib/hweight.zig`
+- `tools/lib/list_sort.zig`
+- `tools/lib/rbtree.zig`
+- `tools/lib/slab.zig`
+- `tools/lib/str_error_r.zig`
+- `tools/lib/string.zig`
+- `tools/lib/vsprintf.zig`
+- `tools/lib/zalloc.zig`
+
+- `PHASE1_HELPER_COUNT=13`
+
+No additional helper should be called Phase 1 work unless this document and the bootstrap validators are deliberately reopened.
+
+## Closure Gates
+
+Phase 1 is only considered closed when all of the following are green:
+
+1. parity gate
+- `python3 scripts/zigux/check-phase1-parity.py`
+
+2. helper unit gate
+- `zig build test --build-file zigux/tests/build.zig`
+
+3. helper benchmark smoke
+- `zig build bench --build-file zigux/tests/build.zig`
+
+4. closure validation
+- `python3 scripts/zigux/validate-phase1-closure.py`
+
+- `PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py`
+- `PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig`
+- `PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig`
+- `PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py`
+
+## Performance Policy
+
+Phase 1 does not enforce hard CI timing thresholds yet.
+
+That is intentional.
+
+Host-side helper timing is too sensitive to hosted runner drift to make nanosecond thresholds trustworthy at this stage.
+
+Instead, Phase 1 uses:
+
+- a benchmark smoke executable for representative helper paths
+- stable checksum and iteration outputs so the benchmark cannot silently optimize away the hot loops
+- manual review of timing deltas before expanding helper scope
+
+This is a smoke-grade performance gate, not a release-grade perf contract.
+
+## Rollback
+
+Rollback owner:
+- Zigux product maintainers working in `tools/lib` and `scripts/zigux`
+
+Fallback rule:
+- if a helper regresses, the Zig port is disabled from the Zigux validation/build path and current C remains authoritative
+
+Disable path:
+- remove the failing helper from `zigux/tests/build.zig`
+- remove the helper from `zigux/tests/phase1_helpers.zig`
+- refresh the committed parity fixture if Phase 1 scope is intentionally reduced
+
+- `PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring`
+
+## Boundary
+
+Phase 1 closure does not imply:
+
+- runtime kernel helper closure
+- ABI closure
+- atomic or barrier substrate closure
+- driver readiness
+- Phase 2 toolchain closure
+
+Phase 1 is only the bounded proof that Zig helper code can live in-tree beside Linux-owned host helper code with parity fixtures and repeatable validation.

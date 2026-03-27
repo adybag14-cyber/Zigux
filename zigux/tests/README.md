@@ -14,6 +14,7 @@ Early priorities
 
 Current entrypoint
 - `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/phase1_bench.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helpers.json`
 - `zigux/tests/fixtures/phase1_helpers_c_harness.c`

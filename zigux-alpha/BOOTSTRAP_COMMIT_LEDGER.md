@@ -101,3 +101,10 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/mk_elfconfig/not_elf_expected.json`
 - `zigux/tests/fixtures/mk_elfconfig/truncated_expected.json`
 - `.github/workflows/zigux-bootstrap.yml`
+
+15. `docs(zigux): close bounded phase-1 helper tranche`
+- `Documentation/zigux/phase1-closure.md`
+- `scripts/zigux/validate-phase1-closure.py`
+- `zigux/tests/phase1_bench.zig`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`
