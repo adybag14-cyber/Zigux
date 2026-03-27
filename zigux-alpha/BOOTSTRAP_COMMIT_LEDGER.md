@@ -276,3 +276,20 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+31. `feat(zigux): add bounded Phase 3 idr slot interop slice`
+- `zigux/helpers/idr_slot_view.zig`
+- `zigux/tests/phase3_idr_slot_dump.zig`
+- `zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c`
+- `zigux/tests/fixtures/phase3_idr_slot/expected.json`
+- `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
+- `scripts/zigux/check-phase3-idr-slot.py`
+- `Documentation/zigux/phase3-idr-slot-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

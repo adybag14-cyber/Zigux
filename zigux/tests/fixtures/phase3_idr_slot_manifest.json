@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "idr-slot-view-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/idr_slot_view.zig",
+    "zigux/tests/phase3_idr_slot_dump.zig",
+    "zigux/tests/fixtures/phase3_idr_slot/phase3_idr_slot_c_harness.c",
+    "scripts/zigux/check-phase3-idr-slot.py"
+  ]
+}

@@ -14,6 +14,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-list-hlist-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-errptr-xarray-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-xarray-slot-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-idr-slot-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
@@ -21,6 +22,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase3-list-hlist.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-errptr-xarray.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-xarray-slot.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-idr-slot.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
@@ -30,6 +32,7 @@ required_files = [
     ROOT / 'zigux' / 'helpers' / 'err_ptr.zig',
     ROOT / 'zigux' / 'helpers' / 'xa_value.zig',
     ROOT / 'zigux' / 'helpers' / 'xarray_slot_view.zig',
+    ROOT / 'zigux' / 'helpers' / 'idr_slot_view.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -45,6 +48,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_list_hlist_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_errptr_xarray_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_xarray_slot_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_idr_slot_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -60,6 +64,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_xarray_slot' / 'phase3_xarray_slot_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_xarray_slot' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_xarray_slot_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_idr_slot' / 'phase3_idr_slot_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_idr_slot' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_idr_slot_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -77,6 +84,7 @@ phase_bitmap_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-sl
 phase_list_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-list-hlist-slice.md').read_text(encoding='utf-8')
 phase_errptr_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-errptr-xarray-slice.md').read_text(encoding='utf-8')
 phase_xarray_slot_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-xarray-slot-slice.md').read_text(encoding='utf-8')
+phase_idr_slot_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-idr-slot-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -89,6 +97,7 @@ bitmap_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bi
 list_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist_manifest.json').read_text(encoding='utf-8'))
 errptr_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_errptr_xarray_manifest.json').read_text(encoding='utf-8'))
 xarray_slot_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_xarray_slot_manifest.json').read_text(encoding='utf-8'))
+idr_slot_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_idr_slot_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -134,6 +143,13 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-xarray-slot.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_idr_slot_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=idr-slot-view-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-idr-slot.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
@@ -141,6 +157,7 @@ required_markers = {
         'python3 scripts/zigux/check-phase3-list-hlist.py',
         'python3 scripts/zigux/check-phase3-errptr-xarray.py',
         'python3 scripts/zigux/check-phase3-xarray-slot.py',
+        'python3 scripts/zigux/check-phase3-idr-slot.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -153,6 +170,7 @@ required_markers = {
         'check-phase3-list-hlist.py',
         'check-phase3-errptr-xarray.py',
         'check-phase3-xarray-slot.py',
+        'check-phase3-idr-slot.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
@@ -161,6 +179,7 @@ required_markers = {
         'check-phase3-list-hlist.py',
         'check-phase3-errptr-xarray.py',
         'check-phase3-xarray-slot.py',
+        'check-phase3-idr-slot.py',
         'validate-phase3.py',
     ],
     'tests': [
@@ -170,11 +189,13 @@ required_markers = {
         'phase3_list_hlist_dump.zig',
         'phase3_errptr_xarray_dump.zig',
         'phase3_xarray_slot_dump.zig',
+        'phase3_idr_slot_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
         'phase3_list_hlist_manifest.json',
         'phase3_errptr_xarray_manifest.json',
         'phase3_xarray_slot_manifest.json',
+        'phase3_idr_slot_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
@@ -182,6 +203,7 @@ required_markers = {
         'phase3-list-hlist-slice.md',
         'phase3-errptr-xarray-slice.md',
         'phase3-xarray-slot-slice.md',
+        'phase3-idr-slot-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
@@ -194,6 +216,8 @@ required_markers = {
         'check-phase3-errptr-xarray.py',
         'phase3_xarray_slot',
         'check-phase3-xarray-slot.py',
+        'phase3_idr_slot',
+        'check-phase3-idr-slot.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
@@ -201,6 +225,7 @@ required_markers = {
         'feat(zigux): add bounded Phase 3 list/hlist interop slice',
         'feat(zigux): add bounded Phase 3 err_ptr/xarray interop slice',
         'feat(zigux): add bounded Phase 3 xarray slot interop slice',
+        'feat(zigux): add bounded Phase 3 idr slot interop slice',
     ],
 }
 
@@ -223,6 +248,9 @@ for marker in required_markers['phase_errptr_doc']:
 for marker in required_markers['phase_xarray_slot_doc']:
     if marker not in phase_xarray_slot_doc:
         missing_markers.append(f'phase_xarray_slot_doc:{marker}')
+for marker in required_markers['phase_idr_slot_doc']:
+    if marker not in phase_idr_slot_doc:
+        missing_markers.append(f'phase_idr_slot_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -314,6 +342,20 @@ if len(xarray_slot_manifest.get('files', [])) != 4:
 for rel in xarray_slot_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'xarray_slot_manifest_file:{rel}')
+
+if idr_slot_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('idr_slot_manifest:phase=Phase 3')
+if idr_slot_manifest.get('status') != 'active':
+    missing_markers.append('idr_slot_manifest:status=active')
+if idr_slot_manifest.get('slice') != 'idr-slot-view-interop':
+    missing_markers.append(f'idr_slot_manifest:slice={idr_slot_manifest.get("slice")}')
+if idr_slot_manifest.get('file_count') != 4:
+    missing_markers.append(f'idr_slot_manifest:file_count={idr_slot_manifest.get("file_count")}')
+if len(idr_slot_manifest.get('files', [])) != 4:
+    missing_markers.append(f'idr_slot_manifest:files_len={len(idr_slot_manifest.get("files", []))}')
+for rel in idr_slot_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'idr_slot_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')

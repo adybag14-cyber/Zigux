@@ -659,4 +659,103 @@ zigux_xa_slot_summarize(const struct zigux_xa_slot_view *view)
 	return summary;
 }
 
+static inline struct zigux_idr_slot_view
+zigux_idr_slot_view_from_entries(const unsigned long *entries, zigux_u32 base_id,
+				 zigux_u32 slot_count, zigux_u32 max_scan)
+{
+	return (struct zigux_idr_slot_view){
+		.slots_addr = zigux_ptr_addr(entries),
+		.base_id = base_id,
+		.slot_count = slot_count,
+		.max_scan = max_scan,
+		.reserved = 0,
+	};
+}
+
+static inline bool zigux_idr_slot_view_valid(const struct zigux_idr_slot_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->slot_count == 0)
+		return true;
+	return view->slots_addr != 0 && view->max_scan != 0;
+}
+
+static inline const unsigned long *
+zigux_idr_slot_entries(const struct zigux_idr_slot_view *view)
+{
+	return (const unsigned long *)(uintptr_t)view->slots_addr;
+}
+
+static inline unsigned long
+zigux_idr_slot_entry_at(const struct zigux_idr_slot_view *view, zigux_u32 index)
+{
+	const unsigned long *entries;
+
+	if (!zigux_idr_slot_view_valid(view) || index >= view->slot_count)
+		return 0;
+
+	entries = zigux_idr_slot_entries(view);
+	return entries[index];
+}
+
+static inline struct zigux_idr_slot_summary
+zigux_idr_slot_summarize(const struct zigux_idr_slot_view *view)
+{
+	struct zigux_idr_slot_summary summary = {
+		0, 0, 0, 0, 0, 0, 0, 0
+	};
+	const unsigned long *entries;
+	zigux_u32 scanned;
+	zigux_u32 index;
+	bool have_first_present = false;
+	bool have_first_free = false;
+
+	if (!zigux_idr_slot_view_valid(view))
+		return summary;
+	if (view->slot_count == 0) {
+		summary.first_present_id = view->base_id;
+		summary.next_free_id = view->base_id;
+		return summary;
+	}
+
+	scanned = view->slot_count < view->max_scan ? view->slot_count : view->max_scan;
+	summary.scanned_count = scanned;
+	summary.first_present_id = view->base_id + scanned;
+	summary.next_free_id = view->base_id + scanned;
+	if (scanned < view->slot_count)
+		summary.flags |= ZIGUX_IDR_SLOT_FLAG_TRUNCATED;
+
+	entries = zigux_idr_slot_entries(view);
+	for (index = 0; index < scanned; index++) {
+		unsigned long raw_addr = entries[index];
+		zigux_u32 current_id = view->base_id + index;
+
+		if (zigux_err_addr_is_null(raw_addr)) {
+			if (!have_first_free) {
+				summary.next_free_id = current_id;
+				have_first_free = true;
+			}
+			continue;
+		}
+
+		summary.present_count++;
+		if (!have_first_present) {
+			summary.first_present_id = current_id;
+			have_first_present = true;
+		}
+
+		if (zigux_err_addr_is_err(raw_addr))
+			summary.error_count++;
+		else if (zigux_xa_is_value(raw_addr))
+			summary.value_count++;
+		else
+			summary.plain_count++;
+	}
+
+	return summary;
+}
+
 #endif

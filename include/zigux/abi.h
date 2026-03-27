@@ -52,6 +52,7 @@ typedef int32_t zigux_s32;
 #define ZIGUX_XA_VALUE_FLAG_PLAIN 2U
 
 #define ZIGUX_XA_SLOT_FLAG_TRUNCATED 1U
+#define ZIGUX_IDR_SLOT_FLAG_TRUNCATED 1U
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -151,6 +152,25 @@ struct zigux_xa_slot_summary {
 	zigux_u32 value_count;
 	zigux_u32 error_count;
 	zigux_u32 plain_count;
+	zigux_u32 flags;
+};
+
+struct zigux_idr_slot_view {
+	unsigned long slots_addr;
+	zigux_u32 base_id;
+	zigux_u32 slot_count;
+	zigux_u32 max_scan;
+	zigux_u32 reserved;
+};
+
+struct zigux_idr_slot_summary {
+	zigux_u32 scanned_count;
+	zigux_u32 present_count;
+	zigux_u32 value_count;
+	zigux_u32 error_count;
+	zigux_u32 plain_count;
+	zigux_u32 first_present_id;
+	zigux_u32 next_free_id;
 	zigux_u32 flags;
 };
 

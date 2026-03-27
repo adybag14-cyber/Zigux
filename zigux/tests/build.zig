@@ -222,6 +222,15 @@ pub fn build(b: *std.Build) void {
     xarray_slot_view_module.addImport("err_ptr", err_ptr_module);
     xarray_slot_view_module.addImport("xa_value", xa_value_module);
     xarray_slot_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const idr_slot_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/idr_slot_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    idr_slot_view_module.addImport("abi_bindings", abi_bindings_module);
+    idr_slot_view_module.addImport("err_ptr", err_ptr_module);
+    idr_slot_view_module.addImport("xa_value", xa_value_module);
+    idr_slot_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -254,6 +263,7 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("err_ptr", err_ptr_module);
     phase3_root_module.addImport("xa_value", xa_value_module);
     phase3_root_module.addImport("xarray_slot_view", xarray_slot_view_module);
+    phase3_root_module.addImport("idr_slot_view", idr_slot_view_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -345,4 +355,21 @@ pub fn build(b: *std.Build) void {
     const run_phase3_xarray_slot_dump = b.addRunArtifact(phase3_xarray_slot_dump);
     const phase3_xarray_slot_dump_step = b.step("phase3-xarray-slot-dump", "Run Phase 3 xarray slot interop dump");
     phase3_xarray_slot_dump_step.dependOn(&run_phase3_xarray_slot_dump.step);
+
+    const phase3_idr_slot_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_idr_slot_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_idr_slot_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_idr_slot_dump_module.addImport("err_ptr", err_ptr_module);
+    phase3_idr_slot_dump_module.addImport("xa_value", xa_value_module);
+    phase3_idr_slot_dump_module.addImport("idr_slot_view", idr_slot_view_module);
+    const phase3_idr_slot_dump = b.addExecutable(.{
+        .name = "phase3-idr-slot-dump",
+        .root_module = phase3_idr_slot_dump_module,
+    });
+    const run_phase3_idr_slot_dump = b.addRunArtifact(phase3_idr_slot_dump);
+    const phase3_idr_slot_dump_step = b.step("phase3-idr-slot-dump", "Run Phase 3 idr slot interop dump");
+    phase3_idr_slot_dump_step.dependOn(&run_phase3_idr_slot_dump.step);
 }

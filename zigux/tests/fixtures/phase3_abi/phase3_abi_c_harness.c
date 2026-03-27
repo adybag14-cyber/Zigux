@@ -45,6 +45,11 @@ int main(void)
 		"\"zigux_xa_slot_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"scanned_count\":%zu,\"null_count\":%zu,\"value_count\":%zu,"
 		"\"error_count\":%zu,\"plain_count\":%zu,\"flags\":%zu}},"
+		"\"zigux_idr_slot_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"slots_addr\":%zu,\"base_id\":%zu,\"slot_count\":%zu,\"max_scan\":%zu,\"reserved\":%zu}},"
+		"\"zigux_idr_slot_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"scanned_count\":%zu,\"present_count\":%zu,\"value_count\":%zu,\"error_count\":%zu,"
+		"\"plain_count\":%zu,\"first_present_id\":%zu,\"next_free_id\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -140,6 +145,23 @@ int main(void)
 		offsetof(struct zigux_xa_slot_summary, error_count),
 		offsetof(struct zigux_xa_slot_summary, plain_count),
 		offsetof(struct zigux_xa_slot_summary, flags),
+		sizeof(struct zigux_idr_slot_view),
+		_Alignof(struct zigux_idr_slot_view),
+		offsetof(struct zigux_idr_slot_view, slots_addr),
+		offsetof(struct zigux_idr_slot_view, base_id),
+		offsetof(struct zigux_idr_slot_view, slot_count),
+		offsetof(struct zigux_idr_slot_view, max_scan),
+		offsetof(struct zigux_idr_slot_view, reserved),
+		sizeof(struct zigux_idr_slot_summary),
+		_Alignof(struct zigux_idr_slot_summary),
+		offsetof(struct zigux_idr_slot_summary, scanned_count),
+		offsetof(struct zigux_idr_slot_summary, present_count),
+		offsetof(struct zigux_idr_slot_summary, value_count),
+		offsetof(struct zigux_idr_slot_summary, error_count),
+		offsetof(struct zigux_idr_slot_summary, plain_count),
+		offsetof(struct zigux_idr_slot_summary, first_present_id),
+		offsetof(struct zigux_idr_slot_summary, next_free_id),
+		offsetof(struct zigux_idr_slot_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

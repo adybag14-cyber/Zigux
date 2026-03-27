@@ -141,6 +141,25 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.XaSlotSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_idr_slot_view", @sizeOf(abi.IdrSlotView), @alignOf(abi.IdrSlotView));
+    try writeOffset(writer, "slots_addr", @offsetOf(abi.IdrSlotView, "slots_addr"), true);
+    try writeOffset(writer, "base_id", @offsetOf(abi.IdrSlotView, "base_id"), true);
+    try writeOffset(writer, "slot_count", @offsetOf(abi.IdrSlotView, "slot_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.IdrSlotView, "max_scan"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdrSlotView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_idr_slot_summary", @sizeOf(abi.IdrSlotSummary), @alignOf(abi.IdrSlotSummary));
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.IdrSlotSummary, "scanned_count"), true);
+    try writeOffset(writer, "present_count", @offsetOf(abi.IdrSlotSummary, "present_count"), true);
+    try writeOffset(writer, "value_count", @offsetOf(abi.IdrSlotSummary, "value_count"), true);
+    try writeOffset(writer, "error_count", @offsetOf(abi.IdrSlotSummary, "error_count"), true);
+    try writeOffset(writer, "plain_count", @offsetOf(abi.IdrSlotSummary, "plain_count"), true);
+    try writeOffset(writer, "first_present_id", @offsetOf(abi.IdrSlotSummary, "first_present_id"), true);
+    try writeOffset(writer, "next_free_id", @offsetOf(abi.IdrSlotSummary, "next_free_id"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.IdrSlotSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);
