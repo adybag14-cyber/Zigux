@@ -11,14 +11,18 @@ ROOT = Path(__file__).resolve().parents[2]
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-abi-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-list-hlist-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-bitmap-cpumask.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-list-hlist.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
     ROOT / 'zigux' / 'helpers' / 'cpumask_view.zig',
+    ROOT / 'zigux' / 'helpers' / 'list_view.zig',
+    ROOT / 'zigux' / 'helpers' / 'hlist_view.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -31,12 +35,16 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_abi.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_abi_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_bitmap_cpumask_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_list_hlist_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask' / 'phase3_bitmap_cpumask_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist' / 'phase3_list_hlist_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -51,6 +59,7 @@ if missing:
 roadmap = (ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md').read_text(encoding='utf-8')
 phase_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-abi-slice.md').read_text(encoding='utf-8')
 phase_bitmap_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-bitmap-cpumask-slice.md').read_text(encoding='utf-8')
+phase_list_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-list-hlist-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -60,6 +69,7 @@ ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encodin
 artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
 manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json').read_text(encoding='utf-8'))
 bitmap_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_bitmap_cpumask_manifest.json').read_text(encoding='utf-8'))
+list_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_list_hlist_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -84,10 +94,18 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-bitmap-cpumask.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_list_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=list-hlist-view-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-list-hlist.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
         'python3 scripts/zigux/check-phase3-bitmap-cpumask.py',
+        'python3 scripts/zigux/check-phase3-list-hlist.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -97,33 +115,41 @@ required_markers = {
         'phase3:',
         'check-phase3-abi.py',
         'check-phase3-bitmap-cpumask.py',
+        'check-phase3-list-hlist.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
         'check-phase3-abi.py',
         'check-phase3-bitmap-cpumask.py',
+        'check-phase3-list-hlist.py',
         'validate-phase3.py',
     ],
     'tests': [
         'phase3_abi.zig',
         'phase3_abi_dump.zig',
         'phase3_bitmap_cpumask_dump.zig',
+        'phase3_list_hlist_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
+        'phase3_list_hlist_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
         'phase3-bitmap-cpumask-slice.md',
+        'phase3-list-hlist-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
         'check-phase3-abi.py',
         'phase3_bitmap_cpumask',
         'check-phase3-bitmap-cpumask.py',
+        'phase3_list_hlist',
+        'check-phase3-list-hlist.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
         'feat(zigux): add bounded Phase 3 bitmap/cpumask interop slice',
+        'feat(zigux): add bounded Phase 3 list/hlist interop slice',
     ],
 }
 
@@ -137,6 +163,9 @@ for marker in required_markers['phase_doc']:
 for marker in required_markers['phase_bitmap_doc']:
     if marker not in phase_bitmap_doc:
         missing_markers.append(f'phase_bitmap_doc:{marker}')
+for marker in required_markers['phase_list_doc']:
+    if marker not in phase_list_doc:
+        missing_markers.append(f'phase_list_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -186,6 +215,20 @@ if len(bitmap_manifest.get('files', [])) != 4:
 for rel in bitmap_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'bitmap_manifest_file:{rel}')
+
+if list_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('list_manifest:phase=Phase 3')
+if list_manifest.get('status') != 'active':
+    missing_markers.append('list_manifest:status=active')
+if list_manifest.get('slice') != 'list-hlist-view-interop':
+    missing_markers.append(f'list_manifest:slice={list_manifest.get("slice")}')
+if list_manifest.get('file_count') != 4:
+    missing_markers.append(f'list_manifest:file_count={list_manifest.get("file_count")}')
+if len(list_manifest.get('files', [])) != 4:
+    missing_markers.append(f'list_manifest:files_len={len(list_manifest.get("files", []))}')
+for rel in list_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'list_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')

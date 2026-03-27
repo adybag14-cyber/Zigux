@@ -27,6 +27,7 @@ Current bootstrap helpers
 - `check-phase2-cross.py`
 - `check-phase3-abi.py`
 - `check-phase3-bitmap-cpumask.py`
+- `check-phase3-list-hlist.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

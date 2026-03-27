@@ -78,6 +78,42 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "reserved", @offsetOf(abi.CpuMaskSummary, "reserved"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_list_head_ref", @sizeOf(abi.ListHeadRef), @alignOf(abi.ListHeadRef));
+    try writeOffset(writer, "next_addr", @offsetOf(abi.ListHeadRef, "next_addr"), true);
+    try writeOffset(writer, "prev_addr", @offsetOf(abi.ListHeadRef, "prev_addr"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_list_view", @sizeOf(abi.ListView), @alignOf(abi.ListView));
+    try writeOffset(writer, "head_addr", @offsetOf(abi.ListView, "head_addr"), true);
+    try writeOffset(writer, "max_nodes", @offsetOf(abi.ListView, "max_nodes"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.ListView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_list_summary", @sizeOf(abi.ListSummary), @alignOf(abi.ListSummary));
+    try writeOffset(writer, "length", @offsetOf(abi.ListSummary, "length"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.ListSummary, "flags"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_hlist_head_ref", @sizeOf(abi.HListHeadRef), @alignOf(abi.HListHeadRef));
+    try writeOffset(writer, "first_addr", @offsetOf(abi.HListHeadRef, "first_addr"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_hlist_node_ref", @sizeOf(abi.HListNodeRef), @alignOf(abi.HListNodeRef));
+    try writeOffset(writer, "next_addr", @offsetOf(abi.HListNodeRef, "next_addr"), true);
+    try writeOffset(writer, "pprev_addr", @offsetOf(abi.HListNodeRef, "pprev_addr"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_hlist_view", @sizeOf(abi.HListView), @alignOf(abi.HListView));
+    try writeOffset(writer, "head_addr", @offsetOf(abi.HListView, "head_addr"), true);
+    try writeOffset(writer, "max_nodes", @offsetOf(abi.HListView, "max_nodes"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.HListView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_hlist_summary", @sizeOf(abi.HListSummary), @alignOf(abi.HListSummary));
+    try writeOffset(writer, "length", @offsetOf(abi.HListSummary, "length"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.HListSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

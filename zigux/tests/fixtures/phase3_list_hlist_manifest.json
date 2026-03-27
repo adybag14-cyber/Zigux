@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "list-hlist-view-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
+    "zigux/tests/phase3_list_hlist_dump.zig",
+    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c"
+  ]
+}

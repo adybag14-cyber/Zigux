@@ -295,4 +295,222 @@ zigux_cpumask_summarize(const struct zigux_cpumask_view *view)
 	};
 }
 
+static inline struct zigux_list_view
+zigux_list_view_from_head(const struct zigux_list_head_ref *head, zigux_u32 max_nodes)
+{
+	return (struct zigux_list_view){
+		.head_addr = zigux_ptr_addr(head),
+		.max_nodes = max_nodes,
+		.reserved = 0,
+	};
+}
+
+static inline bool zigux_list_view_valid(const struct zigux_list_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	return view->head_addr != 0 && view->max_nodes != 0;
+}
+
+static inline const struct zigux_list_head_ref *
+zigux_list_head_ptr(const struct zigux_list_view *view)
+{
+	return (const struct zigux_list_head_ref *)(uintptr_t)view->head_addr;
+}
+
+static inline const struct zigux_list_head_ref *
+zigux_list_node_ptr(unsigned long addr)
+{
+	return (const struct zigux_list_head_ref *)(uintptr_t)addr;
+}
+
+static inline bool zigux_list_empty(const struct zigux_list_view *view)
+{
+	const struct zigux_list_head_ref *head;
+
+	if (!zigux_list_view_valid(view))
+		return false;
+	head = zigux_list_head_ptr(view);
+	return head->next_addr == view->head_addr && head->prev_addr == view->head_addr;
+}
+
+static inline bool zigux_list_is_singular(const struct zigux_list_view *view)
+{
+	const struct zigux_list_head_ref *head;
+	const struct zigux_list_head_ref *node;
+
+	if (!zigux_list_view_valid(view) || zigux_list_empty(view))
+		return false;
+
+	head = zigux_list_head_ptr(view);
+	if (head->next_addr != head->prev_addr)
+		return false;
+	node = zigux_list_node_ptr(head->next_addr);
+	return node->next_addr == view->head_addr && node->prev_addr == view->head_addr;
+}
+
+static inline zigux_u32 zigux_list_length_bounded(const struct zigux_list_view *view)
+{
+	const struct zigux_list_head_ref *head;
+	unsigned long current;
+	zigux_u32 count = 0;
+
+	if (!zigux_list_view_valid(view))
+		return 0;
+
+	head = zigux_list_head_ptr(view);
+	current = head->next_addr;
+	while (count < view->max_nodes && current != 0 && current != view->head_addr) {
+		const struct zigux_list_head_ref *node = zigux_list_node_ptr(current);
+		count++;
+		current = node->next_addr;
+	}
+
+	return count;
+}
+
+static inline struct zigux_list_summary
+zigux_list_summarize(const struct zigux_list_view *view)
+{
+	struct zigux_list_summary summary = {0, 0};
+	const struct zigux_list_head_ref *head;
+	unsigned long current;
+	zigux_u32 count = 0;
+
+	if (!zigux_list_view_valid(view))
+		return summary;
+
+	if (zigux_list_empty(view)) {
+		summary.flags = ZIGUX_LIST_FLAG_EMPTY | ZIGUX_LIST_FLAG_CIRCULAR;
+		return summary;
+	}
+
+	head = zigux_list_head_ptr(view);
+	current = head->next_addr;
+	while (count < view->max_nodes && current != 0 && current != view->head_addr) {
+		const struct zigux_list_head_ref *node = zigux_list_node_ptr(current);
+		count++;
+		current = node->next_addr;
+	}
+
+	summary.length = count;
+	if (zigux_list_is_singular(view))
+		summary.flags |= ZIGUX_LIST_FLAG_SINGULAR;
+	if (current == view->head_addr)
+		summary.flags |= ZIGUX_LIST_FLAG_CIRCULAR;
+	else
+		summary.flags |= ZIGUX_LIST_FLAG_TRUNCATED;
+	return summary;
+}
+
+static inline struct zigux_hlist_view
+zigux_hlist_view_from_head(const struct zigux_hlist_head_ref *head, zigux_u32 max_nodes)
+{
+	return (struct zigux_hlist_view){
+		.head_addr = zigux_ptr_addr(head),
+		.max_nodes = max_nodes,
+		.reserved = 0,
+	};
+}
+
+static inline bool zigux_hlist_view_valid(const struct zigux_hlist_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	return view->head_addr != 0 && view->max_nodes != 0;
+}
+
+static inline const struct zigux_hlist_head_ref *
+zigux_hlist_head_ptr(const struct zigux_hlist_view *view)
+{
+	return (const struct zigux_hlist_head_ref *)(uintptr_t)view->head_addr;
+}
+
+static inline const struct zigux_hlist_node_ref *
+zigux_hlist_node_ptr(unsigned long addr)
+{
+	return (const struct zigux_hlist_node_ref *)(uintptr_t)addr;
+}
+
+static inline bool zigux_hlist_empty(const struct zigux_hlist_view *view)
+{
+	const struct zigux_hlist_head_ref *head;
+
+	if (!zigux_hlist_view_valid(view))
+		return false;
+	head = zigux_hlist_head_ptr(view);
+	return head->first_addr == 0;
+}
+
+static inline bool zigux_hlist_is_singular(const struct zigux_hlist_view *view)
+{
+	const struct zigux_hlist_head_ref *head;
+	const struct zigux_hlist_node_ref *node;
+
+	if (!zigux_hlist_view_valid(view) || zigux_hlist_empty(view))
+		return false;
+
+	head = zigux_hlist_head_ptr(view);
+	node = zigux_hlist_node_ptr(head->first_addr);
+	return node->next_addr == 0;
+}
+
+static inline zigux_u32 zigux_hlist_length_bounded(const struct zigux_hlist_view *view)
+{
+	const struct zigux_hlist_head_ref *head;
+	unsigned long current;
+	zigux_u32 count = 0;
+
+	if (!zigux_hlist_view_valid(view))
+		return 0;
+
+	head = zigux_hlist_head_ptr(view);
+	current = head->first_addr;
+	while (count < view->max_nodes && current != 0) {
+		const struct zigux_hlist_node_ref *node = zigux_hlist_node_ptr(current);
+		count++;
+		current = node->next_addr;
+	}
+
+	return count;
+}
+
+static inline struct zigux_hlist_summary
+zigux_hlist_summarize(const struct zigux_hlist_view *view)
+{
+	struct zigux_hlist_summary summary = {0, 0};
+	const struct zigux_hlist_head_ref *head;
+	unsigned long current;
+	zigux_u32 count = 0;
+
+	if (!zigux_hlist_view_valid(view))
+		return summary;
+
+	head = zigux_hlist_head_ptr(view);
+	current = head->first_addr;
+	if (current == 0) {
+		summary.flags = ZIGUX_HLIST_FLAG_EMPTY | ZIGUX_HLIST_FLAG_TERMINATED;
+		return summary;
+	}
+
+	while (count < view->max_nodes && current != 0) {
+		const struct zigux_hlist_node_ref *node = zigux_hlist_node_ptr(current);
+		count++;
+		current = node->next_addr;
+	}
+
+	summary.length = count;
+	if (zigux_hlist_is_singular(view))
+		summary.flags |= ZIGUX_HLIST_FLAG_SINGULAR;
+	if (current == 0)
+		summary.flags |= ZIGUX_HLIST_FLAG_TERMINATED;
+	else
+		summary.flags |= ZIGUX_HLIST_FLAG_TRUNCATED;
+	return summary;
+}
+
 #endif

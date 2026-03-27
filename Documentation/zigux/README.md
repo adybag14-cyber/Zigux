@@ -24,6 +24,7 @@ Current closure records
 Active slice records
 - `Documentation/zigux/phase3-abi-slice.md`
 - `Documentation/zigux/phase3-bitmap-cpumask-slice.md`
+- `Documentation/zigux/phase3-list-hlist-slice.md`
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem

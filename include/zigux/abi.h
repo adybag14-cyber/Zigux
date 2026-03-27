@@ -35,6 +35,16 @@ typedef int32_t zigux_s32;
 #define ZIGUX_UNSAFE_VOLATILE_MMIO 1U
 #define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U
 
+#define ZIGUX_LIST_FLAG_EMPTY 1U
+#define ZIGUX_LIST_FLAG_SINGULAR 2U
+#define ZIGUX_LIST_FLAG_CIRCULAR 4U
+#define ZIGUX_LIST_FLAG_TRUNCATED 8U
+
+#define ZIGUX_HLIST_FLAG_EMPTY 1U
+#define ZIGUX_HLIST_FLAG_SINGULAR 2U
+#define ZIGUX_HLIST_FLAG_TERMINATED 4U
+#define ZIGUX_HLIST_FLAG_TRUNCATED 8U
+
 struct zigux_boundary_header {
 	zigux_u32 size;
 	zigux_u16 abi_version;
@@ -71,6 +81,42 @@ struct zigux_cpumask_summary {
 	zigux_u32 next_cpu;
 	zigux_u32 weight;
 	zigux_u32 reserved;
+};
+
+struct zigux_list_head_ref {
+	unsigned long next_addr;
+	unsigned long prev_addr;
+};
+
+struct zigux_list_view {
+	unsigned long head_addr;
+	zigux_u32 max_nodes;
+	zigux_u32 reserved;
+};
+
+struct zigux_list_summary {
+	zigux_u32 length;
+	zigux_u32 flags;
+};
+
+struct zigux_hlist_head_ref {
+	unsigned long first_addr;
+};
+
+struct zigux_hlist_node_ref {
+	unsigned long next_addr;
+	unsigned long pprev_addr;
+};
+
+struct zigux_hlist_view {
+	unsigned long head_addr;
+	zigux_u32 max_nodes;
+	zigux_u32 reserved;
+};
+
+struct zigux_hlist_summary {
+	zigux_u32 length;
+	zigux_u32 flags;
 };
 
 struct zigux_mmio_range {

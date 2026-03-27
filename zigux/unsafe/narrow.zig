@@ -17,6 +17,10 @@ pub fn constSliceAt(comptime T: type, base: usize, len: usize) []const T {
     return ptr[0..len];
 }
 
+pub fn constPointerAt(comptime T: type, addr: usize) *const T {
+    return @ptrFromInt(addr);
+}
+
 test "phase3 narrow unsafe wrappers stay bounded" {
     var value: u32 = 0;
     const base = addressOf(&value);
@@ -26,4 +30,7 @@ test "phase3 narrow unsafe wrappers stay bounded" {
 
     const slice = constSliceAt(u32, base, 1);
     try std.testing.expectEqual(@as(u32, 11), slice[0]);
+
+    const const_ptr = constPointerAt(u32, base);
+    try std.testing.expectEqual(@as(u32, 11), const_ptr.*);
 }

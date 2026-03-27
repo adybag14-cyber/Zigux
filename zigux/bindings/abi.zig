@@ -2,6 +2,14 @@ const std = @import("std");
 
 pub const ABI_VERSION: u16 = 1;
 pub const STATUS_FLAG_ERROR: u16 = 1;
+pub const LIST_FLAG_EMPTY: u32 = 1;
+pub const LIST_FLAG_SINGULAR: u32 = 2;
+pub const LIST_FLAG_CIRCULAR: u32 = 4;
+pub const LIST_FLAG_TRUNCATED: u32 = 8;
+pub const HLIST_FLAG_EMPTY: u32 = 1;
+pub const HLIST_FLAG_SINGULAR: u32 = 2;
+pub const HLIST_FLAG_TERMINATED: u32 = 4;
+pub const HLIST_FLAG_TRUNCATED: u32 = 8;
 
 pub const Facility = enum(u16) {
     kernel = 1,
@@ -65,6 +73,42 @@ pub const CpuMaskSummary = extern struct {
     reserved: u32,
 };
 
+pub const ListHeadRef = extern struct {
+    next_addr: usize,
+    prev_addr: usize,
+};
+
+pub const ListView = extern struct {
+    head_addr: usize,
+    max_nodes: u32,
+    reserved: u32,
+};
+
+pub const ListSummary = extern struct {
+    length: u32,
+    flags: u32,
+};
+
+pub const HListHeadRef = extern struct {
+    first_addr: usize,
+};
+
+pub const HListNodeRef = extern struct {
+    next_addr: usize,
+    pprev_addr: usize,
+};
+
+pub const HListView = extern struct {
+    head_addr: usize,
+    max_nodes: u32,
+    reserved: u32,
+};
+
+pub const HListSummary = extern struct {
+    length: u32,
+    flags: u32,
+};
+
 pub const MmioRange = extern struct {
     base_addr: usize,
     length: u32,
@@ -92,6 +136,8 @@ test "phase3 abi constants stay stable" {
     try std.testing.expectEqual(@as(u8, 0), @intFromEnum(PanicMode.abort));
     try std.testing.expectEqual(@as(u8, 0), @intFromEnum(AllocatorMode.caller_provided));
     try std.testing.expectEqual(@as(u8, 2), @intFromEnum(UnsafeScope.raw_pointer_bridge));
+    try std.testing.expectEqual(@as(u32, 4), LIST_FLAG_CIRCULAR);
+    try std.testing.expectEqual(@as(u32, 4), HLIST_FLAG_TERMINATED);
 }
 
 test "phase3 abi layouts stay stable" {
@@ -101,6 +147,13 @@ test "phase3 abi layouts stay stable" {
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(CpuMaskView));
     try std.testing.expectEqual(@as(usize, 16), @sizeOf(BitmapSummary));
     try std.testing.expectEqual(@as(usize, 16), @sizeOf(CpuMaskSummary));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(ListHeadRef));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(ListView));
+    try std.testing.expectEqual(@as(usize, 8), @sizeOf(ListSummary));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @sizeOf(HListHeadRef));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNodeRef));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(HListView));
+    try std.testing.expectEqual(@as(usize, 8), @sizeOf(HListSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(MmioRange));
     try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
 }

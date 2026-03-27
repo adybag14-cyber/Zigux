@@ -22,6 +22,20 @@ int main(void)
 		"\"offsets\":{\"first_set\":%zu,\"first_zero\":%zu,\"weight\":%zu,\"reserved\":%zu}},"
 		"\"zigux_cpumask_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"first_cpu\":%zu,\"next_cpu\":%zu,\"weight\":%zu,\"reserved\":%zu}},"
+		"\"zigux_list_head_ref\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"next_addr\":%zu,\"prev_addr\":%zu}},"
+		"\"zigux_list_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"head_addr\":%zu,\"max_nodes\":%zu,\"reserved\":%zu}},"
+		"\"zigux_list_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"length\":%zu,\"flags\":%zu}},"
+		"\"zigux_hlist_head_ref\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"first_addr\":%zu}},"
+		"\"zigux_hlist_node_ref\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"next_addr\":%zu,\"pprev_addr\":%zu}},"
+		"\"zigux_hlist_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"head_addr\":%zu,\"max_nodes\":%zu,\"reserved\":%zu}},"
+		"\"zigux_hlist_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"length\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -65,6 +79,35 @@ int main(void)
 		offsetof(struct zigux_cpumask_summary, next_cpu),
 		offsetof(struct zigux_cpumask_summary, weight),
 		offsetof(struct zigux_cpumask_summary, reserved),
+		sizeof(struct zigux_list_head_ref),
+		_Alignof(struct zigux_list_head_ref),
+		offsetof(struct zigux_list_head_ref, next_addr),
+		offsetof(struct zigux_list_head_ref, prev_addr),
+		sizeof(struct zigux_list_view),
+		_Alignof(struct zigux_list_view),
+		offsetof(struct zigux_list_view, head_addr),
+		offsetof(struct zigux_list_view, max_nodes),
+		offsetof(struct zigux_list_view, reserved),
+		sizeof(struct zigux_list_summary),
+		_Alignof(struct zigux_list_summary),
+		offsetof(struct zigux_list_summary, length),
+		offsetof(struct zigux_list_summary, flags),
+		sizeof(struct zigux_hlist_head_ref),
+		_Alignof(struct zigux_hlist_head_ref),
+		offsetof(struct zigux_hlist_head_ref, first_addr),
+		sizeof(struct zigux_hlist_node_ref),
+		_Alignof(struct zigux_hlist_node_ref),
+		offsetof(struct zigux_hlist_node_ref, next_addr),
+		offsetof(struct zigux_hlist_node_ref, pprev_addr),
+		sizeof(struct zigux_hlist_view),
+		_Alignof(struct zigux_hlist_view),
+		offsetof(struct zigux_hlist_view, head_addr),
+		offsetof(struct zigux_hlist_view, max_nodes),
+		offsetof(struct zigux_hlist_view, reserved),
+		sizeof(struct zigux_hlist_summary),
+		_Alignof(struct zigux_hlist_summary),
+		offsetof(struct zigux_hlist_summary, length),
+		offsetof(struct zigux_hlist_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),
