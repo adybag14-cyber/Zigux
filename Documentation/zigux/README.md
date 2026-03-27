@@ -21,6 +21,9 @@ Current closure records
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase2-closure.md`
 
+Active slice records
+- `Documentation/zigux/phase3-abi-slice.md`
+
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
 - otherwise case-colliding Linux paths will create false working-tree dirt on Windows

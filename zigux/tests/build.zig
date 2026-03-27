@@ -126,4 +126,100 @@ pub fn build(b: *std.Build) void {
     const run_bench = b.addRunArtifact(bench);
     const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");
     bench_step.dependOn(&run_bench.step);
+
+    const abi_bindings_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const narrow_unsafe_module = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const layout_assert_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/layout_assert.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    layout_assert_module.addImport("abi_bindings", abi_bindings_module);
+    const panic_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy_module.addImport("abi_bindings", abi_bindings_module);
+    const allocator_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy_module.addImport("abi_bindings", abi_bindings_module);
+    const atomic_helpers_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/atomic.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const barrier_helpers_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/barrier.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const mmio_helpers_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);
+    mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const export_shim_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/export_shim.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    export_shim_module.addImport("abi_bindings", abi_bindings_module);
+    const uapi_version_module = b.createModule(.{
+        .root_source_file = b.path("../uapi/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    uapi_version_module.addImport("abi_bindings", abi_bindings_module);
+
+    const phase3_root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_root_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_root_module.addImport("layout_assert", layout_assert_module);
+    phase3_root_module.addImport("panic_policy", panic_policy_module);
+    phase3_root_module.addImport("allocator_policy", allocator_policy_module);
+    phase3_root_module.addImport("atomic_helpers", atomic_helpers_module);
+    phase3_root_module.addImport("barrier_helpers", barrier_helpers_module);
+    phase3_root_module.addImport("mmio_helpers", mmio_helpers_module);
+    phase3_root_module.addImport("export_shim", export_shim_module);
+    phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    phase3_root_module.addImport("uapi_version", uapi_version_module);
+
+    const phase3_tests = b.addTest(.{
+        .name = "phase3-abi-tests",
+        .root_module = phase3_root_module,
+    });
+    const run_phase3_tests = b.addRunArtifact(phase3_tests);
+    const phase3_step = b.step("phase3-test", "Run Phase 3 ABI and interop substrate tests");
+    phase3_step.dependOn(&run_phase3_tests.step);
+
+    const phase3_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_abi_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_dump_module.addImport("abi_bindings", abi_bindings_module);
+    const phase3_dump = b.addExecutable(.{
+        .name = "phase3-abi-dump",
+        .root_module = phase3_dump_module,
+    });
+    const run_phase3_dump = b.addRunArtifact(phase3_dump);
+    const phase3_dump_step = b.step("phase3-dump", "Run Phase 3 ABI dump");
+    phase3_dump_step.dependOn(&run_phase3_dump.step);
 }

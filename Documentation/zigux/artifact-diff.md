@@ -22,6 +22,10 @@ Current Phase 2 use
 - `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json` and sibling JSON fixtures capture bounded stdin-driven behavior for `scripts/mod/mk_elfconfig.c`.
 - `scripts/zigux/check-mk-elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`.
 
+Current Phase 3 use
+- `zigux/tests/fixtures/phase3_abi/expected.json` fixes the first permanent C/Zigux ABI layout claim for the substrate skeleton.
+- `scripts/zigux/check-phase3-abi.py` compares that committed JSON fixture against both the bounded C harness and the Zig substrate dump.
+
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
 - fixture scope must stay small and reviewable
@@ -30,3 +34,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
+- keep using the same pattern for bounded Phase 3 ABI layout claims before any broader interop substrate expansion

@@ -178,3 +178,28 @@ This ledger turns the roadmap into the first product commit train.
 - `Documentation/zigux/artifact-diff.md`
 - `scripts/zigux/README.md`
 - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
+
+26. `feat(zigux): start bounded Phase 3 abi substrate skeleton`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/helpers/layout_assert.zig`
+- `zigux/helpers/panic_policy.zig`
+- `zigux/helpers/allocator_policy.zig`
+- `zigux/helpers/atomic.zig`
+- `zigux/helpers/barrier.zig`
+- `zigux/helpers/mmio.zig`
+- `zigux/kernel/export_shim.zig`
+- `zigux/unsafe/narrow.zig`
+- `zigux/uapi/version.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/fixtures/phase3_abi_manifest.json`
+- `scripts/zigux/check-phase3-abi.py`
+- `scripts/zigux/validate-phase3.py`
+- `Documentation/zigux/phase3-abi-slice.md`
+- `zigux/Makefile`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

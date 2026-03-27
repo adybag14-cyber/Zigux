@@ -8,7 +8,9 @@ on:
       - 'Documentation/zigux/**'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
-      - 'zigux/tests/**'
+      - 'zigux/**'
+      - 'include/linux/zigux.h'
+      - 'include/zigux/**'
       - '.github/workflows/zigux-bootstrap.yml'
   pull_request:
     paths:
@@ -16,7 +18,9 @@ on:
       - 'Documentation/zigux/**'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
-      - 'zigux/tests/**'
+      - 'zigux/**'
+      - 'include/linux/zigux.h'
+      - 'include/zigux/**'
       - '.github/workflows/zigux-bootstrap.yml'
   workflow_dispatch:
 
@@ -56,6 +60,9 @@ jobs:
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
 
+      - name: Validate Phase 3 ABI/interp slice
+        run: python3 scripts/zigux/validate-phase3.py
+
       - name: Check Zig toolchain policy
         run: python3 scripts/zigux/check-zig-toolchain.py
 
@@ -80,6 +87,9 @@ jobs:
       - name: Check bounded mk_elfconfig artifact parity
         run: python3 scripts/zigux/check-mk-elfconfig-diff.py
 
+      - name: Check bounded Phase 3 ABI layout parity
+        run: python3 scripts/zigux/check-phase3-abi.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 
@@ -103,6 +113,9 @@ jobs:
 
       - name: Run Phase 1 helper benchmark smoke
         run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe
+
+      - name: Run Phase 3 ABI/interp substrate tests
+        run: zig build phase3-test --build-file zigux/tests/build.zig
 
   phase2-cross:
     runs-on: ubuntu-latest

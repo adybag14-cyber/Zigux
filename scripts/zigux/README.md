@@ -18,12 +18,14 @@ Current bootstrap helpers
 - `validate-phase1-closure.py`
 - `validate-phase2.py`
 - `validate-phase2-closure.py`
+- `validate-phase3.py`
 - `check-phase1-parity.py`
 - `check-fixdep-diff.py`
 - `check-genksyms-bridge.py`
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
+- `check-phase3-abi.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

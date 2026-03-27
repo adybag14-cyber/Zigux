@@ -1,0 +1,84 @@
+# Phase 3 ABI Substrate Slice
+
+This document starts the first bounded Phase 3 slice for Zigux.
+
+## Status
+
+- `PHASE3_STATUS=active`
+- `PHASE3_SLICE=abi-substrate-skeleton`
+- scope: first permanent C/Zigux boundary only
+- product boundary:
+  - `include/linux/zigux.h`
+  - `include/zigux/abi.h`
+  - `zigux/bindings/abi.zig`
+  - `zigux/kernel/export_shim.zig`
+  - `zigux/helpers/*`
+  - `zigux/unsafe/narrow.zig`
+  - `zigux/uapi/version.zig`
+  - `zigux/tests/phase3_abi.zig`
+
+## Why this slice exists
+
+Phase 3 is where Zigux stops being only helper and tool scaffolding and starts defining the real boundary between C and Zig.
+
+The first correct move is not a broad runtime port.
+It is a small substrate that makes future ports measurable:
+
+- one C header pair
+- one curated Zig binding
+- one export-shim module
+- explicit panic and allocator policies
+- explicit atomic, barrier, and MMIO wrappers
+- one narrow unsafe layer
+- one C-vs-Zig layout gate
+
+## Gates
+
+1. validate slice shape
+- `python3 scripts/zigux/validate-phase3.py`
+
+2. check C-vs-Zig ABI layout parity
+- `python3 scripts/zigux/check-phase3-abi.py`
+
+3. run Zig substrate tests
+- `zig build phase3-test --build-file zigux/tests/build.zig`
+
+- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
+- `PHASE3_ABI_GATE=python3 scripts/zigux/check-phase3-abi.py`
+- `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+
+## Interop rules
+
+- `include/zigux/abi.h` is the authoritative C-facing layout surface for this slice.
+- `zigux/bindings/abi.zig` must mirror it with `extern struct` layout, not approximate it.
+- new boundary structs require committed fixture updates under `zigux/tests/fixtures/phase3_abi/`.
+- export shims must return explicit status codes instead of hidden failure behavior.
+- future bindings generators are allowed later, but this slice stays curated and reviewable.
+
+## Policy surfaces
+
+Panic policy:
+- explicit modes only: `abort`, `bug`, `warn`
+- no implicit panic behavior in boundary helpers
+
+Allocator policy:
+- explicit modes only: `caller_provided`, `kernel_heap`, `arena`
+- boundary code must be able to state whether it requires a caller allocator
+
+Unsafe policy:
+- raw pointer and volatile access stay inside `zigux/unsafe/narrow.zig` and `zigux/helpers/mmio.zig`
+- new unsafe entry points must be justified and reviewed as boundary expansion
+
+## Boundary
+
+This slice does not claim:
+
+- generated bindings
+- full kernel UAPI exposure
+- full runtime allocator integration
+- driver ports
+- scheduler ports
+- DMA or ring management ports
+- full Rust-export parity replacement
+
+This slice only establishes the initial permanent substrate those later phases will build on.

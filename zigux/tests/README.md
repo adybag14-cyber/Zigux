@@ -15,6 +15,8 @@ Early priorities
 Current entrypoint
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
@@ -32,3 +34,5 @@ Current entrypoint
 - `zigux/tests/fixtures/phase2_cross_targets.json`
 - `zigux/tests/fixtures/mk_elfconfig/cases.json`
 - `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json`
+- `zigux/tests/fixtures/phase3_abi_manifest.json`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
