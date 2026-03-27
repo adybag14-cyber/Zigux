@@ -5,8 +5,16 @@ This directory holds Zigux-specific bootstrap and validation helpers.
 Initial responsibilities
 - Zig toolchain policy checks
 - bootstrap validation
+- committed parity fixture generation and checking
 - future ABI/layout guards
 - artifact diff helpers for host-side tools
+
+Current bootstrap helpers
+- `check-zig-toolchain.py`
+- `validate-bootstrap.py`
+- `validate-phase1.py`
+- `check-phase1-parity.py`
+- `artifact_diff.py`
 
 Rules
 - keep helpers narrow and product-facing

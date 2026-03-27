@@ -35,3 +35,17 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/build.zig`
 - `scripts/zigux/validate-phase1.py`
 - `.github/workflows/zigux-bootstrap.yml`
+
+8. `feat(tools/lib): expand phase-1 helper batch`
+- `tools/lib/argv_split.zig`
+- `tools/lib/cmdline.zig`
+- `tools/lib/ctype.zig`
+- `tools/lib/hweight.zig`
+
+9. `test(zigux): add phase-1 golden parity fixtures and artifact diff gate`
+- `scripts/zigux/artifact_diff.py`
+- `scripts/zigux/check-phase1-parity.py`
+- `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+- `zigux/tests/fixtures/phase1_helpers.json`
+- `zigux/tests/phase1_helpers.zig`
+- `.github/workflows/zigux-bootstrap.yml`

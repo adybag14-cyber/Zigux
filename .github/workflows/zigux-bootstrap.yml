@@ -46,5 +46,8 @@ jobs:
       - name: Check Zig toolchain policy
         run: python3 scripts/zigux/check-zig-toolchain.py
 
+      - name: Check Phase 1 helper parity
+        run: python3 scripts/zigux/check-phase1-parity.py
+
       - name: Run Phase 1 helper tests
         run: zig build test --build-file zigux/tests/build.zig

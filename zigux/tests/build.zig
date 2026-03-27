@@ -26,6 +26,26 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const argv_split_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/argv_split.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const cmdline_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/cmdline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const ctype_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/ctype.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hweight_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/hweight.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase1_helpers.zig"),
@@ -36,6 +56,10 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("string", string_module);
     root_module.addImport("rbtree", rbtree_module);
+    root_module.addImport("argv_split", argv_split_module);
+    root_module.addImport("cmdline", cmdline_module);
+    root_module.addImport("ctype", ctype_module);
+    root_module.addImport("hweight", hweight_module);
 
     const tests = b.addTest(.{
         .name = "phase1-helper-tests",

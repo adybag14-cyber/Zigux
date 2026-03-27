@@ -10,8 +10,16 @@ required_files = [
     ROOT / 'tools' / 'lib' / 'find_bit.zig',
     ROOT / 'tools' / 'lib' / 'string.zig',
     ROOT / 'tools' / 'lib' / 'rbtree.zig',
+    ROOT / 'tools' / 'lib' / 'argv_split.zig',
+    ROOT / 'tools' / 'lib' / 'cmdline.zig',
+    ROOT / 'tools' / 'lib' / 'ctype.zig',
+    ROOT / 'tools' / 'lib' / 'hweight.zig',
+    ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
     ROOT / 'zigux' / 'tests' / 'build.zig',
     ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -30,17 +38,25 @@ test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding
 required_ledger_markers = [
     'feat(tools/lib): start phase-1 helper ports',
     'test(zigux): add phase-1 helper harness and workflow gate',
+    'feat(tools/lib): expand phase-1 helper batch',
+    'test(zigux): add phase-1 golden parity fixtures and artifact diff gate',
 ]
 required_workflow_markers = [
     'tools/lib/*.zig',
     'python3 scripts/zigux/validate-phase1.py',
+    'python3 scripts/zigux/check-phase1-parity.py',
     'zig build test --build-file zigux/tests/build.zig',
 ]
 required_test_markers = [
+    '@import("argv_split")',
     '@import("bitmap")',
+    '@import("cmdline")',
+    '@import("ctype")',
     '@import("find_bit")',
+    '@import("hweight")',
     '@import("string")',
     '@import("rbtree")',
+    '@embedFile("fixtures/phase1_helpers.json")',
 ]
 
 missing_markers = []

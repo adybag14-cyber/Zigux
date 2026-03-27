@@ -8,6 +8,7 @@ Scope
 - freeze map
 - phase policy
 - future porting guides
+- validation and artifact-diff policy
 
 Rules
 - keep product commitments here, not in ad hoc issue threads
