@@ -1,0 +1,27 @@
+{
+  "conf_cases": [
+    {
+      "name": "olddefconfig",
+      "mode": "olddefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "olddefconfig_expected.json"
+    },
+    {
+      "name": "syncconfig",
+      "mode": "syncconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "riscv64",
+      "expected": "syncconfig_expected.json"
+    }
+  ],
+  "confdata_cases": [
+    {
+      "name": "sample",
+      "input": "sample.config",
+      "expected": "sample_expected.json"
+    }
+  ]
+}
