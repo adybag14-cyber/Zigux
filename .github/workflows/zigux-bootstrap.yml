@@ -65,11 +65,17 @@ jobs:
       - name: Check bounded fixdep artifact parity
         run: python3 scripts/zigux/check-fixdep-diff.py
 
+      - name: Check bounded genksyms CRC artifact parity
+        run: python3 scripts/zigux/check-genksyms-crc-diff.py
+
       - name: Check bounded mk_elfconfig artifact parity
         run: python3 scripts/zigux/check-mk-elfconfig-diff.py
 
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
+
+      - name: Run bounded genksyms CRC unit tests
+        run: zig test scripts/zigux/genksyms_crc.zig
 
       - name: Run bounded mk_elfconfig unit tests
         run: zig test scripts/zigux/mk_elfconfig.zig

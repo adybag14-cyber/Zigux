@@ -7,6 +7,8 @@ ROOT = Path(__file__).resolve().parents[2]
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
+    ROOT / 'scripts' / 'zigux' / 'genksyms_crc.zig',
+    ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py',
     ROOT / 'scripts' / 'zigux' / 'mk_elfconfig.zig',
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json',
@@ -22,6 +24,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample2.so',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'shared#config.h',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_multi_target_expected.txt',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'genksyms_crc_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'inputs.txt',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'elf32.hex',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'elf64.hex',
@@ -53,23 +58,30 @@ required_ledger_markers = [
     'feat(tools/lib): add phase-1 memory and formatting helper ports',
     'feat(scripts/zigux): add bounded Phase 2 fixdep dual-implementation lane',
     'test(zigux): widen bounded fixdep parity fixtures',
+    'feat(scripts/zigux): start bounded Phase 2 genksyms lane',
     'feat(scripts/zigux): add bounded Phase 2 mk_elfconfig lane',
 ]
 required_workflow_markers = [
     'python3 scripts/zigux/validate-phase2.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
+    'python3 scripts/zigux/check-genksyms-crc-diff.py',
     'python3 scripts/zigux/check-mk-elfconfig-diff.py',
     'zig test scripts/zigux/fixdep.zig',
+    'zig test scripts/zigux/genksyms_crc.zig',
     'zig test scripts/zigux/mk_elfconfig.zig',
 ]
 required_doc_markers = [
     'fixdep',
     'sample_multi_target_expected.txt',
+    'genksyms_crc',
+    'zigux/tests/fixtures/genksyms_crc/expected.json',
     'mk_elfconfig',
     'elf32_expected.json',
 ]
 required_script_markers = [
     'check-fixdep-diff.py',
+    'check-genksyms-crc-diff.py',
+    'genksyms_crc.zig',
     'check-mk-elfconfig-diff.py',
     'mk_elfconfig.zig',
 ]

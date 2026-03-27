@@ -125,3 +125,11 @@ This ledger turns the roadmap into the first product commit train.
 - `scripts/zigux/install-zig.py`
 - `.github/workflows/zigux-bootstrap.yml`
 - `scripts/zigux/validate-phase1-closure.py`
+
+19. `feat(scripts/zigux): start bounded Phase 2 genksyms lane`
+- `scripts/zigux/genksyms_crc.zig`
+- `scripts/zigux/check-genksyms-crc-diff.py`
+- `zigux/tests/fixtures/genksyms_crc/genksyms_crc_c_harness.c`
+- `zigux/tests/fixtures/genksyms_crc/inputs.txt`
+- `zigux/tests/fixtures/genksyms_crc/expected.json`
+- `.github/workflows/zigux-bootstrap.yml`
