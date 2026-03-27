@@ -5,6 +5,7 @@ const cmdline = @import("cmdline");
 const ctype = @import("ctype");
 const find_bit = @import("find_bit");
 const hweight = @import("hweight");
+const list_sort = @import("list_sort");
 const rbtree = @import("rbtree");
 const slab = @import("slab");
 const str_error_r = @import("str_error_r");
@@ -96,6 +97,12 @@ const Fixture = struct {
         w64: u64,
         wlong: usize,
     },
+    list_sort: struct {
+        tri_sorted_keys: []const i32,
+        tri_sorted_ordinals: []const usize,
+        bool_sorted_keys: []const i32,
+        bool_sorted_ordinals: []const usize,
+    },
     zalloc: struct {
         zeroed: bool,
         freed_is_null: bool,
@@ -142,6 +149,7 @@ test "phase 1 helper modules import cleanly" {
     _ = ctype;
     _ = find_bit;
     _ = hweight;
+    _ = list_sort;
     _ = rbtree;
     _ = slab;
     _ = str_error_r;
@@ -262,6 +270,80 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.hweight.w32, hweight.swHweight32(0xf0f0_f0f0));
     try std.testing.expectEqual(fixture.hweight.w64, hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
     try std.testing.expectEqual(fixture.hweight.wlong, hweight.hweightLong(0xf0f0));
+
+    const ListEntry = struct {
+        key: i32,
+        ordinal: usize,
+        node: list_sort.ListHead = .{},
+    };
+
+    const tri_cmp = struct {
+        fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const ListEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListEntry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -1;
+            if (lhs.key > rhs.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    const bool_cmp = struct {
+        fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const ListEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListEntry = @fieldParentPtr("node", b);
+            return @intFromBool(lhs.key > rhs.key);
+        }
+    }.compare;
+
+    var tri_head: list_sort.ListHead = .{};
+    tri_head.init();
+    var tri_entries = [_]ListEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    for (&tri_entries) |*entry| list_sort.listAddTail(&entry.node, &tri_head);
+    list_sort.listSort(null, &tri_head, tri_cmp);
+
+    var tri_sorted_keys: [5]i32 = undefined;
+    var tri_sorted_ordinals: [5]usize = undefined;
+    var tri_index: usize = 0;
+    var tri_current = tri_head.next;
+    while (tri_current != &tri_head) : (tri_current = tri_current.?.next) {
+        const entry: *const ListEntry = @fieldParentPtr("node", tri_current.?);
+        tri_sorted_keys[tri_index] = entry.key;
+        tri_sorted_ordinals[tri_index] = entry.ordinal;
+        tri_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, tri_sorted_keys[0..tri_index]);
+    try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, tri_sorted_ordinals[0..tri_index]);
+
+    var bool_head: list_sort.ListHead = .{};
+    bool_head.init();
+    var bool_entries = [_]ListEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    for (&bool_entries) |*entry| list_sort.listAddTail(&entry.node, &bool_head);
+    list_sort.listSort(null, &bool_head, bool_cmp);
+
+    var bool_sorted_keys: [5]i32 = undefined;
+    var bool_sorted_ordinals: [5]usize = undefined;
+    var bool_index: usize = 0;
+    var bool_current = bool_head.next;
+    while (bool_current != &bool_head) : (bool_current = bool_current.?.next) {
+        const entry: *const ListEntry = @fieldParentPtr("node", bool_current.?);
+        bool_sorted_keys[bool_index] = entry.key;
+        bool_sorted_ordinals[bool_index] = entry.ordinal;
+        bool_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.list_sort.bool_sorted_keys, bool_sorted_keys[0..bool_index]);
+    try std.testing.expectEqualSlices(usize, fixture.list_sort.bool_sorted_ordinals, bool_sorted_ordinals[0..bool_index]);
 
     var zalloc_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 8);
     defer zalloc.zfreeBytes(allocator, &zalloc_bytes);

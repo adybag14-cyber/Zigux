@@ -14,6 +14,7 @@ required_files = [
     ROOT / 'tools' / 'lib' / 'cmdline.zig',
     ROOT / 'tools' / 'lib' / 'ctype.zig',
     ROOT / 'tools' / 'lib' / 'hweight.zig',
+    ROOT / 'tools' / 'lib' / 'list_sort.zig',
     ROOT / 'tools' / 'lib' / 'slab.zig',
     ROOT / 'tools' / 'lib' / 'str_error_r.zig',
     ROOT / 'tools' / 'lib' / 'vsprintf.zig',
@@ -44,6 +45,7 @@ required_ledger_markers = [
     'test(zigux): add phase-1 helper harness and workflow gate',
     'feat(tools/lib): expand phase-1 helper batch',
     'test(zigux): add phase-1 golden parity fixtures and artifact diff gate',
+    'feat(tools/lib): complete bounded phase-1 helper coverage',
 ]
 required_workflow_markers = [
     'tools/lib/*.zig',
@@ -58,6 +60,7 @@ required_test_markers = [
     '@import("ctype")',
     '@import("find_bit")',
     '@import("hweight")',
+    '@import("list_sort")',
     '@import("slab")',
     '@import("str_error_r")',
     '@import("string")',

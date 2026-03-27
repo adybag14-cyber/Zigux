@@ -17,5 +17,9 @@ Current entrypoint
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helpers.json`
 - `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+- `zigux/tests/fixtures/fixdep/cases.json`
 - `zigux/tests/fixtures/fixdep/sample.d`
 - `zigux/tests/fixtures/fixdep/sample_expected.txt`
+- `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`
+- `zigux/tests/fixtures/mk_elfconfig/cases.json`
+- `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json`

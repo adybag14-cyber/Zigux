@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import shlex
@@ -15,10 +16,7 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_FIXDEP = ROOT / 'scripts' / 'basic' / 'fixdep.c'
 ZIG_FIXDEP = ROOT / 'scripts' / 'zigux' / 'fixdep.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
-DEPFILE = FIXTURE_DIR / 'sample.d'
-EXPECTED = FIXTURE_DIR / 'sample_expected.txt'
-TARGET = 'sample.o'
-CMDLINE = 'clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o'
+CASES = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -57,7 +55,7 @@ def windows_to_wsl(path: Path) -> str:
     return f'/mnt/{drive}{tail}'
 
 
-def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str) -> None:
+def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str, depfile: Path, target: str, cmdline: str) -> None:
     script_path = tmp_dir / 'run_fixdep_c.sh'
     lines = [
         '#!/usr/bin/env bash',
@@ -73,9 +71,9 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str) -> 
         ]),
         ' '.join([
             shlex.quote(windows_to_wsl(exe)),
-            shlex.quote(windows_to_wsl(DEPFILE)),
-            shlex.quote(TARGET),
-            shlex.quote(CMDLINE),
+            shlex.quote(windows_to_wsl(depfile)),
+            shlex.quote(target),
+            shlex.quote(cmdline),
             '>',
             shlex.quote(windows_to_wsl(actual)),
         ]),
@@ -84,10 +82,10 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str) -> 
     run(['wsl', 'bash', windows_to_wsl(script_path)], cwd=str(ROOT))
 
 
-def compile_run_c(tmp_dir: Path, actual: Path, compiler: str) -> None:
+def compile_run_c(tmp_dir: Path, actual: Path, compiler: str, depfile: Path, target: str, cmdline: str) -> None:
     exe = tmp_dir / ('fixdep-c.exe' if os.name == 'nt' else 'fixdep-c')
     if os.name == 'nt' and shutil.which('wsl'):
-        compile_run_c_wsl(tmp_dir, exe, actual, compiler)
+        compile_run_c_wsl(tmp_dir, exe, actual, compiler, depfile, target, cmdline)
         return
 
     compile_cmd = [
@@ -100,15 +98,15 @@ def compile_run_c(tmp_dir: Path, actual: Path, compiler: str) -> None:
         str(C_FIXDEP),
     ]
     run(compile_cmd, cwd=str(ROOT))
-    result = run([str(exe), str(DEPFILE), TARGET, CMDLINE], cwd=str(ROOT), capture_output=True)
+    result = run([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), capture_output=True)
     actual.write_text(result.stdout, encoding='utf-8')
 
 
-def run_zig(zig: str, tmp_dir: Path, actual: Path) -> None:
+def run_zig(zig: str, tmp_dir: Path, actual: Path, depfile: Path, target: str, cmdline: str) -> None:
     exe = tmp_dir / ('fixdep-zig.exe' if os.name == 'nt' else 'fixdep-zig')
     build_cmd = [zig, 'build-exe', str(ZIG_FIXDEP), '-femit-bin=' + str(exe)]
     run(build_cmd, cwd=str(ROOT))
-    result = run([str(exe), str(DEPFILE), TARGET, CMDLINE], cwd=str(ROOT), capture_output=True)
+    result = run([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), capture_output=True)
     actual.write_text(result.stdout, encoding='utf-8')
 
 
@@ -122,27 +120,36 @@ def main() -> int:
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
 
-    with tempfile.TemporaryDirectory(prefix='zigux_fixdep_') as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        c_actual = tmp_dir / 'fixdep.c.actual.txt'
-        zig_actual = tmp_dir / 'fixdep.zig.actual.txt'
+    for case in CASES:
+        depfile = FIXTURE_DIR / case['depfile']
+        expected = FIXTURE_DIR / case['expected']
+        target = case['target']
+        cmdline = case['cmdline']
 
-        compile_run_c(tmp_dir, c_actual, compiler)
-        run_zig(zig, tmp_dir, zig_actual)
+        with tempfile.TemporaryDirectory(prefix=f"zigux_fixdep_{case['name']}_") as tmp_dir_str:
+            tmp_dir = Path(tmp_dir_str)
+            c_actual = tmp_dir / 'fixdep.c.actual.txt'
+            zig_actual = tmp_dir / 'fixdep.zig.actual.txt'
 
-        if args.refresh:
-            EXPECTED.write_text(c_actual.read_text(encoding='utf-8'), encoding='utf-8')
-            print('FIXDEP_REFRESH=pass')
-            print(f'FIXTURE={EXPECTED}')
-            return 0
+            compile_run_c(tmp_dir, c_actual, compiler, depfile, target, cmdline)
+            run_zig(zig, tmp_dir, zig_actual, depfile, target, cmdline)
 
-        diff_base = [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text']
-        run(diff_base + [str(EXPECTED), str(c_actual)], cwd=str(ROOT))
-        run(diff_base + [str(EXPECTED), str(zig_actual)], cwd=str(ROOT))
-        run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
+            if args.refresh:
+                expected.write_text(c_actual.read_text(encoding='utf-8'), encoding='utf-8')
+                continue
+
+            diff_base = [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text']
+            run(diff_base + [str(expected), str(c_actual)], cwd=str(ROOT))
+            run(diff_base + [str(expected), str(zig_actual)], cwd=str(ROOT))
+            run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
+
+    if args.refresh:
+        print('FIXDEP_REFRESH=pass')
+        print(f'FIXTURE_DIR={FIXTURE_DIR}')
+    else:
         print('FIXDEP_DIFF=pass')
-        print(f'FIXTURE={EXPECTED}')
-        return 0
+        print(f'FIXTURE_DIR={FIXTURE_DIR}')
+    return 0
 
 
 if __name__ == '__main__':

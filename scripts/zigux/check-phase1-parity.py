@@ -23,6 +23,7 @@ SOURCES = [
     ROOT / 'tools' / 'lib' / 'ctype.c',
     ROOT / 'tools' / 'lib' / 'find_bit.c',
     ROOT / 'tools' / 'lib' / 'hweight.c',
+    ROOT / 'tools' / 'lib' / 'list_sort.c',
     ROOT / 'tools' / 'lib' / 'slab.c',
     ROOT / 'tools' / 'lib' / 'str_error_r.c',
     ROOT / 'tools' / 'lib' / 'string.c',

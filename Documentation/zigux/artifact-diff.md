@@ -9,7 +9,10 @@ Current Phase 1 use
 
 Current Phase 2 use
 - `zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.
-- `scripts/zigux/check-fixdep-diff.py` compares the committed sample output against both the C tool and `scripts/zigux/fixdep.zig`.
+- `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.
+- `scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.
+- `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json` and sibling JSON fixtures capture bounded stdin-driven behavior for `scripts/mod/mk_elfconfig.c`.
+- `scripts/zigux/check-mk-elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -18,4 +21,4 @@ Rules
 - do not use opaque binary blobs for early bootstrap parity when a text or JSON artifact is possible
 
 Near-term target
-- reuse the same artifact-diff pattern for Phase 2 dual-implementation tool outputs such as `fixdep` and `genksyms`
+- reuse the same artifact-diff pattern for Phase 2 dual-implementation tool outputs such as `fixdep`, `mk_elfconfig`, and later `genksyms`

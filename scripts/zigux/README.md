@@ -16,7 +16,9 @@ Current bootstrap helpers
 - `validate-phase2.py`
 - `check-phase1-parity.py`
 - `check-fixdep-diff.py`
+- `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
+- `mk_elfconfig.zig`
 - `artifact_diff.py`
 
 Rules

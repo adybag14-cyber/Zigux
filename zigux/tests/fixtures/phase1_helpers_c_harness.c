@@ -9,6 +9,7 @@
 #include <linux/ctype.h>
 #include <linux/kernel.h>
 #include <linux/list.h>
+#include <linux/list_sort.h>
 #include <linux/rbtree.h>
 #include <linux/slab.h>
 #include <linux/string.h>
@@ -287,6 +288,98 @@ static void run_hweight_section(void)
 	printf("}");
 }
 
+struct list_entry_fixture {
+	int key;
+	int ordinal;
+	struct list_head node;
+};
+
+static int list_cmp_tristate(void *priv, const struct list_head *a,
+			     const struct list_head *b)
+{
+	const struct list_entry_fixture *lhs = list_entry(a, struct list_entry_fixture, node);
+	const struct list_entry_fixture *rhs = list_entry(b, struct list_entry_fixture, node);
+	(void)priv;
+
+	if (lhs->key < rhs->key)
+		return -1;
+	if (lhs->key > rhs->key)
+		return 1;
+	return 0;
+}
+
+static int list_cmp_bool(void *priv, const struct list_head *a,
+			 const struct list_head *b)
+{
+	const struct list_entry_fixture *lhs = list_entry(a, struct list_entry_fixture, node);
+	const struct list_entry_fixture *rhs = list_entry(b, struct list_entry_fixture, node);
+	(void)priv;
+
+	return lhs->key > rhs->key;
+}
+
+static void emit_list_sort_result(struct list_head *head, const char *keys_name,
+				  const char *ordinals_name)
+{
+	struct list_head *pos;
+	int keys[5] = {0};
+	int ordinals[5] = {0};
+	size_t idx = 0;
+
+	list_for_each(pos, head) {
+		const struct list_entry_fixture *entry = list_entry(pos, struct list_entry_fixture, node);
+		keys[idx] = entry->key;
+		ordinals[idx] = entry->ordinal;
+		idx++;
+	}
+
+	printf("\"%s\":", keys_name);
+	emit_int_array(keys, idx);
+	printf(",");
+	printf("\"%s\":", ordinals_name);
+	emit_int_array(ordinals, idx);
+}
+
+static void run_list_sort_section(void)
+{
+	struct list_entry_fixture tri_entries[] = {
+		{ .key = 2, .ordinal = 0 },
+		{ .key = 1, .ordinal = 1 },
+		{ .key = 3, .ordinal = 2 },
+		{ .key = 1, .ordinal = 3 },
+		{ .key = 3, .ordinal = 4 },
+	};
+	struct list_entry_fixture bool_entries[] = {
+		{ .key = 2, .ordinal = 0 },
+		{ .key = 1, .ordinal = 1 },
+		{ .key = 3, .ordinal = 2 },
+		{ .key = 1, .ordinal = 3 },
+		{ .key = 3, .ordinal = 4 },
+	};
+	struct list_head tri_head;
+	struct list_head bool_head;
+	size_t i;
+
+	INIT_LIST_HEAD(&tri_head);
+	INIT_LIST_HEAD(&bool_head);
+
+	for (i = 0; i < sizeof(tri_entries) / sizeof(tri_entries[0]); i++) {
+		INIT_LIST_HEAD(&tri_entries[i].node);
+		list_add_tail(&tri_entries[i].node, &tri_head);
+		INIT_LIST_HEAD(&bool_entries[i].node);
+		list_add_tail(&bool_entries[i].node, &bool_head);
+	}
+
+	list_sort(NULL, &tri_head, list_cmp_tristate);
+	list_sort(NULL, &bool_head, list_cmp_bool);
+
+	printf("\"list_sort\":{");
+	emit_list_sort_result(&tri_head, "tri_sorted_keys", "tri_sorted_ordinals");
+	printf(",");
+	emit_list_sort_result(&bool_head, "bool_sorted_keys", "bool_sorted_ordinals");
+	printf("}");
+}
+
 static void run_zalloc_section(void)
 {
 	void *ptr = zalloc(8);
@@ -405,6 +498,8 @@ int main(void)
 	run_ctype_section();
 	printf(",");
 	run_hweight_section();
+	printf(",");
+	run_list_sort_section();
 	printf(",");
 	run_zalloc_section();
 	printf(",");

@@ -70,3 +70,34 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/fixdep/sample.rmeta`
 - `zigux/tests/fixtures/fixdep/sample_expected.txt`
 - `.github/workflows/zigux-bootstrap.yml`
+
+12. `feat(tools/lib): complete bounded phase-1 helper coverage`
+- `tools/lib/list_sort.zig`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/fixtures/phase1_helpers_c_harness.c`
+- `zigux/tests/fixtures/phase1_helpers.json`
+
+13. `test(zigux): widen bounded fixdep parity fixtures`
+- `zigux/tests/fixtures/fixdep/cases.json`
+- `zigux/tests/fixtures/fixdep/sample_multi_target.d`
+- `zigux/tests/fixtures/fixdep/sample2.c`
+- `zigux/tests/fixtures/fixdep/sample2-config.h`
+- `zigux/tests/fixtures/fixdep/shared#config.h`
+- `zigux/tests/fixtures/fixdep/sample2.so`
+- `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`
+
+14. `feat(scripts/zigux): add bounded Phase 2 mk_elfconfig lane`
+- `scripts/zigux/mk_elfconfig.zig`
+- `scripts/zigux/check-mk-elfconfig-diff.py`
+- `zigux/tests/fixtures/mk_elfconfig/cases.json`
+- `zigux/tests/fixtures/mk_elfconfig/elf32.hex`
+- `zigux/tests/fixtures/mk_elfconfig/elf64.hex`
+- `zigux/tests/fixtures/mk_elfconfig/invalid_class.hex`
+- `zigux/tests/fixtures/mk_elfconfig/not_elf.hex`
+- `zigux/tests/fixtures/mk_elfconfig/truncated.hex`
+- `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json`
+- `zigux/tests/fixtures/mk_elfconfig/elf64_expected.json`
+- `zigux/tests/fixtures/mk_elfconfig/invalid_class_expected.json`
+- `zigux/tests/fixtures/mk_elfconfig/not_elf_expected.json`
+- `zigux/tests/fixtures/mk_elfconfig/truncated_expected.json`
+- `.github/workflows/zigux-bootstrap.yml`
