@@ -53,6 +53,9 @@ jobs:
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
+      - name: Validate Phase 2 closure
+        run: python3 scripts/zigux/validate-phase2-closure.py
+
       - name: Check Zig toolchain policy
         run: python3 scripts/zigux/check-zig-toolchain.py
 
@@ -68,6 +71,9 @@ jobs:
       - name: Check bounded genksyms CRC artifact parity
         run: python3 scripts/zigux/check-genksyms-crc-diff.py
 
+      - name: Check bounded kconfig bridge parity
+        run: python3 scripts/zigux/check-kconfig-bridge.py
+
       - name: Check bounded mk_elfconfig artifact parity
         run: python3 scripts/zigux/check-mk-elfconfig-diff.py
 
@@ -77,6 +83,12 @@ jobs:
       - name: Run bounded genksyms CRC unit tests
         run: zig test scripts/zigux/genksyms_crc.zig
 
+      - name: Run bounded conf bridge unit tests
+        run: zig test scripts/zigux/kconfig/conf_bridge.zig
+
+      - name: Run bounded confdata bridge unit tests
+        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
+
       - name: Run bounded mk_elfconfig unit tests
         run: zig test scripts/zigux/mk_elfconfig.zig
 
@@ -85,3 +97,30 @@ jobs:
 
       - name: Run Phase 1 helper benchmark smoke
         run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe
+
+  phase2-cross:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        zig_target:
+          - x86_64-linux-musl
+          - aarch64-linux-musl
+          - riscv64-linux-musl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Install Zig
+        run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain
+
+      - name: Show Zig version
+        run: zig version
+
+      - name: Check bounded Phase 2 cross-target compile
+        run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}
