@@ -115,3 +115,8 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
 - `scripts/zigux/validate-phase1-closure.py`
 - `.github/workflows/zigux-bootstrap.yml`
+
+17. `ci(zigux): harden phase-1 closure workflow viability`
+- `.github/workflows/zigux-bootstrap.yml`
+- `Documentation/zigux/phase1-closure.md`
+- `scripts/zigux/validate-phase1-closure.py`

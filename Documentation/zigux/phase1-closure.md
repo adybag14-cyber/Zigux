@@ -51,6 +51,10 @@ Phase 1 is only considered closed when all of the following are green:
 5. closure validation
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
+6. workflow viability
+- the bootstrap workflow must not rely on deprecated Node 20 action execution
+- the bootstrap workflow must pin current action releases where available
+
 - `PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py`
 - `PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig`
 - `PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig`
@@ -73,6 +77,18 @@ Instead, Phase 1 uses:
 - manual review of timing deltas before expanding helper scope
 
 This is a smoke-grade performance gate, not a release-grade perf contract.
+
+## CI Viability Policy
+
+Phase 1 closure also requires the bootstrap workflow itself to remain viable.
+
+That means:
+
+- current supported GitHub Action major versions where available
+- explicit opt-in to Node 24 action execution on GitHub-hosted runners
+- no known dependency on the deprecated Node 20 runtime
+
+This is part of closure because a closed validation tranche that is about to stop executing is not actually closed.
 
 ## Rollback
 

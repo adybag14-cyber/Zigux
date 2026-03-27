@@ -45,6 +45,9 @@ required_closure_markers = [
     'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
 ]
 required_workflow_markers = [
+    'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
+    'uses: actions/checkout@v6.0.2',
+    'uses: actions/setup-python@v6.2.0',
     'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
     'zig build bench --build-file zigux/tests/build.zig',
