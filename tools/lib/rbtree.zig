@@ -1,0 +1,556 @@
+const std = @import("std");
+
+pub const Color = enum {
+    red,
+    black,
+};
+
+pub const Node = struct {
+    parent: ?*Node = null,
+    left: ?*Node = null,
+    right: ?*Node = null,
+    color: Color = .red,
+
+    pub fn init() Node {
+        return .{};
+    }
+};
+
+pub const Root = struct {
+    node: ?*Node = null,
+
+    pub fn init() Root {
+        return .{};
+    }
+};
+
+pub const LessFn = *const fn (*const Node, *const Node) bool;
+
+pub fn emptyRoot(root: *const Root) bool {
+    return root.node == null;
+}
+
+pub fn emptyNode(node: *const Node) bool {
+    return node.parent == node;
+}
+
+pub fn clearNode(node: *Node) void {
+    node.parent = node;
+    node.left = null;
+    node.right = null;
+    node.color = .red;
+}
+
+pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {
+    node.parent = parent;
+    node.left = null;
+    node.right = null;
+    node.color = .red;
+    link.* = node;
+}
+
+fn colorOf(node: ?*Node) Color {
+    return if (node) |n| n.color else .black;
+}
+
+fn leftOf(node: ?*Node) ?*Node {
+    return if (node) |n| n.left else null;
+}
+
+fn rightOf(node: ?*Node) ?*Node {
+    return if (node) |n| n.right else null;
+}
+
+fn minimum(node: *Node) *Node {
+    var current = node;
+    while (current.left) |left| {
+        current = left;
+    }
+    return current;
+}
+
+fn maximum(node: *Node) *Node {
+    var current = node;
+    while (current.right) |right| {
+        current = right;
+    }
+    return current;
+}
+
+fn leftRotate(root: *Root, node: *Node) void {
+    var pivot = node.right orelse unreachable;
+
+    node.right = pivot.left;
+    if (pivot.left) |child| {
+        child.parent = node;
+    }
+
+    pivot.parent = node.parent;
+    if (node.parent == null) {
+        root.node = pivot;
+    } else if (node.parent.?.left == node) {
+        node.parent.?.left = pivot;
+    } else {
+        node.parent.?.right = pivot;
+    }
+
+    pivot.left = node;
+    node.parent = pivot;
+}
+
+fn rightRotate(root: *Root, node: *Node) void {
+    var pivot = node.left orelse unreachable;
+
+    node.left = pivot.right;
+    if (pivot.right) |child| {
+        child.parent = node;
+    }
+
+    pivot.parent = node.parent;
+    if (node.parent == null) {
+        root.node = pivot;
+    } else if (node.parent.?.right == node) {
+        node.parent.?.right = pivot;
+    } else {
+        node.parent.?.left = pivot;
+    }
+
+    pivot.right = node;
+    node.parent = pivot;
+}
+
+pub fn insertColor(node: *Node, root: *Root) void {
+    var current = node;
+
+    while (colorOf(current.parent) == .red) {
+        var parent = current.parent.?;
+        var grandparent = parent.parent.?;
+
+        if (grandparent.left == parent) {
+            const uncle = grandparent.right;
+            if (colorOf(uncle) == .red) {
+                parent.color = .black;
+                uncle.?.color = .black;
+                grandparent.color = .red;
+                current = grandparent;
+                continue;
+            }
+
+            if (parent.right == current) {
+                current = parent;
+                leftRotate(root, current);
+                parent = current.parent.?;
+                grandparent = parent.parent.?;
+            }
+
+            parent.color = .black;
+            grandparent.color = .red;
+            rightRotate(root, grandparent);
+        } else {
+            const uncle = grandparent.left;
+            if (colorOf(uncle) == .red) {
+                parent.color = .black;
+                uncle.?.color = .black;
+                grandparent.color = .red;
+                current = grandparent;
+                continue;
+            }
+
+            if (parent.left == current) {
+                current = parent;
+                rightRotate(root, current);
+                parent = current.parent.?;
+                grandparent = parent.parent.?;
+            }
+
+            parent.color = .black;
+            grandparent.color = .red;
+            leftRotate(root, grandparent);
+        }
+    }
+
+    if (root.node) |root_node| {
+        root_node.color = .black;
+    }
+}
+
+pub fn add(node: *Node, root: *Root, less: LessFn) void {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+}
+
+fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
+    if (victim.parent == null) {
+        root.node = replacement;
+    } else if (victim.parent.?.left == victim) {
+        victim.parent.?.left = replacement;
+    } else {
+        victim.parent.?.right = replacement;
+    }
+
+    if (replacement) |node| {
+        node.parent = victim.parent;
+    }
+}
+
+fn deleteFixup(root: *Root, initial_node: ?*Node, initial_parent: ?*Node) void {
+    var node = initial_node;
+    var parent = initial_parent;
+
+    while (node != root.node and colorOf(node) == .black) {
+        const current_parent = parent orelse break;
+
+        if (current_parent.left == node) {
+            var sibling = current_parent.right;
+
+            if (colorOf(sibling) == .red) {
+                sibling.?.color = .black;
+                current_parent.color = .red;
+                leftRotate(root, current_parent);
+                sibling = current_parent.right;
+            }
+
+            if (colorOf(leftOf(sibling)) == .black and colorOf(rightOf(sibling)) == .black) {
+                if (sibling) |s| {
+                    s.color = .red;
+                }
+                node = current_parent;
+                parent = current_parent.parent;
+            } else {
+                if (colorOf(rightOf(sibling)) == .black) {
+                    if (leftOf(sibling)) |left| {
+                        left.color = .black;
+                    }
+                    if (sibling) |s| {
+                        s.color = .red;
+                        rightRotate(root, s);
+                    }
+                    sibling = current_parent.right;
+                }
+
+                if (sibling) |s| {
+                    s.color = current_parent.color;
+                }
+                current_parent.color = .black;
+                if (rightOf(sibling)) |right| {
+                    right.color = .black;
+                }
+                leftRotate(root, current_parent);
+                node = root.node;
+                parent = null;
+            }
+        } else {
+            var sibling = current_parent.left;
+
+            if (colorOf(sibling) == .red) {
+                sibling.?.color = .black;
+                current_parent.color = .red;
+                rightRotate(root, current_parent);
+                sibling = current_parent.left;
+            }
+
+            if (colorOf(leftOf(sibling)) == .black and colorOf(rightOf(sibling)) == .black) {
+                if (sibling) |s| {
+                    s.color = .red;
+                }
+                node = current_parent;
+                parent = current_parent.parent;
+            } else {
+                if (colorOf(leftOf(sibling)) == .black) {
+                    if (rightOf(sibling)) |right| {
+                        right.color = .black;
+                    }
+                    if (sibling) |s| {
+                        s.color = .red;
+                        leftRotate(root, s);
+                    }
+                    sibling = current_parent.left;
+                }
+
+                if (sibling) |s| {
+                    s.color = current_parent.color;
+                }
+                current_parent.color = .black;
+                if (leftOf(sibling)) |left| {
+                    left.color = .black;
+                }
+                rightRotate(root, current_parent);
+                node = root.node;
+                parent = null;
+            }
+        }
+    }
+
+    if (node) |n| {
+        n.color = .black;
+    }
+}
+
+pub fn erase(node: *Node, root: *Root) void {
+    var replacement = node;
+    var replacement_color = replacement.color;
+    var child: ?*Node = null;
+    var parent: ?*Node = null;
+
+    if (node.left == null) {
+        child = node.right;
+        parent = node.parent;
+        transplant(root, node, node.right);
+    } else if (node.right == null) {
+        child = node.left;
+        parent = node.parent;
+        transplant(root, node, node.left);
+    } else {
+        replacement = minimum(node.right.?);
+        replacement_color = replacement.color;
+        child = replacement.right;
+
+        if (replacement.parent == node) {
+            parent = replacement;
+        } else {
+            parent = replacement.parent;
+            transplant(root, replacement, replacement.right);
+            replacement.right = node.right;
+            replacement.right.?.parent = replacement;
+        }
+
+        transplant(root, node, replacement);
+        replacement.left = node.left;
+        replacement.left.?.parent = replacement;
+        replacement.color = node.color;
+    }
+
+    if (replacement_color == .black) {
+        deleteFixup(root, child, parent);
+    }
+}
+
+pub fn first(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return minimum(node);
+}
+
+pub fn last(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return maximum(node);
+}
+
+pub fn next(node: *const Node) ?*Node {
+    if (emptyNode(node)) {
+        return null;
+    }
+
+    if (node.right) |right| {
+        return minimum(right);
+    }
+
+    var current: *const Node = node;
+    var parent = current.parent;
+    while (parent != null and parent.?.right == current) {
+        current = parent.?;
+        parent = current.parent;
+    }
+
+    return parent;
+}
+
+pub fn prev(node: *const Node) ?*Node {
+    if (emptyNode(node)) {
+        return null;
+    }
+
+    if (node.left) |left| {
+        return maximum(left);
+    }
+
+    var current: *const Node = node;
+    var parent = current.parent;
+    while (parent != null and parent.?.left == current) {
+        current = parent.?;
+        parent = current.parent;
+    }
+
+    return parent;
+}
+
+pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
+    const parent = victim.parent;
+    new.parent = parent;
+    new.left = victim.left;
+    new.right = victim.right;
+    new.color = victim.color;
+
+    if (victim.left) |left| {
+        left.parent = new;
+    }
+    if (victim.right) |right| {
+        right.parent = new;
+    }
+
+    if (parent == null) {
+        root.node = new;
+    } else if (parent.?.left == victim) {
+        parent.?.left = new;
+    } else {
+        parent.?.right = new;
+    }
+}
+
+fn leftDeepestNode(node: *const Node) *Node {
+    var current: *const Node = node;
+    while (true) {
+        if (current.left) |left| {
+            current = left;
+        } else if (current.right) |right| {
+            current = right;
+        } else {
+            return @constCast(current);
+        }
+    }
+}
+
+pub fn firstPostorder(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return leftDeepestNode(node);
+}
+
+pub fn nextPostorder(node: *const Node) ?*Node {
+    const parent = node.parent;
+    if (parent != null and parent.?.left == node and parent.?.right != null) {
+        return leftDeepestNode(parent.?.right.?);
+    }
+    return parent;
+}
+
+test "rbtree inserts and traverses in sorted order" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    var order: [5]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 5), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20, 25 }, order[0..count]);
+}
+
+test "rbtree erase and replace keep traversal consistent" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    erase(&entries[1].node, &root);
+    replaceNode(&entries[0].node, &replacement.node, &root);
+
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
+}
+
+test "rbtree postorder and empty node helpers behave" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    var count: usize = 0;
+    var current = firstPostorder(&root);
+    while (current) |node| : (current = nextPostorder(node)) {
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+
+    var detached = Node.init();
+    clearNode(&detached);
+    try std.testing.expect(emptyNode(&detached));
+}

@@ -11,3 +11,7 @@ Early priorities
 - helper differential tests for `tools/lib/*.zig`
 - atomic and bitmap parity harnesses
 - artifact-diff scaffolding for build-tool dual implementations
+
+Current entrypoint
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/build.zig`

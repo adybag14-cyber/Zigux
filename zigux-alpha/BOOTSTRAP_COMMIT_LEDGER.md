@@ -29,3 +29,9 @@ This ledger turns the roadmap into the first product commit train.
 - `tools/lib/find_bit.zig`
 - `tools/lib/string.zig`
 - `tools/lib/rbtree.zig`
+
+7. `test(zigux): add phase-1 helper harness and workflow gate`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/build.zig`
+- `scripts/zigux/validate-phase1.py`
+- `.github/workflows/zigux-bootstrap.yml`
