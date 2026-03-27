@@ -16,6 +16,8 @@ Rules
 - Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.
 - Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.
 - Treat ZAR as the research/proving ground and Zigux as the product repo.
+- On Windows, use a case-sensitive repo directory or a Linux filesystem for this repo.
 
 Start here
 - [ZAR to Zigux Product Roadmap](./ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md)
+- [Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)

@@ -1,0 +1,31 @@
+# Zigux Alpha Bootstrap Commit Ledger
+
+This ledger turns the roadmap into the first product commit train.
+
+## Commit Train
+
+1. `docs(zigux-alpha): establish roadmap and folder charter`
+- `zigux-alpha/README.md`
+- `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
+
+2. `docs(zigux): add documentation root, review checklist, and freeze map`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/freeze-map.md`
+
+3. `build(scripts/zigux): add bootstrap validation and toolchain checks`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-zig-toolchain.py`
+- `scripts/zigux/validate-bootstrap.py`
+
+4. `test(zigux): establish differential-test root`
+- `zigux/tests/README.md`
+
+5. `ci(zigux): add bootstrap workflow`
+- `.github/workflows/zigux-bootstrap.yml`
+
+6. `feat(tools/lib): start phase-1 helper ports`
+- `tools/lib/bitmap.zig`
+- `tools/lib/find_bit.zig`
+- `tools/lib/string.zig`
+- `tools/lib/rbtree.zig`

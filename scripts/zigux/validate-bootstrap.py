@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+required_files = [
+    ROOT / 'zigux-alpha' / 'README.md',
+    ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md',
+    ROOT / 'Documentation' / 'zigux' / 'README.md',
+    ROOT / 'Documentation' / 'zigux' / 'review-checklist.md',
+    ROOT / 'Documentation' / 'zigux' / 'freeze-map.md',
+    ROOT / 'scripts' / 'zigux' / 'README.md',
+    ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'zigux' / 'tests' / 'README.md',
+]
+
+missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
+if missing:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_FILES_START')
+    for item in missing:
+        print(item)
+    print('MISSING_FILES_END')
+    sys.exit(1)
+
+roadmap = (ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md').read_text(encoding='utf-8')
+required_markers = [
+    '## Non-Negotiable Product Rules',
+    '## Product Features by Phase',
+    '## Freeze Map for Near- and Mid-Term Planning',
+    '## First Commit and Push Sequence for Zigux',
+    'kernel/sched/core.c',
+    'mm/page_alloc.c',
+    'kernel/rcu/tree.c',
+    'net/core/skbuff.c',
+]
+missing_markers = [marker for marker in required_markers if marker not in roadmap]
+if missing_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_MARKERS_START')
+    for marker in missing_markers:
+        print(marker)
+    print('MISSING_MARKERS_END')
+    sys.exit(1)
+
+print('BOOTSTRAP_VALIDATION=pass')
+print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
+print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers)}')

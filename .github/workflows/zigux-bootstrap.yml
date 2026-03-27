@@ -1,0 +1,37 @@
+name: zigux-bootstrap
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'zigux-alpha/**'
+      - 'Documentation/zigux/**'
+      - 'scripts/zigux/**'
+      - 'zigux/tests/**'
+      - '.github/workflows/zigux-bootstrap.yml'
+  pull_request:
+    paths:
+      - 'zigux-alpha/**'
+      - 'Documentation/zigux/**'
+      - 'scripts/zigux/**'
+      - 'zigux/tests/**'
+      - '.github/workflows/zigux-bootstrap.yml'
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate bootstrap files
+        run: python3 scripts/zigux/validate-bootstrap.py
+
+      - name: Check Zig toolchain policy (non-fatal when absent)
+        run: python3 scripts/zigux/check-zig-toolchain.py --allow-missing

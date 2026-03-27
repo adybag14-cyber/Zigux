@@ -49,6 +49,27 @@ Stale executive-summary metadata in the workbook that should not drive planning:
 
 For execution, use the structured CSV/workbook tables themselves, not the executive-summary metrics block.
 
+## Licensing and Reuse Policy
+
+For Zigux product work, licensing is not the blocker.
+
+Working rule for this repo:
+- direct copies from same-license Zigux or ZAR material are allowed when legally valid and reviewable
+- machine translations or human translations from Linux C into Zig are allowed when legally valid and reviewable
+- adaptations from Linux, ZAR, or other same-license material are allowed when legally valid and reviewable
+
+That does not remove engineering discipline.
+
+Even when copying or translating is legally allowed, the product still requires:
+- bounded scope
+- explicit ownership
+- parity and validation gates
+- rollback paths
+- maintainable placement in the Linux-owned tree
+
+Legal permission expands the implementation options.
+It does not justify mirror-tree sprawl, unclear ownership, or skipping validation.
+
 ## Non-Negotiable Product Rules
 
 These rules are consistent across the bundle and should govern every Zigux commit series.
