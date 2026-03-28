@@ -65,6 +65,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-xfer.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-xfer planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_resume/expected.json` fixes the bounded kernel-facing chrdev-resume planning claim on top of the chrdev-xfer substrate.
 - `scripts/zigux/check-phase3-chrdev-resume.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-resume planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_retry/expected.json` fixes the bounded kernel-facing chrdev-retry planning claim on top of the chrdev-resume substrate.
+- `scripts/zigux/check-phase3-chrdev-retry.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-retry planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth

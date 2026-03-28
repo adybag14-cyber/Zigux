@@ -29,6 +29,7 @@ const chrdev_route_plan = @import("chrdev_route_plan");
 const chrdev_io_plan = @import("chrdev_io_plan");
 const chrdev_xfer_plan = @import("chrdev_xfer_plan");
 const chrdev_resume_plan = @import("chrdev_resume_plan");
+const chrdev_retry_plan = @import("chrdev_retry_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -81,6 +82,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevXferSummary, 96);
         layout_assert.assertSize(abi.ChrdevResumeView, @sizeOf(usize) + 80);
         layout_assert.assertSize(abi.ChrdevResumeSummary, 88);
+        layout_assert.assertSize(abi.ChrdevRetryView, @sizeOf(usize) + 96);
+        layout_assert.assertSize(abi.ChrdevRetrySummary, 104);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -172,6 +175,23 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevResumeSummary, "pass_count", 56);
         layout_assert.assertOffset(abi.ChrdevResumeSummary, "entry_ops", 68);
         layout_assert.assertOffset(abi.ChrdevResumeSummary, "flags", 84);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "file_offset", @sizeOf(usize) + 56);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "resume_passes", @sizeOf(usize) + 72);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "retry_budget", @sizeOf(usize) + 76);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "stall_budget", @sizeOf(usize) + 80);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "backoff_quanta", @sizeOf(usize) + 84);
+        layout_assert.assertOffset(abi.ChrdevRetryView, "reserved", @sizeOf(usize) + 88);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "start_offset", 32);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "next_offset", 40);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "initial_bytes_completed", 48);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "pass_count", 56);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "entry_ops", 68);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "retry_count", 84);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "stall_count", 88);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "remaining_retry_budget", 92);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "backoff_ticks", 96);
+        layout_assert.assertOffset(abi.ChrdevRetrySummary, "flags", 100);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -765,4 +785,52 @@ test "phase3 chrdev resume consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u64, 2052), blocked_summary.start_offset);
     try std.testing.expectEqual(@as(u64, 2052), blocked_summary.next_offset);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_RESUME_FLAG_FOUND | abi.CHRDEV_RESUME_FLAG_HIT | abi.CHRDEV_RESUME_FLAG_PERMITTED | abi.CHRDEV_RESUME_FLAG_BLOCKED | abi.CHRDEV_RESUME_FLAG_RESUMED | abi.CHRDEV_RESUME_FLAG_STALLED), blocked_summary.flags);
+}
+
+test "phase3 chrdev retry consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+
+    const complete_view = chrdev_retry_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5);
+    const complete_summary = chrdev_retry_plan.summarize(complete_view);
+    try std.testing.expect(chrdev_retry_plan.isValid(complete_view));
+    try std.testing.expectEqual(@as(u32, 0), complete_summary.retry_count);
+    try std.testing.expectEqual(@as(u32, 0), complete_summary.stall_count);
+    try std.testing.expectEqual(@as(u32, 2), complete_summary.remaining_retry_budget);
+    try std.testing.expectEqual(@as(u32, 0), complete_summary.backoff_ticks);
+    try std.testing.expect((complete_summary.flags & abi.CHRDEV_RETRY_FLAG_COMPLETE_OK) != 0);
+    try std.testing.expect((complete_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRY_PLANNED) == 0);
+
+    const continuable_view = chrdev_retry_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 1, 2, 1, 0);
+    const continuable_summary = chrdev_retry_plan.summarize(continuable_view);
+    try std.testing.expectEqual(@as(u32, 1), continuable_summary.retry_count);
+    try std.testing.expectEqual(@as(u32, 1), continuable_summary.remaining_retry_budget);
+    try std.testing.expect((continuable_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRYABLE) != 0);
+    try std.testing.expect((continuable_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRY_PLANNED) != 0);
+    try std.testing.expect((continuable_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRY_EXHAUSTED) == 0);
+
+    const stalled_view = chrdev_retry_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_READ, 12, 32, 2048, 4, 2, 3, 2, 1, 5);
+    const stalled_summary = chrdev_retry_plan.summarize(stalled_view);
+    try std.testing.expectEqual(@as(u32, 1), stalled_summary.retry_count);
+    try std.testing.expectEqual(@as(u32, 1), stalled_summary.stall_count);
+    try std.testing.expectEqual(@as(u32, 1), stalled_summary.remaining_retry_budget);
+    try std.testing.expectEqual(@as(u32, 5), stalled_summary.backoff_ticks);
+    try std.testing.expect((stalled_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRYABLE) != 0);
+    try std.testing.expect((stalled_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRY_PLANNED) != 0);
+    try std.testing.expect((stalled_summary.flags & abi.CHRDEV_RETRY_FLAG_BACKOFF_APPLIED) != 0);
+
+    const denied_view = chrdev_retry_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 12, 8, 512, 0, 2, 2, 2, 1, 5);
+    const denied_summary = chrdev_retry_plan.summarize(denied_view);
+    try std.testing.expectEqual(@as(u32, 0), denied_summary.retry_count);
+    try std.testing.expectEqual(@as(u32, 1), denied_summary.stall_count);
+    try std.testing.expect((denied_summary.flags & abi.CHRDEV_RETRY_FLAG_DENIED) != 0);
+    try std.testing.expect((denied_summary.flags & abi.CHRDEV_RETRY_FLAG_FAILS) != 0);
+
+    const exhausted_words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 4)};
+    const exhausted_view = chrdev_retry_plan.viewFromBits(exhausted_words[0..], 240, 16, 5, 5, 2, abi.IDA_POLICY_FIRST_FIT, 20, abi.CHRDEV_MODE_READ, abi.CHRDEV_MODE_READ, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ, abi.CHRDEV_IO_OP_READ, 12, 32, 0, 0, 2, 2, 2, 1, 5);
+    const exhausted_summary = chrdev_retry_plan.summarize(exhausted_view);
+    try std.testing.expectEqual(@as(u32, 0), exhausted_summary.retry_count);
+    try std.testing.expectEqual(@as(u32, 0), exhausted_summary.remaining_retry_budget);
+    try std.testing.expect((exhausted_summary.flags & abi.CHRDEV_RETRY_FLAG_EXHAUSTED) != 0);
+    try std.testing.expect((exhausted_summary.flags & abi.CHRDEV_RETRY_FLAG_RETRY_EXHAUSTED) != 0);
+    try std.testing.expect((exhausted_summary.flags & abi.CHRDEV_RETRY_FLAG_FAILS) != 0);
 }

@@ -158,6 +158,27 @@ typedef int32_t zigux_s32;
 #define ZIGUX_CHRDEV_RESUME_FLAG_STALLED 8192U
 #define ZIGUX_CHRDEV_RESUME_FLAG_COMPLETE_OK 16384U
 #define ZIGUX_CHRDEV_RESUME_INDEX_NONE 0xffffffffU
+#define ZIGUX_CHRDEV_RETRY_FLAG_TRUNCATED 1U
+#define ZIGUX_CHRDEV_RETRY_FLAG_FOUND 2U
+#define ZIGUX_CHRDEV_RETRY_FLAG_EXHAUSTED 4U
+#define ZIGUX_CHRDEV_RETRY_FLAG_HIT 8U
+#define ZIGUX_CHRDEV_RETRY_FLAG_PERMITTED 16U
+#define ZIGUX_CHRDEV_RETRY_FLAG_DENIED 32U
+#define ZIGUX_CHRDEV_RETRY_FLAG_ROUTABLE 64U
+#define ZIGUX_CHRDEV_RETRY_FLAG_BLOCKED 128U
+#define ZIGUX_CHRDEV_RETRY_FLAG_DISPATCHABLE 256U
+#define ZIGUX_CHRDEV_RETRY_FLAG_RESUMED 512U
+#define ZIGUX_CHRDEV_RETRY_FLAG_CONTINUABLE 1024U
+#define ZIGUX_CHRDEV_RETRY_FLAG_COMPLETES 2048U
+#define ZIGUX_CHRDEV_RETRY_FLAG_PROGRESSED 4096U
+#define ZIGUX_CHRDEV_RETRY_FLAG_STALLED 8192U
+#define ZIGUX_CHRDEV_RETRY_FLAG_COMPLETE_OK 16384U
+#define ZIGUX_CHRDEV_RETRY_FLAG_RETRYABLE 32768U
+#define ZIGUX_CHRDEV_RETRY_FLAG_RETRY_PLANNED 65536U
+#define ZIGUX_CHRDEV_RETRY_FLAG_RETRY_EXHAUSTED 131072U
+#define ZIGUX_CHRDEV_RETRY_FLAG_BACKOFF_APPLIED 262144U
+#define ZIGUX_CHRDEV_RETRY_FLAG_FAILS 524288U
+#define ZIGUX_CHRDEV_RETRY_INDEX_NONE 0xffffffffU
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -671,6 +692,58 @@ struct zigux_chrdev_resume_summary {
 	zigux_u32 data_ops;
 	zigux_u32 exit_ops;
 	zigux_u32 blocked_ops;
+	zigux_u32 flags;
+};
+
+struct zigux_chrdev_retry_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 target_minor;
+	zigux_u32 requested_mode;
+	zigux_u32 supported_mode;
+	zigux_u32 available_ops;
+	zigux_u32 io_op;
+	zigux_u32 requested_bytes;
+	zigux_u32 max_chunk_bytes;
+	zigux_u64 file_offset;
+	zigux_u32 bytes_completed;
+	zigux_u32 max_segments;
+	zigux_u32 resume_passes;
+	zigux_u32 retry_budget;
+	zigux_u32 stall_budget;
+	zigux_u32 backoff_quanta;
+	zigux_u32 reserved;
+};
+
+struct zigux_chrdev_retry_summary {
+	zigux_u32 major;
+	zigux_u32 target_minor;
+	zigux_u32 selected_count;
+	zigux_u32 resolved_index;
+	zigux_u32 resolved_dev;
+	zigux_u32 granted_mode;
+	zigux_u32 io_op;
+	zigux_u32 requested_bytes;
+	zigux_u64 start_offset;
+	zigux_u64 next_offset;
+	zigux_u32 initial_bytes_completed;
+	zigux_u32 final_bytes_completed;
+	zigux_u32 pass_count;
+	zigux_u32 issued_bytes;
+	zigux_u32 remaining_bytes;
+	zigux_u32 entry_ops;
+	zigux_u32 data_ops;
+	zigux_u32 exit_ops;
+	zigux_u32 blocked_ops;
+	zigux_u32 retry_count;
+	zigux_u32 stall_count;
+	zigux_u32 remaining_retry_budget;
+	zigux_u32 backoff_ticks;
 	zigux_u32 flags;
 };
 
