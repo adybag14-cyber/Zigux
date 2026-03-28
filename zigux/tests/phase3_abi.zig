@@ -17,6 +17,7 @@ const idr_slot_view = @import("idr_slot_view");
 const ida_bitmap_view = @import("ida_bitmap_view");
 const ida_alloc_view = @import("ida_alloc_view");
 const ida_range_view = @import("ida_range_view");
+const ida_range_set_view = @import("ida_range_set_view");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -45,6 +46,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.IdaAllocSummary, 24);
         layout_assert.assertSize(abi.IdaRangeView, @sizeOf(usize) + 24);
         layout_assert.assertSize(abi.IdaRangeSummary, 24);
+        layout_assert.assertSize(abi.IdaRangeSetView, @sizeOf(usize) + 32);
+        layout_assert.assertSize(abi.IdaRangeSetSummary, 32);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -69,6 +72,10 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.IdaRangeView, "max_ranges", @sizeOf(usize) + 16);
         layout_assert.assertOffset(abi.IdaRangeSummary, "candidate_range_count", 8);
         layout_assert.assertOffset(abi.IdaRangeSummary, "flags", 20);
+        layout_assert.assertOffset(abi.IdaRangeSetView, "base_id", @sizeOf(usize));
+        layout_assert.assertOffset(abi.IdaRangeSetView, "max_selected", @sizeOf(usize) + 20);
+        layout_assert.assertOffset(abi.IdaRangeSetSummary, "selected_range_count", 12);
+        layout_assert.assertOffset(abi.IdaRangeSetSummary, "flags", 24);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -314,4 +321,36 @@ test "phase3 ida range interop helpers stay aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u32, 101), capped_summary.first_range_id);
     try std.testing.expectEqual(@as(u32, 104), capped_summary.last_range_id);
     try std.testing.expectEqual(@as(u32, abi.IDA_RANGE_FLAG_TRUNCATED | abi.IDA_RANGE_FLAG_FOUND), capped_summary.flags);
+}
+
+test "phase3 ida range-set interop helpers stay aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+
+    const predictable = ida_range_set_view.viewFromBits(words[0..], 100, 8, 6, 2, 4, 2);
+    const predictable_summary = ida_range_set_view.summarize(predictable);
+    try std.testing.expect(ida_range_set_view.isValid(predictable));
+    try std.testing.expectEqual(@as(u32, 6), predictable_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 2), predictable_summary.request_count);
+    try std.testing.expectEqual(@as(u32, 2), predictable_summary.candidate_range_count);
+    try std.testing.expectEqual(@as(u32, 2), predictable_summary.selected_range_count);
+    try std.testing.expectEqual(@as(u32, 101), predictable_summary.first_selected_id);
+    try std.testing.expectEqual(@as(u32, 104), predictable_summary.last_selected_id);
+    try std.testing.expectEqual(@as(u32, abi.IDA_RANGE_SET_FLAG_TRUNCATED | abi.IDA_RANGE_SET_FLAG_FOUND | abi.IDA_RANGE_SET_FLAG_SELECTED), predictable_summary.flags);
+
+    const capped = ida_range_set_view.viewFromBits(words[0..], 100, 8, 8, 2, 4, 1);
+    const capped_summary = ida_range_set_view.summarize(capped);
+    try std.testing.expectEqual(@as(u32, 3), capped_summary.candidate_range_count);
+    try std.testing.expectEqual(@as(u32, 1), capped_summary.selected_range_count);
+    try std.testing.expectEqual(@as(u32, 101), capped_summary.first_selected_id);
+    try std.testing.expectEqual(@as(u32, 101), capped_summary.last_selected_id);
+    try std.testing.expectEqual(@as(u32, abi.IDA_RANGE_SET_FLAG_TRUNCATED | abi.IDA_RANGE_SET_FLAG_FOUND | abi.IDA_RANGE_SET_FLAG_SELECTED), capped_summary.flags);
+
+    const exhausted_words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 4)};
+    const exhausted = ida_range_set_view.viewFromBits(exhausted_words[0..], 40, 5, 5, 2, 4, 2);
+    const exhausted_summary = ida_range_set_view.summarize(exhausted);
+    try std.testing.expectEqual(@as(u32, 0), exhausted_summary.candidate_range_count);
+    try std.testing.expectEqual(@as(u32, 0), exhausted_summary.selected_range_count);
+    try std.testing.expectEqual(@as(u32, 45), exhausted_summary.first_selected_id);
+    try std.testing.expectEqual(@as(u32, 45), exhausted_summary.last_selected_id);
+    try std.testing.expectEqual(@as(u32, abi.IDA_RANGE_SET_FLAG_EXHAUSTED), exhausted_summary.flags);
 }

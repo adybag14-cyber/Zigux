@@ -63,6 +63,10 @@ int main(void)
 		"\"offsets\":{\"bits_addr\":%zu,\"base_id\":%zu,\"nbits\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"max_ranges\":%zu,\"reserved\":%zu}},"
 		"\"zigux_ida_range_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"scanned_count\":%zu,\"request_count\":%zu,\"candidate_range_count\":%zu,\"first_range_id\":%zu,\"last_range_id\":%zu,\"flags\":%zu}},"
+		"\"zigux_ida_range_set_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"base_id\":%zu,\"nbits\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"max_ranges\":%zu,\"max_selected\":%zu,\"reserved\":%zu}},"
+		"\"zigux_ida_range_set_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"scanned_count\":%zu,\"request_count\":%zu,\"candidate_range_count\":%zu,\"selected_range_count\":%zu,\"first_selected_id\":%zu,\"last_selected_id\":%zu,\"flags\":%zu,\"reserved\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -223,6 +227,26 @@ int main(void)
 		offsetof(struct zigux_ida_range_summary, first_range_id),
 		offsetof(struct zigux_ida_range_summary, last_range_id),
 		offsetof(struct zigux_ida_range_summary, flags),
+		sizeof(struct zigux_ida_range_set_view),
+		_Alignof(struct zigux_ida_range_set_view),
+		offsetof(struct zigux_ida_range_set_view, bits_addr),
+		offsetof(struct zigux_ida_range_set_view, base_id),
+		offsetof(struct zigux_ida_range_set_view, nbits),
+		offsetof(struct zigux_ida_range_set_view, max_scan),
+		offsetof(struct zigux_ida_range_set_view, request_count),
+		offsetof(struct zigux_ida_range_set_view, max_ranges),
+		offsetof(struct zigux_ida_range_set_view, max_selected),
+		offsetof(struct zigux_ida_range_set_view, reserved),
+		sizeof(struct zigux_ida_range_set_summary),
+		_Alignof(struct zigux_ida_range_set_summary),
+		offsetof(struct zigux_ida_range_set_summary, scanned_count),
+		offsetof(struct zigux_ida_range_set_summary, request_count),
+		offsetof(struct zigux_ida_range_set_summary, candidate_range_count),
+		offsetof(struct zigux_ida_range_set_summary, selected_range_count),
+		offsetof(struct zigux_ida_range_set_summary, first_selected_id),
+		offsetof(struct zigux_ida_range_set_summary, last_selected_id),
+		offsetof(struct zigux_ida_range_set_summary, flags),
+		offsetof(struct zigux_ida_range_set_summary, reserved),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

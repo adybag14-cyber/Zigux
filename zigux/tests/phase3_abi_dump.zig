@@ -214,6 +214,28 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.IdaRangeSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_ida_range_set_view", @sizeOf(abi.IdaRangeSetView), @alignOf(abi.IdaRangeSetView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.IdaRangeSetView, "bits_addr"), true);
+    try writeOffset(writer, "base_id", @offsetOf(abi.IdaRangeSetView, "base_id"), true);
+    try writeOffset(writer, "nbits", @offsetOf(abi.IdaRangeSetView, "nbits"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.IdaRangeSetView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.IdaRangeSetView, "request_count"), true);
+    try writeOffset(writer, "max_ranges", @offsetOf(abi.IdaRangeSetView, "max_ranges"), true);
+    try writeOffset(writer, "max_selected", @offsetOf(abi.IdaRangeSetView, "max_selected"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaRangeSetView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_ida_range_set_summary", @sizeOf(abi.IdaRangeSetSummary), @alignOf(abi.IdaRangeSetSummary));
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.IdaRangeSetSummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.IdaRangeSetSummary, "request_count"), true);
+    try writeOffset(writer, "candidate_range_count", @offsetOf(abi.IdaRangeSetSummary, "candidate_range_count"), true);
+    try writeOffset(writer, "selected_range_count", @offsetOf(abi.IdaRangeSetSummary, "selected_range_count"), true);
+    try writeOffset(writer, "first_selected_id", @offsetOf(abi.IdaRangeSetSummary, "first_selected_id"), true);
+    try writeOffset(writer, "last_selected_id", @offsetOf(abi.IdaRangeSetSummary, "last_selected_id"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.IdaRangeSetSummary, "flags"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaRangeSetSummary, "reserved"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

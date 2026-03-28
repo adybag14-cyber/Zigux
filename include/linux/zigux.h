@@ -1024,4 +1024,117 @@ zigux_ida_range_summarize(const struct zigux_ida_range_view *view)
 	return summary;
 }
 
+static inline struct zigux_ida_range_set_view
+zigux_ida_range_set_view_from_bits(const unsigned long *bits, zigux_u32 base_id,
+				   zigux_u32 nbits, zigux_u32 max_scan,
+				   zigux_u32 request_count, zigux_u32 max_ranges,
+				   zigux_u32 max_selected)
+{
+	return (struct zigux_ida_range_set_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.base_id = base_id,
+		.nbits = nbits,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.max_ranges = max_ranges,
+		.max_selected = max_selected,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_ida_range_set_view_valid(const struct zigux_ida_range_set_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0 || view->max_ranges == 0 ||
+	    view->max_selected == 0)
+		return false;
+	if (view->nbits == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_bitmap_view
+zigux_ida_range_set_as_bitmap(const struct zigux_ida_range_set_view *view)
+{
+	if (!zigux_ida_range_set_view_valid(view))
+		return (struct zigux_bitmap_view){0, 0, 0};
+
+	return (struct zigux_bitmap_view){
+		.words_addr = view->bits_addr,
+		.nbits = view->nbits,
+		.word_count = zigux_bitmap_word_count(view->nbits),
+	};
+}
+
+static inline struct zigux_ida_range_set_summary
+zigux_ida_range_set_summarize(const struct zigux_ida_range_set_view *view)
+{
+	struct zigux_ida_range_set_summary summary = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct zigux_bitmap_view bitmap;
+	zigux_u32 scanned;
+	zigux_u32 start;
+	zigux_u32 next_allowed_start = 0;
+
+	if (!zigux_ida_range_set_view_valid(view))
+		return summary;
+
+	scanned = view->nbits < view->max_scan ? view->nbits : view->max_scan;
+	summary.scanned_count = scanned;
+	summary.request_count = view->request_count;
+	summary.first_selected_id = view->base_id + scanned;
+	summary.last_selected_id = view->base_id + scanned;
+	if (scanned < view->nbits)
+		summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_TRUNCATED;
+	if (scanned < view->request_count) {
+		summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_EXHAUSTED;
+		return summary;
+	}
+
+	bitmap = zigux_ida_range_set_as_bitmap(view);
+	for (start = 0; start + view->request_count <= scanned; start++) {
+		zigux_u32 bit;
+		bool fits = true;
+
+		for (bit = 0; bit < view->request_count; bit++) {
+			if (zigux_bitmap_test_bit(&bitmap, start + bit)) {
+				fits = false;
+				break;
+			}
+		}
+		if (!fits)
+			continue;
+
+		summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_FOUND;
+		if (summary.candidate_range_count < view->max_ranges) {
+			summary.candidate_range_count++;
+		} else {
+			summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_TRUNCATED;
+			continue;
+		}
+
+		if (start < next_allowed_start)
+			continue;
+
+		if (summary.selected_range_count < view->max_selected) {
+			if ((summary.flags & ZIGUX_IDA_RANGE_SET_FLAG_SELECTED) == 0)
+				summary.first_selected_id = view->base_id + start;
+			summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_SELECTED;
+			summary.last_selected_id = view->base_id + start;
+			summary.selected_range_count++;
+			next_allowed_start = start + view->request_count;
+		} else {
+			summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_TRUNCATED;
+		}
+	}
+
+	if ((summary.flags & ZIGUX_IDA_RANGE_SET_FLAG_FOUND) == 0)
+		summary.flags |= ZIGUX_IDA_RANGE_SET_FLAG_EXHAUSTED;
+
+	return summary;
+}
+
 #endif

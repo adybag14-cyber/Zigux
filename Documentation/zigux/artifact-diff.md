@@ -41,6 +41,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-ida-alloc.py` compares that committed JSON fixture against both the bounded C harness and the Zig ida allocation dump.
 - `zigux/tests/fixtures/phase3_ida_range/expected.json` fixes the first bounded ida-style candidate-range planning claim on top of the ida allocation substrate.
 - `scripts/zigux/check-phase3-ida-range.py` compares that committed JSON fixture against both the bounded C harness and the Zig ida range dump.
+- `zigux/tests/fixtures/phase3_ida_range_set/expected.json` fixes the first bounded ida-style non-overlapping range-set selection claim on top of the ida range substrate.
+- `scripts/zigux/check-phase3-ida-range-set.py` compares that committed JSON fixture against both the bounded C harness and the Zig ida range-set dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -50,4 +52,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set interop claims before any broader interop substrate expansion
