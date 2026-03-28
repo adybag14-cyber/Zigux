@@ -50,6 +50,7 @@ Current bootstrap helpers
 - `check-phase3-chrdev-requeue.py`
 - `check-phase3-chrdev-complete.py`
 - `check-phase3-chrdev-notify.py`
+- `check-phase3-chrdev-notify-policy.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

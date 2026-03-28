@@ -73,6 +73,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-complete.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-complete planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_notify/expected.json` fixes the bounded kernel-facing chrdev-notify planning claim on top of the chrdev-complete substrate.
 - `scripts/zigux/check-phase3-chrdev-notify.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_notify_policy/expected.json` fixes the bounded kernel-facing chrdev-notify-policy planning claim on top of the chrdev-notify substrate.
+- `scripts/zigux/check-phase3-chrdev-notify-policy.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-policy planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -82,4 +84,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region/cdev-add/cdev-lookup/chrdev-open/chrdev-fops/chrdev-route/chrdev-io/chrdev-xfer/chrdev-resume/chrdev-retry/chrdev-requeue/chrdev-complete/chrdev-notify interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region/cdev-add/cdev-lookup/chrdev-open/chrdev-fops/chrdev-route/chrdev-io/chrdev-xfer/chrdev-resume/chrdev-retry/chrdev-requeue/chrdev-complete/chrdev-notify/chrdev-notify-policy interop claims before any broader interop substrate expansion

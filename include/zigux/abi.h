@@ -281,6 +281,14 @@ typedef int32_t zigux_s32;
 #define ZIGUX_CHRDEV_NOTIFY_STATUS_DELIVERED 1U
 #define ZIGUX_CHRDEV_NOTIFY_STATUS_DEFERRED 2U
 #define ZIGUX_CHRDEV_NOTIFY_STATUS_DROPPED 3U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_FORCE_DEFERRED 1U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_SUPPRESS_FAILURE 2U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_COALESCE_COOKIE 4U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_NONE 0U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_DELIVERED 1U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_DEFERRED 2U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_SUPPRESSED 3U
+#define ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_COALESCED 4U
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -1054,6 +1062,95 @@ struct zigux_chrdev_notify_summary {
 	zigux_u32 remaining_notify_budget;
 	zigux_u64 notify_cookie;
 	zigux_u32 flags;
+};
+
+struct zigux_chrdev_notify_policy_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 target_minor;
+	zigux_u32 requested_mode;
+	zigux_u32 supported_mode;
+	zigux_u32 available_ops;
+	zigux_u32 io_op;
+	zigux_u32 requested_bytes;
+	zigux_u32 max_chunk_bytes;
+	zigux_u64 file_offset;
+	zigux_u32 bytes_completed;
+	zigux_u32 max_segments;
+	zigux_u32 resume_passes;
+	zigux_u32 retry_budget;
+	zigux_u32 stall_budget;
+	zigux_u32 backoff_quanta;
+	zigux_u32 queue_depth;
+	zigux_u32 queue_capacity;
+	zigux_u32 requeue_budget;
+	zigux_u64 completion_cookie;
+	zigux_u32 completion_budget;
+	zigux_u32 notify_mask;
+	zigux_u64 notify_cookie;
+	zigux_u32 notify_budget;
+	zigux_u32 reserved;
+	zigux_u32 policy_flags;
+	zigux_u32 policy_reserved;
+};
+
+struct zigux_chrdev_notify_policy_summary {
+	zigux_u32 major;
+	zigux_u32 target_minor;
+	zigux_u32 selected_count;
+	zigux_u32 resolved_index;
+	zigux_u32 resolved_dev;
+	zigux_u32 granted_mode;
+	zigux_u32 io_op;
+	zigux_u32 requested_bytes;
+	zigux_u64 start_offset;
+	zigux_u64 next_offset;
+	zigux_u32 initial_bytes_completed;
+	zigux_u32 final_bytes_completed;
+	zigux_u32 pass_count;
+	zigux_u32 issued_bytes;
+	zigux_u32 remaining_bytes;
+	zigux_u32 projected_remaining_bytes;
+	zigux_u32 entry_ops;
+	zigux_u32 data_ops;
+	zigux_u32 exit_ops;
+	zigux_u32 blocked_ops;
+	zigux_u32 retry_count;
+	zigux_u32 stall_count;
+	zigux_u32 requeue_count;
+	zigux_u32 queue_depth_before;
+	zigux_u32 queue_depth_after;
+	zigux_u32 remaining_retry_budget;
+	zigux_u32 remaining_requeue_budget;
+	zigux_u32 backoff_ticks;
+	zigux_u64 completion_cookie;
+	zigux_u32 completion_status;
+	zigux_u32 completion_count;
+	zigux_u32 deferred_count;
+	zigux_u32 failure_count;
+	zigux_u32 remaining_completion_budget;
+	zigux_u32 notify_mask;
+	zigux_u32 matched_notify_mask;
+	zigux_u32 notify_status;
+	zigux_u32 notify_count;
+	zigux_u32 deferred_notify_count;
+	zigux_u32 dropped_notify_count;
+	zigux_u32 remaining_notify_budget;
+	zigux_u64 notify_cookie;
+	zigux_u32 flags;
+	zigux_u32 policy_flags;
+	zigux_u32 effective_policy_flags;
+	zigux_u64 effective_notify_cookie;
+	zigux_u32 policy_status;
+	zigux_u32 policy_notify_count;
+	zigux_u32 policy_deferred_count;
+	zigux_u32 policy_suppressed_count;
+	zigux_u32 policy_coalesced_count;
 };
 
 struct zigux_mmio_range {

@@ -242,6 +242,14 @@ pub const CHRDEV_NOTIFY_STATUS_NONE: u32 = 0;
 pub const CHRDEV_NOTIFY_STATUS_DELIVERED: u32 = 1;
 pub const CHRDEV_NOTIFY_STATUS_DEFERRED: u32 = 2;
 pub const CHRDEV_NOTIFY_STATUS_DROPPED: u32 = 3;
+pub const CHRDEV_NOTIFY_POLICY_FORCE_DEFERRED: u32 = 1;
+pub const CHRDEV_NOTIFY_POLICY_SUPPRESS_FAILURE: u32 = 2;
+pub const CHRDEV_NOTIFY_POLICY_COALESCE_COOKIE: u32 = 4;
+pub const CHRDEV_NOTIFY_POLICY_STATUS_NONE: u32 = 0;
+pub const CHRDEV_NOTIFY_POLICY_STATUS_DELIVERED: u32 = 1;
+pub const CHRDEV_NOTIFY_POLICY_STATUS_DEFERRED: u32 = 2;
+pub const CHRDEV_NOTIFY_POLICY_STATUS_SUPPRESSED: u32 = 3;
+pub const CHRDEV_NOTIFY_POLICY_STATUS_COALESCED: u32 = 4;
 pub const DEV_MINOR_BITS: u32 = 20;
 pub const DEV_MINOR_MASK: u32 = (1 << DEV_MINOR_BITS) - 1;
 
@@ -1041,6 +1049,95 @@ pub const ChrdevNotifySummary = extern struct {
     remaining_notify_budget: u32,
     notify_cookie: u64,
     flags: u32,
+};
+
+pub const ChrdevNotifyPolicyView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    target_minor: u32,
+    requested_mode: u32,
+    supported_mode: u32,
+    available_ops: u32,
+    io_op: u32,
+    requested_bytes: u32,
+    max_chunk_bytes: u32,
+    file_offset: u64,
+    bytes_completed: u32,
+    max_segments: u32,
+    resume_passes: u32,
+    retry_budget: u32,
+    stall_budget: u32,
+    backoff_quanta: u32,
+    queue_depth: u32,
+    queue_capacity: u32,
+    requeue_budget: u32,
+    completion_cookie: u64,
+    completion_budget: u32,
+    notify_mask: u32,
+    notify_cookie: u64,
+    notify_budget: u32,
+    reserved: u32,
+    policy_flags: u32,
+    policy_reserved: u32,
+};
+
+pub const ChrdevNotifyPolicySummary = extern struct {
+    major: u32,
+    target_minor: u32,
+    selected_count: u32,
+    resolved_index: u32,
+    resolved_dev: u32,
+    granted_mode: u32,
+    io_op: u32,
+    requested_bytes: u32,
+    start_offset: u64,
+    next_offset: u64,
+    initial_bytes_completed: u32,
+    final_bytes_completed: u32,
+    pass_count: u32,
+    issued_bytes: u32,
+    remaining_bytes: u32,
+    projected_remaining_bytes: u32,
+    entry_ops: u32,
+    data_ops: u32,
+    exit_ops: u32,
+    blocked_ops: u32,
+    retry_count: u32,
+    stall_count: u32,
+    requeue_count: u32,
+    queue_depth_before: u32,
+    queue_depth_after: u32,
+    remaining_retry_budget: u32,
+    remaining_requeue_budget: u32,
+    backoff_ticks: u32,
+    completion_cookie: u64,
+    completion_status: u32,
+    completion_count: u32,
+    deferred_count: u32,
+    failure_count: u32,
+    remaining_completion_budget: u32,
+    notify_mask: u32,
+    matched_notify_mask: u32,
+    notify_status: u32,
+    notify_count: u32,
+    deferred_notify_count: u32,
+    dropped_notify_count: u32,
+    remaining_notify_budget: u32,
+    notify_cookie: u64,
+    flags: u32,
+    policy_flags: u32,
+    effective_policy_flags: u32,
+    effective_notify_cookie: u64,
+    policy_status: u32,
+    policy_notify_count: u32,
+    policy_deferred_count: u32,
+    policy_suppressed_count: u32,
+    policy_coalesced_count: u32,
 };
 
 pub const MmioRange = extern struct {
