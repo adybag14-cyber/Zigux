@@ -3,10 +3,12 @@
 
 #ifdef __KERNEL__
 #include <linux/build_bug.h>
+#include <linux/string.h>
 #include <linux/types.h>
 #else
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #endif
 
 #include <zigux/abi.h>
@@ -4691,6 +4693,283 @@ zigux_chrdev_notify_ack_summarize(
 	summary.ack_flags |= ZIGUX_CHRDEV_NOTIFY_ACK_FLAG_EXPIRED |
 			       ZIGUX_CHRDEV_NOTIFY_ACK_FLAG_WINDOW_EXHAUSTED;
 	summary.expired_ack_count = 1;
+	return summary;
+}
+
+static inline struct zigux_chrdev_notify_ack_policy_view
+zigux_chrdev_notify_ack_policy_view_from_bits(
+	const unsigned long *bits, zigux_u32 major, zigux_u32 first_minor,
+	zigux_u32 minor_count, zigux_u32 max_scan, zigux_u32 request_count,
+	zigux_u32 policy, zigux_u32 target_minor, zigux_u32 requested_mode,
+	zigux_u32 supported_mode, zigux_u32 available_ops, zigux_u32 io_op,
+	zigux_u32 requested_bytes, zigux_u32 max_chunk_bytes,
+	zigux_u64 file_offset, zigux_u32 bytes_completed,
+	zigux_u32 max_segments, zigux_u32 resume_passes,
+	zigux_u32 retry_budget, zigux_u32 stall_budget,
+	zigux_u32 backoff_quanta, zigux_u32 queue_depth,
+	zigux_u32 queue_capacity, zigux_u32 requeue_budget,
+	zigux_u64 completion_cookie, zigux_u32 completion_budget,
+	zigux_u32 notify_mask, zigux_u32 notify_budget,
+	zigux_u64 notify_cookie, zigux_u32 policy_flags,
+	zigux_u32 delivery_budget, zigux_u32 deferred_budget,
+	zigux_u32 ack_mask, zigux_u32 ack_window, zigux_u64 ack_cookie,
+	zigux_u32 ack_observed, zigux_u32 ack_policy_flags)
+{
+	return (struct zigux_chrdev_notify_ack_policy_view){
+		.bits_addr = (unsigned long)bits,
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.io_op = io_op,
+		.requested_bytes = requested_bytes,
+		.max_chunk_bytes = max_chunk_bytes,
+		.file_offset = file_offset,
+		.bytes_completed = bytes_completed,
+		.max_segments = max_segments,
+		.resume_passes = resume_passes,
+		.retry_budget = retry_budget,
+		.stall_budget = stall_budget,
+		.backoff_quanta = backoff_quanta,
+		.queue_depth = queue_depth,
+		.queue_capacity = queue_capacity,
+		.requeue_budget = requeue_budget,
+		.completion_cookie = completion_cookie,
+		.completion_budget = completion_budget,
+		.notify_mask = notify_mask,
+		.notify_cookie = notify_cookie,
+		.notify_budget = notify_budget,
+		.reserved = 0,
+		.policy_flags = policy_flags,
+		.policy_reserved = 0,
+		.delivery_budget = delivery_budget,
+		.deferred_budget = deferred_budget,
+		.ack_mask = ack_mask,
+		.ack_window = ack_window,
+		.ack_cookie = ack_cookie,
+		.ack_observed = ack_observed,
+		.ack_reserved = 0,
+		.ack_policy_flags = ack_policy_flags,
+		.ack_policy_reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_notify_ack_policy_view_valid(
+	const struct zigux_chrdev_notify_ack_policy_view *view)
+{
+	struct zigux_chrdev_notify_ack_view ack_view;
+	const zigux_u32 allowed_flags =
+		ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED |
+		ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_SUPPRESS_EXPIRED |
+		ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_COALESCE_COOKIE;
+
+	if (!view)
+		return false;
+	if (view->ack_policy_reserved != 0)
+		return false;
+	if ((view->ack_policy_flags & ~allowed_flags) != 0)
+		return false;
+
+	ack_view = (struct zigux_chrdev_notify_ack_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.completion_cookie = view->completion_cookie,
+		.completion_budget = view->completion_budget,
+		.notify_mask = view->notify_mask,
+		.notify_cookie = view->notify_cookie,
+		.notify_budget = view->notify_budget,
+		.reserved = 0,
+		.policy_flags = view->policy_flags,
+		.policy_reserved = 0,
+		.delivery_budget = view->delivery_budget,
+		.deferred_budget = view->deferred_budget,
+		.ack_mask = view->ack_mask,
+		.ack_window = view->ack_window,
+		.ack_cookie = view->ack_cookie,
+		.ack_observed = view->ack_observed,
+		.ack_reserved = 0,
+	};
+
+	return zigux_chrdev_notify_ack_view_valid(&ack_view);
+}
+
+static inline struct zigux_chrdev_notify_ack_view
+zigux_chrdev_notify_ack_policy_as_chrdev_notify_ack(
+	const struct zigux_chrdev_notify_ack_policy_view *view)
+{
+	if (!zigux_chrdev_notify_ack_policy_view_valid(view))
+		return (struct zigux_chrdev_notify_ack_view){0};
+
+	return (struct zigux_chrdev_notify_ack_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.completion_cookie = view->completion_cookie,
+		.completion_budget = view->completion_budget,
+		.notify_mask = view->notify_mask,
+		.notify_cookie = view->notify_cookie,
+		.notify_budget = view->notify_budget,
+		.reserved = 0,
+		.policy_flags = view->policy_flags,
+		.policy_reserved = 0,
+		.delivery_budget = view->delivery_budget,
+		.deferred_budget = view->deferred_budget,
+		.ack_mask = view->ack_mask,
+		.ack_window = view->ack_window,
+		.ack_cookie = view->ack_cookie,
+		.ack_observed = view->ack_observed,
+		.ack_reserved = 0,
+	};
+}
+
+static inline struct zigux_chrdev_notify_ack_policy_summary
+zigux_chrdev_notify_ack_policy_summarize(
+	const struct zigux_chrdev_notify_ack_policy_view *view)
+{
+	struct zigux_chrdev_notify_ack_policy_summary summary = {
+		.resolved_index = ZIGUX_CHRDEV_NOTIFY_INDEX_NONE,
+		.completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_NONE,
+		.notify_status = ZIGUX_CHRDEV_NOTIFY_STATUS_NONE,
+		.policy_status = ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_NONE,
+		.budget_status = ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_NONE,
+		.ack_status = ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_NONE,
+		.ack_policy_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_NONE,
+	};
+	struct zigux_chrdev_notify_ack_view ack_view;
+	struct zigux_chrdev_notify_ack_summary ack_summary;
+
+	if (!zigux_chrdev_notify_ack_policy_view_valid(view))
+		return summary;
+
+	ack_view = zigux_chrdev_notify_ack_policy_as_chrdev_notify_ack(view);
+	ack_summary = zigux_chrdev_notify_ack_summarize(&ack_view);
+	memcpy(&summary, &ack_summary, sizeof(ack_summary));
+	summary.ack_policy_flags = view->ack_policy_flags;
+
+	switch (ack_summary.ack_status) {
+	case ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_NONE:
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_SKIPPED:
+		summary.ack_policy_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_SKIPPED;
+		summary.policy_skipped_ack_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_EXPIRED:
+		if ((view->ack_policy_flags &
+		     ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_SUPPRESS_EXPIRED) != 0) {
+			summary.effective_ack_policy_flags =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_SUPPRESS_EXPIRED;
+			summary.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_SUPPRESSED;
+			summary.policy_suppressed_ack_count = 1;
+		} else if ((view->ack_policy_flags &
+			    ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED) != 0) {
+			summary.effective_ack_policy_flags =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED;
+			summary.effective_ack_cookie = ack_summary.ack_cookie;
+			summary.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_DEFERRED;
+			summary.policy_deferred_ack_count = 1;
+		} else {
+			summary.effective_ack_cookie = ack_summary.ack_cookie;
+			summary.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_EXPIRED;
+			summary.policy_expired_ack_count = 1;
+		}
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_DEFERRED:
+		if ((view->ack_policy_flags &
+		     ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED) != 0)
+			summary.effective_ack_policy_flags =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED;
+		summary.effective_ack_cookie = ack_summary.ack_cookie;
+		summary.ack_policy_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_DEFERRED;
+		summary.policy_deferred_ack_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_ACKED:
+		if ((view->ack_policy_flags &
+		     ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_COALESCE_COOKIE) != 0 &&
+		    ack_summary.ack_cookie != 0 &&
+		    (ack_summary.ack_cookie == ack_summary.notify_cookie ||
+		     ack_summary.ack_cookie ==
+			     ack_summary.completion_cookie)) {
+			summary.effective_ack_policy_flags =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_COALESCE_COOKIE;
+			summary.effective_ack_cookie = ack_summary.ack_cookie;
+			summary.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_COALESCED;
+			summary.policy_coalesced_ack_count = 1;
+		} else if ((view->ack_policy_flags &
+			    ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED) != 0) {
+			summary.effective_ack_policy_flags =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_FORCE_DEFERRED;
+			summary.effective_ack_cookie = ack_summary.ack_cookie;
+			summary.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_DEFERRED;
+			summary.policy_deferred_ack_count = 1;
+		} else {
+			summary.effective_ack_cookie = ack_summary.ack_cookie;
+			summary.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_ACKED;
+			summary.policy_acked_count = 1;
+		}
+		break;
+	default:
+		break;
+	}
+
 	return summary;
 }
 

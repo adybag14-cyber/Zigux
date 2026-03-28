@@ -514,6 +514,22 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevNotifyAckSummary, "ack_window_after", 300);
         layout_assert.assertOffset(abi.ChrdevNotifyAckSummary, "ack_cookie", 304);
         layout_assert.assertOffset(abi.ChrdevNotifyAckSummary, "ack_flags", 312);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "file_offset", @sizeOf(usize) + 56);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "completion_cookie", @sizeOf(usize) + 104);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "ack_mask", @sizeOf(usize) + 152);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "ack_cookie", @sizeOf(usize) + 160);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "ack_policy_flags", @sizeOf(usize) + 176);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicyView, "ack_policy_reserved", @sizeOf(usize) + 180);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "start_offset", 32);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "completion_cookie", 120);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "ack_cookie", 304);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "ack_flags", 312);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "ack_policy_flags", 316);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "effective_ack_policy_flags", 320);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "effective_ack_cookie", 328);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "ack_policy_status", 336);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckPolicySummary, "policy_skipped_ack_count", 360);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }

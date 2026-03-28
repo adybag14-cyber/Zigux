@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "chrdev-notify-ack-policy-plan-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/chrdev_notify_ack_policy_plan.zig",
+    "zigux/tests/phase3_chrdev_notify_ack_policy_dump.zig",
+    "zigux/tests/fixtures/phase3_chrdev_notify_ack_policy/phase3_chrdev_notify_ack_policy_c_harness.c",
+    "zigux/tests/fixtures/phase3_chrdev_notify_ack_policy/expected.json"
+  ]
+}
