@@ -671,6 +671,17 @@ This ledger turns the roadmap into the first product commit train.
 - `Documentation/zigux/phase3-chrdev-notify-ack-budget-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
+
+Phase 3 chrdev notify ack window slice:
+- `zigux/helpers/chrdev_notify_ack_window_plan.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_window_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window/phase3_chrdev_notify_ack_window_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window.py`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/build.zig`
