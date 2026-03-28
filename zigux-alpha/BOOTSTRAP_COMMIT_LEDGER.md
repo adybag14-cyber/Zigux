@@ -549,6 +549,15 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_chrdev_retry_manifest.json`
 - `scripts/zigux/check-phase3-chrdev-retry.py`
 - `Documentation/zigux/phase3-chrdev-retry-slice.md`
+
+### `feat(zigux): add bounded Phase 3 chrdev requeue interop slice`
+- `zigux/helpers/chrdev_requeue_plan.zig`
+- `zigux/tests/phase3_chrdev_requeue_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_requeue/phase3_chrdev_requeue_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_requeue/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_requeue_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-requeue.py`
+- `Documentation/zigux/phase3-chrdev-requeue-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`

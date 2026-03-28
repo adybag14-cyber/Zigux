@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "chrdev-requeue-plan-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/chrdev_requeue_plan.zig",
+    "zigux/tests/phase3_chrdev_requeue_dump.zig",
+    "zigux/tests/fixtures/phase3_chrdev_requeue/phase3_chrdev_requeue_c_harness.c",
+    "zigux/tests/fixtures/phase3_chrdev_requeue/expected.json"
+  ]
+}

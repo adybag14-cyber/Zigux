@@ -140,6 +140,33 @@ pub const CHRDEV_RETRY_FLAG_RETRY_EXHAUSTED: u32 = 131072;
 pub const CHRDEV_RETRY_FLAG_BACKOFF_APPLIED: u32 = 262144;
 pub const CHRDEV_RETRY_FLAG_FAILS: u32 = 524288;
 pub const CHRDEV_RETRY_INDEX_NONE: u32 = 0xffffffff;
+pub const CHRDEV_REQUEUE_FLAG_TRUNCATED: u32 = 1;
+pub const CHRDEV_REQUEUE_FLAG_FOUND: u32 = 2;
+pub const CHRDEV_REQUEUE_FLAG_EXHAUSTED: u32 = 4;
+pub const CHRDEV_REQUEUE_FLAG_HIT: u32 = 8;
+pub const CHRDEV_REQUEUE_FLAG_PERMITTED: u32 = 16;
+pub const CHRDEV_REQUEUE_FLAG_DENIED: u32 = 32;
+pub const CHRDEV_REQUEUE_FLAG_ROUTABLE: u32 = 64;
+pub const CHRDEV_REQUEUE_FLAG_BLOCKED: u32 = 128;
+pub const CHRDEV_REQUEUE_FLAG_DISPATCHABLE: u32 = 256;
+pub const CHRDEV_REQUEUE_FLAG_RESUMED: u32 = 512;
+pub const CHRDEV_REQUEUE_FLAG_CONTINUABLE: u32 = 1024;
+pub const CHRDEV_REQUEUE_FLAG_COMPLETES: u32 = 2048;
+pub const CHRDEV_REQUEUE_FLAG_PROGRESSED: u32 = 4096;
+pub const CHRDEV_REQUEUE_FLAG_STALLED: u32 = 8192;
+pub const CHRDEV_REQUEUE_FLAG_COMPLETE_OK: u32 = 16384;
+pub const CHRDEV_REQUEUE_FLAG_RETRYABLE: u32 = 32768;
+pub const CHRDEV_REQUEUE_FLAG_RETRY_PLANNED: u32 = 65536;
+pub const CHRDEV_REQUEUE_FLAG_RETRY_EXHAUSTED: u32 = 131072;
+pub const CHRDEV_REQUEUE_FLAG_BACKOFF_APPLIED: u32 = 262144;
+pub const CHRDEV_REQUEUE_FLAG_FAILS: u32 = 524288;
+pub const CHRDEV_REQUEUE_FLAG_REQUEUEABLE: u32 = 1048576;
+pub const CHRDEV_REQUEUE_FLAG_REQUEUE_PLANNED: u32 = 2097152;
+pub const CHRDEV_REQUEUE_FLAG_DELAYED: u32 = 4194304;
+pub const CHRDEV_REQUEUE_FLAG_SATURATED: u32 = 8388608;
+pub const CHRDEV_REQUEUE_FLAG_DROPPED: u32 = 16777216;
+pub const CHRDEV_REQUEUE_FLAG_COMPLETE: u32 = 33554432;
+pub const CHRDEV_REQUEUE_INDEX_NONE: u32 = 0xffffffff;
 pub const DEV_MINOR_BITS: u32 = 20;
 pub const DEV_MINOR_MASK: u32 = (1 << DEV_MINOR_BITS) - 1;
 
@@ -730,6 +757,66 @@ pub const ChrdevRetrySummary = extern struct {
     retry_count: u32,
     stall_count: u32,
     remaining_retry_budget: u32,
+    backoff_ticks: u32,
+    flags: u32,
+};
+
+pub const ChrdevRequeueView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    target_minor: u32,
+    requested_mode: u32,
+    supported_mode: u32,
+    available_ops: u32,
+    io_op: u32,
+    requested_bytes: u32,
+    max_chunk_bytes: u32,
+    file_offset: u64,
+    bytes_completed: u32,
+    max_segments: u32,
+    resume_passes: u32,
+    retry_budget: u32,
+    stall_budget: u32,
+    backoff_quanta: u32,
+    queue_depth: u32,
+    queue_capacity: u32,
+    requeue_budget: u32,
+    reserved: u32,
+};
+
+pub const ChrdevRequeueSummary = extern struct {
+    major: u32,
+    target_minor: u32,
+    selected_count: u32,
+    resolved_index: u32,
+    resolved_dev: u32,
+    granted_mode: u32,
+    io_op: u32,
+    requested_bytes: u32,
+    start_offset: u64,
+    next_offset: u64,
+    initial_bytes_completed: u32,
+    final_bytes_completed: u32,
+    pass_count: u32,
+    issued_bytes: u32,
+    remaining_bytes: u32,
+    projected_remaining_bytes: u32,
+    entry_ops: u32,
+    data_ops: u32,
+    exit_ops: u32,
+    blocked_ops: u32,
+    retry_count: u32,
+    stall_count: u32,
+    requeue_count: u32,
+    queue_depth_before: u32,
+    queue_depth_after: u32,
+    remaining_retry_budget: u32,
+    remaining_requeue_budget: u32,
     backoff_ticks: u32,
     flags: u32,
 };
