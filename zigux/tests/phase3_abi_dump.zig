@@ -429,6 +429,41 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.ChrdevRouteSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_chrdev_io_view", @sizeOf(abi.ChrdevIoView), @alignOf(abi.ChrdevIoView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.ChrdevIoView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevIoView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.ChrdevIoView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.ChrdevIoView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.ChrdevIoView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.ChrdevIoView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.ChrdevIoView, "policy"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevIoView, "target_minor"), true);
+    try writeOffset(writer, "requested_mode", @offsetOf(abi.ChrdevIoView, "requested_mode"), true);
+    try writeOffset(writer, "supported_mode", @offsetOf(abi.ChrdevIoView, "supported_mode"), true);
+    try writeOffset(writer, "available_ops", @offsetOf(abi.ChrdevIoView, "available_ops"), true);
+    try writeOffset(writer, "io_op", @offsetOf(abi.ChrdevIoView, "io_op"), true);
+    try writeOffset(writer, "requested_bytes", @offsetOf(abi.ChrdevIoView, "requested_bytes"), true);
+    try writeOffset(writer, "max_chunk_bytes", @offsetOf(abi.ChrdevIoView, "max_chunk_bytes"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.ChrdevIoView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_chrdev_io_summary", @sizeOf(abi.ChrdevIoSummary), @alignOf(abi.ChrdevIoSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevIoSummary, "major"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevIoSummary, "target_minor"), true);
+    try writeOffset(writer, "selected_count", @offsetOf(abi.ChrdevIoSummary, "selected_count"), true);
+    try writeOffset(writer, "resolved_index", @offsetOf(abi.ChrdevIoSummary, "resolved_index"), true);
+    try writeOffset(writer, "resolved_dev", @offsetOf(abi.ChrdevIoSummary, "resolved_dev"), true);
+    try writeOffset(writer, "granted_mode", @offsetOf(abi.ChrdevIoSummary, "granted_mode"), true);
+    try writeOffset(writer, "io_op", @offsetOf(abi.ChrdevIoSummary, "io_op"), true);
+    try writeOffset(writer, "requested_bytes", @offsetOf(abi.ChrdevIoSummary, "requested_bytes"), true);
+    try writeOffset(writer, "chunk_bytes", @offsetOf(abi.ChrdevIoSummary, "chunk_bytes"), true);
+    try writeOffset(writer, "entry_ops", @offsetOf(abi.ChrdevIoSummary, "entry_ops"), true);
+    try writeOffset(writer, "data_ops", @offsetOf(abi.ChrdevIoSummary, "data_ops"), true);
+    try writeOffset(writer, "exit_ops", @offsetOf(abi.ChrdevIoSummary, "exit_ops"), true);
+    try writeOffset(writer, "blocked_ops", @offsetOf(abi.ChrdevIoSummary, "blocked_ops"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.ChrdevIoSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

@@ -141,6 +141,9 @@ jobs:
       - name: Check bounded Phase 3 chrdev route interop parity
         run: python3 scripts/zigux/check-phase3-chrdev-route.py
 
+      - name: Check bounded Phase 3 chrdev io interop parity
+        run: python3 scripts/zigux/check-phase3-chrdev-io.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

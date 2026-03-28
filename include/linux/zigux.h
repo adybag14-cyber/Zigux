@@ -1977,4 +1977,159 @@ zigux_chrdev_route_summarize(const struct zigux_chrdev_route_view *view)
 	return summary;
 }
 
+static inline struct zigux_chrdev_io_view
+zigux_chrdev_io_view_from_bits(const unsigned long *bits, zigux_u32 major,
+			       zigux_u32 first_minor, zigux_u32 minor_count,
+			       zigux_u32 max_scan, zigux_u32 request_count,
+			       zigux_u32 policy, zigux_u32 target_minor,
+			       zigux_u32 requested_mode,
+			       zigux_u32 supported_mode,
+			       zigux_u32 available_ops, zigux_u32 io_op,
+			       zigux_u32 requested_bytes,
+			       zigux_u32 max_chunk_bytes)
+{
+	return (struct zigux_chrdev_io_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.io_op = io_op,
+		.requested_bytes = requested_bytes,
+		.max_chunk_bytes = max_chunk_bytes,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_io_view_valid(const struct zigux_chrdev_io_view *view)
+{
+	struct zigux_chrdev_route_view route_view;
+
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->io_op != ZIGUX_CHRDEV_IO_OP_READ &&
+	    view->io_op != ZIGUX_CHRDEV_IO_OP_WRITE)
+		return false;
+	if (view->requested_bytes == 0 || view->max_chunk_bytes == 0)
+		return false;
+
+	route_view = (struct zigux_chrdev_route_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.reserved = 0,
+	};
+	return zigux_chrdev_route_view_valid(&route_view);
+}
+
+static inline struct zigux_chrdev_route_view
+zigux_chrdev_io_as_chrdev_route(const struct zigux_chrdev_io_view *view)
+{
+	if (!zigux_chrdev_io_view_valid(view))
+		return (struct zigux_chrdev_route_view){
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+
+	return (struct zigux_chrdev_route_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_chrdev_io_summary
+zigux_chrdev_io_summarize(const struct zigux_chrdev_io_view *view)
+{
+	struct zigux_chrdev_io_summary summary = {
+		0, 0, 0, ZIGUX_CHRDEV_IO_INDEX_NONE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	};
+	struct zigux_chrdev_route_view route_view;
+	struct zigux_chrdev_route_summary route_summary;
+	zigux_u32 requested_data_op = 0;
+
+	if (!zigux_chrdev_io_view_valid(view))
+		return summary;
+
+	route_view = zigux_chrdev_io_as_chrdev_route(view);
+	route_summary = zigux_chrdev_route_summarize(&route_view);
+	summary.major = route_summary.major;
+	summary.target_minor = route_summary.target_minor;
+	summary.selected_count = route_summary.selected_count;
+	summary.resolved_index = route_summary.resolved_index ==
+					 ZIGUX_CHRDEV_ROUTE_INDEX_NONE ?
+					 ZIGUX_CHRDEV_IO_INDEX_NONE :
+					 route_summary.resolved_index;
+	summary.resolved_dev = route_summary.resolved_dev;
+	summary.granted_mode = route_summary.granted_mode;
+	summary.io_op = view->io_op;
+	summary.requested_bytes = view->requested_bytes;
+
+	if (route_summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_CHRDEV_IO_FLAG_TRUNCATED;
+	if (route_summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_FOUND)
+		summary.flags |= ZIGUX_CHRDEV_IO_FLAG_FOUND;
+	if (route_summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_CHRDEV_IO_FLAG_EXHAUSTED;
+	if (route_summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_HIT)
+		summary.flags |= ZIGUX_CHRDEV_IO_FLAG_HIT;
+	if (route_summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_PERMITTED)
+		summary.flags |= ZIGUX_CHRDEV_IO_FLAG_PERMITTED;
+	if (route_summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_DENIED)
+		summary.flags |= ZIGUX_CHRDEV_IO_FLAG_DENIED;
+
+	requested_data_op = view->io_op == ZIGUX_CHRDEV_IO_OP_READ ?
+				ZIGUX_CHRDEV_FOP_READ :
+				ZIGUX_CHRDEV_FOP_WRITE;
+	if ((summary.flags & ZIGUX_CHRDEV_IO_FLAG_PERMITTED) &&
+	    (summary.flags & ZIGUX_CHRDEV_IO_FLAG_HIT)) {
+		bool op_blocked;
+		summary.blocked_ops = route_summary.blocked_ops;
+		op_blocked = (route_summary.blocked_ops & requested_data_op) != 0;
+		if ((route_summary.data_ops & requested_data_op) != 0 &&
+		    !op_blocked &&
+		    route_summary.entry_ops != 0 &&
+		    route_summary.exit_ops != 0) {
+			summary.chunk_bytes = view->requested_bytes <
+					      view->max_chunk_bytes ?
+					      view->requested_bytes :
+					      view->max_chunk_bytes;
+			summary.entry_ops = route_summary.entry_ops;
+			summary.data_ops = requested_data_op;
+			summary.exit_ops = route_summary.exit_ops;
+			summary.flags |= ZIGUX_CHRDEV_IO_FLAG_ROUTABLE;
+			summary.flags |= ZIGUX_CHRDEV_IO_FLAG_DISPATCHABLE;
+		} else {
+			summary.blocked_ops |= requested_data_op;
+			summary.flags |= ZIGUX_CHRDEV_IO_FLAG_BLOCKED;
+		}
+	}
+	return summary;
+}
+
 #endif

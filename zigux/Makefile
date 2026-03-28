@@ -54,5 +54,6 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-open.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-fops.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-route.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-io.py
 
 phase3: phase3-validate phase3-abi phase3-interop

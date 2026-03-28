@@ -99,6 +99,10 @@ int main(void)
 		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"target_minor\":%zu,\"requested_mode\":%zu,\"supported_mode\":%zu,\"available_ops\":%zu,\"reserved\":%zu}},"
 		"\"zigux_chrdev_route_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"major\":%zu,\"target_minor\":%zu,\"selected_count\":%zu,\"resolved_index\":%zu,\"resolved_dev\":%zu,\"granted_mode\":%zu,\"entry_ops\":%zu,\"data_ops\":%zu,\"exit_ops\":%zu,\"blocked_ops\":%zu,\"flags\":%zu}},"
+		"\"zigux_chrdev_io_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"target_minor\":%zu,\"requested_mode\":%zu,\"supported_mode\":%zu,\"available_ops\":%zu,\"io_op\":%zu,\"requested_bytes\":%zu,\"max_chunk_bytes\":%zu,\"reserved\":%zu}},"
+		"\"zigux_chrdev_io_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"major\":%zu,\"target_minor\":%zu,\"selected_count\":%zu,\"resolved_index\":%zu,\"resolved_dev\":%zu,\"granted_mode\":%zu,\"io_op\":%zu,\"requested_bytes\":%zu,\"chunk_bytes\":%zu,\"entry_ops\":%zu,\"data_ops\":%zu,\"exit_ops\":%zu,\"blocked_ops\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -456,6 +460,39 @@ int main(void)
 		offsetof(struct zigux_chrdev_route_summary, exit_ops),
 		offsetof(struct zigux_chrdev_route_summary, blocked_ops),
 		offsetof(struct zigux_chrdev_route_summary, flags),
+		sizeof(struct zigux_chrdev_io_view),
+		_Alignof(struct zigux_chrdev_io_view),
+		offsetof(struct zigux_chrdev_io_view, bits_addr),
+		offsetof(struct zigux_chrdev_io_view, major),
+		offsetof(struct zigux_chrdev_io_view, first_minor),
+		offsetof(struct zigux_chrdev_io_view, minor_count),
+		offsetof(struct zigux_chrdev_io_view, max_scan),
+		offsetof(struct zigux_chrdev_io_view, request_count),
+		offsetof(struct zigux_chrdev_io_view, policy),
+		offsetof(struct zigux_chrdev_io_view, target_minor),
+		offsetof(struct zigux_chrdev_io_view, requested_mode),
+		offsetof(struct zigux_chrdev_io_view, supported_mode),
+		offsetof(struct zigux_chrdev_io_view, available_ops),
+		offsetof(struct zigux_chrdev_io_view, io_op),
+		offsetof(struct zigux_chrdev_io_view, requested_bytes),
+		offsetof(struct zigux_chrdev_io_view, max_chunk_bytes),
+		offsetof(struct zigux_chrdev_io_view, reserved),
+		sizeof(struct zigux_chrdev_io_summary),
+		_Alignof(struct zigux_chrdev_io_summary),
+		offsetof(struct zigux_chrdev_io_summary, major),
+		offsetof(struct zigux_chrdev_io_summary, target_minor),
+		offsetof(struct zigux_chrdev_io_summary, selected_count),
+		offsetof(struct zigux_chrdev_io_summary, resolved_index),
+		offsetof(struct zigux_chrdev_io_summary, resolved_dev),
+		offsetof(struct zigux_chrdev_io_summary, granted_mode),
+		offsetof(struct zigux_chrdev_io_summary, io_op),
+		offsetof(struct zigux_chrdev_io_summary, requested_bytes),
+		offsetof(struct zigux_chrdev_io_summary, chunk_bytes),
+		offsetof(struct zigux_chrdev_io_summary, entry_ops),
+		offsetof(struct zigux_chrdev_io_summary, data_ops),
+		offsetof(struct zigux_chrdev_io_summary, exit_ops),
+		offsetof(struct zigux_chrdev_io_summary, blocked_ops),
+		offsetof(struct zigux_chrdev_io_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

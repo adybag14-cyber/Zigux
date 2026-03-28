@@ -26,6 +26,7 @@ const cdev_lookup_plan = @import("cdev_lookup_plan");
 const chrdev_open_plan = @import("chrdev_open_plan");
 const chrdev_fops_plan = @import("chrdev_fops_plan");
 const chrdev_route_plan = @import("chrdev_route_plan");
+const chrdev_io_plan = @import("chrdev_io_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -72,6 +73,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevFopsSummary, 40);
         layout_assert.assertSize(abi.ChrdevRouteView, @sizeOf(usize) + 48);
         layout_assert.assertSize(abi.ChrdevRouteSummary, 44);
+        layout_assert.assertSize(abi.ChrdevIoView, @sizeOf(usize) + 56);
+        layout_assert.assertSize(abi.ChrdevIoSummary, 56);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -137,6 +140,14 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevRouteSummary, "entry_ops", 24);
         layout_assert.assertOffset(abi.ChrdevRouteSummary, "blocked_ops", 36);
         layout_assert.assertOffset(abi.ChrdevRouteSummary, "flags", 40);
+        layout_assert.assertOffset(abi.ChrdevIoView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevIoView, "io_op", @sizeOf(usize) + 40);
+        layout_assert.assertOffset(abi.ChrdevIoView, "max_chunk_bytes", @sizeOf(usize) + 48);
+        layout_assert.assertOffset(abi.ChrdevIoSummary, "selected_count", 8);
+        layout_assert.assertOffset(abi.ChrdevIoSummary, "io_op", 24);
+        layout_assert.assertOffset(abi.ChrdevIoSummary, "chunk_bytes", 32);
+        layout_assert.assertOffset(abi.ChrdevIoSummary, "blocked_ops", 48);
+        layout_assert.assertOffset(abi.ChrdevIoSummary, "flags", 52);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -619,4 +630,47 @@ test "phase3 chrdev route consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_RELEASE), blocked_summary.exit_ops);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), blocked_summary.blocked_ops);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_ROUTE_FLAG_FOUND | abi.CHRDEV_ROUTE_FLAG_HIT | abi.CHRDEV_ROUTE_FLAG_PERMITTED | abi.CHRDEV_ROUTE_FLAG_BLOCKED), blocked_summary.flags);
+}
+
+test "phase3 chrdev io consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const read_view = chrdev_io_plan.viewFromBits(words[0..], 240, 32, 8, 6, 2, abi.IDA_POLICY_FIRST_FIT, 34, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_READ, 16, 8);
+    const read_summary = chrdev_io_plan.summarize(read_view);
+    try std.testing.expect(chrdev_io_plan.isValid(read_view));
+    try std.testing.expectEqual(@as(u32, 240), read_summary.major);
+    try std.testing.expectEqual(@as(u32, 34), read_summary.target_minor);
+    try std.testing.expectEqual(@as(u32, 2), read_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 1), read_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 34), read_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE), read_summary.granted_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_IO_OP_READ), read_summary.io_op);
+    try std.testing.expectEqual(@as(u32, 16), read_summary.requested_bytes);
+    try std.testing.expectEqual(@as(u32, 8), read_summary.chunk_bytes);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_OPEN), read_summary.entry_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), read_summary.data_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_RELEASE), read_summary.exit_ops);
+    try std.testing.expectEqual(@as(u32, 0), read_summary.blocked_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_IO_FLAG_TRUNCATED | abi.CHRDEV_IO_FLAG_FOUND | abi.CHRDEV_IO_FLAG_HIT | abi.CHRDEV_IO_FLAG_PERMITTED | abi.CHRDEV_IO_FLAG_ROUTABLE | abi.CHRDEV_IO_FLAG_DISPATCHABLE), read_summary.flags);
+
+    const partial_write_view = chrdev_io_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 12, 32);
+    const partial_write_summary = chrdev_io_plan.summarize(partial_write_view);
+    try std.testing.expectEqual(@as(u32, 2), partial_write_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 1), partial_write_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 37), partial_write_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_IO_OP_WRITE), partial_write_summary.io_op);
+    try std.testing.expectEqual(@as(u32, 12), partial_write_summary.chunk_bytes);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_OPEN), partial_write_summary.entry_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_WRITE), partial_write_summary.data_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_RELEASE), partial_write_summary.exit_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), partial_write_summary.blocked_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_IO_FLAG_FOUND | abi.CHRDEV_IO_FLAG_HIT | abi.CHRDEV_IO_FLAG_PERMITTED | abi.CHRDEV_IO_FLAG_ROUTABLE | abi.CHRDEV_IO_FLAG_DISPATCHABLE), partial_write_summary.flags);
+
+    const blocked_read_view = chrdev_io_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_READ, 12, 32);
+    const blocked_read_summary = chrdev_io_plan.summarize(blocked_read_view);
+    try std.testing.expectEqual(@as(u32, 0), blocked_read_summary.chunk_bytes);
+    try std.testing.expectEqual(@as(u32, 0), blocked_read_summary.entry_ops);
+    try std.testing.expectEqual(@as(u32, 0), blocked_read_summary.data_ops);
+    try std.testing.expectEqual(@as(u32, 0), blocked_read_summary.exit_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), blocked_read_summary.blocked_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_IO_FLAG_FOUND | abi.CHRDEV_IO_FLAG_HIT | abi.CHRDEV_IO_FLAG_PERMITTED | abi.CHRDEV_IO_FLAG_BLOCKED), blocked_read_summary.flags);
 }
