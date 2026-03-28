@@ -19,6 +19,7 @@ const ida_alloc_view = @import("ida_alloc_view");
 const ida_range_view = @import("ida_range_view");
 const ida_range_set_view = @import("ida_range_set_view");
 const ida_policy_view = @import("ida_policy_view");
+const minor_alloc_plan = @import("minor_alloc_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -51,6 +52,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.IdaRangeSetSummary, 32);
         layout_assert.assertSize(abi.IdaPolicyView, @sizeOf(usize) + 24);
         layout_assert.assertSize(abi.IdaPolicySummary, 24);
+        layout_assert.assertSize(abi.MinorAllocView, @sizeOf(usize) + 32);
+        layout_assert.assertSize(abi.MinorAllocSummary, 32);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -83,6 +86,10 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.IdaPolicyView, "policy", @sizeOf(usize) + 16);
         layout_assert.assertOffset(abi.IdaPolicySummary, "alternate_fit_id", 12);
         layout_assert.assertOffset(abi.IdaPolicySummary, "flags", 20);
+        layout_assert.assertOffset(abi.MinorAllocView, "major", @sizeOf(usize));
+        layout_assert.assertOffset(abi.MinorAllocView, "policy", @sizeOf(usize) + 20);
+        layout_assert.assertOffset(abi.MinorAllocSummary, "selected_minor_start", 12);
+        layout_assert.assertOffset(abi.MinorAllocSummary, "flags", 28);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -390,4 +397,27 @@ test "phase3 ida policy interop helpers stay aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u32, 45), exhausted_summary.alternate_fit_id);
     try std.testing.expectEqual(@as(u32, 1), exhausted_summary.longest_free_run);
     try std.testing.expectEqual(@as(u32, abi.IDA_POLICY_FLAG_EXHAUSTED), exhausted_summary.flags);
+}
+
+test "phase3 minor allocation consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const first_fit_view = minor_alloc_plan.viewFromBits(words[0..], 240, 32, 8, 6, 2, abi.IDA_POLICY_FIRST_FIT);
+    const first_fit_summary = minor_alloc_plan.summarize(first_fit_view);
+    try std.testing.expect(minor_alloc_plan.isValid(first_fit_view));
+    try std.testing.expectEqual(@as(u32, 240), first_fit_summary.major);
+    try std.testing.expectEqual(@as(u32, 6), first_fit_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 2), first_fit_summary.request_count);
+    try std.testing.expectEqual(@as(u32, 33), first_fit_summary.selected_minor_start);
+    try std.testing.expectEqual(@as(u32, 34), first_fit_summary.selected_minor_end);
+    try std.testing.expectEqual(@as(u32, 36), first_fit_summary.alternate_minor_start);
+    try std.testing.expectEqual(@as(u32, 2), first_fit_summary.longest_free_run);
+    try std.testing.expectEqual(@as(u32, abi.MINOR_ALLOC_FLAG_TRUNCATED | abi.MINOR_ALLOC_FLAG_FOUND), first_fit_summary.flags);
+
+    const last_fit_view = minor_alloc_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT);
+    const last_fit_summary = minor_alloc_plan.summarize(last_fit_view);
+    try std.testing.expectEqual(@as(u32, 36), last_fit_summary.selected_minor_start);
+    try std.testing.expectEqual(@as(u32, 37), last_fit_summary.selected_minor_end);
+    try std.testing.expectEqual(@as(u32, 33), last_fit_summary.alternate_minor_start);
+    try std.testing.expectEqual(@as(u32, 3), last_fit_summary.longest_free_run);
+    try std.testing.expectEqual(@as(u32, abi.MINOR_ALLOC_FLAG_FOUND), last_fit_summary.flags);
 }

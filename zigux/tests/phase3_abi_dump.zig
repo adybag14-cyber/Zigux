@@ -255,6 +255,28 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.IdaPolicySummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_minor_alloc_view", @sizeOf(abi.MinorAllocView), @alignOf(abi.MinorAllocView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.MinorAllocView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.MinorAllocView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.MinorAllocView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.MinorAllocView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.MinorAllocView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.MinorAllocView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.MinorAllocView, "policy"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.MinorAllocView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_minor_alloc_summary", @sizeOf(abi.MinorAllocSummary), @alignOf(abi.MinorAllocSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.MinorAllocSummary, "major"), true);
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.MinorAllocSummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.MinorAllocSummary, "request_count"), true);
+    try writeOffset(writer, "selected_minor_start", @offsetOf(abi.MinorAllocSummary, "selected_minor_start"), true);
+    try writeOffset(writer, "selected_minor_end", @offsetOf(abi.MinorAllocSummary, "selected_minor_end"), true);
+    try writeOffset(writer, "alternate_minor_start", @offsetOf(abi.MinorAllocSummary, "alternate_minor_start"), true);
+    try writeOffset(writer, "longest_free_run", @offsetOf(abi.MinorAllocSummary, "longest_free_run"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.MinorAllocSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

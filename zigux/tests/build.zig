@@ -271,6 +271,13 @@ pub fn build(b: *std.Build) void {
     ida_policy_view_module.addImport("abi_bindings", abi_bindings_module);
     ida_policy_view_module.addImport("bitmap_view", bitmap_view_module);
     ida_policy_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const minor_alloc_plan_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/minor_alloc_plan.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    minor_alloc_plan_module.addImport("abi_bindings", abi_bindings_module);
+    minor_alloc_plan_module.addImport("ida_policy_view", ida_policy_view_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -309,6 +316,7 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("ida_range_view", ida_range_view_module);
     phase3_root_module.addImport("ida_range_set_view", ida_range_set_view_module);
     phase3_root_module.addImport("ida_policy_view", ida_policy_view_module);
+    phase3_root_module.addImport("minor_alloc_plan", minor_alloc_plan_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -492,4 +500,19 @@ pub fn build(b: *std.Build) void {
     const run_phase3_ida_policy_dump = b.addRunArtifact(phase3_ida_policy_dump);
     const phase3_ida_policy_dump_step = b.step("phase3-ida-policy-dump", "Run Phase 3 ida policy interop dump");
     phase3_ida_policy_dump_step.dependOn(&run_phase3_ida_policy_dump.step);
+
+    const phase3_minor_alloc_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_minor_alloc_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_minor_alloc_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_minor_alloc_dump_module.addImport("minor_alloc_plan", minor_alloc_plan_module);
+    const phase3_minor_alloc_dump = b.addExecutable(.{
+        .name = "phase3-minor-alloc-dump",
+        .root_module = phase3_minor_alloc_dump_module,
+    });
+    const run_phase3_minor_alloc_dump = b.addRunArtifact(phase3_minor_alloc_dump);
+    const phase3_minor_alloc_dump_step = b.step("phase3-minor-alloc-dump", "Run Phase 3 minor alloc interop dump");
+    phase3_minor_alloc_dump_step.dependOn(&run_phase3_minor_alloc_dump.step);
 }

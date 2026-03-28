@@ -1250,4 +1250,87 @@ zigux_ida_policy_summarize(const struct zigux_ida_policy_view *view)
 	return summary;
 }
 
+static inline struct zigux_minor_alloc_view
+zigux_minor_alloc_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				 zigux_u32 first_minor, zigux_u32 minor_count,
+				 zigux_u32 max_scan, zigux_u32 request_count,
+				 zigux_u32 policy)
+{
+	return (struct zigux_minor_alloc_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_minor_alloc_view_valid(const struct zigux_minor_alloc_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0)
+		return false;
+	if (view->policy != ZIGUX_IDA_POLICY_FIRST_FIT &&
+	    view->policy != ZIGUX_IDA_POLICY_LAST_FIT)
+		return false;
+	if (view->minor_count == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_ida_policy_view
+zigux_minor_alloc_as_ida_policy(const struct zigux_minor_alloc_view *view)
+{
+	if (!zigux_minor_alloc_view_valid(view))
+		return (struct zigux_ida_policy_view){0, 0, 0, 0, 0, 0, 0};
+
+	return (struct zigux_ida_policy_view){
+		.bits_addr = view->bits_addr,
+		.base_id = view->first_minor,
+		.nbits = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_minor_alloc_summary
+zigux_minor_alloc_summarize(const struct zigux_minor_alloc_view *view)
+{
+	struct zigux_minor_alloc_summary summary = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct zigux_ida_policy_view ida_view;
+	struct zigux_ida_policy_summary ida_summary;
+
+	if (!zigux_minor_alloc_view_valid(view))
+		return summary;
+
+	ida_view = zigux_minor_alloc_as_ida_policy(view);
+	ida_summary = zigux_ida_policy_summarize(&ida_view);
+	summary.major = view->major;
+	summary.scanned_count = ida_summary.scanned_count;
+	summary.request_count = ida_summary.request_count;
+	summary.selected_minor_start = ida_summary.selected_fit_id;
+	summary.selected_minor_end = ida_summary.selected_fit_id;
+	summary.alternate_minor_start = ida_summary.alternate_fit_id;
+	summary.longest_free_run = ida_summary.longest_free_run;
+	if (ida_summary.flags & ZIGUX_IDA_POLICY_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_MINOR_ALLOC_FLAG_TRUNCATED;
+	if (ida_summary.flags & ZIGUX_IDA_POLICY_FLAG_FOUND)
+		summary.flags |= ZIGUX_MINOR_ALLOC_FLAG_FOUND;
+	if (ida_summary.flags & ZIGUX_IDA_POLICY_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_MINOR_ALLOC_FLAG_EXHAUSTED;
+	if (summary.flags & ZIGUX_MINOR_ALLOC_FLAG_FOUND)
+		summary.selected_minor_end = ida_summary.selected_fit_id +
+					     view->request_count - 1U;
+	return summary;
+}
+
 #endif

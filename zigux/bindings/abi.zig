@@ -33,6 +33,9 @@ pub const IDA_POLICY_LAST_FIT: u32 = 2;
 pub const IDA_POLICY_FLAG_TRUNCATED: u32 = 1;
 pub const IDA_POLICY_FLAG_FOUND: u32 = 2;
 pub const IDA_POLICY_FLAG_EXHAUSTED: u32 = 4;
+pub const MINOR_ALLOC_FLAG_TRUNCATED: u32 = 1;
+pub const MINOR_ALLOC_FLAG_FOUND: u32 = 2;
+pub const MINOR_ALLOC_FLAG_EXHAUSTED: u32 = 4;
 
 pub const Facility = enum(u16) {
     kernel = 1,
@@ -269,6 +272,28 @@ pub const IdaPolicySummary = extern struct {
     request_count: u32,
     selected_fit_id: u32,
     alternate_fit_id: u32,
+    longest_free_run: u32,
+    flags: u32,
+};
+
+pub const MinorAllocView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    reserved: u32,
+};
+
+pub const MinorAllocSummary = extern struct {
+    major: u32,
+    scanned_count: u32,
+    request_count: u32,
+    selected_minor_start: u32,
+    selected_minor_end: u32,
+    alternate_minor_start: u32,
     longest_free_run: u32,
     flags: u32,
 };

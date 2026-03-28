@@ -20,6 +20,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-ida-range-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-ida-range-set-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-ida-policy-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-minor-alloc-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
@@ -33,6 +34,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase3-ida-range.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-ida-range-set.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-ida-policy.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-minor-alloc.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
@@ -48,6 +50,7 @@ required_files = [
     ROOT / 'zigux' / 'helpers' / 'ida_range_view.zig',
     ROOT / 'zigux' / 'helpers' / 'ida_range_set_view.zig',
     ROOT / 'zigux' / 'helpers' / 'ida_policy_view.zig',
+    ROOT / 'zigux' / 'helpers' / 'minor_alloc_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -69,6 +72,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_ida_range_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_ida_range_set_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_ida_policy_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_minor_alloc_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -102,6 +106,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_ida_policy' / 'phase3_ida_policy_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_ida_policy' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_ida_policy_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_minor_alloc' / 'phase3_minor_alloc_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_minor_alloc' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_minor_alloc_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -125,6 +132,7 @@ phase_ida_alloc_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-ida-alloc-slic
 phase_ida_range_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-ida-range-slice.md').read_text(encoding='utf-8')
 phase_ida_range_set_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-ida-range-set-slice.md').read_text(encoding='utf-8')
 phase_ida_policy_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-ida-policy-slice.md').read_text(encoding='utf-8')
+phase_minor_alloc_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-minor-alloc-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -143,6 +151,7 @@ ida_alloc_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3
 ida_range_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_ida_range_manifest.json').read_text(encoding='utf-8'))
 ida_range_set_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_ida_range_set_manifest.json').read_text(encoding='utf-8'))
 ida_policy_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_ida_policy_manifest.json').read_text(encoding='utf-8'))
+minor_alloc_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_minor_alloc_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -230,6 +239,13 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-ida-policy.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_minor_alloc_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=minor-alloc-plan-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-minor-alloc.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
@@ -243,6 +259,7 @@ required_markers = {
         'python3 scripts/zigux/check-phase3-ida-range.py',
         'python3 scripts/zigux/check-phase3-ida-range-set.py',
         'python3 scripts/zigux/check-phase3-ida-policy.py',
+        'python3 scripts/zigux/check-phase3-minor-alloc.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -274,6 +291,7 @@ required_markers = {
         'check-phase3-ida-range.py',
         'check-phase3-ida-range-set.py',
         'check-phase3-ida-policy.py',
+        'check-phase3-minor-alloc.py',
         'validate-phase3.py',
     ],
     'tests': [
@@ -289,6 +307,7 @@ required_markers = {
         'phase3_ida_range_dump.zig',
         'phase3_ida_range_set_dump.zig',
         'phase3_ida_policy_dump.zig',
+        'phase3_minor_alloc_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
         'phase3_list_hlist_manifest.json',
@@ -300,6 +319,7 @@ required_markers = {
         'phase3_ida_range_manifest.json',
         'phase3_ida_range_set_manifest.json',
         'phase3_ida_policy_manifest.json',
+        'phase3_minor_alloc_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
@@ -313,6 +333,7 @@ required_markers = {
         'phase3-ida-range-slice.md',
         'phase3-ida-range-set-slice.md',
         'phase3-ida-policy-slice.md',
+        'phase3-minor-alloc-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
@@ -337,6 +358,8 @@ required_markers = {
         'check-phase3-ida-range-set.py',
         'phase3_ida_policy',
         'check-phase3-ida-policy.py',
+        'phase3_minor_alloc',
+        'check-phase3-minor-alloc.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
@@ -350,6 +373,7 @@ required_markers = {
         'feat(zigux): add bounded Phase 3 ida range interop slice',
         'feat(zigux): add bounded Phase 3 ida range-set interop slice',
         'feat(zigux): add bounded Phase 3 ida policy interop slice',
+        'feat(zigux): add bounded Phase 3 minor alloc interop slice',
     ],
 }
 
@@ -390,6 +414,9 @@ for marker in required_markers['phase_ida_range_set_doc']:
 for marker in required_markers['phase_ida_policy_doc']:
     if marker not in phase_ida_policy_doc:
         missing_markers.append(f'phase_ida_policy_doc:{marker}')
+for marker in required_markers['phase_minor_alloc_doc']:
+    if marker not in phase_minor_alloc_doc:
+        missing_markers.append(f'phase_minor_alloc_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -565,6 +592,20 @@ if len(ida_policy_manifest.get('files', [])) != 4:
 for rel in ida_policy_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'ida_policy_manifest_file:{rel}')
+
+if minor_alloc_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('minor_alloc_manifest:phase=Phase 3')
+if minor_alloc_manifest.get('status') != 'active':
+    missing_markers.append('minor_alloc_manifest:status=active')
+if minor_alloc_manifest.get('slice') != 'minor-alloc-plan-interop':
+    missing_markers.append(f'minor_alloc_manifest:slice={minor_alloc_manifest.get("slice")}')
+if minor_alloc_manifest.get('file_count') != 4:
+    missing_markers.append(f'minor_alloc_manifest:file_count={minor_alloc_manifest.get("file_count")}')
+if len(minor_alloc_manifest.get('files', [])) != 4:
+    missing_markers.append(f'minor_alloc_manifest:files_len={len(minor_alloc_manifest.get("files", []))}')
+for rel in minor_alloc_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'minor_alloc_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')
