@@ -23,6 +23,7 @@ const minor_alloc_plan = @import("minor_alloc_plan");
 const dev_region_plan = @import("dev_region_plan");
 const cdev_add_plan = @import("cdev_add_plan");
 const cdev_lookup_plan = @import("cdev_lookup_plan");
+const chrdev_open_plan = @import("chrdev_open_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -63,6 +64,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.CdevAddSummary, 32);
         layout_assert.assertSize(abi.CdevLookupView, @sizeOf(usize) + 32);
         layout_assert.assertSize(abi.CdevLookupSummary, 36);
+        layout_assert.assertSize(abi.ChrdevOpenView, @sizeOf(usize) + 40);
+        layout_assert.assertSize(abi.ChrdevOpenSummary, 40);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -111,6 +114,12 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.CdevLookupView, "target_minor", @sizeOf(usize) + 24);
         layout_assert.assertOffset(abi.CdevLookupSummary, "selected_count", 12);
         layout_assert.assertOffset(abi.CdevLookupSummary, "flags", 32);
+        layout_assert.assertOffset(abi.ChrdevOpenView, "major", @sizeOf(usize));
+        layout_assert.assertOffset(abi.ChrdevOpenView, "target_minor", @sizeOf(usize) + 24);
+        layout_assert.assertOffset(abi.ChrdevOpenView, "requested_mode", @sizeOf(usize) + 28);
+        layout_assert.assertOffset(abi.ChrdevOpenSummary, "selected_count", 8);
+        layout_assert.assertOffset(abi.ChrdevOpenSummary, "granted_mode", 28);
+        layout_assert.assertOffset(abi.ChrdevOpenSummary, "flags", 36);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -512,4 +521,30 @@ test "phase3 cdev lookup consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u32, abi.CDEV_LOOKUP_INDEX_NONE), miss_summary.resolved_index);
     try std.testing.expectEqual(@as(u32, 0), miss_summary.resolved_dev);
     try std.testing.expectEqual(@as(u32, abi.CDEV_LOOKUP_FLAG_FOUND), miss_summary.flags);
+}
+
+test "phase3 chrdev open consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const permitted_view = chrdev_open_plan.viewFromBits(words[0..], 240, 32, 8, 6, 2, abi.IDA_POLICY_FIRST_FIT, 34, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE);
+    const permitted_summary = chrdev_open_plan.summarize(permitted_view);
+    try std.testing.expect(chrdev_open_plan.isValid(permitted_view));
+    try std.testing.expectEqual(@as(u32, 240), permitted_summary.major);
+    try std.testing.expectEqual(@as(u32, 34), permitted_summary.target_minor);
+    try std.testing.expectEqual(@as(u32, 2), permitted_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 1), permitted_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 34), permitted_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE), permitted_summary.requested_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE), permitted_summary.supported_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE), permitted_summary.granted_mode);
+    try std.testing.expectEqual(@as(u32, 0), permitted_summary.denied_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_OPEN_FLAG_TRUNCATED | abi.CHRDEV_OPEN_FLAG_FOUND | abi.CHRDEV_OPEN_FLAG_HIT | abi.CHRDEV_OPEN_FLAG_PERMITTED), permitted_summary.flags);
+
+    const denied_view = chrdev_open_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ);
+    const denied_summary = chrdev_open_plan.summarize(denied_view);
+    try std.testing.expectEqual(@as(u32, 2), denied_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 1), denied_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 37), denied_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, 0), denied_summary.granted_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_WRITE), denied_summary.denied_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_OPEN_FLAG_FOUND | abi.CHRDEV_OPEN_FLAG_HIT | abi.CHRDEV_OPEN_FLAG_DENIED), denied_summary.flags);
 }

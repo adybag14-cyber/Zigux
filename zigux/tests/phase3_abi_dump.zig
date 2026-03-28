@@ -345,6 +345,33 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.CdevLookupSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_chrdev_open_view", @sizeOf(abi.ChrdevOpenView), @alignOf(abi.ChrdevOpenView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.ChrdevOpenView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevOpenView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.ChrdevOpenView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.ChrdevOpenView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.ChrdevOpenView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.ChrdevOpenView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.ChrdevOpenView, "policy"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevOpenView, "target_minor"), true);
+    try writeOffset(writer, "requested_mode", @offsetOf(abi.ChrdevOpenView, "requested_mode"), true);
+    try writeOffset(writer, "supported_mode", @offsetOf(abi.ChrdevOpenView, "supported_mode"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.ChrdevOpenView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_chrdev_open_summary", @sizeOf(abi.ChrdevOpenSummary), @alignOf(abi.ChrdevOpenSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevOpenSummary, "major"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevOpenSummary, "target_minor"), true);
+    try writeOffset(writer, "selected_count", @offsetOf(abi.ChrdevOpenSummary, "selected_count"), true);
+    try writeOffset(writer, "resolved_index", @offsetOf(abi.ChrdevOpenSummary, "resolved_index"), true);
+    try writeOffset(writer, "resolved_dev", @offsetOf(abi.ChrdevOpenSummary, "resolved_dev"), true);
+    try writeOffset(writer, "requested_mode", @offsetOf(abi.ChrdevOpenSummary, "requested_mode"), true);
+    try writeOffset(writer, "supported_mode", @offsetOf(abi.ChrdevOpenSummary, "supported_mode"), true);
+    try writeOffset(writer, "granted_mode", @offsetOf(abi.ChrdevOpenSummary, "granted_mode"), true);
+    try writeOffset(writer, "denied_mode", @offsetOf(abi.ChrdevOpenSummary, "denied_mode"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.ChrdevOpenSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "chrdev-open-plan-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/chrdev_open_plan.zig",
+    "zigux/tests/phase3_chrdev_open_dump.zig",
+    "zigux/tests/fixtures/phase3_chrdev_open/phase3_chrdev_open_c_harness.c",
+    "zigux/tests/fixtures/phase3_chrdev_open/expected.json"
+  ]
+}

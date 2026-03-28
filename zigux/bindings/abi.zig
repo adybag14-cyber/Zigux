@@ -47,6 +47,15 @@ pub const CDEV_LOOKUP_FLAG_FOUND: u32 = 2;
 pub const CDEV_LOOKUP_FLAG_EXHAUSTED: u32 = 4;
 pub const CDEV_LOOKUP_FLAG_HIT: u32 = 8;
 pub const CDEV_LOOKUP_INDEX_NONE: u32 = 0xffffffff;
+pub const CHRDEV_MODE_READ: u32 = 1;
+pub const CHRDEV_MODE_WRITE: u32 = 2;
+pub const CHRDEV_OPEN_FLAG_TRUNCATED: u32 = 1;
+pub const CHRDEV_OPEN_FLAG_FOUND: u32 = 2;
+pub const CHRDEV_OPEN_FLAG_EXHAUSTED: u32 = 4;
+pub const CHRDEV_OPEN_FLAG_HIT: u32 = 8;
+pub const CHRDEV_OPEN_FLAG_PERMITTED: u32 = 16;
+pub const CHRDEV_OPEN_FLAG_DENIED: u32 = 32;
+pub const CHRDEV_OPEN_INDEX_NONE: u32 = 0xffffffff;
 pub const DEV_MINOR_BITS: u32 = 20;
 pub const DEV_MINOR_MASK: u32 = (1 << DEV_MINOR_BITS) - 1;
 
@@ -376,6 +385,33 @@ pub const CdevLookupSummary = extern struct {
     target_minor: u32,
     resolved_index: u32,
     resolved_dev: u32,
+    flags: u32,
+};
+
+pub const ChrdevOpenView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    target_minor: u32,
+    requested_mode: u32,
+    supported_mode: u32,
+    reserved: u32,
+};
+
+pub const ChrdevOpenSummary = extern struct {
+    major: u32,
+    target_minor: u32,
+    selected_count: u32,
+    resolved_index: u32,
+    resolved_dev: u32,
+    requested_mode: u32,
+    supported_mode: u32,
+    granted_mode: u32,
+    denied_mode: u32,
     flags: u32,
 };
 

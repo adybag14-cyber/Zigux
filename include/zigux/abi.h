@@ -84,6 +84,15 @@ typedef int32_t zigux_s32;
 #define ZIGUX_CDEV_LOOKUP_FLAG_EXHAUSTED 4U
 #define ZIGUX_CDEV_LOOKUP_FLAG_HIT 8U
 #define ZIGUX_CDEV_LOOKUP_INDEX_NONE 0xffffffffU
+#define ZIGUX_CHRDEV_MODE_READ 1U
+#define ZIGUX_CHRDEV_MODE_WRITE 2U
+#define ZIGUX_CHRDEV_OPEN_FLAG_TRUNCATED 1U
+#define ZIGUX_CHRDEV_OPEN_FLAG_FOUND 2U
+#define ZIGUX_CHRDEV_OPEN_FLAG_EXHAUSTED 4U
+#define ZIGUX_CHRDEV_OPEN_FLAG_HIT 8U
+#define ZIGUX_CHRDEV_OPEN_FLAG_PERMITTED 16U
+#define ZIGUX_CHRDEV_OPEN_FLAG_DENIED 32U
+#define ZIGUX_CHRDEV_OPEN_INDEX_NONE 0xffffffffU
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -387,6 +396,33 @@ struct zigux_cdev_lookup_summary {
 	zigux_u32 target_minor;
 	zigux_u32 resolved_index;
 	zigux_u32 resolved_dev;
+	zigux_u32 flags;
+};
+
+struct zigux_chrdev_open_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 target_minor;
+	zigux_u32 requested_mode;
+	zigux_u32 supported_mode;
+	zigux_u32 reserved;
+};
+
+struct zigux_chrdev_open_summary {
+	zigux_u32 major;
+	zigux_u32 target_minor;
+	zigux_u32 selected_count;
+	zigux_u32 resolved_index;
+	zigux_u32 resolved_dev;
+	zigux_u32 requested_mode;
+	zigux_u32 supported_mode;
+	zigux_u32 granted_mode;
+	zigux_u32 denied_mode;
 	zigux_u32 flags;
 };
 
