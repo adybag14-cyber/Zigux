@@ -63,6 +63,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-io.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-io planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_xfer/expected.json` fixes the bounded kernel-facing chrdev-xfer planning claim on top of the chrdev-io substrate.
 - `scripts/zigux/check-phase3-chrdev-xfer.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-xfer planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_resume/expected.json` fixes the bounded kernel-facing chrdev-resume planning claim on top of the chrdev-xfer substrate.
+- `scripts/zigux/check-phase3-chrdev-resume.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-resume planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -72,4 +74,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region/cdev-add/cdev-lookup/chrdev-open/chrdev-fops/chrdev-route/chrdev-io/chrdev-xfer interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region/cdev-add/cdev-lookup/chrdev-open/chrdev-fops/chrdev-route/chrdev-io/chrdev-xfer/chrdev-resume interop claims before any broader interop substrate expansion

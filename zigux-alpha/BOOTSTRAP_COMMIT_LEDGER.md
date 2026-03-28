@@ -523,3 +523,20 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+46. `feat(zigux): add bounded Phase 3 chrdev resume interop slice`
+- `zigux/helpers/chrdev_resume_plan.zig`
+- `zigux/tests/phase3_chrdev_resume_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_resume/phase3_chrdev_resume_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_resume/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_resume_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-resume.py`
+- `Documentation/zigux/phase3-chrdev-resume-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

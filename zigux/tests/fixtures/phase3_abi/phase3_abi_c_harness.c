@@ -107,6 +107,10 @@ int main(void)
 		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"target_minor\":%zu,\"requested_mode\":%zu,\"supported_mode\":%zu,\"available_ops\":%zu,\"io_op\":%zu,\"requested_bytes\":%zu,\"max_chunk_bytes\":%zu,\"file_offset\":%zu,\"bytes_completed\":%zu,\"max_segments\":%zu,\"reserved\":%zu}},"
 		"\"zigux_chrdev_xfer_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"major\":%zu,\"target_minor\":%zu,\"selected_count\":%zu,\"resolved_index\":%zu,\"resolved_dev\":%zu,\"granted_mode\":%zu,\"io_op\":%zu,\"requested_bytes\":%zu,\"start_offset\":%zu,\"next_offset\":%zu,\"bytes_completed\":%zu,\"requested_remaining\":%zu,\"segment_count\":%zu,\"first_chunk_bytes\":%zu,\"final_chunk_bytes\":%zu,\"issued_bytes\":%zu,\"remaining_bytes\":%zu,\"entry_ops\":%zu,\"data_ops\":%zu,\"exit_ops\":%zu,\"blocked_ops\":%zu,\"flags\":%zu}},"
+		"\"zigux_chrdev_resume_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"target_minor\":%zu,\"requested_mode\":%zu,\"supported_mode\":%zu,\"available_ops\":%zu,\"io_op\":%zu,\"requested_bytes\":%zu,\"max_chunk_bytes\":%zu,\"file_offset\":%zu,\"bytes_completed\":%zu,\"max_segments\":%zu,\"resume_passes\":%zu,\"reserved\":%zu}},"
+		"\"zigux_chrdev_resume_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"major\":%zu,\"target_minor\":%zu,\"selected_count\":%zu,\"resolved_index\":%zu,\"resolved_dev\":%zu,\"granted_mode\":%zu,\"io_op\":%zu,\"requested_bytes\":%zu,\"start_offset\":%zu,\"next_offset\":%zu,\"initial_bytes_completed\":%zu,\"final_bytes_completed\":%zu,\"pass_count\":%zu,\"issued_bytes\":%zu,\"remaining_bytes\":%zu,\"entry_ops\":%zu,\"data_ops\":%zu,\"exit_ops\":%zu,\"blocked_ops\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -541,6 +545,49 @@ int main(void)
 		offsetof(struct zigux_chrdev_xfer_summary, exit_ops),
 		offsetof(struct zigux_chrdev_xfer_summary, blocked_ops),
 		offsetof(struct zigux_chrdev_xfer_summary, flags),
+		sizeof(struct zigux_chrdev_resume_view),
+		_Alignof(struct zigux_chrdev_resume_view),
+		offsetof(struct zigux_chrdev_resume_view, bits_addr),
+		offsetof(struct zigux_chrdev_resume_view, major),
+		offsetof(struct zigux_chrdev_resume_view, first_minor),
+		offsetof(struct zigux_chrdev_resume_view, minor_count),
+		offsetof(struct zigux_chrdev_resume_view, max_scan),
+		offsetof(struct zigux_chrdev_resume_view, request_count),
+		offsetof(struct zigux_chrdev_resume_view, policy),
+		offsetof(struct zigux_chrdev_resume_view, target_minor),
+		offsetof(struct zigux_chrdev_resume_view, requested_mode),
+		offsetof(struct zigux_chrdev_resume_view, supported_mode),
+		offsetof(struct zigux_chrdev_resume_view, available_ops),
+		offsetof(struct zigux_chrdev_resume_view, io_op),
+		offsetof(struct zigux_chrdev_resume_view, requested_bytes),
+		offsetof(struct zigux_chrdev_resume_view, max_chunk_bytes),
+		offsetof(struct zigux_chrdev_resume_view, file_offset),
+		offsetof(struct zigux_chrdev_resume_view, bytes_completed),
+		offsetof(struct zigux_chrdev_resume_view, max_segments),
+		offsetof(struct zigux_chrdev_resume_view, resume_passes),
+		offsetof(struct zigux_chrdev_resume_view, reserved),
+		sizeof(struct zigux_chrdev_resume_summary),
+		_Alignof(struct zigux_chrdev_resume_summary),
+		offsetof(struct zigux_chrdev_resume_summary, major),
+		offsetof(struct zigux_chrdev_resume_summary, target_minor),
+		offsetof(struct zigux_chrdev_resume_summary, selected_count),
+		offsetof(struct zigux_chrdev_resume_summary, resolved_index),
+		offsetof(struct zigux_chrdev_resume_summary, resolved_dev),
+		offsetof(struct zigux_chrdev_resume_summary, granted_mode),
+		offsetof(struct zigux_chrdev_resume_summary, io_op),
+		offsetof(struct zigux_chrdev_resume_summary, requested_bytes),
+		offsetof(struct zigux_chrdev_resume_summary, start_offset),
+		offsetof(struct zigux_chrdev_resume_summary, next_offset),
+		offsetof(struct zigux_chrdev_resume_summary, initial_bytes_completed),
+		offsetof(struct zigux_chrdev_resume_summary, final_bytes_completed),
+		offsetof(struct zigux_chrdev_resume_summary, pass_count),
+		offsetof(struct zigux_chrdev_resume_summary, issued_bytes),
+		offsetof(struct zigux_chrdev_resume_summary, remaining_bytes),
+		offsetof(struct zigux_chrdev_resume_summary, entry_ops),
+		offsetof(struct zigux_chrdev_resume_summary, data_ops),
+		offsetof(struct zigux_chrdev_resume_summary, exit_ops),
+		offsetof(struct zigux_chrdev_resume_summary, blocked_ops),
+		offsetof(struct zigux_chrdev_resume_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

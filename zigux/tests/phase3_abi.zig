@@ -28,6 +28,7 @@ const chrdev_fops_plan = @import("chrdev_fops_plan");
 const chrdev_route_plan = @import("chrdev_route_plan");
 const chrdev_io_plan = @import("chrdev_io_plan");
 const chrdev_xfer_plan = @import("chrdev_xfer_plan");
+const chrdev_resume_plan = @import("chrdev_resume_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -78,6 +79,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevIoSummary, 56);
         layout_assert.assertSize(abi.ChrdevXferView, @sizeOf(usize) + 80);
         layout_assert.assertSize(abi.ChrdevXferSummary, 96);
+        layout_assert.assertSize(abi.ChrdevResumeView, @sizeOf(usize) + 80);
+        layout_assert.assertSize(abi.ChrdevResumeSummary, 88);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -159,6 +162,16 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevXferSummary, "segment_count", 56);
         layout_assert.assertOffset(abi.ChrdevXferSummary, "entry_ops", 76);
         layout_assert.assertOffset(abi.ChrdevXferSummary, "flags", 92);
+        layout_assert.assertOffset(abi.ChrdevResumeView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevResumeView, "file_offset", @sizeOf(usize) + 56);
+        layout_assert.assertOffset(abi.ChrdevResumeView, "resume_passes", @sizeOf(usize) + 72);
+        layout_assert.assertOffset(abi.ChrdevResumeView, "reserved", @sizeOf(usize) + 76);
+        layout_assert.assertOffset(abi.ChrdevResumeSummary, "start_offset", 32);
+        layout_assert.assertOffset(abi.ChrdevResumeSummary, "next_offset", 40);
+        layout_assert.assertOffset(abi.ChrdevResumeSummary, "initial_bytes_completed", 48);
+        layout_assert.assertOffset(abi.ChrdevResumeSummary, "pass_count", 56);
+        layout_assert.assertOffset(abi.ChrdevResumeSummary, "entry_ops", 68);
+        layout_assert.assertOffset(abi.ChrdevResumeSummary, "flags", 84);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -720,4 +733,36 @@ test "phase3 chrdev xfer consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u64, 2052), blocked_summary.next_offset);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), blocked_summary.blocked_ops);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_XFER_FLAG_FOUND | abi.CHRDEV_XFER_FLAG_HIT | abi.CHRDEV_XFER_FLAG_PERMITTED | abi.CHRDEV_XFER_FLAG_BLOCKED | abi.CHRDEV_XFER_FLAG_RESUMED), blocked_summary.flags);
+}
+
+test "phase3 chrdev resume consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+
+    const complete_view = chrdev_resume_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3);
+    const complete_summary = chrdev_resume_plan.summarize(complete_view);
+    try std.testing.expect(chrdev_resume_plan.isValid(complete_view));
+    try std.testing.expectEqual(@as(u32, 2), complete_summary.pass_count);
+    try std.testing.expectEqual(@as(u32, 16), complete_summary.issued_bytes);
+    try std.testing.expectEqual(@as(u32, 20), complete_summary.final_bytes_completed);
+    try std.testing.expectEqual(@as(u32, 0), complete_summary.remaining_bytes);
+    try std.testing.expectEqual(@as(u64, 1028), complete_summary.start_offset);
+    try std.testing.expectEqual(@as(u64, 1044), complete_summary.next_offset);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_RESUME_FLAG_FOUND | abi.CHRDEV_RESUME_FLAG_HIT | abi.CHRDEV_RESUME_FLAG_PERMITTED | abi.CHRDEV_RESUME_FLAG_ROUTABLE | abi.CHRDEV_RESUME_FLAG_DISPATCHABLE | abi.CHRDEV_RESUME_FLAG_RESUMED | abi.CHRDEV_RESUME_FLAG_CONTINUABLE | abi.CHRDEV_RESUME_FLAG_COMPLETES | abi.CHRDEV_RESUME_FLAG_PROGRESSED | abi.CHRDEV_RESUME_FLAG_COMPLETE_OK), complete_summary.flags);
+
+    const continuable_view = chrdev_resume_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 1);
+    const continuable_summary = chrdev_resume_plan.summarize(continuable_view);
+    try std.testing.expectEqual(@as(u32, 1), continuable_summary.pass_count);
+    try std.testing.expectEqual(@as(u32, 8), continuable_summary.issued_bytes);
+    try std.testing.expectEqual(@as(u32, 12), continuable_summary.final_bytes_completed);
+    try std.testing.expectEqual(@as(u32, 8), continuable_summary.remaining_bytes);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_RESUME_FLAG_FOUND | abi.CHRDEV_RESUME_FLAG_HIT | abi.CHRDEV_RESUME_FLAG_PERMITTED | abi.CHRDEV_RESUME_FLAG_ROUTABLE | abi.CHRDEV_RESUME_FLAG_DISPATCHABLE | abi.CHRDEV_RESUME_FLAG_RESUMED | abi.CHRDEV_RESUME_FLAG_CONTINUABLE | abi.CHRDEV_RESUME_FLAG_PROGRESSED), continuable_summary.flags);
+
+    const blocked_view = chrdev_resume_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_READ, 12, 32, 2048, 4, 2, 2);
+    const blocked_summary = chrdev_resume_plan.summarize(blocked_view);
+    try std.testing.expectEqual(@as(u32, 0), blocked_summary.pass_count);
+    try std.testing.expectEqual(@as(u32, 8), blocked_summary.remaining_bytes);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), blocked_summary.blocked_ops);
+    try std.testing.expectEqual(@as(u64, 2052), blocked_summary.start_offset);
+    try std.testing.expectEqual(@as(u64, 2052), blocked_summary.next_offset);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_RESUME_FLAG_FOUND | abi.CHRDEV_RESUME_FLAG_HIT | abi.CHRDEV_RESUME_FLAG_PERMITTED | abi.CHRDEV_RESUME_FLAG_BLOCKED | abi.CHRDEV_RESUME_FLAG_RESUMED | abi.CHRDEV_RESUME_FLAG_STALLED), blocked_summary.flags);
 }

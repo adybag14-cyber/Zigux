@@ -2343,4 +2343,211 @@ zigux_chrdev_xfer_summarize(const struct zigux_chrdev_xfer_view *view)
 	return summary;
 }
 
+static inline struct zigux_chrdev_resume_view
+zigux_chrdev_resume_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				   zigux_u32 first_minor, zigux_u32 minor_count,
+				   zigux_u32 max_scan, zigux_u32 request_count,
+				   zigux_u32 policy, zigux_u32 target_minor,
+				   zigux_u32 requested_mode,
+				   zigux_u32 supported_mode,
+				   zigux_u32 available_ops, zigux_u32 io_op,
+				   zigux_u32 requested_bytes,
+				   zigux_u32 max_chunk_bytes,
+				   zigux_u64 file_offset,
+				   zigux_u32 bytes_completed,
+				   zigux_u32 max_segments,
+				   zigux_u32 resume_passes)
+{
+	return (struct zigux_chrdev_resume_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.io_op = io_op,
+		.requested_bytes = requested_bytes,
+		.max_chunk_bytes = max_chunk_bytes,
+		.file_offset = file_offset,
+		.bytes_completed = bytes_completed,
+		.max_segments = max_segments,
+		.resume_passes = resume_passes,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_resume_view_valid(const struct zigux_chrdev_resume_view *view)
+{
+	struct zigux_chrdev_xfer_view xfer_view;
+
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->resume_passes == 0)
+		return false;
+
+	xfer_view = (struct zigux_chrdev_xfer_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.reserved = 0,
+	};
+	return zigux_chrdev_xfer_view_valid(&xfer_view);
+}
+
+static inline struct zigux_chrdev_xfer_view
+zigux_chrdev_resume_as_chrdev_xfer(const struct zigux_chrdev_resume_view *view)
+{
+	if (!zigux_chrdev_resume_view_valid(view))
+		return (struct zigux_chrdev_xfer_view){
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+
+	return (struct zigux_chrdev_xfer_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.reserved = 0,
+	};
+}
+
+static inline zigux_u32
+zigux_chrdev_resume_map_xfer_flags(zigux_u32 xfer_flags)
+{
+	zigux_u32 flags = 0;
+
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_TRUNCATED)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_TRUNCATED;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_FOUND)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_FOUND;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_EXHAUSTED)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_EXHAUSTED;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_HIT)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_HIT;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_PERMITTED)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_PERMITTED;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_DENIED)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_DENIED;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_ROUTABLE)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_ROUTABLE;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_BLOCKED)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_BLOCKED;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_DISPATCHABLE)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_DISPATCHABLE;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_RESUMED)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_RESUMED;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_CONTINUABLE)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_CONTINUABLE;
+	if (xfer_flags & ZIGUX_CHRDEV_XFER_FLAG_COMPLETES)
+		flags |= ZIGUX_CHRDEV_RESUME_FLAG_COMPLETES;
+	return flags;
+}
+
+static inline struct zigux_chrdev_resume_summary
+zigux_chrdev_resume_summarize(const struct zigux_chrdev_resume_view *view)
+{
+	struct zigux_chrdev_resume_summary summary = {
+		0, 0, 0, ZIGUX_CHRDEV_RESUME_INDEX_NONE, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0
+	};
+	zigux_u32 current_completed;
+	zigux_u32 issued_total;
+	zigux_u32 pass_index;
+	struct zigux_chrdev_xfer_view xfer_view;
+
+	if (!zigux_chrdev_resume_view_valid(view))
+		return summary;
+
+	summary.major = view->major;
+	summary.target_minor = view->target_minor;
+	summary.io_op = view->io_op;
+	summary.requested_bytes = view->requested_bytes;
+	summary.start_offset = view->file_offset + view->bytes_completed;
+	summary.next_offset = summary.start_offset;
+	summary.initial_bytes_completed = view->bytes_completed;
+	summary.final_bytes_completed = view->bytes_completed;
+	current_completed = view->bytes_completed;
+	issued_total = 0;
+	xfer_view = zigux_chrdev_resume_as_chrdev_xfer(view);
+
+	for (pass_index = 0; pass_index < view->resume_passes; ++pass_index) {
+		struct zigux_chrdev_xfer_summary pass_summary;
+
+		xfer_view.bytes_completed = current_completed;
+		pass_summary = zigux_chrdev_xfer_summarize(&xfer_view);
+		summary.selected_count = pass_summary.selected_count;
+		summary.resolved_index = pass_summary.resolved_index ==
+						 ZIGUX_CHRDEV_XFER_INDEX_NONE ?
+						 ZIGUX_CHRDEV_RESUME_INDEX_NONE :
+						 pass_summary.resolved_index;
+		summary.resolved_dev = pass_summary.resolved_dev;
+		summary.granted_mode = pass_summary.granted_mode;
+		summary.entry_ops = pass_summary.entry_ops;
+		summary.data_ops = pass_summary.data_ops;
+		summary.exit_ops = pass_summary.exit_ops;
+		summary.blocked_ops = pass_summary.blocked_ops;
+		summary.flags |=
+			zigux_chrdev_resume_map_xfer_flags(pass_summary.flags);
+
+		if (pass_summary.issued_bytes == 0) {
+			if (pass_summary.remaining_bytes != 0)
+				summary.flags |=
+					ZIGUX_CHRDEV_RESUME_FLAG_STALLED;
+			break;
+		}
+
+		++summary.pass_count;
+		issued_total += pass_summary.issued_bytes;
+		current_completed += pass_summary.issued_bytes;
+		summary.final_bytes_completed = current_completed;
+		summary.next_offset = pass_summary.next_offset;
+
+		if (pass_summary.remaining_bytes == 0) {
+			summary.flags |= ZIGUX_CHRDEV_RESUME_FLAG_COMPLETE_OK;
+			break;
+		}
+	}
+
+	if (issued_total != 0)
+		summary.flags |= ZIGUX_CHRDEV_RESUME_FLAG_PROGRESSED;
+	summary.issued_bytes = issued_total;
+	summary.remaining_bytes = view->requested_bytes - current_completed;
+	return summary;
+}
+
 #endif
