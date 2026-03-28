@@ -34,6 +34,7 @@ const chrdev_requeue_plan = @import("chrdev_requeue_plan");
 const chrdev_complete_plan = @import("chrdev_complete_plan");
 const chrdev_notify_plan = @import("chrdev_notify_plan");
 const chrdev_notify_policy_plan = @import("chrdev_notify_policy_plan");
+const chrdev_notify_budget_plan = @import("chrdev_notify_budget_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -96,6 +97,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevNotifySummary, 192);
         layout_assert.assertSize(abi.ChrdevNotifyPolicyView, @sizeOf(usize) + 144);
         layout_assert.assertSize(abi.ChrdevNotifyPolicySummary, 232);
+        layout_assert.assertSize(abi.ChrdevNotifyBudgetView, @sizeOf(usize) + 152);
+        layout_assert.assertSize(abi.ChrdevNotifyBudgetSummary, 272);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -360,6 +363,72 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevNotifyPolicySummary, "policy_deferred_count", 216);
         layout_assert.assertOffset(abi.ChrdevNotifyPolicySummary, "policy_suppressed_count", 220);
         layout_assert.assertOffset(abi.ChrdevNotifyPolicySummary, "policy_coalesced_count", 224);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "file_offset", @sizeOf(usize) + 56);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "resume_passes", @sizeOf(usize) + 72);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "retry_budget", @sizeOf(usize) + 76);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "stall_budget", @sizeOf(usize) + 80);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "backoff_quanta", @sizeOf(usize) + 84);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "queue_depth", @sizeOf(usize) + 88);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "queue_capacity", @sizeOf(usize) + 92);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "requeue_budget", @sizeOf(usize) + 96);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "completion_cookie", @sizeOf(usize) + 104);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "completion_budget", @sizeOf(usize) + 112);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "notify_mask", @sizeOf(usize) + 116);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "notify_cookie", @sizeOf(usize) + 120);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "notify_budget", @sizeOf(usize) + 128);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "reserved", @sizeOf(usize) + 132);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "policy_flags", @sizeOf(usize) + 136);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "policy_reserved", @sizeOf(usize) + 140);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "delivery_budget", @sizeOf(usize) + 144);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetView, "deferred_budget", @sizeOf(usize) + 148);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "start_offset", 32);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "next_offset", 40);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "initial_bytes_completed", 48);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "pass_count", 56);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "projected_remaining_bytes", 68);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "entry_ops", 72);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "retry_count", 88);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "stall_count", 92);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "requeue_count", 96);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "queue_depth_before", 100);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "queue_depth_after", 104);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "remaining_retry_budget", 108);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "remaining_requeue_budget", 112);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "backoff_ticks", 116);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "completion_cookie", 120);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "completion_status", 128);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "completion_count", 132);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "deferred_count", 136);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "failure_count", 140);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "remaining_completion_budget", 144);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "notify_mask", 148);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "matched_notify_mask", 152);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "notify_status", 156);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "notify_count", 160);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "deferred_notify_count", 164);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "dropped_notify_count", 168);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "remaining_notify_budget", 172);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "notify_cookie", 176);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "flags", 184);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "policy_flags", 188);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "effective_policy_flags", 192);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "effective_notify_cookie", 200);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "policy_status", 208);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "policy_notify_count", 212);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "policy_deferred_count", 216);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "policy_suppressed_count", 220);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "policy_coalesced_count", 224);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "budget_flags", 228);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "delivery_budget_before", 232);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "delivery_budget_after", 236);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "deferred_budget_before", 240);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "deferred_budget_after", 244);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "budget_status", 248);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "budget_notify_count", 252);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "budget_deferred_count", 256);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "budget_dropped_count", 260);
+        layout_assert.assertOffset(abi.ChrdevNotifyBudgetSummary, "budget_suppressed_count", 264);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -1149,4 +1218,32 @@ test "phase3 chrdev notify policy consumer stays aligned with the ABI substrate"
     const dropped_summary = chrdev_notify_policy_plan.summarize(dropped_view);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_POLICY_STATUS_SUPPRESSED), dropped_summary.policy_status);
     try std.testing.expectEqual(@as(u32, 1), dropped_summary.policy_suppressed_count);
+}
+
+test "phase3 chrdev notify budget consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const exhausted_words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 4)};
+
+    const issued_view = chrdev_notify_budget_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_SUCCESS, 1, 0xAAAA, 0, 1, 0);
+    const issued_summary = chrdev_notify_budget_plan.summarize(issued_view);
+    try std.testing.expect(chrdev_notify_budget_plan.isValid(issued_view));
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_BUDGET_STATUS_ISSUED), issued_summary.budget_status);
+    try std.testing.expectEqual(@as(u32, 1), issued_summary.budget_notify_count);
+    try std.testing.expectEqual(@as(u32, 0), issued_summary.delivery_budget_after);
+
+    const fallback_deferred_view = chrdev_notify_budget_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_SUCCESS, 1, 0xBBBB, 0, 0, 1);
+    const fallback_deferred_summary = chrdev_notify_budget_plan.summarize(fallback_deferred_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_BUDGET_STATUS_DEFERRED), fallback_deferred_summary.budget_status);
+    try std.testing.expectEqual(@as(u32, 1), fallback_deferred_summary.budget_deferred_count);
+    try std.testing.expectEqual(@as(u32, 0), fallback_deferred_summary.deferred_budget_after);
+
+    const dropped_view = chrdev_notify_budget_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_SUCCESS, 1, 0xCCCC, 0, 0, 0);
+    const dropped_summary = chrdev_notify_budget_plan.summarize(dropped_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_BUDGET_STATUS_DROPPED), dropped_summary.budget_status);
+    try std.testing.expectEqual(@as(u32, 1), dropped_summary.budget_dropped_count);
+
+    const suppressed_view = chrdev_notify_budget_plan.viewFromBits(exhausted_words[0..], 240, 16, 5, 5, 2, abi.IDA_POLICY_FIRST_FIT, 20, abi.CHRDEV_MODE_READ, abi.CHRDEV_MODE_READ, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ, abi.CHRDEV_IO_OP_READ, 12, 32, 0, 0, 2, 2, 2, 1, 5, 1, 4, 2, 0x7777, 0, abi.CHRDEV_NOTIFY_MASK_FAILURE, 1, 0xDDDD, abi.CHRDEV_NOTIFY_POLICY_SUPPRESS_FAILURE, 3, 4);
+    const suppressed_summary = chrdev_notify_budget_plan.summarize(suppressed_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_BUDGET_STATUS_SUPPRESSED), suppressed_summary.budget_status);
+    try std.testing.expectEqual(@as(u32, 1), suppressed_summary.budget_suppressed_count);
 }

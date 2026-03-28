@@ -4058,4 +4058,301 @@ zigux_chrdev_notify_policy_summarize(
 	return summary;
 }
 
+static inline struct zigux_chrdev_notify_budget_view
+zigux_chrdev_notify_budget_view_from_bits(
+	const unsigned long *bits, zigux_u32 major, zigux_u32 first_minor,
+	zigux_u32 minor_count, zigux_u32 max_scan, zigux_u32 request_count,
+	zigux_u32 policy, zigux_u32 target_minor, zigux_u32 requested_mode,
+	zigux_u32 supported_mode, zigux_u32 available_ops, zigux_u32 io_op,
+	zigux_u32 requested_bytes, zigux_u32 max_chunk_bytes,
+	zigux_u64 file_offset, zigux_u32 bytes_completed,
+	zigux_u32 max_segments, zigux_u32 resume_passes,
+	zigux_u32 retry_budget, zigux_u32 stall_budget,
+	zigux_u32 backoff_quanta, zigux_u32 queue_depth,
+	zigux_u32 queue_capacity, zigux_u32 requeue_budget,
+	zigux_u64 completion_cookie, zigux_u32 completion_budget,
+	zigux_u32 notify_mask, zigux_u32 notify_budget,
+	zigux_u64 notify_cookie, zigux_u32 policy_flags,
+	zigux_u32 delivery_budget, zigux_u32 deferred_budget)
+{
+	return (struct zigux_chrdev_notify_budget_view){
+		.bits_addr = (unsigned long)bits,
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.io_op = io_op,
+		.requested_bytes = requested_bytes,
+		.max_chunk_bytes = max_chunk_bytes,
+		.file_offset = file_offset,
+		.bytes_completed = bytes_completed,
+		.max_segments = max_segments,
+		.resume_passes = resume_passes,
+		.retry_budget = retry_budget,
+		.stall_budget = stall_budget,
+		.backoff_quanta = backoff_quanta,
+		.queue_depth = queue_depth,
+		.queue_capacity = queue_capacity,
+		.requeue_budget = requeue_budget,
+		.completion_cookie = completion_cookie,
+		.completion_budget = completion_budget,
+		.notify_mask = notify_mask,
+		.notify_cookie = notify_cookie,
+		.notify_budget = notify_budget,
+		.reserved = 0,
+		.policy_flags = policy_flags,
+		.policy_reserved = 0,
+		.delivery_budget = delivery_budget,
+		.deferred_budget = deferred_budget,
+	};
+}
+
+static inline bool
+zigux_chrdev_notify_budget_view_valid(
+	const struct zigux_chrdev_notify_budget_view *view)
+{
+	struct zigux_chrdev_notify_policy_view policy_view;
+
+	if (!view)
+		return false;
+	if (view->reserved != 0 || view->policy_reserved != 0)
+		return false;
+
+	policy_view = (struct zigux_chrdev_notify_policy_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.completion_cookie = view->completion_cookie,
+		.completion_budget = view->completion_budget,
+		.notify_mask = view->notify_mask,
+		.notify_cookie = view->notify_cookie,
+		.notify_budget = view->notify_budget,
+		.reserved = 0,
+		.policy_flags = view->policy_flags,
+		.policy_reserved = 0,
+	};
+
+	return zigux_chrdev_notify_policy_view_valid(&policy_view);
+}
+
+static inline struct zigux_chrdev_notify_policy_view
+zigux_chrdev_notify_budget_as_chrdev_notify_policy(
+	const struct zigux_chrdev_notify_budget_view *view)
+{
+	if (!view || view->reserved != 0 || view->policy_reserved != 0)
+		return (struct zigux_chrdev_notify_policy_view){0};
+
+	return (struct zigux_chrdev_notify_policy_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.completion_cookie = view->completion_cookie,
+		.completion_budget = view->completion_budget,
+		.notify_mask = view->notify_mask,
+		.notify_cookie = view->notify_cookie,
+		.notify_budget = view->notify_budget,
+		.reserved = 0,
+		.policy_flags = view->policy_flags,
+		.policy_reserved = 0,
+	};
+}
+
+static inline struct zigux_chrdev_notify_budget_summary
+zigux_chrdev_notify_budget_summarize(
+	const struct zigux_chrdev_notify_budget_view *view)
+{
+	struct zigux_chrdev_notify_budget_summary summary = {
+		.resolved_index = ZIGUX_CHRDEV_NOTIFY_INDEX_NONE,
+		.completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_NONE,
+		.notify_status = ZIGUX_CHRDEV_NOTIFY_STATUS_NONE,
+		.policy_status = ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_NONE,
+		.budget_status = ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_NONE,
+	};
+	struct zigux_chrdev_notify_policy_view policy_view;
+	struct zigux_chrdev_notify_policy_summary policy_summary;
+
+	if (!zigux_chrdev_notify_budget_view_valid(view))
+		return summary;
+
+	policy_view = zigux_chrdev_notify_budget_as_chrdev_notify_policy(view);
+	policy_summary = zigux_chrdev_notify_policy_summarize(&policy_view);
+
+	summary.major = policy_summary.major;
+	summary.target_minor = policy_summary.target_minor;
+	summary.selected_count = policy_summary.selected_count;
+	summary.resolved_index = policy_summary.resolved_index;
+	summary.resolved_dev = policy_summary.resolved_dev;
+	summary.granted_mode = policy_summary.granted_mode;
+	summary.io_op = policy_summary.io_op;
+	summary.requested_bytes = policy_summary.requested_bytes;
+	summary.start_offset = policy_summary.start_offset;
+	summary.next_offset = policy_summary.next_offset;
+	summary.initial_bytes_completed =
+		policy_summary.initial_bytes_completed;
+	summary.final_bytes_completed = policy_summary.final_bytes_completed;
+	summary.pass_count = policy_summary.pass_count;
+	summary.issued_bytes = policy_summary.issued_bytes;
+	summary.remaining_bytes = policy_summary.remaining_bytes;
+	summary.projected_remaining_bytes =
+		policy_summary.projected_remaining_bytes;
+	summary.entry_ops = policy_summary.entry_ops;
+	summary.data_ops = policy_summary.data_ops;
+	summary.exit_ops = policy_summary.exit_ops;
+	summary.blocked_ops = policy_summary.blocked_ops;
+	summary.retry_count = policy_summary.retry_count;
+	summary.stall_count = policy_summary.stall_count;
+	summary.requeue_count = policy_summary.requeue_count;
+	summary.queue_depth_before = policy_summary.queue_depth_before;
+	summary.queue_depth_after = policy_summary.queue_depth_after;
+	summary.remaining_retry_budget =
+		policy_summary.remaining_retry_budget;
+	summary.remaining_requeue_budget =
+		policy_summary.remaining_requeue_budget;
+	summary.backoff_ticks = policy_summary.backoff_ticks;
+	summary.completion_cookie = policy_summary.completion_cookie;
+	summary.completion_status = policy_summary.completion_status;
+	summary.completion_count = policy_summary.completion_count;
+	summary.deferred_count = policy_summary.deferred_count;
+	summary.failure_count = policy_summary.failure_count;
+	summary.remaining_completion_budget =
+		policy_summary.remaining_completion_budget;
+	summary.notify_mask = policy_summary.notify_mask;
+	summary.matched_notify_mask = policy_summary.matched_notify_mask;
+	summary.notify_status = policy_summary.notify_status;
+	summary.notify_count = policy_summary.notify_count;
+	summary.deferred_notify_count = policy_summary.deferred_notify_count;
+	summary.dropped_notify_count = policy_summary.dropped_notify_count;
+	summary.remaining_notify_budget =
+		policy_summary.remaining_notify_budget;
+	summary.notify_cookie = policy_summary.notify_cookie;
+	summary.flags = policy_summary.flags;
+	summary.policy_flags = policy_summary.policy_flags;
+	summary.effective_policy_flags =
+		policy_summary.effective_policy_flags;
+	summary.effective_notify_cookie =
+		policy_summary.effective_notify_cookie;
+	summary.policy_status = policy_summary.policy_status;
+	summary.policy_notify_count = policy_summary.policy_notify_count;
+	summary.policy_deferred_count =
+		policy_summary.policy_deferred_count;
+	summary.policy_suppressed_count =
+		policy_summary.policy_suppressed_count;
+	summary.policy_coalesced_count =
+		policy_summary.policy_coalesced_count;
+	summary.delivery_budget_before = view->delivery_budget;
+	summary.delivery_budget_after = view->delivery_budget;
+	summary.deferred_budget_before = view->deferred_budget;
+	summary.deferred_budget_after = view->deferred_budget;
+
+	switch (policy_summary.policy_status) {
+	case ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_NONE:
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_SUPPRESSED:
+		summary.budget_status =
+			ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_SUPPRESSED;
+		summary.budget_suppressed_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_DEFERRED:
+		summary.budget_flags |=
+			ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_BUDGET_APPLIED;
+		if (summary.deferred_budget_after > 0) {
+			summary.deferred_budget_after -= 1;
+			summary.budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_DEFERRED_BUDGET_USED;
+			summary.budget_status =
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_DEFERRED;
+			summary.budget_deferred_count = 1;
+		} else {
+			summary.budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_DEFERRED_BUDGET_EXHAUSTED;
+			summary.budget_status =
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_DROPPED;
+			summary.budget_dropped_count = 1;
+		}
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_DELIVERED:
+	case ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_COALESCED:
+		summary.budget_flags |=
+			ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_BUDGET_APPLIED;
+		if (summary.delivery_budget_after > 0) {
+			summary.delivery_budget_after -= 1;
+			summary.budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_DELIVERY_BUDGET_USED;
+			summary.budget_status =
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_ISSUED;
+			summary.budget_notify_count = 1;
+		} else {
+			summary.budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_DELIVERY_BUDGET_EXHAUSTED;
+			if (summary.deferred_budget_after > 0) {
+				summary.deferred_budget_after -= 1;
+				summary.budget_flags |=
+					ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_DEFERRED_BUDGET_USED;
+				summary.budget_status =
+					ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_DEFERRED;
+				summary.budget_deferred_count = 1;
+			} else {
+				summary.budget_flags |=
+					ZIGUX_CHRDEV_NOTIFY_BUDGET_FLAG_DEFERRED_BUDGET_EXHAUSTED;
+				summary.budget_status =
+					ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_DROPPED;
+				summary.budget_dropped_count = 1;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	return summary;
+}
+
 #endif

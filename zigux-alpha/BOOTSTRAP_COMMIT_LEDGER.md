@@ -609,6 +609,14 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_chrdev_notify_policy_manifest.json`
 - `scripts/zigux/check-phase3-chrdev-notify-policy.py`
 - `Documentation/zigux/phase3-chrdev-notify-policy-slice.md`
+### `feat(zigux): add bounded Phase 3 chrdev notify budget interop slice`
+- `zigux/helpers/chrdev_notify_budget_plan.zig`
+- `zigux/tests/phase3_chrdev_notify_budget_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_budget/phase3_chrdev_notify_budget_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_budget/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_budget_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-notify-budget.py`
+- `Documentation/zigux/phase3-chrdev-notify-budget-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`
