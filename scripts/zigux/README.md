@@ -33,6 +33,7 @@ Current bootstrap helpers
 - `check-phase3-idr-slot.py`
 - `check-phase3-ida-bitmap.py`
 - `check-phase3-ida-alloc.py`
+- `check-phase3-ida-range.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

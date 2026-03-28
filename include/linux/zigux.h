@@ -928,4 +928,100 @@ zigux_ida_alloc_summarize(const struct zigux_ida_alloc_view *view)
 	return summary;
 }
 
+static inline struct zigux_ida_range_view
+zigux_ida_range_view_from_bits(const unsigned long *bits, zigux_u32 base_id,
+			       zigux_u32 nbits, zigux_u32 max_scan,
+			       zigux_u32 request_count, zigux_u32 max_ranges)
+{
+	return (struct zigux_ida_range_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.base_id = base_id,
+		.nbits = nbits,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.max_ranges = max_ranges,
+		.reserved = 0,
+	};
+}
+
+static inline bool zigux_ida_range_view_valid(const struct zigux_ida_range_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0 || view->max_ranges == 0)
+		return false;
+	if (view->nbits == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_bitmap_view
+zigux_ida_range_as_bitmap(const struct zigux_ida_range_view *view)
+{
+	if (!zigux_ida_range_view_valid(view))
+		return (struct zigux_bitmap_view){0, 0, 0};
+
+	return (struct zigux_bitmap_view){
+		.words_addr = view->bits_addr,
+		.nbits = view->nbits,
+		.word_count = zigux_bitmap_word_count(view->nbits),
+	};
+}
+
+static inline struct zigux_ida_range_summary
+zigux_ida_range_summarize(const struct zigux_ida_range_view *view)
+{
+	struct zigux_ida_range_summary summary = {0, 0, 0, 0, 0, 0};
+	struct zigux_bitmap_view bitmap;
+	zigux_u32 scanned;
+	zigux_u32 start;
+
+	if (!zigux_ida_range_view_valid(view))
+		return summary;
+
+	scanned = view->nbits < view->max_scan ? view->nbits : view->max_scan;
+	summary.scanned_count = scanned;
+	summary.request_count = view->request_count;
+	summary.first_range_id = view->base_id + scanned;
+	summary.last_range_id = view->base_id + scanned;
+	if (scanned < view->nbits)
+		summary.flags |= ZIGUX_IDA_RANGE_FLAG_TRUNCATED;
+	if (scanned < view->request_count) {
+		summary.flags |= ZIGUX_IDA_RANGE_FLAG_EXHAUSTED;
+		return summary;
+	}
+
+	bitmap = zigux_ida_range_as_bitmap(view);
+	for (start = 0; start + view->request_count <= scanned; start++) {
+		zigux_u32 bit;
+		bool fits = true;
+
+		for (bit = 0; bit < view->request_count; bit++) {
+			if (zigux_bitmap_test_bit(&bitmap, start + bit)) {
+				fits = false;
+				break;
+			}
+		}
+		if (!fits)
+			continue;
+
+		if ((summary.flags & ZIGUX_IDA_RANGE_FLAG_FOUND) == 0)
+			summary.first_range_id = view->base_id + start;
+		summary.flags |= ZIGUX_IDA_RANGE_FLAG_FOUND;
+		if (summary.candidate_range_count < view->max_ranges) {
+			summary.last_range_id = view->base_id + start;
+			summary.candidate_range_count++;
+		} else {
+			summary.flags |= ZIGUX_IDA_RANGE_FLAG_TRUNCATED;
+		}
+	}
+
+	if ((summary.flags & ZIGUX_IDA_RANGE_FLAG_FOUND) == 0)
+		summary.flags |= ZIGUX_IDA_RANGE_FLAG_EXHAUSTED;
+
+	return summary;
+}
+
 #endif

@@ -327,3 +327,20 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+34. `feat(zigux): add bounded Phase 3 ida range interop slice`
+- `zigux/helpers/ida_range_view.zig`
+- `zigux/tests/phase3_ida_range_dump.zig`
+- `zigux/tests/fixtures/phase3_ida_range/phase3_ida_range_c_harness.c`
+- `zigux/tests/fixtures/phase3_ida_range/expected.json`
+- `zigux/tests/fixtures/phase3_ida_range_manifest.json`
+- `scripts/zigux/check-phase3-ida-range.py`
+- `Documentation/zigux/phase3-ida-range-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

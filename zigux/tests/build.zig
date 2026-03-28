@@ -247,6 +247,14 @@ pub fn build(b: *std.Build) void {
     ida_alloc_view_module.addImport("abi_bindings", abi_bindings_module);
     ida_alloc_view_module.addImport("bitmap_view", bitmap_view_module);
     ida_alloc_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const ida_range_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/ida_range_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    ida_range_view_module.addImport("abi_bindings", abi_bindings_module);
+    ida_range_view_module.addImport("bitmap_view", bitmap_view_module);
+    ida_range_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -282,6 +290,7 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("idr_slot_view", idr_slot_view_module);
     phase3_root_module.addImport("ida_bitmap_view", ida_bitmap_view_module);
     phase3_root_module.addImport("ida_alloc_view", ida_alloc_view_module);
+    phase3_root_module.addImport("ida_range_view", ida_range_view_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -420,4 +429,19 @@ pub fn build(b: *std.Build) void {
     const run_phase3_ida_alloc_dump = b.addRunArtifact(phase3_ida_alloc_dump);
     const phase3_ida_alloc_dump_step = b.step("phase3-ida-alloc-dump", "Run Phase 3 ida allocation interop dump");
     phase3_ida_alloc_dump_step.dependOn(&run_phase3_ida_alloc_dump.step);
+
+    const phase3_ida_range_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_ida_range_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_ida_range_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_ida_range_dump_module.addImport("ida_range_view", ida_range_view_module);
+    const phase3_ida_range_dump = b.addExecutable(.{
+        .name = "phase3-ida-range-dump",
+        .root_module = phase3_ida_range_dump_module,
+    });
+    const run_phase3_ida_range_dump = b.addRunArtifact(phase3_ida_range_dump);
+    const phase3_ida_range_dump_step = b.step("phase3-ida-range-dump", "Run Phase 3 ida range interop dump");
+    phase3_ida_range_dump_step.dependOn(&run_phase3_ida_range_dump.step);
 }

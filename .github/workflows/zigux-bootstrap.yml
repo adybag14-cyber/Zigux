@@ -111,6 +111,9 @@ jobs:
       - name: Check bounded Phase 3 ida allocation interop parity
         run: python3 scripts/zigux/check-phase3-ida-alloc.py
 
+      - name: Check bounded Phase 3 ida range interop parity
+        run: python3 scripts/zigux/check-phase3-ida-range.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 
