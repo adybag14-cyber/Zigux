@@ -672,7 +672,7 @@ This ledger turns the roadmap into the first product commit train.
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 
-Phase 3 chrdev notify ack window slice:
+### `feat(zigux): add bounded Phase 3 chrdev notify ack window interop slice`
 - `zigux/helpers/chrdev_notify_ack_window_plan.zig`
 - `zigux/tests/phase3_chrdev_notify_ack_window_dump.zig`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window/phase3_chrdev_notify_ack_window_c_harness.c`
@@ -680,6 +680,21 @@ Phase 3 chrdev notify ack window slice:
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_manifest.json`
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window.py`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`
+
+### `feat(zigux): add bounded Phase 3 chrdev notify ack window policy interop slice`
+- `zigux/helpers/chrdev_notify_ack_window_policy_plan.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_window_policy_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy/phase3_chrdev_notify_ack_window_policy_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy.py`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`
