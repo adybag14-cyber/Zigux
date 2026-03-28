@@ -263,6 +263,14 @@ pub fn build(b: *std.Build) void {
     ida_range_set_view_module.addImport("abi_bindings", abi_bindings_module);
     ida_range_set_view_module.addImport("bitmap_view", bitmap_view_module);
     ida_range_set_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const ida_policy_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/ida_policy_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    ida_policy_view_module.addImport("abi_bindings", abi_bindings_module);
+    ida_policy_view_module.addImport("bitmap_view", bitmap_view_module);
+    ida_policy_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -300,6 +308,7 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("ida_alloc_view", ida_alloc_view_module);
     phase3_root_module.addImport("ida_range_view", ida_range_view_module);
     phase3_root_module.addImport("ida_range_set_view", ida_range_set_view_module);
+    phase3_root_module.addImport("ida_policy_view", ida_policy_view_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -468,4 +477,19 @@ pub fn build(b: *std.Build) void {
     const run_phase3_ida_range_set_dump = b.addRunArtifact(phase3_ida_range_set_dump);
     const phase3_ida_range_set_dump_step = b.step("phase3-ida-range-set-dump", "Run Phase 3 ida range-set interop dump");
     phase3_ida_range_set_dump_step.dependOn(&run_phase3_ida_range_set_dump.step);
+
+    const phase3_ida_policy_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_ida_policy_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_ida_policy_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_ida_policy_dump_module.addImport("ida_policy_view", ida_policy_view_module);
+    const phase3_ida_policy_dump = b.addExecutable(.{
+        .name = "phase3-ida-policy-dump",
+        .root_module = phase3_ida_policy_dump_module,
+    });
+    const run_phase3_ida_policy_dump = b.addRunArtifact(phase3_ida_policy_dump);
+    const phase3_ida_policy_dump_step = b.step("phase3-ida-policy-dump", "Run Phase 3 ida policy interop dump");
+    phase3_ida_policy_dump_step.dependOn(&run_phase3_ida_policy_dump.step);
 }

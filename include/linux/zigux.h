@@ -1137,4 +1137,117 @@ zigux_ida_range_set_summarize(const struct zigux_ida_range_set_view *view)
 	return summary;
 }
 
+static inline struct zigux_ida_policy_view
+zigux_ida_policy_view_from_bits(const unsigned long *bits, zigux_u32 base_id,
+				zigux_u32 nbits, zigux_u32 max_scan,
+				zigux_u32 request_count, zigux_u32 policy)
+{
+	return (struct zigux_ida_policy_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.base_id = base_id,
+		.nbits = nbits,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_ida_policy_view_valid(const struct zigux_ida_policy_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0)
+		return false;
+	if (view->policy != ZIGUX_IDA_POLICY_FIRST_FIT &&
+	    view->policy != ZIGUX_IDA_POLICY_LAST_FIT)
+		return false;
+	if (view->nbits == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_bitmap_view
+zigux_ida_policy_as_bitmap(const struct zigux_ida_policy_view *view)
+{
+	if (!zigux_ida_policy_view_valid(view))
+		return (struct zigux_bitmap_view){0, 0, 0};
+
+	return (struct zigux_bitmap_view){
+		.words_addr = view->bits_addr,
+		.nbits = view->nbits,
+		.word_count = zigux_bitmap_word_count(view->nbits),
+	};
+}
+
+static inline struct zigux_ida_policy_summary
+zigux_ida_policy_summarize(const struct zigux_ida_policy_view *view)
+{
+	struct zigux_ida_policy_summary summary = {0, 0, 0, 0, 0, 0};
+	struct zigux_bitmap_view bitmap;
+	zigux_u32 scanned;
+	zigux_u32 index;
+	zigux_u32 current_run = 0;
+	zigux_u32 current_start = 0;
+	zigux_u32 first_candidate = 0;
+	zigux_u32 last_candidate = 0;
+	bool have_candidate = false;
+
+	if (!zigux_ida_policy_view_valid(view))
+		return summary;
+
+	scanned = view->nbits < view->max_scan ? view->nbits : view->max_scan;
+	summary.scanned_count = scanned;
+	summary.request_count = view->request_count;
+	summary.selected_fit_id = view->base_id + scanned;
+	summary.alternate_fit_id = view->base_id + scanned;
+	if (scanned < view->nbits)
+		summary.flags |= ZIGUX_IDA_POLICY_FLAG_TRUNCATED;
+	if (scanned < view->request_count) {
+		summary.flags |= ZIGUX_IDA_POLICY_FLAG_EXHAUSTED;
+		return summary;
+	}
+
+	bitmap = zigux_ida_policy_as_bitmap(view);
+	for (index = 0; index < scanned; index++) {
+		if (zigux_bitmap_test_bit(&bitmap, index)) {
+			current_run = 0;
+			continue;
+		}
+
+		if (current_run == 0)
+			current_start = index;
+		current_run++;
+		if (current_run > summary.longest_free_run)
+			summary.longest_free_run = current_run;
+		if (current_run < view->request_count)
+			continue;
+
+		if (!have_candidate) {
+			first_candidate = view->base_id + current_start;
+			have_candidate = true;
+		}
+		last_candidate = view->base_id + current_start;
+	}
+
+	if (!have_candidate) {
+		summary.flags |= ZIGUX_IDA_POLICY_FLAG_EXHAUSTED;
+		return summary;
+	}
+
+	summary.flags |= ZIGUX_IDA_POLICY_FLAG_FOUND;
+	if (view->policy == ZIGUX_IDA_POLICY_LAST_FIT) {
+		summary.selected_fit_id = last_candidate;
+		summary.alternate_fit_id = first_candidate;
+	} else {
+		summary.selected_fit_id = first_candidate;
+		summary.alternate_fit_id = last_candidate;
+	}
+
+	return summary;
+}
+
 #endif

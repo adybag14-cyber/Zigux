@@ -28,6 +28,11 @@ pub const IDA_RANGE_SET_FLAG_TRUNCATED: u32 = 1;
 pub const IDA_RANGE_SET_FLAG_FOUND: u32 = 2;
 pub const IDA_RANGE_SET_FLAG_EXHAUSTED: u32 = 4;
 pub const IDA_RANGE_SET_FLAG_SELECTED: u32 = 8;
+pub const IDA_POLICY_FIRST_FIT: u32 = 1;
+pub const IDA_POLICY_LAST_FIT: u32 = 2;
+pub const IDA_POLICY_FLAG_TRUNCATED: u32 = 1;
+pub const IDA_POLICY_FLAG_FOUND: u32 = 2;
+pub const IDA_POLICY_FLAG_EXHAUSTED: u32 = 4;
 
 pub const Facility = enum(u16) {
     kernel = 1,
@@ -249,6 +254,25 @@ pub const IdaRangeSetSummary = extern struct {
     reserved: u32,
 };
 
+pub const IdaPolicyView = extern struct {
+    bits_addr: usize,
+    base_id: u32,
+    nbits: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    reserved: u32,
+};
+
+pub const IdaPolicySummary = extern struct {
+    scanned_count: u32,
+    request_count: u32,
+    selected_fit_id: u32,
+    alternate_fit_id: u32,
+    longest_free_run: u32,
+    flags: u32,
+};
+
 pub const MmioRange = extern struct {
     base_addr: usize,
     length: u32,
@@ -294,6 +318,11 @@ test "phase3 abi constants stay stable" {
     try std.testing.expectEqual(@as(u32, 2), IDA_RANGE_SET_FLAG_FOUND);
     try std.testing.expectEqual(@as(u32, 4), IDA_RANGE_SET_FLAG_EXHAUSTED);
     try std.testing.expectEqual(@as(u32, 8), IDA_RANGE_SET_FLAG_SELECTED);
+    try std.testing.expectEqual(@as(u32, 1), IDA_POLICY_FIRST_FIT);
+    try std.testing.expectEqual(@as(u32, 2), IDA_POLICY_LAST_FIT);
+    try std.testing.expectEqual(@as(u32, 1), IDA_POLICY_FLAG_TRUNCATED);
+    try std.testing.expectEqual(@as(u32, 2), IDA_POLICY_FLAG_FOUND);
+    try std.testing.expectEqual(@as(u32, 4), IDA_POLICY_FLAG_EXHAUSTED);
 }
 
 test "phase3 abi layouts stay stable" {
@@ -324,6 +353,8 @@ test "phase3 abi layouts stay stable" {
     try std.testing.expectEqual(@as(usize, 24), @sizeOf(IdaRangeSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 32), @sizeOf(IdaRangeSetView));
     try std.testing.expectEqual(@as(usize, 32), @sizeOf(IdaRangeSetSummary));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 24), @sizeOf(IdaPolicyView));
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(IdaPolicySummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(MmioRange));
     try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
 }

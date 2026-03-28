@@ -26,6 +26,7 @@ Current entrypoint
 - `zigux/tests/phase3_ida_alloc_dump.zig`
 - `zigux/tests/phase3_ida_range_dump.zig`
 - `zigux/tests/phase3_ida_range_set_dump.zig`
+- `zigux/tests/phase3_ida_policy_dump.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
@@ -63,3 +64,5 @@ Current entrypoint
 - `zigux/tests/fixtures/phase3_ida_range/expected.json`
 - `zigux/tests/fixtures/phase3_ida_range_set_manifest.json`
 - `zigux/tests/fixtures/phase3_ida_range_set/expected.json`
+- `zigux/tests/fixtures/phase3_ida_policy_manifest.json`
+- `zigux/tests/fixtures/phase3_ida_policy/expected.json`

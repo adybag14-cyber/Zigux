@@ -236,6 +236,25 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "reserved", @offsetOf(abi.IdaRangeSetSummary, "reserved"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_ida_policy_view", @sizeOf(abi.IdaPolicyView), @alignOf(abi.IdaPolicyView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.IdaPolicyView, "bits_addr"), true);
+    try writeOffset(writer, "base_id", @offsetOf(abi.IdaPolicyView, "base_id"), true);
+    try writeOffset(writer, "nbits", @offsetOf(abi.IdaPolicyView, "nbits"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.IdaPolicyView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.IdaPolicyView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.IdaPolicyView, "policy"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaPolicyView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_ida_policy_summary", @sizeOf(abi.IdaPolicySummary), @alignOf(abi.IdaPolicySummary));
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.IdaPolicySummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.IdaPolicySummary, "request_count"), true);
+    try writeOffset(writer, "selected_fit_id", @offsetOf(abi.IdaPolicySummary, "selected_fit_id"), true);
+    try writeOffset(writer, "alternate_fit_id", @offsetOf(abi.IdaPolicySummary, "alternate_fit_id"), true);
+    try writeOffset(writer, "longest_free_run", @offsetOf(abi.IdaPolicySummary, "longest_free_run"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.IdaPolicySummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

@@ -35,6 +35,7 @@ Current bootstrap helpers
 - `check-phase3-ida-alloc.py`
 - `check-phase3-ida-range.py`
 - `check-phase3-ida-range-set.py`
+- `check-phase3-ida-policy.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

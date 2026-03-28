@@ -65,6 +65,11 @@ typedef int32_t zigux_s32;
 #define ZIGUX_IDA_RANGE_SET_FLAG_FOUND 2U
 #define ZIGUX_IDA_RANGE_SET_FLAG_EXHAUSTED 4U
 #define ZIGUX_IDA_RANGE_SET_FLAG_SELECTED 8U
+#define ZIGUX_IDA_POLICY_FIRST_FIT 1U
+#define ZIGUX_IDA_POLICY_LAST_FIT 2U
+#define ZIGUX_IDA_POLICY_FLAG_TRUNCATED 1U
+#define ZIGUX_IDA_POLICY_FLAG_FOUND 2U
+#define ZIGUX_IDA_POLICY_FLAG_EXHAUSTED 4U
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -260,6 +265,25 @@ struct zigux_ida_range_set_summary {
 	zigux_u32 last_selected_id;
 	zigux_u32 flags;
 	zigux_u32 reserved;
+};
+
+struct zigux_ida_policy_view {
+	unsigned long bits_addr;
+	zigux_u32 base_id;
+	zigux_u32 nbits;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 reserved;
+};
+
+struct zigux_ida_policy_summary {
+	zigux_u32 scanned_count;
+	zigux_u32 request_count;
+	zigux_u32 selected_fit_id;
+	zigux_u32 alternate_fit_id;
+	zigux_u32 longest_free_run;
+	zigux_u32 flags;
 };
 
 struct zigux_mmio_range {

@@ -32,6 +32,7 @@ Active slice records
 - `Documentation/zigux/phase3-ida-alloc-slice.md`
 - `Documentation/zigux/phase3-ida-range-slice.md`
 - `Documentation/zigux/phase3-ida-range-set-slice.md`
+- `Documentation/zigux/phase3-ida-policy-slice.md`
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
