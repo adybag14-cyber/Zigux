@@ -60,5 +60,6 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-retry.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-requeue.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-complete.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify.py
 
 phase3: phase3-validate phase3-abi phase3-interop

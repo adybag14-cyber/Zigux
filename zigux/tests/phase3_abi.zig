@@ -32,6 +32,7 @@ const chrdev_resume_plan = @import("chrdev_resume_plan");
 const chrdev_retry_plan = @import("chrdev_retry_plan");
 const chrdev_requeue_plan = @import("chrdev_requeue_plan");
 const chrdev_complete_plan = @import("chrdev_complete_plan");
+const chrdev_notify_plan = @import("chrdev_notify_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -90,6 +91,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevRequeueSummary, 128);
         layout_assert.assertSize(abi.ChrdevCompleteView, @sizeOf(usize) + 120);
         layout_assert.assertSize(abi.ChrdevCompleteSummary, 152);
+        layout_assert.assertSize(abi.ChrdevNotifyView, @sizeOf(usize) + 136);
+        layout_assert.assertSize(abi.ChrdevNotifySummary, 192);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -256,6 +259,50 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevCompleteSummary, "failure_count", 140);
         layout_assert.assertOffset(abi.ChrdevCompleteSummary, "remaining_completion_budget", 144);
         layout_assert.assertOffset(abi.ChrdevCompleteSummary, "flags", 148);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "file_offset", @sizeOf(usize) + 56);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "resume_passes", @sizeOf(usize) + 72);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "retry_budget", @sizeOf(usize) + 76);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "stall_budget", @sizeOf(usize) + 80);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "backoff_quanta", @sizeOf(usize) + 84);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "queue_depth", @sizeOf(usize) + 88);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "queue_capacity", @sizeOf(usize) + 92);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "requeue_budget", @sizeOf(usize) + 96);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "completion_cookie", @sizeOf(usize) + 104);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "completion_budget", @sizeOf(usize) + 112);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "notify_mask", @sizeOf(usize) + 116);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "notify_cookie", @sizeOf(usize) + 120);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "notify_budget", @sizeOf(usize) + 128);
+        layout_assert.assertOffset(abi.ChrdevNotifyView, "reserved", @sizeOf(usize) + 132);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "start_offset", 32);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "next_offset", 40);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "initial_bytes_completed", 48);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "pass_count", 56);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "projected_remaining_bytes", 68);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "entry_ops", 72);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "retry_count", 88);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "stall_count", 92);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "requeue_count", 96);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "queue_depth_before", 100);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "queue_depth_after", 104);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "remaining_retry_budget", 108);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "remaining_requeue_budget", 112);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "backoff_ticks", 116);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "completion_cookie", 120);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "completion_status", 128);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "completion_count", 132);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "deferred_count", 136);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "failure_count", 140);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "remaining_completion_budget", 144);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "notify_mask", 148);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "matched_notify_mask", 152);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "notify_status", 156);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "notify_count", 160);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "deferred_notify_count", 164);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "dropped_notify_count", 168);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "remaining_notify_budget", 172);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "notify_cookie", 176);
+        layout_assert.assertOffset(abi.ChrdevNotifySummary, "flags", 184);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -978,4 +1025,35 @@ test "phase3 chrdev complete consumer stays aligned with the ABI substrate" {
     const exhausted_summary = chrdev_complete_plan.summarize(exhausted_view);
     try std.testing.expect((exhausted_summary.flags & abi.CHRDEV_COMPLETE_FLAG_EXHAUSTED) != 0);
     try std.testing.expect((exhausted_summary.flags & abi.CHRDEV_COMPLETE_FLAG_FAILURE_COMPLETION) != 0);
+}
+
+test "phase3 chrdev notify consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const exhausted_words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 4)};
+
+    const delivered_view = chrdev_notify_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_SUCCESS, 1, 0xAAAA);
+    const delivered_summary = chrdev_notify_plan.summarize(delivered_view);
+    try std.testing.expect(chrdev_notify_plan.isValid(delivered_view));
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_STATUS_DELIVERED), delivered_summary.notify_status);
+    try std.testing.expectEqual(@as(u32, 1), delivered_summary.notify_count);
+    try std.testing.expectEqual(@as(u64, 0xAAAA), delivered_summary.notify_cookie);
+    try std.testing.expect((delivered_summary.flags & abi.CHRDEV_NOTIFY_FLAG_MATCHED_NOTIFY) != 0);
+    try std.testing.expect((delivered_summary.flags & abi.CHRDEV_NOTIFY_FLAG_NOTIFY_PLANNED) != 0);
+
+    const deferred_view = chrdev_notify_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 36, 8, 1024, 4, 1, 1, 1, 1, 0, 1, 4, 2, 0x3333, 1, abi.CHRDEV_NOTIFY_MASK_DEFERRED, 0, 0xBBBB);
+    const deferred_summary = chrdev_notify_plan.summarize(deferred_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_STATUS_DEFERRED), deferred_summary.notify_status);
+    try std.testing.expectEqual(@as(u32, 1), deferred_summary.deferred_notify_count);
+    try std.testing.expect((deferred_summary.flags & abi.CHRDEV_NOTIFY_FLAG_MATCHED_NOTIFY) != 0);
+
+    const failed_view = chrdev_notify_plan.viewFromBits(exhausted_words[0..], 240, 16, 5, 5, 2, abi.IDA_POLICY_FIRST_FIT, 20, abi.CHRDEV_MODE_READ, abi.CHRDEV_MODE_READ, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ, abi.CHRDEV_IO_OP_READ, 12, 32, 0, 0, 2, 2, 2, 1, 5, 1, 4, 2, 0x7777, 0, abi.CHRDEV_NOTIFY_MASK_FAILURE, 1, 0xCCCC);
+    const failed_summary = chrdev_notify_plan.summarize(failed_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_STATUS_DELIVERED), failed_summary.notify_status);
+    try std.testing.expectEqual(@as(u32, 1), failed_summary.notify_count);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_MASK_FAILURE), failed_summary.matched_notify_mask);
+
+    const unmatched_view = chrdev_notify_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_FAILURE, 1, 0xDDDD);
+    const unmatched_summary = chrdev_notify_plan.summarize(unmatched_view);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_STATUS_NONE), unmatched_summary.notify_status);
+    try std.testing.expectEqual(@as(u32, 0), unmatched_summary.matched_notify_mask);
 }

@@ -33,6 +33,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-retry-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-requeue-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-complete-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
@@ -59,6 +60,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-retry.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-requeue.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-complete.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
@@ -87,6 +89,7 @@ required_files = [
     ROOT / 'zigux' / 'helpers' / 'chrdev_retry_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_requeue_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_complete_plan.zig',
+    ROOT / 'zigux' / 'helpers' / 'chrdev_notify_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -121,6 +124,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_retry_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_requeue_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_complete_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -193,6 +197,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_complete' / 'phase3_chrdev_complete_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_complete' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_complete_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify' / 'phase3_chrdev_notify_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -229,6 +236,7 @@ phase_chrdev_resume_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-res
 phase_chrdev_retry_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-retry-slice.md').read_text(encoding='utf-8')
 phase_chrdev_requeue_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-requeue-slice.md').read_text(encoding='utf-8')
 phase_chrdev_complete_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-complete-slice.md').read_text(encoding='utf-8')
+phase_chrdev_notify_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -260,6 +268,7 @@ chrdev_resume_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'ph
 chrdev_retry_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_retry_manifest.json').read_text(encoding='utf-8'))
 chrdev_requeue_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_requeue_manifest.json').read_text(encoding='utf-8'))
 chrdev_complete_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_complete_manifest.json').read_text(encoding='utf-8'))
+chrdev_notify_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -438,6 +447,13 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-chrdev-complete.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_chrdev_notify_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=chrdev-notify-plan-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-chrdev-notify.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
@@ -464,6 +480,7 @@ required_markers = {
         'python3 scripts/zigux/check-phase3-chrdev-retry.py',
         'python3 scripts/zigux/check-phase3-chrdev-requeue.py',
         'python3 scripts/zigux/check-phase3-chrdev-complete.py',
+        'python3 scripts/zigux/check-phase3-chrdev-notify.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -495,6 +512,7 @@ required_markers = {
         'check-phase3-chrdev-retry.py',
         'check-phase3-chrdev-requeue.py',
         'check-phase3-chrdev-complete.py',
+        'check-phase3-chrdev-notify.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
@@ -522,6 +540,7 @@ required_markers = {
         'check-phase3-chrdev-retry.py',
         'check-phase3-chrdev-requeue.py',
         'check-phase3-chrdev-complete.py',
+        'check-phase3-chrdev-notify.py',
         'validate-phase3.py',
     ],
     'tests': [
@@ -550,6 +569,7 @@ required_markers = {
         'phase3_chrdev_retry_dump.zig',
         'phase3_chrdev_requeue_dump.zig',
         'phase3_chrdev_complete_dump.zig',
+        'phase3_chrdev_notify_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
         'phase3_list_hlist_manifest.json',
@@ -574,6 +594,7 @@ required_markers = {
         'phase3_chrdev_retry_manifest.json',
         'phase3_chrdev_requeue_manifest.json',
         'phase3_chrdev_complete_manifest.json',
+        'phase3_chrdev_notify_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
@@ -600,6 +621,7 @@ required_markers = {
         'phase3-chrdev-retry-slice.md',
         'phase3-chrdev-requeue-slice.md',
         'phase3-chrdev-complete-slice.md',
+        'phase3-chrdev-notify-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
@@ -650,6 +672,8 @@ required_markers = {
         'check-phase3-chrdev-requeue.py',
         'phase3_chrdev_complete',
         'check-phase3-chrdev-complete.py',
+        'phase3_chrdev_notify',
+        'check-phase3-chrdev-notify.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
@@ -676,6 +700,7 @@ required_markers = {
         'feat(zigux): add bounded Phase 3 chrdev retry interop slice',
         'feat(zigux): add bounded Phase 3 chrdev requeue interop slice',
         'feat(zigux): add bounded Phase 3 chrdev complete interop slice',
+        'feat(zigux): add bounded Phase 3 chrdev notify interop slice',
     ],
 }
 
@@ -755,6 +780,9 @@ for marker in required_markers['phase_chrdev_requeue_doc']:
 for marker in required_markers['phase_chrdev_complete_doc']:
     if marker not in phase_chrdev_complete_doc:
         missing_markers.append(f'phase_chrdev_complete_doc:{marker}')
+for marker in required_markers['phase_chrdev_notify_doc']:
+    if marker not in phase_chrdev_notify_doc:
+        missing_markers.append(f'phase_chrdev_notify_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -1112,6 +1140,20 @@ if len(chrdev_complete_manifest.get('files', [])) != 4:
 for rel in chrdev_complete_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'chrdev_complete_manifest_file:{rel}')
+
+if chrdev_notify_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('chrdev_notify_manifest:phase=Phase 3')
+if chrdev_notify_manifest.get('status') != 'active':
+    missing_markers.append('chrdev_notify_manifest:status=active')
+if chrdev_notify_manifest.get('slice') != 'chrdev-notify-plan-interop':
+    missing_markers.append(f'chrdev_notify_manifest:slice={chrdev_notify_manifest.get("slice")}')
+if chrdev_notify_manifest.get('file_count') != 4:
+    missing_markers.append(f'chrdev_notify_manifest:file_count={chrdev_notify_manifest.get("file_count")}')
+if len(chrdev_notify_manifest.get('files', [])) != 4:
+    missing_markers.append(f'chrdev_notify_manifest:files_len={len(chrdev_notify_manifest.get("files", []))}')
+for rel in chrdev_notify_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'chrdev_notify_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')
