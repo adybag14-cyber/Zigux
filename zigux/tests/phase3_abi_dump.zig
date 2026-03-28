@@ -321,6 +321,30 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.CdevAddSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_cdev_lookup_view", @sizeOf(abi.CdevLookupView), @alignOf(abi.CdevLookupView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.CdevLookupView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.CdevLookupView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.CdevLookupView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.CdevLookupView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.CdevLookupView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.CdevLookupView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.CdevLookupView, "policy"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.CdevLookupView, "target_minor"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.CdevLookupView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_cdev_lookup_summary", @sizeOf(abi.CdevLookupSummary), @alignOf(abi.CdevLookupSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.CdevLookupSummary, "major"), true);
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.CdevLookupSummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.CdevLookupSummary, "request_count"), true);
+    try writeOffset(writer, "selected_count", @offsetOf(abi.CdevLookupSummary, "selected_count"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.CdevLookupSummary, "first_minor"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.CdevLookupSummary, "target_minor"), true);
+    try writeOffset(writer, "resolved_index", @offsetOf(abi.CdevLookupSummary, "resolved_index"), true);
+    try writeOffset(writer, "resolved_dev", @offsetOf(abi.CdevLookupSummary, "resolved_dev"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.CdevLookupSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

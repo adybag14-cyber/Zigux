@@ -1511,4 +1511,99 @@ zigux_cdev_add_summarize(const struct zigux_cdev_add_view *view)
 	return summary;
 }
 
+static inline struct zigux_cdev_lookup_view
+zigux_cdev_lookup_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				 zigux_u32 first_minor, zigux_u32 minor_count,
+				 zigux_u32 max_scan, zigux_u32 request_count,
+				 zigux_u32 policy, zigux_u32 target_minor)
+{
+	return (struct zigux_cdev_lookup_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_cdev_lookup_view_valid(const struct zigux_cdev_lookup_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0)
+		return false;
+	if (view->policy != ZIGUX_IDA_POLICY_FIRST_FIT &&
+	    view->policy != ZIGUX_IDA_POLICY_LAST_FIT)
+		return false;
+	if (view->minor_count == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_cdev_add_view
+zigux_cdev_lookup_as_cdev_add(const struct zigux_cdev_lookup_view *view)
+{
+	if (!zigux_cdev_lookup_view_valid(view))
+		return (struct zigux_cdev_add_view){0, 0, 0, 0, 0, 0, 0, 0};
+
+	return (struct zigux_cdev_add_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_cdev_lookup_summary
+zigux_cdev_lookup_summarize(const struct zigux_cdev_lookup_view *view)
+{
+	struct zigux_cdev_lookup_summary summary = {
+		0, 0, 0, 0, 0, 0, ZIGUX_CDEV_LOOKUP_INDEX_NONE, 0, 0
+	};
+	struct zigux_cdev_add_view add_view;
+	struct zigux_cdev_add_summary add_summary;
+
+	if (!zigux_cdev_lookup_view_valid(view))
+		return summary;
+
+	add_view = zigux_cdev_lookup_as_cdev_add(view);
+	add_summary = zigux_cdev_add_summarize(&add_view);
+	summary.major = add_summary.major;
+	summary.scanned_count = add_summary.scanned_count;
+	summary.request_count = add_summary.request_count;
+	summary.selected_count = add_summary.selected_count;
+	summary.first_minor = add_summary.first_minor;
+	summary.target_minor = view->target_minor;
+	if (add_summary.flags & ZIGUX_CDEV_ADD_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_CDEV_LOOKUP_FLAG_TRUNCATED;
+	if (add_summary.flags & ZIGUX_CDEV_ADD_FLAG_FOUND) {
+		zigux_u32 last_minor = add_summary.first_minor +
+				       add_summary.selected_count - 1U;
+
+		summary.flags |= ZIGUX_CDEV_LOOKUP_FLAG_FOUND;
+		if (view->target_minor >= add_summary.first_minor &&
+		    view->target_minor <= last_minor) {
+			summary.flags |= ZIGUX_CDEV_LOOKUP_FLAG_HIT;
+			summary.resolved_index = view->target_minor -
+						 add_summary.first_minor;
+			summary.resolved_dev = add_summary.first_dev +
+					      summary.resolved_index;
+		}
+	}
+	if (add_summary.flags & ZIGUX_CDEV_ADD_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_CDEV_LOOKUP_FLAG_EXHAUSTED;
+	return summary;
+}
+
 #endif

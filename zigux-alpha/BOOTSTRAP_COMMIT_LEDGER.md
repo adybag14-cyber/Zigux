@@ -421,6 +421,15 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_cdev_add_manifest.json`
 - `scripts/zigux/check-phase3-cdev-add.py`
 - `Documentation/zigux/phase3-cdev-add-slice.md`
+
+40. `feat(zigux): add bounded Phase 3 cdev lookup interop slice`
+- `zigux/helpers/cdev_lookup_plan.zig`
+- `zigux/tests/phase3_cdev_lookup_dump.zig`
+- `zigux/tests/fixtures/phase3_cdev_lookup/phase3_cdev_lookup_c_harness.c`
+- `zigux/tests/fixtures/phase3_cdev_lookup/expected.json`
+- `zigux/tests/fixtures/phase3_cdev_lookup_manifest.json`
+- `scripts/zigux/check-phase3-cdev-lookup.py`
+- `Documentation/zigux/phase3-cdev-lookup-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`

@@ -22,6 +22,7 @@ const ida_policy_view = @import("ida_policy_view");
 const minor_alloc_plan = @import("minor_alloc_plan");
 const dev_region_plan = @import("dev_region_plan");
 const cdev_add_plan = @import("cdev_add_plan");
+const cdev_lookup_plan = @import("cdev_lookup_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -60,6 +61,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.DevRegionSummary, 32);
         layout_assert.assertSize(abi.CdevAddView, @sizeOf(usize) + 32);
         layout_assert.assertSize(abi.CdevAddSummary, 32);
+        layout_assert.assertSize(abi.CdevLookupView, @sizeOf(usize) + 32);
+        layout_assert.assertSize(abi.CdevLookupSummary, 36);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -104,6 +107,10 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.CdevAddView, "policy", @sizeOf(usize) + 20);
         layout_assert.assertOffset(abi.CdevAddSummary, "selected_count", 12);
         layout_assert.assertOffset(abi.CdevAddSummary, "flags", 28);
+        layout_assert.assertOffset(abi.CdevLookupView, "major", @sizeOf(usize));
+        layout_assert.assertOffset(abi.CdevLookupView, "target_minor", @sizeOf(usize) + 24);
+        layout_assert.assertOffset(abi.CdevLookupSummary, "selected_count", 12);
+        layout_assert.assertOffset(abi.CdevLookupSummary, "flags", 32);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -480,4 +487,29 @@ test "phase3 cdev add consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(dev_region_plan.mkdev(240, 36), last_fit_summary.first_dev);
     try std.testing.expectEqual(dev_region_plan.mkdev(240, 37), last_fit_summary.last_dev);
     try std.testing.expectEqual(@as(u32, abi.CDEV_ADD_FLAG_FOUND), last_fit_summary.flags);
+}
+
+test "phase3 cdev lookup consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const hit_view = cdev_lookup_plan.viewFromBits(words[0..], 240, 32, 8, 6, 2, abi.IDA_POLICY_FIRST_FIT, 34);
+    const hit_summary = cdev_lookup_plan.summarize(hit_view);
+    try std.testing.expect(cdev_lookup_plan.isValid(hit_view));
+    try std.testing.expectEqual(@as(u32, 240), hit_summary.major);
+    try std.testing.expectEqual(@as(u32, 6), hit_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 2), hit_summary.request_count);
+    try std.testing.expectEqual(@as(u32, 2), hit_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 33), hit_summary.first_minor);
+    try std.testing.expectEqual(@as(u32, 34), hit_summary.target_minor);
+    try std.testing.expectEqual(@as(u32, 1), hit_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 34), hit_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CDEV_LOOKUP_FLAG_TRUNCATED | abi.CDEV_LOOKUP_FLAG_FOUND | abi.CDEV_LOOKUP_FLAG_HIT), hit_summary.flags);
+
+    const miss_view = cdev_lookup_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 35);
+    const miss_summary = cdev_lookup_plan.summarize(miss_view);
+    try std.testing.expectEqual(@as(u32, 2), miss_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 36), miss_summary.first_minor);
+    try std.testing.expectEqual(@as(u32, 35), miss_summary.target_minor);
+    try std.testing.expectEqual(@as(u32, abi.CDEV_LOOKUP_INDEX_NONE), miss_summary.resolved_index);
+    try std.testing.expectEqual(@as(u32, 0), miss_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CDEV_LOOKUP_FLAG_FOUND), miss_summary.flags);
 }

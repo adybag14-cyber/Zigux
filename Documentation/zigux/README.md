@@ -36,6 +36,7 @@ Active slice records
 - `Documentation/zigux/phase3-minor-alloc-slice.md`
 - `Documentation/zigux/phase3-dev-region-slice.md`
 - `Documentation/zigux/phase3-cdev-add-slice.md`
+- `Documentation/zigux/phase3-cdev-lookup-slice.md`
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem

@@ -50,5 +50,6 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-minor-alloc.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-dev-region.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-cdev-add.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-cdev-lookup.py
 
 phase3: phase3-validate phase3-abi phase3-interop

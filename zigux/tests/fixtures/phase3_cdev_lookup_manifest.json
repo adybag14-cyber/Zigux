@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "cdev-lookup-plan-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/cdev_lookup_plan.zig",
+    "zigux/tests/phase3_cdev_lookup_dump.zig",
+    "zigux/tests/fixtures/phase3_cdev_lookup/phase3_cdev_lookup_c_harness.c",
+    "zigux/tests/fixtures/phase3_cdev_lookup/expected.json"
+  ]
+}

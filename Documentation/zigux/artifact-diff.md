@@ -51,6 +51,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-dev-region.py` compares that committed JSON fixture against both the bounded C harness and the Zig dev-region planning dump.
 - `zigux/tests/fixtures/phase3_cdev_add/expected.json` fixes the first bounded kernel-facing cdev-add planning claim on top of the device-region substrate.
 - `scripts/zigux/check-phase3-cdev-add.py` compares that committed JSON fixture against both the bounded C harness and the Zig cdev-add planning dump.
+- `zigux/tests/fixtures/phase3_cdev_lookup/expected.json` fixes the first bounded kernel-facing cdev-lookup planning claim on top of the cdev-add substrate.
+- `scripts/zigux/check-phase3-cdev-lookup.py` compares that committed JSON fixture against both the bounded C harness and the Zig cdev-lookup planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth

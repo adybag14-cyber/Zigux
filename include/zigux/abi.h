@@ -79,6 +79,11 @@ typedef int32_t zigux_s32;
 #define ZIGUX_CDEV_ADD_FLAG_TRUNCATED 1U
 #define ZIGUX_CDEV_ADD_FLAG_FOUND 2U
 #define ZIGUX_CDEV_ADD_FLAG_EXHAUSTED 4U
+#define ZIGUX_CDEV_LOOKUP_FLAG_TRUNCATED 1U
+#define ZIGUX_CDEV_LOOKUP_FLAG_FOUND 2U
+#define ZIGUX_CDEV_LOOKUP_FLAG_EXHAUSTED 4U
+#define ZIGUX_CDEV_LOOKUP_FLAG_HIT 8U
+#define ZIGUX_CDEV_LOOKUP_INDEX_NONE 0xffffffffU
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -358,6 +363,30 @@ struct zigux_cdev_add_summary {
 	zigux_u32 first_minor;
 	zigux_u32 first_dev;
 	zigux_u32 last_dev;
+	zigux_u32 flags;
+};
+
+struct zigux_cdev_lookup_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 target_minor;
+	zigux_u32 reserved;
+};
+
+struct zigux_cdev_lookup_summary {
+	zigux_u32 major;
+	zigux_u32 scanned_count;
+	zigux_u32 request_count;
+	zigux_u32 selected_count;
+	zigux_u32 first_minor;
+	zigux_u32 target_minor;
+	zigux_u32 resolved_index;
+	zigux_u32 resolved_dev;
 	zigux_u32 flags;
 };
 

@@ -42,6 +42,11 @@ pub const DEV_REGION_FLAG_EXHAUSTED: u32 = 4;
 pub const CDEV_ADD_FLAG_TRUNCATED: u32 = 1;
 pub const CDEV_ADD_FLAG_FOUND: u32 = 2;
 pub const CDEV_ADD_FLAG_EXHAUSTED: u32 = 4;
+pub const CDEV_LOOKUP_FLAG_TRUNCATED: u32 = 1;
+pub const CDEV_LOOKUP_FLAG_FOUND: u32 = 2;
+pub const CDEV_LOOKUP_FLAG_EXHAUSTED: u32 = 4;
+pub const CDEV_LOOKUP_FLAG_HIT: u32 = 8;
+pub const CDEV_LOOKUP_INDEX_NONE: u32 = 0xffffffff;
 pub const DEV_MINOR_BITS: u32 = 20;
 pub const DEV_MINOR_MASK: u32 = (1 << DEV_MINOR_BITS) - 1;
 
@@ -347,6 +352,30 @@ pub const CdevAddSummary = extern struct {
     first_minor: u32,
     first_dev: u32,
     last_dev: u32,
+    flags: u32,
+};
+
+pub const CdevLookupView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    target_minor: u32,
+    reserved: u32,
+};
+
+pub const CdevLookupSummary = extern struct {
+    major: u32,
+    scanned_count: u32,
+    request_count: u32,
+    selected_count: u32,
+    first_minor: u32,
+    target_minor: u32,
+    resolved_index: u32,
+    resolved_dev: u32,
     flags: u32,
 };
 
