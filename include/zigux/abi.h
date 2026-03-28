@@ -6,12 +6,14 @@
 typedef __u8 zigux_u8;
 typedef __u16 zigux_u16;
 typedef __u32 zigux_u32;
+typedef __u64 zigux_u64;
 typedef __s32 zigux_s32;
 #else
 #include <stdint.h>
 typedef uint8_t zigux_u8;
 typedef uint16_t zigux_u16;
 typedef uint32_t zigux_u32;
+typedef uint64_t zigux_u64;
 typedef int32_t zigux_s32;
 #endif
 
@@ -127,6 +129,19 @@ typedef int32_t zigux_s32;
 #define ZIGUX_CHRDEV_IO_FLAG_BLOCKED 128U
 #define ZIGUX_CHRDEV_IO_FLAG_DISPATCHABLE 256U
 #define ZIGUX_CHRDEV_IO_INDEX_NONE 0xffffffffU
+#define ZIGUX_CHRDEV_XFER_FLAG_TRUNCATED 1U
+#define ZIGUX_CHRDEV_XFER_FLAG_FOUND 2U
+#define ZIGUX_CHRDEV_XFER_FLAG_EXHAUSTED 4U
+#define ZIGUX_CHRDEV_XFER_FLAG_HIT 8U
+#define ZIGUX_CHRDEV_XFER_FLAG_PERMITTED 16U
+#define ZIGUX_CHRDEV_XFER_FLAG_DENIED 32U
+#define ZIGUX_CHRDEV_XFER_FLAG_ROUTABLE 64U
+#define ZIGUX_CHRDEV_XFER_FLAG_BLOCKED 128U
+#define ZIGUX_CHRDEV_XFER_FLAG_DISPATCHABLE 256U
+#define ZIGUX_CHRDEV_XFER_FLAG_RESUMED 512U
+#define ZIGUX_CHRDEV_XFER_FLAG_CONTINUABLE 1024U
+#define ZIGUX_CHRDEV_XFER_FLAG_COMPLETES 2048U
+#define ZIGUX_CHRDEV_XFER_INDEX_NONE 0xffffffffU
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -545,6 +560,52 @@ struct zigux_chrdev_io_summary {
 	zigux_u32 io_op;
 	zigux_u32 requested_bytes;
 	zigux_u32 chunk_bytes;
+	zigux_u32 entry_ops;
+	zigux_u32 data_ops;
+	zigux_u32 exit_ops;
+	zigux_u32 blocked_ops;
+	zigux_u32 flags;
+};
+
+struct zigux_chrdev_xfer_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 target_minor;
+	zigux_u32 requested_mode;
+	zigux_u32 supported_mode;
+	zigux_u32 available_ops;
+	zigux_u32 io_op;
+	zigux_u32 requested_bytes;
+	zigux_u32 max_chunk_bytes;
+	zigux_u64 file_offset;
+	zigux_u32 bytes_completed;
+	zigux_u32 max_segments;
+	zigux_u32 reserved;
+};
+
+struct zigux_chrdev_xfer_summary {
+	zigux_u32 major;
+	zigux_u32 target_minor;
+	zigux_u32 selected_count;
+	zigux_u32 resolved_index;
+	zigux_u32 resolved_dev;
+	zigux_u32 granted_mode;
+	zigux_u32 io_op;
+	zigux_u32 requested_bytes;
+	zigux_u64 start_offset;
+	zigux_u64 next_offset;
+	zigux_u32 bytes_completed;
+	zigux_u32 requested_remaining;
+	zigux_u32 segment_count;
+	zigux_u32 first_chunk_bytes;
+	zigux_u32 final_chunk_bytes;
+	zigux_u32 issued_bytes;
+	zigux_u32 remaining_bytes;
 	zigux_u32 entry_ops;
 	zigux_u32 data_ops;
 	zigux_u32 exit_ops;
