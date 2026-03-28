@@ -372,6 +372,34 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.ChrdevOpenSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_chrdev_fops_view", @sizeOf(abi.ChrdevFopsView), @alignOf(abi.ChrdevFopsView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.ChrdevFopsView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevFopsView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.ChrdevFopsView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.ChrdevFopsView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.ChrdevFopsView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.ChrdevFopsView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.ChrdevFopsView, "policy"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevFopsView, "target_minor"), true);
+    try writeOffset(writer, "requested_mode", @offsetOf(abi.ChrdevFopsView, "requested_mode"), true);
+    try writeOffset(writer, "supported_mode", @offsetOf(abi.ChrdevFopsView, "supported_mode"), true);
+    try writeOffset(writer, "available_ops", @offsetOf(abi.ChrdevFopsView, "available_ops"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.ChrdevFopsView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_chrdev_fops_summary", @sizeOf(abi.ChrdevFopsSummary), @alignOf(abi.ChrdevFopsSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevFopsSummary, "major"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevFopsSummary, "target_minor"), true);
+    try writeOffset(writer, "selected_count", @offsetOf(abi.ChrdevFopsSummary, "selected_count"), true);
+    try writeOffset(writer, "resolved_index", @offsetOf(abi.ChrdevFopsSummary, "resolved_index"), true);
+    try writeOffset(writer, "resolved_dev", @offsetOf(abi.ChrdevFopsSummary, "resolved_dev"), true);
+    try writeOffset(writer, "granted_mode", @offsetOf(abi.ChrdevFopsSummary, "granted_mode"), true);
+    try writeOffset(writer, "available_ops", @offsetOf(abi.ChrdevFopsSummary, "available_ops"), true);
+    try writeOffset(writer, "required_ops", @offsetOf(abi.ChrdevFopsSummary, "required_ops"), true);
+    try writeOffset(writer, "missing_ops", @offsetOf(abi.ChrdevFopsSummary, "missing_ops"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.ChrdevFopsSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

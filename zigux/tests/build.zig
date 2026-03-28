@@ -306,6 +306,13 @@ pub fn build(b: *std.Build) void {
     });
     chrdev_open_plan_module.addImport("abi_bindings", abi_bindings_module);
     chrdev_open_plan_module.addImport("cdev_lookup_plan", cdev_lookup_plan_module);
+    const chrdev_fops_plan_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/chrdev_fops_plan.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    chrdev_fops_plan_module.addImport("abi_bindings", abi_bindings_module);
+    chrdev_fops_plan_module.addImport("chrdev_open_plan", chrdev_open_plan_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -349,6 +356,7 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("cdev_add_plan", cdev_add_plan_module);
     phase3_root_module.addImport("cdev_lookup_plan", cdev_lookup_plan_module);
     phase3_root_module.addImport("chrdev_open_plan", chrdev_open_plan_module);
+    phase3_root_module.addImport("chrdev_fops_plan", chrdev_fops_plan_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -609,4 +617,19 @@ pub fn build(b: *std.Build) void {
     const run_phase3_chrdev_open_dump = b.addRunArtifact(phase3_chrdev_open_dump);
     const phase3_chrdev_open_dump_step = b.step("phase3-chrdev-open-dump", "Run Phase 3 chrdev open interop dump");
     phase3_chrdev_open_dump_step.dependOn(&run_phase3_chrdev_open_dump.step);
+
+    const phase3_chrdev_fops_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_chrdev_fops_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_chrdev_fops_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_chrdev_fops_dump_module.addImport("chrdev_fops_plan", chrdev_fops_plan_module);
+    const phase3_chrdev_fops_dump = b.addExecutable(.{
+        .name = "phase3-chrdev-fops-dump",
+        .root_module = phase3_chrdev_fops_dump_module,
+    });
+    const run_phase3_chrdev_fops_dump = b.addRunArtifact(phase3_chrdev_fops_dump);
+    const phase3_chrdev_fops_dump_step = b.step("phase3-chrdev-fops-dump", "Run Phase 3 chrdev fops interop dump");
+    phase3_chrdev_fops_dump_step.dependOn(&run_phase3_chrdev_fops_dump.step);
 }

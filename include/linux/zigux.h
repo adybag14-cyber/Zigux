@@ -1715,4 +1715,137 @@ zigux_chrdev_open_summarize(const struct zigux_chrdev_open_view *view)
 	return summary;
 }
 
+static inline struct zigux_chrdev_fops_view
+zigux_chrdev_fops_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				 zigux_u32 first_minor, zigux_u32 minor_count,
+				 zigux_u32 max_scan, zigux_u32 request_count,
+				 zigux_u32 policy, zigux_u32 target_minor,
+				 zigux_u32 requested_mode,
+				 zigux_u32 supported_mode,
+				 zigux_u32 available_ops)
+{
+	return (struct zigux_chrdev_fops_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_fops_view_valid(const struct zigux_chrdev_fops_view *view)
+{
+	struct zigux_chrdev_open_view open_view;
+
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->available_ops &
+	    ~(ZIGUX_CHRDEV_FOP_OPEN | ZIGUX_CHRDEV_FOP_RELEASE |
+	      ZIGUX_CHRDEV_FOP_READ | ZIGUX_CHRDEV_FOP_WRITE))
+		return false;
+
+	open_view = (struct zigux_chrdev_open_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.reserved = 0,
+	};
+	return zigux_chrdev_open_view_valid(&open_view);
+}
+
+static inline struct zigux_chrdev_open_view
+zigux_chrdev_fops_as_chrdev_open(const struct zigux_chrdev_fops_view *view)
+{
+	if (!zigux_chrdev_fops_view_valid(view))
+		return (struct zigux_chrdev_open_view){
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+
+	return (struct zigux_chrdev_open_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_chrdev_fops_summary
+zigux_chrdev_fops_summarize(const struct zigux_chrdev_fops_view *view)
+{
+	struct zigux_chrdev_fops_summary summary = {
+		0, 0, 0, ZIGUX_CHRDEV_FOPS_INDEX_NONE, 0, 0, 0, 0, 0, 0
+	};
+	struct zigux_chrdev_open_view open_view;
+	struct zigux_chrdev_open_summary open_summary;
+
+	if (!zigux_chrdev_fops_view_valid(view))
+		return summary;
+
+	open_view = zigux_chrdev_fops_as_chrdev_open(view);
+	open_summary = zigux_chrdev_open_summarize(&open_view);
+	summary.major = open_summary.major;
+	summary.target_minor = open_summary.target_minor;
+	summary.selected_count = open_summary.selected_count;
+	summary.resolved_index = open_summary.resolved_index ==
+					 ZIGUX_CHRDEV_OPEN_INDEX_NONE ?
+					 ZIGUX_CHRDEV_FOPS_INDEX_NONE :
+					 open_summary.resolved_index;
+	summary.resolved_dev = open_summary.resolved_dev;
+	summary.granted_mode = open_summary.granted_mode;
+	summary.available_ops = view->available_ops;
+	if (open_summary.flags & ZIGUX_CHRDEV_OPEN_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_TRUNCATED;
+	if (open_summary.flags & ZIGUX_CHRDEV_OPEN_FLAG_FOUND)
+		summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_FOUND;
+	if (open_summary.flags & ZIGUX_CHRDEV_OPEN_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_EXHAUSTED;
+	if (open_summary.flags & ZIGUX_CHRDEV_OPEN_FLAG_HIT)
+		summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_HIT;
+	if (open_summary.flags & ZIGUX_CHRDEV_OPEN_FLAG_PERMITTED)
+		summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_PERMITTED;
+	if (open_summary.flags & ZIGUX_CHRDEV_OPEN_FLAG_DENIED)
+		summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_DENIED;
+
+	if ((summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_PERMITTED) &&
+	    (summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_HIT)) {
+		summary.required_ops = ZIGUX_CHRDEV_FOP_OPEN |
+				       ZIGUX_CHRDEV_FOP_RELEASE;
+		if (open_summary.granted_mode & ZIGUX_CHRDEV_MODE_READ)
+			summary.required_ops |= ZIGUX_CHRDEV_FOP_READ;
+		if (open_summary.granted_mode & ZIGUX_CHRDEV_MODE_WRITE)
+			summary.required_ops |= ZIGUX_CHRDEV_FOP_WRITE;
+		summary.missing_ops =
+			summary.required_ops & ~view->available_ops;
+		if (summary.required_ops != 0 && summary.missing_ops == 0)
+			summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_ROUTABLE;
+		else if (summary.missing_ops != 0)
+			summary.flags |= ZIGUX_CHRDEV_FOPS_FLAG_MISSING_OPS;
+	}
+	return summary;
+}
+
 #endif

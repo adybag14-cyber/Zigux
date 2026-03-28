@@ -24,6 +24,7 @@ const dev_region_plan = @import("dev_region_plan");
 const cdev_add_plan = @import("cdev_add_plan");
 const cdev_lookup_plan = @import("cdev_lookup_plan");
 const chrdev_open_plan = @import("chrdev_open_plan");
+const chrdev_fops_plan = @import("chrdev_fops_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -66,6 +67,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.CdevLookupSummary, 36);
         layout_assert.assertSize(abi.ChrdevOpenView, @sizeOf(usize) + 40);
         layout_assert.assertSize(abi.ChrdevOpenSummary, 40);
+        layout_assert.assertSize(abi.ChrdevFopsView, @sizeOf(usize) + 48);
+        layout_assert.assertSize(abi.ChrdevFopsSummary, 40);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -120,6 +123,12 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevOpenSummary, "selected_count", 8);
         layout_assert.assertOffset(abi.ChrdevOpenSummary, "granted_mode", 28);
         layout_assert.assertOffset(abi.ChrdevOpenSummary, "flags", 36);
+        layout_assert.assertOffset(abi.ChrdevFopsView, "major", @sizeOf(usize));
+        layout_assert.assertOffset(abi.ChrdevFopsView, "target_minor", @sizeOf(usize) + 24);
+        layout_assert.assertOffset(abi.ChrdevFopsView, "available_ops", @sizeOf(usize) + 36);
+        layout_assert.assertOffset(abi.ChrdevFopsSummary, "selected_count", 8);
+        layout_assert.assertOffset(abi.ChrdevFopsSummary, "granted_mode", 20);
+        layout_assert.assertOffset(abi.ChrdevFopsSummary, "flags", 36);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -547,4 +556,30 @@ test "phase3 chrdev open consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u32, 0), denied_summary.granted_mode);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_WRITE), denied_summary.denied_mode);
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_OPEN_FLAG_FOUND | abi.CHRDEV_OPEN_FLAG_HIT | abi.CHRDEV_OPEN_FLAG_DENIED), denied_summary.flags);
+}
+
+test "phase3 chrdev fops consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const routable_view = chrdev_fops_plan.viewFromBits(words[0..], 240, 32, 8, 6, 2, abi.IDA_POLICY_FIRST_FIT, 34, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ | abi.CHRDEV_FOP_WRITE);
+    const routable_summary = chrdev_fops_plan.summarize(routable_view);
+    try std.testing.expect(chrdev_fops_plan.isValid(routable_view));
+    try std.testing.expectEqual(@as(u32, 240), routable_summary.major);
+    try std.testing.expectEqual(@as(u32, 34), routable_summary.target_minor);
+    try std.testing.expectEqual(@as(u32, 2), routable_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 1), routable_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 34), routable_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE), routable_summary.granted_mode);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ | abi.CHRDEV_FOP_WRITE), routable_summary.available_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ | abi.CHRDEV_FOP_WRITE), routable_summary.required_ops);
+    try std.testing.expectEqual(@as(u32, 0), routable_summary.missing_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOPS_FLAG_TRUNCATED | abi.CHRDEV_FOPS_FLAG_FOUND | abi.CHRDEV_FOPS_FLAG_HIT | abi.CHRDEV_FOPS_FLAG_PERMITTED | abi.CHRDEV_FOPS_FLAG_ROUTABLE), routable_summary.flags);
+
+    const missing_view = chrdev_fops_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE);
+    const missing_summary = chrdev_fops_plan.summarize(missing_view);
+    try std.testing.expectEqual(@as(u32, 2), missing_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 1), missing_summary.resolved_index);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 37), missing_summary.resolved_dev);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ | abi.CHRDEV_FOP_WRITE), missing_summary.required_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOP_READ), missing_summary.missing_ops);
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_FOPS_FLAG_FOUND | abi.CHRDEV_FOPS_FLAG_HIT | abi.CHRDEV_FOPS_FLAG_PERMITTED | abi.CHRDEV_FOPS_FLAG_MISSING_OPS), missing_summary.flags);
 }
