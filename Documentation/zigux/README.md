@@ -29,6 +29,7 @@ Active slice records
 - `Documentation/zigux/phase3-xarray-slot-slice.md`
 - `Documentation/zigux/phase3-idr-slot-slice.md`
 - `Documentation/zigux/phase3-ida-bitmap-slice.md`
+- `Documentation/zigux/phase3-ida-alloc-slice.md`
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem

@@ -55,6 +55,10 @@ int main(void)
 		"\"zigux_ida_bitmap_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"scanned_count\":%zu,\"allocated_count\":%zu,\"first_allocated_id\":%zu,\"first_free_id\":%zu,"
 		"\"flags\":%zu,\"reserved\":%zu}},"
+		"\"zigux_ida_alloc_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"base_id\":%zu,\"nbits\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"reserved\":%zu}},"
+		"\"zigux_ida_alloc_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"scanned_count\":%zu,\"request_count\":%zu,\"first_fit_id\":%zu,\"longest_free_run\":%zu,\"flags\":%zu,\"reserved\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -182,6 +186,22 @@ int main(void)
 		offsetof(struct zigux_ida_bitmap_summary, first_free_id),
 		offsetof(struct zigux_ida_bitmap_summary, flags),
 		offsetof(struct zigux_ida_bitmap_summary, reserved),
+		sizeof(struct zigux_ida_alloc_view),
+		_Alignof(struct zigux_ida_alloc_view),
+		offsetof(struct zigux_ida_alloc_view, bits_addr),
+		offsetof(struct zigux_ida_alloc_view, base_id),
+		offsetof(struct zigux_ida_alloc_view, nbits),
+		offsetof(struct zigux_ida_alloc_view, max_scan),
+		offsetof(struct zigux_ida_alloc_view, request_count),
+		offsetof(struct zigux_ida_alloc_view, reserved),
+		sizeof(struct zigux_ida_alloc_summary),
+		_Alignof(struct zigux_ida_alloc_summary),
+		offsetof(struct zigux_ida_alloc_summary, scanned_count),
+		offsetof(struct zigux_ida_alloc_summary, request_count),
+		offsetof(struct zigux_ida_alloc_summary, first_fit_id),
+		offsetof(struct zigux_ida_alloc_summary, longest_free_run),
+		offsetof(struct zigux_ida_alloc_summary, flags),
+		offsetof(struct zigux_ida_alloc_summary, reserved),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

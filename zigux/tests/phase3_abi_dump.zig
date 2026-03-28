@@ -177,6 +177,24 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "reserved", @offsetOf(abi.IdaBitmapSummary, "reserved"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_ida_alloc_view", @sizeOf(abi.IdaAllocView), @alignOf(abi.IdaAllocView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.IdaAllocView, "bits_addr"), true);
+    try writeOffset(writer, "base_id", @offsetOf(abi.IdaAllocView, "base_id"), true);
+    try writeOffset(writer, "nbits", @offsetOf(abi.IdaAllocView, "nbits"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.IdaAllocView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.IdaAllocView, "request_count"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaAllocView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_ida_alloc_summary", @sizeOf(abi.IdaAllocSummary), @alignOf(abi.IdaAllocSummary));
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.IdaAllocSummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.IdaAllocSummary, "request_count"), true);
+    try writeOffset(writer, "first_fit_id", @offsetOf(abi.IdaAllocSummary, "first_fit_id"), true);
+    try writeOffset(writer, "longest_free_run", @offsetOf(abi.IdaAllocSummary, "longest_free_run"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.IdaAllocSummary, "flags"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaAllocSummary, "reserved"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

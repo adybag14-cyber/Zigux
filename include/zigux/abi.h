@@ -55,6 +55,9 @@ typedef int32_t zigux_s32;
 #define ZIGUX_IDR_SLOT_FLAG_TRUNCATED 1U
 #define ZIGUX_IDA_BITMAP_FLAG_TRUNCATED 1U
 #define ZIGUX_IDA_BITMAP_FLAG_EXHAUSTED 2U
+#define ZIGUX_IDA_ALLOC_FLAG_TRUNCATED 1U
+#define ZIGUX_IDA_ALLOC_FLAG_FOUND 2U
+#define ZIGUX_IDA_ALLOC_FLAG_EXHAUSTED 4U
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -189,6 +192,24 @@ struct zigux_ida_bitmap_summary {
 	zigux_u32 allocated_count;
 	zigux_u32 first_allocated_id;
 	zigux_u32 first_free_id;
+	zigux_u32 flags;
+	zigux_u32 reserved;
+};
+
+struct zigux_ida_alloc_view {
+	unsigned long bits_addr;
+	zigux_u32 base_id;
+	zigux_u32 nbits;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 reserved;
+};
+
+struct zigux_ida_alloc_summary {
+	zigux_u32 scanned_count;
+	zigux_u32 request_count;
+	zigux_u32 first_fit_id;
+	zigux_u32 longest_free_run;
 	zigux_u32 flags;
 	zigux_u32 reserved;
 };
