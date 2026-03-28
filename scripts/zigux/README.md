@@ -48,6 +48,7 @@ Current bootstrap helpers
 - `check-phase3-chrdev-resume.py`
 - `check-phase3-chrdev-retry.py`
 - `check-phase3-chrdev-requeue.py`
+- `check-phase3-chrdev-complete.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

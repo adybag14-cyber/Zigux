@@ -3125,4 +3125,315 @@ zigux_chrdev_requeue_summarize(const struct zigux_chrdev_requeue_view *view)
 	return summary;
 }
 
+static inline struct zigux_chrdev_complete_view
+zigux_chrdev_complete_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				     zigux_u32 first_minor, zigux_u32 minor_count,
+				     zigux_u32 max_scan, zigux_u32 request_count,
+				     zigux_u32 policy, zigux_u32 target_minor,
+				     zigux_u32 requested_mode,
+				     zigux_u32 supported_mode,
+				     zigux_u32 available_ops, zigux_u32 io_op,
+				     zigux_u32 requested_bytes,
+				     zigux_u32 max_chunk_bytes,
+				     zigux_u64 file_offset,
+				     zigux_u32 bytes_completed,
+				     zigux_u32 max_segments,
+				     zigux_u32 resume_passes,
+				     zigux_u32 retry_budget,
+				     zigux_u32 stall_budget,
+				     zigux_u32 backoff_quanta,
+				     zigux_u32 queue_depth,
+				     zigux_u32 queue_capacity,
+				     zigux_u32 requeue_budget,
+				     zigux_u64 completion_cookie,
+				     zigux_u32 completion_budget)
+{
+	return (struct zigux_chrdev_complete_view){
+		.bits_addr = (unsigned long)bits,
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.io_op = io_op,
+		.requested_bytes = requested_bytes,
+		.max_chunk_bytes = max_chunk_bytes,
+		.file_offset = file_offset,
+		.bytes_completed = bytes_completed,
+		.max_segments = max_segments,
+		.resume_passes = resume_passes,
+		.retry_budget = retry_budget,
+		.stall_budget = stall_budget,
+		.backoff_quanta = backoff_quanta,
+		.queue_depth = queue_depth,
+		.queue_capacity = queue_capacity,
+		.requeue_budget = requeue_budget,
+		.completion_cookie = completion_cookie,
+		.completion_budget = completion_budget,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_complete_view_valid(const struct zigux_chrdev_complete_view *view)
+{
+	struct zigux_chrdev_requeue_view requeue_view;
+
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+
+	requeue_view = (struct zigux_chrdev_requeue_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.reserved = 0,
+	};
+
+	return zigux_chrdev_requeue_view_valid(&requeue_view);
+}
+
+static inline struct zigux_chrdev_requeue_view
+zigux_chrdev_complete_as_chrdev_requeue(const struct zigux_chrdev_complete_view *view)
+{
+	if (!zigux_chrdev_complete_view_valid(view))
+		return (struct zigux_chrdev_requeue_view){
+			.bits_addr = 0,
+			.major = 0,
+			.first_minor = 0,
+			.minor_count = 0,
+			.max_scan = 0,
+			.request_count = 0,
+			.policy = 0,
+			.target_minor = 0,
+			.requested_mode = 0,
+			.supported_mode = 0,
+			.available_ops = 0,
+			.io_op = 0,
+			.requested_bytes = 0,
+			.max_chunk_bytes = 0,
+			.file_offset = 0,
+			.bytes_completed = 0,
+			.max_segments = 0,
+			.resume_passes = 0,
+			.retry_budget = 0,
+			.stall_budget = 0,
+			.backoff_quanta = 0,
+			.queue_depth = 0,
+			.queue_capacity = 0,
+			.requeue_budget = 0,
+			.reserved = 0,
+		};
+
+	return (struct zigux_chrdev_requeue_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.reserved = 0,
+	};
+}
+
+static inline zigux_u32
+zigux_chrdev_complete_map_requeue_flags(zigux_u32 requeue_flags)
+{
+	zigux_u32 flags = 0;
+
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_TRUNCATED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_TRUNCATED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_FOUND)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_FOUND;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_EXHAUSTED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_EXHAUSTED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_HIT)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_HIT;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_PERMITTED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_PERMITTED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_DENIED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_DENIED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_ROUTABLE)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_ROUTABLE;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_BLOCKED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_BLOCKED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_DISPATCHABLE)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_DISPATCHABLE;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_RESUMED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_RESUMED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_CONTINUABLE)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_CONTINUABLE;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_COMPLETES)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_COMPLETES;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_PROGRESSED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_PROGRESSED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_STALLED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_STALLED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_COMPLETE_OK)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_COMPLETE_OK;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_RETRYABLE)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_RETRYABLE;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_RETRY_PLANNED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_RETRY_PLANNED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_RETRY_EXHAUSTED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_RETRY_EXHAUSTED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_BACKOFF_APPLIED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_BACKOFF_APPLIED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_FAILS)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_FAILS;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_REQUEUEABLE)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_REQUEUEABLE;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_REQUEUE_PLANNED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_REQUEUE_PLANNED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_DELAYED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_DELAYED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_SATURATED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_SATURATED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_DROPPED)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_DROPPED;
+	if (requeue_flags & ZIGUX_CHRDEV_REQUEUE_FLAG_COMPLETE)
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_COMPLETE;
+	return flags;
+}
+
+static inline struct zigux_chrdev_complete_summary
+zigux_chrdev_complete_summarize(const struct zigux_chrdev_complete_view *view)
+{
+	struct zigux_chrdev_complete_summary summary = {
+		.resolved_index = ZIGUX_CHRDEV_COMPLETE_INDEX_NONE,
+	};
+	struct zigux_chrdev_requeue_view requeue_view;
+	struct zigux_chrdev_requeue_summary requeue_summary;
+	zigux_u32 flags;
+	zigux_u32 completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_NONE;
+	zigux_u32 completion_count = 0;
+	zigux_u32 deferred_count = 0;
+	zigux_u32 failure_count = 0;
+	zigux_u32 remaining_completion_budget;
+
+	if (!zigux_chrdev_complete_view_valid(view))
+		return summary;
+
+	requeue_view = zigux_chrdev_complete_as_chrdev_requeue(view);
+	requeue_summary = zigux_chrdev_requeue_summarize(&requeue_view);
+	flags = zigux_chrdev_complete_map_requeue_flags(requeue_summary.flags);
+	remaining_completion_budget = view->completion_budget;
+
+	if (flags & ZIGUX_CHRDEV_COMPLETE_FLAG_COMPLETE) {
+		completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_OK;
+		if (view->completion_budget != 0) {
+			completion_count = 1;
+			remaining_completion_budget = view->completion_budget - 1;
+			flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_COMPLETION_PLANNED;
+			flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_FINALIZED;
+		} else {
+			deferred_count = 1;
+			flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_DEFERRED_COMPLETION;
+		}
+	} else if (flags & ZIGUX_CHRDEV_COMPLETE_FLAG_REQUEUE_PLANNED) {
+		completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_DEFERRED;
+		deferred_count = 1;
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_DEFERRED_COMPLETION;
+	} else if (flags & (ZIGUX_CHRDEV_COMPLETE_FLAG_DENIED |
+			    ZIGUX_CHRDEV_COMPLETE_FLAG_EXHAUSTED |
+			    ZIGUX_CHRDEV_COMPLETE_FLAG_DROPPED |
+			    ZIGUX_CHRDEV_COMPLETE_FLAG_SATURATED |
+			    ZIGUX_CHRDEV_COMPLETE_FLAG_FAILS)) {
+		completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_FAILED;
+		failure_count = 1;
+		flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_FAILURE_COMPLETION;
+		if (view->completion_budget != 0) {
+			completion_count = 1;
+			remaining_completion_budget = view->completion_budget - 1;
+			flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_COMPLETION_PLANNED;
+			flags |= ZIGUX_CHRDEV_COMPLETE_FLAG_FINALIZED;
+		}
+	}
+
+	summary.major = requeue_summary.major;
+	summary.target_minor = requeue_summary.target_minor;
+	summary.selected_count = requeue_summary.selected_count;
+	summary.resolved_index =
+		requeue_summary.resolved_index == ZIGUX_CHRDEV_REQUEUE_INDEX_NONE ?
+		ZIGUX_CHRDEV_COMPLETE_INDEX_NONE :
+		requeue_summary.resolved_index;
+	summary.resolved_dev = requeue_summary.resolved_dev;
+	summary.granted_mode = requeue_summary.granted_mode;
+	summary.io_op = requeue_summary.io_op;
+	summary.requested_bytes = requeue_summary.requested_bytes;
+	summary.start_offset = requeue_summary.start_offset;
+	summary.next_offset = requeue_summary.next_offset;
+	summary.initial_bytes_completed = requeue_summary.initial_bytes_completed;
+	summary.final_bytes_completed = requeue_summary.final_bytes_completed;
+	summary.pass_count = requeue_summary.pass_count;
+	summary.issued_bytes = requeue_summary.issued_bytes;
+	summary.remaining_bytes = requeue_summary.remaining_bytes;
+	summary.projected_remaining_bytes = requeue_summary.projected_remaining_bytes;
+	summary.entry_ops = requeue_summary.entry_ops;
+	summary.data_ops = requeue_summary.data_ops;
+	summary.exit_ops = requeue_summary.exit_ops;
+	summary.blocked_ops = requeue_summary.blocked_ops;
+	summary.retry_count = requeue_summary.retry_count;
+	summary.stall_count = requeue_summary.stall_count;
+	summary.requeue_count = requeue_summary.requeue_count;
+	summary.queue_depth_before = requeue_summary.queue_depth_before;
+	summary.queue_depth_after = requeue_summary.queue_depth_after;
+	summary.remaining_retry_budget = requeue_summary.remaining_retry_budget;
+	summary.remaining_requeue_budget = requeue_summary.remaining_requeue_budget;
+	summary.backoff_ticks = requeue_summary.backoff_ticks;
+	summary.completion_cookie = view->completion_cookie;
+	summary.completion_status = completion_status;
+	summary.completion_count = completion_count;
+	summary.deferred_count = deferred_count;
+	summary.failure_count = failure_count;
+	summary.remaining_completion_budget = remaining_completion_budget;
+	summary.flags = flags;
+	return summary;
+}
+
 #endif

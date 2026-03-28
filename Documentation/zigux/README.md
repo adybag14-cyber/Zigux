@@ -45,6 +45,7 @@ Active slice records
 - `Documentation/zigux/phase3-chrdev-resume-slice.md`
 - `Documentation/zigux/phase3-chrdev-retry-slice.md`
 - `Documentation/zigux/phase3-chrdev-requeue-slice.md`
+- `Documentation/zigux/phase3-chrdev-complete-slice.md`
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
