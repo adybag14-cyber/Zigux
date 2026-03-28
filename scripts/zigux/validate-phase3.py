@@ -36,6 +36,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-policy-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-budget-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
@@ -65,6 +66,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-policy.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-budget.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-ack.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
@@ -96,6 +98,7 @@ required_files = [
     ROOT / 'zigux' / 'helpers' / 'chrdev_notify_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_notify_policy_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_notify_budget_plan.zig',
+    ROOT / 'zigux' / 'helpers' / 'chrdev_notify_ack_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -133,6 +136,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_policy_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_budget_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_ack_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -210,10 +214,13 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_policy' / 'phase3_chrdev_notify_policy_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_budget' / 'phase3_chrdev_notify_budget_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack' / 'phase3_chrdev_notify_ack_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_policy' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_budget' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_policy_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_budget_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -253,6 +260,7 @@ phase_chrdev_complete_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-c
 phase_chrdev_notify_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-slice.md').read_text(encoding='utf-8')
 phase_chrdev_notify_policy_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-policy-slice.md').read_text(encoding='utf-8')
 phase_chrdev_notify_budget_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-budget-slice.md').read_text(encoding='utf-8')
+phase_chrdev_notify_ack_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -548,6 +556,7 @@ required_markers = {
         'check-phase3-chrdev-notify.py',
         'check-phase3-chrdev-notify-policy.py',
         'check-phase3-chrdev-notify-budget.py',
+    'check-phase3-chrdev-notify-ack.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
@@ -608,6 +617,7 @@ required_markers = {
         'phase3_chrdev_notify_dump.zig',
         'phase3_chrdev_notify_policy_dump.zig',
         'phase3_chrdev_notify_budget_dump.zig',
+    'phase3_chrdev_notify_ack_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
         'phase3_list_hlist_manifest.json',
@@ -664,6 +674,7 @@ required_markers = {
         'phase3-chrdev-notify-slice.md',
         'phase3-chrdev-notify-policy-slice.md',
         'phase3-chrdev-notify-budget-slice.md',
+    'phase3-chrdev-notify-ack-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',

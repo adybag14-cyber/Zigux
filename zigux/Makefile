@@ -63,5 +63,6 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-policy.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-budget.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack.py
 
 phase3: phase3-validate phase3-abi phase3-interop

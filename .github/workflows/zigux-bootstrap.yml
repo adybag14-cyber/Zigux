@@ -167,6 +167,9 @@ jobs:
       - name: Check bounded Phase 3 chrdev notify budget interop parity
         run: python3 scripts/zigux/check-phase3-chrdev-notify-budget.py
 
+      - name: Check bounded Phase 3 chrdev notify ack interop parity
+        run: python3 scripts/zigux/check-phase3-chrdev-notify-ack.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

@@ -77,6 +77,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-notify-policy.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-policy planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_notify_budget/expected.json` fixes the bounded kernel-facing chrdev-notify-budget planning claim on top of the chrdev-notify-policy substrate.
 - `scripts/zigux/check-phase3-chrdev-notify-budget.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-budget planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack/expected.json` fixes the bounded kernel-facing chrdev-notify-ack planning claim on top of the chrdev-notify-budget substrate.
+- `scripts/zigux/check-phase3-chrdev-notify-ack.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
