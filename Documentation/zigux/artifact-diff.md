@@ -79,6 +79,10 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-notify-budget.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-budget planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack/expected.json` fixes the bounded kernel-facing chrdev-notify-ack planning claim on top of the chrdev-notify-budget substrate.
 - `scripts/zigux/check-phase3-chrdev-notify-ack.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_policy/expected.json` fixes the bounded kernel-facing chrdev-notify-ack-policy planning claim on top of the chrdev-notify-ack substrate.
+- `scripts/zigux/check-phase3-chrdev-notify-ack-policy.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack-policy planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_budget/expected.json` fixes the bounded kernel-facing chrdev-notify-ack-budget planning claim on top of the chrdev-notify-ack-policy substrate.
+- `scripts/zigux/check-phase3-chrdev-notify-ack-budget.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack-budget planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -88,5 +92,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region/cdev-add/cdev-lookup/chrdev-open/chrdev-fops/chrdev-route/chrdev-io/chrdev-xfer/chrdev-resume/chrdev-retry/chrdev-requeue/chrdev-complete/chrdev-notify/chrdev-notify-policy interop claims before any broader interop substrate expansion
-/chrdev-notify-budget interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region/cdev-add/cdev-lookup/chrdev-open/chrdev-fops/chrdev-route/chrdev-io/chrdev-xfer/chrdev-resume/chrdev-retry/chrdev-requeue/chrdev-complete/chrdev-notify/chrdev-notify-policy/chrdev-notify-budget/chrdev-notify-ack/chrdev-notify-ack-policy/chrdev-notify-ack-budget interop claims before any broader interop substrate expansion

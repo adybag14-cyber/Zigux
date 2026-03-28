@@ -397,6 +397,13 @@ pub fn build(b: *std.Build) void {
     });
     chrdev_notify_ack_policy_plan_module.addImport("abi_bindings", abi_bindings_module);
     chrdev_notify_ack_policy_plan_module.addImport("chrdev_notify_ack_plan", chrdev_notify_ack_plan_module);
+    const chrdev_notify_ack_budget_plan_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/chrdev_notify_ack_budget_plan.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    chrdev_notify_ack_budget_plan_module.addImport("abi_bindings", abi_bindings_module);
+    chrdev_notify_ack_budget_plan_module.addImport("chrdev_notify_ack_policy_plan", chrdev_notify_ack_policy_plan_module);
     const export_shim_module = b.createModule(.{
         .root_source_file = b.path("../kernel/export_shim.zig"),
         .target = target,
@@ -453,6 +460,7 @@ pub fn build(b: *std.Build) void {
     phase3_root_module.addImport("chrdev_notify_budget_plan", chrdev_notify_budget_plan_module);
     phase3_root_module.addImport("chrdev_notify_ack_plan", chrdev_notify_ack_plan_module);
     phase3_root_module.addImport("chrdev_notify_ack_policy_plan", chrdev_notify_ack_policy_plan_module);
+    phase3_root_module.addImport("chrdev_notify_ack_budget_plan", chrdev_notify_ack_budget_plan_module);
     phase3_root_module.addImport("export_shim", export_shim_module);
     phase3_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
     phase3_root_module.addImport("uapi_version", uapi_version_module);
@@ -905,4 +913,18 @@ pub fn build(b: *std.Build) void {
     const run_phase3_chrdev_notify_ack_policy_dump = b.addRunArtifact(phase3_chrdev_notify_ack_policy_dump);
     const phase3_chrdev_notify_ack_policy_dump_step = b.step("phase3-chrdev-notify-ack-policy-dump", "Run Phase 3 chrdev notify ack policy interop dump");
     phase3_chrdev_notify_ack_policy_dump_step.dependOn(&run_phase3_chrdev_notify_ack_policy_dump.step);
+    const phase3_chrdev_notify_ack_budget_dump_module = b.createModule(.{
+        .root_source_file = b.path("phase3_chrdev_notify_ack_budget_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase3_chrdev_notify_ack_budget_dump_module.addImport("abi_bindings", abi_bindings_module);
+    phase3_chrdev_notify_ack_budget_dump_module.addImport("chrdev_notify_ack_budget_plan", chrdev_notify_ack_budget_plan_module);
+    const phase3_chrdev_notify_ack_budget_dump = b.addExecutable(.{
+        .name = "phase3-chrdev-notify-ack-budget-dump",
+        .root_module = phase3_chrdev_notify_ack_budget_dump_module,
+    });
+    const run_phase3_chrdev_notify_ack_budget_dump = b.addRunArtifact(phase3_chrdev_notify_ack_budget_dump);
+    const phase3_chrdev_notify_ack_budget_dump_step = b.step("phase3-chrdev-notify-ack-budget-dump", "Run Phase 3 chrdev notify ack budget interop dump");
+    phase3_chrdev_notify_ack_budget_dump_step.dependOn(&run_phase3_chrdev_notify_ack_budget_dump.step);
 }
