@@ -13,6 +13,8 @@
 
 #define ZIGUX_BITS_PER_LONG ((zigux_u32)(sizeof(unsigned long) * 8U))
 #define ZIGUX_MAX_ERRNO 4095U
+#define ZIGUX_DEV_MINOR_BITS 20U
+#define ZIGUX_DEV_MINOR_MASK ((1U << ZIGUX_DEV_MINOR_BITS) - 1U)
 
 #ifdef __KERNEL__
 #define zigux_ptr_addr(ptr) ((unsigned long)(ptr))
@@ -1330,6 +1332,100 @@ zigux_minor_alloc_summarize(const struct zigux_minor_alloc_view *view)
 	if (summary.flags & ZIGUX_MINOR_ALLOC_FLAG_FOUND)
 		summary.selected_minor_end = ida_summary.selected_fit_id +
 					     view->request_count - 1U;
+	return summary;
+}
+
+static inline zigux_u32 zigux_mkdev(zigux_u32 major, zigux_u32 minor)
+{
+	return (major << ZIGUX_DEV_MINOR_BITS) | (minor & ZIGUX_DEV_MINOR_MASK);
+}
+
+static inline struct zigux_dev_region_view
+zigux_dev_region_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				zigux_u32 first_minor, zigux_u32 minor_count,
+				zigux_u32 max_scan, zigux_u32 request_count,
+				zigux_u32 policy)
+{
+	return (struct zigux_dev_region_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_dev_region_view_valid(const struct zigux_dev_region_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0)
+		return false;
+	if (view->policy != ZIGUX_IDA_POLICY_FIRST_FIT &&
+	    view->policy != ZIGUX_IDA_POLICY_LAST_FIT)
+		return false;
+	if (view->minor_count == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_minor_alloc_view
+zigux_dev_region_as_minor_alloc(const struct zigux_dev_region_view *view)
+{
+	if (!zigux_dev_region_view_valid(view))
+		return (struct zigux_minor_alloc_view){0, 0, 0, 0, 0, 0, 0, 0};
+
+	return (struct zigux_minor_alloc_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_dev_region_summary
+zigux_dev_region_summarize(const struct zigux_dev_region_view *view)
+{
+	struct zigux_dev_region_summary summary = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct zigux_minor_alloc_view minor_view;
+	struct zigux_minor_alloc_summary minor_summary;
+
+	if (!zigux_dev_region_view_valid(view))
+		return summary;
+
+	minor_view = zigux_dev_region_as_minor_alloc(view);
+	minor_summary = zigux_minor_alloc_summarize(&minor_view);
+	summary.major = minor_summary.major;
+	summary.scanned_count = minor_summary.scanned_count;
+	summary.request_count = minor_summary.request_count;
+	summary.selected_minor_start = minor_summary.selected_minor_start;
+	summary.selected_minor_end = minor_summary.selected_minor_end;
+	summary.flags = 0;
+	if (minor_summary.flags & ZIGUX_MINOR_ALLOC_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_DEV_REGION_FLAG_TRUNCATED;
+	if (minor_summary.flags & ZIGUX_MINOR_ALLOC_FLAG_FOUND) {
+		summary.flags |= ZIGUX_DEV_REGION_FLAG_FOUND;
+		summary.first_dev = zigux_mkdev(minor_summary.major,
+						minor_summary.selected_minor_start);
+		summary.last_dev = zigux_mkdev(minor_summary.major,
+					       minor_summary.selected_minor_end);
+	} else {
+		summary.first_dev = zigux_mkdev(minor_summary.major,
+						minor_summary.selected_minor_start);
+		summary.last_dev = summary.first_dev;
+	}
+	if (minor_summary.flags & ZIGUX_MINOR_ALLOC_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_DEV_REGION_FLAG_EXHAUSTED;
 	return summary;
 }
 

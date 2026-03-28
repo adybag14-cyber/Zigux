@@ -75,6 +75,10 @@ int main(void)
 		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"reserved\":%zu}},"
 		"\"zigux_minor_alloc_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"major\":%zu,\"scanned_count\":%zu,\"request_count\":%zu,\"selected_minor_start\":%zu,\"selected_minor_end\":%zu,\"alternate_minor_start\":%zu,\"longest_free_run\":%zu,\"flags\":%zu}},"
+		"\"zigux_dev_region_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"reserved\":%zu}},"
+		"\"zigux_dev_region_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"major\":%zu,\"scanned_count\":%zu,\"request_count\":%zu,\"selected_minor_start\":%zu,\"selected_minor_end\":%zu,\"first_dev\":%zu,\"last_dev\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -292,6 +296,26 @@ int main(void)
 		offsetof(struct zigux_minor_alloc_summary, alternate_minor_start),
 		offsetof(struct zigux_minor_alloc_summary, longest_free_run),
 		offsetof(struct zigux_minor_alloc_summary, flags),
+		sizeof(struct zigux_dev_region_view),
+		_Alignof(struct zigux_dev_region_view),
+		offsetof(struct zigux_dev_region_view, bits_addr),
+		offsetof(struct zigux_dev_region_view, major),
+		offsetof(struct zigux_dev_region_view, first_minor),
+		offsetof(struct zigux_dev_region_view, minor_count),
+		offsetof(struct zigux_dev_region_view, max_scan),
+		offsetof(struct zigux_dev_region_view, request_count),
+		offsetof(struct zigux_dev_region_view, policy),
+		offsetof(struct zigux_dev_region_view, reserved),
+		sizeof(struct zigux_dev_region_summary),
+		_Alignof(struct zigux_dev_region_summary),
+		offsetof(struct zigux_dev_region_summary, major),
+		offsetof(struct zigux_dev_region_summary, scanned_count),
+		offsetof(struct zigux_dev_region_summary, request_count),
+		offsetof(struct zigux_dev_region_summary, selected_minor_start),
+		offsetof(struct zigux_dev_region_summary, selected_minor_end),
+		offsetof(struct zigux_dev_region_summary, first_dev),
+		offsetof(struct zigux_dev_region_summary, last_dev),
+		offsetof(struct zigux_dev_region_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

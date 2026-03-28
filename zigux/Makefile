@@ -48,5 +48,6 @@ phase3-interop:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-range-set.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-policy.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-minor-alloc.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-dev-region.py
 
 phase3: phase3-validate phase3-abi phase3-interop

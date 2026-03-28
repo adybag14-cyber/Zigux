@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "dev-region-plan-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/helpers/dev_region_plan.zig",
+    "zigux/tests/phase3_dev_region_dump.zig",
+    "zigux/tests/fixtures/phase3_dev_region/phase3_dev_region_c_harness.c",
+    "zigux/tests/fixtures/phase3_dev_region/expected.json"
+  ]
+}

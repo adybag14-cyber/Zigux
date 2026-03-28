@@ -47,6 +47,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-ida-policy.py` compares that committed JSON fixture against both the bounded C harness and the Zig ida policy dump.
 - `zigux/tests/fixtures/phase3_minor_alloc/expected.json` fixes the first bounded kernel-facing device-minor allocation-planning claim on top of the ida policy substrate.
 - `scripts/zigux/check-phase3-minor-alloc.py` compares that committed JSON fixture against both the bounded C harness and the Zig minor allocation dump.
+- `zigux/tests/fixtures/phase3_dev_region/expected.json` fixes the first bounded kernel-facing device-region planning claim on top of the minor allocation substrate.
+- `scripts/zigux/check-phase3-dev-region.py` compares that committed JSON fixture against both the bounded C harness and the Zig dev-region planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -56,4 +58,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap/ida-alloc/ida-range/ida-range-set/ida-policy/minor-alloc/dev-region interop claims before any broader interop substrate expansion

@@ -277,6 +277,28 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.MinorAllocSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_dev_region_view", @sizeOf(abi.DevRegionView), @alignOf(abi.DevRegionView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.DevRegionView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.DevRegionView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.DevRegionView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.DevRegionView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.DevRegionView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.DevRegionView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.DevRegionView, "policy"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.DevRegionView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_dev_region_summary", @sizeOf(abi.DevRegionSummary), @alignOf(abi.DevRegionSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.DevRegionSummary, "major"), true);
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.DevRegionSummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.DevRegionSummary, "request_count"), true);
+    try writeOffset(writer, "selected_minor_start", @offsetOf(abi.DevRegionSummary, "selected_minor_start"), true);
+    try writeOffset(writer, "selected_minor_end", @offsetOf(abi.DevRegionSummary, "selected_minor_end"), true);
+    try writeOffset(writer, "first_dev", @offsetOf(abi.DevRegionSummary, "first_dev"), true);
+    try writeOffset(writer, "last_dev", @offsetOf(abi.DevRegionSummary, "last_dev"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.DevRegionSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);
