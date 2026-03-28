@@ -42,6 +42,7 @@ Current bootstrap helpers
 - `check-phase3-cdev-lookup.py`
 - `check-phase3-chrdev-open.py`
 - `check-phase3-chrdev-fops.py`
+- `check-phase3-chrdev-route.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

@@ -26,6 +26,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-cdev-lookup-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-open-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-fops-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-route-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
@@ -45,6 +46,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase3-cdev-lookup.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-open.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-fops.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-route.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
@@ -66,6 +68,7 @@ required_files = [
     ROOT / 'zigux' / 'helpers' / 'cdev_lookup_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_open_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_fops_plan.zig',
+    ROOT / 'zigux' / 'helpers' / 'chrdev_route_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -93,6 +96,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_cdev_lookup_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_open_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_fops_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_chrdev_route_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -144,6 +148,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_fops' / 'phase3_chrdev_fops_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_fops' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_fops_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_route' / 'phase3_chrdev_route_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_route' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_route_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -173,6 +180,7 @@ phase_cdev_add_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-cdev-add-slice.
 phase_cdev_lookup_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-cdev-lookup-slice.md').read_text(encoding='utf-8')
 phase_chrdev_open_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-open-slice.md').read_text(encoding='utf-8')
 phase_chrdev_fops_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-fops-slice.md').read_text(encoding='utf-8')
+phase_chrdev_route_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-route-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -197,6 +205,7 @@ cdev_add_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_
 cdev_lookup_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_cdev_lookup_manifest.json').read_text(encoding='utf-8'))
 chrdev_open_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_open_manifest.json').read_text(encoding='utf-8'))
 chrdev_fops_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_fops_manifest.json').read_text(encoding='utf-8'))
+chrdev_route_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_route_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -326,6 +335,13 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-chrdev-fops.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_chrdev_route_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=chrdev-route-plan-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-chrdev-route.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
@@ -345,6 +361,7 @@ required_markers = {
         'python3 scripts/zigux/check-phase3-cdev-lookup.py',
         'python3 scripts/zigux/check-phase3-chrdev-open.py',
         'python3 scripts/zigux/check-phase3-chrdev-fops.py',
+        'python3 scripts/zigux/check-phase3-chrdev-route.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -369,6 +386,7 @@ required_markers = {
         'check-phase3-cdev-lookup.py',
         'check-phase3-chrdev-open.py',
         'check-phase3-chrdev-fops.py',
+        'check-phase3-chrdev-route.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
@@ -389,6 +407,7 @@ required_markers = {
         'check-phase3-cdev-lookup.py',
         'check-phase3-chrdev-open.py',
         'check-phase3-chrdev-fops.py',
+        'check-phase3-chrdev-route.py',
         'validate-phase3.py',
     ],
     'tests': [
@@ -410,6 +429,7 @@ required_markers = {
         'phase3_cdev_lookup_dump.zig',
         'phase3_chrdev_open_dump.zig',
         'phase3_chrdev_fops_dump.zig',
+        'phase3_chrdev_route_dump.zig',
         'phase3_abi_manifest.json',
         'phase3_bitmap_cpumask_manifest.json',
         'phase3_list_hlist_manifest.json',
@@ -427,6 +447,7 @@ required_markers = {
         'phase3_cdev_lookup_manifest.json',
         'phase3_chrdev_open_manifest.json',
         'phase3_chrdev_fops_manifest.json',
+        'phase3_chrdev_route_manifest.json',
     ],
     'docs': [
         'phase3-abi-slice.md',
@@ -446,6 +467,7 @@ required_markers = {
         'phase3-cdev-lookup-slice.md',
         'phase3-chrdev-open-slice.md',
         'phase3-chrdev-fops-slice.md',
+        'phase3-chrdev-route-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
@@ -482,6 +504,8 @@ required_markers = {
         'check-phase3-chrdev-open.py',
         'phase3_chrdev_fops',
         'check-phase3-chrdev-fops.py',
+        'phase3_chrdev_route',
+        'check-phase3-chrdev-route.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
@@ -501,6 +525,7 @@ required_markers = {
         'feat(zigux): add bounded Phase 3 cdev lookup interop slice',
         'feat(zigux): add bounded Phase 3 chrdev open interop slice',
         'feat(zigux): add bounded Phase 3 chrdev fops interop slice',
+        'feat(zigux): add bounded Phase 3 chrdev route interop slice',
     ],
 }
 
@@ -559,6 +584,9 @@ for marker in required_markers['phase_chrdev_open_doc']:
 for marker in required_markers['phase_chrdev_fops_doc']:
     if marker not in phase_chrdev_fops_doc:
         missing_markers.append(f'phase_chrdev_fops_doc:{marker}')
+for marker in required_markers['phase_chrdev_route_doc']:
+    if marker not in phase_chrdev_route_doc:
+        missing_markers.append(f'phase_chrdev_route_doc:{marker}')
 for marker in required_markers['workflow']:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
@@ -818,6 +846,20 @@ if len(chrdev_fops_manifest.get('files', [])) != 4:
 for rel in chrdev_fops_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'chrdev_fops_manifest_file:{rel}')
+
+if chrdev_route_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('chrdev_route_manifest:phase=Phase 3')
+if chrdev_route_manifest.get('status') != 'active':
+    missing_markers.append('chrdev_route_manifest:status=active')
+if chrdev_route_manifest.get('slice') != 'chrdev-route-plan-interop':
+    missing_markers.append(f'chrdev_route_manifest:slice={chrdev_route_manifest.get("slice")}')
+if chrdev_route_manifest.get('file_count') != 4:
+    missing_markers.append(f'chrdev_route_manifest:file_count={chrdev_route_manifest.get("file_count")}')
+if len(chrdev_route_manifest.get('files', [])) != 4:
+    missing_markers.append(f'chrdev_route_manifest:files_len={len(chrdev_route_manifest.get("files", []))}')
+for rel in chrdev_route_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'chrdev_route_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')

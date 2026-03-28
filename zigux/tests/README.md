@@ -33,6 +33,7 @@ Current entrypoint
 - `zigux/tests/phase3_cdev_lookup_dump.zig`
 - `zigux/tests/phase3_chrdev_open_dump.zig`
 - `zigux/tests/phase3_chrdev_fops_dump.zig`
+- `zigux/tests/phase3_chrdev_route_dump.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
@@ -84,3 +85,5 @@ Current entrypoint
 - `zigux/tests/fixtures/phase3_chrdev_open/expected.json`
 - `zigux/tests/fixtures/phase3_chrdev_fops_manifest.json`
 - `zigux/tests/fixtures/phase3_chrdev_fops/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_route_manifest.json`
+- `zigux/tests/fixtures/phase3_chrdev_route/expected.json`

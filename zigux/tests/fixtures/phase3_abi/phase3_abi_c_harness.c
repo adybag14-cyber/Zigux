@@ -95,6 +95,10 @@ int main(void)
 		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"target_minor\":%zu,\"requested_mode\":%zu,\"supported_mode\":%zu,\"available_ops\":%zu,\"reserved\":%zu}},"
 		"\"zigux_chrdev_fops_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"major\":%zu,\"target_minor\":%zu,\"selected_count\":%zu,\"resolved_index\":%zu,\"resolved_dev\":%zu,\"granted_mode\":%zu,\"available_ops\":%zu,\"required_ops\":%zu,\"missing_ops\":%zu,\"flags\":%zu}},"
+		"\"zigux_chrdev_route_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"major\":%zu,\"first_minor\":%zu,\"minor_count\":%zu,\"max_scan\":%zu,\"request_count\":%zu,\"policy\":%zu,\"target_minor\":%zu,\"requested_mode\":%zu,\"supported_mode\":%zu,\"available_ops\":%zu,\"reserved\":%zu}},"
+		"\"zigux_chrdev_route_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"major\":%zu,\"target_minor\":%zu,\"selected_count\":%zu,\"resolved_index\":%zu,\"resolved_dev\":%zu,\"granted_mode\":%zu,\"entry_ops\":%zu,\"data_ops\":%zu,\"exit_ops\":%zu,\"blocked_ops\":%zu,\"flags\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -425,6 +429,33 @@ int main(void)
 		offsetof(struct zigux_chrdev_fops_summary, required_ops),
 		offsetof(struct zigux_chrdev_fops_summary, missing_ops),
 		offsetof(struct zigux_chrdev_fops_summary, flags),
+		sizeof(struct zigux_chrdev_route_view),
+		_Alignof(struct zigux_chrdev_route_view),
+		offsetof(struct zigux_chrdev_route_view, bits_addr),
+		offsetof(struct zigux_chrdev_route_view, major),
+		offsetof(struct zigux_chrdev_route_view, first_minor),
+		offsetof(struct zigux_chrdev_route_view, minor_count),
+		offsetof(struct zigux_chrdev_route_view, max_scan),
+		offsetof(struct zigux_chrdev_route_view, request_count),
+		offsetof(struct zigux_chrdev_route_view, policy),
+		offsetof(struct zigux_chrdev_route_view, target_minor),
+		offsetof(struct zigux_chrdev_route_view, requested_mode),
+		offsetof(struct zigux_chrdev_route_view, supported_mode),
+		offsetof(struct zigux_chrdev_route_view, available_ops),
+		offsetof(struct zigux_chrdev_route_view, reserved),
+		sizeof(struct zigux_chrdev_route_summary),
+		_Alignof(struct zigux_chrdev_route_summary),
+		offsetof(struct zigux_chrdev_route_summary, major),
+		offsetof(struct zigux_chrdev_route_summary, target_minor),
+		offsetof(struct zigux_chrdev_route_summary, selected_count),
+		offsetof(struct zigux_chrdev_route_summary, resolved_index),
+		offsetof(struct zigux_chrdev_route_summary, resolved_dev),
+		offsetof(struct zigux_chrdev_route_summary, granted_mode),
+		offsetof(struct zigux_chrdev_route_summary, entry_ops),
+		offsetof(struct zigux_chrdev_route_summary, data_ops),
+		offsetof(struct zigux_chrdev_route_summary, exit_ops),
+		offsetof(struct zigux_chrdev_route_summary, blocked_ops),
+		offsetof(struct zigux_chrdev_route_summary, flags),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

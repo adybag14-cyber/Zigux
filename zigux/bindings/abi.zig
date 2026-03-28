@@ -69,6 +69,15 @@ pub const CHRDEV_FOPS_FLAG_DENIED: u32 = 32;
 pub const CHRDEV_FOPS_FLAG_ROUTABLE: u32 = 64;
 pub const CHRDEV_FOPS_FLAG_MISSING_OPS: u32 = 128;
 pub const CHRDEV_FOPS_INDEX_NONE: u32 = 0xffffffff;
+pub const CHRDEV_ROUTE_FLAG_TRUNCATED: u32 = 1;
+pub const CHRDEV_ROUTE_FLAG_FOUND: u32 = 2;
+pub const CHRDEV_ROUTE_FLAG_EXHAUSTED: u32 = 4;
+pub const CHRDEV_ROUTE_FLAG_HIT: u32 = 8;
+pub const CHRDEV_ROUTE_FLAG_PERMITTED: u32 = 16;
+pub const CHRDEV_ROUTE_FLAG_DENIED: u32 = 32;
+pub const CHRDEV_ROUTE_FLAG_ROUTABLE: u32 = 64;
+pub const CHRDEV_ROUTE_FLAG_BLOCKED: u32 = 128;
+pub const CHRDEV_ROUTE_INDEX_NONE: u32 = 0xffffffff;
 pub const DEV_MINOR_BITS: u32 = 20;
 pub const DEV_MINOR_MASK: u32 = (1 << DEV_MINOR_BITS) - 1;
 
@@ -453,6 +462,35 @@ pub const ChrdevFopsSummary = extern struct {
     available_ops: u32,
     required_ops: u32,
     missing_ops: u32,
+    flags: u32,
+};
+
+pub const ChrdevRouteView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    target_minor: u32,
+    requested_mode: u32,
+    supported_mode: u32,
+    available_ops: u32,
+    reserved: u32,
+};
+
+pub const ChrdevRouteSummary = extern struct {
+    major: u32,
+    target_minor: u32,
+    selected_count: u32,
+    resolved_index: u32,
+    resolved_dev: u32,
+    granted_mode: u32,
+    entry_ops: u32,
+    data_ops: u32,
+    exit_ops: u32,
+    blocked_ops: u32,
     flags: u32,
 };
 

@@ -1,0 +1,12 @@
+{
+  "phase": "Phase 3",
+  "status": "active",
+  "slice": "chrdev-route-plan-interop",
+  "file_count": 4,
+  "files": [
+    "zigux/tests/fixtures/phase3_chrdev_route/phase3_chrdev_route_c_harness.c",
+    "zigux/tests/fixtures/phase3_chrdev_route/expected.json",
+    "zigux/tests/fixtures/phase3_chrdev_route_manifest.json",
+    "zigux/tests/phase3_chrdev_route_dump.zig"
+  ]
+}

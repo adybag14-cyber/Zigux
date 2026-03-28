@@ -400,6 +400,35 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.ChrdevFopsSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_chrdev_route_view", @sizeOf(abi.ChrdevRouteView), @alignOf(abi.ChrdevRouteView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.ChrdevRouteView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevRouteView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.ChrdevRouteView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.ChrdevRouteView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.ChrdevRouteView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.ChrdevRouteView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.ChrdevRouteView, "policy"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevRouteView, "target_minor"), true);
+    try writeOffset(writer, "requested_mode", @offsetOf(abi.ChrdevRouteView, "requested_mode"), true);
+    try writeOffset(writer, "supported_mode", @offsetOf(abi.ChrdevRouteView, "supported_mode"), true);
+    try writeOffset(writer, "available_ops", @offsetOf(abi.ChrdevRouteView, "available_ops"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.ChrdevRouteView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_chrdev_route_summary", @sizeOf(abi.ChrdevRouteSummary), @alignOf(abi.ChrdevRouteSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.ChrdevRouteSummary, "major"), true);
+    try writeOffset(writer, "target_minor", @offsetOf(abi.ChrdevRouteSummary, "target_minor"), true);
+    try writeOffset(writer, "selected_count", @offsetOf(abi.ChrdevRouteSummary, "selected_count"), true);
+    try writeOffset(writer, "resolved_index", @offsetOf(abi.ChrdevRouteSummary, "resolved_index"), true);
+    try writeOffset(writer, "resolved_dev", @offsetOf(abi.ChrdevRouteSummary, "resolved_dev"), true);
+    try writeOffset(writer, "granted_mode", @offsetOf(abi.ChrdevRouteSummary, "granted_mode"), true);
+    try writeOffset(writer, "entry_ops", @offsetOf(abi.ChrdevRouteSummary, "entry_ops"), true);
+    try writeOffset(writer, "data_ops", @offsetOf(abi.ChrdevRouteSummary, "data_ops"), true);
+    try writeOffset(writer, "exit_ops", @offsetOf(abi.ChrdevRouteSummary, "exit_ops"), true);
+    try writeOffset(writer, "blocked_ops", @offsetOf(abi.ChrdevRouteSummary, "blocked_ops"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.ChrdevRouteSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

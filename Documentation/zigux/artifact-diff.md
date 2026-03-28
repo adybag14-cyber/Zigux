@@ -57,6 +57,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-open.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-open planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_fops/expected.json` fixes the first bounded kernel-facing chrdev-fops planning claim on top of the chrdev-open substrate.
 - `scripts/zigux/check-phase3-chrdev-fops.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-fops planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_route/expected.json` fixes the bounded kernel-facing chrdev-route planning claim on top of the chrdev-fops substrate.
+- `scripts/zigux/check-phase3-chrdev-route.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-route planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth

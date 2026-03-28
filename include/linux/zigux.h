@@ -1848,4 +1848,133 @@ zigux_chrdev_fops_summarize(const struct zigux_chrdev_fops_view *view)
 	return summary;
 }
 
+static inline struct zigux_chrdev_route_view
+zigux_chrdev_route_view_from_bits(const unsigned long *bits, zigux_u32 major,
+				  zigux_u32 first_minor, zigux_u32 minor_count,
+				  zigux_u32 max_scan, zigux_u32 request_count,
+				  zigux_u32 policy, zigux_u32 target_minor,
+				  zigux_u32 requested_mode,
+				  zigux_u32 supported_mode,
+				  zigux_u32 available_ops)
+{
+	return (struct zigux_chrdev_route_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_route_view_valid(const struct zigux_chrdev_route_view *view)
+{
+	struct zigux_chrdev_fops_view fops_view;
+
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+
+	fops_view = (struct zigux_chrdev_fops_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.reserved = 0,
+	};
+	return zigux_chrdev_fops_view_valid(&fops_view);
+}
+
+static inline struct zigux_chrdev_fops_view
+zigux_chrdev_route_as_chrdev_fops(const struct zigux_chrdev_route_view *view)
+{
+	if (!zigux_chrdev_route_view_valid(view))
+		return (struct zigux_chrdev_fops_view){
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		};
+
+	return (struct zigux_chrdev_fops_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_chrdev_route_summary
+zigux_chrdev_route_summarize(const struct zigux_chrdev_route_view *view)
+{
+	struct zigux_chrdev_route_summary summary = {
+		0, 0, 0, ZIGUX_CHRDEV_ROUTE_INDEX_NONE, 0, 0, 0, 0, 0, 0, 0
+	};
+	struct zigux_chrdev_fops_view fops_view;
+	struct zigux_chrdev_fops_summary fops_summary;
+
+	if (!zigux_chrdev_route_view_valid(view))
+		return summary;
+
+	fops_view = zigux_chrdev_route_as_chrdev_fops(view);
+	fops_summary = zigux_chrdev_fops_summarize(&fops_view);
+	summary.major = fops_summary.major;
+	summary.target_minor = fops_summary.target_minor;
+	summary.selected_count = fops_summary.selected_count;
+	summary.resolved_index = fops_summary.resolved_index ==
+					 ZIGUX_CHRDEV_FOPS_INDEX_NONE ?
+					 ZIGUX_CHRDEV_ROUTE_INDEX_NONE :
+					 fops_summary.resolved_index;
+	summary.resolved_dev = fops_summary.resolved_dev;
+	summary.granted_mode = fops_summary.granted_mode;
+	if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_TRUNCATED;
+	if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_FOUND)
+		summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_FOUND;
+	if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_EXHAUSTED;
+	if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_HIT)
+		summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_HIT;
+	if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_PERMITTED)
+		summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_PERMITTED;
+	if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_DENIED)
+		summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_DENIED;
+
+	if ((summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_PERMITTED) &&
+	    (summary.flags & ZIGUX_CHRDEV_ROUTE_FLAG_HIT)) {
+		summary.entry_ops = ZIGUX_CHRDEV_FOP_OPEN;
+		if (summary.granted_mode & ZIGUX_CHRDEV_MODE_READ)
+			summary.data_ops |= ZIGUX_CHRDEV_FOP_READ;
+		if (summary.granted_mode & ZIGUX_CHRDEV_MODE_WRITE)
+			summary.data_ops |= ZIGUX_CHRDEV_FOP_WRITE;
+		summary.exit_ops = ZIGUX_CHRDEV_FOP_RELEASE;
+		summary.blocked_ops = fops_summary.missing_ops;
+		if (fops_summary.flags & ZIGUX_CHRDEV_FOPS_FLAG_ROUTABLE)
+			summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_ROUTABLE;
+		else if (summary.blocked_ops != 0)
+			summary.flags |= ZIGUX_CHRDEV_ROUTE_FLAG_BLOCKED;
+	}
+	return summary;
+}
+
 #endif

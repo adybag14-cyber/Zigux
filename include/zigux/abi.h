@@ -106,6 +106,15 @@ typedef int32_t zigux_s32;
 #define ZIGUX_CHRDEV_FOPS_FLAG_ROUTABLE 64U
 #define ZIGUX_CHRDEV_FOPS_FLAG_MISSING_OPS 128U
 #define ZIGUX_CHRDEV_FOPS_INDEX_NONE 0xffffffffU
+#define ZIGUX_CHRDEV_ROUTE_FLAG_TRUNCATED 1U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_FOUND 2U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_EXHAUSTED 4U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_HIT 8U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_PERMITTED 16U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_DENIED 32U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_ROUTABLE 64U
+#define ZIGUX_CHRDEV_ROUTE_FLAG_BLOCKED 128U
+#define ZIGUX_CHRDEV_ROUTE_INDEX_NONE 0xffffffffU
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -464,6 +473,35 @@ struct zigux_chrdev_fops_summary {
 	zigux_u32 available_ops;
 	zigux_u32 required_ops;
 	zigux_u32 missing_ops;
+	zigux_u32 flags;
+};
+
+struct zigux_chrdev_route_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 target_minor;
+	zigux_u32 requested_mode;
+	zigux_u32 supported_mode;
+	zigux_u32 available_ops;
+	zigux_u32 reserved;
+};
+
+struct zigux_chrdev_route_summary {
+	zigux_u32 major;
+	zigux_u32 target_minor;
+	zigux_u32 selected_count;
+	zigux_u32 resolved_index;
+	zigux_u32 resolved_dev;
+	zigux_u32 granted_mode;
+	zigux_u32 entry_ops;
+	zigux_u32 data_ops;
+	zigux_u32 exit_ops;
+	zigux_u32 blocked_ops;
 	zigux_u32 flags;
 };
 
