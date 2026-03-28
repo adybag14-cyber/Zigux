@@ -35,6 +35,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-xarray-slot.py` compares that committed JSON fixture against both the bounded C harness and the Zig xarray slot dump.
 - `zigux/tests/fixtures/phase3_idr_slot/expected.json` fixes the first bounded idr-style slot classification claim on top of the xarray-slot substrate.
 - `scripts/zigux/check-phase3-idr-slot.py` compares that committed JSON fixture against both the bounded C harness and the Zig idr slot dump.
+- `zigux/tests/fixtures/phase3_ida_bitmap/expected.json` fixes the first bounded ida-style bitmap allocation-state claim on top of the bitmap and idr substrates.
+- `scripts/zigux/check-phase3-ida-bitmap.py` compares that committed JSON fixture against both the bounded C harness and the Zig ida bitmap dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
@@ -44,4 +46,4 @@ Rules
 
 Near-term target
 - reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot interop claims before any broader interop substrate expansion
+- keep using the same pattern for bounded Phase 3 ABI layout and bitmap/cpumask/list/hlist/err_ptr/value-entry/xarray-slot/idr-slot/ida-bitmap interop claims before any broader interop substrate expansion

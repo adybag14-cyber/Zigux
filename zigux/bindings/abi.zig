@@ -16,6 +16,8 @@ pub const XA_VALUE_FLAG_VALUE: u32 = 1;
 pub const XA_VALUE_FLAG_PLAIN: u32 = 2;
 pub const XA_SLOT_FLAG_TRUNCATED: u32 = 1;
 pub const IDR_SLOT_FLAG_TRUNCATED: u32 = 1;
+pub const IDA_BITMAP_FLAG_TRUNCATED: u32 = 1;
+pub const IDA_BITMAP_FLAG_EXHAUSTED: u32 = 2;
 
 pub const Facility = enum(u16) {
     kernel = 1,
@@ -161,6 +163,23 @@ pub const IdrSlotSummary = extern struct {
     flags: u32,
 };
 
+pub const IdaBitmapView = extern struct {
+    bits_addr: usize,
+    base_id: u32,
+    nbits: u32,
+    max_scan: u32,
+    reserved: u32,
+};
+
+pub const IdaBitmapSummary = extern struct {
+    scanned_count: u32,
+    allocated_count: u32,
+    first_allocated_id: u32,
+    first_free_id: u32,
+    flags: u32,
+    reserved: u32,
+};
+
 pub const MmioRange = extern struct {
     base_addr: usize,
     length: u32,
@@ -194,6 +213,8 @@ test "phase3 abi constants stay stable" {
     try std.testing.expectEqual(@as(u32, 1), XA_VALUE_FLAG_VALUE);
     try std.testing.expectEqual(@as(u32, 1), XA_SLOT_FLAG_TRUNCATED);
     try std.testing.expectEqual(@as(u32, 1), IDR_SLOT_FLAG_TRUNCATED);
+    try std.testing.expectEqual(@as(u32, 1), IDA_BITMAP_FLAG_TRUNCATED);
+    try std.testing.expectEqual(@as(u32, 2), IDA_BITMAP_FLAG_EXHAUSTED);
 }
 
 test "phase3 abi layouts stay stable" {
@@ -216,6 +237,8 @@ test "phase3 abi layouts stay stable" {
     try std.testing.expectEqual(@as(usize, 24), @sizeOf(XaSlotSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 16), @sizeOf(IdrSlotView));
     try std.testing.expectEqual(@as(usize, 32), @sizeOf(IdrSlotSummary));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 16), @sizeOf(IdaBitmapView));
+    try std.testing.expectEqual(@as(usize, 24), @sizeOf(IdaBitmapSummary));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) + 8), @sizeOf(MmioRange));
     try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
 }

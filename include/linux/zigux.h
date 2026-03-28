@@ -758,4 +758,88 @@ zigux_idr_slot_summarize(const struct zigux_idr_slot_view *view)
 	return summary;
 }
 
+static inline struct zigux_ida_bitmap_view
+zigux_ida_bitmap_view_from_bits(const unsigned long *bits, zigux_u32 base_id,
+				zigux_u32 nbits, zigux_u32 max_scan)
+{
+	return (struct zigux_ida_bitmap_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.base_id = base_id,
+		.nbits = nbits,
+		.max_scan = max_scan,
+		.reserved = 0,
+	};
+}
+
+static inline bool zigux_ida_bitmap_view_valid(const struct zigux_ida_bitmap_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->nbits == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_bitmap_view
+zigux_ida_bitmap_as_bitmap(const struct zigux_ida_bitmap_view *view)
+{
+	if (!zigux_ida_bitmap_view_valid(view))
+		return (struct zigux_bitmap_view){0, 0, 0};
+
+	return (struct zigux_bitmap_view){
+		.words_addr = view->bits_addr,
+		.nbits = view->nbits,
+		.word_count = zigux_bitmap_word_count(view->nbits),
+	};
+}
+
+static inline struct zigux_ida_bitmap_summary
+zigux_ida_bitmap_summarize(const struct zigux_ida_bitmap_view *view)
+{
+	struct zigux_ida_bitmap_summary summary = {0, 0, 0, 0, 0, 0};
+	struct zigux_bitmap_view bitmap;
+	zigux_u32 scanned;
+	zigux_u32 index;
+	bool have_first_allocated = false;
+	bool have_first_free = false;
+
+	if (!zigux_ida_bitmap_view_valid(view))
+		return summary;
+	if (view->nbits == 0) {
+		summary.first_allocated_id = view->base_id;
+		summary.first_free_id = view->base_id;
+		return summary;
+	}
+
+	scanned = view->nbits < view->max_scan ? view->nbits : view->max_scan;
+	summary.scanned_count = scanned;
+	summary.first_allocated_id = view->base_id + scanned;
+	summary.first_free_id = view->base_id + scanned;
+	if (scanned < view->nbits)
+		summary.flags |= ZIGUX_IDA_BITMAP_FLAG_TRUNCATED;
+
+	bitmap = zigux_ida_bitmap_as_bitmap(view);
+	for (index = 0; index < scanned; index++) {
+		zigux_u32 current_id = view->base_id + index;
+
+		if (zigux_bitmap_test_bit(&bitmap, index)) {
+			summary.allocated_count++;
+			if (!have_first_allocated) {
+				summary.first_allocated_id = current_id;
+				have_first_allocated = true;
+			}
+		} else if (!have_first_free) {
+			summary.first_free_id = current_id;
+			have_first_free = true;
+		}
+	}
+
+	if (!have_first_free)
+		summary.flags |= ZIGUX_IDA_BITMAP_FLAG_EXHAUSTED;
+
+	return summary;
+}
+
 #endif

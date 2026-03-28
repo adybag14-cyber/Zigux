@@ -31,6 +31,7 @@ Current bootstrap helpers
 - `check-phase3-errptr-xarray.py`
 - `check-phase3-xarray-slot.py`
 - `check-phase3-idr-slot.py`
+- `check-phase3-ida-bitmap.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

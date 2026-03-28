@@ -22,6 +22,7 @@ Current entrypoint
 - `zigux/tests/phase3_errptr_xarray_dump.zig`
 - `zigux/tests/phase3_xarray_slot_dump.zig`
 - `zigux/tests/phase3_idr_slot_dump.zig`
+- `zigux/tests/phase3_ida_bitmap_dump.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
@@ -51,3 +52,5 @@ Current entrypoint
 - `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
 - `zigux/tests/fixtures/phase3_idr_slot_manifest.json`
 - `zigux/tests/fixtures/phase3_idr_slot/expected.json`
+- `zigux/tests/fixtures/phase3_ida_bitmap_manifest.json`
+- `zigux/tests/fixtures/phase3_ida_bitmap/expected.json`

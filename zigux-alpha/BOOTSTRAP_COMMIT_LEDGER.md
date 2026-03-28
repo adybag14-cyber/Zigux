@@ -293,3 +293,20 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/fixtures/phase3_abi/expected.json`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+32. `feat(zigux): add bounded Phase 3 ida bitmap interop slice`
+- `zigux/helpers/ida_bitmap_view.zig`
+- `zigux/tests/phase3_ida_bitmap_dump.zig`
+- `zigux/tests/fixtures/phase3_ida_bitmap/phase3_ida_bitmap_c_harness.c`
+- `zigux/tests/fixtures/phase3_ida_bitmap/expected.json`
+- `zigux/tests/fixtures/phase3_ida_bitmap_manifest.json`
+- `scripts/zigux/check-phase3-ida-bitmap.py`
+- `Documentation/zigux/phase3-ida-bitmap-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_abi_dump.zig`
+- `zigux/tests/fixtures/phase3_abi/expected.json`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

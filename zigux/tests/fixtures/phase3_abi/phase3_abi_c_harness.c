@@ -50,6 +50,11 @@ int main(void)
 		"\"zigux_idr_slot_summary\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"scanned_count\":%zu,\"present_count\":%zu,\"value_count\":%zu,\"error_count\":%zu,"
 		"\"plain_count\":%zu,\"first_present_id\":%zu,\"next_free_id\":%zu,\"flags\":%zu}},"
+		"\"zigux_ida_bitmap_view\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"bits_addr\":%zu,\"base_id\":%zu,\"nbits\":%zu,\"max_scan\":%zu,\"reserved\":%zu}},"
+		"\"zigux_ida_bitmap_summary\":{\"size\":%zu,\"align\":%zu,"
+		"\"offsets\":{\"scanned_count\":%zu,\"allocated_count\":%zu,\"first_allocated_id\":%zu,\"first_free_id\":%zu,"
+		"\"flags\":%zu,\"reserved\":%zu}},"
 		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
 		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
 		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
@@ -162,6 +167,21 @@ int main(void)
 		offsetof(struct zigux_idr_slot_summary, first_present_id),
 		offsetof(struct zigux_idr_slot_summary, next_free_id),
 		offsetof(struct zigux_idr_slot_summary, flags),
+		sizeof(struct zigux_ida_bitmap_view),
+		_Alignof(struct zigux_ida_bitmap_view),
+		offsetof(struct zigux_ida_bitmap_view, bits_addr),
+		offsetof(struct zigux_ida_bitmap_view, base_id),
+		offsetof(struct zigux_ida_bitmap_view, nbits),
+		offsetof(struct zigux_ida_bitmap_view, max_scan),
+		offsetof(struct zigux_ida_bitmap_view, reserved),
+		sizeof(struct zigux_ida_bitmap_summary),
+		_Alignof(struct zigux_ida_bitmap_summary),
+		offsetof(struct zigux_ida_bitmap_summary, scanned_count),
+		offsetof(struct zigux_ida_bitmap_summary, allocated_count),
+		offsetof(struct zigux_ida_bitmap_summary, first_allocated_id),
+		offsetof(struct zigux_ida_bitmap_summary, first_free_id),
+		offsetof(struct zigux_ida_bitmap_summary, flags),
+		offsetof(struct zigux_ida_bitmap_summary, reserved),
 		sizeof(struct zigux_mmio_range),
 		_Alignof(struct zigux_mmio_range),
 		offsetof(struct zigux_mmio_range, base_addr),

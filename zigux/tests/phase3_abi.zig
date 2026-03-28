@@ -14,6 +14,7 @@ const err_ptr = @import("err_ptr");
 const xa_value = @import("xa_value");
 const xarray_slot_view = @import("xarray_slot_view");
 const idr_slot_view = @import("idr_slot_view");
+const ida_bitmap_view = @import("ida_bitmap_view");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -36,6 +37,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.XaSlotSummary, 24);
         layout_assert.assertSize(abi.IdrSlotView, @sizeOf(usize) + 16);
         layout_assert.assertSize(abi.IdrSlotSummary, 32);
+        layout_assert.assertSize(abi.IdaBitmapView, @sizeOf(usize) + 16);
+        layout_assert.assertSize(abi.IdaBitmapSummary, 24);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -49,6 +52,9 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.IdrSlotView, "base_id", @sizeOf(usize));
         layout_assert.assertOffset(abi.IdrSlotSummary, "first_present_id", 20);
         layout_assert.assertOffset(abi.IdrSlotSummary, "flags", 28);
+        layout_assert.assertOffset(abi.IdaBitmapView, "base_id", @sizeOf(usize));
+        layout_assert.assertOffset(abi.IdaBitmapSummary, "first_allocated_id", 8);
+        layout_assert.assertOffset(abi.IdaBitmapSummary, "flags", 16);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -230,5 +236,26 @@ test "phase3 idr slot interop helpers stay aligned with the ABI substrate" {
     try std.testing.expectEqual(@as(u32, 1), full_summary.plain_count);
     try std.testing.expectEqual(@as(u32, 65), full_summary.first_present_id);
     try std.testing.expectEqual(@as(u32, 64), full_summary.next_free_id);
+    try std.testing.expectEqual(@as(u32, 0), full_summary.flags);
+}
+
+test "phase3 ida bitmap interop helpers stay aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 3) | (@as(usize, 1) << 5)};
+
+    const truncated_view = ida_bitmap_view.viewFromBits(words[0..], 100, 7, 6);
+    const truncated_summary = ida_bitmap_view.summarize(truncated_view);
+    try std.testing.expect(ida_bitmap_view.isValid(truncated_view));
+    try std.testing.expectEqual(@as(u32, 6), truncated_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 4), truncated_summary.allocated_count);
+    try std.testing.expectEqual(@as(u32, 100), truncated_summary.first_allocated_id);
+    try std.testing.expectEqual(@as(u32, 101), truncated_summary.first_free_id);
+    try std.testing.expectEqual(@as(u32, abi.IDA_BITMAP_FLAG_TRUNCATED), truncated_summary.flags);
+
+    const full_view = ida_bitmap_view.viewFromBits(words[0..], 100, 6, 6);
+    const full_summary = ida_bitmap_view.summarize(full_view);
+    try std.testing.expectEqual(@as(u32, 6), full_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 4), full_summary.allocated_count);
+    try std.testing.expectEqual(@as(u32, 100), full_summary.first_allocated_id);
+    try std.testing.expectEqual(@as(u32, 101), full_summary.first_free_id);
     try std.testing.expectEqual(@as(u32, 0), full_summary.flags);
 }

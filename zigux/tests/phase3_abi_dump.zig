@@ -160,6 +160,23 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.IdrSlotSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_ida_bitmap_view", @sizeOf(abi.IdaBitmapView), @alignOf(abi.IdaBitmapView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.IdaBitmapView, "bits_addr"), true);
+    try writeOffset(writer, "base_id", @offsetOf(abi.IdaBitmapView, "base_id"), true);
+    try writeOffset(writer, "nbits", @offsetOf(abi.IdaBitmapView, "nbits"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.IdaBitmapView, "max_scan"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaBitmapView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_ida_bitmap_summary", @sizeOf(abi.IdaBitmapSummary), @alignOf(abi.IdaBitmapSummary));
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.IdaBitmapSummary, "scanned_count"), true);
+    try writeOffset(writer, "allocated_count", @offsetOf(abi.IdaBitmapSummary, "allocated_count"), true);
+    try writeOffset(writer, "first_allocated_id", @offsetOf(abi.IdaBitmapSummary, "first_allocated_id"), true);
+    try writeOffset(writer, "first_free_id", @offsetOf(abi.IdaBitmapSummary, "first_free_id"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.IdaBitmapSummary, "flags"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.IdaBitmapSummary, "reserved"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);
