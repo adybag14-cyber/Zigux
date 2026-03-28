@@ -39,6 +39,9 @@ pub const MINOR_ALLOC_FLAG_EXHAUSTED: u32 = 4;
 pub const DEV_REGION_FLAG_TRUNCATED: u32 = 1;
 pub const DEV_REGION_FLAG_FOUND: u32 = 2;
 pub const DEV_REGION_FLAG_EXHAUSTED: u32 = 4;
+pub const CDEV_ADD_FLAG_TRUNCATED: u32 = 1;
+pub const CDEV_ADD_FLAG_FOUND: u32 = 2;
+pub const CDEV_ADD_FLAG_EXHAUSTED: u32 = 4;
 pub const DEV_MINOR_BITS: u32 = 20;
 pub const DEV_MINOR_MASK: u32 = (1 << DEV_MINOR_BITS) - 1;
 
@@ -320,6 +323,28 @@ pub const DevRegionSummary = extern struct {
     request_count: u32,
     selected_minor_start: u32,
     selected_minor_end: u32,
+    first_dev: u32,
+    last_dev: u32,
+    flags: u32,
+};
+
+pub const CdevAddView = extern struct {
+    bits_addr: usize,
+    major: u32,
+    first_minor: u32,
+    minor_count: u32,
+    max_scan: u32,
+    request_count: u32,
+    policy: u32,
+    reserved: u32,
+};
+
+pub const CdevAddSummary = extern struct {
+    major: u32,
+    scanned_count: u32,
+    request_count: u32,
+    selected_count: u32,
+    first_minor: u32,
     first_dev: u32,
     last_dev: u32,
     flags: u32,

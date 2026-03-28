@@ -29,6 +29,7 @@ Current entrypoint
 - `zigux/tests/phase3_ida_policy_dump.zig`
 - `zigux/tests/phase3_minor_alloc_dump.zig`
 - `zigux/tests/phase3_dev_region_dump.zig`
+- `zigux/tests/phase3_cdev_add_dump.zig`
 - `zigux/tests/build.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
@@ -72,3 +73,5 @@ Current entrypoint
 - `zigux/tests/fixtures/phase3_minor_alloc/expected.json`
 - `zigux/tests/fixtures/phase3_dev_region_manifest.json`
 - `zigux/tests/fixtures/phase3_dev_region/expected.json`
+- `zigux/tests/fixtures/phase3_cdev_add_manifest.json`
+- `zigux/tests/fixtures/phase3_cdev_add/expected.json`

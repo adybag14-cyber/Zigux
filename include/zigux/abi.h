@@ -76,6 +76,9 @@ typedef int32_t zigux_s32;
 #define ZIGUX_DEV_REGION_FLAG_TRUNCATED 1U
 #define ZIGUX_DEV_REGION_FLAG_FOUND 2U
 #define ZIGUX_DEV_REGION_FLAG_EXHAUSTED 4U
+#define ZIGUX_CDEV_ADD_FLAG_TRUNCATED 1U
+#define ZIGUX_CDEV_ADD_FLAG_FOUND 2U
+#define ZIGUX_CDEV_ADD_FLAG_EXHAUSTED 4U
 
 struct zigux_boundary_header {
 	zigux_u32 size;
@@ -331,6 +334,28 @@ struct zigux_dev_region_summary {
 	zigux_u32 request_count;
 	zigux_u32 selected_minor_start;
 	zigux_u32 selected_minor_end;
+	zigux_u32 first_dev;
+	zigux_u32 last_dev;
+	zigux_u32 flags;
+};
+
+struct zigux_cdev_add_view {
+	unsigned long bits_addr;
+	zigux_u32 major;
+	zigux_u32 first_minor;
+	zigux_u32 minor_count;
+	zigux_u32 max_scan;
+	zigux_u32 request_count;
+	zigux_u32 policy;
+	zigux_u32 reserved;
+};
+
+struct zigux_cdev_add_summary {
+	zigux_u32 major;
+	zigux_u32 scanned_count;
+	zigux_u32 request_count;
+	zigux_u32 selected_count;
+	zigux_u32 first_minor;
 	zigux_u32 first_dev;
 	zigux_u32 last_dev;
 	zigux_u32 flags;

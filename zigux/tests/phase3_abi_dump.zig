@@ -299,6 +299,28 @@ pub fn main(init: std.process.Init) !void {
     try writeOffset(writer, "flags", @offsetOf(abi.DevRegionSummary, "flags"), false);
     try writer.writeAll("}},");
 
+    try writeLayoutPrefix(writer, "zigux_cdev_add_view", @sizeOf(abi.CdevAddView), @alignOf(abi.CdevAddView));
+    try writeOffset(writer, "bits_addr", @offsetOf(abi.CdevAddView, "bits_addr"), true);
+    try writeOffset(writer, "major", @offsetOf(abi.CdevAddView, "major"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.CdevAddView, "first_minor"), true);
+    try writeOffset(writer, "minor_count", @offsetOf(abi.CdevAddView, "minor_count"), true);
+    try writeOffset(writer, "max_scan", @offsetOf(abi.CdevAddView, "max_scan"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.CdevAddView, "request_count"), true);
+    try writeOffset(writer, "policy", @offsetOf(abi.CdevAddView, "policy"), true);
+    try writeOffset(writer, "reserved", @offsetOf(abi.CdevAddView, "reserved"), false);
+    try writer.writeAll("}},");
+
+    try writeLayoutPrefix(writer, "zigux_cdev_add_summary", @sizeOf(abi.CdevAddSummary), @alignOf(abi.CdevAddSummary));
+    try writeOffset(writer, "major", @offsetOf(abi.CdevAddSummary, "major"), true);
+    try writeOffset(writer, "scanned_count", @offsetOf(abi.CdevAddSummary, "scanned_count"), true);
+    try writeOffset(writer, "request_count", @offsetOf(abi.CdevAddSummary, "request_count"), true);
+    try writeOffset(writer, "selected_count", @offsetOf(abi.CdevAddSummary, "selected_count"), true);
+    try writeOffset(writer, "first_minor", @offsetOf(abi.CdevAddSummary, "first_minor"), true);
+    try writeOffset(writer, "first_dev", @offsetOf(abi.CdevAddSummary, "first_dev"), true);
+    try writeOffset(writer, "last_dev", @offsetOf(abi.CdevAddSummary, "last_dev"), true);
+    try writeOffset(writer, "flags", @offsetOf(abi.CdevAddSummary, "flags"), false);
+    try writer.writeAll("}},");
+
     try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
     try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
     try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);

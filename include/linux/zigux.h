@@ -1429,4 +1429,86 @@ zigux_dev_region_summarize(const struct zigux_dev_region_view *view)
 	return summary;
 }
 
+static inline struct zigux_cdev_add_view
+zigux_cdev_add_view_from_bits(const unsigned long *bits, zigux_u32 major,
+			      zigux_u32 first_minor, zigux_u32 minor_count,
+			      zigux_u32 max_scan, zigux_u32 request_count,
+			      zigux_u32 policy)
+{
+	return (struct zigux_cdev_add_view){
+		.bits_addr = zigux_ptr_addr(bits),
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.reserved = 0,
+	};
+}
+
+static inline bool
+zigux_cdev_add_view_valid(const struct zigux_cdev_add_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	if (view->request_count == 0)
+		return false;
+	if (view->policy != ZIGUX_IDA_POLICY_FIRST_FIT &&
+	    view->policy != ZIGUX_IDA_POLICY_LAST_FIT)
+		return false;
+	if (view->minor_count == 0)
+		return true;
+	return view->bits_addr != 0 && view->max_scan != 0;
+}
+
+static inline struct zigux_dev_region_view
+zigux_cdev_add_as_dev_region(const struct zigux_cdev_add_view *view)
+{
+	if (!zigux_cdev_add_view_valid(view))
+		return (struct zigux_dev_region_view){0, 0, 0, 0, 0, 0, 0, 0};
+
+	return (struct zigux_dev_region_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.reserved = 0,
+	};
+}
+
+static inline struct zigux_cdev_add_summary
+zigux_cdev_add_summarize(const struct zigux_cdev_add_view *view)
+{
+	struct zigux_cdev_add_summary summary = {0, 0, 0, 0, 0, 0, 0, 0};
+	struct zigux_dev_region_view dev_region_view;
+	struct zigux_dev_region_summary dev_region_summary;
+
+	if (!zigux_cdev_add_view_valid(view))
+		return summary;
+
+	dev_region_view = zigux_cdev_add_as_dev_region(view);
+	dev_region_summary = zigux_dev_region_summarize(&dev_region_view);
+	summary.major = dev_region_summary.major;
+	summary.scanned_count = dev_region_summary.scanned_count;
+	summary.request_count = dev_region_summary.request_count;
+	summary.first_minor = dev_region_summary.selected_minor_start;
+	if (dev_region_summary.flags & ZIGUX_DEV_REGION_FLAG_TRUNCATED)
+		summary.flags |= ZIGUX_CDEV_ADD_FLAG_TRUNCATED;
+	if (dev_region_summary.flags & ZIGUX_DEV_REGION_FLAG_FOUND) {
+		summary.flags |= ZIGUX_CDEV_ADD_FLAG_FOUND;
+		summary.selected_count = view->request_count;
+		summary.first_dev = dev_region_summary.first_dev;
+		summary.last_dev = dev_region_summary.last_dev;
+	}
+	if (dev_region_summary.flags & ZIGUX_DEV_REGION_FLAG_EXHAUSTED)
+		summary.flags |= ZIGUX_CDEV_ADD_FLAG_EXHAUSTED;
+	return summary;
+}
+
 #endif

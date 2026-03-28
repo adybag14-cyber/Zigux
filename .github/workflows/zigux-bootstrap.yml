@@ -126,6 +126,9 @@ jobs:
       - name: Check bounded Phase 3 dev region interop parity
         run: python3 scripts/zigux/check-phase3-dev-region.py
 
+      - name: Check bounded Phase 3 cdev add interop parity
+        run: python3 scripts/zigux/check-phase3-cdev-add.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

@@ -21,6 +21,7 @@ const ida_range_set_view = @import("ida_range_set_view");
 const ida_policy_view = @import("ida_policy_view");
 const minor_alloc_plan = @import("minor_alloc_plan");
 const dev_region_plan = @import("dev_region_plan");
+const cdev_add_plan = @import("cdev_add_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -57,6 +58,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.MinorAllocSummary, 32);
         layout_assert.assertSize(abi.DevRegionView, @sizeOf(usize) + 32);
         layout_assert.assertSize(abi.DevRegionSummary, 32);
+        layout_assert.assertSize(abi.CdevAddView, @sizeOf(usize) + 32);
+        layout_assert.assertSize(abi.CdevAddSummary, 32);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -97,6 +100,10 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.DevRegionView, "policy", @sizeOf(usize) + 20);
         layout_assert.assertOffset(abi.DevRegionSummary, "selected_minor_start", 12);
         layout_assert.assertOffset(abi.DevRegionSummary, "flags", 28);
+        layout_assert.assertOffset(abi.CdevAddView, "major", @sizeOf(usize));
+        layout_assert.assertOffset(abi.CdevAddView, "policy", @sizeOf(usize) + 20);
+        layout_assert.assertOffset(abi.CdevAddSummary, "selected_count", 12);
+        layout_assert.assertOffset(abi.CdevAddSummary, "flags", 28);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }
@@ -450,4 +457,27 @@ test "phase3 dev region consumer stays aligned with the ABI substrate" {
     try std.testing.expectEqual(dev_region_plan.mkdev(240, 36), last_fit_summary.first_dev);
     try std.testing.expectEqual(dev_region_plan.mkdev(240, 37), last_fit_summary.last_dev);
     try std.testing.expectEqual(@as(u32, abi.DEV_REGION_FLAG_FOUND), last_fit_summary.flags);
+}
+
+test "phase3 cdev add consumer stays aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const first_fit_view = cdev_add_plan.viewFromBits(words[0..], 240, 32, 8, 6, 2, abi.IDA_POLICY_FIRST_FIT);
+    const first_fit_summary = cdev_add_plan.summarize(first_fit_view);
+    try std.testing.expect(cdev_add_plan.isValid(first_fit_view));
+    try std.testing.expectEqual(@as(u32, 240), first_fit_summary.major);
+    try std.testing.expectEqual(@as(u32, 6), first_fit_summary.scanned_count);
+    try std.testing.expectEqual(@as(u32, 2), first_fit_summary.request_count);
+    try std.testing.expectEqual(@as(u32, 2), first_fit_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 33), first_fit_summary.first_minor);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 33), first_fit_summary.first_dev);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 34), first_fit_summary.last_dev);
+    try std.testing.expectEqual(@as(u32, abi.CDEV_ADD_FLAG_TRUNCATED | abi.CDEV_ADD_FLAG_FOUND), first_fit_summary.flags);
+
+    const last_fit_view = cdev_add_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT);
+    const last_fit_summary = cdev_add_plan.summarize(last_fit_view);
+    try std.testing.expectEqual(@as(u32, 2), last_fit_summary.selected_count);
+    try std.testing.expectEqual(@as(u32, 36), last_fit_summary.first_minor);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 36), last_fit_summary.first_dev);
+    try std.testing.expectEqual(dev_region_plan.mkdev(240, 37), last_fit_summary.last_dev);
+    try std.testing.expectEqual(@as(u32, abi.CDEV_ADD_FLAG_FOUND), last_fit_summary.flags);
 }
