@@ -42,7 +42,9 @@ const chrdev_notify_ack_window_policy_plan = @import("chrdev_notify_ack_window_p
 const chrdev_notify_ack_window_policy_budget_plan = @import("chrdev_notify_ack_window_policy_budget_plan");
 const chrdev_notify_ack_window_policy_budget_window_plan = @import("chrdev_notify_ack_window_policy_budget_window_plan");
 const chrdev_notify_ack_window_policy_budget_window_delivery_plan = @import("chrdev_notify_ack_window_policy_budget_window_delivery_plan");
-const chrdev_notify_ack_window_policy_budget_window_delivery_window_plan = @import("chrdev_notify_ack_window_policy_budget_window_delivery_window_plan");const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_plan = @import("chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_plan");
+const chrdev_notify_ack_window_policy_budget_window_delivery_window_plan = @import("chrdev_notify_ack_window_policy_budget_window_delivery_window_plan");
+const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_plan = @import("chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_plan");
+const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_plan = @import("chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -121,8 +123,12 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowSummary, 584);
         layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryView, @sizeOf(usize) + 248);
         layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliverySummary, 632);
-        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, @sizeOf(usize) + 264);        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, @sizeOf(usize) + 272);
-        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 680);        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 728);
+        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, @sizeOf(usize) + 264);
+        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, @sizeOf(usize) + 272);
+        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowView, @sizeOf(usize) + 288);
+        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 680);
+        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 728);
+        layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, 768);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -709,12 +715,16 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "window_policy_budget_window_delivery_reserved", @sizeOf(usize) + 244);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "window_policy_budget_window_delivery_window", @sizeOf(usize) + 248);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "window_policy_budget_window_delivery_window_floor", @sizeOf(usize) + 252);
-        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "window_policy_budget_window_delivery_window_reserved", @sizeOf(usize) + 256);        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window", @sizeOf(usize) + 248);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "window_policy_budget_window_delivery_window_reserved", @sizeOf(usize) + 256);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window", @sizeOf(usize) + 248);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window_floor", @sizeOf(usize) + 252);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window_reserved", @sizeOf(usize) + 256);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window_budget", @sizeOf(usize) + 260);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "deferred_window_policy_budget_window_delivery_window_budget", @sizeOf(usize) + 264);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window_budget_reserved", @sizeOf(usize) + 268);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowView, "window_policy_budget_window_delivery_window_budget_window", @sizeOf(usize) + 272);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowView, "window_policy_budget_window_delivery_window_budget_window_floor", @sizeOf(usize) + 276);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowView, "window_policy_budget_window_delivery_window_budget_window_reserved", @sizeOf(usize) + 280);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_flags", 540);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_before", 544);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_after", 548);
@@ -748,7 +758,8 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_delivery_window_suppressed_count", 660);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_delivery_window_coalesced_count", 664);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_delivery_window_dropped_count", 668);
-        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_delivery_window_skipped_count", 672);        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_flags", 676);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "window_policy_budget_window_delivery_window_skipped_count", 672);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_flags", 676);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_before", 680);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_after", 684);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "deferred_window_policy_budget_window_delivery_window_budget_before", 688);
@@ -760,6 +771,17 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_coalesced_count", 712);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_dropped_count", 716);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "window_policy_budget_window_delivery_window_budget_skipped_count", 720);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_flags", 724);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_before", 728);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_after", 732);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_floor", 736);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_status", 740);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_acked_count", 744);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_deferred_count", 748);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_suppressed_count", 752);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_coalesced_count", 756);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_dropped_count", 760);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary, "window_policy_budget_window_delivery_window_budget_window_skipped_count", 764);
         layout_assert.assertOffset(abi.MmioRange, "length", @sizeOf(usize));
     }
 }

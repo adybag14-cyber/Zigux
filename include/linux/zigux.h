@@ -7639,4 +7639,397 @@ zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summa
 	return summary;
 }
 
+static inline struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view
+zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view_from_bits(
+	const unsigned long *bits, zigux_u32 major, zigux_u32 first_minor,
+	zigux_u32 minor_count, zigux_u32 max_scan, zigux_u32 request_count,
+	zigux_u32 policy, zigux_u32 target_minor, zigux_u32 requested_mode,
+	zigux_u32 supported_mode, zigux_u32 available_ops, zigux_u32 io_op,
+	zigux_u32 requested_bytes, zigux_u32 max_chunk_bytes,
+	zigux_u64 file_offset, zigux_u32 bytes_completed,
+	zigux_u32 max_segments, zigux_u32 resume_passes,
+	zigux_u32 retry_budget, zigux_u32 stall_budget,
+	zigux_u32 backoff_quanta, zigux_u32 queue_depth,
+	zigux_u32 queue_capacity, zigux_u32 requeue_budget,
+	zigux_u64 completion_cookie, zigux_u32 completion_budget,
+	zigux_u32 notify_mask, zigux_u32 notify_budget, zigux_u64 notify_cookie,
+	zigux_u32 policy_flags, zigux_u32 delivery_budget,
+	zigux_u32 deferred_budget, zigux_u32 ack_mask, zigux_u32 ack_window,
+	zigux_u64 ack_cookie, zigux_u32 ack_observed,
+	zigux_u32 ack_policy_flags, zigux_u32 ack_budget,
+	zigux_u32 deferred_ack_budget, zigux_u32 window_floor,
+	zigux_u32 window_policy_flags, zigux_u32 window_policy_budget,
+	zigux_u32 deferred_window_policy_budget,
+	zigux_u32 window_policy_budget_window,
+	zigux_u32 window_policy_budget_window_floor,
+	zigux_u32 window_policy_budget_window_delivery_budget,
+	zigux_u32 deferred_window_policy_budget_window_delivery_budget,
+	zigux_u32 window_policy_budget_window_delivery_window,
+	zigux_u32 window_policy_budget_window_delivery_window_floor,
+	zigux_u32 window_policy_budget_window_delivery_window_budget,
+	zigux_u32 deferred_window_policy_budget_window_delivery_window_budget,
+	zigux_u32 window_policy_budget_window_delivery_window_budget_window,
+	zigux_u32 window_policy_budget_window_delivery_window_budget_window_floor)
+{
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
+		budget_view =
+			zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_from_bits(
+				bits, major, first_minor, minor_count,
+				max_scan, request_count, policy, target_minor,
+				requested_mode, supported_mode, available_ops,
+				io_op, requested_bytes, max_chunk_bytes,
+				file_offset, bytes_completed, max_segments,
+				resume_passes, retry_budget, stall_budget,
+				backoff_quanta, queue_depth, queue_capacity,
+				requeue_budget, completion_cookie,
+				completion_budget, notify_mask, notify_budget,
+				notify_cookie, policy_flags, delivery_budget,
+				deferred_budget, ack_mask, ack_window,
+				ack_cookie, ack_observed, ack_policy_flags,
+				ack_budget, deferred_ack_budget, window_floor,
+				window_policy_flags, window_policy_budget,
+				deferred_window_policy_budget,
+				window_policy_budget_window,
+				window_policy_budget_window_floor,
+				window_policy_budget_window_delivery_budget,
+				deferred_window_policy_budget_window_delivery_budget,
+				window_policy_budget_window_delivery_window,
+				window_policy_budget_window_delivery_window_floor,
+				window_policy_budget_window_delivery_window_budget,
+				deferred_window_policy_budget_window_delivery_window_budget);
+
+	return (struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view){
+		.bits_addr = budget_view.bits_addr,
+		.major = budget_view.major,
+		.first_minor = budget_view.first_minor,
+		.minor_count = budget_view.minor_count,
+		.max_scan = budget_view.max_scan,
+		.request_count = budget_view.request_count,
+		.policy = budget_view.policy,
+		.target_minor = budget_view.target_minor,
+		.requested_mode = budget_view.requested_mode,
+		.supported_mode = budget_view.supported_mode,
+		.available_ops = budget_view.available_ops,
+		.io_op = budget_view.io_op,
+		.requested_bytes = budget_view.requested_bytes,
+		.max_chunk_bytes = budget_view.max_chunk_bytes,
+		.file_offset = budget_view.file_offset,
+		.bytes_completed = budget_view.bytes_completed,
+		.max_segments = budget_view.max_segments,
+		.resume_passes = budget_view.resume_passes,
+		.retry_budget = budget_view.retry_budget,
+		.stall_budget = budget_view.stall_budget,
+		.backoff_quanta = budget_view.backoff_quanta,
+		.queue_depth = budget_view.queue_depth,
+		.queue_capacity = budget_view.queue_capacity,
+		.requeue_budget = budget_view.requeue_budget,
+		.completion_cookie = budget_view.completion_cookie,
+		.completion_budget = budget_view.completion_budget,
+		.notify_mask = budget_view.notify_mask,
+		.notify_cookie = budget_view.notify_cookie,
+		.notify_budget = budget_view.notify_budget,
+		.reserved = budget_view.reserved,
+		.policy_flags = budget_view.policy_flags,
+		.policy_reserved = budget_view.policy_reserved,
+		.delivery_budget = budget_view.delivery_budget,
+		.deferred_budget = budget_view.deferred_budget,
+		.ack_mask = budget_view.ack_mask,
+		.ack_window = budget_view.ack_window,
+		.ack_cookie = budget_view.ack_cookie,
+		.ack_observed = budget_view.ack_observed,
+		.ack_reserved = budget_view.ack_reserved,
+		.ack_policy_flags = budget_view.ack_policy_flags,
+		.ack_policy_reserved = budget_view.ack_policy_reserved,
+		.ack_budget = budget_view.ack_budget,
+		.deferred_ack_budget = budget_view.deferred_ack_budget,
+		.ack_budget_reserved = budget_view.ack_budget_reserved,
+		.window_floor = budget_view.window_floor,
+		.window_reserved = budget_view.window_reserved,
+		.window_policy_flags = budget_view.window_policy_flags,
+		.window_policy_reserved = budget_view.window_policy_reserved,
+		.window_policy_budget = budget_view.window_policy_budget,
+		.deferred_window_policy_budget =
+			budget_view.deferred_window_policy_budget,
+		.window_policy_budget_reserved =
+			budget_view.window_policy_budget_reserved,
+		.window_policy_budget_window =
+			budget_view.window_policy_budget_window,
+		.window_policy_budget_window_floor =
+			budget_view.window_policy_budget_window_floor,
+		.window_policy_budget_window_reserved =
+			budget_view.window_policy_budget_window_reserved,
+		.window_policy_budget_window_delivery_budget =
+			budget_view.window_policy_budget_window_delivery_budget,
+		.deferred_window_policy_budget_window_delivery_budget =
+			budget_view
+				.deferred_window_policy_budget_window_delivery_budget,
+		.window_policy_budget_window_delivery_reserved =
+			budget_view.window_policy_budget_window_delivery_reserved,
+		.window_policy_budget_window_delivery_window =
+			budget_view.window_policy_budget_window_delivery_window,
+		.window_policy_budget_window_delivery_window_floor =
+			budget_view
+				.window_policy_budget_window_delivery_window_floor,
+		.window_policy_budget_window_delivery_window_reserved =
+			budget_view
+				.window_policy_budget_window_delivery_window_reserved,
+		.window_policy_budget_window_delivery_window_budget =
+			budget_view
+				.window_policy_budget_window_delivery_window_budget,
+		.deferred_window_policy_budget_window_delivery_window_budget =
+			budget_view
+				.deferred_window_policy_budget_window_delivery_window_budget,
+		.window_policy_budget_window_delivery_window_budget_reserved =
+			budget_view
+				.window_policy_budget_window_delivery_window_budget_reserved,
+		.window_policy_budget_window_delivery_window_budget_window =
+			window_policy_budget_window_delivery_window_budget_window,
+		.window_policy_budget_window_delivery_window_budget_window_floor =
+			window_policy_budget_window_delivery_window_budget_window_floor,
+		.window_policy_budget_window_delivery_window_budget_window_reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view_valid(
+	const struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view
+		*view)
+{
+	if (!view)
+		return false;
+	if (view->window_policy_budget_window_delivery_window_budget_window_reserved != 0)
+		return false;
+	return zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_valid(
+		(const struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view *)
+			view);
+}
+
+static inline struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
+zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_as_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget(
+	const struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view
+		*view)
+{
+	if (view->window_policy_budget_window_delivery_window_budget_window_reserved != 0)
+		return (struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view){
+			0
+		};
+
+	return (struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.completion_cookie = view->completion_cookie,
+		.completion_budget = view->completion_budget,
+		.notify_mask = view->notify_mask,
+		.notify_cookie = view->notify_cookie,
+		.notify_budget = view->notify_budget,
+		.reserved = view->reserved,
+		.policy_flags = view->policy_flags,
+		.policy_reserved = view->policy_reserved,
+		.delivery_budget = view->delivery_budget,
+		.deferred_budget = view->deferred_budget,
+		.ack_mask = view->ack_mask,
+		.ack_window = view->ack_window,
+		.ack_cookie = view->ack_cookie,
+		.ack_observed = view->ack_observed,
+		.ack_reserved = view->ack_reserved,
+		.ack_policy_flags = view->ack_policy_flags,
+		.ack_policy_reserved = view->ack_policy_reserved,
+		.ack_budget = view->ack_budget,
+		.deferred_ack_budget = view->deferred_ack_budget,
+		.ack_budget_reserved = view->ack_budget_reserved,
+		.window_floor = view->window_floor,
+		.window_reserved = view->window_reserved,
+		.window_policy_flags = view->window_policy_flags,
+		.window_policy_reserved = view->window_policy_reserved,
+		.window_policy_budget = view->window_policy_budget,
+		.deferred_window_policy_budget = view->deferred_window_policy_budget,
+		.window_policy_budget_reserved = view->window_policy_budget_reserved,
+		.window_policy_budget_window = view->window_policy_budget_window,
+		.window_policy_budget_window_floor =
+			view->window_policy_budget_window_floor,
+		.window_policy_budget_window_reserved =
+			view->window_policy_budget_window_reserved,
+		.window_policy_budget_window_delivery_budget =
+			view->window_policy_budget_window_delivery_budget,
+		.deferred_window_policy_budget_window_delivery_budget =
+			view->deferred_window_policy_budget_window_delivery_budget,
+		.window_policy_budget_window_delivery_reserved =
+			view->window_policy_budget_window_delivery_reserved,
+		.window_policy_budget_window_delivery_window =
+			view->window_policy_budget_window_delivery_window,
+		.window_policy_budget_window_delivery_window_floor =
+			view->window_policy_budget_window_delivery_window_floor,
+		.window_policy_budget_window_delivery_window_reserved =
+			view->window_policy_budget_window_delivery_window_reserved,
+		.window_policy_budget_window_delivery_window_budget =
+			view->window_policy_budget_window_delivery_window_budget,
+		.deferred_window_policy_budget_window_delivery_window_budget =
+			view->deferred_window_policy_budget_window_delivery_window_budget,
+		.window_policy_budget_window_delivery_window_budget_reserved =
+			view->window_policy_budget_window_delivery_window_budget_reserved,
+	};
+}
+
+static inline struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_summary
+zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_summarize(
+	const struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view
+		*view)
+{
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_summary
+		summary = {
+			.resolved_index = ZIGUX_CHRDEV_NOTIFY_INDEX_NONE,
+			.completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_NONE,
+			.notify_status = ZIGUX_CHRDEV_NOTIFY_STATUS_NONE,
+			.policy_status = ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_NONE,
+			.budget_status = ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_NONE,
+			.ack_status = ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_NONE,
+			.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_NONE,
+			.ack_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_BUDGET_STATUS_NONE,
+			.window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_STATUS_NONE,
+			.window_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_STATUS_NONE,
+			.window_policy_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_NONE,
+			.window_policy_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_NONE,
+			.window_policy_budget_window_delivery_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_STATUS_NONE,
+			.window_policy_budget_window_delivery_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_NONE,
+			.window_policy_budget_window_delivery_window_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_NONE,
+			.window_policy_budget_window_delivery_window_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_NONE,
+		};
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view
+		budget_view;
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary
+		budget_summary;
+
+	if (!zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_view_valid(
+		    view))
+		return summary;
+
+	budget_view =
+		zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_as_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget(
+			view);
+	budget_summary =
+		zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summarize(
+			&budget_view);
+	memcpy(&summary, &budget_summary, sizeof(budget_summary));
+
+	summary.window_policy_budget_window_delivery_window_budget_window_before =
+		view->window_policy_budget_window_delivery_window_budget_window;
+	summary.window_policy_budget_window_delivery_window_budget_window_after =
+		view->window_policy_budget_window_delivery_window_budget_window;
+	summary.window_policy_budget_window_delivery_window_budget_window_floor =
+		view->window_policy_budget_window_delivery_window_budget_window_floor;
+
+	switch (budget_summary
+			.window_policy_budget_window_delivery_window_budget_status) {
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_NONE:
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SUPPRESSED:
+		summary.window_policy_budget_window_delivery_window_budget_window_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SUPPRESSED;
+		summary.window_policy_budget_window_delivery_window_budget_window_suppressed_count =
+			1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SKIPPED:
+		summary.window_policy_budget_window_delivery_window_budget_window_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED;
+		summary.window_policy_budget_window_delivery_window_budget_window_skipped_count =
+			1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED:
+		summary.window_policy_budget_window_delivery_window_budget_window_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_DROPPED;
+		summary.window_policy_budget_window_delivery_window_budget_window_dropped_count =
+			1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_ACKED:
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DEFERRED:
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_COALESCED:
+		summary.window_policy_budget_window_delivery_window_budget_window_flags |=
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED;
+		if (summary
+			    .window_policy_budget_window_delivery_window_budget_window_before ==
+		    0) {
+			summary.window_policy_budget_window_delivery_window_budget_window_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_EXHAUSTED;
+			summary.window_policy_budget_window_delivery_window_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_DROPPED;
+			summary.window_policy_budget_window_delivery_window_budget_window_dropped_count =
+				1;
+		} else if (summary
+				   .window_policy_budget_window_delivery_window_budget_window_before <=
+			   view->window_policy_budget_window_delivery_window_budget_window_floor) {
+			summary.window_policy_budget_window_delivery_window_budget_window_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_FLOOR_HELD |
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_FLOOR_BLOCKED;
+			summary.window_policy_budget_window_delivery_window_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_DEFERRED;
+			summary.window_policy_budget_window_delivery_window_budget_window_deferred_count =
+				1;
+		} else {
+			summary.window_policy_budget_window_delivery_window_budget_window_after =
+				summary.window_policy_budget_window_delivery_window_budget_window_before -
+				1;
+			summary.window_policy_budget_window_delivery_window_budget_window_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_USED;
+			switch (budget_summary
+					.window_policy_budget_window_delivery_window_budget_status) {
+			case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_ACKED:
+				summary.window_policy_budget_window_delivery_window_budget_window_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_ACKED;
+				summary.window_policy_budget_window_delivery_window_budget_window_acked_count =
+					1;
+				break;
+			case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_COALESCED:
+				summary.window_policy_budget_window_delivery_window_budget_window_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_COALESCED;
+				summary.window_policy_budget_window_delivery_window_budget_window_coalesced_count =
+					1;
+				break;
+			default:
+				summary.window_policy_budget_window_delivery_window_budget_window_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_DEFERRED;
+				summary.window_policy_budget_window_delivery_window_budget_window_deferred_count =
+					1;
+				break;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	return summary;
+}
+
 #endif
