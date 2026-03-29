@@ -58,6 +58,7 @@ Current bootstrap helpers
 - `check-phase3-chrdev-notify-ack-window.py`
 - `check-phase3-chrdev-notify-ack-window-policy.py`
 - `check-phase3-chrdev-notify-ack-window-policy-budget.py`
+- `check-phase3-chrdev-notify-ack-window-policy-budget-window.py`
 - `check-mk-elfconfig-diff.py`
 - `fixdep.zig`
 - `genksyms.zig`

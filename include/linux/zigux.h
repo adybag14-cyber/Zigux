@@ -6148,4 +6148,342 @@ zigux_chrdev_notify_ack_window_policy_budget_summarize(
 	return summary;
 }
 
+static inline struct zigux_chrdev_notify_ack_window_policy_budget_window_view
+zigux_chrdev_notify_ack_window_policy_budget_window_view_from_bits(
+	const unsigned long *bits, zigux_u32 major, zigux_u32 first_minor,
+	zigux_u32 minor_count, zigux_u32 max_scan, zigux_u32 request_count,
+	zigux_u32 policy, zigux_u32 target_minor, zigux_u32 requested_mode,
+	zigux_u32 supported_mode, zigux_u32 available_ops, zigux_u32 io_op,
+	zigux_u32 requested_bytes, zigux_u32 max_chunk_bytes,
+	zigux_u64 file_offset, zigux_u32 bytes_completed,
+	zigux_u32 max_segments, zigux_u32 resume_passes,
+	zigux_u32 retry_budget, zigux_u32 stall_budget,
+	zigux_u32 backoff_quanta, zigux_u32 queue_depth,
+	zigux_u32 queue_capacity, zigux_u32 requeue_budget,
+	zigux_u64 completion_cookie, zigux_u32 completion_budget,
+	zigux_u32 notify_mask, zigux_u32 notify_budget,
+	zigux_u64 notify_cookie, zigux_u32 policy_flags,
+	zigux_u32 delivery_budget, zigux_u32 deferred_budget,
+	zigux_u32 ack_mask, zigux_u32 ack_window, zigux_u64 ack_cookie,
+	zigux_u32 ack_observed, zigux_u32 ack_policy_flags,
+	zigux_u32 ack_budget, zigux_u32 deferred_ack_budget,
+	zigux_u32 window_floor, zigux_u32 window_policy_flags,
+	zigux_u32 window_policy_budget,
+	zigux_u32 deferred_window_policy_budget,
+	zigux_u32 window_policy_budget_window,
+	zigux_u32 window_policy_budget_window_floor)
+{
+	return (struct zigux_chrdev_notify_ack_window_policy_budget_window_view){
+		.bits_addr = bits ? (unsigned long)bits : 0UL,
+		.major = major,
+		.first_minor = first_minor,
+		.minor_count = minor_count,
+		.max_scan = max_scan,
+		.request_count = request_count,
+		.policy = policy,
+		.target_minor = target_minor,
+		.requested_mode = requested_mode,
+		.supported_mode = supported_mode,
+		.available_ops = available_ops,
+		.io_op = io_op,
+		.requested_bytes = requested_bytes,
+		.max_chunk_bytes = max_chunk_bytes,
+		.file_offset = file_offset,
+		.bytes_completed = bytes_completed,
+		.max_segments = max_segments,
+		.resume_passes = resume_passes,
+		.retry_budget = retry_budget,
+		.stall_budget = stall_budget,
+		.backoff_quanta = backoff_quanta,
+		.queue_depth = queue_depth,
+		.queue_capacity = queue_capacity,
+		.requeue_budget = requeue_budget,
+		.completion_cookie = completion_cookie,
+		.completion_budget = completion_budget,
+		.notify_mask = notify_mask,
+		.notify_cookie = notify_cookie,
+		.notify_budget = notify_budget,
+		.reserved = 0,
+		.policy_flags = policy_flags,
+		.policy_reserved = 0,
+		.delivery_budget = delivery_budget,
+		.deferred_budget = deferred_budget,
+		.ack_mask = ack_mask,
+		.ack_window = ack_window,
+		.ack_cookie = ack_cookie,
+		.ack_observed = ack_observed,
+		.ack_reserved = 0,
+		.ack_policy_flags = ack_policy_flags,
+		.ack_policy_reserved = 0,
+		.ack_budget = ack_budget,
+		.deferred_ack_budget = deferred_ack_budget,
+		.ack_budget_reserved = 0,
+		.window_floor = window_floor,
+		.window_reserved = 0,
+		.window_policy_flags = window_policy_flags,
+		.window_policy_reserved = 0,
+		.window_policy_budget = window_policy_budget,
+		.deferred_window_policy_budget =
+			deferred_window_policy_budget,
+		.window_policy_budget_reserved = 0,
+		.window_policy_budget_window = window_policy_budget_window,
+		.window_policy_budget_window_floor =
+			window_policy_budget_window_floor,
+		.window_policy_budget_window_reserved = 0,
+	};
+}
+
+static inline bool
+zigux_chrdev_notify_ack_window_policy_budget_window_view_valid(
+	const struct zigux_chrdev_notify_ack_window_policy_budget_window_view *view)
+{
+	struct zigux_chrdev_notify_ack_window_policy_budget_view budget_view;
+
+	if (!view)
+		return false;
+	if (view->window_policy_budget_window_reserved != 0)
+		return false;
+
+	budget_view =
+		(struct zigux_chrdev_notify_ack_window_policy_budget_view){
+			.bits_addr = view->bits_addr,
+			.major = view->major,
+			.first_minor = view->first_minor,
+			.minor_count = view->minor_count,
+			.max_scan = view->max_scan,
+			.request_count = view->request_count,
+			.policy = view->policy,
+			.target_minor = view->target_minor,
+			.requested_mode = view->requested_mode,
+			.supported_mode = view->supported_mode,
+			.available_ops = view->available_ops,
+			.io_op = view->io_op,
+			.requested_bytes = view->requested_bytes,
+			.max_chunk_bytes = view->max_chunk_bytes,
+			.file_offset = view->file_offset,
+			.bytes_completed = view->bytes_completed,
+			.max_segments = view->max_segments,
+			.resume_passes = view->resume_passes,
+			.retry_budget = view->retry_budget,
+			.stall_budget = view->stall_budget,
+			.backoff_quanta = view->backoff_quanta,
+			.queue_depth = view->queue_depth,
+			.queue_capacity = view->queue_capacity,
+			.requeue_budget = view->requeue_budget,
+			.completion_cookie = view->completion_cookie,
+			.completion_budget = view->completion_budget,
+			.notify_mask = view->notify_mask,
+			.notify_cookie = view->notify_cookie,
+			.notify_budget = view->notify_budget,
+			.reserved = view->reserved,
+			.policy_flags = view->policy_flags,
+			.policy_reserved = view->policy_reserved,
+			.delivery_budget = view->delivery_budget,
+			.deferred_budget = view->deferred_budget,
+			.ack_mask = view->ack_mask,
+			.ack_window = view->ack_window,
+			.ack_cookie = view->ack_cookie,
+			.ack_observed = view->ack_observed,
+			.ack_reserved = view->ack_reserved,
+			.ack_policy_flags = view->ack_policy_flags,
+			.ack_policy_reserved = view->ack_policy_reserved,
+			.ack_budget = view->ack_budget,
+			.deferred_ack_budget = view->deferred_ack_budget,
+			.ack_budget_reserved = view->ack_budget_reserved,
+			.window_floor = view->window_floor,
+			.window_reserved = view->window_reserved,
+			.window_policy_flags = view->window_policy_flags,
+			.window_policy_reserved = view->window_policy_reserved,
+			.window_policy_budget = view->window_policy_budget,
+			.deferred_window_policy_budget =
+				view->deferred_window_policy_budget,
+			.window_policy_budget_reserved =
+				view->window_policy_budget_reserved,
+		};
+	return zigux_chrdev_notify_ack_window_policy_budget_view_valid(
+		&budget_view);
+}
+
+static inline struct zigux_chrdev_notify_ack_window_policy_budget_view
+zigux_chrdev_notify_ack_window_policy_budget_window_as_chrdev_notify_ack_window_policy_budget(
+	const struct zigux_chrdev_notify_ack_window_policy_budget_window_view *view)
+{
+	if (!zigux_chrdev_notify_ack_window_policy_budget_window_view_valid(
+		    view))
+		return (struct zigux_chrdev_notify_ack_window_policy_budget_view){
+			0 };
+
+	return (struct zigux_chrdev_notify_ack_window_policy_budget_view){
+		.bits_addr = view->bits_addr,
+		.major = view->major,
+		.first_minor = view->first_minor,
+		.minor_count = view->minor_count,
+		.max_scan = view->max_scan,
+		.request_count = view->request_count,
+		.policy = view->policy,
+		.target_minor = view->target_minor,
+		.requested_mode = view->requested_mode,
+		.supported_mode = view->supported_mode,
+		.available_ops = view->available_ops,
+		.io_op = view->io_op,
+		.requested_bytes = view->requested_bytes,
+		.max_chunk_bytes = view->max_chunk_bytes,
+		.file_offset = view->file_offset,
+		.bytes_completed = view->bytes_completed,
+		.max_segments = view->max_segments,
+		.resume_passes = view->resume_passes,
+		.retry_budget = view->retry_budget,
+		.stall_budget = view->stall_budget,
+		.backoff_quanta = view->backoff_quanta,
+		.queue_depth = view->queue_depth,
+		.queue_capacity = view->queue_capacity,
+		.requeue_budget = view->requeue_budget,
+		.completion_cookie = view->completion_cookie,
+		.completion_budget = view->completion_budget,
+		.notify_mask = view->notify_mask,
+		.notify_cookie = view->notify_cookie,
+		.notify_budget = view->notify_budget,
+		.reserved = view->reserved,
+		.policy_flags = view->policy_flags,
+		.policy_reserved = view->policy_reserved,
+		.delivery_budget = view->delivery_budget,
+		.deferred_budget = view->deferred_budget,
+		.ack_mask = view->ack_mask,
+		.ack_window = view->ack_window,
+		.ack_cookie = view->ack_cookie,
+		.ack_observed = view->ack_observed,
+		.ack_reserved = view->ack_reserved,
+		.ack_policy_flags = view->ack_policy_flags,
+		.ack_policy_reserved = view->ack_policy_reserved,
+		.ack_budget = view->ack_budget,
+		.deferred_ack_budget = view->deferred_ack_budget,
+		.ack_budget_reserved = view->ack_budget_reserved,
+		.window_floor = view->window_floor,
+		.window_reserved = view->window_reserved,
+		.window_policy_flags = view->window_policy_flags,
+		.window_policy_reserved = view->window_policy_reserved,
+		.window_policy_budget = view->window_policy_budget,
+		.deferred_window_policy_budget =
+			view->deferred_window_policy_budget,
+		.window_policy_budget_reserved =
+			view->window_policy_budget_reserved,
+	};
+}
+
+static inline struct zigux_chrdev_notify_ack_window_policy_budget_window_summary
+zigux_chrdev_notify_ack_window_policy_budget_window_summarize(
+	const struct zigux_chrdev_notify_ack_window_policy_budget_window_view *view)
+{
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_summary
+		summary = {
+			.resolved_index = ZIGUX_CHRDEV_NOTIFY_INDEX_NONE,
+			.completion_status = ZIGUX_CHRDEV_COMPLETE_STATUS_NONE,
+			.notify_status = ZIGUX_CHRDEV_NOTIFY_STATUS_NONE,
+			.policy_status = ZIGUX_CHRDEV_NOTIFY_POLICY_STATUS_NONE,
+			.budget_status = ZIGUX_CHRDEV_NOTIFY_BUDGET_STATUS_NONE,
+			.ack_status = ZIGUX_CHRDEV_NOTIFY_ACK_STATUS_NONE,
+			.ack_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_POLICY_STATUS_NONE,
+			.ack_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_BUDGET_STATUS_NONE,
+			.window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_STATUS_NONE,
+			.window_policy_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_STATUS_NONE,
+			.window_policy_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_NONE,
+			.window_policy_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_NONE,
+		};
+	struct zigux_chrdev_notify_ack_window_policy_budget_view budget_view;
+	struct zigux_chrdev_notify_ack_window_policy_budget_summary budget_summary;
+
+	if (!zigux_chrdev_notify_ack_window_policy_budget_window_view_valid(
+		    view))
+		return summary;
+
+	budget_view =
+		zigux_chrdev_notify_ack_window_policy_budget_window_as_chrdev_notify_ack_window_policy_budget(
+			view);
+	budget_summary =
+		zigux_chrdev_notify_ack_window_policy_budget_summarize(
+			&budget_view);
+	memcpy(&summary, &budget_summary, sizeof(budget_summary));
+
+	summary.window_policy_budget_window_before =
+		view->window_policy_budget_window;
+	summary.window_policy_budget_window_after =
+		view->window_policy_budget_window;
+	summary.window_policy_budget_window_floor =
+		view->window_policy_budget_window_floor;
+
+	switch (budget_summary.window_policy_budget_status) {
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_NONE:
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_SUPPRESSED:
+		summary.window_policy_budget_window_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_SUPPRESSED;
+		summary.window_policy_budget_window_suppressed_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_SKIPPED:
+		summary.window_policy_budget_window_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_SKIPPED;
+		summary.window_policy_budget_window_skipped_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_DROPPED:
+		summary.window_policy_budget_window_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_DROPPED;
+		summary.window_policy_budget_window_dropped_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_ACKED:
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_DEFERRED:
+	case ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_COALESCED:
+		summary.window_policy_budget_window_flags |=
+			ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_FLAG_WINDOW_APPLIED;
+		if (summary.window_policy_budget_window_before == 0) {
+			summary.window_policy_budget_window_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_FLAG_WINDOW_EXHAUSTED;
+			summary.window_policy_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_DROPPED;
+			summary.window_policy_budget_window_dropped_count = 1;
+		} else if (summary.window_policy_budget_window_before <=
+			   view->window_policy_budget_window_floor) {
+			summary.window_policy_budget_window_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_FLAG_FLOOR_HELD |
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_FLAG_FLOOR_BLOCKED;
+			summary.window_policy_budget_window_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_DEFERRED;
+			summary.window_policy_budget_window_deferred_count = 1;
+		} else {
+			summary.window_policy_budget_window_after =
+				summary.window_policy_budget_window_before - 1;
+			summary.window_policy_budget_window_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_FLAG_WINDOW_USED;
+			if (budget_summary.window_policy_budget_status ==
+			    ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_ACKED) {
+				summary.window_policy_budget_window_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_ACKED;
+				summary.window_policy_budget_window_acked_count =
+					1;
+			} else if (budget_summary.window_policy_budget_status ==
+				   ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_STATUS_COALESCED) {
+				summary.window_policy_budget_window_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_COALESCED;
+				summary.window_policy_budget_window_coalesced_count =
+					1;
+			} else {
+				summary.window_policy_budget_window_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_STATUS_DEFERRED;
+				summary.window_policy_budget_window_deferred_count =
+					1;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	return summary;
+}
+
 #endif
