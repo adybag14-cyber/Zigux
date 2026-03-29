@@ -3435,6 +3435,19 @@ pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_W
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_COALESCED: u32 = 4;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED: u32 = 5;
 pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SKIPPED: u32 = 6;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_APPLIED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_PRIMARY_HELD: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_DEFERRED_HELD: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_EXHAUSTED: u32 = 8;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_PASSTHROUGH: u32 = 16;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_NONE: u32 = 0;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_ACKED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_DEFERRED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_SUPPRESSED: u32 = 3;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_COALESCED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_DROPPED: u32 = 5;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_SKIPPED: u32 = 6;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_HELD: u32 = 7;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryView = extern struct {
     bits_addr: usize,
@@ -4289,6 +4302,32 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliv
     window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_coalesced_count: u32,
     window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_dropped_count: u32,
     window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_skipped_count: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardView = extern struct {
+    parent: ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowBudgetView,
+    primary_guard_floor: u32,
+    deferred_guard_floor: u32,
+    reserved: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardSummary = extern struct {
+    parent: ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowBudgetSummary,
+    primary_before: u32,
+    primary_after: u32,
+    deferred_before: u32,
+    deferred_after: u32,
+    primary_guard_floor: u32,
+    deferred_guard_floor: u32,
+    guard_flags: u32,
+    guard_status: u32,
+    acked_count: u32,
+    deferred_count: u32,
+    suppressed_count: u32,
+    coalesced_count: u32,
+    dropped_count: u32,
+    skipped_count: u32,
+    held_count: u32,
 };
 
 pub const MmioRange = extern struct {

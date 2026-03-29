@@ -4300,6 +4300,46 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
 	zigux_u32 window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_skipped_count;
 };
 
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_APPLIED 1U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_PRIMARY_HELD 2U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_DEFERRED_HELD 4U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_EXHAUSTED 8U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_FLAG_PASSTHROUGH 16U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_NONE 0U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_ACKED 1U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_DEFERRED 2U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_SUPPRESSED 3U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_COALESCED 4U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_DROPPED 5U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_SKIPPED 6U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_HELD 7U
+
+struct zigux_chrdev_notify_ack_delivery_budget_guard_view {
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_view parent;
+	zigux_u32 primary_guard_floor;
+	zigux_u32 deferred_guard_floor;
+	zigux_u32 reserved;
+};
+
+struct zigux_chrdev_notify_ack_delivery_budget_guard_summary {
+	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_summary parent;
+	zigux_u32 primary_before;
+	zigux_u32 primary_after;
+	zigux_u32 deferred_before;
+	zigux_u32 deferred_after;
+	zigux_u32 primary_guard_floor;
+	zigux_u32 deferred_guard_floor;
+	zigux_u32 guard_flags;
+	zigux_u32 guard_status;
+	zigux_u32 acked_count;
+	zigux_u32 deferred_count;
+	zigux_u32 suppressed_count;
+	zigux_u32 coalesced_count;
+	zigux_u32 dropped_count;
+	zigux_u32 skipped_count;
+	zigux_u32 held_count;
+};
+
 struct zigux_mmio_range {
 	unsigned long base_addr;
 	zigux_u32 length;
