@@ -56,6 +56,7 @@ Active slice records
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-slice.md`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-slice.md`
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
