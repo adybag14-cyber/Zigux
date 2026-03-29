@@ -861,6 +861,26 @@ This ledger turns the roadmap into the first product commit train.
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
+### `feat(zigux): add bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery interop slice`
+- `zigux/helpers/chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_plan.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery/phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery/phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery.py`
+- `Documentation/zigux/phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`
+- `zigux/Makefile`
+- `scripts/zigux/validate-phase3.py`
+- `Documentation/zigux/README.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+
 ### `feat(zigux): add bounded Phase 3 chrdev notify ack delivery budget guard window interop slice`
 - `zigux/helpers/chrdev_notify_ack_delivery_budget_guard_window_plan.zig`
 - `zigux/tests/phase3_chrdev_notify_ack_delivery_budget_guard_window_dump.zig`
