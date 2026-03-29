@@ -191,6 +191,9 @@ jobs:
       - name: Check bounded Phase 3 chrdev notify ack window policy budget window delivery interop parity
         run: python3 scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery.py
 
+      - name: Check bounded Phase 3 chrdev notify ack window policy budget window delivery window interop parity
+        run: python3 scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window.py
+
       - name: Run bounded fixdep unit tests
         run: zig test scripts/zigux/fixdep.zig
 

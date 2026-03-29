@@ -724,6 +724,15 @@ This ledger turns the roadmap into the first product commit train.
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery.py`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-slice.md`
+
+### `feat(zigux): add bounded Phase 3 chrdev notify ack window policy budget window delivery window interop slice`
+- `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_plan.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window.py`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`
