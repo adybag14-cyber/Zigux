@@ -52,6 +52,7 @@ const chrdev_notify_ack_delivery_budget_guard_window_policy_plan = @import("chrd
 const chrdev_notify_ack_delivery_budget_guard_window_policy_budget_plan = @import("chrdev_notify_ack_delivery_budget_guard_window_policy_budget_plan");
 const chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_plan = @import("chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_plan");
 const chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_plan = @import("chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_plan");
+const chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan = @import("chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan");
 const export_shim = @import("export_shim");
 const narrow = @import("narrow_unsafe");
 const uapi_version = @import("uapi_version");
@@ -146,6 +147,7 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetView, 384);
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowView, 400);
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryView, 416);
+        layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowView, 432);
         layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowSummary, 864);
         layout_assert.assertSize(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowBudgetSummary, 912);
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardSummary, 976);
@@ -154,6 +156,7 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetSummary, 1128);
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowSummary, 1176);
         layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliverySummary, 1232);
+        layout_assert.assertSize(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, 1280);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window_budget_window_delivery_window_budget", 316);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowBudgetView, "deferred_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget", 320);
         layout_assert.assertOffset(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryWindowBudgetView, "window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_reserved", 324);
@@ -264,6 +267,21 @@ test "phase3 abi slice uses stable canonical layouts" {
         layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliverySummary, "dropped_count", 1216);
         layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliverySummary, "skipped_count", 1220);
         layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliverySummary, "held_count", 1224);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window", 416);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window_floor", 420);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowView, "reserved", 424);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "delivery_window_flags", 1232);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "delivery_window_before", 1236);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "delivery_window_after", 1240);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "delivery_window_floor", 1244);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "delivery_window_status", 1248);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "acked_count", 1252);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "deferred_count", 1256);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "suppressed_count", 1260);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "coalesced_count", 1264);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "dropped_count", 1268);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped_count", 1272);
+        layout_assert.assertOffset(abi.ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowSummary, "held_count", 1276);
         layout_assert.assertOffset(abi.BitmapSummary, "first_zero", 4);
         layout_assert.assertOffset(abi.CpuMaskSummary, "next_cpu", 4);
         layout_assert.assertOffset(abi.ListHeadRef, "prev_addr", @sizeOf(usize));
@@ -2392,4 +2410,124 @@ test "phase3 chrdev notify ack delivery budget guard window policy budget window
     );
     try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_STATUS_SKIPPED), skipped_delivery_summary.delivery_status);
     try std.testing.expectEqual(@as(u32, 1), skipped_delivery_summary.skipped_count);
+}
+
+test "phase3 chrdev notify ack delivery budget guard window policy budget window delivery window helpers stay aligned with the ABI substrate" {
+    const words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 3) | (@as(usize, 1) << 7)};
+    const exhausted_words = [_]usize{(@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 4)};
+
+    const acked_parent = chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_plan.viewFromParent(
+        chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_plan.viewFromParent(
+            chrdev_notify_ack_delivery_budget_guard_window_policy_budget_plan.viewFromParent(
+                chrdev_notify_ack_delivery_budget_guard_window_policy_plan.viewFromParent(
+                    chrdev_notify_ack_delivery_budget_guard_window_plan.viewFromParent(
+                        chrdev_notify_ack_delivery_budget_guard_plan.viewFromParent(
+                            chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_SUCCESS, 1, 0xAAAA, 0, 1, 0, abi.CHRDEV_NOTIFY_ACK_MASK_ISSUED, 2, 0xA1A1, 1, 0, 1, 0, 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 2, 1, 2, 0, 1, 0, 3, 0, 2, 1),
+                            1,
+                            0,
+                        ),
+                        2,
+                        1,
+                        0,
+                    ),
+                    0,
+                ),
+                1,
+                1,
+            ),
+            2,
+            0,
+        ),
+        1,
+        0,
+    );
+    const acked_summary = chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.summarize(
+        chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.viewFromParent(
+            acked_parent,
+            3,
+            0,
+        ),
+    );
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_ACKED), acked_summary.delivery_window_status);
+    try std.testing.expectEqual(@as(u32, 2), acked_summary.delivery_window_after);
+    try std.testing.expect((acked_summary.delivery_window_flags & abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_WINDOW_USED) != 0);
+
+    const floor_held_summary = chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.summarize(
+        chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.viewFromParent(
+            acked_parent,
+            1,
+            1,
+        ),
+    );
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_DEFERRED), floor_held_summary.delivery_window_status);
+    try std.testing.expect((floor_held_summary.delivery_window_flags & abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_FLOOR_HELD) != 0);
+    try std.testing.expect((floor_held_summary.delivery_window_flags & abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_FLAG_FLOOR_BLOCKED) != 0);
+
+    const held_summary = chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.summarize(
+        chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.viewFromParent(
+            chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_plan.viewFromParent(
+                chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_plan.viewFromParent(
+                    chrdev_notify_ack_delivery_budget_guard_window_policy_budget_plan.viewFromParent(
+                        chrdev_notify_ack_delivery_budget_guard_window_policy_plan.viewFromParent(
+                            chrdev_notify_ack_delivery_budget_guard_window_plan.viewFromParent(
+                                chrdev_notify_ack_delivery_budget_guard_plan.viewFromParent(
+                                    chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_plan.viewFromBits(words[0..], 240, 32, 8, 8, 2, abi.IDA_POLICY_LAST_FIT, 37, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_MODE_READ | abi.CHRDEV_MODE_WRITE, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_WRITE, abi.CHRDEV_IO_OP_WRITE, 20, 8, 1024, 4, 1, 3, 2, 1, 5, 1, 4, 2, 0x1111, 1, abi.CHRDEV_NOTIFY_MASK_SUCCESS, 1, 0xAAAA, 0, 1, 0, abi.CHRDEV_NOTIFY_ACK_MASK_ISSUED, 2, 0xA1A1, 1, 0, 1, 0, 0, 0, 1, 0, 2, 0, 1, 0, 3, 0, 2, 1, 2, 0, 1, 0, 3, 0, 2, 1),
+                                    1,
+                                    0,
+                                ),
+                                1,
+                                1,
+                                1,
+                            ),
+                            0,
+                        ),
+                        1,
+                        1,
+                    ),
+                    2,
+                    0,
+                ),
+                1,
+                1,
+            ),
+            1,
+            1,
+        ),
+    );
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD), held_summary.delivery_window_status);
+    try std.testing.expectEqual(@as(u32, 1), held_summary.held_count);
+
+    const skipped_summary = chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.summarize(
+        chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_plan.viewFromParent(
+            chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_plan.viewFromParent(
+                chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_plan.viewFromParent(
+                    chrdev_notify_ack_delivery_budget_guard_window_policy_budget_plan.viewFromParent(
+                        chrdev_notify_ack_delivery_budget_guard_window_policy_plan.viewFromParent(
+                            chrdev_notify_ack_delivery_budget_guard_window_plan.viewFromParent(
+                                chrdev_notify_ack_delivery_budget_guard_plan.viewFromParent(
+                                    chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_plan.viewFromBits(exhausted_words[0..], 240, 16, 5, 5, 2, abi.IDA_POLICY_FIRST_FIT, 20, abi.CHRDEV_MODE_READ, abi.CHRDEV_MODE_READ, abi.CHRDEV_FOP_OPEN | abi.CHRDEV_FOP_RELEASE | abi.CHRDEV_FOP_READ, abi.CHRDEV_IO_OP_READ, 12, 32, 0, 0, 2, 2, 2, 1, 5, 1, 4, 2, 0x7777, 0, abi.CHRDEV_NOTIFY_MASK_FAILURE, 1, 0xF6F6, abi.CHRDEV_NOTIFY_POLICY_SUPPRESS_FAILURE, 3, 4, abi.CHRDEV_NOTIFY_ACK_MASK_ISSUED, 2, 0xF6F6, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 1, 1, 2, 1, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1),
+                                    1,
+                                    1,
+                                ),
+                                2,
+                                2,
+                                1,
+                            ),
+                            0,
+                        ),
+                        1,
+                        1,
+                    ),
+                    2,
+                    0,
+                ),
+                1,
+                1,
+            ),
+            1,
+            1,
+        ),
+    );
+    try std.testing.expectEqual(@as(u32, abi.CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED), skipped_summary.delivery_window_status);
+    try std.testing.expectEqual(@as(u32, 1), skipped_summary.skipped_count);
 }
