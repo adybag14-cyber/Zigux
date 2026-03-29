@@ -739,3 +739,18 @@ This ledger turns the roadmap into the first product commit train.
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/build.zig`
 - `.github/workflows/zigux-bootstrap.yml`
+
+### `feat(zigux): add bounded Phase 3 chrdev notify ack window policy budget window delivery window budget interop slice`
+- `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_plan.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_manifest.json`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget.py`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-slice.md`
+- `include/zigux/abi.h`
+- `include/linux/zigux.h`
+- `zigux/bindings/abi.zig`
+- `zigux/tests/phase3_abi.zig`
+- `zigux/tests/build.zig`
+- `.github/workflows/zigux-bootstrap.yml`

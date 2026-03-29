@@ -141,3 +141,6 @@ Current entrypoint
 - `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_dump.zig`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_manifest.json`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window/expected.json`
+- `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_dump.zig`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_manifest.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget/expected.json`
