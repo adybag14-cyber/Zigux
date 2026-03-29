@@ -99,6 +99,8 @@ Current Phase 3 use
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack-window-policy-budget-window-delivery-window-budget planning dump.
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window/expected.json` fixes the bounded kernel-facing chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window planning claim on top of the chrdev-notify-ack-window-policy-budget-window-delivery-window-budget substrate.
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window planning dump.
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery/expected.json` fixes the bounded kernel-facing chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery planning claim on top of the chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window substrate.
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery.py` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery planning dump.
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
