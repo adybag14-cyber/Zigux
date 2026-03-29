@@ -60,6 +60,7 @@ Active slice records
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-delivery-budget-guard-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-delivery-budget-guard-window-slice.md`
+- `Documentation/zigux/phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-slice.md`

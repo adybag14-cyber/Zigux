@@ -3463,6 +3463,17 @@ pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_COALESCED: u32 =
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_DROPPED: u32 = 5;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_SKIPPED: u32 = 6;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_HELD: u32 = 7;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_FLAG_FORCE_DEFERRED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_FLAG_SUPPRESS_HELD: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_FLAG_SUPPRESS_DROPPED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_NONE: u32 = 0;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_ACKED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_DEFERRED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_SUPPRESSED: u32 = 3;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_COALESCED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_DROPPED: u32 = 5;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_SKIPPED: u32 = 6;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_STATUS_HELD: u32 = 7;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryView = extern struct {
     bits_addr: usize,
@@ -4362,6 +4373,26 @@ pub const ChrdevNotifyAckDeliveryBudgetGuardWindowSummary = extern struct {
     window_floor: u32,
     window_flags: u32,
     window_status: u32,
+    acked_count: u32,
+    deferred_count: u32,
+    suppressed_count: u32,
+    coalesced_count: u32,
+    dropped_count: u32,
+    skipped_count: u32,
+    held_count: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyView = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardWindowView,
+    policy_flags: u32,
+    reserved: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicySummary = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardWindowSummary,
+    policy_flags: u32,
+    effective_policy_flags: u32,
+    policy_status: u32,
     acked_count: u32,
     deferred_count: u32,
     suppressed_count: u32,
