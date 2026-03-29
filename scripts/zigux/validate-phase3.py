@@ -41,6 +41,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-policy-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-window-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-window-policy-slice.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-window-policy-budget-slice.md',
     ROOT / 'include' / 'linux' / 'zigux.h',
     ROOT / 'include' / 'zigux' / 'abi.h',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-abi.py',
@@ -75,6 +76,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-ack-policy.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-ack-window.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-ack-window-policy.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase3-chrdev-notify-ack-window-policy-budget.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase3.py',
     ROOT / 'zigux' / 'bindings' / 'abi.zig',
     ROOT / 'zigux' / 'helpers' / 'bitmap_view.zig',
@@ -111,6 +113,7 @@ required_files = [
     ROOT / 'zigux' / 'helpers' / 'chrdev_notify_ack_budget_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_notify_ack_window_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'chrdev_notify_ack_window_policy_plan.zig',
+    ROOT / 'zigux' / 'helpers' / 'chrdev_notify_ack_window_policy_budget_plan.zig',
     ROOT / 'zigux' / 'helpers' / 'layout_assert.zig',
     ROOT / 'zigux' / 'helpers' / 'panic_policy.zig',
     ROOT / 'zigux' / 'helpers' / 'allocator_policy.zig',
@@ -153,6 +156,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_ack_budget_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_ack_window_dump.zig',
     ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_ack_window_policy_dump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase3_chrdev_notify_ack_window_policy_budget_dump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'phase3_abi_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_abi_manifest.json',
@@ -242,6 +246,8 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy' / 'phase3_chrdev_notify_ack_window_policy_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy' / 'expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy_budget' / 'phase3_chrdev_notify_ack_window_policy_budget_c_harness.c',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy_budget' / 'expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_policy_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_budget_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_manifest.json',
@@ -249,6 +255,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_budget_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy_budget_manifest.json',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -292,6 +299,7 @@ phase_chrdev_notify_ack_budget_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3
 phase_chrdev_notify_ack_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-slice.md').read_text(encoding='utf-8')
 phase_chrdev_notify_ack_window_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-window-slice.md').read_text(encoding='utf-8')
 phase_chrdev_notify_ack_window_policy_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-window-policy-slice.md').read_text(encoding='utf-8')
+phase_chrdev_notify_ack_window_policy_budget_doc = (ROOT / 'Documentation' / 'zigux' / 'phase3-chrdev-notify-ack-window-policy-budget-slice.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -329,6 +337,7 @@ chrdev_notify_budget_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures
 chrdev_notify_ack_budget_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_budget_manifest.json').read_text(encoding='utf-8'))
 chrdev_notify_ack_window_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_manifest.json').read_text(encoding='utf-8'))
 chrdev_notify_ack_window_policy_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy_manifest.json').read_text(encoding='utf-8'))
+chrdev_notify_ack_window_policy_budget_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_window_policy_budget_manifest.json').read_text(encoding='utf-8'))
 
 required_markers = {
     'roadmap': [
@@ -549,6 +558,13 @@ required_markers = {
         'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-chrdev-notify-ack-window-policy.py',
         'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
     ],
+    'phase_chrdev_notify_ack_window_policy_budget_doc': [
+        'PHASE3_STATUS=active',
+        'PHASE3_SLICE=chrdev-notify-ack-window-policy-budget-plan-interop',
+        'PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py',
+        'PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget.py',
+        'PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig',
+    ],
     'workflow': [
         'python3 scripts/zigux/validate-phase3.py',
         'python3 scripts/zigux/check-phase3-abi.py',
@@ -583,6 +599,7 @@ required_markers = {
         'python3 scripts/zigux/check-phase3-chrdev-notify-ack-budget.py',
         'python3 scripts/zigux/check-phase3-chrdev-notify-ack-window.py',
         'python3 scripts/zigux/check-phase3-chrdev-notify-ack-window-policy.py',
+        'python3 scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget.py',
         'zig build phase3-test --build-file zigux/tests/build.zig',
     ],
     'makefile': [
@@ -622,6 +639,7 @@ required_markers = {
         'check-phase3-chrdev-notify-ack-budget.py',
         'check-phase3-chrdev-notify-ack-window.py',
         'check-phase3-chrdev-notify-ack-window-policy.py',
+        'check-phase3-chrdev-notify-ack-window-policy-budget.py',
         '$(ZIG) build phase3-test --build-file zigux/tests/build.zig',
     ],
     'scripts': [
@@ -657,6 +675,7 @@ required_markers = {
         'check-phase3-chrdev-notify-ack-budget.py',
         'check-phase3-chrdev-notify-ack-window.py',
         'check-phase3-chrdev-notify-ack-window-policy.py',
+        'check-phase3-chrdev-notify-ack-window-policy-budget.py',
         'validate-phase3.py',
     ],
     'tests': [
@@ -759,6 +778,7 @@ required_markers = {
         'phase3-chrdev-notify-ack-budget-slice.md',
         'phase3-chrdev-notify-ack-window-slice.md',
         'phase3-chrdev-notify-ack-window-policy-slice.md',
+        'phase3-chrdev-notify-ack-window-policy-budget-slice.md',
     ],
     'artifact_doc': [
         'phase3_abi',
@@ -825,6 +845,8 @@ required_markers = {
         'check-phase3-chrdev-notify-ack-window.py',
         'phase3_chrdev_notify_ack_window_policy',
         'check-phase3-chrdev-notify-ack-window-policy.py',
+        'phase3_chrdev_notify_ack_window_policy_budget',
+        'check-phase3-chrdev-notify-ack-window-policy-budget.py',
     ],
     'ledger': [
         'feat(zigux): start bounded Phase 3 abi substrate skeleton',
@@ -1396,6 +1418,20 @@ if len(chrdev_notify_ack_window_policy_manifest.get('files', [])) != 4:
 for rel in chrdev_notify_ack_window_policy_manifest.get('files', []):
     if not (ROOT / rel).exists():
         missing_markers.append(f'chrdev_notify_ack_window_policy_manifest_file:{rel}')
+
+if chrdev_notify_ack_window_policy_budget_manifest.get('phase') != 'Phase 3':
+    missing_markers.append('chrdev_notify_ack_window_policy_budget_manifest:phase=Phase 3')
+if chrdev_notify_ack_window_policy_budget_manifest.get('status') != 'active':
+    missing_markers.append('chrdev_notify_ack_window_policy_budget_manifest:status=active')
+if chrdev_notify_ack_window_policy_budget_manifest.get('slice') != 'chrdev-notify-ack-window-policy-budget-plan-interop':
+    missing_markers.append(f'chrdev_notify_ack_window_policy_budget_manifest:slice={chrdev_notify_ack_window_policy_budget_manifest.get("slice")}')
+if chrdev_notify_ack_window_policy_budget_manifest.get('file_count') != 4:
+    missing_markers.append(f'chrdev_notify_ack_window_policy_budget_manifest:file_count={chrdev_notify_ack_window_policy_budget_manifest.get("file_count")}')
+if len(chrdev_notify_ack_window_policy_budget_manifest.get('files', [])) != 4:
+    missing_markers.append(f'chrdev_notify_ack_window_policy_budget_manifest:files_len={len(chrdev_notify_ack_window_policy_budget_manifest.get("files", []))}')
+for rel in chrdev_notify_ack_window_policy_budget_manifest.get('files', []):
+    if not (ROOT / rel).exists():
+        missing_markers.append(f'chrdev_notify_ack_window_policy_budget_manifest_file:{rel}')
 
 if missing_markers:
     print('PHASE3_VALIDATION=fail')
