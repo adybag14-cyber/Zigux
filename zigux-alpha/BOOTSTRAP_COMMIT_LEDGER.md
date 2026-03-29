@@ -773,18 +773,25 @@ This ledger turns the roadmap into the first product commit train.
 ### `feat(zigux): add bounded Phase 3 chrdev notify ack window policy budget window delivery window budget window delivery interop slice`
 - `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_plan.zig`
 - `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_plan.zig`
+- `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_plan.zig`
 - `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_dump.zig`
 - `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_dump.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_dump.zig`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_c_harness.c`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_c_harness.c`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery/expected.json`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget/expected.json`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_manifest.json`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_manifest.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_manifest.json`
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery.py`
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window.py`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget.py`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-slice.md`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-slice.md`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`
@@ -794,12 +801,19 @@ This ledger turns the roadmap into the first product commit train.
 
 ### `feat(zigux): add bounded Phase 3 chrdev notify ack window policy budget window delivery window budget window delivery window interop slice`
 - `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_plan.zig`
+- `zigux/helpers/chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_plan.zig`
 - `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_dump.zig`
+- `zigux/tests/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_dump.zig`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_c_harness.c`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_c_harness.c`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window/expected.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget/expected.json`
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_manifest.json`
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_manifest.json`
 - `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window.py`
+- `scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget.py`
 - `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-slice.md`
+- `Documentation/zigux/phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-slice.md`
 - `include/zigux/abi.h`
 - `include/linux/zigux.h`
 - `zigux/bindings/abi.zig`
