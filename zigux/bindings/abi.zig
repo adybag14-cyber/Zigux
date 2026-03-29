@@ -3448,6 +3448,21 @@ pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_COALESCED: u32 = 4;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_DROPPED: u32 = 5;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_SKIPPED: u32 = 6;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_HELD: u32 = 7;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_APPLIED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_PRIMARY_WINDOW_USED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_DEFERRED_WINDOW_USED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_PRIMARY_HELD: u32 = 8;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_DEFERRED_HELD: u32 = 16;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_WINDOW_EXHAUSTED: u32 = 32;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_PASSTHROUGH: u32 = 64;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_NONE: u32 = 0;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_ACKED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_DEFERRED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_SUPPRESSED: u32 = 3;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_COALESCED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_DROPPED: u32 = 5;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_SKIPPED: u32 = 6;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_HELD: u32 = 7;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryView = extern struct {
     bits_addr: usize,
@@ -4321,6 +4336,32 @@ pub const ChrdevNotifyAckDeliveryBudgetGuardSummary = extern struct {
     deferred_guard_floor: u32,
     guard_flags: u32,
     guard_status: u32,
+    acked_count: u32,
+    deferred_count: u32,
+    suppressed_count: u32,
+    coalesced_count: u32,
+    dropped_count: u32,
+    skipped_count: u32,
+    held_count: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowView = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardView,
+    primary_window: u32,
+    deferred_window: u32,
+    window_floor: u32,
+    reserved: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowSummary = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardSummary,
+    primary_window_before: u32,
+    primary_window_after: u32,
+    deferred_window_before: u32,
+    deferred_window_after: u32,
+    window_floor: u32,
+    window_flags: u32,
+    window_status: u32,
     acked_count: u32,
     deferred_count: u32,
     suppressed_count: u32,

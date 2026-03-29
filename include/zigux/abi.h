@@ -4313,6 +4313,21 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budge
 #define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_DROPPED 5U
 #define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_SKIPPED 6U
 #define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_STATUS_HELD 7U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_APPLIED 1U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_PRIMARY_WINDOW_USED 2U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_DEFERRED_WINDOW_USED 4U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_PRIMARY_HELD 8U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_DEFERRED_HELD 16U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_WINDOW_EXHAUSTED 32U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_FLAG_PASSTHROUGH 64U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_NONE 0U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_ACKED 1U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_DEFERRED 2U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_SUPPRESSED 3U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_COALESCED 4U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_DROPPED 5U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_SKIPPED 6U
+#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_STATUS_HELD 7U
 
 struct zigux_chrdev_notify_ack_delivery_budget_guard_view {
 	struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_view parent;
@@ -4331,6 +4346,32 @@ struct zigux_chrdev_notify_ack_delivery_budget_guard_summary {
 	zigux_u32 deferred_guard_floor;
 	zigux_u32 guard_flags;
 	zigux_u32 guard_status;
+	zigux_u32 acked_count;
+	zigux_u32 deferred_count;
+	zigux_u32 suppressed_count;
+	zigux_u32 coalesced_count;
+	zigux_u32 dropped_count;
+	zigux_u32 skipped_count;
+	zigux_u32 held_count;
+};
+
+struct zigux_chrdev_notify_ack_delivery_budget_guard_window_view {
+	struct zigux_chrdev_notify_ack_delivery_budget_guard_view parent;
+	zigux_u32 primary_window;
+	zigux_u32 deferred_window;
+	zigux_u32 window_floor;
+	zigux_u32 reserved;
+};
+
+struct zigux_chrdev_notify_ack_delivery_budget_guard_window_summary {
+	struct zigux_chrdev_notify_ack_delivery_budget_guard_summary parent;
+	zigux_u32 primary_window_before;
+	zigux_u32 primary_window_after;
+	zigux_u32 deferred_window_before;
+	zigux_u32 deferred_window_after;
+	zigux_u32 window_floor;
+	zigux_u32 window_flags;
+	zigux_u32 window_status;
 	zigux_u32 acked_count;
 	zigux_u32 deferred_count;
 	zigux_u32 suppressed_count;
