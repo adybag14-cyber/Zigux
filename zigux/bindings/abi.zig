@@ -3487,6 +3487,19 @@ pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_STATUS_CO
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_STATUS_DROPPED: u32 = 5;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_STATUS_SKIPPED: u32 = 6;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_STATUS_HELD: u32 = 7;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_FLAG_WINDOW_APPLIED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_FLAG_WINDOW_USED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_FLAG_FLOOR_HELD: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_FLAG_FLOOR_BLOCKED: u32 = 8;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_FLAG_WINDOW_EXHAUSTED: u32 = 16;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_NONE: u32 = 0;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_ACKED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_DEFERRED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_SUPPRESSED: u32 = 3;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_COALESCED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_DROPPED: u32 = 5;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_SKIPPED: u32 = 6;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_STATUS_HELD: u32 = 7;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryView = extern struct {
     bits_addr: usize,
@@ -4430,6 +4443,29 @@ pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetSummary = extern s
     deferred_budget_before: u32,
     deferred_budget_after: u32,
     budget_status: u32,
+    acked_count: u32,
+    deferred_count: u32,
+    suppressed_count: u32,
+    coalesced_count: u32,
+    dropped_count: u32,
+    skipped_count: u32,
+    held_count: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowView = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetView,
+    budget_window: u32,
+    budget_window_floor: u32,
+    reserved: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowSummary = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetSummary,
+    budget_window_flags: u32,
+    budget_window_before: u32,
+    budget_window_after: u32,
+    budget_window_floor: u32,
+    budget_window_status: u32,
     acked_count: u32,
     deferred_count: u32,
     suppressed_count: u32,

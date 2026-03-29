@@ -65,6 +65,7 @@ Current bootstrap helpers
 - `check-phase3-chrdev-notify-ack-delivery-budget-guard-window.py`
 - `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy.py`
 - `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget.py`
+- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window.py`
 - `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget.py`
 - `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window.py`
 - `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery.py`
