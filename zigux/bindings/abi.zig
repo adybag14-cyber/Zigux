@@ -3552,6 +3552,19 @@ pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DE
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_DROPPED: u32 = 5;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED: u32 = 6;
 pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_HELD: u32 = 7;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_FLAG_BUDGET_APPLIED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_FLAG_PRIMARY_DELIVERY_BUDGET_USED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_FLAG_DEFERRED_DELIVERY_BUDGET_USED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_FLAG_PRIMARY_DELIVERY_BUDGET_EXHAUSTED: u32 = 8;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_FLAG_DEFERRED_DELIVERY_BUDGET_EXHAUSTED: u32 = 16;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_NONE: u32 = 0;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_ACKED: u32 = 1;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_DEFERRED: u32 = 2;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_SUPPRESSED: u32 = 3;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_COALESCED: u32 = 4;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_DROPPED: u32 = 5;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_SKIPPED: u32 = 6;
+pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_STATUS_HELD: u32 = 7;
 
 pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryView = extern struct {
     bits_addr: usize,
@@ -4610,6 +4623,30 @@ pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWind
     delivery_window_budget_window_after: u32,
     delivery_window_budget_window_floor: u32,
     delivery_window_budget_window_status: u32,
+    acked_count: u32,
+    deferred_count: u32,
+    suppressed_count: u32,
+    coalesced_count: u32,
+    dropped_count: u32,
+    skipped_count: u32,
+    held_count: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliveryView = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowBudgetWindowView,
+    delivery_window_budget_window_delivery_budget: u32,
+    deferred_delivery_window_budget_window_delivery_budget: u32,
+    reserved: u32,
+};
+
+pub const ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowBudgetWindowDeliverySummary = extern struct {
+    parent: ChrdevNotifyAckDeliveryBudgetGuardWindowPolicyBudgetWindowDeliveryWindowBudgetWindowSummary,
+    delivery_window_budget_window_delivery_flags: u32,
+    delivery_window_budget_window_delivery_before: u32,
+    delivery_window_budget_window_delivery_after: u32,
+    deferred_delivery_window_budget_window_delivery_before: u32,
+    deferred_delivery_window_budget_window_delivery_after: u32,
+    delivery_window_budget_window_delivery_status: u32,
     acked_count: u32,
     deferred_count: u32,
     suppressed_count: u32,
