@@ -9637,4 +9637,146 @@ zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delive
 	return summary;
 }
 
+static inline struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view
+zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view_from_parent(
+	const struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_view *parent,
+	zigux_u32 delivery_window_budget,
+	zigux_u32 deferred_delivery_window_budget)
+{
+	struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view view;
+
+	memset(&view, 0, sizeof(view));
+	if (parent)
+		view.parent = *parent;
+	view.delivery_window_budget = delivery_window_budget;
+	view.deferred_delivery_window_budget = deferred_delivery_window_budget;
+	return view;
+}
+
+static inline struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_view
+zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_as_parent_view(
+	const struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view *view)
+{
+	struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_view parent;
+
+	memset(&parent, 0, sizeof(parent));
+	if (view)
+		parent = view->parent;
+	return parent;
+}
+
+static inline bool
+zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view_valid(
+	const struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view *view)
+{
+	if (!view)
+		return false;
+	if (view->reserved != 0)
+		return false;
+	return zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_view_valid(&view->parent);
+}
+
+static inline struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_summary
+zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_summarize(
+	const struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view *view)
+{
+	struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_summary summary;
+	struct zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_summary parent_summary;
+
+	memset(&summary, 0, sizeof(summary));
+	if (!zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_view_valid(view))
+		return summary;
+
+	parent_summary = zigux_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_summarize(&view->parent);
+	summary.parent = parent_summary;
+	summary.delivery_window_budget_before = view->delivery_window_budget;
+	summary.delivery_window_budget_after = view->delivery_window_budget;
+	summary.deferred_delivery_window_budget_before = view->deferred_delivery_window_budget;
+	summary.deferred_delivery_window_budget_after = view->deferred_delivery_window_budget;
+
+	switch (parent_summary.delivery_window_status) {
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_NONE:
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SUPPRESSED:
+		summary.delivery_window_budget_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SUPPRESSED;
+		summary.suppressed_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED:
+		summary.delivery_window_budget_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_SKIPPED;
+		summary.skipped_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_DROPPED:
+		summary.delivery_window_budget_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED;
+		summary.dropped_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD:
+		summary.delivery_window_budget_status =
+			ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_HELD;
+		summary.held_count = 1;
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_DEFERRED:
+		summary.delivery_window_budget_flags |=
+			ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED;
+		if (summary.deferred_delivery_window_budget_after > 0) {
+			summary.deferred_delivery_window_budget_after -= 1;
+			summary.delivery_window_budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_DEFERRED_DELIVERY_WINDOW_BUDGET_USED;
+			summary.delivery_window_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DEFERRED;
+			summary.deferred_count = 1;
+		} else {
+			summary.delivery_window_budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_DEFERRED_DELIVERY_WINDOW_BUDGET_EXHAUSTED;
+			summary.delivery_window_budget_status =
+				ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED;
+			summary.dropped_count = 1;
+		}
+		break;
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_ACKED:
+	case ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_COALESCED:
+		summary.delivery_window_budget_flags |=
+			ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED;
+		if (summary.delivery_window_budget_after > 0) {
+			summary.delivery_window_budget_after -= 1;
+			summary.delivery_window_budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_DELIVERY_WINDOW_BUDGET_USED;
+			if (parent_summary.delivery_window_status ==
+			    ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_ACKED) {
+				summary.delivery_window_budget_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_ACKED;
+				summary.acked_count = 1;
+			} else {
+				summary.delivery_window_budget_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_COALESCED;
+				summary.coalesced_count = 1;
+			}
+		} else {
+			summary.delivery_window_budget_flags |=
+				ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_DELIVERY_WINDOW_BUDGET_EXHAUSTED;
+			if (summary.deferred_delivery_window_budget_after > 0) {
+				summary.deferred_delivery_window_budget_after -= 1;
+				summary.delivery_window_budget_flags |=
+					ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_DEFERRED_DELIVERY_WINDOW_BUDGET_USED;
+				summary.delivery_window_budget_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DEFERRED;
+				summary.deferred_count = 1;
+			} else {
+				summary.delivery_window_budget_flags |=
+					ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_DEFERRED_DELIVERY_WINDOW_BUDGET_EXHAUSTED;
+				summary.delivery_window_budget_status =
+					ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_STATUS_DROPPED;
+				summary.dropped_count = 1;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+	return summary;
+}
+
 #endif
