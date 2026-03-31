@@ -16,6 +16,9 @@ int main(void)
         }
     }
 
-    fclose(file);
-    return ferror(file) ? 1 : 0;
+    {
+        const int had_error = ferror(file);
+        fclose(file);
+        return had_error ? 1 : 0;
+    }
 }
