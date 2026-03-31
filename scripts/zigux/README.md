@@ -97,3 +97,4 @@ Rules
 - keep helpers narrow and product-facing
 - do not duplicate general Linux scripts here
 - if a helper becomes broadly useful, move it or integrate it with the native subsystem flow
+- `scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window.py`
