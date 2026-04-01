@@ -10,9 +10,9 @@ import sys
 import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
-FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window'
+FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window'
 EXPECTED = FIXTURE_DIR / 'expected.json'
-HARNESS = FIXTURE_DIR / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c_harness.c'
+HARNESS = FIXTURE_DIR / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c_harness.c'
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 def find_compiler(explicit: str | None) -> str:
@@ -39,10 +39,10 @@ def windows_to_wsl(path: Path) -> str:
     tail = resolved.as_posix().split(':', 1)[1]
     return f'/mnt/{drive}{tail}'
 def compile_and_run_c(tmp_dir: Path, compiler: str, actual: Path) -> None:
-    exe = tmp_dir / ('phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c_harness.exe' if os.name == 'nt' else 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c_harness')
+    exe = tmp_dir / ('phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c_harness.exe' if os.name == 'nt' else 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c_harness')
     flags = ['-I', str(ROOT / 'include')]
     if os.name == 'nt' and shutil.which('wsl'):
-        script_path = tmp_dir / 'run_phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c.sh'
+        script_path = tmp_dir / 'run_phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c.sh'
         quoted = [shlex.quote(compiler), '-std=gnu11', '-Wall', '-Wextra', '-o', shlex.quote(windows_to_wsl(exe))]
         index = 0
         while index < len(flags):
@@ -86,15 +86,15 @@ def main() -> int:
     else:
         compiler = find_compiler(None)
     zig = find_zig(args.zig)
-    with tempfile.TemporaryDirectory(prefix='zigux_phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_') as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix='zigux_phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
-        c_actual = tmp_dir / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c.actual.json'
-        zig_actual = tmp_dir / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_zig.actual.json'
+        c_actual = tmp_dir / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_c.actual.json'
+        zig_actual = tmp_dir / 'phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_zig.actual.json'
         compile_and_run_c(tmp_dir, compiler, c_actual)
         compile_and_run_zig(zig, zig_actual)
         run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(EXPECTED), str(c_actual)], cwd=str(ROOT))
         run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(EXPECTED), str(zig_actual)], cwd=str(ROOT))
-    print('phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_DIFF=pass')
+    print('phase3_chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_DIFF=pass')
     print(f'FIXTURE={EXPECTED}')
     return 0
 if __name__ == '__main__':
