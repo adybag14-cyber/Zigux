@@ -5,6 +5,7 @@ import argparse
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import sys
 import tempfile
 from typing import Iterable
 
@@ -42,6 +43,8 @@ SPECIAL_DESCRIPTIONS = {
     "minor-alloc": "minor allocation",
 }
 
+INTEROP_GATE_PREFIX = "PHASE3_INTEROP_GATE="
+
 
 @dataclass(frozen=True)
 class Phase3Paths:
@@ -66,6 +69,8 @@ class Phase3Slice:
     harness_path: Path
     manifest_candidates: tuple[Path, ...]
     manifest_path: Path | None
+    interop_gate: str | None
+    interop_gate_mode: str
 
     @property
     def fixture_key(self) -> str:
@@ -84,6 +89,8 @@ class Phase3Slice:
             "harness": _rel(self.harness_path, self.root),
             "manifest_candidates": [_rel(path, self.root) for path in self.manifest_candidates],
             "manifest": _rel(self.manifest_path, self.root) if self.manifest_path else None,
+            "interop_gate": self.interop_gate,
+            "interop_gate_mode": self.interop_gate_mode,
         }
 
 
@@ -215,6 +222,30 @@ def build_step_for_slug(slug: str) -> str:
     return SPECIAL_BUILD_STEPS.get(slug, f"phase3-{slug}-dump")
 
 
+def shared_runner_gate_for_slug(slug: str) -> str:
+    return f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/run-phase3-checks.py --slug {slug}"
+
+
+def legacy_wrapper_gate_for_slug(slug: str) -> str:
+    return f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/check-phase3-{slug}.py"
+
+
+def discover_doc_interop_gate(doc_path: Path, slug: str) -> tuple[str | None, str]:
+    try:
+        lines = doc_path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return None, "missing_doc"
+
+    marker = next((line.strip() for line in lines if line.startswith(INTEROP_GATE_PREFIX)), None)
+    if marker is None:
+        return None, "missing"
+    if marker == shared_runner_gate_for_slug(slug):
+        return marker, "shared-runner"
+    if marker == legacy_wrapper_gate_for_slug(slug):
+        return marker, "legacy-wrapper"
+    return marker, "custom"
+
+
 def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
     slices: list[Phase3Slice] = []
     for slug in _collect_slugs(paths):
@@ -224,13 +255,15 @@ def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Sli
             paths.fixtures_dir / f"{fixture_key}_manifest.json",
             fixture_dir / f"{fixture_key}_manifest.json",
         )
+        doc_path = paths.docs_dir / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}"
+        interop_gate, interop_gate_mode = discover_doc_interop_gate(doc_path, slug)
         slices.append(
             Phase3Slice(
                 root=paths.root,
                 slug=slug,
                 description=description_for_slug(slug),
                 build_step=build_step_for_slug(slug),
-                doc_path=paths.docs_dir / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}",
+                doc_path=doc_path,
                 check_script=paths.scripts_dir / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}",
                 dump_path=paths.tests_dir / f"{fixture_key}{DUMP_SUFFIX}",
                 fixture_dir=fixture_dir,
@@ -238,6 +271,8 @@ def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Sli
                 harness_path=fixture_dir / f"{fixture_key}_c_harness.c",
                 manifest_candidates=manifest_candidates,
                 manifest_path=_pick_manifest(slug, manifest_candidates),
+                interop_gate=interop_gate,
+                interop_gate_mode=interop_gate_mode,
             )
         )
     return slices
@@ -314,8 +349,12 @@ def run_self_test() -> int:
         assert _rel(entry_map["abi"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json"
         assert entry_map["abi"].build_step == "phase3-dump"
         assert entry_map["abi"].description == "ABI layout"
+        assert entry_map["alpha"].interop_gate is None
+        assert entry_map["alpha"].interop_gate_mode == "missing"
         assert entry_map["gamma"].build_step == "phase3-gamma-dump"
         assert entry_map["gamma"].description == "gamma"
+        assert entry_map["gamma"].interop_gate is None
+        assert entry_map["gamma"].interop_gate_mode == "missing_doc"
         assert _rel(entry_map["gamma"].dump_path, paths.root) == "zigux/tests/phase3_gamma_dump.zig"
         assert _rel(entry_map["delta"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_delta_manifest.json"
 
@@ -323,6 +362,24 @@ def run_self_test() -> int:
         assert alpha_dict["doc"] == "Documentation/zigux/phase3-alpha-slice.md"
         assert alpha_dict["build_step"] == "phase3-alpha-dump"
         assert alpha_dict["manifest"] == "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json"
+        assert alpha_dict["interop_gate"] is None
+        assert alpha_dict["interop_gate_mode"] == "missing"
+
+        legacy_doc = paths.docs_dir / "phase3-legacy-slice.md"
+        legacy_doc.write_text(legacy_wrapper_gate_for_slug("legacy") + "\n", encoding="utf-8")
+        shared_doc = paths.docs_dir / "phase3-shared-slice.md"
+        shared_doc.write_text(shared_runner_gate_for_slug("shared") + "\n", encoding="utf-8")
+        custom_doc = paths.docs_dir / "phase3-custom-slice.md"
+        custom_doc.write_text(f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py\n", encoding="utf-8")
+
+        entries = discover_phase3_slices(paths)
+        entry_map = {entry.slug: entry for entry in entries}
+        assert entry_map["legacy"].interop_gate_mode == "legacy-wrapper"
+        assert entry_map["legacy"].interop_gate == legacy_wrapper_gate_for_slug("legacy")
+        assert entry_map["shared"].interop_gate_mode == "shared-runner"
+        assert entry_map["shared"].interop_gate == shared_runner_gate_for_slug("shared")
+        assert entry_map["custom"].interop_gate_mode == "custom"
+        assert entry_map["custom"].interop_gate == f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py"
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -331,9 +388,24 @@ def run_self_test() -> int:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Discover Zigux Phase 3 slices and their generated companion paths.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated discovery and manifest-selection checks.")
+    parser.add_argument(
+        "--legacy-wrapper-docs",
+        action="store_true",
+        help="List discovered Phase 3 slices whose docs still point at legacy per-slice wrapper commands.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         raise SystemExit(run_self_test())
 
-    print(json.dumps([entry.to_dict() for entry in discover_phase3_slices()], indent=2, sort_keys=True))
+    entries = discover_phase3_slices()
+    if args.legacy_wrapper_docs:
+        try:
+            for entry in entries:
+                if entry.interop_gate_mode == "legacy-wrapper":
+                    print(f"{entry.slug}\t{_rel(entry.doc_path, entry.root)}\t{entry.interop_gate}")
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+
+    print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
