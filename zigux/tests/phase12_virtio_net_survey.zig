@@ -56,7 +56,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
     try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-    try std.testing.expectEqualStrings("5e9f574d2dd6af384db83f8c1dc98be14f28e832", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("878f9e1df569cda365c364931c038650c0a301a1", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -113,6 +113,8 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "feature negotiation") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "descriptor-shape metadata") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notification accounting") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-ring-foundation")) {
@@ -120,6 +122,8 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-shape") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notification bookkeeping") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable") == null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-survey-gate")) {
