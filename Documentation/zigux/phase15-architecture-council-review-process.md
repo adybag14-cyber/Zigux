@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process`
-- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update
-- survey provenance refreshed against verified `master` head `36f313d5bd0b3be22beb3284730a98dff5e7f335`
+- `PHASE15_SLICE=architecture-council-review-process-stay-in-c-closeout`
+- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
+- survey provenance refreshed against verified `master` head `f52714d220c9507020ff725dcb9cb42401f4afe2`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -44,6 +44,8 @@ Every Architecture Council request in this lane family must carry:
 - the validation gate summary with links to the live evidence
 - the evidence archive path that preserves linked surveys, blocker follow-ups, benchmark notes, and replay commands
 - the latest blocker disposition saying whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
+- the retained discussion state that will be recorded if the review closes with a stay-in-C outcome
+- the reopen triggers that name which evidence changes can reopen the discussion later without implying approval
 - a parity scorecard link, or an explicit blocker record saying why the scorecard is not ready yet
 - explicit non-goals so the request does not quietly widen into deep-core delivery
 - the written rationale for why the current product state needs council attention now
@@ -60,15 +62,16 @@ The bounded outcomes for this review process are:
 ## Recordkeeping Rules
 
 - every decision must leave a written rationale in a reviewable artifact
-- the lane note must record the current status bucket, the chosen decision bucket, the decision record ID, the owner, the validation gate, the evidence archive path, the latest blocker disposition, and the rollback owner
+- the lane note must record the current status bucket, the chosen decision bucket, the decision record ID, the owner, the validation gate, the evidence archive path, the latest blocker disposition, the retained discussion state, the reopen triggers, and the rollback owner
 - if the council keeps the code in C, the blocker must remain explicit rather than disappearing into prose
+- if the council keeps the code in C and closes active discussion, the retained discussion state must be `retired_from_active_discussion` and the reopen triggers must stay attached to the evidence archive
 - if the parity scorecard is missing, the record must say that clearly instead of implying silent approval
 
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
-- current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, and blocker-disposition records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, retained-discussion-state, and reopen-trigger records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Recorded Gaps
@@ -81,9 +84,11 @@ The current lane state is:
 - landed `phase15-review-checklist-hook`
 - landed `phase15-build-gate-review-process`
 - landed `phase15-parity-scorecard-baseline`
-- ready-next `phase15-evidence-archive-followup`
+- landed `phase15-evidence-archive-followup`
+- landed `phase15-stay-in-c-retirement-rule`
+- ready-next `phase15-reopen-trigger-catalog-followup`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state and reopen triggers, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -104,4 +109,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small evidence-archive follow-up next so Council decision records, blocker dispositions, benchmark notes, and replay commands live at stable archive paths for each frozen anchor.
+Stay in the Phase 15 governance lane and add one small reopen-trigger catalog follow-up next so the allowed reasons for reopening a retired stay-in-C discussion stay phrased consistently across the review-process note, the scorecard, and future exception records.
