@@ -10,6 +10,7 @@ from phase3_catalog import (
     Phase3Paths,
     audit_phase3_slug_sanity,
     artifact_diff_phase3_lines,
+    discover_phase3_slug_rename_candidates,
     discover_phase3_slices,
 )
 from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, shared_runner_gate_for_slug
@@ -83,7 +84,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     expected = render_wrapper_stub()
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
 
 
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -120,6 +121,10 @@ def _format_slug_audit_issue(issue) -> str:
     return "slug_audit:" + issue.to_row().replace("\t", ":")
 
 
+def _format_slug_rename_candidate(candidate) -> str:
+    return "slug_rename_candidate:" + candidate.to_row().replace("\t", ":")
+
+
 def validate_slices(
     root: Path,
     slices: list[object],
@@ -148,7 +153,10 @@ def validate_slices(
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
     if check_slug_sanity:
-        issues.extend(_format_slug_audit_issue(issue) for issue in audit_phase3_slug_sanity(slices))
+        slug_issues = audit_phase3_slug_sanity(slices)
+        issues.extend(_format_slug_audit_issue(issue) for issue in slug_issues)
+        if slug_issues:
+            issues.extend(_format_slug_rename_candidate(candidate) for candidate in discover_phase3_slug_rename_candidates(slices))
     return issues
 
 
@@ -362,6 +370,12 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        canonical_slug = "alpha-beta-gamma-delta"
+        (paths.docs_dir / f"phase3-{canonical_slug}-slice.md").write_text(
+            "canonical\n",
+            encoding="utf-8",
+            newline="\n",
+        )
         overgrown_slug = "alpha-beta-gamma-delta-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
         overgrown_fixture_dir = paths.fixtures_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu"
         overgrown_fixture_dir.mkdir(parents=True, exist_ok=True)
@@ -416,6 +430,10 @@ def run_self_test() -> int:
         assert any(issue.startswith(f"slug_audit:slug-too-many-tokens:{overgrown_slug}:") for issue in issues)
         assert any(issue.startswith(f"slug_audit:slug-repeated-token:{loop_slug}:") for issue in issues)
         assert any(issue.startswith(f"slug_audit:slug-repeated-phrase:{loop_slug}:") for issue in issues)
+        assert any(
+            issue.startswith(f"slug_rename_candidate:{overgrown_slug}:alpha-beta-gamma-delta:")
+            for issue in issues
+        )
 
     print("PHASE3_VALIDATE_SELF_TEST=pass")
     return 0
