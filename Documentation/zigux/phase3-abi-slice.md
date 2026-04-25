@@ -38,13 +38,13 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/validate-phase3.py`
 
 2. check C-vs-Zig ABI layout parity
-- `python3 scripts/zigux/check-phase3-abi.py`
+- `python3 scripts/zigux/run-phase3-checks.py --slug abi`
 
 3. run Zig substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
-- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-abi.py`
+- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 
 ## Interop rules
