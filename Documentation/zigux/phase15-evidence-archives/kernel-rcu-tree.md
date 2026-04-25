@@ -36,6 +36,15 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - latest blocker disposition: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
 
+## Discussion State
+
+- current discussion state: `active_review_required_until_complete_packet_exists`
+- retained discussion state after closeout: `retired_from_active_discussion`
+- reopen triggers:
+  - a narrower RCU follow-up exists and answers `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
+  - linked ordering, survey, or blocker evidence becomes stale or contradictory
+  - rollback ownership or validation gates change enough to invalidate the closed stay-in-C packet
+
 ## Explicit Non-goals
 
 - no RCU bridge claim
