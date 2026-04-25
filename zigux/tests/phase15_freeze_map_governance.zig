@@ -46,9 +46,9 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("07d53ee63ae7cb8d148ca38b93e7e7a6d867603c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d418cc803bd7012f0892286f12cacb9b97d1a43e", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
