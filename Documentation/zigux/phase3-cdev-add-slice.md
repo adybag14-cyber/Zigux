@@ -3,7 +3,7 @@
 PHASE3_STATUS=active
 PHASE3_SLICE=cdev-add-plan-interop
 PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py
-PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-cdev-add.py
+PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug cdev-add
 PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig
 
 Scope
