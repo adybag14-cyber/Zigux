@@ -18,6 +18,14 @@ test "phase 7 string matching preserves null-terminated search semantics" {
     try std.testing.expectEqual(@as(i32, 0), string_helpers.sysfsMatchString(&values, values.len, "alpha\n"));
 }
 
+test "phase 7 match helpers accept Linux-style all-entries search bounds" {
+    const values = [_]?[]const u8{ "alpha", "beta", null, "gamma" };
+
+    try std.testing.expectEqual(@as(i32, 1), string_helpers.matchString(&values, std.math.maxInt(usize), "beta"));
+    try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, std.math.maxInt(usize), "gamma"));
+    try std.testing.expectEqual(@as(i32, 1), string_helpers.sysfsMatchString(&values, std.math.maxInt(usize), "beta\n"));
+}
+
 test "phase 7 replacement and padding helpers work in place" {
     var replace_buf = [_]u8{ 'a', '-', 'b', 0, '-', 'c' };
     _ = string_helpers.strreplace(&replace_buf, '-', '_');
@@ -27,6 +35,10 @@ test "phase 7 replacement and padding helpers work in place" {
     var padded = [_]u8{ 0, 0, 0, 0, 0 };
     string_helpers.memcpyAndPad(&padded, "xy", 2, '.');
     try std.testing.expectEqualSlices(u8, "xy...", &padded);
+
+    var exact = [_]u8{ 0, 0 };
+    string_helpers.memcpyAndPad(&exact, "xy", 2, '.');
+    try std.testing.expectEqualSlices(u8, "xy", &exact);
 }
 
 test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
