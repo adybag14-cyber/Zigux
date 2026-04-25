@@ -51,6 +51,13 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
+def parse_phase3_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--cc", help="Explicit C compiler path")
+    parser.add_argument("--zig", help="Explicit zig executable path")
+    return parser.parse_args(argv)
+
+
 def find_compiler(explicit: str | None) -> str:
     if explicit:
         return explicit
@@ -129,11 +136,13 @@ def compile_and_run_zig(zig: str, build_step: str, actual: Path) -> None:
     actual.write_text(result.stdout, encoding="utf-8", newline="\n")
 
 
-def run_phase3_check(slug: str, description: str | None = None, build_step: str | None = None) -> int:
-    parser = argparse.ArgumentParser(description=f"Check bounded Phase 3 {(description or description_for_slug(slug))} interop parity.")
-    parser.add_argument("--cc", help="Explicit C compiler path")
-    parser.add_argument("--zig", help="Explicit zig executable path")
-    args = parser.parse_args()
+def run_phase3_check(
+    slug: str,
+    description: str | None = None,
+    build_step: str | None = None,
+    argv: list[str] | None = None,
+) -> int:
+    args = parse_phase3_args(argv)
 
     if args.cc:
         compiler = args.cc
@@ -200,6 +209,9 @@ def run_self_test() -> int:
     assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
     assert description_for_slug("alpha-beta") == "alpha beta"
     assert status_name_for_slug("alpha-beta") == "PHASE3_ALPHA_BETA_DIFF"
+    parsed = parse_phase3_args(["--cc", "/tmp/cc", "--zig", "/tmp/zig"])
+    assert parsed.cc == "/tmp/cc"
+    assert parsed.zig == "/tmp/zig"
 
     print("PHASE3_CHECK_LIB_SELF_TEST=pass")
     return 0
