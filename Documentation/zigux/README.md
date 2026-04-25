@@ -29,6 +29,8 @@ Phase 3 notes
 - `python3 scripts/zigux/phase3_catalog.py --rewrite-shared-runner-docs` rewrites those legacy record references to the shared runner command in place, which makes incremental cleanup repeatable.
 - `python3 scripts/zigux/phase3_catalog.py --legacy-wrapper-references` lists remaining discovered Phase 3 wrapper mentions in non-slice documentation, so policy-doc cleanup stays auditable after the manifest references were removed.
 - `python3 scripts/zigux/phase3_catalog.py --rewrite-legacy-wrapper-references` rewrites those non-slice documentation references to the shared runner command in place, which gives `artifact-diff.md` and related policy docs the same scripted cleanup path as the slice records.
+- `python3 scripts/zigux/phase3_catalog.py --rewrite-artifact-diff-phase3-section` regenerates the detailed `Documentation/zigux/artifact-diff.md` Phase 3 policy block from the current discovered slice catalog.
+- `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync` reports stale non-slice wrapper references plus a stale artifact-diff Phase 3 block, and bootstrap now runs it so documentation drift fails fast.
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check` catches wrapper-template drift and obsolete wrapper files before the parity suite runs.
 - `python3 scripts/zigux/run-phase3-checks.py --list` shows the currently discovered Phase 3 parity slices.
 - `python3 scripts/zigux/run-phase3-checks.py` executes the full discovered Phase 3 parity suite.
