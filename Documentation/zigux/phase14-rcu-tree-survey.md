@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/rcu/tree.c
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
-- survey provenance captured against verified `master` head `e4b223bfadabe65232c3b7d766adbdf1386708bc`
+- survey provenance captured against verified `master` head `0b03b7694f88b5f6d490a4d029062079356ccf7d`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_rcu_tree_manifest.json`
