@@ -8,6 +8,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_statfs_defaults: bool,
     provides_lookup_policy: bool,
+    provides_buffer_copy_helpers: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -48,6 +49,18 @@ pub const LookupDecision = struct {
     casefold_passthrough: bool,
 };
 
+pub const BufferWindow = struct {
+    anchor: []const u8,
+    start: usize,
+    len: usize,
+};
+
+pub const BufferTransfer = struct {
+    anchor: []const u8,
+    copied: usize,
+    new_pos: i64,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -55,6 +68,7 @@ pub const LibFsHelperLab = struct {
             .anchor = "fs/libfs.c",
             .provides_statfs_defaults = true,
             .provides_lookup_policy = true,
+            .provides_buffer_copy_helpers = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -88,6 +102,96 @@ pub const LibFsHelperLab = struct {
             .should_add_negative_dentry = !casefold_passthrough,
             .returns_null = true,
             .casefold_passthrough = casefold_passthrough,
+        };
+    }
+
+    fn clampBufferWindow(pos: i64, count: usize, available: usize) !BufferWindow {
+        if (pos < 0) {
+            return error.InvalidOffset;
+        }
+
+        const start: usize = @intCast(pos);
+        if (start >= available or count == 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .start = start,
+                .len = 0,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .start = start,
+            .len = @min(count, available - start),
+        };
+    }
+
+    pub fn simpleReadFromBuffer(destination: []u8, pos: *i64, source: []const u8, uncopied_tail: usize) !BufferTransfer {
+        const window = try clampBufferWindow(pos.*, destination.len, source.len);
+        if (window.len == 0) {
+            return .{
+                .anchor = window.anchor,
+                .copied = 0,
+                .new_pos = pos.*,
+            };
+        }
+
+        const uncopied = @min(uncopied_tail, window.len);
+        if (uncopied == window.len) {
+            return error.CopyFault;
+        }
+
+        const copied = window.len - uncopied;
+        @memcpy(destination[0..copied], source[window.start .. window.start + copied]);
+        pos.* += @intCast(copied);
+        return .{
+            .anchor = window.anchor,
+            .copied = copied,
+            .new_pos = pos.*,
+        };
+    }
+
+    pub fn simpleWriteToBuffer(destination: []u8, pos: *i64, source: []const u8, uncopied_tail: usize) !BufferTransfer {
+        const window = try clampBufferWindow(pos.*, source.len, destination.len);
+        if (window.len == 0) {
+            return .{
+                .anchor = window.anchor,
+                .copied = 0,
+                .new_pos = pos.*,
+            };
+        }
+
+        const uncopied = @min(uncopied_tail, window.len);
+        if (uncopied == window.len) {
+            return error.CopyFault;
+        }
+
+        const copied = window.len - uncopied;
+        @memcpy(destination[window.start .. window.start + copied], source[0..copied]);
+        pos.* += @intCast(copied);
+        return .{
+            .anchor = window.anchor,
+            .copied = copied,
+            .new_pos = pos.*,
+        };
+    }
+
+    pub fn memoryReadFromBuffer(destination: []u8, pos: *i64, source: []const u8) !BufferTransfer {
+        const window = try clampBufferWindow(pos.*, destination.len, source.len);
+        if (window.len == 0) {
+            return .{
+                .anchor = window.anchor,
+                .copied = 0,
+                .new_pos = pos.*,
+            };
+        }
+
+        @memcpy(destination[0..window.len], source[window.start .. window.start + window.len]);
+        pos.* += @intCast(window.len);
+        return .{
+            .anchor = window.anchor,
+            .copied = window.len,
+            .new_pos = pos.*,
         };
     }
 };
