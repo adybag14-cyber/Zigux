@@ -40,6 +40,7 @@ The current starter slice covers:
 - `__sysfs_match_string()`
 - `strreplace()`
 - `memcpy_and_pad()`
+- `string_is_terminated()`
 - `string_upper()`
 - `string_lower()`
 
@@ -50,6 +51,7 @@ The current tests check:
 - Linux-style `n = -1` string table scans that stop at the first NULL entry
 - in-place replacement behavior that stops at the first NUL
 - truncation, exact-fit, and padding behavior for fixed-size destinations
+- bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
 
 ## Non-goals
@@ -63,4 +65,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Port either `string_unescape()` or `string_escape_mem()` with a deterministic fixture set derived from `lib/string_helpers.c`, then extend the Phase 7 gate with those byte-level transformations instead of growing more wrapper-only coverage around the current starter helpers.
+Port either `string_unescape()` or `string_escape_mem()` with a deterministic fixture set derived from `lib/string_helpers.c`, now that the smaller header-adjacent termination and case-conversion helpers are aligned with the dedicated Phase 7 gate.
