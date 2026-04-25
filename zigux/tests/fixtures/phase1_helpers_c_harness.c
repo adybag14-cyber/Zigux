@@ -66,6 +66,9 @@ static void run_find_bit_section(void)
 	unsigned long lhs[2] = {(1UL << 1) | (1UL << 9), 1UL << 2};
 	unsigned long rhs[2] = {1UL << 9, 1UL << 2};
 	unsigned long nbits = BITS_PER_LONG * 3;
+	unsigned long tail_nbits = BITS_PER_LONG + 5;
+	unsigned long tail[2] = {0, 1UL << 9};
+	unsigned long tail_full[2] = {~0UL, BITMAP_LAST_WORD_MASK(tail_nbits)};
 
 	bitmap[0] |= 1UL << 5;
 	bitmap[1] |= 1UL << 3;
@@ -79,13 +82,20 @@ static void run_find_bit_section(void)
 	printf("\"first_zero\":%lu,", find_first_zero_bit((unsigned long[]){0xf7UL}, 12));
 	printf("\"next_zero\":%lu,", find_next_zero_bit((unsigned long[]){~0UL, ~(1UL << 4)}, BITS_PER_LONG * 2, BITS_PER_LONG));
 	printf("\"first_and\":%lu,", find_first_and_bit(lhs, rhs, BITS_PER_LONG * 2));
-	printf("\"next_and\":%lu", find_next_and_bit(lhs, rhs, BITS_PER_LONG * 2, 10));
+	printf("\"next_and\":%lu,", find_next_and_bit(lhs, rhs, BITS_PER_LONG * 2, 10));
+	printf("\"tail_clamped_first\":%lu,", find_first_bit(tail, tail_nbits));
+	printf("\"tail_clamped_next\":%lu,", find_next_bit(tail, tail_nbits, BITS_PER_LONG));
+	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_full, tail_nbits));
+	printf("\"tail_zero_clamped_next\":%lu,", find_next_zero_bit(tail_full, tail_nbits, BITS_PER_LONG));
+	printf("\"tail_and_clamped_first\":%lu,", find_first_and_bit(tail, tail, tail_nbits));
+	printf("\"tail_and_clamped_next\":%lu", find_next_and_bit(tail, tail, tail_nbits, BITS_PER_LONG));
 	printf("}");
 }
 
 static void run_bitmap_section(void)
 {
-	unsigned long map[2] = {0, 0};
+	unsigned long render_map[2] = {0, 0};
+	unsigned long range_map[3] = {0, 0, 0};
 	unsigned long lhs[2] = {0x0eUL, 0};
 	unsigned long rhs[2] = {0x0aUL, 0};
 	unsigned long dst[2] = {0, 0};
@@ -96,9 +106,11 @@ static void run_bitmap_section(void)
 	bool intersects_result;
 	bool subset_result;
 
-	bitmap_set(map, 1, 3);
-	bitmap_set(map, 7, 1);
-	bitmap_set(map, 10, 2);
+	bitmap_set(render_map, 1, 3);
+	bitmap_set(render_map, 7, 1);
+	bitmap_set(render_map, 10, 2);
+	bitmap_set(range_map, 1, 3);
+	bitmap_set(range_map, BITS_PER_LONG + 2, 2);
 
 	and_result = bitmap_and(dst, lhs, rhs, 8);
 	unsigned long and_values[2] = {dst[0], dst[1]};
@@ -108,14 +120,15 @@ static void run_bitmap_section(void)
 	unsigned long or_values[2] = {dst[0], dst[1]};
 	bitmap_xor(dst, lhs, rhs, 8);
 	unsigned long xor_values[2] = {dst[0], dst[1]};
+	unsigned long range_after_set[3] = {range_map[0], range_map[1], range_map[2]};
 	bitmap_fill(dst, BITS_PER_LONG * 2);
 	bool full_result = bitmap_full(dst, BITS_PER_LONG * 2);
 	bitmap_zero(dst, BITS_PER_LONG * 2);
 	bool empty_result = bitmap_empty(dst, BITS_PER_LONG * 2);
-	bitmap_scnprintf(map, 32, buffer, sizeof(buffer));
-	bitmap_clear(map, 1, 3);
-	bitmap_clear(map, 7, 1);
-	bitmap_clear(map, 10, 2);
+	bitmap_scnprintf(render_map, 32, buffer, sizeof(buffer));
+	bitmap_clear(range_map, 1, 3);
+	bitmap_clear(range_map, BITS_PER_LONG + 2, 2);
+	unsigned long range_after_clear[3] = {range_map[0], range_map[1], range_map[2]};
 	equal_result = bitmap_equal(lhs, (unsigned long[]){0x0eUL, 0}, 8);
 	intersects_result = bitmap_intersects(lhs, rhs, 8);
 	subset_result = bitmap_subset(rhs, lhs, 8);
@@ -132,6 +145,8 @@ static void run_bitmap_section(void)
 	printf("\"equal\":%s,", equal_result ? "true" : "false");
 	printf("\"intersects\":%s,", intersects_result ? "true" : "false");
 	printf("\"subset\":%s,", subset_result ? "true" : "false");
+	printf("\"range_after_set\":"); emit_word_array(range_after_set, 3); printf(",");
+	printf("\"range_after_clear\":"); emit_word_array(range_after_clear, 3); printf(",");
 	printf("\"full_after_fill\":%s,", full_result ? "true" : "false");
 	printf("\"empty_after_zero\":%s", empty_result ? "true" : "false");
 	printf("}");
