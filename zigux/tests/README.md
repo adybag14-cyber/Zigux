@@ -24,6 +24,7 @@ Phase 3 fixtures
 - manifests may live beside the fixture directory or inside it; the Phase 3 catalog selects the best valid manifest candidate
 - the catalog also discovers the matching dump entrypoint under `zigux/tests/phase3_*_dump.zig`
 - the shared runner now executes slices directly from catalog metadata, and slice docs may point their `PHASE3_INTEROP_GATE` marker at either `run-phase3-checks.py --slug <slug>` or the legacy wrapper command
+- `python3 scripts/zigux/phase3_catalog.py --legacy-wrapper-docs` lists the slice docs that still rely on legacy wrapper markers so cleanup work can stay targeted
 - wrapper stubs are convenience entrypoints rather than the execution path and may be pruned when the underlying slice disappears
 
 Guidance
