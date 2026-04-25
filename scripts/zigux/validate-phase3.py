@@ -6,7 +6,11 @@ import json
 from pathlib import Path
 import tempfile
 
-from phase3_catalog import Phase3Paths, discover_phase3_slices
+from phase3_catalog import (
+    Phase3Paths,
+    artifact_diff_phase3_lines,
+    discover_phase3_slices,
+)
 from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, shared_runner_gate_for_slug
 
 
@@ -78,7 +82,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     expected = render_wrapper_stub()
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
 
 
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -90,7 +94,28 @@ def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[st
         issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
 
 
-def validate_slices(root: Path, slices: list[object]) -> list[str]:
+def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issues: list[str]) -> None:
+    artifact_diff_path = root / "Documentation" / "zigux" / "artifact-diff.md"
+    try:
+        lines = artifact_diff_path.read_text(encoding="utf-8").splitlines()
+        start = lines.index("Current Phase 3 use")
+        end = lines.index("Rules")
+    except FileNotFoundError:
+        issues.append("artifact_diff:missing_doc:Documentation/zigux/artifact-diff.md")
+        return
+    except ValueError:
+        issues.append("artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md")
+        return
+
+    current = lines[start + 1 : end]
+    while current and not current[-1]:
+        current.pop()
+    expected = artifact_diff_phase3_lines(slices, artifact_diff_path)
+    if current != expected:
+        issues.append("artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md")
+
+
+def validate_slices(root: Path, slices: list[object], *, check_artifact_diff: bool = False) -> list[str]:
     issues: list[str] = []
 
     for entry in slices:
@@ -109,6 +134,8 @@ def validate_slices(root: Path, slices: list[object]) -> list[str]:
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
     validate_obsolete_wrappers(root, slices, issues)
+    if check_artifact_diff:
+        validate_artifact_diff_phase3_section(root, slices, issues)
     return issues
 
 
@@ -155,19 +182,37 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").writeText if False else None
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- `zigux/tests/fixtures/phase3_alpha/expected.json` anchors the bounded Phase 3 alpha parity claim.",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug alpha` compares that committed JSON fixture against both the bounded C harness and the Zig alpha dump.",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
 
         slices = discover_phase3_slices(paths)
-        assert validate_slices(root, slices) == []
+        assert validate_slices(root, slices, check_artifact_diff=True) == []
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
-        assert validate_slices(root, slices) == []
+        assert validate_slices(root, slices, check_artifact_diff=True) == []
 
         obsolete_wrapper = paths.scripts_dir / "check-phase3-stale.py"
         obsolete_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices)
+        issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "obsolete_wrapper:scripts/zigux/check-phase3-stale.py" in issues
         obsolete_wrapper.unlink()
 
@@ -185,7 +230,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        assert validate_slices(root, slices) == []
+        assert validate_slices(root, slices, check_artifact_diff=True) == []
 
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
@@ -200,7 +245,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices)
+        issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "alpha:manifest_legacy_wrapper_file=scripts/zigux/check-phase3-alpha.py" in issues
 
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
@@ -209,18 +254,59 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text("# stale\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices)
+        issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "alpha:wrapper_template_mismatch:scripts/zigux/check-phase3-alpha.py" in issues
 
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         (paths.docs_dir / "phase3-alpha-slice.md").write_text("PHASE3_STATUS=ready\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices)
+        issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
         assert (
             "alpha:missing_doc_marker_one_of="
             "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
             "|PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
         ) in issues
+
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=alpha-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=True)
+        assert "artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md" in issues
+
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "# Artifact Diff Policy\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=True)
+        assert "artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md" in issues
 
     print("PHASE3_VALIDATE_SELF_TEST=pass")
     return 0
@@ -229,13 +315,18 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate discovered Phase 3 slice assets and documentation markers.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validation coverage in a temporary workspace.")
+    parser.add_argument(
+        "--check-artifact-diff-phase3-section",
+        action="store_true",
+        help="Also require Documentation/zigux/artifact-diff.md to match the generated Phase 3 section from the catalog.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     slices = discover_phase3_slices()
-    issues = validate_slices(ROOT, slices)
+    issues = validate_slices(ROOT, slices, check_artifact_diff=args.check_artifact_diff_phase3_section)
     if issues:
         print("PHASE3_VALIDATION=fail")
         print("MISSING_PHASE3_MARKERS_START")
