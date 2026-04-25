@@ -1,16 +1,7 @@
 const std = @import("std");
 const hvc_console = @import("hvc_console");
 
-fn slotTable(index: usize, vtermno: u32) [hvc_console.max_nr_hvc_consoles]hvc_console.ConsoleSlot {
-    var slots = [_]hvc_console.ConsoleSlot{.{}} ** hvc_console.max_nr_hvc_consoles;
-    slots[index] = .{
-        .adapter_present = true,
-        .vtermno = vtermno,
-    };
-    return slots;
-}
-
-test "phase11 hvc_console exposes the bounded descriptor and validates console slots" {
+test "phase11 hvc_console exposes the bounded descriptor and slot validation" {
     const descriptor = hvc_console.HvcConsoleLab.descriptor();
     try std.testing.expectEqualStrings("hvc_console_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", descriptor.anchor);
@@ -19,72 +10,56 @@ test "phase11 hvc_console exposes the bounded descriptor and validates console s
     try std.testing.expect(!descriptor.touches_polling_kthread);
     try std.testing.expect(!descriptor.touches_live_hypervisor_io);
 
-    var slots = slotTable(2, 0x2002);
-    const snapshot = try hvc_console.HvcConsoleLab.validateConsoleSlot(2, slots[0..]);
-    try std.testing.expectEqual(@as(usize, 2), snapshot.index);
-    try std.testing.expect(snapshot.adapter_present);
-    try std.testing.expectEqual(@as(u32, 0x2002), snapshot.vtermno);
+    try std.testing.expectError(error.InvalidConsoleSlot, hvc_console.HvcConsoleLab.init(16));
 
-    try std.testing.expectError(
-        error.ConsoleIndexOutOfRange,
-        hvc_console.HvcConsoleLab.validateConsoleSlot(-1, slots[0..]),
-    );
-
-    slots[2] = .{};
-    try std.testing.expectError(
-        error.ConsoleAdapterUnavailable,
-        hvc_console.HvcConsoleLab.validateConsoleSlot(2, slots[0..]),
-    );
+    var console = try hvc_console.HvcConsoleLab.init(3);
+    const slot = console.slotSnapshot();
+    try std.testing.expectEqual(@as(usize, 3), slot.slot_index);
+    try std.testing.expectEqual(hvc_console.removed_vtermno, slot.vtermno);
+    try std.testing.expect(!slot.adapter_present);
+    try std.testing.expect(!slot.usable_for_console);
+    try std.testing.expectError(error.ConsoleUnavailable, console.stageWrite("boot\n", 5));
 }
 
-test "phase11 hvc_console inserts carriage returns only where the Linux console path would" {
-    const slots = slotTable(0, 7);
-    var trace = try hvc_console.HvcConsoleLab.writeConsoleMessage(
-        std.testing.allocator,
-        0,
-        slots[0..],
-        "hello\nworld\r\n",
-        &.{},
-    );
-    defer trace.deinit(std.testing.allocator);
+test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
+    var console = try hvc_console.HvcConsoleLab.init(1);
+    const slot = console.instantiate(0x41);
+    try std.testing.expect(slot.adapter_present);
+    try std.testing.expect(slot.usable_for_console);
 
-    try std.testing.expectEqualStrings("hello\r\nworld\r\n", trace.framed_output);
-    try std.testing.expectEqual(@as(usize, 14), trace.written_bytes);
-    try std.testing.expectEqual(@as(usize, 0), trace.dropped_bytes);
-    try std.testing.expectEqual(@as(usize, 1), trace.chunk_count);
-    try std.testing.expectEqual(@as(usize, 1), trace.flush_calls);
-    try std.testing.expectEqual(@as(usize, 0), trace.retry_flushes);
+    const write = try console.stageWrite("boot\nok\n", 9);
+    try std.testing.expectEqual(@as(usize, 10), write.framed_len);
+    try std.testing.expectEqualStrings("boot\r\nok\r\n", write.framed[0..write.framed_len]);
+    try std.testing.expectEqual(@as(usize, 1), write.remaining_len);
+    try std.testing.expectEqualStrings("\n", write.remaining[0..write.remaining_len]);
+    try std.testing.expectEqual(hvc_console.FlushIntent.final_drain, write.flush_intent);
+    try std.testing.expect(write.final_flush);
+    try std.testing.expect(!write.dropped_on_error);
 }
 
-test "phase11 hvc_console records retry flush intent when put_chars would return EAGAIN" {
-    const slots = slotTable(1, 0x44);
-    var trace = try hvc_console.HvcConsoleLab.writeConsoleMessage(
-        std.testing.allocator,
-        1,
-        slots[0..],
-        "123456789012345\nZ",
-        &.{ hvc_console.eagain, 16, 2 },
-    );
-    defer trace.deinit(std.testing.allocator);
+test "phase11 hvc_console keeps retry intent on eagain and clears the slot on teardown" {
+    var console = try hvc_console.HvcConsoleLab.init(0);
+    _ = console.instantiate(0x99);
 
-    try std.testing.expectEqualStrings("123456789012345\r\nZ", trace.framed_output);
-    try std.testing.expectEqual(@as(usize, 2), trace.chunk_count);
-    try std.testing.expectEqual(@as(usize, 18), trace.written_bytes);
-    try std.testing.expectEqual(@as(usize, 0), trace.dropped_bytes);
-    try std.testing.expectEqual(@as(usize, 2), trace.flush_calls);
-    try std.testing.expectEqual(@as(usize, 1), trace.retry_flushes);
-}
+    var write = try console.stageWrite("x\n", hvc_console.eagain);
+    try std.testing.expectEqual(@as(usize, 3), write.framed_len);
+    try std.testing.expectEqualStrings("x\r\n", write.framed[0..write.framed_len]);
+    try std.testing.expectEqual(@as(usize, 3), write.remaining_len);
+    try std.testing.expectEqualStrings("x\r\n", write.remaining[0..write.remaining_len]);
+    try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, write.flush_intent);
+    try std.testing.expect(write.final_flush);
+    try std.testing.expect(!write.dropped_on_error);
 
-test "phase11 hvc_console keeps adapter gating ahead of write framing" {
-    const slots = [_]hvc_console.ConsoleSlot{.{}} ** hvc_console.max_nr_hvc_consoles;
-    try std.testing.expectError(
-        error.ConsoleAdapterUnavailable,
-        hvc_console.HvcConsoleLab.writeConsoleMessage(
-            std.testing.allocator,
-            0,
-            slots[0..],
-            "ignored\n",
-            &.{},
-        ),
-    );
+    write = try console.stageWrite("fatal\n", -5);
+    try std.testing.expectEqual(@as(usize, 7), write.framed_len);
+    try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
+    try std.testing.expectEqual(hvc_console.FlushIntent.none, write.flush_intent);
+    try std.testing.expect(write.final_flush);
+    try std.testing.expect(write.dropped_on_error);
+
+    const teardown = console.teardown();
+    try std.testing.expectEqual(hvc_console.removed_vtermno, teardown.vtermno);
+    try std.testing.expect(!teardown.adapter_present);
+    try std.testing.expect(!teardown.usable_for_console);
+    try std.testing.expectError(error.ConsoleUnavailable, console.stageWrite("gone\n", 6));
 }
