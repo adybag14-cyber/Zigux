@@ -32,7 +32,6 @@ test "phase 8 kallsyms starter slice covers symbol helpers and injected record p
         \\ffffffff81000000 T startup_64
         \\garbage
         \\ffffffff81000200 W weak_handler
-        \
     ,
         &symbols,
         Collector.append,
