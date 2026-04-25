@@ -1,0 +1,85 @@
+const std = @import("std");
+const dw_wdt = @import("dw_wdt");
+
+test "phase11 dw_wdt exposes the bounded descriptor and fixed-top limits" {
+    const descriptor = dw_wdt.DwWdtLab.descriptor();
+    try std.testing.expectEqualStrings("dw_wdt_lab", descriptor.name);
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_simple_driver_starter);
+    try std.testing.expect(!descriptor.touches_platform_registration);
+    try std.testing.expect(!descriptor.touches_live_mmio);
+    try std.testing.expect(!descriptor.touches_irq_registration);
+
+    try std.testing.expectError(error.InvalidClockRate, dw_wdt.DwWdtLab.initFixedTops(0, false));
+
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const config = watchdog.configSnapshot();
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, config.response_mode);
+    try std.testing.expectEqual(@as(u32, 32), config.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), config.pretimeout_sec);
+    try std.testing.expectEqual(@as(u32, 1), config.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 32_768_000), config.max_hw_heartbeat_ms);
+    try std.testing.expect(!config.can_stop);
+}
+
+test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const config = try watchdog.setTimeout(9);
+    try std.testing.expectEqual(@as(u32, 16), config.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), config.pretimeout_sec);
+
+    var runtime = try watchdog.start();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
+    try std.testing.expectEqual(
+        dw_wdt.control_reg_wdt_en_mask,
+        runtime.registers.control & dw_wdt.control_reg_wdt_en_mask,
+    );
+    try std.testing.expectEqual(@as(u32, 0x44), runtime.registers.timeout_range);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, runtime.registers.restart);
+
+    runtime = try watchdog.ping();
+    try std.testing.expect(runtime.running);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, runtime.registers.restart);
+}
+
+test "phase11 dw_wdt irq mode keeps pretimeout bookkeeping and counts the second stage only after the interrupt" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = try watchdog.setResponseMode(.irq);
+    const config = try watchdog.setTimeout(9);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, config.response_mode);
+    try std.testing.expectEqual(@as(u32, 16), config.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), config.pretimeout_sec);
+
+    _ = try watchdog.start();
+    _ = watchdog.setCurrentCount(3 * 65_536);
+    var runtime = watchdog.runtimeSnapshot();
+    try std.testing.expectEqual(@as(u32, 11), runtime.time_left_sec);
+
+    _ = watchdog.setInterruptPending(true);
+    runtime = watchdog.runtimeSnapshot();
+    try std.testing.expect(runtime.interrupt_pending);
+    try std.testing.expectEqual(@as(u32, 3), runtime.time_left_sec);
+}
+
+test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
+    var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try unstoppable.start();
+    var runtime = unstoppable.stop();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+
+    var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = try stoppable.start();
+    runtime = stoppable.stop();
+    try std.testing.expect(!runtime.running);
+    try std.testing.expect(!runtime.hardware_running);
+
+    var restart_lab = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    runtime = restart_lab.armRestart();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.restart_armed);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
+    try std.testing.expectEqual(@as(u32, 0), runtime.registers.timeout_range);
+}
