@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import tempfile
 from typing import Iterable
 
 
@@ -23,7 +25,17 @@ DUMP_SUFFIX = "_dump.zig"
 
 
 @dataclass(frozen=True)
+class Phase3Paths:
+    root: Path
+    docs_dir: Path
+    scripts_dir: Path
+    tests_dir: Path
+    fixtures_dir: Path
+
+
+@dataclass(frozen=True)
 class Phase3Slice:
+    root: Path
     slug: str
     doc_path: Path
     check_script: Path
@@ -41,19 +53,28 @@ class Phase3Slice:
     def to_dict(self) -> dict[str, object]:
         return {
             "slug": self.slug,
-            "doc": _rel(self.doc_path),
-            "check_script": _rel(self.check_script),
-            "dump": _rel(self.dump_path),
-            "fixture_dir": _rel(self.fixture_dir),
-            "expected": _rel(self.expected_path),
-            "harness": _rel(self.harness_path),
-            "manifest_candidates": [_rel(path) for path in self.manifest_candidates],
-            "manifest": _rel(self.manifest_path) if self.manifest_path else None,
+            "doc": _rel(self.doc_path, self.root),
+            "check_script": _rel(self.check_script, self.root),
+            "dump": _rel(self.dump_path, self.root),
+            "fixture_dir": _rel(self.fixture_dir, self.root),
+            "expected": _rel(self.expected_path, self.root),
+            "harness": _rel(self.harness_path, self.root),
+            "manifest_candidates": [_rel(path, self.root) for path in self.manifest_candidates],
+            "manifest": _rel(self.manifest_path, self.root) if self.manifest_path else None,
         }
 
 
-def _rel(path: Path) -> str:
-    return path.relative_to(ROOT).as_posix()
+DEFAULT_PATHS = Phase3Paths(
+    root=ROOT,
+    docs_dir=DOCS_DIR,
+    scripts_dir=SCRIPTS_DIR,
+    tests_dir=TESTS_DIR,
+    fixtures_dir=FIXTURES_DIR,
+)
+
+
+def _rel(path: Path, root: Path = ROOT) -> str:
+    return path.relative_to(root).as_posix()
 
 
 def _slug_from_doc(path: Path) -> str | None:
@@ -90,25 +111,25 @@ def _slug_from_manifest(path: Path) -> str | None:
     return _slug_from_fixture_key(name[: -len(MANIFEST_SUFFIX)])
 
 
-def _collect_slugs() -> list[str]:
+def _collect_slugs(paths: Phase3Paths = DEFAULT_PATHS) -> list[str]:
     slugs: set[str] = set()
 
-    for path in DOCS_DIR.glob(f"{DOC_PREFIX}*{DOC_SUFFIX}"):
+    for path in paths.docs_dir.glob(f"{DOC_PREFIX}*{DOC_SUFFIX}"):
         slug = _slug_from_doc(path)
         if slug:
             slugs.add(slug)
 
-    for path in SCRIPTS_DIR.glob(f"{SCRIPT_PREFIX}*{SCRIPT_SUFFIX}"):
+    for path in paths.scripts_dir.glob(f"{SCRIPT_PREFIX}*{SCRIPT_SUFFIX}"):
         slug = _slug_from_script(path)
         if slug:
             slugs.add(slug)
 
-    for path in TESTS_DIR.glob(f"{FIXTURE_PREFIX}*{DUMP_SUFFIX}"):
+    for path in paths.tests_dir.glob(f"{FIXTURE_PREFIX}*{DUMP_SUFFIX}"):
         slug = _slug_from_dump(path)
         if slug:
             slugs.add(slug)
 
-    for path in FIXTURES_DIR.glob(f"{FIXTURE_PREFIX}*"):
+    for path in paths.fixtures_dir.glob(f"{FIXTURE_PREFIX}*"):
         if path.is_dir():
             slug = _slug_from_fixture_key(path.name)
         else:
@@ -164,21 +185,22 @@ def _pick_manifest(slug: str, candidates: Iterable[Path]) -> Path | None:
     return None
 
 
-def discover_phase3_slices() -> list[Phase3Slice]:
+def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
     slices: list[Phase3Slice] = []
-    for slug in _collect_slugs():
+    for slug in _collect_slugs(paths):
         fixture_key = f"{FIXTURE_PREFIX}{slug.replace('-', '_')}"
-        fixture_dir = FIXTURES_DIR / fixture_key
+        fixture_dir = paths.fixtures_dir / fixture_key
         manifest_candidates = (
-            FIXTURES_DIR / f"{fixture_key}_manifest.json",
+            paths.fixtures_dir / f"{fixture_key}_manifest.json",
             fixture_dir / f"{fixture_key}_manifest.json",
         )
         slices.append(
             Phase3Slice(
+                root=paths.root,
                 slug=slug,
-                doc_path=DOCS_DIR / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}",
-                check_script=SCRIPTS_DIR / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}",
-                dump_path=TESTS_DIR / f"{fixture_key}{DUMP_SUFFIX}",
+                doc_path=paths.docs_dir / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}",
+                check_script=paths.scripts_dir / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}",
+                dump_path=paths.tests_dir / f"{fixture_key}{DUMP_SUFFIX}",
                 fixture_dir=fixture_dir,
                 expected_path=fixture_dir / "expected.json",
                 harness_path=fixture_dir / f"{fixture_key}_c_harness.c",
@@ -189,11 +211,90 @@ def discover_phase3_slices() -> list[Phase3Slice]:
     return slices
 
 
-if __name__ == "__main__":
-    print(
-        json.dumps(
-            [entry.to_dict() for entry in discover_phase3_slices()],
-            indent=2,
-            sort_keys=True,
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_catalog_selftest_") as tmp_dir_str:
+        root = Path(tmp_dir_str)
+        paths = Phase3Paths(
+            root=root,
+            docs_dir=root / "Documentation" / "zigux",
+            scripts_dir=root / "scripts" / "zigux",
+            tests_dir=root / "zigux" / "tests",
+            fixtures_dir=root / "zigux" / "tests" / "fixtures",
         )
-    )
+        for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, paths.fixtures_dir):
+            path.mkdir(parents=True, exist_ok=True)
+
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text("alpha\n", encoding="utf-8")
+        (paths.scripts_dir / "check-phase3-beta.py").write_text("# beta\n", encoding="utf-8")
+        (paths.tests_dir / "phase3_gamma_dump.zig").write_text("// gamma\n", encoding="utf-8")
+        (paths.fixtures_dir / "phase3_delta_manifest.json").write_text(
+            json.dumps({"phase": "Phase 3", "status": "open", "slice": "delta-root", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+
+        alpha_fixture = paths.fixtures_dir / "phase3_alpha"
+        alpha_fixture.mkdir()
+        (alpha_fixture / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-fixture",
+                    "files": ["zigux/tests/fixtures/phase3_alpha/expected.json"],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (paths.fixtures_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps({"phase": "Phase 3", "status": "", "slice": "", "files": []}),
+            encoding="utf-8",
+        )
+
+        abi_fixture = paths.fixtures_dir / "phase3_abi"
+        abi_fixture.mkdir()
+        (paths.fixtures_dir / "phase3_abi_manifest.json").write_text(
+            json.dumps({"phase": "Phase 3", "status": "open", "slice": "abi-root", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        (abi_fixture / "phase3_abi_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "abi-substrate-skeleton",
+                    "files": ["zigux/tests/fixtures/phase3_abi/expected.json"],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        entries = discover_phase3_slices(paths)
+        slugs = [entry.slug for entry in entries]
+        assert slugs == ["abi", "alpha", "beta", "delta", "gamma"], slugs
+
+        entry_map = {entry.slug: entry for entry in entries}
+        assert _rel(entry_map["alpha"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json"
+        assert _rel(entry_map["abi"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json"
+        assert entry_map["beta"].manifest_path is None
+        assert _rel(entry_map["gamma"].dump_path, paths.root) == "zigux/tests/phase3_gamma_dump.zig"
+        assert _rel(entry_map["delta"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_delta_manifest.json"
+
+        alpha_dict = entry_map["alpha"].to_dict()
+        assert alpha_dict["doc"] == "Documentation/zigux/phase3-alpha-slice.md"
+        assert alpha_dict["manifest"] == "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json"
+
+    print("PHASE3_CATALOG_SELF_TEST=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Discover Zigux Phase 3 slices and their generated companion paths.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated discovery and manifest-selection checks.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        raise SystemExit(run_self_test())
+
+    print(json.dumps([entry.to_dict() for entry in discover_phase3_slices()], indent=2, sort_keys=True))
