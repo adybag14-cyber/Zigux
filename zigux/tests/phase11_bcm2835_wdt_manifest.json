@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L05",
   "phase": "Phase 11",
-  "surveyed_commit": "0ecae5ec42ea5da4384f8d17fd54565c8c7e48ba",
+  "surveyed_commit": "8dfe83663ec24ecd6e938a119d3ba324ad642705",
   "anchor": "drivers/watchdog/bcm2835_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -12,9 +12,9 @@
     "bcm2835_wdt_c_lines": 247,
     "preexisting_phase11_build_present": true,
     "preexisting_phase11_gpio_lane_present": true,
-    "bcm2835_wdt_zig_present": false,
-    "bcm2835_wdt_test_present": false,
-    "bcm2835_wdt_slice_note_present": false,
+    "bcm2835_wdt_zig_present": true,
+    "bcm2835_wdt_test_present": true,
+    "bcm2835_wdt_slice_note_present": true,
     "bcm2835_wdt_survey_gate_present": true,
     "bcm2835_wdt_survey_note_present": true
   },
@@ -24,56 +24,56 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "The shared Phase 11 build entry now keeps the existing gpio_wdt lane and the new bcm2835_wdt survey checkpoint reviewable together so the watchdog tranche does not drift across simple-driver anchors."
+      "why_now": "The shared Phase 11 build entry now keeps the existing gpio_wdt lane, the new bcm2835_wdt starter tests, and the bcm2835 survey checkpoint reviewable together so the watchdog tranche does not drift across simple-driver anchors."
     },
     {
       "id": "phase11-bcm2835-wdt-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
-      "why_now": "A dedicated survey gate makes the bcm2835_wdt gap explicit without pretending a Zig starter already exists, and it keeps the next bounded driver work tied to the live repo state."
+      "why_now": "A dedicated survey gate still matters after the starter lands because it keeps the remaining bcm2835_wdt gap explicit instead of letting the new scaffold imply platform or hardware parity that has not been implemented."
     },
     {
       "id": "phase11-bcm2835-wdt-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
-      "why_now": "The survey note records that Phase 11 now covers gpio_wdt with a landed starter while bcm2835_wdt still needs its first bounded scaffold, which keeps the roadmap gap honest inside the watchdog lane."
+      "why_now": "The survey note now records that the first bcm2835_wdt starter has landed while the next bounded step remains probe summary and registration-facing bookkeeping only."
     },
     {
       "id": "phase11-bcm2835-wdt-driver-starter",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The next honest bcm2835_wdt step is a narrow starter around timeout tick encoding, running-bit detection, bounded start and stop transitions, restart intent, and poweroff-state bookkeeping before any MMIO-backed or platform-registered behavior."
+      "why_now": "The bounded starter now covers timeout tick encoding, running-bit detection, start and stop register transitions, restart intent, and halt-partition bookkeeping without claiming platform-backed behavior."
     },
     {
       "id": "phase11-bcm2835-wdt-driver-tests",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests should arrive with the first starter so timeout tick conversion, restart intent, and poweroff-state bookkeeping stay reviewable without claiming hardware-backed execution."
+      "why_now": "Dedicated Phase 11 tests now keep timeout conversion, restart intent, halt-partition bookkeeping, and bounded register-image transitions reviewable without pretending hardware-backed execution exists."
     },
     {
       "id": "phase11-bcm2835-wdt-slice-note",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
-      "why_now": "A slice note would be useful once a real bcm2835_wdt starter exists, but writing it before the first Zig scaffold lands would turn survey language into fake product progress."
+      "why_now": "A dedicated slice note now documents exactly what the first Zig starter covers and what remains out of scope so the repo does not conflate the starter with full platform or poweroff integration."
     },
     {
       "id": "phase11-bcm2835-wdt-probe-summary",
-      "status": "blocked_on_driver_scaffold",
+      "status": "ready_next",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "Probe-time details such as bootloader-carried running state, heartbeat and nowayout initialization, restart priority, and watchdog parent linkage should wait until the starter has the basic register-intent model in place."
+      "why_now": "The next honest bounded step is a tiny probe-time summary around bootloader-carried running state, heartbeat and nowayout initialization, restart priority, and watchdog parent linkage before any platform registration or MMIO-backed behavior."
     },
     {
       "id": "phase11-bcm2835-wdt-registration-and-poweroff",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
-      "why_now": "Platform registration, PM base acquisition, the system power controller path, and poweroff handler coordination remain blocked until the lane has a small driver scaffold plus a hardware-validation matrix that can describe those side effects honestly."
+      "why_now": "Platform registration, PM base acquisition, the system power controller path, and live poweroff-handler coordination remain blocked until the lane has a small probe summary plus a hardware-validation matrix that can describe those side effects honestly."
     }
   ]
 }
