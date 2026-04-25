@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L13",
+  "lane_key": "P9-L14",
   "phase": "Phase 9",
   "surveyed_commit": "248bfeaa7f2beddc283c3e398fc36fec3c841242",
   "anchor": "samples/kprobes/kretprobe_example.c",
@@ -8,11 +8,11 @@
     "samples/zigux/runtime_*"
   ],
   "survey_summary": {
-    "kretprobe_example_c_lines": 106,
-    "preexisting_runtime_kretprobe_test_files": 0,
-    "preexisting_runtime_kretprobe_sample_present": false,
+    "kretprobe_example_c_lines": 108,
+    "preexisting_runtime_kretprobe_test_files": 2,
+    "preexisting_runtime_kretprobe_sample_present": true,
     "preexisting_phase9_build_present": true,
-    "preexisting_runtime_kretprobe_doc_present": false
+    "preexisting_runtime_kretprobe_doc_present": true
   },
   "gaps": [
     {
@@ -20,42 +20,42 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build path is the smallest honest place to make the runtime kretprobe lane visible beside atomic64, bitmap, and trace-events without widening into an unfinished starter."
+      "why_now": "The shared Phase 9 build step is the narrowest honest place to widen runtime pilot coverage into the missing kretprobe lane."
     },
     {
       "id": "runtime-kretprobe-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig",
-      "why_now": "A dedicated survey gate keeps the missing runtime kretprobe pilot explicit, reviewable, and tied to one Linux sample anchor instead of disappearing into generic roadmap prose."
+      "why_now": "A survey gate keeps the Linux anchor, landed starter status, and remaining runtime-substrate blocker explicit while the pilot stays small."
     },
     {
       "id": "runtime-kretprobe-sample-module",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "sample_starter",
       "zigux_destination": "samples/zigux/runtime_kretprobe.zig",
-      "why_now": "The next real product step is a bounded starter that models probe descriptor metadata, registration lifecycle, and entry-versus-return accounting without claiming kernel-loader parity."
+      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing kretprobe step that can model entry timestamps, return values, duration, and missed-instance bookkeeping without claiming loadable-module parity."
     },
     {
       "id": "runtime-kretprobe-module-tests",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_module.zig",
-      "why_now": "A focused module gate should arrive with the starter sample so lifecycle transitions, missed-instance accounting, and elapsed-time bookkeeping stay reviewable."
+      "why_now": "A dedicated Phase 9 test file keeps the starter reviewable and bounded around lifecycle transitions, symbol retargeting, and return-probe bookkeeping."
     },
     {
       "id": "runtime-kretprobe-diff-gate",
       "status": "ready_next",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_diff.zig",
-      "why_now": "After the starter lands, a tiny table-driven differential gate can replay symbol-name, maxactive, and nmissed expectations from the Linux sample before any broader runtime work."
+      "why_now": "The next meaningful step is a tiny table-driven gate that replays a few entry-skip, duration, and nmissed expectations from the Linux sample before widening the starter."
     },
     {
       "id": "runtime-kretprobe-substrate-handoff",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "Real register_kretprobe, unregister_kretprobe, pt_regs handling, and module-init parity still depend on runtime substrate pieces that Zigux has not started yet."
+      "why_now": "A loadable module entry point and real register_kretprobe parity still depend on runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
