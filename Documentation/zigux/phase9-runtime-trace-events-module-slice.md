@@ -1,0 +1,50 @@
+# Phase 9 Runtime Trace-Events Module Slice
+
+This document tracks the first bounded Phase 9 runtime trace-events starter under `samples/zigux/`.
+
+## Status
+
+- `PHASE9_STATUS=active`
+- `PHASE9_SLICE=runtime-trace-events-module-starter`
+- scope: lifecycle starter, bounded event-emission and registration behavior, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
+- product boundary:
+  - `samples/zigux/runtime_trace_events.zig`
+  - `zigux/tests/runtime_trace_events_module.zig`
+  - `zigux/tests/runtime_trace_events_manifest.json`
+  - `zigux/tests/runtime_trace_events_survey.zig`
+  - `zigux/tests/phase9_build.zig`
+
+## Why this slice exists
+
+The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
+
+The live repo already had atomic64 and bitmap starters under the same Phase 9 review path, but it still had no trace-events pilot at all. This slice lands the smallest honest trace-events follow-on step: a sample-backed lifecycle scaffold that models bounded event families and callback registration without claiming kernel thread, tracepoint macro, or loadable-module parity.
+
+## Landed starter surface
+
+- module descriptor metadata naming the `samples/trace_events/trace-events-sample.c` anchor
+- guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
+- bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
+- explicit registration-balance checks for the function-callback path
+- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+
+## Non-goals
+
+This slice does not yet claim:
+
+- a kernel-loadable Zigux trace-events module
+- `CREATE_TRACE_POINTS` or tracepoint macro parity
+- real kernel thread scheduling or timeout behavior
+- payload-by-payload differential parity for the full Linux sample
+
+## Gates
+
+1. run the dedicated Phase 9 build
+- `zig build test --build-file zigux/tests/phase9_build.zig`
+
+2. run the convenience target
+- `make -C zigux phase9`
+
+## Next bounded step
+
+Stay in the Phase 9 runtime trace-events lane and add a tiny payload-oriented diff gate that replays a few `foo_bar`, template, and function-callback expectations from the Linux sample before attempting any broader runtime substrate work.
