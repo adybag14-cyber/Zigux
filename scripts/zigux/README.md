@@ -39,7 +39,7 @@ Phase 3 flow
 - `phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice docs that still point at legacy `check-phase3-*.py` compatibility wrappers.
 - `phase3_catalog.py --rewrite-shared-runner-docs` rewrites those legacy per-slice doc commands to the shared `run-phase3-checks.py --slug ...` form so wrapper-reference cleanup is scripted instead of manual.
 - `phase3_catalog.py --legacy-wrapper-references` lists remaining discovered Phase 3 wrapper mentions outside the slice docs, which makes `artifact-diff.md` and manifest cleanup auditable before any compatibility wrappers are trimmed further.
-- `phase3_catalog.py --rewrite-shared-runner-reference-docs` rewrites those non-slice documentation references to the shared runner form while leaving manifest references audit-only until they get an explicit keep-or-migrate decision.
+- `phase3_catalog.py --rewrite-legacy-wrapper-references` rewrites those non-slice documentation references to the shared runner form while leaving manifest references audit-only until they get an explicit keep-or-migrate decision.
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
 - `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, wrapper-template, and argument-parsing helpers without running Zig parity builds.
 - `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
