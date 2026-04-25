@@ -140,6 +140,41 @@ pub const PrettyPrintLayout = struct {
     spacing: usize,
 };
 
+pub fn hasExtension(filename: []const u8, ext: []const u8) bool {
+    return filename.len > ext.len and std.mem.eql(u8, filename[filename.len - ext.len ..], ext);
+}
+
+pub fn commandNameFromEntry(filename: []const u8, prefix: []const u8) ?[]const u8 {
+    if (!std.mem.startsWith(u8, filename, prefix)) {
+        return null;
+    }
+
+    var end = filename.len;
+    if (hasExtension(filename, ".exe")) {
+        end -= 4;
+    }
+    if (end <= prefix.len) {
+        return null;
+    }
+
+    return filename[prefix.len..end];
+}
+
+pub fn addExecutableEntry(
+    cmds: *CmdNames,
+    filename: []const u8,
+    prefix: []const u8,
+    is_executable: bool,
+) !bool {
+    if (!is_executable) {
+        return false;
+    }
+
+    const command_name = commandNameFromEntry(filename, prefix) orelse return false;
+    try cmds.addCmdName(command_name, command_name.len);
+    return true;
+}
+
 pub fn planPrettyPrint(count: usize, longest: usize, terminal_cols: usize) PrettyPrintLayout {
     const spacing = longest + 1;
     if (count == 0) {
@@ -227,6 +262,31 @@ test "membership and longest-name helpers stay aligned with the stored list" {
     try std.testing.expect(cmds.isInCmdList("report"));
     try std.testing.expect(!cmds.isInCmdList("record"));
     try std.testing.expectEqual(@as(usize, 6), cmds.longestNameLen());
+}
+
+test "command entry helpers filter prefixes and strip windows executable suffixes" {
+    try std.testing.expectEqualStrings("trace", commandNameFromEntry("perf-trace", "perf-").?);
+    try std.testing.expectEqualStrings("report", commandNameFromEntry("perf-report.exe", "perf-").?);
+    try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("trace", "perf-"));
+    try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("perf-.exe", "perf-"));
+    try std.testing.expect(hasExtension("perf-report.exe", ".exe"));
+    try std.testing.expect(!hasExtension("perf-report", ".exe"));
+}
+
+test "addExecutableEntry models load_command_list filtering without directory I/O" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+
+    try std.testing.expect(try addExecutableEntry(&cmds, "perf-report", "perf-", true));
+    try std.testing.expect(try addExecutableEntry(&cmds, "perf-stat.exe", "perf-", true));
+    try std.testing.expect(!(try addExecutableEntry(&cmds, "README.txt", "perf-", true)));
+    try std.testing.expect(!(try addExecutableEntry(&cmds, "perf-script", "perf-", false)));
+
+    cmds.sort();
+
+    try std.testing.expectEqual(@as(usize, 2), cmds.count());
+    try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", cmds.names.items[1].name);
 }
 
 test "pretty-print layout follows the same column math as help.c" {
