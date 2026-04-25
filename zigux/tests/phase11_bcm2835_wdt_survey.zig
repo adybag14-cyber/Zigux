@@ -35,7 +35,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest records the simple-driver gap without overclaiming a starter" {
+test "phase11 bcm2835_wdt survey manifest records the landed starter and remaining probe gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -54,14 +54,14 @@ test "phase11 bcm2835_wdt survey manifest records the simple-driver gap without 
     try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0ecae5ec42ea5da4384f8d17fd54565c8c7e48ba", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("8dfe83663ec24ecd6e938a119d3ba324ad642705", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_gpio_lane_present);
-    try std.testing.expect(!manifest.survey_summary.bcm2835_wdt_zig_present);
-    try std.testing.expect(!manifest.survey_summary.bcm2835_wdt_test_present);
-    try std.testing.expect(!manifest.survey_summary.bcm2835_wdt_slice_note_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_zig_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_test_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
@@ -73,6 +73,7 @@ test "phase11 bcm2835_wdt survey manifest records the simple-driver gap without 
     var saw_survey_gate = false;
     var saw_driver_gap = false;
     var saw_driver_tests = false;
+    var saw_slice_note = false;
     var saw_registration_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -104,15 +105,27 @@ test "phase11 bcm2835_wdt survey manifest records the simple-driver gap without 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-starter")) {
             saw_driver_gap = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timeout tick") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "running-bit") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-slice-note")) {
+            saw_slice_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-slice.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-probe-summary")) {
+            try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bootloader-carried running state") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-registration-and-poweroff")) {
@@ -128,12 +141,13 @@ test "phase11 bcm2835_wdt survey manifest records the simple-driver gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 3), blocked_count);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_driver_tests);
+    try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_registration_blocker);
 }
