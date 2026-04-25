@@ -9,10 +9,10 @@
   ],
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
-    "preexisting_runtime_trace_events_test_files": 0,
-    "preexisting_runtime_trace_events_sample_present": false,
+    "preexisting_runtime_trace_events_test_files": 2,
+    "preexisting_runtime_trace_events_sample_present": true,
     "preexisting_phase9_build_present": true,
-    "preexisting_runtime_trace_events_doc_present": false
+    "preexisting_runtime_trace_events_doc_present": true
   },
   "gaps": [
     {
