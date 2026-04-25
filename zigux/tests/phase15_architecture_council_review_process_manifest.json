@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L05",
   "phase": "Phase 15",
-  "surveyed_commit": "40aa574db33204bfbb0c972f1de37ad4cb396a77",
+  "surveyed_commit": "36f313d5bd0b3be22beb3284730a98dff5e7f335",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -9,6 +9,8 @@
     "owner",
     "rollback owner",
     "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
     "parity scorecard link or blocker record"
   ],
   "trigger_conditions": [
@@ -20,10 +22,14 @@
   "required_review_packet_fields": [
     "linux anchor path",
     "phase",
+    "current status bucket",
     "requested decision bucket",
+    "decision record ID",
     "owner",
     "rollback owner",
     "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
     "parity scorecard link or blocker record",
     "explicit non-goals",
     "written rationale"
@@ -78,11 +84,11 @@
       "why_now": "The landed Phase 15 parity scorecard is now the live evidence attachment point for Architecture Council requests instead of a planned follow-up."
     },
     {
-      "id": "phase15-stay-in-c-approval-evidence-followup",
+      "id": "phase15-evidence-archive-followup",
       "status": "ready_next",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The next honest Phase 15 step is a small follow-up that records when a frozen anchor leaves active discussion and what approval evidence archive must remain linked."
+      "why_now": "The next honest Phase 15 step is a small follow-up that standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
     }
   ]
 }
