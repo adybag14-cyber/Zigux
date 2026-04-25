@@ -1,0 +1,90 @@
+{
+  "lane_key": "P12-L05",
+  "phase": "Phase 12",
+  "surveyed_commit": "500886d4894d9165c303df700920cd01c247b9eb",
+  "anchor": "drivers/nvme/host/pci.c",
+  "roadmap_destinations": [
+    "drivers/nvme/host/pci.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "nvme_pci_c_lines": 4293,
+    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_build_present": true,
+    "preexisting_virtio_core_zig_present": true,
+    "preexisting_virtio_ring_zig_present": true,
+    "preexisting_phase12_build_present": true,
+    "preexisting_phase12_virtio_net_survey_present": true,
+    "nvme_pci_zig_present": true,
+    "nvme_pci_test_present": true,
+    "nvme_pci_slice_note_present": true,
+    "nvme_pci_survey_gate_present": true,
+    "nvme_pci_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase12-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_build.zig",
+      "why_now": "The shared Phase 12 build gate now runs the landed nvme PCI starter beside the phase12 surveys so the complex-driver lane stays reviewable in one bounded path."
+    },
+    {
+      "id": "phase12-nvme-pci-driver-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The first bounded starter is now landed around a lab-only queue planner that validates queue geometry, computes DMA page demand, assigns monotonic queue identifiers, and tracks doorbell offsets without claiming live PCI behavior."
+    },
+    {
+      "id": "phase12-nvme-pci-driver-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
+      "why_now": "Dedicated driver tests now keep the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, and reset-time queue freeze behavior."
+    },
+    {
+      "id": "phase12-nvme-pci-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
+      "why_now": "The slice note records what the landed queue planner covers so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
+    },
+    {
+      "id": "phase12-virtio-net-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
+      "why_now": "The existing virtio_net survey keeps the broader Phase 12 checkpoint visible, which helps compare the nvme PCI lane against the tranche's other complex-driver work."
+    },
+    {
+      "id": "phase12-nvme-pci-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
+      "why_now": "A dedicated survey gate is the smallest truthful way to record that the first nvme PCI starter has landed while the deeper transport and DMA roadmap work remains intentionally incomplete."
+    },
+    {
+      "id": "phase12-nvme-pci-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
+      "why_now": "The lane needs an archival note that compares the current starter against the roadmap so future runs do not mistake the queue planner for a production PCI port."
+    },
+    {
+      "id": "phase12-nvme-pci-prp-or-sgl-shape-helper",
+      "status": "ready_next",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The next honest nvme PCI step is one tiny PRP or SGL-facing buffer-shape helper that describes descriptor fanout limits without crossing into live DMA mapping, request submission, or hardware-backed queue setup."
+    },
+    {
+      "id": "phase12-nvme-pci-live-queue-and-dma",
+      "status": "blocked_on_dma_transport",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
+      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked until one smaller descriptor-shape helper exists and the roadmap-approved DMA-safe transport substrate is in place."
+    }
+  ]
+}
