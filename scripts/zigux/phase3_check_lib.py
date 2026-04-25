@@ -10,29 +10,12 @@ import subprocess
 import sys
 import tempfile
 
+from phase3_catalog import build_step_for_slug, description_for_slug
+
 
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
 SCRIPT_PREFIX = "check-phase3-"
-
-SPECIAL_BUILD_STEPS = {
-    "abi": "phase3-dump",
-}
-
-SPECIAL_DESCRIPTIONS = {
-    "abi": "ABI layout",
-    "bitmap-cpumask": "bitmap/cpumask",
-    "list-hlist": "list/hlist",
-    "errptr-xarray": "err_ptr/xarray",
-    "xarray-slot": "xarray slot",
-    "idr-slot": "idr slot",
-    "ida-alloc": "ida allocation",
-    "ida-bitmap": "ida bitmap",
-    "ida-range": "ida range",
-    "ida-range-set": "ida range-set",
-    "ida-policy": "ida policy",
-    "minor-alloc": "minor allocation",
-}
 
 WRAPPER_STUB = """#!/usr/bin/env python3
 from __future__ import annotations
@@ -58,14 +41,6 @@ def slug_from_wrapper_path(path: str | Path) -> str:
 
 def fixture_key_for_slug(slug: str) -> str:
     return f"phase3_{slug.replace('-', '_')}"
-
-
-def build_step_for_slug(slug: str) -> str:
-    return SPECIAL_BUILD_STEPS.get(slug, f"phase3-{slug}-dump")
-
-
-def description_for_slug(slug: str) -> str:
-    return SPECIAL_DESCRIPTIONS.get(slug, slug.replace("-", " "))
 
 
 def status_name_for_slug(slug: str) -> str:
