@@ -9,21 +9,55 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const abi_bindings_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const narrow_unsafe_module = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_view_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/bitmap_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_view_module.addImport("abi_bindings", abi_bindings_module);
+    bitmap_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const runtime_atomic64_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_atomic64.zig"),
         .target = target,
         .optimize = optimize,
     });
     runtime_atomic64_sample_module.addImport("atomic", atomic_module);
+    const runtime_bitmap_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_bitmap.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_sample_module.addImport("bitmap_view", bitmap_view_module);
     const runtime_atomic64_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_module.zig"),
         .target = target,
         .optimize = optimize,
     });
     runtime_atomic64_module.addImport("runtime_atomic64_sample", runtime_atomic64_sample_module);
+    const runtime_bitmap_module = b.createModule(.{
+        .root_source_file = b.path("runtime_bitmap_module.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_bitmap_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
 
     const runtime_atomic64_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const runtime_bitmap_survey_module = b.createModule(.{
+        .root_source_file = b.path("runtime_bitmap_survey.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -33,14 +67,26 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_atomic64_module,
     });
     const run_runtime_atomic64_module_tests = b.addRunArtifact(runtime_atomic64_module_tests);
+    const runtime_bitmap_module_tests = b.addTest(.{
+        .name = "phase9-runtime-bitmap-module-tests",
+        .root_module = runtime_bitmap_module,
+    });
+    const run_runtime_bitmap_module_tests = b.addRunArtifact(runtime_bitmap_module_tests);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-survey-tests",
         .root_module = runtime_atomic64_survey_module,
     });
     const run_runtime_atomic64_survey_tests = b.addRunArtifact(runtime_atomic64_survey_tests);
+    const runtime_bitmap_survey_tests = b.addTest(.{
+        .name = "phase9-runtime-bitmap-survey-tests",
+        .root_module = runtime_bitmap_survey_module,
+    });
+    const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64 pilot-module tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64 and bitmap pilot-module tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
+    test_step.dependOn(&run_runtime_bitmap_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
+    test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
 }
