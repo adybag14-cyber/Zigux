@@ -6,12 +6,18 @@ from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 
-from phase3_catalog import discover_phase3_slices
+from phase3_catalog import DEFAULT_PATHS, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub
 
 
-def sync_wrappers(entries: list[object], expected: str, check: bool) -> list[str]:
+def discover_wrapper_scripts(scripts_dir: Path) -> list[Path]:
+    return sorted(scripts_dir.glob("check-phase3-*.py"))
+
+
+def sync_wrappers(entries: list[object], expected: str, check: bool, scripts_dir: Path = DEFAULT_PATHS.scripts_dir) -> list[str]:
     mismatches: list[str] = []
+    expected_paths = {entry.check_script for entry in entries}
+
     for entry in entries:
         path = entry.check_script
         if not path.exists():
@@ -25,6 +31,14 @@ def sync_wrappers(entries: list[object], expected: str, check: bool) -> list[str
             mismatches.append(path.as_posix())
             if not check:
                 path.write_text(expected, encoding="utf-8", newline="\n")
+
+    for path in discover_wrapper_scripts(scripts_dir):
+        if path in expected_paths:
+            continue
+        mismatches.append(path.as_posix())
+        if not check:
+            path.unlink()
+
     return mismatches
 
 
@@ -34,26 +48,31 @@ def run_self_test() -> int:
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_wrapper_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
+        expected_wrapper = tmp_dir / "check-phase3-expected.py"
         missing_wrapper = tmp_dir / "check-phase3-missing.py"
-        stale_wrapper = tmp_dir / "check-phase3-stale.py"
+        stale_wrapper = tmp_dir / "check-phase3-expected.py"
         stale_wrapper.write_text(stale, encoding="utf-8", newline="\n")
+        obsolete_wrapper = tmp_dir / "check-phase3-stale.py"
+        obsolete_wrapper.write_text(expected, encoding="utf-8", newline="\n")
 
         entries = [
+            SimpleNamespace(check_script=expected_wrapper),
             SimpleNamespace(check_script=missing_wrapper),
-            SimpleNamespace(check_script=stale_wrapper),
         ]
 
-        mismatches = sync_wrappers(entries, expected, check=True)
-        assert mismatches == [missing_wrapper.as_posix(), stale_wrapper.as_posix()]
+        mismatches = sync_wrappers(entries, expected, check=True, scripts_dir=tmp_dir)
+        assert mismatches == [stale_wrapper.as_posix(), missing_wrapper.as_posix(), obsolete_wrapper.as_posix()]
         assert not missing_wrapper.exists()
         assert stale_wrapper.read_text(encoding="utf-8") == stale
+        assert obsolete_wrapper.exists()
 
-        mismatches = sync_wrappers(entries, expected, check=False)
-        assert mismatches == [missing_wrapper.as_posix(), stale_wrapper.as_posix()]
+        mismatches = sync_wrappers(entries, expected, check=False, scripts_dir=tmp_dir)
+        assert mismatches == [stale_wrapper.as_posix(), missing_wrapper.as_posix(), obsolete_wrapper.as_posix()]
         assert missing_wrapper.read_text(encoding="utf-8") == expected
         assert stale_wrapper.read_text(encoding="utf-8") == expected
+        assert not obsolete_wrapper.exists()
 
-        mismatches = sync_wrappers(entries, expected, check=True)
+        mismatches = sync_wrappers(entries, expected, check=True, scripts_dir=tmp_dir)
         assert mismatches == []
 
     print("PHASE3_WRAPPER_SELF_TEST=pass")
