@@ -446,12 +446,6 @@ def discover_non_doc_legacy_wrapper_references(
             _discover_legacy_wrapper_references_in_file(path, paths.root, discovered_slugs, "documentation")
         )
 
-    manifest_paths = sorted(paths.fixtures_dir.glob(f"{FIXTURE_PREFIX}*{MANIFEST_SUFFIX}"))
-    for path in manifest_paths:
-        references.extend(
-            _discover_legacy_wrapper_references_in_file(path, paths.root, discovered_slugs, "manifest")
-        )
-
     return references
 
 
@@ -642,7 +636,6 @@ def run_self_test() -> int:
         assert [reference.to_row() for reference in references] == [
             "Documentation/zigux/artifact-diff.md\t1\talpha\tpath\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
             "Documentation/zigux/artifact-diff.md\t2\tgamma\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug gamma",
-            "zigux/tests/fixtures/phase3_alpha_manifest.json\t1\talpha\tpath\tmanifest\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
         ]
         rewritten = rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
         assert rewritten == ["Documentation/zigux/artifact-diff.md"]
@@ -653,9 +646,7 @@ def run_self_test() -> int:
         assert "python3 scripts/zigux/run-phase3-checks.py --slug gamma" in artifact_diff
         assert "python3 python3 scripts/zigux/run-phase3-checks.py" not in artifact_diff
         references = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
-        assert [reference.to_row() for reference in references] == [
-            "zigux/tests/fixtures/phase3_alpha_manifest.json\t1\talpha\tpath\tmanifest\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
-        ]
+        assert references == []
         assert rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths) == []
 
         artifact_diff_path = paths.docs_dir / "artifact-diff.md"
@@ -734,7 +725,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--legacy-wrapper-references",
         action="store_true",
-        help="List remaining discovered Phase 3 wrapper mentions outside the slice docs.",
+        help="List remaining discovered Phase 3 wrapper mentions in non-slice documentation.",
     )
     parser.add_argument(
         "--rewrite-legacy-wrapper-references",
