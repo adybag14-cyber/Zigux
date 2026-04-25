@@ -9,18 +9,38 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const root_module = b.createModule(.{
+    const checksum_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_checksum.zig"),
         .target = target,
         .optimize = optimize,
     });
-    root_module.addImport("checksum", checksum_module);
+    checksum_root_module.addImport("checksum", checksum_module);
 
-    const tests = b.addTest(.{
+    const checksum_tests = b.addTest(.{
         .name = "phase6-checksum-tests",
-        .root_module = root_module,
+        .root_module = checksum_root_module,
     });
-    const run_tests = b.addRunArtifact(tests);
-    const test_step = b.step("test", "Run Phase 6 checksum helper tests");
-    test_step.dependOn(&run_tests.step);
+    const run_checksum_tests = b.addRunArtifact(checksum_tests);
+
+    const hexdump_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/hexdump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hexdump_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_root_module.addImport("hexdump", hexdump_module);
+
+    const hexdump_tests = b.addTest(.{
+        .name = "phase6-hexdump-tests",
+        .root_module = hexdump_root_module,
+    });
+    const run_hexdump_tests = b.addRunArtifact(hexdump_tests);
+
+    const test_step = b.step("test", "Run Phase 6 leaf helper tests");
+    test_step.dependOn(&run_checksum_tests.step);
+    test_step.dependOn(&run_hexdump_tests.step);
 }
