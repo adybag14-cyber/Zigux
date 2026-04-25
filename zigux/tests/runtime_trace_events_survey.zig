@@ -2,8 +2,6 @@ const std = @import("std");
 
 const SurveySummary = struct {
     trace_events_sample_c_lines: usize,
-    trace_events_sample_h_lines: usize,
-    ftrace_selftest_references: usize,
     preexisting_runtime_trace_events_test_files: usize,
     preexisting_runtime_trace_events_sample_present: bool,
     preexisting_phase9_build_present: bool,
@@ -34,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime trace-events survey manifest records the review slice and remaining sample gap" {
+test "phase 9 runtime trace-events survey manifest records the starter slice and remaining gaps" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -50,13 +48,11 @@ test "phase 9 runtime trace-events survey manifest records the review slice and 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
-    try std.testing.expect(manifest.survey_summary.trace_events_sample_h_lines >= 600);
-    try std.testing.expect(manifest.survey_summary.ftrace_selftest_references >= 2);
     try std.testing.expectEqual(@as(usize, 0), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(!manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
@@ -67,7 +63,7 @@ test "phase 9 runtime trace-events survey manifest records the review slice and 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
-    var saw_sample_gap = false;
+    var saw_sample_module = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -77,10 +73,8 @@ test "phase 9 runtime trace-events survey manifest records the review slice and 
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
-        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
-            // Expected sample-side landing zone.
         } else {
-            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/"));
+            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/"));
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -92,8 +86,8 @@ test "phase 9 runtime trace-events survey manifest records the review slice and 
         }
 
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-sample-module")) {
-            saw_sample_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_sample_module = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", gap.zigux_destination);
         }
 
@@ -104,8 +98,8 @@ test "phase 9 runtime trace-events survey manifest records the review slice and 
     }
 
     try std.testing.expect(runtime_test_destination_count >= 2);
-    try std.testing.expect(starter_landed_count >= 2);
-    try std.testing.expect(ready_next_count >= 2);
+    try std.testing.expect(starter_landed_count >= 4);
+    try std.testing.expect(ready_next_count >= 1);
     try std.testing.expect(blocked_count >= 1);
-    try std.testing.expect(saw_sample_gap);
+    try std.testing.expect(saw_sample_module);
 }
