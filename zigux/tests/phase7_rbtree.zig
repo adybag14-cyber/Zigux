@@ -127,6 +127,18 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     }
     try std.testing.expectEqual(inserted_expected.len, inserted_index);
     try std.testing.expectEqualSlices(i32, &inserted_expected, inserted_actual[0..inserted_index]);
+
+    const reverse_expected = [_]i32{ 25, 20, 15, 10, 5 };
+    var reverse_actual: [reverse_expected.len]i32 = undefined;
+    var reverse_index: usize = 0;
+    current = rbtree.last(&root);
+    while (current) |node| : (current = rbtree.prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        reverse_actual[reverse_index] = entry.key;
+        reverse_index += 1;
+    }
+    try std.testing.expectEqual(reverse_expected.len, reverse_index);
+    try std.testing.expectEqualSlices(i32, &reverse_expected, reverse_actual[0..reverse_index]);
     try expectStarterBalanceInvariants(&root);
 
     rbtree.erase(&entries[1].node, &root);
