@@ -5,13 +5,14 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-evidence-archive-reporting`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, and one concrete evidence-archive reporting block for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `36f313d5bd0b3be22beb3284730a98dff5e7f335`
+- `PHASE15_SLICE=parity-scorecard-decision-record-templates`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, and reserved per-anchor decision-record templates for the active freeze-in-C anchors
+- survey provenance refreshed against verified `master` head `f3805234e72688b1f6c94545c560ef4e77057b2a`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
+  - `Documentation/zigux/phase15-evidence-archives/`
   - `zigux/tests/phase15_parity_scorecard.json`
   - `zigux/tests/phase15_parity_scorecard.zig`
   - `zigux/tests/phase15_build.zig`
@@ -19,9 +20,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 ## Why this slice exists
 
-The roadmap says Phase 15 is about honest long-term governance for the final mixed-language steady state. The live repo already records the freeze set in `Documentation/zigux/freeze-map.md`, but it still needed the next bounded reporting step that says where each frozen anchor keeps its Architecture Council evidence packet.
+The roadmap says Phase 15 is about honest long-term governance for the final mixed-language steady state. The live repo already records the freeze set in `Documentation/zigux/freeze-map.md`, and it already has the bounded reporting step that says where each frozen anchor keeps its Architecture Council evidence packet, but those reserved paths still needed real template files.
 
-That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, `kernel/rcu/tree_plugin.h` is 1,369 lines, `kernel/rcu/tree_exp.h` is 1,118 lines, `kernel/rcu/tree_nocb.h` is 1,702 lines, `net/core/skbuff.c` is 7,476 lines, and `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes a reporting-grade evidence-archive block the next honest step instead of another implementation starter.
+That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, `kernel/rcu/tree_plugin.h` is 1,369 lines, `kernel/rcu/tree_exp.h` is 1,118 lines, `kernel/rcu/tree_nocb.h` is 1,702 lines, `net/core/skbuff.c` is 7,476 lines, and `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes reserved decision-record templates the next honest step instead of another implementation starter.
 
 ## Scorecard Entries
 
@@ -142,10 +143,11 @@ The current lane state is:
 - landed `phase15-build-gate`
 - landed `phase15-make-target`
 - landed `phase15-evidence-archive-reporting`
-- ready-next `phase15-decision-record-template-followup`
+- landed `phase15-decision-record-template-followup`
+- ready-next `phase15-template-field-sync-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, plus a concrete reporting block that says where Architecture Council evidence belongs, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, and reserved packet templates at those paths, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
@@ -172,6 +174,17 @@ Each frozen anchor now carries one reporting block that reserves:
 
 These reporting fields do not claim a decision record already exists. They standardize where the record will live and what still remains missing until a narrower seam earns Architecture Council review.
 
+## Reserved Decision Record Templates
+
+The scorecard's reserved evidence-archive paths now exist as template packet files:
+
+- `Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md`
+- `Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md`
+- `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
+- `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
+
+Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
+
 ## Non-goals
 
 This scorecard slice does not claim:
@@ -193,4 +206,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small per-anchor decision-record template follow-up next, limited to reserving the packet headings under `Documentation/zigux/phase15-evidence-archives/` without claiming any status change approval.
+Stay in the Phase 15 governance lane and add one small template-field sync follow-up next, limited to keeping the per-anchor decision-record templates aligned with the review-process packet fields and scorecard wording if either side changes.
