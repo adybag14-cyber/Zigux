@@ -11,11 +11,11 @@ pub fn sub(sum: u32, addend: u32) u32 {
 }
 
 pub fn shift(sum: u32, offset: usize) u32 {
-    if ((offset & 1) == 0) {
-        return sum;
+    // Rotate the partial sum when the offset lands on an odd byte.
+    if ((offset & 1) != 0) {
+        return std.math.rotr(u32, sum, 8);
     }
-
-    return (sum >> 8) | (sum << 24);
+    return sum;
 }
 
 pub fn blockAdd(sum: u32, other: u32, offset: usize) u32 {
@@ -87,8 +87,8 @@ test "compute matches the reference checksum across even and odd sizes" {
         "\x00",
         "\x00\x01",
         "\x00\x01\xf2\x03\xf4\xf5\xf6\xf7",
-        "checksum lane",
-        "phase six leaf helper",
+        "\xff\xff",
+        "\x12\x34\x56",
     };
 
     for (cases) |bytes| {
@@ -116,7 +116,9 @@ test "add, sub, and offset shifting preserve checksum arithmetic" {
     const rhs: u32 = 0xab_cd;
 
     try std.testing.expectEqual(lhs, sub(add(lhs, rhs), rhs));
+    try std.testing.expectEqual(rhs, shift(rhs, 2));
     try std.testing.expectEqual(@as(u32, 0xcd_00_00_ab), shift(0xab_cd, 1));
+    try std.testing.expectEqual(shift(rhs, 1), shift(rhs, 3));
     try std.testing.expectEqual(add(lhs, shift(rhs, 1)), blockAdd(lhs, rhs, 1));
     try std.testing.expectEqual(sub(lhs, shift(rhs, 1)), blockSub(lhs, rhs, 1));
 }
