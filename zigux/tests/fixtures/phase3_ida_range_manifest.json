@@ -2,11 +2,10 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "ida-range-view-interop",
-  "file_count": 4,
+  "file_count": 3,
   "files": [
     "zigux/helpers/ida_range_view.zig",
     "zigux/tests/phase3_ida_range_dump.zig",
-    "zigux/tests/fixtures/phase3_ida_range/phase3_ida_range_c_harness.c",
-    "scripts/zigux/check-phase3-ida-range.py"
+    "zigux/tests/fixtures/phase3_ida_range/phase3_ida_range_c_harness.c"
   ]
 }
