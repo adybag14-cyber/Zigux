@@ -17,6 +17,11 @@ pub const ParseCpuMaskError = error{
     InvalidCpuRange,
 };
 
+pub const ChunkReader = struct {
+    context: ?*anyopaque,
+    readFn: *const fn (context: ?*anyopaque, buffer: []u8) anyerror!?usize,
+};
+
 fn isDelimiter(byte: u8) bool {
     return byte == ',' or byte == '\n' or byte == '\r';
 }
@@ -81,6 +86,34 @@ pub fn parseCpuMaskString(allocator: std.mem.Allocator, input: []const u8) !CpuM
     };
 }
 
+pub fn parseCpuMaskFromReader(
+    allocator: std.mem.Allocator,
+    scratch: []u8,
+    reader: ChunkReader,
+) anyerror!CpuMask {
+    if (scratch.len == 0) {
+        return error.EmptyReadBuffer;
+    }
+
+    var collected = std.ArrayList(u8).empty;
+    defer collected.deinit(allocator);
+
+    while (true) {
+        const maybe_count = try reader.readFn(reader.context, scratch);
+        const count = maybe_count orelse break;
+        if (count == 0) {
+            return error.EmptyReadChunk;
+        }
+        if (count > scratch.len) {
+            return error.InvalidReadCount;
+        }
+
+        try collected.appendSlice(allocator, scratch[0..count]);
+    }
+
+    return parseCpuMaskString(allocator, collected.items);
+}
+
 pub fn countPossibleCpus(mask: []const bool) usize {
     var count: usize = 0;
     for (mask) |present| {
@@ -127,4 +160,74 @@ test "parseCpuMaskString rejects empty and malformed ranges" {
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "3-1"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "x"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "1-"));
+}
+
+test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
+    const ReaderState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.index >= self.chunks.len) {
+                return null;
+            }
+
+            const chunk = self.chunks[self.index];
+            self.index += 1;
+            std.mem.copyForwards(u8, buffer[0..chunk.len], chunk);
+            return chunk.len;
+        }
+    };
+
+    var state = ReaderState{
+        .chunks = &.{ "0-2,", "4\r", "\n6\n" },
+    };
+    var scratch: [8]u8 = undefined;
+    const parsed = try parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &state,
+        .readFn = ReaderState.read,
+    });
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 7), parsed.values.len);
+    try std.testing.expectEqual(@as(usize, 5), parsed.countSet());
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(!parsed.values[3]);
+    try std.testing.expect(parsed.values[4]);
+    try std.testing.expect(!parsed.values[5]);
+    try std.testing.expect(parsed.values[6]);
+}
+
+test "parseCpuMaskFromReader rejects invalid reader contracts" {
+    const ReaderState = struct {
+        mode: enum { empty_chunk, oversized_chunk },
+
+        fn read(context: ?*anyopaque, _: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            return switch (self.mode) {
+                .empty_chunk => 0,
+                .oversized_chunk => 9,
+            };
+        }
+    };
+
+    var empty_state = ReaderState{ .mode = .empty_chunk };
+    var oversize_state = ReaderState{ .mode = .oversized_chunk };
+    var scratch: [8]u8 = undefined;
+
+    try std.testing.expectError(error.EmptyReadChunk, parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &empty_state,
+        .readFn = ReaderState.read,
+    }));
+    try std.testing.expectError(error.InvalidReadCount, parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &oversize_state,
+        .readFn = ReaderState.read,
+    }));
+    try std.testing.expectError(error.EmptyReadBuffer, parseCpuMaskFromReader(std.testing.allocator, &.{}, .{
+        .context = &empty_state,
+        .readFn = ReaderState.read,
+    }));
 }
