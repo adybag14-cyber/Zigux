@@ -16,6 +16,7 @@ DOCS_DIR = ROOT / "Documentation" / "zigux"
 SCRIPTS_DIR = ROOT / "scripts" / "zigux"
 TESTS_DIR = ROOT / "zigux" / "tests"
 FIXTURES_DIR = TESTS_DIR / "fixtures"
+ARTIFACT_DIFF_PATH = DOCS_DIR / "artifact-diff.md"
 
 DOC_PREFIX = "phase3-"
 DOC_SUFFIX = "-slice.md"
@@ -46,6 +47,7 @@ SPECIAL_DESCRIPTIONS = {
 
 INTEROP_GATE_PREFIX = "PHASE3_INTEROP_GATE="
 LEGACY_WRAPPER_REF_RE = re.compile(r"(?P<command>python3\s+)?scripts/zigux/check-phase3-(?P<slug>[a-z0-9-]+)\.py")
+ARTIFACT_DIFF_PHASE3_SLUG_RE = re.compile(r"--slug (?P<slug>[a-z0-9-]+)")
 
 
 @dataclass(frozen=True)
@@ -330,6 +332,73 @@ def rewrite_non_doc_legacy_wrapper_references(
     return rewritten
 
 
+def discover_artifact_diff_phase3_order(
+    entries: list[Phase3Slice],
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> list[Phase3Slice]:
+    entry_map = {entry.slug: entry for entry in entries}
+    ordered_entries: list[Phase3Slice] = []
+    seen: set[str] = set()
+
+    try:
+        lines = artifact_diff_path.read_text(encoding="utf-8").splitlines()
+        start = lines.index("Current Phase 3 use")
+        end = lines.index("Rules")
+    except (FileNotFoundError, ValueError):
+        return entries
+
+    for line in lines[start + 1 : end]:
+        match = ARTIFACT_DIFF_PHASE3_SLUG_RE.search(line)
+        if not match:
+            continue
+        slug = match.group("slug")
+        if slug in seen or slug not in entry_map:
+            continue
+        ordered_entries.append(entry_map[slug])
+        seen.add(slug)
+
+    for entry in entries:
+        if entry.slug in seen:
+            continue
+        ordered_entries.append(entry)
+    return ordered_entries
+
+
+def artifact_diff_phase3_lines(
+    entries: list[Phase3Slice],
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> list[str]:
+    lines: list[str] = []
+    for entry in discover_artifact_diff_phase3_order(entries, artifact_diff_path):
+        lines.append(
+            f"- `{_rel(entry.expected_path, entry.root)}` anchors the bounded Phase 3 {entry.description} parity claim."
+        )
+        lines.append(
+            f"- `python3 scripts/zigux/run-phase3-checks.py --slug {entry.slug}` compares that committed JSON fixture against both the bounded C harness and the Zig {entry.description} dump."
+        )
+    return lines
+
+
+def rewrite_artifact_diff_phase3_section(
+    entries: list[Phase3Slice],
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> bool:
+    original = artifact_diff_path.read_text(encoding="utf-8")
+    lines = original.splitlines()
+    try:
+        start = lines.index("Current Phase 3 use")
+        end = lines.index("Rules")
+    except ValueError as exc:
+        raise ValueError(f"artifact diff headings missing in {artifact_diff_path}") from exc
+    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries), "", "Rules"]
+    updated_lines = [*lines[:start], *replacement, *lines[end + 1 :]]
+    updated = "\n".join(updated_lines) + "\n"
+    if updated == original:
+        return False
+    artifact_diff_path.write_text(updated, encoding="utf-8", newline="\n")
+    return True
+
+
 def _discover_legacy_wrapper_references_in_file(
     path: Path,
     root: Path,
@@ -589,6 +658,58 @@ def run_self_test() -> int:
         ]
         assert rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths) == []
 
+        artifact_diff_path = paths.docs_dir / "artifact-diff.md"
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        entries = discover_phase3_slices(paths)
+        expected_block = [
+            "Current Phase 3 use",
+            "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.",
+            "- `python3 scripts/zigux/run-phase3-checks.py --slug abi` compares that committed JSON fixture against both the bounded C harness and the Zig ABI layout dump.",
+        ]
+        generated = artifact_diff_phase3_lines(entries)
+        assert generated[:2] == expected_block[1:]
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug delta`",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug abi`",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        ordered_entries = discover_artifact_diff_phase3_order(entries, artifact_diff_path)
+        assert [entry.slug for entry in ordered_entries[:3]] == ["delta", "abi", "alpha"]
+        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
+        rewritten_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
+        assert "stale line" not in rewritten_artifact_diff
+        assert "- `zigux/tests/fixtures/phase3_delta/expected.json` anchors the bounded Phase 3 delta parity claim." in rewritten_artifact_diff
+        assert "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim." in rewritten_artifact_diff
+        assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
+        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is False
+
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
 
@@ -615,6 +736,11 @@ if __name__ == "__main__":
         "--rewrite-shared-runner-reference-docs",
         action="store_true",
         help="Rewrite non-slice documentation wrapper mentions to the shared run-phase3-checks.py --slug form.",
+    )
+    parser.add_argument(
+        "--rewrite-artifact-diff-phase3-section",
+        action="store_true",
+        help="Rewrite the artifact-diff Phase 3 section from the discovered slice catalog.",
     )
     parser.add_argument(
         "--rewrite-legacy-wrapper-references",
@@ -651,6 +777,10 @@ if __name__ == "__main__":
         rewritten = rewrite_non_doc_legacy_wrapper_references(entries)
         for path in rewritten:
             print(path)
+        raise SystemExit(0)
+    if args.rewrite_artifact_diff_phase3_section:
+        if rewrite_artifact_diff_phase3_section(entries):
+            print(_rel(ARTIFACT_DIFF_PATH))
         raise SystemExit(0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
