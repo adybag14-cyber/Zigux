@@ -41,6 +41,8 @@ const Fixture = struct {
         equal: bool,
         intersects: bool,
         subset: bool,
+        range_after_set: []const u64,
+        range_after_clear: []const u64,
         full_after_fill: bool,
         empty_after_zero: bool,
     },
@@ -196,6 +198,14 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&bitmap_lhs, &[_]bitmap.Word{ 0x0e, 0 }, 8));
     try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&bitmap_lhs, &bitmap_rhs, 8));
     try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&bitmap_rhs, &bitmap_lhs, 8));
+
+    var bitmap_range = [_]bitmap.Word{ 0, 0, 0 };
+    bitmap.setRange(&bitmap_range, 1, 3);
+    bitmap.setRange(&bitmap_range, bitmap.bits_per_long + 2, 2);
+    try expectWordSlice(&bitmap_range, fixture.bitmap.range_after_set);
+    bitmap.clearRange(&bitmap_range, 1, 3);
+    bitmap.clearRange(&bitmap_range, bitmap.bits_per_long + 2, 2);
+    try expectWordSlice(&bitmap_range, fixture.bitmap.range_after_clear);
 
     bitmap.fill(&bitmap_dst, find_bit.bits_per_long * 2);
     try std.testing.expectEqual(fixture.bitmap.full_after_fill, bitmap.full(&bitmap_dst, find_bit.bits_per_long * 2));
