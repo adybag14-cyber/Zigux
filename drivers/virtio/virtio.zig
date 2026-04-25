@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const feature_bit_capacity: u16 = 128;
+pub const queue_capacity: usize = 8;
 
 pub const DeviceStatus = struct {
     pub const acknowledge: u8 = 1;
@@ -26,15 +27,35 @@ pub const NegotiationSummary = struct {
     accepted_by_transport: bool,
 };
 
+pub const QueueRegistrationSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    callback_name: []const u8,
+    callback_enabled: bool,
+    callback_invocation_count: usize,
+    notification_count: usize,
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
+    const QueueSlot = struct {
+        active: bool = false,
+        descriptor_count: u16 = 0,
+        callback_name: []const u8 = "",
+        callback_enabled: bool = false,
+        callback_invocation_count: usize = 0,
+        notification_count: usize = 0,
+    };
 
     status: u8 = 0,
     device_features: FeatureSet = FeatureSet.initEmpty(),
     driver_features: FeatureSet = FeatureSet.initEmpty(),
     negotiated_features: FeatureSet = FeatureSet.initEmpty(),
+    queues: [queue_capacity]QueueSlot = [_]QueueSlot{QueueSlot{}} ** queue_capacity,
     transport_accepts_features: bool = true,
+    registered_queue_count: usize = 0,
     reset_count: usize = 0,
     finalize_count: usize = 0,
 
@@ -60,6 +81,8 @@ pub const VirtioCoreLabDevice = struct {
         self.status = 0;
         self.driver_features = FeatureSet.initEmpty();
         self.negotiated_features = FeatureSet.initEmpty();
+        self.queues = [_]QueueSlot{QueueSlot{}} ** queue_capacity;
+        self.registered_queue_count = 0;
         self.reset_count += 1;
     }
 
@@ -139,8 +162,92 @@ pub const VirtioCoreLabDevice = struct {
         return self.device_features.isSet(index);
     }
 
+    pub fn registerQueueCallback(
+        self: *Self,
+        queue_index: u16,
+        descriptor_count: u16,
+        callback_name: []const u8,
+    ) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (!self.hasStatus(DeviceStatus.features_ok)) return error.MissingFeaturesOk;
+        if (descriptor_count == 0) return error.EmptyQueueDescriptorSet;
+        if (callback_name.len == 0) return error.EmptyQueueCallbackName;
+
+        const index = try checkedQueueIndex(queue_index);
+        const slot = &self.queues[index];
+        if (slot.active) return error.QueueAlreadyRegistered;
+
+        slot.* = .{
+            .active = true,
+            .descriptor_count = descriptor_count,
+            .callback_name = callback_name,
+            .callback_enabled = true,
+        };
+        self.registered_queue_count += 1;
+    }
+
+    pub fn unregisterQueueCallback(self: *Self, queue_index: u16) !void {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = &self.queues[index];
+        if (!slot.active) return error.QueueNotRegistered;
+
+        slot.* = QueueSlot{};
+        self.registered_queue_count -= 1;
+    }
+
+    pub fn disableQueueCallback(self: *Self, queue_index: u16) !void {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.callback_enabled = false;
+    }
+
+    pub fn enableQueueCallback(self: *Self, queue_index: u16) !void {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.callback_enabled = true;
+    }
+
+    pub fn notifyQueueUsed(self: *Self, queue_index: u16) !bool {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.notification_count += 1;
+        if (!slot.callback_enabled) return false;
+
+        slot.callback_invocation_count += 1;
+        return true;
+    }
+
+    pub fn queueRegistrationSummary(self: *const Self, queue_index: u16) !QueueRegistrationSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotRegistered;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = slot.descriptor_count,
+            .callback_name = slot.callback_name,
+            .callback_enabled = slot.callback_enabled,
+            .callback_invocation_count = slot.callback_invocation_count,
+            .notification_count = slot.notification_count,
+        };
+    }
+
+    pub fn registeredQueueCount(self: *const Self) usize {
+        return self.registered_queue_count;
+    }
+
     fn checkedFeatureIndex(feature_bit: u16) !usize {
         if (feature_bit >= feature_bit_capacity) return error.FeatureBitOutOfRange;
         return @intCast(feature_bit);
+    }
+
+    fn checkedQueueIndex(queue_index: u16) !usize {
+        if (queue_index >= queue_capacity) return error.QueueIndexOutOfRange;
+        return @intCast(queue_index);
+    }
+
+    fn checkedQueueSlot(self: *Self, queue_index: u16) !*QueueSlot {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = &self.queues[index];
+        if (!slot.active) return error.QueueNotRegistered;
+        return slot;
     }
 };
