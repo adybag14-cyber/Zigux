@@ -34,8 +34,9 @@ Zig toolchain gate
 - `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
 
 Phase 3 flow
-- `phase3_catalog.py` discovers Phase 3 slices from the docs, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions and build-step overrides.
-- `phase3_catalog.py --self-test` exercises isolated slug discovery and manifest selection across docs, wrappers, dumps, and fixture candidates.
+- `phase3_catalog.py` discovers Phase 3 slices from the docs, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions, build-step overrides, and the current `PHASE3_INTEROP_GATE` mode recorded in each slice doc.
+- `phase3_catalog.py --self-test` exercises isolated slug discovery, manifest selection, and interop-gate classification across docs, dumps, and fixture candidates.
+- `phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice docs that still point at legacy `check-phase3-*.py` compatibility wrappers.
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
 - `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, wrapper-template, and argument-parsing helpers without running Zig parity builds.
 - `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
