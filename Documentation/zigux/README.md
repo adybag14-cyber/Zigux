@@ -23,7 +23,7 @@ Current closure records
 
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
-- `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest, and accepts either the shared runner gate (`python3 scripts/zigux/run-phase3-checks.py --slug <slug>`) or a legacy per-slice wrapper gate in each slice record.
+- `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest, accepts either the shared runner gate (`python3 scripts/zigux/run-phase3-checks.py --slug <slug>`) or a legacy per-slice wrapper gate in each slice record, and now also reports obsolete `check-phase3-*.py` wrapper files that no longer belong to a discovered slice.
 - `python3 scripts/zigux/phase3_catalog.py --self-test`, `python3 scripts/zigux/phase3_check_lib.py --self-test`, and `python3 scripts/zigux/run-phase3-checks.py --self-test` cover the discovery, shared-helper, and slug-selection paths without launching the full parity suite.
 - `python3 scripts/zigux/phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice records that still reference legacy per-slice wrapper commands, which makes wrapper-reference cleanup auditable instead of manual.
 - `python3 scripts/zigux/phase3_catalog.py --rewrite-shared-runner-docs` rewrites those legacy record references to the shared runner command in place, which makes incremental cleanup repeatable.
