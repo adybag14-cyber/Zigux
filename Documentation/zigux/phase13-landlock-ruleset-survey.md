@@ -27,9 +27,9 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 
 - `security/landlock/ruleset.c` is present on `master` and is broad enough to cross several security and lifetime boundaries at once: handled-access masks, per-layer request matrices, rb-tree keyed rules, hierarchy ownership, and domain merge semantics.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local ruleset helper without widening into kernel build integration.
-- the new `security/landlock/ruleset.zig` starter stays intentionally narrow around `landlock_create_ruleset()` planning, handled-access unioning, per-layer mask initialization, and `landlock_unmask_layers()` bit clearing.
-- the starter does not claim object references, locking, rule insertion, hierarchy allocation, workqueue-backed deferred frees, or interaction with `security/landlock/syscalls.c`.
-- the next honest ruleset-facing step is one small planner around `insert_rule()` access extension versus merged-layer intersection, still in-memory and still outside rb-tree storage and hierarchy lifetime.
+- the new `security/landlock/ruleset.zig` starter stays intentionally narrow around `landlock_create_ruleset()` planning, handled-access unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, and the matching-rule branch of `insert_rule()` where access rights are extended or a merged layer is appended.
+- the starter does not claim object references, locking, rb-tree storage, hierarchy allocation, workqueue-backed deferred frees, or interaction with `security/landlock/syscalls.c`.
+- the next honest ruleset-facing step is one small planner around the `insert_rule()` tree walk, especially `get_root()`, `walker_node`, and the no-match insertion-count branch, still in-memory and still outside rb-tree storage and hierarchy lifetime.
 
 ## Recorded gaps
 
@@ -41,10 +41,10 @@ The current lane state is:
 - landed `phase13-landlock-ruleset-test-gate`
 - landed `phase13-landlock-ruleset-slice-note`
 - landed `phase13-landlock-ruleset-survey-note`
-- ready-next `phase13-landlock-rule-layer-merge-followup`
-- blocked `phase13-landlock-live-tree-and-hierarchy-state`
+- landed `phase13-landlock-rule-layer-merge-followup`
+- ready-next `phase13-landlock-tree-search-followup`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
+This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting and matching-rule insertion planning, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
 
 ## Non-goals
 
@@ -68,4 +68,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 landlock ruleset lane and add one tiny `security/landlock/ruleset.zig` rule-layer merge planner next, limited to `insert_rule()` access extension versus merged-layer intersection before any rb-tree storage, hierarchy lifetime, or live LSM state is attempted.
+Stay in the Phase 13 landlock ruleset lane and add one tiny `security/landlock/ruleset.zig` tree-search planner next, limited to `insert_rule()` root selection, `walker_node` descent, and the no-match insertion-count branch before any rb-tree storage, hierarchy lifetime, or live LSM state is attempted.

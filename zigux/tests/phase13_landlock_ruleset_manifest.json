@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L09",
   "phase": "Phase 13",
-  "surveyed_commit": "ad8029fc68ac23b6c9c46dcf6ae8022cc92f814e",
+  "surveyed_commit": "bfd60deac35454b9f28ef8ad0b435d41f44f4108",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
@@ -48,32 +48,32 @@
       "why_now": "A dedicated Phase 13 test gate now checks both the helper behavior and the survey manifest so future runs can see the narrow ruleset starter and the still-missing deeper kernel state in one place."
     },
     {
-      "id": "phase13-landlock-ruleset-slice-note",
+      "id": "phase13-landlock-rulet-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-slice.md",
       "why_now": "The slice note records the exact helper-first boundary of the new ruleset lab so the lane does not overstate access-mask bookkeeping as full Landlock policy enforcement."
     },
     {
-      "id": "phase13-landlock-ruleset-survey-note",
+      "id": "phase13-landlock-rulet-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-rulet-survey.md",
       "why_now": "The survey note compares the 719-line `ruleset.c` anchor against the new starter and keeps the remaining gap around rule insertion, merge, and hierarchy lifetime explicit."
     },
     {
       "id": "phase13-landlock-rule-layer-merge-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now includes one bounded in-memory planner around `insert_rule()` access extension versus merged-layer intersection so Zigux can exercise the matching-rule branch logic before adding rb-tree storage, locking, or object ownership."
+    },
+    {
+      "id": "phase13-landlock-tree-search-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next honest ruleset step is one small in-memory planner around `insert_rule()` access extension versus merged-layer intersection so Zigux can capture rule-layer semantics before adding rb-tree storage, locking, or object ownership."
-    },
-    {
-      "id": "phase13-landlock-live-tree-and-hierarchy-state",
-      "status": "blocked_on_live_lsm_state",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_landlock_ruleset.zig",
-      "why_now": "Real rule insertion, `landlock_find_rule()` rb-tree walking, hierarchy allocation, reference counts, deferred free workqueues, and merge or inherit lifetime behavior remain blocked until the smaller rule-layer merge helper exists and the roadmap allows live LSM state beyond pure helper accounting."
+      "why_now": "The next honest ruleset step is a small planner for `insert_rule()` tree-search outcomes around `get_root()`, `walker_node`, and the no-match insertion-count branch before any rb-tree storage, hierarchy lifetime, or live LSM state is attempted."
     }
   ]
 }

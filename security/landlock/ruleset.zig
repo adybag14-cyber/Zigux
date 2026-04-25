@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const max_num_layers: usize = 16;
+pub const max_num_rules: u32 = std.math.maxInt(u32);
 pub const initially_denied_fs_access: u32 = 1 << 13;
 
 pub const ModuleDescriptor = struct {
@@ -10,6 +11,7 @@ pub const ModuleDescriptor = struct {
     provides_union_access_masks: bool,
     provides_layer_mask_init: bool,
     provides_rule_unmasking: bool,
+    provides_rule_insertion_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -42,6 +44,24 @@ pub const Layer = struct {
     access: u32,
 };
 
+pub const RulePlan = struct {
+    num_layers: usize,
+    layers: [max_num_layers]Layer,
+};
+
+pub const RuleInsertionMode = enum {
+    insert_new_rule,
+    extend_existing_access,
+    append_merged_layer,
+};
+
+pub const RuleInsertionPlan = struct {
+    anchor: []const u8,
+    mode: RuleInsertionMode,
+    resulting_rule: RulePlan,
+    resulting_num_rules: u32,
+};
+
 pub const LayerMaskPlan = struct {
     anchor: []const u8,
     handled_accesses: u32,
@@ -57,6 +77,7 @@ pub const RulesetHelperLab = struct {
             .provides_union_access_masks = true,
             .provides_layer_mask_init = true,
             .provides_rule_unmasking = true,
+            .provides_rule_insertion_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -139,5 +160,75 @@ pub const RulesetHelperLab = struct {
         }
 
         return true;
+    }
+
+    fn copyRulePlan(layers: []const Layer) !RulePlan {
+        if (layers.len == 0) {
+            return error.MissingLayers;
+        }
+        if (layers.len > max_num_layers) {
+            return error.TooManyLayers;
+        }
+
+        var copied = RulePlan{
+            .num_layers = layers.len,
+            .layers = [_]Layer{.{ .level = 0, .access = 0 }} ** max_num_layers,
+        };
+        for (layers, 0..) |layer, i| {
+            copied.layers[i] = layer;
+        }
+        return copied;
+    }
+
+    pub fn planRuleInsertion(existing_rule: ?RulePlan, incoming_layers: []const Layer, current_num_rules: u32) !RuleInsertionPlan {
+        if (existing_rule) |rule| {
+            if (incoming_layers.len != 1) {
+                return error.MatchingRuleRequiresSingleLayer;
+            }
+
+            const incoming = incoming_layers[0];
+            var updated = rule;
+
+            if (incoming.level == 0) {
+                if (rule.num_layers != 1 or rule.layers[0].level != 0) {
+                    return error.InvalidExistingRule;
+                }
+
+                updated.layers[0].access |= incoming.access;
+                return .{
+                    .anchor = descriptor().anchor,
+                    .mode = .extend_existing_access,
+                    .resulting_rule = updated,
+                    .resulting_num_rules = current_num_rules,
+                };
+            }
+
+            if (rule.num_layers == 0 or rule.num_layers >= max_num_layers) {
+                return error.TooManyLayers;
+            }
+            if (rule.layers[0].level == 0) {
+                return error.InvalidExistingRule;
+            }
+
+            updated.layers[rule.num_layers] = incoming;
+            updated.num_layers += 1;
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .append_merged_layer,
+                .resulting_rule = updated,
+                .resulting_num_rules = current_num_rules,
+            };
+        }
+
+        if (current_num_rules >= max_num_rules) {
+            return error.TooManyRules;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = .insert_new_rule,
+            .resulting_rule = try copyRulePlan(incoming_layers),
+            .resulting_num_rules = current_num_rules + 1,
+        };
     }
 };
