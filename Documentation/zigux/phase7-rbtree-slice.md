@@ -6,7 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 - `PHASE7_STATUS=active`
 - `PHASE7_SLICE=rbtree-runtime-leaf`
-- scope: header-adjacent linking and traversal helpers only
+- scope: header-adjacent linking, traversal, and starter balancing helpers
 - product boundary:
   - `lib/rbtree.zig`
   - `zigux/tests/phase7_rbtree.zig`
@@ -16,11 +16,12 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 explicitly calls out `lib/rbtree.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This starter slice stays intentionally narrow and ports the lowest-risk helper surface first:
+This slice still stays bounded, but it now covers the smallest practical balancing surface needed to build ordered trees inside the product path:
 
 - root and node initialization
 - empty-node and empty-root state helpers
 - explicit node linking without balancing
+- ordered insertion with starter recoloring and rotations
 - in-order and postorder traversal helpers
 - direct node replacement for already-linked trees
 
@@ -40,6 +41,8 @@ The current starter slice covers:
 - `RB_EMPTY_NODE()`
 - `RB_CLEAR_NODE()`
 - `rb_link_node()`
+- `rb_insert_color()`
+- ordered insertion through a narrow Zigux `add()` helper that composes linking plus recoloring
 - `rb_first()`
 - `rb_last()`
 - `rb_next()`
@@ -51,7 +54,8 @@ The current starter slice covers:
 The current tests check:
 
 - manual tree linking and ordered traversal
-- predecessor and successor behavior around interior nodes
+- ordered insertions that rebalance into sorted traversal order
+- black-root and no-red-child-of-red-node starter balancing invariants
 - fast node replacement without rebuilding the tree
 - postorder walking on a linked tree
 - detached-node clearing semantics
@@ -60,11 +64,11 @@ The current tests check:
 
 This slice does not yet claim:
 
-- balancing or recoloring operations such as `rb_insert_color()` or `rb_erase()`
+- `rb_erase()` or erase-fixup parity
 - cached-tree helpers
 - augmented-rbtree support
 - lockless-iteration or memory-ordering guarantees beyond the local helper semantics
 
 ## Next bounded step
 
-Port the balancing surface next by adding `insertColor()` plus a tiny ordered-insert helper, or stop here if Phase 7 review only needs the header-adjacent traversal and linking primitives to exist in the product path first.
+Either port a narrow erase path with focused parity tests, or stop here if Phase 7 review only needs ordered insertion plus traversal primitives in the product path before moving to the next helper family.
