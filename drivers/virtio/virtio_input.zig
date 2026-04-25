@@ -3,6 +3,8 @@ const std = @import("std");
 pub const queue_capacity: usize = 2;
 pub const max_descriptor_count: u16 = 1024;
 pub const static_event_buffer_capacity: u16 = 64;
+pub const config_bitmap_capacity: usize = 8;
+pub const config_bitmap_bit_capacity: usize = 1024;
 
 pub const event_queue_index: u16 = 0;
 pub const status_queue_index: u16 = 1;
@@ -67,8 +69,24 @@ pub const StatusSendSummary = struct {
     suppressed_status_count: usize,
 };
 
+pub const ConfigBitmapSummary = struct {
+    anchor: []const u8,
+    select: ConfigSelect,
+    subsel: u8,
+    supported_bit_count: usize,
+    surfaces_selected_event_type: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
+    const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
+    const ConfigBitmapRecord = struct {
+        active: bool = false,
+        select: ConfigSelect = .unset,
+        subsel: u8 = 0,
+        supported_bits: ConfigBitmapBitSet = ConfigBitmapBitSet.initEmpty(),
+        surfaces_selected_event_type: bool = false,
+    };
 
     name_buffer: [64]u8 = [_]u8{0} ** 64,
     name_len: usize = 0,
@@ -82,6 +100,8 @@ pub const VirtioInputLab = struct {
     queued_event_buffer_count: u16 = 0,
     queued_status_count: usize = 0,
     suppressed_status_count: usize = 0,
+    config_bitmap_count: usize = 0,
+    config_bitmaps: [config_bitmap_capacity]ConfigBitmapRecord = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity,
     ready: bool = false,
     multitouch_enabled: bool = false,
 
@@ -117,6 +137,8 @@ pub const VirtioInputLab = struct {
         self.queued_event_buffer_count = 0;
         self.queued_status_count = 0;
         self.suppressed_status_count = 0;
+        self.config_bitmap_count = 0;
+        self.config_bitmaps = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity;
         self.ready = false;
         self.multitouch_enabled = false;
     }
@@ -167,6 +189,52 @@ pub const VirtioInputLab = struct {
         self.multitouch_enabled = enabled;
     }
 
+    pub fn configureConfigBitmap(
+        self: *Self,
+        select: ConfigSelect,
+        subsel: u8,
+        supported_bits: []const u16,
+    ) !void {
+        if (select != .prop_bits and select != .ev_bits) {
+            return error.UnsupportedConfigBitmapSelect;
+        }
+        if (supported_bits.len == 0) return error.EmptyConfigBitmap;
+        if (self.findConfigBitmapIndex(select, subsel) != null) return error.ConfigBitmapAlreadyConfigured;
+
+        const record = try self.allocateConfigBitmapRecord();
+        record.* = .{
+            .active = true,
+            .select = select,
+            .subsel = subsel,
+            .surfaces_selected_event_type = select == .ev_bits,
+        };
+
+        for (supported_bits) |bit| {
+            if (bit >= config_bitmap_bit_capacity) return error.ConfigBitmapBitOutOfRange;
+            if (record.supported_bits.isSet(bit)) return error.ConfigBitmapBitDuplicate;
+            record.supported_bits.set(bit);
+        }
+    }
+
+    pub fn configBitmapSummary(self: *const Self, select: ConfigSelect, subsel: u8) !ConfigBitmapSummary {
+        const index = self.findConfigBitmapIndex(select, subsel) orelse return error.ConfigBitmapNotConfigured;
+        const record = self.config_bitmaps[index];
+        return .{
+            .anchor = descriptor().anchor,
+            .select = record.select,
+            .subsel = record.subsel,
+            .supported_bit_count = record.supported_bits.count(),
+            .surfaces_selected_event_type = record.surfaces_selected_event_type,
+        };
+    }
+
+    pub fn configBitmapSupportsBit(self: *const Self, select: ConfigSelect, subsel: u8, bit: u16) !bool {
+        if (bit >= config_bitmap_bit_capacity) return error.ConfigBitmapBitOutOfRange;
+
+        const index = self.findConfigBitmapIndex(select, subsel) orelse return error.ConfigBitmapNotConfigured;
+        return self.config_bitmaps[index].supported_bits.isSet(bit);
+    }
+
     pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {
         if (self.status_descriptor_count == 0) return error.StatusQueueNotConfigured;
         if (!self.ready) return error.DeviceNotReady;
@@ -210,6 +278,23 @@ pub const VirtioInputLab = struct {
         if (descriptor_count == 0) return error.EmptyDescriptorCount;
         if (descriptor_count > max_descriptor_count) return error.DescriptorCountTooLarge;
         if (!std.math.isPowerOfTwo(descriptor_count)) return error.DescriptorCountMustBePowerOfTwo;
+    }
+
+    fn allocateConfigBitmapRecord(self: *Self) !*ConfigBitmapRecord {
+        for (&self.config_bitmaps) |*record| {
+            if (record.active) continue;
+            self.config_bitmap_count += 1;
+            return record;
+        }
+        return error.ConfigBitmapCapacityExceeded;
+    }
+
+    fn findConfigBitmapIndex(self: *const Self, select: ConfigSelect, subsel: u8) ?usize {
+        for (self.config_bitmaps, 0..) |record, index| {
+            if (!record.active) continue;
+            if (record.select == select and record.subsel == subsel) return index;
+        }
+        return null;
     }
 
     fn copyInto(buffer: []u8, source: []const u8) usize {
