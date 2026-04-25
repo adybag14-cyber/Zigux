@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime kretprobe survey manifest records the missing starter slice and remaining blocker" {
+test "phase 9 runtime kretprobe survey manifest records the landed starter slice and remaining gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -48,23 +48,22 @@ test "phase 9 runtime kretprobe survey manifest records the missing starter slic
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.kretprobe_example_c_lines >= 100);
-    try std.testing.expectEqual(@as(usize, 0), manifest.survey_summary.preexisting_runtime_kretprobe_test_files);
-    try std.testing.expect(!manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
+    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_runtime_kretprobe_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
+    try std.testing.expect(manifest.gaps.len >= 5);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_sample_module = false;
-    var saw_substrate_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -88,12 +87,8 @@ test "phase 9 runtime kretprobe survey manifest records the missing starter slic
 
         if (std.mem.eql(u8, gap.id, "runtime-kretprobe-sample-module")) {
             saw_sample_module = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-substrate-handoff")) {
-            saw_substrate_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -102,10 +97,9 @@ test "phase 9 runtime kretprobe survey manifest records the missing starter slic
         }
     }
 
-    try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 2);
-    try std.testing.expect(ready_next_count >= 3);
+    try std.testing.expect(runtime_test_destination_count >= 2);
+    try std.testing.expect(starter_landed_count >= 4);
+    try std.testing.expect(ready_next_count >= 1);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
-    try std.testing.expect(saw_substrate_blocker);
 }
