@@ -112,12 +112,13 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dataref") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "destructor_arg") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase14-skbuff-segmentation-followup")) {
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-lifetime-handoff-followup")) {
             saw_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase14-skbuff-bridge-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pskb_expand_head") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_release_head_state") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_segment") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__skb_checksum_complete") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-live-ownership-blocker")) {
             saw_blocker = true;
@@ -162,6 +163,7 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 4), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "pskb_expand_head()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb_release_head_state()") != null);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb_segment()") != null);
     try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[4].id);
     try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[5].id);
