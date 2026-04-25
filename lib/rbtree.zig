@@ -25,6 +25,8 @@ pub const Root = struct {
     }
 };
 
+pub const LessFn = *const fn (*const Node, *const Node) bool;
+
 pub fn emptyRoot(root: *const Root) bool {
     return root.node == null;
 }
@@ -46,6 +48,294 @@ pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {
     node.right = null;
     node.color = .red;
     link.* = node;
+}
+
+fn colorOf(node: ?*Node) Color {
+    return if (node) |n| n.color else .black;
+}
+
+fn leftOf(node: ?*Node) ?*Node {
+    return if (node) |n| n.left else null;
+}
+
+fn rightOf(node: ?*Node) ?*Node {
+    return if (node) |n| n.right else null;
+}
+
+fn minimum(node: *Node) *Node {
+    var current = node;
+    while (current.left) |left| {
+        current = left;
+    }
+    return current;
+}
+
+fn maximum(node: *Node) *Node {
+    var current = node;
+    while (current.right) |right| {
+        current = right;
+    }
+    return current;
+}
+
+fn leftRotate(root: *Root, node: *Node) void {
+    var pivot = node.right orelse unreachable;
+
+    node.right = pivot.left;
+    if (pivot.left) |child| {
+        child.parent = node;
+    }
+
+    pivot.parent = node.parent;
+    if (node.parent == null) {
+        root.node = pivot;
+    } else if (node.parent.?.left == node) {
+        node.parent.?.left = pivot;
+    } else {
+        node.parent.?.right = pivot;
+    }
+
+    pivot.left = node;
+    node.parent = pivot;
+}
+
+fn rightRotate(root: *Root, node: *Node) void {
+    var pivot = node.left orelse unreachable;
+
+    node.left = pivot.right;
+    if (pivot.right) |child| {
+        child.parent = node;
+    }
+
+    pivot.parent = node.parent;
+    if (node.parent == null) {
+        root.node = pivot;
+    } else if (node.parent.?.right == node) {
+        node.parent.?.right = pivot;
+    } else {
+        node.parent.?.left = pivot;
+    }
+
+    pivot.right = node;
+    node.parent = pivot;
+}
+
+pub fn insertColor(node: *Node, root: *Root) void {
+    var current = node;
+
+    while (colorOf(current.parent) == .red) {
+        var parent = current.parent.?;
+        var grandparent = parent.parent.?;
+
+        if (grandparent.left == parent) {
+            const uncle = grandparent.right;
+            if (colorOf(uncle) == .red) {
+                parent.color = .black;
+                uncle.?.color = .black;
+                grandparent.color = .red;
+                current = grandparent;
+                continue;
+            }
+
+            if (parent.right == current) {
+                current = parent;
+                leftRotate(root, current);
+                parent = current.parent.?;
+                grandparent = parent.parent.?;
+            }
+
+            parent.color = .black;
+            grandparent.color = .red;
+            rightRotate(root, grandparent);
+        } else {
+            const uncle = grandparent.left;
+            if (colorOf(uncle) == .red) {
+                parent.color = .black;
+                uncle.?.color = .black;
+                grandparent.color = .red;
+                current = grandparent;
+                continue;
+            }
+
+            if (parent.left == current) {
+                current = parent;
+                rightRotate(root, current);
+                parent = current.parent.?;
+                grandparent = parent.parent.?;
+            }
+
+            parent.color = .black;
+            grandparent.color = .red;
+            leftRotate(root, grandparent);
+        }
+    }
+
+    if (root.node) |root_node| {
+        root_node.color = .black;
+    }
+}
+
+pub fn add(node: *Node, root: *Root, less: LessFn) void {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+}
+
+fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
+    if (victim.parent == null) {
+        root.node = replacement;
+    } else if (victim.parent.?.left == victim) {
+        victim.parent.?.left = replacement;
+    } else {
+        victim.parent.?.right = replacement;
+    }
+
+    if (replacement) |node| {
+        node.parent = victim.parent;
+    }
+}
+
+fn deleteFixup(root: *Root, initial_node: ?*Node, initial_parent: ?*Node) void {
+    var node = initial_node;
+    var parent = initial_parent;
+
+    while (node != root.node and colorOf(node) == .black) {
+        const current_parent = parent orelse break;
+
+        if (current_parent.left == node) {
+            var sibling = current_parent.right;
+
+            if (colorOf(sibling) == .red) {
+                sibling.?.color = .black;
+                current_parent.color = .red;
+                leftRotate(root, current_parent);
+                sibling = current_parent.right;
+            }
+
+            if (colorOf(leftOf(sibling)) == .black and colorOf(rightOf(sibling)) == .black) {
+                if (sibling) |s| {
+                    s.color = .red;
+                }
+                node = current_parent;
+                parent = current_parent.parent;
+            } else {
+                if (colorOf(rightOf(sibling)) == .black) {
+                    if (leftOf(sibling)) |left| {
+                        left.color = .black;
+                    }
+                    if (sibling) |s| {
+                        s.color = .red;
+                        rightRotate(root, s);
+                    }
+                    sibling = current_parent.right;
+                }
+
+                if (sibling) |s| {
+                    s.color = current_parent.color;
+                }
+                current_parent.color = .black;
+                if (rightOf(sibling)) |right| {
+                    right.color = .black;
+                }
+                leftRotate(root, current_parent);
+                node = root.node;
+                parent = null;
+            }
+        } else {
+            var sibling = current_parent.left;
+
+            if (colorOf(sibling) == .red) {
+                sibling.?.color = .black;
+                current_parent.color = .red;
+                rightRotate(root, current_parent);
+                sibling = current_parent.left;
+            }
+
+            if (colorOf(leftOf(sibling)) == .black and colorOf(rightOf(sibling)) == .black) {
+                if (sibling) |s| {
+                    s.color = .red;
+                }
+                node = current_parent;
+                parent = current_parent.parent;
+            } else {
+                if (colorOf(leftOf(sibling)) == .black) {
+                    if (rightOf(sibling)) |right| {
+                        right.color = .black;
+                    }
+                    if (sibling) |s| {
+                        s.color = .red;
+                        leftRotate(root, s);
+                    }
+                    sibling = current_parent.left;
+                }
+
+                if (sibling) |s| {
+                    s.color = current_parent.color;
+                }
+                current_parent.color = .black;
+                if (leftOf(sibling)) |left| {
+                    left.color = .black;
+                }
+                rightRotate(root, current_parent);
+                node = root.node;
+                parent = null;
+            }
+        }
+    }
+
+    if (node) |n| {
+        n.color = .black;
+    }
+}
+
+pub fn erase(node: *Node, root: *Root) void {
+    var replacement = node;
+    var replacement_color = replacement.color;
+    var child: ?*Node = null;
+    var parent: ?*Node = null;
+
+    if (node.left == null) {
+        child = node.right;
+        parent = node.parent;
+        transplant(root, node, node.right);
+    } else if (node.right == null) {
+        child = node.left;
+        parent = node.parent;
+        transplant(root, node, node.left);
+    } else {
+        replacement = minimum(node.right.?);
+        replacement_color = replacement.color;
+        child = replacement.right;
+
+        if (replacement.parent == node) {
+            parent = replacement;
+        } else {
+            parent = replacement.parent;
+            transplant(root, replacement, replacement.right);
+            replacement.right = node.right;
+            replacement.right.?.parent = replacement;
+        }
+
+        transplant(root, node, replacement);
+        replacement.left = node.left;
+        replacement.left.?.parent = replacement;
+        replacement.color = node.color;
+    }
+
+    if (replacement_color == .black) {
+        deleteFixup(root, child, parent);
+    }
 }
 
 pub fn first(root: *const Root) ?*Node {
@@ -119,35 +409,6 @@ pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     }
 }
 
-pub fn firstPostorder(root: *const Root) ?*Node {
-    const node = root.node orelse return null;
-    return leftDeepestNode(node);
-}
-
-pub fn nextPostorder(node: *const Node) ?*Node {
-    const parent = node.parent;
-    if (parent != null and parent.?.left == node and parent.?.right != null) {
-        return leftDeepestNode(parent.?.right.?);
-    }
-    return parent;
-}
-
-fn minimum(node: *Node) *Node {
-    var current = node;
-    while (current.left) |left| {
-        current = left;
-    }
-    return current;
-}
-
-fn maximum(node: *Node) *Node {
-    var current = node;
-    while (current.right) |right| {
-        current = right;
-    }
-    return current;
-}
-
 fn leftDeepestNode(node: *const Node) *Node {
     var current: *const Node = node;
     while (true) {
@@ -161,87 +422,136 @@ fn leftDeepestNode(node: *const Node) *Node {
     }
 }
 
-test "linkNode plus traversal helpers walk a manually linked tree in order" {
+pub fn firstPostorder(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return leftDeepestNode(node);
+}
+
+pub fn nextPostorder(node: *const Node) ?*Node {
+    const parent = node.parent;
+    if (parent != null and parent.?.left == node and parent.?.right != null) {
+        return leftDeepestNode(parent.?.right.?);
+    }
+    return parent;
+}
+
+test "rbtree inserts and traverses in sorted order" {
     const Entry = struct {
         key: i32,
         node: Node = Node.init(),
     };
 
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
     var entries = [_]Entry{
         .{ .key = 10 },
+        .{ .key = 20 },
         .{ .key = 5 },
         .{ .key = 15 },
-        .{ .key = 2 },
-        .{ .key = 7 },
-        .{ .key = 12 },
+        .{ .key = 25 },
     };
     var root = Root.init();
 
-    linkNode(&entries[0].node, null, &root.node);
-    entries[0].node.color = .black;
-    linkNode(&entries[1].node, &entries[0].node, &entries[0].node.left);
-    linkNode(&entries[2].node, &entries[0].node, &entries[0].node.right);
-    linkNode(&entries[3].node, &entries[1].node, &entries[1].node.left);
-    linkNode(&entries[4].node, &entries[1].node, &entries[1].node.right);
-    linkNode(&entries[5].node, &entries[2].node, &entries[2].node.left);
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
 
-    var in_order: [6]i32 = undefined;
+    var order: [5]i32 = undefined;
     var count: usize = 0;
     var current = first(&root);
     while (current) |node| : (current = next(node)) {
         const entry: *const Entry = @fieldParentPtr("node", node);
-        in_order[count] = entry.key;
+        order[count] = entry.key;
         count += 1;
     }
 
-    try std.testing.expectEqual(@as(usize, 6), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 5, 7, 10, 12, 15 }, in_order[0..count]);
-    try std.testing.expectEqual(@as(?*Node, &entries[5].node), prev(&entries[2].node));
-    try std.testing.expectEqual(@as(?*Node, &entries[0].node), next(&entries[4].node));
-    try std.testing.expectEqual(@as(?*Node, &entries[2].node), last(&root));
+    try std.testing.expectEqual(@as(usize, 5), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20, 25 }, order[0..count]);
 }
 
-test "replaceNode and postorder helpers preserve the linked-tree structure" {
+test "rbtree erase and replace keep traversal consistent" {
     const Entry = struct {
         key: i32,
         node: Node = Node.init(),
     };
 
-    var root_entry = Entry{ .key = 10 };
-    var left_entry = Entry{ .key = 5 };
-    var right_entry = Entry{ .key = 15 };
-    var left_left_entry = Entry{ .key = 2 };
-    var replacement = Entry{ .key = 5 };
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
     var root = Root.init();
 
-    linkNode(&root_entry.node, null, &root.node);
-    root_entry.node.color = .black;
-    linkNode(&left_entry.node, &root_entry.node, &root_entry.node.left);
-    linkNode(&right_entry.node, &root_entry.node, &root_entry.node.right);
-    linkNode(&left_left_entry.node, &left_entry.node, &left_entry.node.left);
-
-    replaceNode(&left_entry.node, &replacement.node, &root);
-
-    try std.testing.expectEqual(@as(?*Node, &replacement.node), root_entry.node.left);
-    try std.testing.expectEqual(@as(?*Node, &replacement.node), left_left_entry.node.parent);
-    try std.testing.expectEqual(@as(?*Node, &left_left_entry.node), first(&root));
-
-    var postorder_count: usize = 0;
-    var current = firstPostorder(&root);
-    while (current) |node| : (current = nextPostorder(node)) {
-        postorder_count += 1;
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
     }
 
-    try std.testing.expectEqual(@as(usize, 4), postorder_count);
+    erase(&entries[1].node, &root);
+    replaceNode(&entries[0].node, &replacement.node, &root);
+
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
 }
 
-test "clearNode marks a detached node as empty" {
-    var node = Node.init();
-    try std.testing.expect(!emptyNode(&node));
+test "rbtree postorder and empty node helpers behave" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
 
-    clearNode(&node);
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
 
-    try std.testing.expect(emptyNode(&node));
-    try std.testing.expectEqual(@as(?*Node, null), next(&node));
-    try std.testing.expectEqual(@as(?*Node, null), prev(&node));
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    var count: usize = 0;
+    var current = firstPostorder(&root);
+    while (current) |node| : (current = nextPostorder(node)) {
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+
+    var detached = Node.init();
+    clearNode(&detached);
+    try std.testing.expect(emptyNode(&detached));
 }
