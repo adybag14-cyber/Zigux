@@ -125,6 +125,15 @@ class LegacyWrapperReference:
         )
 
 
+@dataclass(frozen=True)
+class Phase3DocAuditIssue:
+    code: str
+    detail: str
+
+    def to_row(self) -> str:
+        return f"{self.code}\t{self.detail}"
+
+
 DEFAULT_PATHS = Phase3Paths(
     root=ROOT,
     docs_dir=DOCS_DIR,
@@ -399,6 +408,26 @@ def rewrite_artifact_diff_phase3_section(
     return True
 
 
+def artifact_diff_phase3_section_needs_rewrite(
+    entries: list[Phase3Slice],
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> bool:
+    try:
+        original = artifact_diff_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return True
+    lines = original.splitlines()
+    try:
+        start = lines.index("Current Phase 3 use")
+        end = lines.index("Rules")
+    except ValueError:
+        return True
+    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries, artifact_diff_path), "", "Rules"]
+    updated_lines = [*lines[:start], *replacement, *lines[end + 1 :]]
+    updated = "\n".join(updated_lines) + "\n"
+    return updated != original
+
+
 def _discover_legacy_wrapper_references_in_file(
     path: Path,
     root: Path,
@@ -447,6 +476,25 @@ def discover_non_doc_legacy_wrapper_references(
         )
 
     return references
+
+
+def audit_phase3_doc_sync(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> list[Phase3DocAuditIssue]:
+    issues = [
+        Phase3DocAuditIssue("legacy-wrapper-reference", reference.to_row())
+        for reference in discover_non_doc_legacy_wrapper_references(entries, paths)
+    ]
+    if artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path):
+        issues.append(
+            Phase3DocAuditIssue(
+                "artifact-diff-phase3-stale",
+                _rel(artifact_diff_path, paths.root),
+            )
+        )
+    return issues
 
 
 def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
@@ -699,11 +747,68 @@ def run_self_test() -> int:
         assert "- `zigux/tests/fixtures/phase3_delta/expected.json` anchors the bounded Phase 3 delta parity claim." in rewritten_artifact_diff
         assert "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim." in rewritten_artifact_diff
         assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path) is True
+        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
+        assert artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path) is False
         assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is False
+
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / "phase3-notes.md").write_text(
+            "\n".join(
+                [
+                    "# Notes",
+                    "",
+                    "- `python3 scripts/zigux/check-phase3-alpha.py`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        audit_issues = audit_phase3_doc_sync(entries, paths, artifact_diff_path)
+        assert [issue.to_row() for issue in audit_issues] == [
+            "legacy-wrapper-reference\tDocumentation/zigux/phase3-notes.md\t3\talpha\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
+            "artifact-diff-phase3-stale\tDocumentation/zigux/artifact-diff.md",
+        ]
+        rewrite_non_doc_legacy_wrapper_references(entries, paths)
+        rewrite_artifact_diff_phase3_section(entries, artifact_diff_path)
+        assert audit_phase3_doc_sync(entries, paths, artifact_diff_path) == []
 
         parser = build_parser()
         assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
         assert parser.parse_args(["--rewrite-shared-runner-reference-docs"]).rewrite_legacy_wrapper_references is True
+        assert parser.parse_args(["--audit-doc-sync"]).audit_doc_sync is True
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -738,6 +843,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--rewrite-artifact-diff-phase3-section",
         action="store_true",
         help="Rewrite the artifact-diff Phase 3 section from the discovered slice catalog.",
+    )
+    parser.add_argument(
+        "--audit-doc-sync",
+        action="store_true",
+        help="Report stale non-slice wrapper references and artifact-diff Phase 3 drift, then exit non-zero when any are found.",
     )
     return parser
 
@@ -779,5 +889,13 @@ if __name__ == "__main__":
         if rewrite_artifact_diff_phase3_section(entries):
             print(_rel(ARTIFACT_DIFF_PATH))
         raise SystemExit(0)
+    if args.audit_doc_sync:
+        try:
+            issues = audit_phase3_doc_sync(entries)
+            for issue in issues:
+                print(issue.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(1 if issues else 0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
