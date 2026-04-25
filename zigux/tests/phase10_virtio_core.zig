@@ -181,3 +181,43 @@ test "phase10 virtio core keeps queue registration inside bounded feature and re
     try std.testing.expectEqual(@as(usize, 0), device.registeredQueueCount());
     try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(1));
 }
+
+test "phase10 virtio core records bounded queue descriptor shape metadata" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 5, 12 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(12);
+    _ = try device.finalizeFeatures();
+    try device.registerQueueCallback(3, 6, "input_done");
+
+    try std.testing.expectError(error.QueueDescriptorShapeNotConfigured, device.queueDescriptorShapeSummary(3));
+
+    try device.configureQueueDescriptorShape(3, 2, 3, true);
+    const shape = try device.queueDescriptorShapeSummary(3);
+
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", shape.anchor);
+    try std.testing.expectEqual(@as(u16, 3), shape.queue_index);
+    try std.testing.expectEqual(@as(u16, 6), shape.descriptor_count);
+    try std.testing.expectEqual(@as(u16, 2), shape.readable_descriptor_count);
+    try std.testing.expectEqual(@as(u16, 3), shape.writable_descriptor_count);
+    try std.testing.expect(shape.uses_indirect_descriptors);
+}
+
+test "phase10 virtio core rejects invalid queue descriptor shapes and clears them on reset" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 7, 14 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(14);
+    _ = try device.finalizeFeatures();
+    try device.registerQueueCallback(1, 4, "control_done");
+
+    try std.testing.expectError(error.EmptyQueueDescriptorShape, device.configureQueueDescriptorShape(1, 0, 0, false));
+    try std.testing.expectError(error.QueueDescriptorShapeOverflow, device.configureQueueDescriptorShape(1, 2, 3, false));
+
+    try device.configureQueueDescriptorShape(1, 1, 2, false);
+    device.reset();
+
+    try std.testing.expectError(error.QueueNotRegistered, device.queueDescriptorShapeSummary(1));
+}
