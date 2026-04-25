@@ -4,6 +4,13 @@
   "surveyed_commit": "40aa574db33204bfbb0c972f1de37ad4cb396a77",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
+  "current_approval_state": "no_freeze_map_status_change_approved",
+  "ownership_evidence_fields": [
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "parity scorecard link or blocker record"
+  ],
   "trigger_conditions": [
     "freeze-map list change",
     "freeze-map status-bucket change",
@@ -64,11 +71,18 @@
       "why_now": "The shared Phase 15 build gate should run the review-process test alongside the existing freeze-map governance test so the governance lane stays coherent."
     },
     {
-      "id": "phase15-parity-scorecard-template",
+      "id": "phase15-parity-scorecard-baseline",
+      "status": "starter_landed",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The landed Phase 15 parity scorecard is now the live evidence attachment point for Architecture Council requests instead of a planned follow-up."
+    },
+    {
+      "id": "phase15-stay-in-c-approval-evidence-followup",
       "status": "ready_next",
       "kind": "governance",
-      "zigux_destination": "Documentation/zigux/parity-scorecard.md",
-      "why_now": "The next honest Phase 15 step is still a bounded parity-scorecard template so Architecture Council requests can attach evidence instead of only a process note."
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The next honest Phase 15 step is a small follow-up that records when a frozen anchor leaves active discussion and what approval evidence archive must remain linked."
     }
   ]
 }
