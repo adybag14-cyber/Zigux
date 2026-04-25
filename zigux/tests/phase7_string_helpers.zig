@@ -41,6 +41,12 @@ test "phase 7 replacement and padding helpers work in place" {
     try std.testing.expectEqualSlices(u8, "xy", &exact);
 }
 
+test "phase 7 termination helper respects bounded search windows" {
+    try std.testing.expect(string_helpers.stringIsTerminated("xy\x00tail", 3));
+    try std.testing.expect(!string_helpers.stringIsTerminated("xy\x00tail", 2));
+    try std.testing.expect(!string_helpers.stringIsTerminated("xyz", 3));
+}
+
 test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
     var upper = [_]u8{ '.', '.', '.', '.', '.', '.', '.' };
     string_helpers.stringUpper(&upper, "aBc1!\x00tail");
