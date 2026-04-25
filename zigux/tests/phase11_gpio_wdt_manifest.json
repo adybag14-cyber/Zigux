@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L01",
   "phase": "Phase 11",
-  "surveyed_commit": "e78bec79c8bfead1b6542cc929b6cfdbdf2b09dc",
+  "surveyed_commit": "46bf0e368717422c0c6569def6d52fc6aa0b3ce6",
   "anchor": "drivers/watchdog/gpio_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -22,14 +22,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "A dedicated Phase 11 build entry is the narrowest honest way to keep the gpio_wdt lane reviewable before any watchdog driver code exists."
+      "why_now": "A dedicated Phase 11 build entry now keeps the landed gpio_wdt starter and the survey checkpoint reviewable together instead of letting the lane drift after the first driver scaffold landed."
     },
     {
       "id": "phase11-gpio-wdt-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt_survey.zig",
-      "why_now": "The lane needs a tiny manifest-backed test that proves the current repo still stops short of a Zig watchdog driver and does not overclaim simple-driver progress."
+      "why_now": "The survey gate now acts as a freshness check around the landed gpio_wdt starter so the lane does not drift back to pre-driver assumptions or overclaim broader watchdog progress."
     },
     {
       "id": "phase11-gpio-wdt-survey-note",
