@@ -332,6 +332,15 @@ test "bitmap and andnot equal intersects subset" {
     try std.testing.expect(subset(&rhs, &lhs, 8));
 }
 
+test "bitmap xor keeps caller-selected bit window" {
+    const lhs = [_]Word{0b1_1111};
+    const rhs = [_]Word{0b1_0001};
+    var dst = [_]Word{0};
+
+    xorBits(&dst, &lhs, &rhs, 4);
+    try std.testing.expectEqual(@as(Word, 0b1110), dst[0] & lastWordMask(4));
+}
+
 test "bitmap scnprintf collapses contiguous ranges" {
     var map = [_]Word{ 0, 0 };
     setRange(&map, 1, 3);
