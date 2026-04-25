@@ -27,11 +27,12 @@ const Manifest = struct {
 };
 
 fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "ready_next") or
+    return std.mem.eql(u8, status, "starter_landed") or
+        std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime atomic64 survey records the pilot-module gap" {
+test "phase 9 runtime atomic64 survey manifest records the starter slice and remaining gaps" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -56,11 +57,13 @@ test "phase 9 runtime atomic64 survey records the pilot-module gap" {
     try std.testing.expect(!manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 3);
+    try std.testing.expect(manifest.gaps.len >= 5);
 
     var runtime_test_destination_count: usize = 0;
+    var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_sample_module = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -76,8 +79,16 @@ test "phase 9 runtime atomic64 survey records the pilot-module gap" {
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_runtime_substrate")) {
             blocked_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-sample-module")) {
+            saw_sample_module = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", gap.zigux_destination);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -87,6 +98,8 @@ test "phase 9 runtime atomic64 survey records the pilot-module gap" {
     }
 
     try std.testing.expect(runtime_test_destination_count >= 2);
-    try std.testing.expect(ready_next_count >= 2);
+    try std.testing.expect(starter_landed_count >= 3);
+    try std.testing.expect(ready_next_count >= 1);
     try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(saw_sample_module);
 }
