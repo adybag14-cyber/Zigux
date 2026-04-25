@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
     const phase14_workqueue_bridge_module = b.createModule(.{
         .root_source_file = b.path("phase14_workqueue_bridge.zig"),
         .target = target,
@@ -22,6 +23,6 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase14_workqueue_bridge_tests = b.addRunArtifact(phase14_workqueue_bridge_tests);
 
-    const test_step = b.step("test", "Run Phase 14 boundary-map tests");
+    const test_step = b.step("test", "Run Phase 14 bounded internal bridge tests");
     test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);
 }
