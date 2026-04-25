@@ -20,6 +20,9 @@ def main() -> int:
         path = entry.check_script
         if not path.exists():
             mismatches.append(path.as_posix())
+            if not args.check:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(expected, encoding="utf-8", newline="\n")
             continue
         current = path.read_text(encoding="utf-8")
         if current != expected:
