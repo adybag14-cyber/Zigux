@@ -17,6 +17,7 @@ Use this checklist before opening or merging Zigux product work.
 - is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
 - is there a stated rollback owner and fallback path?
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
+- if the change asks for a freeze-map status change, is the Architecture Council review record linked and is the requested decision bucket explicit?
 
 ## ABI and Runtime
 - are bindings and ABI assumptions centralized?
