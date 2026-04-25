@@ -43,8 +43,8 @@ Phase 3 flow
 - `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
 - `generate-phase3-check-wrappers.py --self-test` exercises isolated missing-wrapper, stale-wrapper, obsolete-wrapper, and clean `--check` behavior without touching the committed tree.
 - `generate-phase3-check-wrappers.py --check` fails when any discovered wrapper drifts from that shared template or when an obsolete wrapper should be removed.
-- `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers, accepting either the shared runner gate (`run-phase3-checks.py --slug ...`) or a legacy `check-phase3-*.py` wrapper while treating wrapper files as optional compatibility shims that are template-checked only when present.
-- `validate-phase3.py --self-test` exercises manifest, optional-wrapper, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
+- `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers, accepts either the shared runner gate (`run-phase3-checks.py --slug ...`) or a legacy `check-phase3-*.py` wrapper, and now reports obsolete wrapper shims that no longer map to a discovered slice.
+- `validate-phase3.py --self-test` exercises manifest, optional-wrapper, obsolete-wrapper, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
 - `run-phase3-checks.py` lists or executes every discovered Phase 3 slice from catalog metadata through one shared entrypoint, even when a wrapper stub is missing.
 - `run-phase3-checks.py --self-test` checks slug filtering plus direct runner and fail-fast behavior without launching Zig parity builds.
 
