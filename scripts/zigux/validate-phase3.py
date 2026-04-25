@@ -77,7 +77,6 @@ def validate_slices(root: Path, slices: list[object]) -> list[str]:
 
     for entry in slices:
         required = {
-            "check_script": entry.check_script,
             "dump": entry.dump_path,
             "fixture_dir": entry.fixture_dir,
             "expected": entry.expected_path,
@@ -144,6 +143,14 @@ def run_self_test() -> int:
         slices = discover_phase3_slices(paths)
         assert validate_slices(root, slices) == []
 
+        paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
+        assert validate_slices(root, slices) == []
+
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text("# stale\n", encoding="utf-8", newline="\n")
+        issues = validate_slices(root, slices)
+        assert "alpha:wrapper_template_mismatch:scripts/zigux/check-phase3-alpha.py" in issues
+
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         (paths.docs_dir / "phase3-alpha-slice.md").write_text("PHASE3_STATUS=ready\n", encoding="utf-8", newline="\n")
         issues = validate_slices(root, slices)
         assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
