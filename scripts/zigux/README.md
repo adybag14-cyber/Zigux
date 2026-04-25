@@ -19,88 +19,22 @@ Current bootstrap helpers
 - `validate-phase2.py`
 - `validate-phase2-closure.py`
 - `validate-phase3.py`
+- `run-phase3-checks.py`
+- `phase3_catalog.py`
 - `check-phase1-parity.py`
 - `check-fixdep-diff.py`
 - `check-genksyms-bridge.py`
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
-- `check-phase3-abi.py`
-- `check-phase3-bitmap-cpumask.py`
-- `check-phase3-list-hlist.py`
-- `check-phase3-errptr-xarray.py`
-- `check-phase3-xarray-slot.py`
-- `check-phase3-idr-slot.py`
-- `check-phase3-ida-bitmap.py`
-- `check-phase3-ida-alloc.py`
-- `check-phase3-ida-range.py`
-- `check-phase3-ida-range-set.py`
-- `check-phase3-ida-policy.py`
-- `check-phase3-minor-alloc.py`
-- `check-phase3-dev-region.py`
-- `check-phase3-cdev-add.py`
-- `check-phase3-cdev-lookup.py`
-- `check-phase3-chrdev-open.py`
-- `check-phase3-chrdev-fops.py`
-- `check-phase3-chrdev-route.py`
-- `check-phase3-chrdev-io.py`
-- `check-phase3-chrdev-xfer.py`
-- `check-phase3-chrdev-resume.py`
-- `check-phase3-chrdev-retry.py`
-- `check-phase3-chrdev-requeue.py`
-- `check-phase3-chrdev-complete.py`
-- `check-phase3-chrdev-notify.py`
-- `check-phase3-chrdev-notify-policy.py`
-- `check-phase3-chrdev-notify-budget.py`
-- `check-phase3-chrdev-notify-ack.py`
-- `check-phase3-chrdev-notify-ack-policy.py`
-- `check-phase3-chrdev-notify-ack-budget.py`
-- `check-phase3-chrdev-notify-ack-window.py`
-- `check-phase3-chrdev-notify-ack-window-policy.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window.py`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window.py`
-- `check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget.py`
 - `check-mk-elfconfig-diff.py`
-- `fixdep.zig`
-- `genksyms.zig`
-- `genksyms_crc.zig`
-- `kconfig/conf_bridge.zig`
-- `kconfig/confdata_bridge.zig`
-- `mk_elfconfig.zig`
-- `artifact_diff.py`
+
+Phase 3 flow
+- `phase3_catalog.py` discovers Phase 3 slices from the docs, parity wrappers, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory.
+- `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers.
+- `run-phase3-checks.py` lists or executes every discovered `check-phase3-*.py` wrapper through one shared entrypoint.
 
 Rules
 - keep helpers narrow and product-facing
 - do not duplicate general Linux scripts here
 - if a helper becomes broadly useful, move it or integrate it with the native subsystem flow
-- `scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window.py`
-- `scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget.py`
-
-- `chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window`
-- `chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget`
-- `check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window.py`
-- `chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window`
