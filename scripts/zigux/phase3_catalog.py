@@ -150,6 +150,26 @@ class Phase3SlugRenameCandidate:
         return "\t".join((self.slug, self.canonical_slug, ",".join(self.issue_codes)))
 
 
+@dataclass(frozen=True)
+class Phase3SlugRenameImpact:
+    root: Path
+    slug: str
+    canonical_slug: str
+    issue_codes: tuple[str, ...]
+    paths: tuple[Path, ...]
+
+    def to_row(self) -> str:
+        return "\t".join(
+            (
+                self.slug,
+                self.canonical_slug,
+                ",".join(self.issue_codes),
+                str(len(self.paths)),
+                ",".join(_rel(path, self.root) for path in self.paths),
+            )
+        )
+
+
 DEFAULT_PATHS = Phase3Paths(
     root=ROOT,
     docs_dir=DOCS_DIR,
@@ -562,6 +582,37 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
     return rename_candidates
 
 
+def discover_phase3_slug_rename_impacts(entries: list[Phase3Slice]) -> list[Phase3SlugRenameImpact]:
+    entry_by_slug = {entry.slug: entry for entry in entries}
+    impacts: list[Phase3SlugRenameImpact] = []
+
+    for candidate in discover_phase3_slug_rename_candidates(entries):
+        entry = entry_by_slug[candidate.slug]
+        impact_paths: list[Path] = []
+        for path in (
+            entry.doc_path,
+            entry.check_script,
+            entry.dump_path,
+            entry.fixture_dir,
+            entry.expected_path,
+            entry.harness_path,
+            *entry.manifest_candidates,
+        ):
+            if path.exists() and path not in impact_paths:
+                impact_paths.append(path)
+        impacts.append(
+            Phase3SlugRenameImpact(
+                root=entry.root,
+                slug=candidate.slug,
+                canonical_slug=candidate.canonical_slug,
+                issue_codes=candidate.issue_codes,
+                paths=tuple(impact_paths),
+            )
+        )
+
+    return impacts
+
+
 def audit_phase3_doc_sync(
     entries: list[Phase3Slice],
     paths: Phase3Paths = DEFAULT_PATHS,
@@ -925,14 +976,59 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         overgrown_with_prefix = f"{canonical_slug}-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
+        overgrown_with_prefix_fixture = paths.fixtures_dir / f"phase3_{overgrown_with_prefix.replace('-', '_')}"
+        overgrown_with_prefix_fixture.mkdir()
         (paths.docs_dir / f"phase3-{overgrown_with_prefix}-slice.md").write_text(
             "prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{overgrown_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// prefix\n",
+            encoding="utf-8",
+        )
+        (overgrown_with_prefix_fixture / "expected.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
+        (
+            overgrown_with_prefix_fixture
+            / f"phase3_{overgrown_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            overgrown_with_prefix_fixture
+            / f"phase3_{overgrown_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "prefix", "files": [], "file_count": 0}),
             encoding="utf-8",
         )
         rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
         rename_candidate = next(candidate for candidate in rename_candidates if candidate.slug == overgrown_with_prefix)
         assert rename_candidate.canonical_slug == canonical_slug
         assert "slug-too-many-tokens" in rename_candidate.issue_codes
+        rename_impacts = discover_phase3_slug_rename_impacts(discover_phase3_slices(paths))
+        rename_impact = next(impact for impact in rename_impacts if impact.slug == overgrown_with_prefix)
+        assert rename_impact.canonical_slug == canonical_slug
+        assert "slug-too-many-tokens" in rename_impact.issue_codes
+        assert len(rename_impact.paths) == 6
+        assert {_rel(path, paths.root) for path in rename_impact.paths} == {
+            f"Documentation/zigux/phase3-{overgrown_with_prefix}-slice.md",
+            f"zigux/tests/phase3_{overgrown_with_prefix.replace('-', '_')}_dump.zig",
+            f"zigux/tests/fixtures/phase3_{overgrown_with_prefix.replace('-', '_')}",
+            f"zigux/tests/fixtures/phase3_{overgrown_with_prefix.replace('-', '_')}/expected.json",
+            (
+                "zigux/tests/fixtures/"
+                f"phase3_{overgrown_with_prefix.replace('-', '_')}/"
+                f"phase3_{overgrown_with_prefix.replace('-', '_')}_c_harness.c"
+            ),
+            (
+                "zigux/tests/fixtures/"
+                f"phase3_{overgrown_with_prefix.replace('-', '_')}/"
+                f"phase3_{overgrown_with_prefix.replace('-', '_')}_manifest.json"
+            ),
+        }
 
         parser = build_parser()
         assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
@@ -940,6 +1036,7 @@ def run_self_test() -> int:
         assert parser.parse_args(["--audit-doc-sync"]).audit_doc_sync is True
         assert parser.parse_args(["--audit-slug-sanity"]).audit_slug_sanity is True
         assert parser.parse_args(["--suggest-slug-renames"]).suggest_slug_renames is True
+        assert parser.parse_args(["--suggest-slug-rename-paths"]).suggest_slug_rename_paths is True
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -989,6 +1086,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--suggest-slug-renames",
         action="store_true",
         help="List overgrown discovered Phase 3 slugs that have a shorter clean prefix already present in the catalog.",
+    )
+    parser.add_argument(
+        "--suggest-slug-rename-paths",
+        action="store_true",
+        help="List the core slice files and directories that a suggested Phase 3 slug rename would touch.",
     )
     return parser
 
@@ -1051,6 +1153,14 @@ if __name__ == "__main__":
             candidates = discover_phase3_slug_rename_candidates(entries)
             for candidate in candidates:
                 print(candidate.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+    if args.suggest_slug_rename_paths:
+        try:
+            impacts = discover_phase3_slug_rename_impacts(entries)
+            for impact in impacts:
+                print(impact.to_row())
         except BrokenPipeError:
             sys.exit(0)
         raise SystemExit(0)
