@@ -14,6 +14,7 @@ const Entry = struct {
 };
 
 const iterations_bitmap = 20_000;
+const iterations_bitmap_window = 20_000;
 const iterations_find_bit = 20_000;
 const iterations_string = 40_000;
 const iterations_hweight = 100_000;
@@ -29,6 +30,46 @@ fn bitmapBench() struct { checksum: u64 } {
     var idx: usize = 0;
     while (idx < iterations_bitmap) : (idx += 1) {
         checksum +%= @intCast(bitmap.weight(&map, 4096));
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn bitmapWindowBench() struct { checksum: u64 } {
+    const nbits = bitmap.bits_per_long + 5;
+    var lhs = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
+    var rhs = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
+    var dst = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
+
+    bitmap.setRange(&lhs, 1, 4);
+    bitmap.setRange(&lhs, bitmap.bits_per_long - 2, 6);
+    bitmap.setRange(&rhs, 0, 2);
+    bitmap.setRange(&rhs, bitmap.bits_per_long, 4);
+
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_bitmap_window) : (idx += 1) {
+        if ((idx & 1) == 0) {
+            lhs[1] |= @as(bitmap.Word, 1) << 2;
+            rhs[1] &= ~(@as(bitmap.Word, 1) << 4);
+        } else {
+            lhs[1] &= ~(@as(bitmap.Word, 1) << 2);
+            rhs[1] |= @as(bitmap.Word, 1) << 4;
+        }
+
+        bitmap.orBits(&dst, &lhs, &rhs, nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, nbits));
+
+        checksum +%= @as(u64, @intFromBool(bitmap.andBits(&dst, &lhs, &rhs, nbits)));
+        checksum +%= @intCast(bitmap.weight(&dst, nbits));
+
+        checksum +%= @as(u64, @intFromBool(bitmap.andNotBits(&dst, &lhs, &rhs, nbits)));
+        checksum +%= @intCast(bitmap.weight(&dst, nbits));
+
+        bitmap.xorBits(&dst, &lhs, &rhs, nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, nbits));
+        checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));
+        checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));
     }
 
     return .{ .checksum = checksum };
@@ -117,12 +158,14 @@ pub fn main(init: std.process.Init) !void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
 
     const bitmap_result = bitmapBench();
+    const bitmap_window_result = bitmapWindowBench();
     const find_bit_result = findBitBench();
     const string_result = try stringBench();
     const hweight_result = hweightBench();
     const list_sort_result = listSortBench();
 
     std.debug.assert(bitmap_result.checksum != 0);
+    std.debug.assert(bitmap_window_result.checksum != 0);
     std.debug.assert(find_bit_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
     std.debug.assert(hweight_result.checksum != 0);
@@ -131,6 +174,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\n", .{iterations_bitmap});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM={d}\n", .{bitmap_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS={d}\n", .{iterations_bitmap_window});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM={d}\n", .{bitmap_window_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
