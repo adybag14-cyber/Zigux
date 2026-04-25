@@ -116,9 +116,17 @@ test "parseLine keeps valid kallsyms records and skips malformed ones" {
     try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("ffffffff81000000"));
 }
 
-test "forEachParsedLine processes valid lines in order and propagates bounded errors" {
+test "forEachParsedLine processes valid lines in order and propagates parse and callback errors" {
     const Fixture = struct {
         fn collect(list: *std.ArrayList(ParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, symbol);
+        }
+
+        fn failOnWeakSymbol(list: *std.ArrayList(ParsedSymbol), symbol: ParsedSymbol) anyerror!void {
+            if (symbol.symbol_type == 'W') {
+                return error.StopOnWeakSymbol;
+            }
+
             try list.append(std.testing.allocator, symbol);
         }
     };
@@ -153,4 +161,16 @@ test "forEachParsedLine processes valid lines in order and propagates bounded er
         &parsed,
         Fixture.collect,
     ));
+
+    parsed.clearRetainingCapacity();
+    try std.testing.expectError(error.StopOnWeakSymbol, forEachParsedLine(
+        \\ffffffff81000000 T startup_64
+        \\ffffffff81000200 W weak_handler
+        \\ffffffff81000300 t ignored_after_callback_error
+    ,
+        &parsed,
+        Fixture.failOnWeakSymbol,
+    ));
+    try std.testing.expectEqual(@as(usize, 1), parsed.items.len);
+    try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
 }
