@@ -612,9 +612,14 @@ if __name__ == "__main__":
         help="List remaining discovered Phase 3 wrapper mentions outside the slice docs.",
     )
     parser.add_argument(
-        "--rewrite-legacy-wrapper-references",
+        "--rewrite-shared-runner-reference-docs",
         action="store_true",
         help="Rewrite non-slice documentation wrapper mentions to the shared run-phase3-checks.py --slug form.",
+    )
+    parser.add_argument(
+        "--rewrite-legacy-wrapper-references",
+        action="store_true",
+        help=argparse.SUPPRESS,
     )
     args = parser.parse_args()
 
@@ -642,7 +647,7 @@ if __name__ == "__main__":
         except BrokenPipeError:
             sys.exit(0)
         raise SystemExit(0)
-    if args.rewrite_legacy_wrapper_references:
+    if args.rewrite_shared_runner_reference_docs or args.rewrite_legacy_wrapper_references:
         rewritten = rewrite_non_doc_legacy_wrapper_references(entries)
         for path in rewritten:
             print(path)
