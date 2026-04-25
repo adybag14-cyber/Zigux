@@ -34,7 +34,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 gpio_wdt survey manifest records the landed starter and remaining gap" {
+test "phase11 gpio_wdt survey manifest records the refreshed starter state and remaining gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -53,7 +53,7 @@ test "phase11 gpio_wdt survey manifest records the landed starter and remaining 
     try std.testing.expectEqualStrings("P11-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("e78bec79c8bfead1b6542cc929b6cfdbdf2b09dc", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("46bf0e368717422c0c6569def6d52fc6aa0b3ce6", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase11_test_files);
