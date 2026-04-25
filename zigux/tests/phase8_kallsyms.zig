@@ -55,3 +55,32 @@ test "phase 8 kallsyms starter slice covers symbol helpers and injected record p
         kallsyms.forEachParsedLine(oversized_line, &symbols, Collector.append),
     );
 }
+
+test "phase 8 kallsyms injected parser preserves callback failures" {
+    const Collector = struct {
+        fn stopOnWeakSymbol(list: *std.ArrayList(kallsyms.ParsedSymbol), symbol: kallsyms.ParsedSymbol) anyerror!void {
+            if (symbol.symbol_type == 'W') {
+                return error.StopOnWeakSymbol;
+            }
+
+            try list.append(std.testing.allocator, symbol);
+        }
+    };
+
+    var symbols = std.ArrayList(kallsyms.ParsedSymbol).empty;
+    defer symbols.deinit(std.testing.allocator);
+
+    try std.testing.expectError(
+        error.StopOnWeakSymbol,
+        kallsyms.forEachParsedLine(
+            \\ffffffff81000000 T startup_64
+            \\ffffffff81000200 W weak_handler
+            \\ffffffff81000300 t ignored_after_callback_error
+        ,
+            &symbols,
+            Collector.stopOnWeakSymbol,
+        ),
+    );
+    try std.testing.expectEqual(@as(usize, 1), symbols.items.len);
+    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
+}
