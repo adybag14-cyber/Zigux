@@ -120,7 +120,7 @@ pub const DwWdtLab = struct {
 
     pub fn loadRegisters(self: *Self, registers: RegisterImage) RuntimeSnapshot {
         self.registers = registers;
-        if (self.isEnabled()) self.hardware_running = true;
+        self.syncStateFromRegisters();
         return self.runtimeSnapshot();
     }
 
@@ -240,6 +240,15 @@ pub const DwWdtLab = struct {
 
     fn isEnabled(self: *const Self) bool {
         return (self.registers.control & control_reg_wdt_en_mask) != 0;
+    }
+
+    fn syncStateFromRegisters(self: *Self) void {
+        self.hardware_running = self.isEnabled();
+        self.response_mode = if ((self.registers.control & control_reg_resp_mode_mask) != 0) .irq else .reset;
+
+        const timeout = self.timeouts[self.registers.timeout_range & 0xf];
+        self.actual_timeout_sec = timeout.sec * @intFromEnum(self.response_mode);
+        self.pretimeout_sec = if (self.response_mode == .irq) timeout.sec else 0;
     }
 
     fn getTimeLeftSeconds(self: *const Self) u32 {
