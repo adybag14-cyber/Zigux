@@ -45,6 +45,7 @@ The manifest currently records six bounded segments:
 The current starter implementation stays deliberately bounded:
 
 - `cpu_mask.zig` ports the string-parsing core of `parse_cpu_mask_str()`
+- the segment now includes an injected chunk-reader interface for sysfs-style buffered input without claiming direct file-descriptor parity
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
 - delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
@@ -53,8 +54,10 @@ The current tests check:
 
 - mixed single-CPU and `start-end` ranges expand into the expected dense mask
 - repeated delimiters and newline-terminated inputs still parse cleanly
+- chunked reader input can split ranges and delimiters across scratch-buffer boundaries
 - the bounded set-bit counter matches the parsed mask contents
 - empty and malformed ranges report explicit errors
+- reader contract failures stay explicit instead of silently truncating input
 
 ## Gates
 
@@ -77,4 +80,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and either extend `cpu_mask.zig` with an injected file-buffer reader that keeps real file I/O deferred, or start the next `ready_next` helper-first segment in `logging.zig` or `pin_path.zig`.
+Stay in `tools/lib/bpf/zigux_segments/` and start the next `ready_next` helper-first segment in `logging.zig` or `pin_path.zig` now that the cpu-mask reader interface is in place.
