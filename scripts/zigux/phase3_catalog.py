@@ -252,6 +252,32 @@ def _load_manifest(path: Path) -> dict[str, object] | None:
         return None
 
 
+def _load_expected_fixture(path: Path) -> object | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+
+
+def _normalize_slug_text(value: str, slug: str) -> str:
+    return value.replace(slug, "<slug>").replace(slug.replace("-", "_"), "<slug_u>")
+
+
+def _fixture_schema_signature(value: object, slug: str) -> object:
+    if isinstance(value, dict):
+        return {
+            _normalize_slug_text(key, slug): _fixture_schema_signature(child, slug)
+            for key, child in sorted(value.items())
+        }
+    if isinstance(value, list):
+        return [_fixture_schema_signature(child, slug) for child in value]
+    if isinstance(value, str):
+        return "string"
+    if value is None:
+        return "null"
+    return type(value).__name__
+
+
 def _manifest_score(data: dict[str, object], slug: str) -> tuple[int, int]:
     files = data.get("files")
     file_count = data.get("file_count")
@@ -559,6 +585,14 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
         for entry in entries
         if entry.slug not in issues_by_slug
     }
+    expected_schema_by_slug = {
+        entry.slug: (
+            _fixture_schema_signature(expected_data, entry.slug)
+            if (expected_data := _load_expected_fixture(entry.expected_path)) is not None
+            else None
+        )
+        for entry in entries
+    }
     rename_candidates: list[Phase3SlugRenameCandidate] = []
 
     for slug in sorted(issues_by_slug):
@@ -577,6 +611,12 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
                 canonical_slug = candidate
                 break
         if canonical_slug is None:
+            continue
+        # Require the normalized expected fixture schema to match before we
+        # suggest a rename. Manifest metadata alone is too weak because many
+        # deliberate follow-on slices keep the same bookkeeping structure while
+        # their JSON artifacts evolve in ways that should remain distinct.
+        if expected_schema_by_slug[slug] != expected_schema_by_slug[canonical_slug]:
             continue
         rename_candidates.append(
             Phase3SlugRenameCandidate(
@@ -1019,6 +1059,30 @@ def run_self_test() -> int:
             "repetitive canonical\n",
             encoding="utf-8",
         )
+        repetitive_canonical_fixture = paths.fixtures_dir / f"phase3_{repetitive_canonical_slug.replace('-', '_')}"
+        repetitive_canonical_fixture.mkdir()
+        (paths.tests_dir / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_dump.zig").write_text(
+            "// repetitive canonical\n",
+            encoding="utf-8",
+        )
+        (repetitive_canonical_fixture / "expected.json").writeText(
+            "{}\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_canonical_fixture
+            / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_canonical_fixture
+            / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "repetitive canonical", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
         repetitive_with_prefix = f"{repetitive_canonical_slug}-window-policy-budget-window-policy"
         repetitive_fixture = paths.fixtures_dir / f"phase3_{repetitive_with_prefix.replace('-', '_')}"
         repetitive_fixture.mkdir()
@@ -1075,6 +1139,67 @@ def run_self_test() -> int:
                 f"phase3_{repetitive_with_prefix.replace('-', '_')}_manifest.json"
             ),
         }
+
+        mismatched_canonical_slug = "mismatch-window-policy-budget"
+        (paths.docs_dir / f"phase3-{mismatched_canonical_slug}-slice.md").write_text(
+            "mismatched canonical\n",
+            encoding="utf-8",
+        )
+        mismatched_canonical_fixture = paths.fixtures_dir / f"phase3_{mismatched_canonical_slug.replace('-', '_')}"
+        mismatched_canonical_fixture.mkdir()
+        (paths.tests_dir / f"phase3_{mismatched_canonical_slug.replace('-', '_')}_dump.zig").write_text(
+            "// mismatched canonical\n",
+            encoding="utf-8",
+        )
+        (mismatched_canonical_fixture / "expected.json").write_text(
+            json.dumps({"summary": {"acked": 1}}, sort_keys=True),
+            encoding="utf-8",
+        )
+        (
+            mismatched_canonical_fixture
+            / f"phase3_{mismatched_canonical_slug.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            mismatched_canonical_fixture
+            / f"phase3_{mismatched_canonical_slug.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "mismatched canonical", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        mismatched_with_prefix = f"{mismatched_canonical_slug}-window-policy-budget-window-policy"
+        mismatched_fixture = paths.fixtures_dir / f"phase3_{mismatched_with_prefix.replace('-', '_')}"
+        mismatched_fixture.mkdir()
+        (paths.docs_dir / f"phase3-{mismatched_with_prefix}-slice.md").write_text(
+            "mismatched prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{mismatched_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// mismatched prefix\n",
+            encoding="utf-8",
+        )
+        (mismatched_fixture / "expected.json").write_text(
+            json.dumps({"summary": {"acked": 1, "deferred": 0}}, sort_keys=True),
+            encoding="utf-8",
+        )
+        (
+            mismatched_fixture
+            / f"phase3_{mismatched_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            mismatched_fixture
+            / f"phase3_{mismatched_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "mismatched prefix", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        assert all(candidate.slug != mismatched_with_prefix for candidate in rename_candidates)
 
         parser = build_parser()
         assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
