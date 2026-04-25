@@ -8,6 +8,7 @@ import tempfile
 
 from phase3_catalog import (
     Phase3Paths,
+    audit_phase3_slug_sanity,
     artifact_diff_phase3_lines,
     discover_phase3_slices,
 )
@@ -115,7 +116,17 @@ def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issu
         issues.append("artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md")
 
 
-def validate_slices(root: Path, slices: list[object], *, check_artifact_diff: bool = False) -> list[str]:
+def _format_slug_audit_issue(issue) -> str:
+    return "slug_audit:" + issue.to_row().replace("\t", ":")
+
+
+def validate_slices(
+    root: Path,
+    slices: list[object],
+    *,
+    check_artifact_diff: bool = False,
+    check_slug_sanity: bool = False,
+) -> list[str]:
     issues: list[str] = []
 
     for entry in slices:
@@ -136,6 +147,8 @@ def validate_slices(root: Path, slices: list[object], *, check_artifact_diff: bo
     validate_obsolete_wrappers(root, slices, issues)
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
+    if check_slug_sanity:
+        issues.extend(_format_slug_audit_issue(issue) for issue in audit_phase3_slug_sanity(slices))
     return issues
 
 
@@ -307,6 +320,103 @@ def run_self_test() -> int:
         issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md" in issues
 
+        loop_slug = "loop-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
+        loop_fixture_dir = paths.fixtures_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy"
+        loop_fixture_dir.mkdir(parents=True, exist_ok=True)
+        loop_manifest_rel = f"{loop_fixture_dir.relative_to(root).as_posix()}/expected.json"
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "loop-slice",
+                    "files": [loop_manifest_rel],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / f"phase3-{loop_slug}-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=loop-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    f"PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug {loop_slug}",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_dump.zig").write_text(
+            "// loop\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (loop_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        overgrown_slug = "alpha-beta-gamma-delta-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
+        overgrown_fixture_dir = paths.fixtures_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu"
+        overgrown_fixture_dir.mkdir(parents=True, exist_ok=True)
+        overgrown_manifest_rel = f"{overgrown_fixture_dir.relative_to(root).as_posix()}/expected.json"
+        (
+            overgrown_fixture_dir
+            / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_manifest.json"
+        ).write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "overgrown-slice",
+                    "files": [overgrown_manifest_rel],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / f"phase3-{overgrown_slug}-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=overgrown-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    f"PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug {overgrown_slug}",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_dump.zig").write_text(
+            "// overgrown\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (overgrown_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (
+            overgrown_fixture_dir
+            / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        slices = discover_phase3_slices(paths)
+        issues = validate_slices(root, slices, check_slug_sanity=True)
+        assert any(issue.startswith(f"slug_audit:slug-too-many-tokens:{overgrown_slug}:") for issue in issues)
+        assert any(issue.startswith(f"slug_audit:slug-repeated-token:{loop_slug}:") for issue in issues)
+        assert any(issue.startswith(f"slug_audit:slug-repeated-phrase:{loop_slug}:") for issue in issues)
+
     print("PHASE3_VALIDATE_SELF_TEST=pass")
     return 0
 
@@ -319,13 +429,23 @@ def main() -> int:
         action="store_true",
         help="Also require Documentation/zigux/artifact-diff.md to match the generated Phase 3 section from the catalog.",
     )
+    parser.add_argument(
+        "--check-slug-sanity",
+        action="store_true",
+        help="Also require discovered Phase 3 slugs to pass the optional catalog sanity audit.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
     slices = discover_phase3_slices()
-    issues = validate_slices(ROOT, slices, check_artifact_diff=args.check_artifact_diff_phase3_section)
+    issues = validate_slices(
+        ROOT,
+        slices,
+        check_artifact_diff=args.check_artifact_diff_phase3_section,
+        check_slug_sanity=args.check_slug_sanity,
+    )
     if issues:
         print("PHASE3_VALIDATION=fail")
         print("MISSING_PHASE3_MARKERS_START")
