@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 
 from phase3_catalog import Phase3Paths, discover_phase3_slices
-from phase3_check_lib import render_wrapper_stub
+from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, shared_runner_gate_for_slug
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -50,17 +50,20 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
         issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
         return
     doc = doc_path.read_text(encoding="utf-8")
-    expected = [
+    required_markers = [
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-        f"PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-{slug}.py",
         "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
     ]
     if manifest:
-        expected.insert(0, f"PHASE3_STATUS={manifest.get('status')}")
-        expected.insert(1, f"PHASE3_SLICE={manifest.get('slice')}")
-    for marker in expected:
+        required_markers.insert(0, f"PHASE3_STATUS={manifest.get('status')}")
+        required_markers.insert(1, f"PHASE3_SLICE={manifest.get('slice')}")
+    for marker in required_markers:
         if marker not in doc:
             issues.append(f"{slug}:missing_doc_marker={marker}")
+
+    interop_markers = [shared_runner_gate_for_slug(slug), legacy_wrapper_gate_for_slug(slug)]
+    if not any(marker in doc for marker in interop_markers):
+        issues.append(f"{slug}:missing_doc_marker_one_of={'|'.join(interop_markers)}")
 
 
 def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: list[str]) -> None:
@@ -127,7 +130,7 @@ def run_self_test() -> int:
                     "PHASE3_STATUS=ready",
                     "PHASE3_SLICE=alpha-slice",
                     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
                     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
                     "",
                 ]
@@ -146,6 +149,22 @@ def run_self_test() -> int:
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
         assert validate_slices(root, slices) == []
 
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=alpha-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_slices(root, slices) == []
+
         (paths.scripts_dir / "check-phase3-alpha.py").write_text("# stale\n", encoding="utf-8", newline="\n")
         issues = validate_slices(root, slices)
         assert "alpha:wrapper_template_mismatch:scripts/zigux/check-phase3-alpha.py" in issues
@@ -154,6 +173,11 @@ def run_self_test() -> int:
         (paths.docs_dir / "phase3-alpha-slice.md").write_text("PHASE3_STATUS=ready\n", encoding="utf-8", newline="\n")
         issues = validate_slices(root, slices)
         assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
+        assert (
+            "alpha:missing_doc_marker_one_of="
+            "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
+            "|PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
+        ) in issues
 
     print("PHASE3_VALIDATE_SELF_TEST=pass")
     return 0
