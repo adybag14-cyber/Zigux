@@ -130,7 +130,6 @@ test "forEachParsedLine processes valid lines in order and propagates bounded er
         \\ffffffff81000000 T startup_64
         \\invalid line
         \\ffffffff81000100 d cpu_debug_store
-        \
     ,
         &parsed,
         Fixture.collect,
