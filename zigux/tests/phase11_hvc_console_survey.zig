@@ -31,10 +31,11 @@ const Manifest = struct {
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "blocked_on_driver_scaffold");
+        std.mem.eql(u8, status, "blocked_on_driver_scaffold") or
+        std.mem.eql(u8, status, "blocked_on_kernel_integration");
 }
 
-test "phase11 hvc_console survey manifest records the missing simple-driver lane cleanly" {
+test "phase11 hvc_console survey manifest records the landed starter and remaining tty gap cleanly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -53,13 +54,13 @@ test "phase11 hvc_console survey manifest records the missing simple-driver lane
     try std.testing.expectEqualStrings("P11-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("80caf4955443c06226c8446c9673036c3b33d31a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("5e9f574d2dd6af384db83f8c1dc98be14f28e832", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase11_watchdog_lanes);
-    try std.testing.expect(!manifest.survey_summary.hvc_console_zig_present);
-    try std.testing.expect(!manifest.survey_summary.hvc_console_test_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_zig_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
@@ -84,7 +85,9 @@ test "phase11 hvc_console survey manifest records the missing simple-driver lane
             starter_landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_driver_scaffold")) {
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_driver_scaffold") or
+            std.mem.eql(u8, gap.status, "blocked_on_kernel_integration"))
+        {
             blocked_count += 1;
         }
 
@@ -109,24 +112,25 @@ test "phase11 hvc_console survey manifest records the missing simple-driver lane
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-starter")) {
             saw_starter_gap = true;
             try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CRLF") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "adapter-presence gating") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "flush intent") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-tests")) {
             saw_driver_test_block = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newline framing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown gating") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-tty-and-teardown-parity")) {
             saw_tty_block = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
+            try std.testing.expectEqualStrings("blocked_on_kernel_integration", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "TTY driver registration") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling kthread behavior") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling behavior") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -134,9 +138,9 @@ test "phase11 hvc_console survey manifest records the missing simple-driver lane
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_note);
