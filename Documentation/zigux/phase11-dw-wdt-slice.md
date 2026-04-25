@@ -6,7 +6,7 @@ The starter stays intentionally narrow:
 
 - derives the fixed TOP timeout windows from an injected input clock rate
 - mirrors reset-mode versus IRQ-mode timeout selection and pretimeout bookkeeping
-- models the register-image writes for start, ping, stop, restart, and time-left queries only
+- models the register-image writes for start, ping, stop, restart, imported running-state snapshots, and time-left queries only
 - keeps the DesignWare non-stoppable stop semantics explicit when reset control is unavailable
 
 This slice does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, custom devicetree TOP arrays, live MMIO access, or hardware validation coverage yet.
