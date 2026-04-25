@@ -1,0 +1,79 @@
+{
+  "lane_key": "P11-L05",
+  "phase": "Phase 11",
+  "surveyed_commit": "0ecae5ec42ea5da4384f8d17fd54565c8c7e48ba",
+  "anchor": "drivers/watchdog/bcm2835_wdt.c",
+  "roadmap_destinations": [
+    "drivers/watchdog/*.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "bcm2835_wdt_c_lines": 247,
+    "preexisting_phase11_build_present": true,
+    "preexisting_phase11_gpio_lane_present": true,
+    "bcm2835_wdt_zig_present": false,
+    "bcm2835_wdt_test_present": false,
+    "bcm2835_wdt_slice_note_present": false,
+    "bcm2835_wdt_survey_gate_present": true,
+    "bcm2835_wdt_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase11-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_build.zig",
+      "why_now": "The shared Phase 11 build entry now keeps the existing gpio_wdt lane and the new bcm2835_wdt survey checkpoint reviewable together so the watchdog tranche does not drift across simple-driver anchors."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
+      "why_now": "A dedicated survey gate makes the bcm2835_wdt gap explicit without pretending a Zig starter already exists, and it keeps the next bounded driver work tied to the live repo state."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
+      "why_now": "The survey note records that Phase 11 now covers gpio_wdt with a landed starter while bcm2835_wdt still needs its first bounded scaffold, which keeps the roadmap gap honest inside the watchdog lane."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-driver-starter",
+      "status": "ready_next",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "The next honest bcm2835_wdt step is a narrow starter around timeout tick encoding, running-bit detection, bounded start and stop transitions, restart intent, and poweroff-state bookkeeping before any MMIO-backed or platform-registered behavior."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-driver-tests",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
+      "why_now": "Dedicated Phase 11 tests should arrive with the first starter so timeout tick conversion, restart intent, and poweroff-state bookkeeping stay reviewable without claiming hardware-backed execution."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-slice-note",
+      "status": "blocked_on_driver_scaffold",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
+      "why_now": "A slice note would be useful once a real bcm2835_wdt starter exists, but writing it before the first Zig scaffold lands would turn survey language into fake product progress."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-probe-summary",
+      "status": "blocked_on_driver_scaffold",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "Probe-time details such as bootloader-carried running state, heartbeat and nowayout initialization, restart priority, and watchdog parent linkage should wait until the starter has the basic register-intent model in place."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-registration-and-poweroff",
+      "status": "blocked_on_driver_scaffold",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
+      "why_now": "Platform registration, PM base acquisition, the system power controller path, and poweroff handler coordination remain blocked until the lane has a small driver scaffold plus a hardware-validation matrix that can describe those side effects honestly."
+    }
+  ]
+}
