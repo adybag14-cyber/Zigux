@@ -45,20 +45,24 @@ test "phase 15 architecture council review-process manifest records the bounded 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("40aa574db33204bfbb0c972f1de37ad4cb396a77", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("36f313d5bd0b3be22beb3284730a98dff5e7f335", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
-    try std.testing.expectEqual(@as(usize, 4), manifest.ownership_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.required_review_packet_fields.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
+    try std.testing.expectEqualStrings("evidence archive path", manifest.ownership_evidence_fields[3]);
+    try std.testing.expectEqualStrings("latest blocker disposition", manifest.ownership_evidence_fields[4]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
-    try std.testing.expectEqualStrings("requested decision bucket", manifest.required_review_packet_fields[2]);
+    try std.testing.expectEqualStrings("current status bucket", manifest.required_review_packet_fields[2]);
+    try std.testing.expectEqualStrings("requested decision bucket", manifest.required_review_packet_fields[3]);
+    try std.testing.expectEqualStrings("decision record ID", manifest.required_review_packet_fields[4]);
     try std.testing.expectEqualStrings("keep_in_c", manifest.decision_buckets[0]);
     try std.testing.expectEqualStrings("bounded_dual_implementation", manifest.decision_buckets[2]);
 
@@ -70,7 +74,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     var saw_checklist = false;
     var saw_build = false;
     var saw_parity_baseline = false;
-    var saw_approval_followup = false;
+    var saw_archive_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -111,11 +115,11 @@ test "phase 15 architecture council review-process manifest records the bounded 
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live evidence attachment point") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase15-stay-in-c-approval-evidence-followup")) {
-            saw_approval_followup = true;
+        if (std.mem.eql(u8, gap.id, "phase15-evidence-archive-followup")) {
+            saw_archive_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approval evidence archive") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Council decision records") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -131,7 +135,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(saw_checklist);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_parity_baseline);
-    try std.testing.expect(saw_approval_followup);
+    try std.testing.expect(saw_archive_followup);
 }
 
 test "phase 15 architecture council review-process doc records the required process language" {
@@ -151,7 +155,11 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Decision Buckets") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current ownership evidence is limited to named `owner` and `rollback owner` fields") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, and blocker-disposition records") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current status bucket and the requested decision bucket") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "decision record ID") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "evidence archive path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "written rationale") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "parity scorecard link, or an explicit blocker record") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`keep_in_c`") != null);
@@ -176,4 +184,5 @@ test "phase 15 review checklist stays aligned with the council review-process ho
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "parity scorecard evidence or blocker state explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Architecture Council review record linked") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "requested decision bucket explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, evidence archive path, and latest blocker disposition explicit") != null);
 }
