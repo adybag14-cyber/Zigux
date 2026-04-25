@@ -16,10 +16,11 @@ pub const ArgvSplitResult = struct {
 };
 
 pub fn countArgc(text: []const u8) usize {
+    const current = cStringPrefix(text);
     var count: usize = 0;
     var was_space = true;
 
-    for (text) |ch| {
+    for (current) |ch| {
         if (std.ascii.isWhitespace(ch)) {
             was_space = true;
         } else if (was_space) {
@@ -87,6 +88,16 @@ test "argvSplit returns an empty argv for blank input" {
 
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 0), countArgc("  \t\n"));
+}
+
+test "countArgc and argvSplit stop at the first NUL like the C helper" {
+    var split = try argvSplit(std.testing.allocator, "alpha beta\x00ignored tail");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), countArgc("alpha beta\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 2), split.argv.len);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
 }
 
 test "argvSplit keeps quote characters because Linux argv_split does not parse quotes" {

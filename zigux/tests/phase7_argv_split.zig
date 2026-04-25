@@ -16,6 +16,16 @@ test "phase 7 argvSplit collapses repeated whitespace into distinct argv entries
     try std.testing.expectEqual(@as(usize, 3), argv_split.countArgc(" init=/init   console=ttyS0\tpanic=-1 "));
 }
 
+test "phase 7 argv helpers stop at the first NUL byte" {
+    var split = try argv_split.argvSplit(std.testing.allocator, "root=/dev/vda rw\x00ignored debug");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), argv_split.countArgc("root=/dev/vda rw\x00ignored debug"));
+    try std.testing.expectEqual(@as(usize, 2), split.argv.len);
+    try std.testing.expectEqualStrings("root=/dev/vda", split.argv[0]);
+    try std.testing.expectEqualStrings("rw", split.argv[1]);
+}
+
 test "phase 7 argvSplit keeps quote characters instead of doing cmdline parsing" {
     var split = try argv_split.argvSplit(std.testing.allocator, "root=\"/dev/sda 1\" single");
     defer split.deinit(std.testing.allocator);

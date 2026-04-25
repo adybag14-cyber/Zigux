@@ -19,6 +19,7 @@ Phase 7 explicitly calls out `lib/argv_split.c` as one of the first reusable in-
 This current slice keeps the work bounded to the smallest runtime-safe ownership-preserving surface:
 
 - whitespace-only argv tokenization
+- first-NUL C-string bounds on both counting and splitting
 - an explicit result object that owns the copied token buffer
 - deterministic Zig-only validation without quote or shell expansion behavior
 
@@ -41,6 +42,7 @@ The current tests check:
 
 - repeated-whitespace collapsing into distinct argv entries
 - blank-input handling
+- first-NUL stop behavior for both `count_argc()` and `argv_split()`
 - strict non-goal behavior where quote characters stay inside the returned tokens
 - copied-buffer ownership so later source mutation does not affect split results
 
