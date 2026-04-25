@@ -90,6 +90,57 @@ pub fn forEachParsedLine(
     }
 }
 
+fn processParsedLine(
+    line: []const u8,
+    context: anytype,
+    comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
+) !void {
+    const parsed = try parseLine(line) orelse return;
+    try process_symbol(context, parsed);
+}
+
+pub fn forEachParsedChunked(
+    allocator: std.mem.Allocator,
+    reader_context: anytype,
+    comptime next_chunk: fn (@TypeOf(reader_context)) anyerror!?[]const u8,
+    process_context: anytype,
+    comptime process_symbol: fn (@TypeOf(process_context), ParsedSymbol) anyerror!void,
+) !void {
+    var pending = std.ArrayList(u8).empty;
+    defer pending.deinit(allocator);
+
+    while (try next_chunk(reader_context)) |chunk| {
+        var line_start: usize = 0;
+        while (std.mem.indexOfScalarPos(u8, chunk, line_start, '\n')) |newline_index| {
+            try pending.appendSlice(allocator, chunk[line_start..newline_index]);
+            try processParsedLine(pending.items, process_context, process_symbol);
+            pending.clearRetainingCapacity();
+            line_start = newline_index + 1;
+        }
+
+        try pending.appendSlice(allocator, chunk[line_start..]);
+    }
+
+    if (pending.items.len != 0) {
+        try processParsedLine(pending.items, process_context, process_symbol);
+    }
+}
+
+const ChunkFixtureState = struct {
+    chunks: []const []const u8,
+    index: usize = 0,
+};
+
+fn nextFixtureChunk(state: *ChunkFixtureState) anyerror!?[]const u8 {
+    if (state.index >= state.chunks.len) {
+        return null;
+    }
+
+    const chunk = state.chunks[state.index];
+    state.index += 1;
+    return chunk;
+}
+
 test "binding, type, and function helpers preserve the C-style symbol rules" {
     try std.testing.expectEqual(elf_stb_weak, kallsyms2ElfBinding('W'));
     try std.testing.expectEqual(elf_stb_global, kallsyms2ElfBinding('T'));
@@ -135,10 +186,9 @@ test "forEachParsedLine processes valid lines in order and propagates parse and 
     defer parsed.deinit(std.testing.allocator);
 
     try forEachParsedLine(
-        \\ffffffff81000000 T startup_64
-        \\invalid line
-        \\ffffffff81000100 d cpu_debug_store
-    ,
+        "ffffffff81000000 T startup_64\n" ++
+            "invalid line\n" ++
+            "ffffffff81000100 d cpu_debug_store\n",
         &parsed,
         Fixture.collect,
     );
@@ -164,13 +214,121 @@ test "forEachParsedLine processes valid lines in order and propagates parse and 
 
     parsed.clearRetainingCapacity();
     try std.testing.expectError(error.StopOnWeakSymbol, forEachParsedLine(
-        \\ffffffff81000000 T startup_64
-        \\ffffffff81000200 W weak_handler
-        \\ffffffff81000300 t ignored_after_callback_error
-    ,
+        "ffffffff81000000 T startup_64\n" ++
+            "ffffffff81000200 W weak_handler\n" ++
+            "ffffffff81000300 t ignored_after_callback_error\n",
         &parsed,
         Fixture.failOnWeakSymbol,
     ));
     try std.testing.expectEqual(@as(usize, 1), parsed.items.len);
     try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
+}
+
+test "forEachParsedChunked preserves line parsing across chunk boundaries" {
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Fixture = struct {
+        fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    var state = ChunkFixtureState{
+        .chunks = &.{
+            "ffffffff81000000 T start",
+            "up_64\nbad",
+            " line\nffffffff81000100 d data_symbol",
+        },
+    };
+
+    var parsed = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        parsed.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedChunked(
+        std.testing.allocator,
+        &state,
+        nextFixtureChunk,
+        &parsed,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), parsed.items.len);
+    try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
+    try std.testing.expectEqualStrings("data_symbol", parsed.items[1].name);
+    try std.testing.expectEqual(@as(u8, 'd'), parsed.items[1].symbol_type);
+}
+
+test "forEachParsedChunked propagates oversized-symbol errors from buffered lines" {
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Fixture = struct {
+        fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    const too_long_name = "a" ** (KSYM_NAME_LEN + 1);
+    const first_chunk = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}",
+        .{too_long_name[0..40]},
+    );
+    defer std.testing.allocator.free(first_chunk);
+    const second_chunk = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}\n",
+        .{too_long_name[40..]},
+    );
+    defer std.testing.allocator.free(second_chunk);
+
+    var state = ChunkFixtureState{
+        .chunks = &.{ first_chunk, second_chunk },
+    };
+
+    var parsed = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        parsed.deinit(std.testing.allocator);
+    }
+
+    try std.testing.expectError(error.SymbolNameTooLong, forEachParsedChunked(
+        std.testing.allocator,
+        &state,
+        nextFixtureChunk,
+        &parsed,
+        Fixture.collect,
+    ));
 }
