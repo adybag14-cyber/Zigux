@@ -108,3 +108,76 @@ test "phase10 virtio core rejects feature bits outside the bounded lab capacity"
     try std.testing.expectError(error.FeatureBitOutOfRange, device.hasDeviceFeature(virtio_core.feature_bit_capacity));
     try std.testing.expectError(error.FeatureBitOutOfRange, device.hasNegotiatedFeature(virtio_core.feature_bit_capacity));
 }
+
+test "phase10 virtio core tracks queue callback bookkeeping after features negotiation" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 6 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(1);
+    _ = try device.finalizeFeatures();
+
+    try device.registerQueueCallback(2, 16, "rx_done");
+
+    const summary = try device.queueRegistrationSummary(2);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 2), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 16), summary.descriptor_count);
+    try std.testing.expectEqualStrings("rx_done", summary.callback_name);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(usize, 0), summary.callback_invocation_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.notification_count);
+    try std.testing.expectEqual(@as(usize, 1), device.registeredQueueCount());
+}
+
+test "phase10 virtio core can disable and re-enable queue callbacks without transport glue" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 2, 9 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(9);
+    _ = try device.finalizeFeatures();
+    try device.registerQueueCallback(0, 8, "tx_done");
+
+    try device.disableQueueCallback(0);
+    try std.testing.expect(!(try device.notifyQueueUsed(0)));
+
+    var summary = try device.queueRegistrationSummary(0);
+    try std.testing.expect(!summary.callback_enabled);
+    try std.testing.expectEqual(@as(usize, 0), summary.callback_invocation_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+
+    try device.enableQueueCallback(0);
+    try std.testing.expect(try device.notifyQueueUsed(0));
+
+    summary = try device.queueRegistrationSummary(0);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(usize, 1), summary.callback_invocation_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
+}
+
+test "phase10 virtio core keeps queue registration inside bounded feature and reset semantics" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 10 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try std.testing.expectError(error.MissingFeaturesOk, device.registerQueueCallback(1, 4, "before_ready"));
+
+    try device.offerDriverFeature(4);
+    _ = try device.finalizeFeatures();
+
+    try std.testing.expectError(error.QueueIndexOutOfRange, device.registerQueueCallback(virtio_core.queue_capacity, 4, "overflow"));
+    try std.testing.expectError(error.EmptyQueueDescriptorSet, device.registerQueueCallback(1, 0, "empty_desc"));
+    try std.testing.expectError(error.EmptyQueueCallbackName, device.registerQueueCallback(1, 4, ""));
+
+    try device.registerQueueCallback(1, 4, "control_done");
+    try std.testing.expectError(error.QueueAlreadyRegistered, device.registerQueueCallback(1, 2, "duplicate"));
+    try device.unregisterQueueCallback(1);
+    try std.testing.expectEqual(@as(usize, 0), device.registeredQueueCount());
+    try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(1));
+
+    try device.registerQueueCallback(1, 4, "control_done");
+    device.reset();
+    try std.testing.expectEqual(@as(usize, 0), device.registeredQueueCount());
+    try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(1));
+}
