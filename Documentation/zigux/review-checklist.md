@@ -16,6 +16,7 @@ Use this checklist before opening or merging Zigux product work.
 - are parity tests or fixture checks included?
 - is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
 - is there a stated rollback owner and fallback path?
+- if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
 
 ## ABI and Runtime
 - are bindings and ABI assumptions centralized?
@@ -25,4 +26,5 @@ Use this checklist before opening or merging Zigux product work.
 ## Product Discipline
 - does the patch make Zigux more buildable, more testable, or more reviewable?
 - if it came from ZAR research, is the transfer rationale explicit?
+- if the target stays in C, does the change record that ongoing policy honestly instead of implying a premature port commitment?
 - does the change strengthen the product repo instead of just extending experimental scope?
