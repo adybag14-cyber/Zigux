@@ -68,3 +68,20 @@ test "runtime bitmap sample keeps bounded errors explicit" {
     try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(sample.RuntimeBitmapSample.bitmap_nbits - 1, 2));
     try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 1));
 }
+
+test "runtime bitmap sample keeps zero-length mutations and invalid copy sources explicit" {
+    var module = sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 2, 7 });
+
+    const before = module.summary();
+    try module.setRange(5, 0);
+    try module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 0);
+
+    const after = module.summary();
+    try std.testing.expectEqual(before.first_set, after.first_set);
+    try std.testing.expectEqual(before.first_zero, after.first_zero);
+    try std.testing.expectEqual(before.weight, after.weight);
+
+    var cold_source = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&cold_source));
+}
