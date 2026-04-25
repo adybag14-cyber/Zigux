@@ -33,6 +33,7 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "ready_next") or
+        std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "blocked_on_object_model") or
         std.mem.eql(u8, status, "deferred_high_risk");
 }
@@ -63,7 +64,9 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(manifest.segments.len >= 6);
 
     var ready_next_count: usize = 0;
+    var starter_landed_count: usize = 0;
     var deferred_high_risk_count: usize = 0;
+    var saw_cpu_mask_segment = false;
 
     for (manifest.segments, 0..) |segment, i| {
         try std.testing.expect(segment.id.len > 0);
@@ -77,8 +80,16 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
         if (std.mem.eql(u8, segment.status, "ready_next")) {
             ready_next_count += 1;
         }
+        if (std.mem.eql(u8, segment.status, "starter_landed")) {
+            starter_landed_count += 1;
+        }
         if (std.mem.eql(u8, segment.status, "deferred_high_risk")) {
             deferred_high_risk_count += 1;
+        }
+        if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
+            saw_cpu_mask_segment = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", segment.zigux_destination);
         }
 
         for (manifest.segments[i + 1 ..]) |other| {
@@ -87,6 +98,8 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
         }
     }
 
-    try std.testing.expect(ready_next_count >= 3);
+    try std.testing.expect(ready_next_count >= 2);
+    try std.testing.expect(starter_landed_count >= 1);
     try std.testing.expect(deferred_high_risk_count >= 2);
+    try std.testing.expect(saw_cpu_mask_segment);
 }
