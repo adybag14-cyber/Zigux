@@ -7,6 +7,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_statfs_defaults);
     try std.testing.expect(descriptor.provides_lookup_policy);
+    try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -53,4 +54,55 @@ test "phase13 libfs lookup keeps casefold passthrough and rejects long names" {
         .dont_cache_negative = false,
         .directory_is_casefolded = false,
     }));
+}
+
+test "phase13 libfs buffer helpers clamp to the available read window" {
+    var pos: i64 = 2;
+    var destination = [_]u8{ 0, 0, 0, 0, 0 };
+    const source = "abcdef";
+
+    const result = try libfs.LibFsHelperLab.simpleReadFromBuffer(destination[0..], &pos, source, 0);
+    try std.testing.expectEqualStrings("fs/libfs.c", result.anchor);
+    try std.testing.expectEqual(@as(usize, 4), result.copied);
+    try std.testing.expectEqual(@as(i64, 6), result.new_pos);
+    try std.testing.expectEqualSlices(u8, "cdef", destination[0..4]);
+}
+
+test "phase13 libfs buffer helpers preserve short-copy accounting" {
+    var read_pos: i64 = 1;
+    var read_destination = [_]u8{ 0, 0, 0, 0 };
+    const read_result = try libfs.LibFsHelperLab.simpleReadFromBuffer(read_destination[0..], &read_pos, "abcdef", 2);
+    try std.testing.expectEqual(@as(usize, 2), read_result.copied);
+    try std.testing.expectEqual(@as(i64, 3), read_result.new_pos);
+    try std.testing.expectEqualSlices(u8, "bc", read_destination[0..2]);
+
+    var write_pos: i64 = 2;
+    var write_destination = [_]u8{ '_', '_', '_', '_', '_', '_' };
+    const write_result = try libfs.LibFsHelperLab.simpleWriteToBuffer(write_destination[0..], &write_pos, "wxyz", 1);
+    try std.testing.expectEqual(@as(usize, 3), write_result.copied);
+    try std.testing.expectEqual(@as(i64, 5), write_result.new_pos);
+    try std.testing.expectEqualSlices(u8, "__wxy_", write_destination[0..]);
+}
+
+test "phase13 libfs memory reads and invalid offsets match the bounded C helper rules" {
+    var memory_pos: i64 = 4;
+    var memory_destination = [_]u8{ 0, 0, 0, 0 };
+    const memory_result = try libfs.LibFsHelperLab.memoryReadFromBuffer(memory_destination[0..], &memory_pos, "abcdef");
+    try std.testing.expectEqual(@as(usize, 2), memory_result.copied);
+    try std.testing.expectEqual(@as(i64, 6), memory_result.new_pos);
+    try std.testing.expectEqualSlices(u8, "ef", memory_destination[0..2]);
+
+    var eof_pos: i64 = 6;
+    var eof_destination = [_]u8{ 1, 2, 3 };
+    const eof_result = try libfs.LibFsHelperLab.memoryReadFromBuffer(eof_destination[0..], &eof_pos, "abcdef");
+    try std.testing.expectEqual(@as(usize, 0), eof_result.copied);
+    try std.testing.expectEqual(@as(i64, 6), eof_result.new_pos);
+
+    var invalid_pos: i64 = -1;
+    var invalid_destination = [_]u8{ 0, 0, 0 };
+    try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.simpleReadFromBuffer(invalid_destination[0..], &invalid_pos, "abc", 0));
+
+    var fault_pos: i64 = 0;
+    var fault_destination = [_]u8{ 0, 0 };
+    try std.testing.expectError(error.CopyFault, libfs.LibFsHelperLab.simpleWriteToBuffer(fault_destination[0..], &fault_pos, "xy", 2));
 }
