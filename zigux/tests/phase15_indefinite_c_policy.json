@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L13",
+  "lane_key": "P15-L15",
   "phase": "Phase 15",
-  "surveyed_commit": "5ef3897e33afaf014a686206f368ebd52c433b2c",
+  "surveyed_commit": "4f87aca30adf909dbda21c4e597ec027c0c51289",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -41,6 +41,15 @@
       "required_terms": [
         "survey notes, boundary manifests, validation gates, and explicit non-goal records",
         "explicit stay-in-C outcome"
+      ]
+    },
+    {
+      "id": "indefinite-c-exception-path",
+      "summary": "There is no silent exception path; only a documented Architecture Council reopen request can reopen status review.",
+      "required_terms": [
+        "no silent exception path",
+        "Architecture Council reopen request",
+        "existing blocker remains recorded"
       ]
     },
     {

@@ -6,8 +6,8 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_SLICE=stay-in-c-policy-indefinite-c`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the shared Phase 15 build wiring
-- survey provenance refreshed against verified `master` head `5ef3897e33afaf014a686206f368ebd52c433b2c`
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the shared Phase 15 build wiring for current policy, exception, and blocker evidence
+- survey provenance refreshed against verified `master` head `4f87aca30adf909dbda21c4e597ec027c0c51289`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -63,6 +63,14 @@ The repo must not use an indefinite-C record to justify:
 - a new `kernel/rcu/tree_bridge.zig` or direct `net/core/skbuff.c` rewrite
 - silent reopening of status review without new evidence
 - vague optimism that erases the current blocker or source-of-truth language
+
+## Exception posture
+
+There is no silent exception path around the indefinite-C policy.
+
+The only allowed exception is an Architecture Council reopen request that satisfies the documented reopen conditions and carries fresh linked evidence showing why the old blocker is no longer the current product truth.
+
+Until that happens, the existing blocker remains recorded, the C implementation remains the product source of truth, and the anchor stays in the freeze-in-C set for the current plan horizon.
 
 ## Reopen conditions
 
