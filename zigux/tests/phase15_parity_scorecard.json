@@ -1,0 +1,171 @@
+{
+  "lane_key": "P15-L03",
+  "phase": "Phase 15",
+  "surveyed_commit": "07d53ee63ae7cb8d148ca38b93e7e7a6d867603c",
+  "anchors": [
+    {
+      "path": "kernel/sched/core.c",
+      "status": "freeze_in_c",
+      "line_count": 11235,
+      "phase14_evidence_present": false,
+      "council_inputs": [
+        "Architecture Council seam review",
+        "PMO / Release Management rollback review",
+        "Validation and Perf Team benchmark review"
+      ],
+      "evidence_thresholds": [
+        "written seam inventory",
+        "proof that scheduler class balancing, hotplug, and wakeup policy stay in C",
+        "latency and fairness regression plan"
+      ],
+      "validation_gates": [
+        "phase15 scorecard replay",
+        "future lane-local parity harness",
+        "rollback rehearsal"
+      ],
+      "rollback_owner": "Architecture Council + PMO / Release Management"
+    },
+    {
+      "path": "mm/page_alloc.c",
+      "status": "freeze_in_c",
+      "line_count": 7795,
+      "phase14_evidence_present": false,
+      "council_inputs": [
+        "Architecture Council seam review",
+        "Toolchain and Kbuild Team build-surface review",
+        "Validation and Perf Team stress review"
+      ],
+      "evidence_thresholds": [
+        "written seam inventory",
+        "proof that watermarks, reclaim interaction, and zone balancing stay in C",
+        "allocator stress-validation plan"
+      ],
+      "validation_gates": [
+        "phase15 scorecard replay",
+        "future lane-local parity harness",
+        "rollback rehearsal"
+      ],
+      "rollback_owner": "Architecture Council + Validation and Perf Team"
+    },
+    {
+      "path": "kernel/rcu/tree.c",
+      "status": "freeze_in_c",
+      "line_count": 4931,
+      "phase14_evidence_present": true,
+      "council_inputs": [
+        "Architecture Council review of the Phase 14 RCU survey",
+        "ABI and Runtime Team seam review",
+        "Validation and Perf Team ordering review"
+      ],
+      "evidence_thresholds": [
+        "Phase 14 blocker follow-up narrower than the current freeze boundary",
+        "proof that grace-period sequencing, expedited-GP behavior, and NOCB wakeup ownership stay explicit",
+        "ordering-validation plan"
+      ],
+      "validation_gates": [
+        "phase15 scorecard replay",
+        "existing Phase 14 survey evidence stays green",
+        "future lane-local parity harness"
+      ],
+      "rollback_owner": "Architecture Council + ABI and Runtime Team"
+    },
+    {
+      "path": "net/core/skbuff.c",
+      "status": "freeze_in_c",
+      "line_count": 7476,
+      "phase14_evidence_present": true,
+      "council_inputs": [
+        "Architecture Council review of the Phase 14 skbuff survey",
+        "Shared Subsystems Pod boundary review",
+        "Validation and Perf Team packet-path review"
+      ],
+      "evidence_thresholds": [
+        "Phase 14 blocker follow-up narrower than the current lifetime boundary",
+        "proof that refcounted lifetime, destructor ordering, checksum ownership, and segmentation ownership stay explicit",
+        "packet-path validation plan"
+      ],
+      "validation_gates": [
+        "phase15 scorecard replay",
+        "existing Phase 14 survey evidence stays green",
+        "future lane-local parity harness"
+      ],
+      "rollback_owner": "Architecture Council + Shared Subsystems Pod"
+    }
+  ],
+  "repo_evidence": {
+    "freeze_map_present": true,
+    "review_checklist_present": true,
+    "phase14_rcu_survey_present": true,
+    "phase14_skbuff_survey_present": true,
+    "phase15_scorecard_note_present": true,
+    "phase15_scorecard_test_present": true,
+    "phase15_scorecard_manifest_present": true,
+    "phase15_build_present": true,
+    "phase15_make_target_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase15-freeze-map-governance-note",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/freeze-map.md",
+      "why_now": "The freeze map needed explicit governance and stay-in-C policy language before a parity scorecard could tell reviewers how a frozen anchor changes status."
+    },
+    {
+      "id": "phase15-review-checklist-scorecard-question",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/review-checklist.md",
+      "why_now": "The review checklist now asks whether a freeze-map anchor change includes or updates a parity scorecard entry, which keeps Phase 15 governance visible in normal review flow."
+    },
+    {
+      "id": "phase15-parity-scorecard-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "Phase 15 needed a reviewable scorecard that records council inputs, evidence thresholds, validation gates, and rollback ownership for every active freeze-in-C anchor."
+    },
+    {
+      "id": "phase15-parity-scorecard-manifest",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "The manifest keeps the four deep-core anchors and their governance requirements machine-checkable instead of leaving them as prose only."
+    },
+    {
+      "id": "phase15-parity-scorecard-test",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+      "why_now": "A dedicated Phase 15 test gate is the smallest honest way to enforce that every freeze-map anchor carries current governance evidence without inventing implementation progress."
+    },
+    {
+      "id": "phase15-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_build.zig",
+      "why_now": "A shared Phase 15 build step keeps the scorecard replayable as a bounded governance lane."
+    },
+    {
+      "id": "phase15-make-target",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "A make target keeps the Phase 15 scorecard runnable with the same discipline as other bounded tranche lanes."
+    },
+    {
+      "id": "phase15-stay-in-c-policy-followup",
+      "status": "ready_next",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The next honest governance step is a small follow-up that documents exactly when a frozen anchor leaves active discussion and what evidence archive must be preserved."
+    },
+    {
+      "id": "phase15-deep-core-status-change-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "freeze_map",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The live repo still has no council-approved evidence strong enough to move `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c` out of the freeze-in-C set."
+    }
+  ]
+}
