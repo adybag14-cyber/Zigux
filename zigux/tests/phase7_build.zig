@@ -40,6 +40,18 @@ pub fn build(b: *std.Build) void {
     });
     argv_split_root_module.addImport("argv_split", argv_split_module);
 
+    const rbtree_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const rbtree_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    rbtree_root_module.addImport("rbtree", rbtree_module);
+
     const string_helpers_tests = b.addTest(.{
         .name = "phase7-string-helpers-tests",
         .root_module = string_helpers_root_module,
@@ -58,8 +70,15 @@ pub fn build(b: *std.Build) void {
     });
     const run_argv_split_tests = b.addRunArtifact(argv_split_tests);
 
+    const rbtree_tests = b.addTest(.{
+        .name = "phase7-rbtree-tests",
+        .root_module = rbtree_root_module,
+    });
+    const run_rbtree_tests = b.addRunArtifact(rbtree_tests);
+
     const test_step = b.step("test", "Run Phase 7 runtime helper tests");
     test_step.dependOn(&run_string_helpers_tests.step);
     test_step.dependOn(&run_cmdline_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
+    test_step.dependOn(&run_rbtree_tests.step);
 }
