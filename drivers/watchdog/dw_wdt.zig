@@ -118,6 +118,10 @@ pub const DwWdtLab = struct {
         };
     }
 
+    pub fn timeoutWindows(self: *const Self) []const TimeoutWindow {
+        return self.timeouts[0..];
+    }
+
     pub fn loadRegisters(self: *Self, registers: RegisterImage) RuntimeSnapshot {
         self.registers = registers;
         self.syncStateFromRegisters();
