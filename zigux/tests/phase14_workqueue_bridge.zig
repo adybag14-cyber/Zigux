@@ -58,7 +58,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
-    try std.testing.expectEqualStrings("33735ebefb242d64bc261c583729cf3a2e88b48f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("9e278f632d6d5097cb8cfc2dc61744ae105baa8c", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.workqueue_c_lines >= 8400);
     try std.testing.expect(manifest.survey_summary.workqueue_internal_h_lines >= 80);
@@ -137,15 +137,15 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
             saw_audit_outline = true;
             try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pool->lock") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mayday") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pool->manager") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pwq->mayday_cursor") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase14-workqueue-field-audit-followup")) {
+        if (std.mem.eql(u8, gap.id, "phase14-workqueue-lock-handoff-followup")) {
             saw_followup = true;
             try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "field-level") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WORKER_NOT_RUNNING") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__queue_work") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "process_one_work") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-live-execution-blocker")) {
             saw_blocker = true;
@@ -178,6 +178,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
 test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     const descriptor = workqueue_bridge.WorkqueueBridgeLab.descriptor();
     const map = workqueue_bridge.WorkqueueBridgeLab.boundaryMap();
+    const audit = workqueue_bridge.WorkqueueBridgeLab.concurrencyAudit();
 
     try std.testing.expectEqualStrings("workqueue_boundary_map_lab", descriptor.name);
     try std.testing.expectEqualStrings("kernel/workqueue.c", descriptor.anchor);
@@ -191,6 +192,13 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
 
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), workqueue_bridge.WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "mayday-to-rescuer") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "pool->lock") != null);
+    try std.testing.expectEqual(@as(usize, 4), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 4), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__queue_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "process_one_work()") != null);
+    try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
+    try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
+    try std.testing.expect(audit.checkpoints[2].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expect(audit.checkpoints[3].guard == .mayday_lock_then_pool_lock);
 }
