@@ -15,13 +15,24 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_core_module.addImport("virtio_core", virtio_core_module);
+    const phase10_virtio_ring_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase10_virtio_core_tests = b.addTest(.{
         .name = "phase10-virtio-core-tests",
         .root_module = phase10_virtio_core_module,
     });
     const run_phase10_virtio_core_tests = b.addRunArtifact(phase10_virtio_core_tests);
+    const phase10_virtio_ring_survey_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-survey-tests",
+        .root_module = phase10_virtio_ring_survey_module,
+    });
+    const run_phase10_virtio_ring_survey_tests = b.addRunArtifact(phase10_virtio_ring_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 10 virtio core lab-driver tests");
+    const test_step = b.step("test", "Run Phase 10 virtio core and virtio_ring survey tests");
     test_step.dependOn(&run_phase10_virtio_core_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
 }
