@@ -36,13 +36,13 @@ This keeps the slice reviewable while proving that Zigux can carry Linux-style b
 - `python3 scripts/zigux/validate-phase3.py`
 
 2. check C-vs-Zig bitmap/cpumask parity
-- `python3 scripts/zigux/check-phase3-bitmap-cpumask.py`
+- `python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask`
 
 3. run the wider Phase 3 substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
-- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-bitmap-cpumask.py`
+- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 
 ## Interop rules
