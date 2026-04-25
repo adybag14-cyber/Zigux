@@ -5,7 +5,7 @@ This bounded Phase 12 slice adds the first Zigux `nvme pci` starter anchored to 
 The starter stays intentionally narrow:
 
 - validates queue depth, SQ entry size, page size, and doorbell stride for a lab-only queue pair planner
-- computes SQ and CQ byte counts plus rounded DMA page demand without claiming real DMA mapping or PRP setup
+- computes total queue footprint plus host-side DMA demand, including the reduced host-memory pressure when a submission queue is planned in CMB, without claiming real DMA mapping or PRP setup
 - assigns monotonic admin and I/O queue identifiers with predictable SQ and CQ doorbell offsets
 - freezes queue planning during reset and clears planned I/O queue numbering only after reset completion
 
