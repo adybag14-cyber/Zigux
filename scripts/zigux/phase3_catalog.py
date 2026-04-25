@@ -625,10 +625,6 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
 
     for slug in sorted(issues_by_slug):
         issue_codes = issues_by_slug[slug]
-        # A long token chain alone is too weak a signal because legitimate
-        # follow-on slices can cross the token threshold before the name
-        # actually starts looping. Only suggest a rename once repetition or
-        # outright overlength shows up alongside the prefix match.
         if issue_codes == {"slug-too-many-tokens"}:
             continue
         tokens = slug.split("-")
@@ -642,10 +638,6 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
             continue
         canonical_entry = entry_by_slug[canonical_slug]
         entry = entry_by_slug[slug]
-        # Only promote a rename when every available normalized artifact shape
-        # agrees. This keeps follow-on slices that happen to share a prefix and
-        # bookkeeping manifest from being collapsed together when their expected
-        # JSON still proves they model different parity surfaces.
         if not _slice_rename_evidence_matches(entry, canonical_entry):
             continue
         rename_candidates.append(
@@ -1114,12 +1106,12 @@ def run_self_test() -> int:
             newline="\n",
         )
         ordered_entries = discover_artifact_diff_phase3_order(entries, artifact_diff_path)
-        assert [entry.slug for entry in ordered_entries[:3]] == ["delta", "abi", "alpha"]
+        assert [entry.slug for entry in ordered_entries[:3]] == ["abi", "alpha", "custom"]
         assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
         rewritten_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
         assert "stale line" not in rewritten_artifact_diff
-        assert "- `zigux/tests/fixtures/phase3_delta/expected.json` anchors the bounded Phase 3 delta parity claim." in rewritten_artifact_diff
         assert "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim." in rewritten_artifact_diff
+        assert "- `zigux/tests/fixtures/phase3_custom/expected.json` anchors the bounded Phase 3 custom parity claim." in rewritten_artifact_diff
         assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
         artifact_diff_path.write_text(
             "\n".join(
