@@ -23,6 +23,14 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const DecisionChecklistEntry = struct {
+    id: []const u8,
+    summary: []const u8,
+    ownership: []const u8,
+    anchor_symbols: []const []const u8,
+    rationale: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -30,6 +38,7 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    decision_checklist: []const DecisionChecklistEntry,
     gaps: []const Gap,
 };
 
@@ -55,9 +64,10 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
+    try std.testing.expectEqualStrings("b25f34c1c65f7c9ccbb966fc39d8d48f3eddd90b", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
@@ -71,11 +81,14 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
-    try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expectEqual(@as(usize, 3), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_boundary_checklist = false;
+    var saw_overwrite_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -92,6 +105,19 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
             blocked_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-boundary-decision-checklist")) {
+            saw_boundary_checklist = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase14_ring_buffer_manifest.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reader-page rotation") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-overwrite-audit-followup")) {
+            saw_overwrite_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_move_tail()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lost-event") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
             try std.testing.expectEqualStrings("kernel/trace/ring_buffer.zig", gap.zigux_destination);
@@ -99,12 +125,46 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
         }
     }
 
-    try std.testing.expect(landed_count >= 5);
+    try std.testing.expectEqual(@as(usize, 6), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(saw_boundary_checklist);
+    try std.testing.expect(saw_overwrite_followup);
     try std.testing.expect(saw_port_blocker);
+}
+
+test "phase 14 ring-buffer survey exposes the landed decision checklist" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_ring_buffer_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const checklist = parsed.value.decision_checklist;
+    try std.testing.expectEqualStrings("reserve-commit-publication", checklist[0].id);
+    try std.testing.expectEqualStrings("stay_in_c", checklist[0].ownership);
+    try std.testing.expectEqualStrings("ring_buffer_lock_reserve", checklist[0].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("ring_buffer_unlock_commit", checklist[0].anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[0].rationale, "nested writer") != null);
+
+    try std.testing.expectEqualStrings("head-page-reader-handoff", checklist[1].id);
+    try std.testing.expectEqualStrings("rb_handle_head_page", checklist[1].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("ring_buffer_read_page", checklist[1].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[1].rationale, "reader-page swap") != null);
+
+    try std.testing.expectEqualStrings("remote-reader-metadata", checklist[2].id);
+    try std.testing.expectEqualStrings("rb_read_remote_meta_page", checklist[2].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("__rb_get_reader_page_from_remote", checklist[2].anchor_symbols[1]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[2].rationale, "callback-driven") != null);
 }
