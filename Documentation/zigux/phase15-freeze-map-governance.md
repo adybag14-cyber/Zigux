@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance`
 - scope: the live freeze map, a dedicated Phase 15 manifest and test gate, the shared Phase 15 build wiring, and this lane note
-- survey provenance captured against verified `master` head `07d53ee63ae7cb8d148ca38b93e7e7a6d867603c`
+- survey provenance refreshed against verified `master` head `d418cc803bd7012f0892286f12cacb9b97d1a43e`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -22,7 +22,7 @@ The roadmap's Phase 15 work is about governance, not another burst of deep-core 
 
 That gap matters because the live repo now carries real Phase 14 boundary surveys for `kernel/rcu/tree.c`, `net/core/skbuff.c`, `kernel/workqueue.c`, and `kernel/trace/ring_buffer.c`. Without a stronger Phase 15 governance rule, those surveys stay reviewable but the repo still lacks a clean product answer to the question "what would have to be true before one of these anchors leaves the freeze map?"
 
-The honest bounded step is therefore to strengthen the freeze map itself and make the governance rule testable. This lane does not try to land a full Architecture Council process or a parity scorecard system in one pass. It records the gating rule that future Phase 15 work must respect.
+The honest bounded step is therefore to keep the governance rule testable and reviewable. This cleanup keeps the freeze-map note aligned with the live repo by restoring the missing dedicated manifest and by leaving the parity-scorecard system itself as the next bounded step rather than pretending it already exists.
 
 ## Landed governance rules
 
