@@ -12,6 +12,8 @@ const SurveySummary = struct {
     preexisting_phase12_virtio_scsi_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
     preexisting_virtio_scsi_zig_present: bool,
+    preexisting_phase12_virtio_scsi_test_present: bool,
+    preexisting_phase12_virtio_scsi_slice_note_present: bool,
 };
 
 const Gap = struct {
@@ -38,7 +40,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
+test "phase12 virtio_scsi survey manifest records the landed queue starter and remaining roadmap gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -57,7 +59,7 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
     try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
-    try std.testing.expectEqualStrings("b70975c3d76134e2f3d75b870349deb782983166", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("50d4fad800585c8058238c66df6ffd63f6149664", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_scsi_c_lines >= 1000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -69,8 +71,10 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_nvme_pci_starter_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_virtio_scsi_zig_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -81,6 +85,9 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
     var saw_ring_foundation = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
+    var saw_driver_starter = false;
+    var saw_driver_tests = false;
+    var saw_slice_note = false;
     var saw_ready_next = false;
     var saw_blocker = false;
 
@@ -124,7 +131,6 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-shape") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notification bookkeeping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA-backed") != null);
         }
 
@@ -140,13 +146,32 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-probe-config-snapshot-starter")) {
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-driver-starter")) {
+            saw_driver_starter = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control, event, request, and request_poll") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-driver-tests")) {
+            saw_driver_tests = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poll-queue clamping") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "global virtqueue indexes") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-slice-note")) {
+            saw_slice_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-slice.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-queue-freeze-recovery-helper")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_probe()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "seg_max") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cmd_per_lun") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport freeze and restore") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-queues-and-scan")) {
@@ -162,7 +187,7 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -171,6 +196,9 @@ test "phase12 virtio_scsi survey manifest records the bounded roadmap gap" {
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_driver_starter);
+    try std.testing.expect(saw_driver_tests);
+    try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_ready_next);
     try std.testing.expect(saw_blocker);
 }
