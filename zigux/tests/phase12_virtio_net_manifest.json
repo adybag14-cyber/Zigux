@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "5e9f574d2dd6af384db83f8c1dc98be14f28e832",
+  "surveyed_commit": "878f9e1df569cda365c364931c038650c0a301a1",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -39,14 +39,14 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The Phase 10 virtio core slice already covers status sequencing, feature negotiation, queue metadata, and callback bookkeeping, which is the minimum foundation a future virtio_net starter would build on."
+      "why_now": "The Phase 10 virtio core slice already covers status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, and notification accounting, which is the minimum foundation a future virtio_net starter would build on."
     },
     {
       "id": "phase12-virtio-ring-foundation",
       "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The existing virtio_ring helper keeps queue-shape and callback-enable bookkeeping in memory only, which is the closest current Zigux support surface for a future virtio_net queue plan."
+      "why_now": "The existing virtio_ring helper keeps queue-shape and notification bookkeeping in memory only, which is the closest current Zigux support surface for a future virtio_net queue plan without pretending callback suppression, DMA, or transport wiring already live there."
     },
     {
       "id": "phase12-virtio-net-survey-gate",
