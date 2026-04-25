@@ -1,0 +1,72 @@
+# Phase 12 NVMe PCI Survey
+
+This survey note records the current bounded Phase 12 checkpoint around `drivers/nvme/host/pci.c`.
+
+## Status
+
+- `PHASE12_STATUS=active`
+- `PHASE12_SLICE=nvme-pci-survey`
+- scope: archival survey manifest, dedicated survey gate, shared Phase 12 build wiring, and a lane note that compares the landed `pci.zig` starter against the remaining roadmap gap
+- product boundary:
+  - `drivers/nvme/host/pci.zig`
+  - `zigux/tests/phase12_nvme_pci.zig`
+  - `zigux/tests/phase12_nvme_pci_manifest.json`
+  - `zigux/tests/phase12_nvme_pci_survey.zig`
+  - `zigux/tests/phase12_build.zig`
+  - `Documentation/zigux/phase12-nvme-pci-slice.md`
+  - `Documentation/zigux/phase12-nvme-pci-survey.md`
+
+## Why this slice exists
+
+The Phase 12 roadmap explicitly names `drivers/nvme/host/pci.c` as a complex production-driver target, and the live repo now has a first bounded `drivers/nvme/host/pci.zig` starter.
+
+That starter is real progress, but it is still only a narrow queue planner. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
+
+This survey keeps that difference explicit so the lane does not overclaim production-driver progress.
+
+## Survey findings
+
+- `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
+- the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, and shared `zigux/tests/phase12_build.zig` wiring.
+- the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, and freezes queue planning across reset generations.
+- that footing is useful, but it still does not cover PRP or SGL descriptor shaping, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
+- the next honest driver-facing step is one tiny PRP-or-SGL-facing buffer-shape helper or an equally small recovery-summary helper before any live DMA, blk-mq, or PCI lifecycle work.
+
+## Recorded gaps
+
+The survey manifest now records:
+
+- the landed `phase12-build-gate`
+- the landed `phase12-nvme-pci-driver-starter`
+- the landed `phase12-nvme-pci-driver-tests`
+- the landed `phase12-nvme-pci-slice-note`
+- the landed `phase12-virtio-net-survey-gate`
+- the landed `phase12-nvme-pci-survey-gate`
+- the landed `phase12-nvme-pci-survey-note`
+- the ready-next `phase12-nvme-pci-prp-or-sgl-shape-helper`
+- the still-blocked `phase12-nvme-pci-live-queue-and-dma`
+
+This keeps the lane concrete and reviewable without overstating progress: the queue-planner starter is real, but the transport-heavy roadmap work is still intentionally blocked.
+
+## Non-goals
+
+This survey slice does not claim:
+
+- live PRP or SGL mapping
+- Host Memory Buffer management
+- blk-mq `queue_rq()` handling
+- live PCI queue creation or teardown
+- MSI or MSI-X setup, IRQ routing, or completion polling
+- timeout-triggered reset plumbing, suspend or resume, or hardware-backed recovery
+
+## Gates
+
+1. run the dedicated Phase 12 build
+- `zig build test --build-file zigux/tests/phase12_build.zig`
+
+2. run the convenience target
+- `make -C zigux phase12`
+
+## Next bounded step
+
+Stay in the Phase 12 nvme PCI lane and add one tiny PRP-or-SGL-facing buffer-shape helper next so the lane can describe descriptor fanout and page-shape limits before any live DMA, blk-mq, or PCI queue lifecycle work.
