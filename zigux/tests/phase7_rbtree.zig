@@ -46,6 +46,18 @@ fn expectManualTraversalOrder() !void {
     try std.testing.expectEqual(@as(?*rbtree.Node, &entries[5].node), rbtree.prev(&entries[2].node));
 }
 
+fn expectStarterBalanceInvariants(root: *const rbtree.Root) !void {
+    try std.testing.expectEqual(rbtree.Color.black, root.node.?.color);
+
+    var current = rbtree.first(root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        if (node.color == .red) {
+            try std.testing.expectEqual(rbtree.Color.black, if (node.left) |left| left.color else .black);
+            try std.testing.expectEqual(rbtree.Color.black, if (node.right) |right| right.color else .black);
+        }
+    }
+}
+
 test "phase 7 rbtree module imports cleanly" {
     _ = rbtree;
 }
@@ -115,6 +127,7 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     }
     try std.testing.expectEqual(inserted_expected.len, inserted_index);
     try std.testing.expectEqualSlices(i32, &inserted_expected, inserted_actual[0..inserted_index]);
+    try expectStarterBalanceInvariants(&root);
 
     rbtree.erase(&entries[1].node, &root);
     rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
