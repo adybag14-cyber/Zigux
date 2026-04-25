@@ -75,13 +75,14 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_boundary_map = false;
     var saw_audit_outline = false;
+    var saw_checksum_audit = false;
     var saw_followup = false;
     var saw_blocker = false;
 
@@ -112,20 +113,26 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dataref") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "destructor_arg") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase14-skbuff-lifetime-handoff-followup")) {
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-checksum-state-audit")) {
+            saw_checksum_audit = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb->csum") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_checksum_complete_unset") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-segmentation-followup")) {
             saw_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pskb_expand_head") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_release_head_state") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_segment") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_zerocopy_clone") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-live-ownership-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase14_skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dataref") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "frag") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "checksum") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -133,11 +140,12 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), landed_count);
+    try std.testing.expectEqual(@as(usize, 8), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_map);
     try std.testing.expect(saw_audit_outline);
+    try std.testing.expect(saw_checksum_audit);
     try std.testing.expect(saw_followup);
     try std.testing.expect(saw_blocker);
 }
@@ -159,15 +167,15 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
 
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), skbuff_bridge.SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expectEqual(@as(usize, 4), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 5), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 4), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "pskb_expand_head()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb_release_head_state()") != null);
+    try std.testing.expectEqual(@as(usize, 5), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb_checksum_complete_unset()") != null);
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "skb_segment()") != null);
     try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[4].id);
     try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[5].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
     try std.testing.expectEqualStrings("skb_shinfo(skb)->destructor_arg", audit.checkpoints[2].observed_fields[1]);
-    try std.testing.expect(audit.checkpoints[3].guard == .checksum_and_gso_metadata_coupled);
+    try std.testing.expect(audit.checkpoints[3].guard == .checksum_complete_state_cache);
+    try std.testing.expect(audit.checkpoints[4].guard == .segmentation_frag_and_checksum_handoff);
 }
