@@ -11,6 +11,7 @@ test "phase 8 help starter slice covers command-list ownership, filtering, exclu
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-record.exe", "perf-", true));
     try std.testing.expect(!(try help.addExecutableEntry(&main_cmds, "README.md", "perf-", true)));
+    try std.testing.expect(!(try help.addExecutableEntry(&main_cmds, "perf-.exe", "perf-", true)));
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
     main_cmds.sort();
     main_cmds.uniq();
@@ -31,4 +32,14 @@ test "phase 8 help starter slice covers command-list ownership, filtering, exclu
     try std.testing.expectEqual(@as(usize, 4), layout.cols);
     try std.testing.expectEqual(@as(usize, 2), layout.rows);
     try std.testing.expectEqual(@as(usize, 9), layout.spacing);
+
+    const narrow_layout = help.planPrettyPrint(3, 8, 9);
+    try std.testing.expectEqual(@as(usize, 1), narrow_layout.cols);
+    try std.testing.expectEqual(@as(usize, 3), narrow_layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), narrow_layout.spacing);
+
+    const empty_layout = help.planPrettyPrint(0, 8, 41);
+    try std.testing.expectEqual(@as(usize, 1), empty_layout.cols);
+    try std.testing.expectEqual(@as(usize, 0), empty_layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), empty_layout.spacing);
 }
