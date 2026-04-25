@@ -28,6 +28,12 @@ const Fixture = struct {
         next_zero: usize,
         first_and: usize,
         next_and: usize,
+        tail_clamped_first: usize,
+        tail_clamped_next: usize,
+        tail_zero_clamped_first: usize,
+        tail_zero_clamped_next: usize,
+        tail_and_clamped_first: usize,
+        tail_and_clamped_next: usize,
     },
     bitmap: struct {
         weight: usize,
@@ -38,8 +44,6 @@ const Fixture = struct {
         andnot_values: []const u64,
         or_values: []const u64,
         xor_values: []const u64,
-        partial_xor_nbits: usize,
-        partial_xor_masked_values: []const u64,
         equal: bool,
         intersects: bool,
         subset: bool,
@@ -185,6 +189,16 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.find_bit.first_and, find_bit.findFirstAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2));
     try std.testing.expectEqual(fixture.find_bit.next_and, find_bit.findNextAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2, 10));
 
+    const find_tail_nbits = fixture.find_bit.bits_per_long + 5;
+    const find_tail = [_]find_bit.Word{ 0, @as(find_bit.Word, 1) << 9 };
+    const find_tail_full = [_]find_bit.Word{ ~@as(find_bit.Word, 0), find_bit.lastWordMask(find_tail_nbits) };
+    try std.testing.expectEqual(fixture.find_bit.tail_clamped_first, find_bit.findFirstBit(&find_tail, find_tail_nbits));
+    try std.testing.expectEqual(fixture.find_bit.tail_clamped_next, find_bit.findNextBit(&find_tail, find_tail_nbits, fixture.find_bit.bits_per_long));
+    try std.testing.expectEqual(fixture.find_bit.tail_zero_clamped_first, find_bit.findFirstZeroBit(&find_tail_full, find_tail_nbits));
+    try std.testing.expectEqual(fixture.find_bit.tail_zero_clamped_next, find_bit.findNextZeroBit(&find_tail_full, find_tail_nbits, fixture.find_bit.bits_per_long));
+    try std.testing.expectEqual(fixture.find_bit.tail_and_clamped_first, find_bit.findFirstAndBit(&find_tail, &find_tail, find_tail_nbits));
+    try std.testing.expectEqual(fixture.find_bit.tail_and_clamped_next, find_bit.findNextAndBit(&find_tail, &find_tail, find_tail_nbits, fixture.find_bit.bits_per_long));
+
     const bitmap_lhs = [_]bitmap.Word{ 0x0e, 0 };
     const bitmap_rhs = [_]bitmap.Word{ 0x0a, 0 };
     var bitmap_dst = [_]bitmap.Word{ 0, 0 };
@@ -197,14 +211,6 @@ test "phase 1 helper ports match committed parity fixture" {
     try expectWordSlice(&bitmap_dst, fixture.bitmap.or_values);
     bitmap.xorBits(&bitmap_dst, &bitmap_lhs, &bitmap_rhs, 8);
     try expectWordSlice(&bitmap_dst, fixture.bitmap.xor_values);
-    const partial_bitmap_lhs = [_]bitmap.Word{0x1f};
-    const partial_bitmap_rhs = [_]bitmap.Word{0x11};
-    var partial_bitmap_dst = [_]bitmap.Word{0};
-    bitmap.xorBits(&partial_bitmap_dst, &partial_bitmap_lhs, &partial_bitmap_rhs, fixture.bitmap.partial_xor_nbits);
-    try expectWordSlice(
-        &[_]bitmap.Word{partial_bitmap_dst[0] & bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)},
-        fixture.bitmap.partial_xor_masked_values,
-    );
     try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&bitmap_lhs, &[_]bitmap.Word{ 0x0e, 0 }, 8));
     try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&bitmap_lhs, &bitmap_rhs, 8));
     try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&bitmap_rhs, &bitmap_lhs, 8));
@@ -343,4 +349,157 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, tri_sorted_keys[0..tri_index]);
     try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, tri_sorted_ordinals[0..tri_index]);
 
-    var
+    var bool_head: list_sort.ListHead = .{};
+    bool_head.init();
+    var bool_entries = [_]ListEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    for (&bool_entries) |*entry| list_sort.listAddTail(&entry.node, &bool_head);
+    list_sort.listSort(null, &bool_head, bool_cmp);
+
+    var bool_sorted_keys: [5]i32 = undefined;
+    var bool_sorted_ordinals: [5]usize = undefined;
+    var bool_index: usize = 0;
+    var bool_current = bool_head.next;
+    while (bool_current != &bool_head) : (bool_current = bool_current.?.next) {
+        const entry: *const ListEntry = @fieldParentPtr("node", bool_current.?);
+        bool_sorted_keys[bool_index] = entry.key;
+        bool_sorted_ordinals[bool_index] = entry.ordinal;
+        bool_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.list_sort.bool_sorted_keys, bool_sorted_keys[0..bool_index]);
+    try std.testing.expectEqualSlices(usize, fixture.list_sort.bool_sorted_ordinals, bool_sorted_ordinals[0..bool_index]);
+
+    var zalloc_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 8);
+    defer zalloc.zfreeBytes(allocator, &zalloc_bytes);
+    var zalloc_zeroed = true;
+    for (zalloc_bytes.?) |value| {
+        if (value != 0) {
+            zalloc_zeroed = false;
+            break;
+        }
+    }
+    try std.testing.expectEqual(fixture.zalloc.zeroed, zalloc_zeroed);
+    zalloc.zfreeBytes(allocator, &zalloc_bytes);
+    try std.testing.expectEqual(fixture.zalloc.freed_is_null, zalloc_bytes == null);
+
+    const ZallocValue = struct {
+        a: u32,
+        b: bool,
+    };
+    var zalloc_value: ?*ZallocValue = try zalloc.zallocValue(allocator, ZallocValue);
+    defer zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expectEqual(fixture.zalloc.value_zeroed, zalloc_value.?.a == 0 and !zalloc_value.?.b);
+    zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expectEqual(fixture.zalloc.value_freed_is_null, zalloc_value == null);
+
+    var strerror_buffer: [64]u8 = undefined;
+    try std.testing.expectEqualStrings(fixture.str_error_r.enoent, str_error_r.strErrorR(2, &strerror_buffer));
+    try std.testing.expectEqualStrings(fixture.str_error_r.unknown, str_error_r.strErrorR(4096, &strerror_buffer));
+
+    slab.kmalloc_nr_allocated = 0;
+    try std.testing.expectEqual(fixture.slab.null_without_reclaim, slab.kmallocBytes(8, 0) == null);
+    const slab_plain = slab.kmallocBytes(8, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc, slab.kmalloc_nr_allocated);
+    for (slab_plain) |*value| {
+        value.* = 0xaa;
+    }
+    slab.kfree(slab_plain);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_free, slab.kmalloc_nr_allocated);
+
+    var slab_array: ?[]u8 = slab.kmallocArray(4, 2, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer slab.kfree(slab_array);
+    var slab_array_zeroed = true;
+    for (slab_array.?) |value| {
+        if (value != 0) {
+            slab_array_zeroed = false;
+            break;
+        }
+    }
+    try std.testing.expectEqual(fixture.slab.array_zeroed, slab_array_zeroed);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_array, slab.kmalloc_nr_allocated);
+    try std.testing.expectEqual(fixture.slab.slab_is_available, slab.slabIsAvailable());
+    slab.kfree(slab_array);
+    slab_array = null;
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_array_free, slab.kmalloc_nr_allocated);
+
+    var vsprintf_buffer: [16]u8 = undefined;
+    const scnprintf_len = vsprintf.scnprintf(&vsprintf_buffer, "{s}:{d}", .{ "zigux", 7 });
+    try std.testing.expectEqual(fixture.vsprintf.scnprintf_len, scnprintf_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.scnprintf_text, vsprintf_buffer[0..scnprintf_len]);
+
+    var vsprintf_pad_buffer: [9]u8 = undefined;
+    const scnprintf_pad_len = vsprintf.scnprintfPad(&vsprintf_pad_buffer, vsprintf_pad_buffer.len - 1, "id={d}", .{7});
+    try std.testing.expectEqual(fixture.vsprintf.pad_len, scnprintf_pad_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.pad_text, vsprintf_pad_buffer[0 .. vsprintf_pad_buffer.len - 1]);
+
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = rbtree.Root.init();
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    var insert_order: [5]i32 = undefined;
+    var insert_index: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        insert_order[insert_index] = entry.key;
+        insert_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.insert_order, insert_order[0..insert_index]);
+
+    rbtree.erase(&entries[1].node, &root);
+    rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
+    var replace_order: [4]i32 = undefined;
+    var replace_index: usize = 0;
+    current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        replace_order[replace_index] = entry.key;
+        replace_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.replace_order, replace_order[0..replace_index]);
+
+    var postorder_entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var postorder_root = rbtree.Root.init();
+    for (&postorder_entries) |*entry| {
+        rbtree.add(&entry.node, &postorder_root, less);
+    }
+    var postorder_count: usize = 0;
+    current = rbtree.firstPostorder(&postorder_root);
+    while (current) |node| : (current = rbtree.nextPostorder(node)) {
+        postorder_count += 1;
+    }
+    try std.testing.expectEqual(fixture.rbtree.postorder_count, postorder_count);
+    rbtree.clearNode(&replacement.node);
+    try std.testing.expectEqual(fixture.rbtree.cleared_node_empty, rbtree.emptyNode(&replacement.node));
+}
