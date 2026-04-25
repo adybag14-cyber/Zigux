@@ -1,6 +1,6 @@
 # Phase 11 BCM2835 Watchdog Survey
 
-This survey note tracks the current Phase 11 gap around `drivers/watchdog/bcm2835_wdt.c` on `master` `b6c2dc8bb6869db064b14df4f94b7326eb95b9eb`.
+This survey note tracks the Phase 11 gap around `drivers/watchdog/bcm2835_wdt.c` after re-reading `master` `b6c2dc8bb6869db064b14df4f94b7326eb95b9eb`.
 
 The live repo state is now:
 
