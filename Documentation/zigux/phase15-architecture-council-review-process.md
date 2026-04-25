@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update
-- survey provenance refreshed against verified `master` head `40aa574db33204bfbb0c972f1de37ad4cb396a77`
+- survey provenance refreshed against verified `master` head `36f313d5bd0b3be22beb3284730a98dff5e7f335`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -38,9 +38,12 @@ The Architecture Council review process must be invoked when a lane proposes any
 Every Architecture Council request in this lane family must carry:
 
 - the exact Linux anchor path and current roadmap phase
-- the requested decision bucket
+- the current status bucket and the requested decision bucket
+- the decision record ID for the specific review being requested
 - the named owner for the lane and the rollback owner
 - the validation gate summary with links to the live evidence
+- the evidence archive path that preserves linked surveys, blocker follow-ups, benchmark notes, and replay commands
+- the latest blocker disposition saying whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
 - a parity scorecard link, or an explicit blocker record saying why the scorecard is not ready yet
 - explicit non-goals so the request does not quietly widen into deep-core delivery
 - the written rationale for why the current product state needs council attention now
@@ -57,7 +60,7 @@ The bounded outcomes for this review process are:
 ## Recordkeeping Rules
 
 - every decision must leave a written rationale in a reviewable artifact
-- the lane note must record the chosen decision bucket, the owner, the validation gate, and the rollback owner
+- the lane note must record the current status bucket, the chosen decision bucket, the decision record ID, the owner, the validation gate, the evidence archive path, the latest blocker disposition, and the rollback owner
 - if the council keeps the code in C, the blocker must remain explicit rather than disappearing into prose
 - if the parity scorecard is missing, the record must say that clearly instead of implying silent approval
 
@@ -65,7 +68,7 @@ The bounded outcomes for this review process are:
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
-- current ownership evidence is limited to named `owner` and `rollback owner` fields in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, and blocker-disposition records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Recorded Gaps
@@ -78,9 +81,9 @@ The current lane state is:
 - landed `phase15-review-checklist-hook`
 - landed `phase15-build-gate-review-process`
 - landed `phase15-parity-scorecard-baseline`
-- ready-next `phase15-stay-in-c-approval-evidence-followup`
+- ready-next `phase15-evidence-archive-followup`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -101,4 +104,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small stay-in-C approval-evidence follow-up next so a frozen anchor leaves active discussion only after council sign-off, scorecard evidence, validation gates, and rollback ownership are all recorded together.
+Stay in the Phase 15 governance lane and add one small evidence-archive follow-up next so Council decision records, blocker dispositions, benchmark notes, and replay commands live at stable archive paths for each frozen anchor.
