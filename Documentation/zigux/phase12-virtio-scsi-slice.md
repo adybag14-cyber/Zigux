@@ -11,4 +11,4 @@ The starter stays intentionally narrow:
 
 This slice does not claim DMA mapping, scatter-gather command assembly, `Scsi_Host` registration, blk-mq submission, event-work recycling, TMF handling, hotplug, or live transport reset recovery.
 
-The next honest bounded step inside the same Phase 12 lane is to add one small recovery helper that freezes request planning and event recycling intent across transport freeze and restore, still without pretending live virtqueue or DMA behavior exists.
+The next honest bounded step inside the same Phase 12 lane is to add one small probe snapshot helper that captures `virtscsi_probe()` config fields and queue-topology intent before any blk-mq submission, TMF, PM recovery, or DMA-backed queue work is attempted.
