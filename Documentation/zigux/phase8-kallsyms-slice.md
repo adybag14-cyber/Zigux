@@ -45,6 +45,7 @@ The current tests check:
 - valid symbol lines expose the expected address, type, and name slices
 - malformed lines are skipped without stopping iteration
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
+- injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
 ## Non-goals
 
