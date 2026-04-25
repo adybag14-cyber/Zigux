@@ -1,0 +1,216 @@
+const std = @import("std");
+
+pub const completion_entry_bytes: u16 = 16;
+pub const min_page_size: u32 = 4096;
+pub const min_queue_depth: u16 = 2;
+pub const max_queue_depth: u16 = 4095;
+pub const min_sq_entry_bytes: u16 = 16;
+pub const max_sq_entry_bytes: u16 = 128;
+pub const admin_queue_id: u16 = 0;
+pub const max_planned_io_queues: usize = 64;
+
+pub const QueueRole = enum {
+    admin,
+    io,
+};
+
+pub const RecoveryState = enum {
+    running,
+    reset_frozen,
+};
+
+pub const ModuleDescriptor = struct {
+    name: []const u8,
+    anchor: []const u8,
+    provides_lab_queue_planner: bool,
+    touches_live_dma: bool,
+    touches_pci_probe: bool,
+    touches_irq_recovery: bool,
+};
+
+pub const QueuePairPlanSummary = struct {
+    anchor: []const u8,
+    role: QueueRole,
+    queue_id: u16,
+    queue_depth: u16,
+    sq_entry_bytes: u16,
+    sq_bytes: u32,
+    cq_bytes: u32,
+    combined_dma_bytes: u32,
+    required_dma_pages: u16,
+    sq_doorbell_offset: u32,
+    cq_doorbell_offset: u32,
+    uses_cmb: bool,
+    reset_generation: u32,
+};
+
+pub const RecoverySummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    queues_frozen: bool,
+    planned_io_queues: usize,
+    reset_generation: u32,
+    last_admin_queue_depth: u16,
+};
+
+pub const NvmePciQueueLab = struct {
+    const Self = @This();
+
+    page_size: u32,
+    doorbell_stride_bytes: u32,
+    recovery_state: RecoveryState = .running,
+    next_io_queue_id: u16 = 1,
+    planned_io_queues: usize = 0,
+    reset_generation: u32 = 0,
+    last_admin_queue_depth: u16 = min_queue_depth,
+
+    pub fn descriptor() ModuleDescriptor {
+        return .{
+            .name = "nvme_pci_queue_lab",
+            .anchor = "drivers/nvme/host/pci.c",
+            .provides_lab_queue_planner = true,
+            .touches_live_dma = false,
+            .touches_pci_probe = false,
+            .touches_irq_recovery = false,
+        };
+    }
+
+    pub fn init(page_size: u32, doorbell_stride_bytes: u32) !Self {
+        if (page_size < min_page_size or !std.math.isPowerOfTwo(page_size)) {
+            return error.InvalidPageSize;
+        }
+        if (doorbell_stride_bytes < 4 or (doorbell_stride_bytes % 4) != 0) {
+            return error.InvalidDoorbellStride;
+        }
+
+        return .{
+            .page_size = page_size,
+            .doorbell_stride_bytes = doorbell_stride_bytes,
+        };
+    }
+
+    pub fn planAdminQueue(
+        self: *Self,
+        requested_depth: u16,
+        sq_entry_bytes: u16,
+        uses_cmb: bool,
+    ) !QueuePairPlanSummary {
+        const summary = try self.planQueue(.admin, admin_queue_id, requested_depth, sq_entry_bytes, uses_cmb);
+        self.last_admin_queue_depth = summary.queue_depth;
+        return summary;
+    }
+
+    pub fn planIoQueue(
+        self: *Self,
+        requested_depth: u16,
+        sq_entry_bytes: u16,
+        uses_cmb: bool,
+    ) !QueuePairPlanSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (self.planned_io_queues >= max_planned_io_queues) return error.TooManyPlannedIoQueues;
+
+        const summary = try self.planQueue(.io, self.next_io_queue_id, requested_depth, sq_entry_bytes, uses_cmb);
+        self.next_io_queue_id += 1;
+        self.planned_io_queues += 1;
+        return summary;
+    }
+
+    pub fn beginReset(self: *Self) RecoverySummary {
+        self.recovery_state = .reset_frozen;
+        self.reset_generation += 1;
+        return self.recoverySummary();
+    }
+
+    pub fn completeReset(self: *Self) RecoverySummary {
+        self.recovery_state = .running;
+        self.next_io_queue_id = 1;
+        self.planned_io_queues = 0;
+        return self.recoverySummary();
+    }
+
+    pub fn recoverySummary(self: *const Self) RecoverySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .state = self.recovery_state,
+            .queues_frozen = self.recovery_state != .running,
+            .planned_io_queues = self.planned_io_queues,
+            .reset_generation = self.reset_generation,
+            .last_admin_queue_depth = self.last_admin_queue_depth,
+        };
+    }
+
+    fn planQueue(
+        self: *const Self,
+        role: QueueRole,
+        queue_id: u16,
+        requested_depth: u16,
+        sq_entry_bytes: u16,
+        uses_cmb: bool,
+    ) !QueuePairPlanSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+
+        const queue_depth = try checkedQueueDepth(requested_depth);
+        const checked_sq_entry_bytes = try checkedSqEntryBytes(sq_entry_bytes);
+
+        const sq_bytes = try checkedMulU32(queue_depth, checked_sq_entry_bytes);
+        const cq_bytes = try checkedMulU32(queue_depth, completion_entry_bytes);
+        const combined_dma_bytes = try checkedAddU32(sq_bytes, cq_bytes);
+        const required_dma_pages = try checkedDivCeilU16(combined_dma_bytes, self.page_size);
+        const sq_doorbell_offset = try checkedMulWideU32(@as(u32, queue_id) * 2, self.doorbell_stride_bytes);
+        const cq_doorbell_offset = try checkedAddU32(sq_doorbell_offset, self.doorbell_stride_bytes);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .role = role,
+            .queue_id = queue_id,
+            .queue_depth = queue_depth,
+            .sq_entry_bytes = checked_sq_entry_bytes,
+            .sq_bytes = sq_bytes,
+            .cq_bytes = cq_bytes,
+            .combined_dma_bytes = combined_dma_bytes,
+            .required_dma_pages = required_dma_pages,
+            .sq_doorbell_offset = sq_doorbell_offset,
+            .cq_doorbell_offset = cq_doorbell_offset,
+            .uses_cmb = uses_cmb,
+            .reset_generation = self.reset_generation,
+        };
+    }
+
+    fn checkedQueueDepth(queue_depth: u16) !u16 {
+        if (queue_depth < min_queue_depth or queue_depth > max_queue_depth) {
+            return error.QueueDepthOutOfRange;
+        }
+        return queue_depth;
+    }
+
+    fn checkedSqEntryBytes(sq_entry_bytes: u16) !u16 {
+        if (sq_entry_bytes < min_sq_entry_bytes or sq_entry_bytes > max_sq_entry_bytes) {
+            return error.InvalidSqEntryBytes;
+        }
+        if (!std.math.isPowerOfTwo(sq_entry_bytes)) {
+            return error.InvalidSqEntryBytes;
+        }
+        return sq_entry_bytes;
+    }
+
+    fn checkedMulU32(lhs: u16, rhs: u16) !u32 {
+        const value = @as(u64, lhs) * rhs;
+        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
+        const value = @as(u64, lhs) + rhs;
+        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedMulWideU32(lhs: u32, rhs: u32) !u32 {
+        const value = @as(u64, lhs) * rhs;
+        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedDivCeilU16(bytes: u32, page_size: u32) !u16 {
+        const rounded = @as(u64, bytes) + page_size - 1;
+        const pages = rounded / page_size;
+        return std.math.cast(u16, pages) orelse error.QueueBytesOverflow;
+    }
+};
