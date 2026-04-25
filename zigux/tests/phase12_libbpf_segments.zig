@@ -57,7 +57,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("361e052f78f0eb9a3b58e1a971990bc62c585aa9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c42dc219de772812e564d26859dc945b50d0ed89", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
@@ -71,7 +71,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
     try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
@@ -133,6 +133,8 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             saw_cpu_mask_foundation = true;
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "chunk-reader interface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysfs-style buffered input") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf-buffer") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct file I/O") != null);
         }
