@@ -19,6 +19,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const landlock_syscalls_module = b.createModule(.{
+        .root_source_file = b.path("../../security/landlock/syscalls.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase13_libfs_module = b.createModule(.{
         .root_source_file = b.path("phase13_libfs.zig"),
         .target = target,
@@ -37,6 +42,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase13_landlock_ruleset_module.addImport("landlock_ruleset", landlock_ruleset_module);
+    const phase13_landlock_syscalls_module = b.createModule(.{
+        .root_source_file = b.path("phase13_landlock_syscalls.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase13_landlock_syscalls_module.addImport("landlock_syscalls", landlock_syscalls_module);
     const phase13_libfs_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase13_libfs_reviewability.zig"),
         .target = target,
@@ -59,6 +70,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase13_landlock_ruleset_module,
     });
     const run_phase13_landlock_ruleset_tests = b.addRunArtifact(phase13_landlock_ruleset_tests);
+    const phase13_landlock_syscalls_tests = b.addTest(.{
+        .name = "phase13-landlock-syscalls-tests",
+        .root_module = phase13_landlock_syscalls_module,
+    });
+    const run_phase13_landlock_syscalls_tests = b.addRunArtifact(phase13_landlock_syscalls_tests);
     const phase13_libfs_reviewability_tests = b.addTest(.{
         .name = "phase13-libfs-reviewability-tests",
         .root_module = phase13_libfs_reviewability_module,
@@ -69,5 +85,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase13_libfs_tests.step);
     test_step.dependOn(&run_phase13_devres_tests.step);
     test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);
+    test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);
     test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
 }
