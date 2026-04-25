@@ -49,6 +49,14 @@ pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     }
 }
 
+pub fn stringUpper(dest: []u8, src: []const u8) void {
+    copyCStringMapped(dest, src, std.ascii.toUpper);
+}
+
+pub fn stringLower(dest: []u8, src: []const u8) void {
+    copyCStringMapped(dest, src, std.ascii.toLower);
+}
+
 fn cStringPrefix(s: []const u8) []const u8 {
     return s[0 .. std.mem.indexOfScalar(u8, s, 0) orelse s.len];
 }
@@ -63,6 +71,19 @@ fn sysfsComparablePrefix(s: []const u8) []const u8 {
         return prefix[0 .. prefix.len - 1];
     }
     return prefix;
+}
+
+fn copyCStringMapped(dest: []u8, src: []const u8, comptime mapper: fn (u8) u8) void {
+    const limit = @min(dest.len, src.len);
+    var index: usize = 0;
+
+    while (index < limit) : (index += 1) {
+        const ch = src[index];
+        dest[index] = mapper(ch);
+        if (ch == 0) {
+            break;
+        }
+    }
 }
 
 test "sysfsStreq accepts optional trailing newline" {
@@ -106,4 +127,15 @@ test "memcpyAndPad matches the bounded copy-and-pad contract" {
     var truncated = [_]u8{ 0, 0, 0, 0 };
     memcpyAndPad(&truncated, "zigux", 5, '.');
     try std.testing.expectEqualSlices(u8, "zigu", &truncated);
+}
+
+test "stringUpper and stringLower perform bounded ASCII case conversion" {
+    var upper = [_]u8{ '?', '?', '?', '?', '?', '?', '?', '?' };
+    stringUpper(&upper, "abC9!\x00tail");
+    try std.testing.expectEqualSlices(u8, "ABC9!\x00", upper[0..6]);
+    try std.testing.expectEqual(@as(u8, '?'), upper[6]);
+
+    var lower = [_]u8{ '?', '?', '?', '?', '?' };
+    stringLower(&lower, "AbCDe");
+    try std.testing.expectEqualSlices(u8, "abcde", &lower);
 }
