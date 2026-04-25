@@ -23,6 +23,25 @@ FIXTURE_PREFIX = "phase3_"
 MANIFEST_SUFFIX = "_manifest.json"
 DUMP_SUFFIX = "_dump.zig"
 
+SPECIAL_BUILD_STEPS = {
+    "abi": "phase3-dump",
+}
+
+SPECIAL_DESCRIPTIONS = {
+    "abi": "ABI layout",
+    "bitmap-cpumask": "bitmap/cpumask",
+    "list-hlist": "list/hlist",
+    "errptr-xarray": "err_ptr/xarray",
+    "xarray-slot": "xarray slot",
+    "idr-slot": "idr slot",
+    "ida-alloc": "ida allocation",
+    "ida-bitmap": "ida bitmap",
+    "ida-range": "ida range",
+    "ida-range-set": "ida range-set",
+    "ida-policy": "ida policy",
+    "minor-alloc": "minor allocation",
+}
+
 
 @dataclass(frozen=True)
 class Phase3Paths:
@@ -37,6 +56,8 @@ class Phase3Paths:
 class Phase3Slice:
     root: Path
     slug: str
+    description: str
+    build_step: str
     doc_path: Path
     check_script: Path
     dump_path: Path
@@ -53,6 +74,8 @@ class Phase3Slice:
     def to_dict(self) -> dict[str, object]:
         return {
             "slug": self.slug,
+            "description": self.description,
+            "build_step": self.build_step,
             "doc": _rel(self.doc_path, self.root),
             "check_script": _rel(self.check_script, self.root),
             "dump": _rel(self.dump_path, self.root),
@@ -185,6 +208,14 @@ def _pick_manifest(slug: str, candidates: Iterable[Path]) -> Path | None:
     return None
 
 
+def description_for_slug(slug: str) -> str:
+    return SPECIAL_DESCRIPTIONS.get(slug, slug.replace("-", " "))
+
+
+def build_step_for_slug(slug: str) -> str:
+    return SPECIAL_BUILD_STEPS.get(slug, f"phase3-{slug}-dump")
+
+
 def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
     slices: list[Phase3Slice] = []
     for slug in _collect_slugs(paths):
@@ -198,6 +229,8 @@ def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Sli
             Phase3Slice(
                 root=paths.root,
                 slug=slug,
+                description=description_for_slug(slug),
+                build_step=build_step_for_slug(slug),
                 doc_path=paths.docs_dir / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}",
                 check_script=paths.scripts_dir / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}",
                 dump_path=paths.tests_dir / f"{fixture_key}{DUMP_SUFFIX}",
@@ -277,12 +310,17 @@ def run_self_test() -> int:
         entry_map = {entry.slug: entry for entry in entries}
         assert _rel(entry_map["alpha"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json"
         assert _rel(entry_map["abi"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json"
+        assert entry_map["abi"].build_step == "phase3-dump"
+        assert entry_map["abi"].description == "ABI layout"
+        assert entry_map["gamma"].build_step == "phase3-gamma-dump"
+        assert entry_map["gamma"].description == "gamma"
         assert entry_map["beta"].manifest_path is None
         assert _rel(entry_map["gamma"].dump_path, paths.root) == "zigux/tests/phase3_gamma_dump.zig"
         assert _rel(entry_map["delta"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_delta_manifest.json"
 
         alpha_dict = entry_map["alpha"].to_dict()
         assert alpha_dict["doc"] == "Documentation/zigux/phase3-alpha-slice.md"
+        assert alpha_dict["build_step"] == "phase3-alpha-dump"
         assert alpha_dict["manifest"] == "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json"
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
