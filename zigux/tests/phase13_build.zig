@@ -9,12 +9,23 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const devres_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/devres.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase13_libfs_module = b.createModule(.{
         .root_source_file = b.path("phase13_libfs.zig"),
         .target = target,
         .optimize = optimize,
     });
     phase13_libfs_module.addImport("libfs", libfs_module);
+    const phase13_devres_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase13_devres_module.addImport("devres", devres_module);
     const phase13_libfs_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase13_libfs_reviewability.zig"),
         .target = target,
@@ -27,13 +38,19 @@ pub fn build(b: *std.Build) void {
         .root_module = phase13_libfs_module,
     });
     const run_phase13_libfs_tests = b.addRunArtifact(phase13_libfs_tests);
+    const phase13_devres_tests = b.addTest(.{
+        .name = "phase13-devres-tests",
+        .root_module = phase13_devres_module,
+    });
+    const run_phase13_devres_tests = b.addRunArtifact(phase13_devres_tests);
     const phase13_libfs_reviewability_tests = b.addTest(.{
         .name = "phase13-libfs-reviewability-tests",
         .root_module = phase13_libfs_reviewability_module,
     });
     const run_phase13_libfs_reviewability_tests = b.addRunArtifact(phase13_libfs_reviewability_tests);
 
-    const test_step = b.step("test", "Run Phase 13 filesystem helper tests");
+    const test_step = b.step("test", "Run Phase 13 shared helper tests");
     test_step.dependOn(&run_phase13_libfs_tests.step);
+    test_step.dependOn(&run_phase13_devres_tests.step);
     test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
 }
