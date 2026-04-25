@@ -11,6 +11,8 @@ Key entrypoints
 - `zigux/tests/build.zig`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
+- `zigux/tests/phase6_build.zig`
+- `zigux/tests/phase6_checksum.zig`
 - `zigux/tests/phase3_abi.zig`
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/phase3_catalog.py --self-test`
@@ -31,3 +33,4 @@ Phase 3 fixtures
 Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
+- keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
