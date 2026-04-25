@@ -33,6 +33,16 @@ Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
 - `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
 
+Phase 2 flow
+- `validate-phase2.py` checks that the bounded Phase 2 helper inventory, fixture set, workflow wiring, and docs markers stay in sync before the parity lanes run.
+- `validate-phase2-closure.py` confirms the closed Phase 2 tranche still matches the workflow, the closure docs, and the Phase 2 manifests.
+- `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`.
+- `check-genksyms-bridge.py` exercises the bounded `genksyms.zig` bridge parity lane.
+- `check-genksyms-crc-diff.py` checks the bounded `genksyms_crc.zig` artifact lane.
+- `check-kconfig-bridge.py` covers the bounded `kconfig/conf_bridge.zig` and `kconfig/confdata_bridge.zig` bridge lanes.
+- `check-phase2-cross.py` runs the bounded Phase 2 cross-target compile checks.
+- `check-mk-elfconfig-diff.py` covers the bounded `mk_elfconfig.zig` artifact parity lane.
+
 Phase 3 flow
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions, build-step overrides, and the current `PHASE3_INTEROP_GATE` mode recorded in each slice doc.
 - `phase3_catalog.py --self-test` exercises isolated slug discovery, manifest selection, and interop-gate classification across docs, dumps, and fixture candidates.
