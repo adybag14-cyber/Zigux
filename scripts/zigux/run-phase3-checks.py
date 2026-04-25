@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 from phase3_catalog import discover_phase3_slices
 
@@ -15,6 +16,47 @@ ROOT = Path(__file__).resolve().parents[2]
 def run(cmd: list[str]) -> int:
     completed = subprocess.run(cmd, cwd=str(ROOT), check=False)
     return completed.returncode
+
+
+def select_slices(entries: list[object], selected_slugs: list[str], require_existing_check_script: bool = True) -> list[object]:
+    slices = list(entries)
+    if require_existing_check_script:
+        slices = [entry for entry in slices if entry.check_script.exists()]
+
+    selected = set(selected_slugs)
+    if selected:
+        slices = [entry for entry in slices if entry.slug in selected]
+        missing = sorted(selected.difference({entry.slug for entry in slices}))
+        if missing:
+            raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
+
+    return slices
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_runner_selftest_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        alpha = tmp_dir / "check-phase3-alpha.py"
+        beta = tmp_dir / "check-phase3-beta.py"
+        alpha.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+
+        entries = [
+            type("Entry", (), {"slug": "alpha", "check_script": alpha})(),
+            type("Entry", (), {"slug": "beta", "check_script": beta})(),
+        ]
+
+        assert [entry.slug for entry in select_slices(entries, [], require_existing_check_script=True)] == ["alpha"]
+        assert [entry.slug for entry in select_slices(entries, ["alpha"], require_existing_check_script=True)] == ["alpha"]
+        assert [entry.slug for entry in select_slices(entries, ["beta"], require_existing_check_script=False)] == ["beta"]
+        try:
+            select_slices(entries, ["missing"], require_existing_check_script=False)
+        except SystemExit as exc:
+            assert str(exc) == "unknown Phase 3 slugs: missing"
+        else:
+            raise AssertionError("expected missing slug to fail")
+
+    print("PHASE3_RUNNER_SELF_TEST=pass")
+    return 0
 
 
 def main() -> int:
@@ -29,15 +71,13 @@ def main() -> int:
     parser.add_argument("--zig", help="Forward an explicit zig executable path to each check.")
     parser.add_argument("--cc", help="Forward an explicit C compiler path to each check.")
     parser.add_argument("--fail-fast", action="store_true", help="Stop after the first failing check.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated slug-selection checks without executing parity wrappers.")
     args = parser.parse_args()
 
-    slices = [entry for entry in discover_phase3_slices() if entry.check_script.exists()]
-    selected = set(args.slug)
-    if selected:
-        slices = [entry for entry in slices if entry.slug in selected]
-        missing = sorted(selected.difference({entry.slug for entry in slices}))
-        if missing:
-            raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
+    if args.self_test:
+        return run_self_test()
+
+    slices = select_slices(discover_phase3_slices(), args.slug)
 
     if args.list:
         for entry in slices:
