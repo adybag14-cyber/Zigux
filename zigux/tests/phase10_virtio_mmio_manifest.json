@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L09",
   "phase": "Phase 10",
-  "surveyed_commit": "55d9daca2d5fe73905a3baf4f921d6773d7cbf2b",
+  "surveyed_commit": "6006b56b94da100c84563f29a94ddb4baf2e279a",
   "anchor": "drivers/virtio/virtio_mmio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -69,18 +69,18 @@
       "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope and the reasons it is still blocked behind more virtqueue work."
     },
     {
-      "id": "phase10-shared-virtqueue-layout-helper",
+      "id": "phase10-virtio-ring-callback-enable-helper",
       "status": "ready_next",
-      "kind": "bridging_helper",
-      "zigux_destination": "zigux/helpers/virtqueue_layout.zig",
-      "why_now": "If queue metadata spreads beyond one helper, a tiny shared helper in zigux/helpers is the roadmap-approved place to centralize descriptor-shape and queue-size assertions before MMIO register work."
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live virtio_ring helper already covers queue shape and notification bookkeeping, so the next honest blocker before MMIO register work is one more in-memory ring-local helper for callback-enable or used-buffer polling."
     },
     {
       "id": "phase10-mmio-register-window-helper",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap requires virtqueue wrappers ahead of MMIO work, and `virtio_mmio.c` mixes register-window access, queue setup, interrupts, and reset paths that are still too transport-facing to start honestly before the next virtqueue layout and callback-enable helpers land."
+      "why_now": "The roadmap requires virtqueue wrappers ahead of MMIO work, and `virtio_mmio.c` mixes register-window access, queue setup, interrupts, and reset paths that are still too transport-facing to start honestly before the next virtio_ring callback-enable or used-buffer polling helper lands."
     }
   ]
 }
