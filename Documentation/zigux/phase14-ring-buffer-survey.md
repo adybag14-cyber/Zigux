@@ -20,7 +20,7 @@ The Phase 14 roadmap explicitly names `kernel/trace/ring_buffer.c` as a boundary
 
 That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, and mmap-facing state.
 
-The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file. It is to make the blocked state reviewable so future runs can stay disciplined about what remains study-only.
+The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file. It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can stay disciplined about what remains study-only.
 
 ## Survey findings
 
@@ -30,6 +30,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader and sub-buffer behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, and remote-reader metadata so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Recorded gaps
 
@@ -40,7 +41,8 @@ The current lane state is:
 - landed `phase14-freeze-map-note`
 - landed `phase14-ring-buffer-survey-gate`
 - landed `phase14-ring-buffer-survey-note`
-- ready-next `phase14-ring-buffer-boundary-decision-checklist`
+- landed `phase14-ring-buffer-boundary-decision-checklist`
+- ready-next `phase14-ring-buffer-overwrite-audit-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -66,4 +68,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only decision checklist next, limited to reserve or commit ownership, reader-page rotation, overwrite and loss accounting, and mmap or splice-facing boundaries before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only overwrite and lost-event audit next, limited to `rb_move_tail()`, overwrite mode, and lost-event reporting before anyone proposes `kernel/trace/ring_buffer.zig`.
