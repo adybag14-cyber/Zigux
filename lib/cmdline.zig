@@ -118,9 +118,10 @@ pub fn memparse(ptr: []const u8, ret_index: ?*usize) u64 {
 }
 
 pub fn parseOptionStr(str: []const u8, option: []const u8) bool {
-    var it = std.mem.splitScalar(u8, str, ',');
+    var it = std.mem.splitScalar(u8, cStringPrefix(str), ',');
+    const needle = cStringPrefix(option);
     while (it.next()) |segment| {
-        if (std.mem.eql(u8, segment, option)) {
+        if (std.mem.eql(u8, segment, needle)) {
             return true;
         }
     }
@@ -359,6 +360,7 @@ test "parseOptionStr only matches full comma-delimited options" {
     try std.testing.expect(parseOptionStr("debug", "debug"));
     try std.testing.expect(!parseOptionStr("nodebug,quiet", "debug"));
     try std.testing.expect(!parseOptionStr("debug=1,quiet", "debug"));
+    try std.testing.expect(!parseOptionStr("debug,panic\x00,quiet", "quiet"));
 }
 
 test "nextArg splits parameter-value pairs and trims quoted values" {
