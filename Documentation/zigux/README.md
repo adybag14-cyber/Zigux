@@ -27,8 +27,8 @@ Phase 3 notes
 - `python3 scripts/zigux/phase3_catalog.py --self-test`, `python3 scripts/zigux/phase3_check_lib.py --self-test`, and `python3 scripts/zigux/run-phase3-checks.py --self-test` cover the discovery, shared-helper, and slug-selection paths without launching the full parity suite.
 - `python3 scripts/zigux/phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice records that still reference legacy per-slice wrapper commands, which makes wrapper-reference cleanup auditable instead of manual.
 - `python3 scripts/zigux/phase3_catalog.py --rewrite-shared-runner-docs` rewrites those legacy record references to the shared runner command in place, which makes incremental cleanup repeatable.
-- `python3 scripts/zigux/phase3_catalog.py --legacy-wrapper-references` lists remaining discovered Phase 3 wrapper mentions outside the slice docs, including documentation and manifest references that still need an explicit keep-or-migrate decision.
-- `python3 scripts/zigux/phase3_catalog.py --rewrite-legacy-wrapper-references` rewrites the non-slice documentation references to the shared runner command in place, which gives `artifact-diff.md` and other policy docs the same scripted cleanup path as the slice records while leaving manifest references review-only.
+- `python3 scripts/zigux/phase3_catalog.py --legacy-wrapper-references` lists remaining discovered Phase 3 wrapper mentions in non-slice documentation, so policy-doc cleanup stays auditable after the manifest references were removed.
+- `python3 scripts/zigux/phase3_catalog.py --rewrite-legacy-wrapper-references` rewrites those non-slice documentation references to the shared runner command in place, which gives `artifact-diff.md` and related policy docs the same scripted cleanup path as the slice records.
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check` catches wrapper-template drift and obsolete wrapper files before the parity suite runs.
 - `python3 scripts/zigux/run-phase3-checks.py --list` shows the currently discovered Phase 3 parity slices.
 - `python3 scripts/zigux/run-phase3-checks.py` executes the full discovered Phase 3 parity suite.
