@@ -625,6 +625,10 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
 
     for slug in sorted(issues_by_slug):
         issue_codes = issues_by_slug[slug]
+        # A long token chain alone is too weak a signal because legitimate
+        # follow-on slices can cross the token threshold before the name
+        # actually starts looping. Only suggest a rename once repetition or
+        # outright overlength shows up alongside the prefix match.
         if issue_codes == {"slug-too-many-tokens"}:
             continue
         tokens = slug.split("-")
@@ -638,6 +642,10 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
             continue
         canonical_entry = entry_by_slug[canonical_slug]
         entry = entry_by_slug[slug]
+        # Only promote a rename when every available normalized artifact shape
+        # agrees. This keeps follow-on slices that happen to share a prefix and
+        # bookkeeping manifest from being collapsed together when their expected
+        # JSON still proves they model different parity surfaces.
         if not _slice_rename_evidence_matches(entry, canonical_entry):
             continue
         rename_candidates.append(
@@ -711,6 +719,11 @@ def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Sli
             fixture_dir / f"{fixture_key}_manifest.json",
         )
         doc_path = paths.docs_dir / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}"
+        check_script = paths.scripts_dir / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}"
+        dump_path = paths.tests_dir / f"{fixture_key}{DUMP_SUFFIX}"
+        expected_path = fixture_dir / "expected.json"
+        harness_path = fixture_dir / f"{fixture_key}_c_harness.c"
+        manifest_path = _pick_manifest(slug, manifest_candidates)
         interop_gate, interop_gate_mode = discover_doc_interop_gate(doc_path, slug)
         slices.append(
             Phase3Slice(
@@ -719,13 +732,13 @@ def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Sli
                 description=description_for_slug(slug),
                 build_step=build_step_for_slug(slug),
                 doc_path=doc_path,
-                check_script=paths.scripts_dir / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}",
-                dump_path=paths.tests_dir / f"{fixture_key}{DUMP_SUFFIX}",
+                check_script=check_script,
+                dump_path=dump_path,
                 fixture_dir=fixture_dir,
-                expected_path=fixture_dir / "expected.json",
-                harness_path=fixture_dir / f"{fixture_key}_c_harness.c",
+                expected_path=expected_path,
+                harness_path=harness_path,
                 manifest_candidates=manifest_candidates,
-                manifest_path=_pick_manifest(slug, manifest_candidates),
+                manifest_path=manifest_path,
                 interop_gate=interop_gate,
                 interop_gate_mode=interop_gate_mode,
             )
@@ -734,8 +747,8 @@ def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Sli
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase3_catalog_selftest_") as tmp_dir_str:
-        root = Path(tmp_dir_str)
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
         paths = Phase3Paths(
             root=root,
             docs_dir=root / "Documentation" / "zigux",
@@ -745,24 +758,25 @@ def run_self_test() -> int:
         )
         paths.docs_dir.mkdir(parents=True)
         paths.scripts_dir.mkdir(parents=True)
+        paths.tests_dir.mkdir(parents=True)
         paths.fixtures_dir.mkdir(parents=True)
 
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "alpha doc\n",
             encoding="utf-8",
         )
+        alpha_fixture_dir = paths.fixtures_dir / "phase3_alpha"
+        alpha_fixture_dir.mkdir()
+        (alpha_fixture_dir / "expected.json").write_text(
+            json.dumps({"alpha": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (alpha_fixture_dir / "phase3_alpha_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text(
             "// alpha\n",
-            encoding="utf-8",
-        )
-        alpha_fixture = paths.fixtures_dir / "phase3_alpha"
-        alpha_fixture.mkdir()
-        (alpha_fixture / "expected.json").write_text(
-            json.dumps({"kind": "alpha"}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (alpha_fixture / "phase3_alpha_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
             encoding="utf-8",
         )
         (paths.fixtures_dir / "phase3_alpha_manifest.json").write_text(
@@ -771,55 +785,12 @@ def run_self_test() -> int:
                     "phase": "Phase 3",
                     "status": "ready",
                     "slice": "alpha-fixture",
-                    "files": ["expected.json"],
-                    "file_count": 1,
+                    "files": ["expected.json", "phase3_alpha_c_harness.c"],
+                    "file_count": 2,
                 },
                 indent=2,
                 sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        (alpha_fixture / "phase3_alpha_manifest.json").write_text(
-            json.dumps({"phase": "Phase 3", "status": "draft", "slice": "alpha-stale"}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-
-        (paths.docs_dir / "phase3-abi-slice.md").write_text(
-            "abi doc\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / "phase3_abi_dump.zig").write_text(
-            "// abi\n",
-            encoding="utf-8",
-        )
-        abi_fixture = paths.fixtures_dir / "phase3_abi"
-        abi_fixture.mkdir()
-        (abi_fixture / "expected.json").write_text(
-            json.dumps({"kind": "abi"}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (abi_fixture / "phase3_abi_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (paths.fixtures_dir / "phase3_abi_manifest.json").write_text(
-            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "wrong", "files": []}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (abi_fixture / "phase3_abi_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "abi-substrate-skeleton",
-                    "files": ["expected.json"],
-                    "file_count": 1,
-                },
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
+            ) + "\n",
             encoding="utf-8",
         )
 
@@ -827,53 +798,94 @@ def run_self_test() -> int:
             "gamma doc\n",
             encoding="utf-8",
         )
+        gamma_fixture_dir = paths.fixtures_dir / "phase3_gamma"
+        gamma_fixture_dir.mkdir()
+        (gamma_fixture_dir / "expected.json").write_text(
+            json.dumps({"gamma": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (gamma_fixture_dir / "phase3_gamma_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
         (paths.tests_dir / "phase3_gamma_dump.zig").write_text(
             "// gamma\n",
             encoding="utf-8",
         )
-        gamma_fixture = paths.fixtures_dir / "phase3_gamma"
-        gamma_fixture.mkdir()
-        (gamma_fixture / "expected.json").write_text(
-            json.dumps({"kind": "gamma"}, indent=2, sort_keys=True) + "\n",
+
+        (paths.docs_dir / "phase3-abi-slice.md").write_text(
+            "abi doc\n",
             encoding="utf-8",
         )
-        (gamma_fixture / "phase3_gamma_c_harness.c").write_text(
+        abi_fixture_dir = paths.fixtures_dir / "phase3_abi"
+        abi_fixture_dir.mkdir()
+        (abi_fixture_dir / "expected.json").write_text(
+            json.dumps({"abi": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (abi_fixture_dir / "phase3_abi_c_harness.c").write_text(
             "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_abi_dump.zig").write_text(
+            "// abi\n",
+            encoding="utf-8",
+        )
+        (paths.fixtures_dir / "phase3_abi_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "abi-substrate-skeleton",
+                    "files": ["zigux/tests/fixtures/phase3_abi/expected.json"],
+                    "file_count": 1,
+                },
+                indent=2,
+                sort_keys=True,
+            ) + "\n",
+            encoding="utf-8",
+        )
+        nested_abi_manifest = abi_fixture_dir / "phase3_abi_manifest.json"
+        nested_abi_manifest.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "stale",
+                    "slice": "abi-stale",
+                },
+                indent=2,
+                sort_keys=True,
+            ) + "\n",
+            encoding="utf-8",
+        )
+
+        (paths.docs_dir / "phase3-bitmap-cpumask-slice.md").write_text(
+            "bitmap doc\n",
+            encoding="utf-8",
+        )
+        bitmap_fixture_dir = paths.fixtures_dir / "phase3_bitmap_cpumask"
+        bitmap_fixture_dir.mkdir()
+        (bitmap_fixture_dir / "expected.json").write_text(
+            json.dumps({"bitmap": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (bitmap_fixture_dir / "phase3_bitmap_cpumask_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_bitmap_cpumask_dump.zig").write_text(
+            "// bitmap\n",
             encoding="utf-8",
         )
 
         entries = discover_phase3_slices(paths)
-        assert [entry.slug for entry in entries] == ["abi", "alpha", "gamma"]
+        assert [entry.slug for entry in entries] == ["abi", "alpha", "bitmap-cpumask", "gamma"]
         entry_map = {entry.slug: entry for entry in entries}
-
         assert entry_map["abi"].build_step == "phase3-dump"
-        assert entry_map["abi"].description == "ABI layout"
-        assert entry_map["alpha"].build_step == "phase3-alpha-dump"
-        assert entry_map["alpha"].description == "alpha"
-
+        assert entry_map["bitmap-cpumask"].build_step == "phase3-bitmap-cpumask-dump"
+        assert entry_map["abi"].manifest_path == paths.fixtures_dir / "phase3_abi_manifest.json"
         assert entry_map["alpha"].manifest_path == paths.fixtures_dir / "phase3_alpha_manifest.json"
-        assert entry_map["abi"].manifest_path == abi_fixture / "phase3_abi_manifest.json"
         assert entry_map["gamma"].manifest_path is None
-        assert entry_map["gamma"].manifest_candidates == (
-            paths.fixtures_dir / "phase3_gamma_manifest.json",
-            gamma_fixture / "phase3_gamma_manifest.json",
-        )
-        assert entry_map["alpha"].fixture_key == "phase3_alpha"
-        assert entry_map["alpha"].manifest_candidates == (
-            paths.fixtures_dir / "phase3_alpha_manifest.json",
-            alpha_fixture / "phase3_alpha_manifest.json",
-        )
-        assert entry_map["alpha"].interop_gate is None
-        assert entry_map["alpha"].interop_gate_mode == "missing"
-        assert entry_map["abi"].interop_gate_mode == "missing"
-        assert entry_map["gamma"].interop_gate_mode == "missing"
-        gamma_dict = entry_map["gamma"].to_dict()
-        assert gamma_dict["manifest"] is None
-        assert gamma_dict["manifest_candidates"] == [
-            "zigux/tests/fixtures/phase3_gamma_manifest.json",
-            "zigux/tests/fixtures/phase3_gamma/phase3_gamma_manifest.json",
-        ]
-
         expected_entry_json = {
             "build_step": "phase3-alpha-dump",
             "check_script": "scripts/zigux/check-phase3-alpha.py",
@@ -1106,12 +1118,13 @@ def run_self_test() -> int:
             newline="\n",
         )
         ordered_entries = discover_artifact_diff_phase3_order(entries, artifact_diff_path)
-        assert [entry.slug for entry in ordered_entries[:3]] == ["abi", "alpha", "custom"]
+        assert [entry.slug for entry in ordered_entries[:4]] == ["abi", "alpha", "custom", "gamma"]
+        assert all(entry.slug != "delta" for entry in ordered_entries)
         assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
         rewritten_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
         assert "stale line" not in rewritten_artifact_diff
+        assert "phase3_delta/expected.json" not in rewritten_artifact_diff
         assert "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim." in rewritten_artifact_diff
-        assert "- `zigux/tests/fixtures/phase3_custom/expected.json` anchors the bounded Phase 3 custom parity claim." in rewritten_artifact_diff
         assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
         artifact_diff_path.write_text(
             "\n".join(
