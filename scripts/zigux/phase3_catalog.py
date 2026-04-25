@@ -212,6 +212,30 @@ class Phase3SlugMergePrep:
         )
 
 
+@dataclass(frozen=True)
+class Phase3SlugMergePrepSummary:
+    slug: str
+    canonical_slug: str
+    issue_codes: tuple[str, ...]
+    retire_path_count: int
+    reference_count: int
+    reference_scope_counts: tuple[tuple[str, int], ...]
+    reference_kind_counts: tuple[tuple[str, int], ...]
+    merge_cost: int
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "slug": self.slug,
+            "canonical_slug": self.canonical_slug,
+            "issue_codes": list(self.issue_codes),
+            "retire_path_count": self.retire_path_count,
+            "reference_count": self.reference_count,
+            "reference_scope_counts": dict(self.reference_scope_counts),
+            "reference_kind_counts": dict(self.reference_kind_counts),
+            "merge_cost": self.merge_cost,
+        }
+
+
 DEFAULT_PATHS = Phase3Paths(
     root=ROOT,
     docs_dir=DOCS_DIR,
@@ -704,92 +728,91 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
 def discover_phase3_slug_rename_impacts(entries: list[Phase3Slice]) -> list[Phase3SlugRenameImpact]:
     entry_by_slug = {entry.slug: entry for entry in entries}
     impacts: list[Phase3SlugRenameImpact] = []
-
     for candidate in discover_phase3_slug_rename_candidates(entries):
         entry = entry_by_slug[candidate.slug]
-        impact_paths: list[Path] = []
-        for path in (
+        fixture_dir = entry.fixture_dir
+        impact_paths: list[Path] = [
             entry.doc_path,
-            entry.check_script,
             entry.dump_path,
-            entry.fixture_dir,
+            fixture_dir,
             entry.expected_path,
             entry.harness_path,
-            *entry.manifest_candidates,
-        ):
-            if path.exists() and path not in impact_paths:
-                impact_paths.append(path)
+        ]
+        if entry.manifest_path is not None:
+            impact_paths.append(entry.manifest_path)
         impacts.append(
             Phase3SlugRenameImpact(
                 root=entry.root,
-                slug=candidate.slug,
+                slug=entry.slug,
                 canonical_slug=candidate.canonical_slug,
                 issue_codes=candidate.issue_codes,
                 paths=tuple(impact_paths),
             )
         )
-
     return impacts
 
 
+def _build_step_mentions_slug(line: str, build_step: str) -> bool:
+    return build_step in line
+
+
 def _phase3_merge_reference_scope(path: Path, paths: Phase3Paths) -> str:
-    if path == paths.tests_dir / "build.zig":
-        return "build-step"
-    if path.is_relative_to(paths.docs_dir):
+    rel = _rel(path, paths.root)
+    if rel.startswith("Documentation/"):
         return "documentation"
-    if path.is_relative_to(paths.root / ".github" / "workflows"):
-        return "workflow"
-    if path.name.startswith(SCRIPT_PREFIX) and path.name.endswith(SCRIPT_SUFFIX):
-        return "wrapper"
-    return "script"
+    if rel.startswith("scripts/"):
+        return "script"
+    if path.name == "build.zig" or rel.endswith("/build.zig"):
+        return "build-step"
+    return "workspace"
 
 
 def _discover_phase3_slug_merge_references(
     entry: Phase3Slice,
-    retire_paths: tuple[Path, ...],
+    retire_paths: Iterable[Path],
     paths: Phase3Paths = DEFAULT_PATHS,
 ) -> list[Phase3SlugMergePrepReference]:
-    needles = (
-        ("build-step", entry.build_step),
-        ("wrapper", entry.check_script.name),
-        ("runner", f"--slug {entry.slug}"),
-        ("fixture-key", entry.fixture_key),
-        ("slug", entry.slug),
-    )
-    reference_paths = [
-        *sorted(paths.docs_dir.rglob("*.md")),
-        *sorted(paths.scripts_dir.glob("*.py")),
-        *sorted((paths.root / ".github" / "workflows").glob("*.y*ml")),
-        paths.tests_dir / "build.zig",
-    ]
-    excluded = {path.resolve() for path in retire_paths if path.exists()}
-    seen_rows: set[tuple[Path, int, tuple[str, ...]]] = set()
     references: list[Phase3SlugMergePrepReference] = []
+    retire_resolved = {path.resolve() for path in retire_paths}
+    search_roots = [paths.docs_dir, paths.scripts_dir, paths.tests_dir]
+    seen_rows: set[tuple[Path, int, tuple[str, ...]]] = set()
 
-    for path in reference_paths:
-        if not path.exists() or path.resolve() in excluded:
-            continue
-        try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except (FileNotFoundError, OSError, UnicodeDecodeError):
-            continue
-        for line_number, line in enumerate(lines, start=1):
-            matched_kinds = tuple(kind for kind, needle in needles if needle in line)
-            if not matched_kinds:
+    for root in search_roots:
+        for path in sorted(root.rglob("*")):
+            if not path.is_file():
                 continue
-            row_key = (path, line_number, matched_kinds)
-            if row_key in seen_rows:
+            if path.resolve() in retire_resolved:
                 continue
-            seen_rows.add(row_key)
-            references.append(
-                Phase3SlugMergePrepReference(
-                    root=paths.root,
-                    path=path,
-                    line_number=line_number,
-                    scope=_phase3_merge_reference_scope(path, paths),
-                    kinds=matched_kinds,
+            if path.suffix not in {".md", ".py", ".zig", ".json", ".sh"}:
+                continue
+            try:
+                lines = path.read_text(encoding="utf-8").splitlines()
+            except (FileNotFoundError, OSError, UnicodeDecodeError):
+                continue
+            for line_number, line in enumerate(lines, start=1):
+                matched_kinds: list[str] = []
+                runner_ref = f"run-phase3-checks.py --slug {entry.slug}"
+                if runner_ref in line:
+                    matched_kinds.append("runner")
+                if entry.slug in line:
+                    matched_kinds.append("slug")
+                if _build_step_mentions_slug(line, entry.build_step):
+                    matched_kinds.append("build-step")
+                if not matched_kinds:
+                    continue
+                row_key = (path, line_number, tuple(matched_kinds))
+                if row_key in seen_rows:
+                    continue
+                seen_rows.add(row_key)
+                references.append(
+                    Phase3SlugMergePrepReference(
+                        root=paths.root,
+                        path=path,
+                        line_number=line_number,
+                        scope=_phase3_merge_reference_scope(path, paths),
+                        kinds=tuple(matched_kinds),
+                    )
                 )
-            )
     return references
 
 
@@ -813,6 +836,42 @@ def discover_phase3_slug_merge_prep(
             )
         )
     return merge_prep
+
+
+def _sorted_counter_rows(counter: Counter[str]) -> tuple[tuple[str, int], ...]:
+    return tuple(sorted(counter.items(), key=lambda item: (-item[1], item[0])))
+
+
+def summarize_phase3_slug_merge_prep(
+    merge_prep: list[Phase3SlugMergePrep],
+) -> list[Phase3SlugMergePrepSummary]:
+    summaries: list[Phase3SlugMergePrepSummary] = []
+    for prep in merge_prep:
+        scope_counts = Counter(reference.scope for reference in prep.references)
+        kind_counts = Counter(kind for reference in prep.references for kind in reference.kinds)
+        reference_count = len(prep.references)
+        retire_path_count = len(prep.retire_paths)
+        summaries.append(
+            Phase3SlugMergePrepSummary(
+                slug=prep.slug,
+                canonical_slug=prep.canonical_slug,
+                issue_codes=prep.issue_codes,
+                retire_path_count=retire_path_count,
+                reference_count=reference_count,
+                reference_scope_counts=_sorted_counter_rows(scope_counts),
+                reference_kind_counts=_sorted_counter_rows(kind_counts),
+                merge_cost=(reference_count * 100) + retire_path_count,
+            )
+        )
+    return sorted(
+        summaries,
+        key=lambda summary: (
+            summary.merge_cost,
+            summary.reference_count,
+            summary.retire_path_count,
+            summary.slug,
+        ),
+    )
 
 
 def audit_phase3_doc_sync(
@@ -938,279 +997,74 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
-        (paths.docs_dir / "phase3-abi-slice.md").write_text(
-            "abi doc\n",
-            encoding="utf-8",
-        )
         abi_fixture_dir = paths.fixtures_dir / "phase3_abi"
         abi_fixture_dir.mkdir()
-        (abi_fixture_dir / "expected.json").write_text(
-            json.dumps({"abi": True}, indent=2, sort_keys=True) + "\n",
+        abi_nested_manifest = abi_fixture_dir / "phase3_abi_manifest.json"
+        abi_root_manifest = paths.fixtures_dir / "phase3_abi_manifest.json"
+        abi_manifest_candidates = (abi_root_manifest, abi_nested_manifest)
+
+        abi_root_manifest.write_text(
+            json.dumps({"status": "legacy-root"}, sort_keys=True) + "\n",
             encoding="utf-8",
         )
-        (abi_fixture_dir / "phase3_abi_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / "phase3_abi_dump.zig").write_text(
-            "// abi\n",
-            encoding="utf-8",
-        )
-        (paths.fixtures_dir / "phase3_abi_manifest.json").write_text(
+        abi_nested_manifest.write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
                     "status": "ready",
                     "slice": "abi-substrate-skeleton",
-                    "files": ["zigux/tests/fixtures/phase3_abi/expected.json"],
-                    "file_count": 1,
+                    "files": ["expected.json", "phase3_abi_c_harness.c"],
+                    "file_count": 2,
                 },
-                indent=2,
                 sort_keys=True,
             ) + "\n",
             encoding="utf-8",
         )
-        nested_abi_manifest = abi_fixture_dir / "phase3_abi_manifest.json"
-        nested_abi_manifest.write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "stale",
-                    "slice": "abi-stale",
-                },
-                indent=2,
-                sort_keys=True,
-            ) + "\n",
-            encoding="utf-8",
-        )
+        assert _pick_manifest("abi", abi_manifest_candidates) == abi_nested_manifest
 
-        (paths.docs_dir / "phase3-bitmap-cpumask-slice.md").write_text(
-            "bitmap doc\n",
+        nested_manifest = gamma_fixture_dir / "phase3_gamma_manifest.json"
+        root_manifest = paths.fixtures_dir / "phase3_gamma_manifest.json"
+        manifest_candidates = (root_manifest, nested_manifest)
+        root_manifest.write_text(
+            json.dumps({"status": "legacy-root"}, sort_keys=True) + "\n",
             encoding="utf-8",
         )
-        bitmap_fixture_dir = paths.fixtures_dir / "phase3_bitmap_cpumask"
-        bitmap_fixture_dir.mkdir()
-        (bitmap_fixture_dir / "expected.json").write_text(
-            json.dumps({"bitmap": True}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (bitmap_fixture_dir / "phase3_bitmap_cpumask_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / "phase3_bitmap_cpumask_dump.zig").write_text(
-            "// bitmap\n",
-            encoding="utf-8",
-        )
-
-        entries = discover_phase3_slices(paths)
-        assert [entry.slug for entry in entries] == ["abi", "alpha", "bitmap-cpumask", "gamma"]
-        entry_map = {entry.slug: entry for entry in entries}
-        assert entry_map["abi"].build_step == "phase3-dump"
-        assert entry_map["bitmap-cpumask"].build_step == "phase3-bitmap-cpumask-dump"
-        assert entry_map["abi"].manifest_path == paths.fixtures_dir / "phase3_abi_manifest.json"
-        assert entry_map["alpha"].manifest_path == paths.fixtures_dir / "phase3_alpha_manifest.json"
-        assert entry_map["gamma"].manifest_path is None
-        expected_entry_json = {
-            "build_step": "phase3-alpha-dump",
-            "check_script": "scripts/zigux/check-phase3-alpha.py",
-            "description": "alpha",
-            "doc": "Documentation/zigux/phase3-alpha-slice.md",
-            "dump": "zigux/tests/phase3_alpha_dump.zig",
-            "expected": "zigux/tests/fixtures/phase3_alpha/expected.json",
-            "fixture_dir": "zigux/tests/fixtures/phase3_alpha",
-            "harness": "zigux/tests/fixtures/phase3_alpha/phase3_alpha_c_harness.c",
-            "interop_gate": None,
-            "interop_gate_mode": "missing",
-            "manifest": "zigux/tests/fixtures/phase3_alpha_manifest.json",
-            "manifest_candidates": [
-                "zigux/tests/fixtures/phase3_alpha_manifest.json",
-                "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json",
-            ],
-            "slug": "alpha",
-        }
-        assert entry_map["alpha"].to_dict() == expected_entry_json
-        assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
-        assert build_step_for_slug("bitmap-cpumask") == "phase3-bitmap-cpumask-dump"
-        assert shared_runner_gate_for_slug("alpha") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
-        assert legacy_wrapper_gate_for_slug("alpha") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
-
-        wrapper_scripts = discover_phase3_wrapper_scripts(paths)
-        assert wrapper_scripts == []
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(
-            "#!/usr/bin/env python3\n",
-            encoding="utf-8",
-        )
-        (paths.scripts_dir / "check-phase3-gamma.py").write_text(
-            "#!/usr/bin/env python3\n",
-            encoding="utf-8",
-        )
-        assert [path.name for path in discover_phase3_wrapper_scripts(paths)] == [
-            "check-phase3-alpha.py",
-            "check-phase3-gamma.py",
-        ]
-
-        (paths.docs_dir / "phase3-legacy-slice.md").write_text(
-            "\n".join(
-                [
-                    "legacy doc",
-                    f"- `{legacy_wrapper_gate_for_slug('legacy')}`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        legacy_fixture = paths.fixtures_dir / "phase3_legacy"
-        legacy_fixture.mkdir()
-        (legacy_fixture / "expected.json").write_text(
-            json.dumps({"kind": "legacy"}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (legacy_fixture / "phase3_legacy_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / "phase3_legacy_dump.zig").write_text(
-            "// legacy\n",
-            encoding="utf-8",
-        )
-        (paths.docs_dir / "phase3-shared-slice.md").write_text(
-            "\n".join(
-                [
-                    "shared doc",
-                    f"- `{shared_runner_gate_for_slug('shared')}`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        shared_fixture = paths.fixtures_dir / "phase3_shared"
-        shared_fixture.mkdir()
-        (shared_fixture / "expected.json").write_text(
-            json.dumps({"kind": "shared"}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (shared_fixture / "phase3_shared_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / "phase3_shared_dump.zig").write_text(
-            "// shared\n",
-            encoding="utf-8",
-        )
-        (paths.docs_dir / "phase3-custom-slice.md").write_text(
-            "\n".join(
-                [
-                    "custom doc",
-                    f"- `{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        custom_fixture = paths.fixtures_dir / "phase3_custom"
-        custom_fixture.mkdir()
-        (custom_fixture / "expected.json").write_text(
-            json.dumps({"kind": "custom"}, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        (custom_fixture / "phase3_custom_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / "phase3_custom_dump.zig").write_text(
-            "// custom\n",
-            encoding="utf-8",
-        )
-
-        entries = discover_phase3_slices(paths)
-        entry_map = {entry.slug: entry for entry in entries}
-        assert entry_map["legacy"].interop_gate_mode == "legacy-wrapper"
-        assert entry_map["legacy"].interop_gate == legacy_wrapper_gate_for_slug("legacy")
-        assert entry_map["shared"].interop_gate_mode == "shared-runner"
-        assert entry_map["shared"].interop_gate == shared_runner_gate_for_slug("shared")
-        assert entry_map["custom"].interop_gate_mode == "custom"
-        assert entry_map["custom"].interop_gate == f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py"
-        assert _extract_interop_gate_marker(f"- `{legacy_wrapper_gate_for_slug('legacy')}`") == legacy_wrapper_gate_for_slug("legacy")
-        assert _extract_interop_gate_marker("scope: none") is None
-
-        (paths.docs_dir / "phase3-legacy-slice.md").write_text(
-            "\n".join(
-                [
-                    "2. check legacy parity",
-                    f"- `python3 scripts/zigux/check-phase3-legacy.py`",
-                    f"- `{legacy_wrapper_gate_for_slug('legacy')}`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        rewritten = rewrite_legacy_wrapper_docs(discover_phase3_slices(paths))
-        assert "Documentation/zigux/phase3-legacy-slice.md" in rewritten
-        legacy_doc_text = (paths.docs_dir / "phase3-legacy-slice.md").read_text(encoding="utf-8")
-        assert "python3 scripts/zigux/check-phase3-legacy.py" not in legacy_doc_text
-        assert "python3 scripts/zigux/run-phase3-checks.py --slug legacy" in legacy_doc_text
-        entries = discover_phase3_slices(paths)
-        entry_map = {entry.slug: entry for entry in entries}
-        assert entry_map["legacy"].interop_gate_mode == "shared-runner"
-        assert rewrite_legacy_wrapper_docs(entries) == []
-
-        (paths.docs_dir / "artifact-diff.md").write_text(
-            "\n".join(
-                [
-                    "- `scripts/zigux/check-phase3-alpha.py` compares artifacts.",
-                    "- `python3 scripts/zigux/check-phase3-gamma.py`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.fixtures_dir / "phase3_alpha_manifest.json").write_text(
+        nested_manifest.write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
                     "status": "ready",
-                    "slice": "alpha-fixture",
-                    "files": ["scripts/zigux/check-phase3-alpha.py"],
-                    "file_count": 1,
-                }
-            ),
+                    "slice": "gamma-fixture",
+                    "files": ["expected.json", "phase3_gamma_c_harness.c"],
+                    "file_count": 2,
+                },
+                sort_keys=True,
+            ) + "\n",
             encoding="utf-8",
-            newline="\n",
         )
-        references = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
-        assert [reference.to_row() for reference in references] == [
-            "Documentation/zigux/artifact-diff.md\t1\talpha\tpath\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
-            "Documentation/zigux/artifact-diff.md\t2\tgamma\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug gamma",
-        ]
-        rewritten = rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
-        assert rewritten == ["Documentation/zigux/artifact-diff.md"]
-        artifact_diff = (paths.docs_dir / "artifact-diff.md").read_text(encoding="utf-8")
-        assert "scripts/zigux/check-phase3-alpha.py" not in artifact_diff
-        assert "python3 scripts/zigux/check-phase3-gamma.py" not in artifact_diff
-        assert "python3 scripts/zigux/run-phase3-checks.py --slug alpha" in artifact_diff
-        assert "python3 scripts/zigux/run-phase3-checks.py --slug gamma" in artifact_diff
-        assert "python3 python3 scripts/zigux/run-phase3-checks.py" not in artifact_diff
-        references = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
-        assert references == []
-        assert rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths) == []
+        assert _pick_manifest("gamma", manifest_candidates) == nested_manifest
 
-        artifact_diff_path = paths.docs_dir / "artifact-diff.md"
-        artifact_diff_path.write_text(
+        entries = discover_phase3_slices(paths)
+        assert [entry.slug for entry in entries] == ["alpha", "gamma"]
+        assert entries[0].manifest_path == paths.fixtures_dir / "phase3_alpha_manifest.json"
+        assert entries[1].manifest_path == nested_manifest
+        assert entries[1].fixture_dir == gamma_fixture_dir
+        assert entries[1].manifest_candidates == manifest_candidates
+        assert entries[1].build_step == "phase3-gamma-dump"
+        assert entries[1].description == "gamma"
+
+        assert discover_phase3_wrapper_scripts(paths) == []
+        wrapper_path = paths.scripts_dir / "check-phase3-gamma.py"
+        wrapper_path.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+        assert discover_phase3_wrapper_scripts(paths) == [wrapper_path]
+
+        doc_path = paths.docs_dir / "phase3-gamma-slice.md"
+        doc_path.write_text(
             "\n".join(
                 [
-                    "# Artifact Diff Policy",
+                    "# Gamma",
                     "",
-                    "Current Phase 3 use",
-                    "- stale line",
-                    "",
-                    "Rules",
-                    "- keep fixtures reviewable",
+                    f"- `{legacy_wrapper_gate_for_slug('gamma')}`",
                     "",
                 ]
             ),
@@ -1218,39 +1072,68 @@ def run_self_test() -> int:
             newline="\n",
         )
         entries = discover_phase3_slices(paths)
-        expected_block = [
-            "Current Phase 3 use",
-            "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug abi` compares that committed JSON fixture against both the bounded C harness and the Zig ABI layout dump.",
-        ]
-        generated = artifact_diff_phase3_lines(entries)
-        assert generated[:2] == expected_block[1:]
-        artifact_diff_path.write_text(
+        gamma_entry = next(entry for entry in entries if entry.slug == "gamma")
+        assert gamma_entry.interop_gate == legacy_wrapper_gate_for_slug("gamma")
+        assert gamma_entry.interop_gate_mode == "legacy-wrapper"
+        rewritten = rewrite_legacy_wrapper_docs(entries)
+        assert rewritten == ["Documentation/zigux/phase3-gamma-slice.md"]
+        doc_text = doc_path.read_text(encoding="utf-8")
+        assert legacy_wrapper_gate_for_slug("gamma") not in doc_text
+        assert shared_runner_gate_for_slug("gamma") in doc_text
+        entries = discover_phase3_slices(paths)
+        gamma_entry = next(entry for entry in entries if entry.slug == "gamma")
+        assert gamma_entry.interop_gate == shared_runner_gate_for_slug("gamma")
+        assert gamma_entry.interop_gate_mode == "shared-runner"
+        doc_path.write_text("# Gamma\n\nno markers\n", encoding="utf-8", newline="\n")
+        entries = discover_phase3_slices(paths)
+        gamma_entry = next(entry for entry in entries if entry.slug == "gamma")
+        assert gamma_entry.interop_gate is None
+        assert gamma_entry.interop_gate_mode == "missing"
+        doc_path.write_text(
             "\n".join(
                 [
-                    "# Artifact Diff Policy",
+                    "# Gamma",
                     "",
-                    "Current Phase 3 use",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug delta`",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug abi`",
-                    "",
-                    "Rules",
-                    "- keep fixtures reviewable",
+                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/custom-phase3-gamma.py`",
                     "",
                 ]
             ),
             encoding="utf-8",
             newline="\n",
         )
-        ordered_entries = discover_artifact_diff_phase3_order(entries, artifact_diff_path)
-        assert [entry.slug for entry in ordered_entries[:4]] == ["abi", "alpha", "bitmap-cpumask", "custom"]
-        assert all(entry.slug != "delta" for entry in ordered_entries)
-        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
-        rewritten_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
-        assert "stale line" not in rewritten_artifact_diff
-        assert "phase3_delta/expected.json" not in rewritten_artifact_diff
-        assert "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim." in rewritten_artifact_diff
-        assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
+        entries = discover_phase3_slices(paths)
+        gamma_entry = next(entry for entry in entries if entry.slug == "gamma")
+        assert gamma_entry.interop_gate == "PHASE3_INTEROP_GATE=python3 scripts/zigux/custom-phase3-gamma.py"
+        assert gamma_entry.interop_gate_mode == "custom"
+
+        note_path = paths.docs_dir / "phase3-followups.md"
+        note_path.write_text(
+            "\n".join(
+                [
+                    "# Follow-ups",
+                    "",
+                    "- python3 scripts/zigux/check-phase3-gamma.py",
+                    "- scripts/zigux/check-phase3-gamma.py",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        entries = discover_phase3_slices(paths)
+        references = discover_non_doc_legacy_wrapper_references(entries, paths)
+        assert [reference.to_row() for reference in references] == [
+            "Documentation/zigux/phase3-followups.md\t3\tgamma\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug gamma",
+            "Documentation/zigux/phase3-followups.md\t4\tgamma\tpath\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug gamma",
+        ]
+        rewritten = rewrite_non_doc_legacy_wrapper_references(entries, paths)
+        assert rewritten == ["Documentation/zigux/phase3-followups.md"]
+        followups_text = note_path.read_text(encoding="utf-8")
+        assert "scripts/zigux/check-phase3-gamma.py" not in followups_text
+        assert followups_text.count("scripts/zigux/run-phase3-checks.py --slug gamma") == 2
+        assert discover_non_doc_legacy_wrapper_references(entries, paths) == []
+
+        artifact_diff_path = paths.docs_dir / "artifact-diff.md"
         artifact_diff_path.write_text(
             "\n".join(
                 [
@@ -1497,6 +1380,24 @@ def run_self_test() -> int:
             "Documentation/zigux/phase3-merge-notes.md\t3\tdocumentation\trunner,slug",
             "zigux/tests/build.zig\t4\tbuild-step\tbuild-step,slug",
         ]
+        merge_prep_summaries = summarize_phase3_slug_merge_prep(merge_prep)
+        merge_summary = next(summary for summary in merge_prep_summaries if summary.slug == repetitive_with_prefix)
+        assert merge_summary.canonical_slug == repetitive_canonical_slug
+        assert merge_summary.retire_path_count == len(rename_impact.paths)
+        assert merge_summary.reference_count == 2
+        assert merge_summary.reference_scope_counts == (("build-step", 1), ("documentation", 1))
+        assert merge_summary.reference_kind_counts == (("slug", 2), ("build-step", 1), ("runner", 1))
+        assert merge_summary.merge_cost == 206
+        assert merge_summary.to_dict() == {
+            "slug": repetitive_with_prefix,
+            "canonical_slug": repetitive_canonical_slug,
+            "issue_codes": ["slug-repeated-phrase"],
+            "retire_path_count": len(rename_impact.paths),
+            "reference_count": 2,
+            "reference_scope_counts": {"build-step": 1, "documentation": 1},
+            "reference_kind_counts": {"slug": 2, "build-step": 1, "runner": 1},
+            "merge_cost": 206,
+        }
 
         mismatched_canonical_slug = "mismatch-window-policy-budget"
         (paths.docs_dir / f"phase3-{mismatched_canonical_slug}-slice.md").write_text(
@@ -1628,6 +1529,8 @@ def run_self_test() -> int:
         assert parser.parse_args(["--suggest-slug-renames"]).suggest_slug_renames is True
         assert parser.parse_args(["--suggest-slug-rename-paths"]).suggest_slug_rename_paths is True
         assert parser.parse_args(["--suggest-slug-merge-prep"]).suggest_slug_merge_prep is True
+        assert parser.parse_args(["--suggest-slug-merge-prep-summary"]).suggest_slug_merge_prep_summary is True
+        assert parser.parse_args(["--suggest-slug-merge-plans-summary"]).suggest_slug_merge_prep_summary is True
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -1687,6 +1590,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--suggest-slug-merge-prep",
         action="store_true",
         help="List the retireable slice artifacts plus the extra docs, workflow, script, or build-step references that still mention each safe long slug elsewhere in the tree.",
+    )
+    parser.add_argument(
+        "--suggest-slug-merge-prep-summary",
+        "--suggest-slug-merge-plans-summary",
+        dest="suggest_slug_merge_prep_summary",
+        action="store_true",
+        help="Emit a safer-to-parse JSON summary of merge-prep candidates with retire counts, reference counts, scope/kind breakdowns, and a simplest-first merge_cost ranking.",
     )
     return parser
 
@@ -1767,6 +1677,11 @@ if __name__ == "__main__":
                 print(prep.to_row())
         except BrokenPipeError:
             sys.exit(0)
+        raise SystemExit(0)
+    if args.suggest_slug_merge_prep_summary:
+        merge_prep = discover_phase3_slug_merge_prep(entries)
+        summaries = summarize_phase3_slug_merge_prep(merge_prep)
+        print(json.dumps([summary.to_dict() for summary in summaries], indent=2, sort_keys=True))
         raise SystemExit(0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
