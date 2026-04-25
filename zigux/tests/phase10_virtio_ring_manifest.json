@@ -1,7 +1,7 @@
 {
-  "lane_key": "P10-L05",
+  "lane_key": "P10-L06",
   "phase": "Phase 10",
-  "surveyed_commit": "4443274cc593d1803ec9e8623b2195120c011fc8",
+  "surveyed_commit": "e150348b25687684bd5c22f192c5ca8dcfc8972a",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -9,12 +9,12 @@
   ],
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 2,
+    "preexisting_phase10_test_files": 3,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": true,
-    "preexisting_virtio_ring_zig_present": false,
-    "preexisting_virtio_ring_doc_present": false
+    "preexisting_virtio_ring_zig_present": true,
+    "preexisting_virtio_ring_doc_present": true
   },
   "gaps": [
     {
@@ -47,10 +47,10 @@
     },
     {
       "id": "phase10-virtqueue-shape-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The next honest step is a tiny in-memory helper for queue index, descriptor count, and notification bookkeeping that mirrors only the smallest reviewable shape from virtio_ring.c."
+      "why_now": "The first honest virtio_ring step is now landed as a tiny in-memory helper for queue index, descriptor count, split or packed layout metadata, and notification bookkeeping that mirrors only the smallest reviewable shape from virtio_ring.c."
     },
     {
       "id": "phase10-shared-virtqueue-layout-helper",
@@ -65,6 +65,13 @@
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
       "why_now": "The roadmap puts virtqueue wrappers ahead of MMIO work, and MMIO plus DMA-facing behavior stays too risky to start honestly before a queue-shape slice exists."
+    },
+    {
+      "id": "phase10-virtio-ring-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
+      "why_now": "A dedicated slice note keeps the new lab helper honest about what is implemented and what still remains blocked in drivers/virtio/virtio_ring.c work."
     }
   ]
 }
