@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L05",
+  "lane_key": "P15-L14",
   "phase": "Phase 15",
-  "surveyed_commit": "36f313d5bd0b3be22beb3284730a98dff5e7f335",
+  "surveyed_commit": "f52714d220c9507020ff725dcb9cb42401f4afe2",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -11,6 +11,8 @@
     "validation gate summary",
     "evidence archive path",
     "latest blocker disposition",
+    "retained discussion state",
+    "reopen triggers",
     "parity scorecard link or blocker record"
   ],
   "trigger_conditions": [
@@ -30,6 +32,8 @@
     "validation gate summary",
     "evidence archive path",
     "latest blocker disposition",
+    "retained discussion state",
+    "reopen triggers",
     "parity scorecard link or blocker record",
     "explicit non-goals",
     "written rationale"
@@ -85,10 +89,24 @@
     },
     {
       "id": "phase15-evidence-archive-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The next honest Phase 15 step is a small follow-up that standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
+      "why_now": "The review-process packet now standardizes where each frozen anchor stores Council decision records, blocker dispositions, benchmark notes, and replay commands."
+    },
+    {
+      "id": "phase15-stay-in-c-retirement-rule",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The review-process note now records the retained `retired_from_active_discussion` closeout state and the reopen triggers that keep a stay-in-C outcome reviewable without implying approval."
+    },
+    {
+      "id": "phase15-reopen-trigger-catalog-followup",
+      "status": "ready_next",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The next honest follow-up is a tiny catalog that keeps the allowed reasons for reopening a retired stay-in-C discussion phrased consistently across later exception records."
     }
   ]
 }
