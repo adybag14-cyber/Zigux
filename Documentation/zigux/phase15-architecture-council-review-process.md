@@ -10,6 +10,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - survey provenance refreshed against verified `master` head `40aa574db33204bfbb0c972f1de37ad4cb396a77`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
+  - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/review-checklist.md`
   - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
   - `zigux/tests/phase15_architecture_council_review_process.zig`
@@ -17,7 +18,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 ## Why this slice exists
 
-The roadmap's Phase 15 requirements include an Architecture Council review process, a parity scorecard, and the policy for code that remains in C indefinitely. Current `master` already carries the freeze map plus stay-in-C governance language, but it still lacks a reviewable record that says when the Architecture Council must be engaged, what evidence a request must carry, and what bounded outcomes are allowed.
+The roadmap's Phase 15 requirements include an Architecture Council review process, a parity scorecard, and the policy for code that remains in C indefinitely. Current `master` now carries the freeze map, stay-in-C governance language, and a landed parity-scorecard baseline, but this review-process note is still the reviewable record that says when the Architecture Council must be engaged, what evidence a request must carry, and what bounded outcomes are allowed.
 
 That missing process leaves a governance gap between the roadmap and the live repo. Without it, a future patch can mention the Architecture Council in principle while still leaving reviewers to guess what packet a status-change request needs and which decisions are legitimate inside the current mixed-language product plan.
 
@@ -60,6 +61,13 @@ The bounded outcomes for this review process are:
 - if the council keeps the code in C, the blocker must remain explicit rather than disappearing into prose
 - if the parity scorecard is missing, the record must say that clearly instead of implying silent approval
 
+## Current Approval Posture
+
+- no Architecture Council approval is currently recorded for a freeze-map status change
+- the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
+- current ownership evidence is limited to named `owner` and `rollback owner` fields in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
+- until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
+
 ## Recorded Gaps
 
 The current lane state is:
@@ -69,16 +77,17 @@ The current lane state is:
 - landed `phase15-architecture-council-review-process-test`
 - landed `phase15-review-checklist-hook`
 - landed `phase15-build-gate-review-process`
-- ready-next `phase15-parity-scorecard-template`
+- landed `phase15-parity-scorecard-baseline`
+- ready-next `phase15-stay-in-c-approval-evidence-followup`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description and a runnable governance gate, but it still does not claim a parity scorecard template, a real council roster, or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
 This slice does not claim:
 
 - a full Architecture Council charter, roster, calendar, or voting system
-- a finished parity scorecard document
+- Architecture Council approval for any freeze-map status change
 - any status change for `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`
 - any new deep-core Zig bridge, wrapper, or direct port starter
 
@@ -92,4 +101,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add the bounded parity-scorecard template next so future Architecture Council requests can attach a concrete comparison artifact instead of only a process note.
+Stay in the Phase 15 governance lane and add one small stay-in-C approval-evidence follow-up next so a frozen anchor leaves active discussion only after council sign-off, scorecard evidence, validation gates, and rollback ownership are all recorded together.
