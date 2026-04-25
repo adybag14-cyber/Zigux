@@ -26,7 +26,7 @@ The highest-value honest step in this lane is therefore a survey checkpoint with
 - `drivers/scsi/virtio_scsi.c` is present on `master` and is large enough to cross multiple subsystem boundaries at once: virtio config, virtqueue topology, SCSI host setup, blk-mq queue planning, and event or TMF handling.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, and ring-local queue-shape bookkeeping. It still does not cover the queue ownership, DMA-safe request buffers, SCSI-host lifecycle, or recovery behavior that the roadmap requires before real virtio_scsi work can land honestly.
-- the live repo also now ships the first Phase 12 NVMe PCI starter, which confirms that the tranche can hold a bounded complex-driver foothold when the slice is narrow enough. The virtio_scsi lane does not yet have even its first survey artifacts or a starter file.
+- the live repo also now ships the first Phase 12 NVMe PCI starter, which confirms that the tranche can hold a bounded complex-driver foothold when the slice is narrow enough. The virtio_scsi lane now has its survey artifacts, but it still has no `drivers/scsi/virtio_scsi.zig` starter or probe-time helper.
 - the next honest driver-facing step is one tiny probe snapshot helper around `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, `max_sectors`, and the control or event versus request virtqueue layout derived in `virtscsi_probe()`.
 
 ## Recorded gaps
