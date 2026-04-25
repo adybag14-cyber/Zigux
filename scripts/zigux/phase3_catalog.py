@@ -710,11 +710,15 @@ def run_self_test() -> int:
         assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
         assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is False
 
+        parser = build_parser()
+        assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
+        assert parser.parse_args(["--rewrite-shared-runner-reference-docs"]).rewrite_legacy_wrapper_references is True
+
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
 
 
-if __name__ == "__main__":
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Discover Zigux Phase 3 slices and their generated companion paths.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated discovery and manifest-selection checks.")
     parser.add_argument(
@@ -733,7 +737,9 @@ if __name__ == "__main__":
         help="List remaining discovered Phase 3 wrapper mentions outside the slice docs.",
     )
     parser.add_argument(
+        "--rewrite-legacy-wrapper-references",
         "--rewrite-shared-runner-reference-docs",
+        dest="rewrite_legacy_wrapper_references",
         action="store_true",
         help="Rewrite non-slice documentation wrapper mentions to the shared run-phase3-checks.py --slug form.",
     )
@@ -742,11 +748,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Rewrite the artifact-diff Phase 3 section from the discovered slice catalog.",
     )
-    parser.add_argument(
-        "--rewrite-legacy-wrapper-references",
-        action="store_true",
-        help=argparse.SUPPRESS,
-    )
+    return parser
+
+
+if __name__ == "__main__":
+    parser = build_parser()
     args = parser.parse_args()
 
     if args.self_test:
@@ -773,7 +779,7 @@ if __name__ == "__main__":
         except BrokenPipeError:
             sys.exit(0)
         raise SystemExit(0)
-    if args.rewrite_shared_runner_reference_docs or args.rewrite_legacy_wrapper_references:
+    if args.rewrite_legacy_wrapper_references:
         rewritten = rewrite_non_doc_legacy_wrapper_references(entries)
         for path in rewritten:
             print(path)
