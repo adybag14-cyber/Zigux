@@ -142,11 +142,6 @@ def _collect_slugs(paths: Phase3Paths = DEFAULT_PATHS) -> list[str]:
         if slug:
             slugs.add(slug)
 
-    for path in paths.scripts_dir.glob(f"{SCRIPT_PREFIX}*{SCRIPT_SUFFIX}"):
-        slug = _slug_from_script(path)
-        if slug:
-            slugs.add(slug)
-
     for path in paths.tests_dir.glob(f"{FIXTURE_PREFIX}*{DUMP_SUFFIX}"):
         slug = _slug_from_dump(path)
         if slug:
@@ -161,6 +156,10 @@ def _collect_slugs(paths: Phase3Paths = DEFAULT_PATHS) -> list[str]:
             slugs.add(slug)
 
     return sorted(slugs)
+
+
+def discover_phase3_wrapper_scripts(paths: Phase3Paths = DEFAULT_PATHS) -> list[Path]:
+    return sorted(paths.scripts_dir.glob(f"{SCRIPT_PREFIX}*{SCRIPT_SUFFIX}"))
 
 
 def _load_manifest(path: Path) -> dict[str, object] | None:
@@ -305,7 +304,10 @@ def run_self_test() -> int:
 
         entries = discover_phase3_slices(paths)
         slugs = [entry.slug for entry in entries]
-        assert slugs == ["abi", "alpha", "beta", "delta", "gamma"], slugs
+        assert slugs == ["abi", "alpha", "delta", "gamma"], slugs
+        assert [_rel(path, paths.root) for path in discover_phase3_wrapper_scripts(paths)] == [
+            "scripts/zigux/check-phase3-beta.py"
+        ]
 
         entry_map = {entry.slug: entry for entry in entries}
         assert _rel(entry_map["alpha"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json"
@@ -314,7 +316,6 @@ def run_self_test() -> int:
         assert entry_map["abi"].description == "ABI layout"
         assert entry_map["gamma"].build_step == "phase3-gamma-dump"
         assert entry_map["gamma"].description == "gamma"
-        assert entry_map["beta"].manifest_path is None
         assert _rel(entry_map["gamma"].dump_path, paths.root) == "zigux/tests/phase3_gamma_dump.zig"
         assert _rel(entry_map["delta"].manifest_path, paths.root) == "zigux/tests/fixtures/phase3_delta_manifest.json"
 
