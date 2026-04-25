@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L14",
+  "lane_key": "P15-L09",
   "phase": "Phase 15",
-  "surveyed_commit": "f52714d220c9507020ff725dcb9cb42401f4afe2",
+  "surveyed_commit": "49f3ea7d00e2407b83b5350ef6de457b3e966d13",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
@@ -10,17 +10,9 @@
       "validation gate set",
       "rollback owner",
       "evidence archive path",
-      "latest blocker disposition",
-      "retained discussion state",
-      "reopen triggers"
+      "latest blocker disposition"
     ],
-    "retirement_rule": "A frozen anchor leaves active discussion only after Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.",
-    "retired_discussion_state": "retired_from_active_discussion",
-    "reopen_triggers": [
-      "a narrower seam inventory that answers the latest blocker disposition",
-      "linked validation, benchmark, or blocker evidence becoming stale or contradictory",
-      "rollback ownership or validation gates changing enough to invalidate the closed stay-in-C packet"
-    ],
+    "retirement_rule": "A frozen anchor leaves active discussion only after Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, and latest blocker disposition are all recorded together in the scorecard.",
     "archive_requirements": [
       "linked surveys and blocker follow-ups",
       "benchmark notes",
@@ -33,6 +25,7 @@
       "status": "freeze_in_c",
       "line_count": 11235,
       "phase14_evidence_present": false,
+      "lane_owner": "Architecture Council",
       "council_inputs": [
         "Architecture Council seam review",
         "PMO / Release Management rollback review",
@@ -65,6 +58,7 @@
       "status": "freeze_in_c",
       "line_count": 7795,
       "phase14_evidence_present": false,
+      "lane_owner": "Architecture Council",
       "council_inputs": [
         "Architecture Council seam review",
         "Toolchain and Kbuild Team build-surface review",
@@ -97,6 +91,7 @@
       "status": "freeze_in_c",
       "line_count": 4931,
       "phase14_evidence_present": true,
+      "lane_owner": "ABI and Runtime Team",
       "council_inputs": [
         "Architecture Council review of the Phase 14 RCU survey",
         "ABI and Runtime Team seam review",
@@ -130,6 +125,7 @@
       "status": "freeze_in_c",
       "line_count": 7476,
       "phase14_evidence_present": true,
+      "lane_owner": "Shared Subsystems Pod",
       "council_inputs": [
         "Architecture Council review of the Phase 14 skbuff survey",
         "Shared Subsystems Pod boundary review",
@@ -166,6 +162,7 @@
     "phase14_skbuff_survey_present": true,
     "phase15_scorecard_note_present": true,
     "phase15_evidence_archive_templates_present": true,
+    "phase15_anchor_owner_tracking_present": true,
     "phase15_scorecard_test_present": true,
     "phase15_scorecard_manifest_present": true,
     "phase15_build_present": true,
@@ -244,24 +241,17 @@
     },
     {
       "id": "phase15-template-field-sync-followup",
-      "status": "starter_landed",
-      "kind": "policy",
-      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
-      "why_now": "The scorecard, review checklist, and per-anchor templates now keep the retained discussion state and reopen-trigger headings aligned instead of leaving the stay-in-C closeout rule half in prose."
-    },
-    {
-      "id": "phase15-stay-in-c-retirement-rule",
-      "status": "starter_landed",
-      "kind": "policy",
-      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
-      "why_now": "Phase 15 needed one explicit retained closeout state for anchors that leave active discussion without leaving C, plus reopen triggers that say what evidence can reopen review later."
-    },
-    {
-      "id": "phase15-reopen-trigger-catalog-followup",
       "status": "ready_next",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The next honest follow-up is a tiny catalog that keeps the allowed reasons for reopening a retired stay-in-C discussion phrased consistently across the scorecard and the review-process packet."
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+      "why_now": "The next honest governance step is a small follow-up that keeps the shared review-process packet fields and the per-anchor template headings aligned if either side changes."
+    },
+    {
+      "id": "phase15-anchor-owner-tracking",
+      "status": "starter_landed",
+      "kind": "parity_tracking",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The roadmap expects explicit ownership discipline for active commit series, so each frozen anchor now records the lane owner responsible for keeping its blocked evidence packet current."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
