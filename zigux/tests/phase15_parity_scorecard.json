@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L10",
+  "lane_key": "P15-L11",
   "phase": "Phase 15",
-  "surveyed_commit": "36f313d5bd0b3be22beb3284730a98dff5e7f335",
+  "surveyed_commit": "f3805234e72688b1f6c94545c560ef4e77057b2a",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
@@ -157,6 +157,7 @@
     "phase14_rcu_survey_present": true,
     "phase14_skbuff_survey_present": true,
     "phase15_scorecard_note_present": true,
+    "phase15_evidence_archive_templates_present": true,
     "phase15_scorecard_test_present": true,
     "phase15_scorecard_manifest_present": true,
     "phase15_build_present": true,
@@ -228,10 +229,17 @@
     },
     {
       "id": "phase15-decision-record-template-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-evidence-archives/",
-      "why_now": "The next honest governance step is a small follow-up that creates template packet headings under the reserved evidence-archive paths without implying Architecture Council approval."
+      "why_now": "The scorecard now ships reserved per-anchor decision-record templates under the evidence-archive paths so packet headings exist without implying Architecture Council approval."
+    },
+    {
+      "id": "phase15-template-field-sync-followup",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+      "why_now": "The next honest governance step is a small follow-up that keeps the shared review-process packet fields and the per-anchor template headings aligned if either side changes."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
