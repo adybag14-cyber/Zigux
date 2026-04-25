@@ -19,7 +19,7 @@ Phase 7 explicitly calls out `lib/cmdline.c` as one of the first reusable in-ker
 This starter slice keeps the work bounded to runtime-safe parsing helpers that:
 
 - do not allocate
-- stay outside deeper argument tokenization and in-place quote rewriting
+- stay outside deeper parameter matching or escape handling
 - can be validated with deterministic Zig-only tests
 
 ## Gates
@@ -38,6 +38,7 @@ The current starter slice covers:
 - `get_options()`
 - `memparse()`
 - `parse_option_str()`
+- `next_arg()`
 
 The current tests check:
 
@@ -46,16 +47,16 @@ The current tests check:
 - descending-range early stop behavior
 - memory-size suffix scaling with accurate parse-stop reporting
 - exact bare-option matching for comma-delimited flags
+- quoted argument/value token splitting with in-place NUL termination
 
 ## Non-goals
 
 This slice does not yet claim:
 
-- parity for `next_arg()`
-- quoted argument splitting
-- in-place parameter/value token rewriting
+- parameter-name normalization beyond the raw token split
+- escaped-quote handling beyond the Linux helper's bounded quote toggling
 - exhaustive overflow compatibility with every `simple_strtoull()` corner case
 
 ## Next bounded step
 
-Port `next_arg()` with focused quoted-value fixtures and keep it inside the same Phase 7 leaf-helper lane rather than widening into unrelated parser families.
+Verify `next_arg()` against a broader mixed-spacing and quote-edge fixture set, then decide whether the lane should stay in `lib/cmdline.c` with another small parser primitive or close the starter cmdline slice.
