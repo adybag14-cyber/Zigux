@@ -16,8 +16,9 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqual(@as(u16, 0), admin.queue_id);
     try std.testing.expectEqual(@as(u32, 2048), admin.sq_bytes);
     try std.testing.expectEqual(@as(u32, 512), admin.cq_bytes);
-    try std.testing.expectEqual(@as(u32, 2560), admin.combined_dma_bytes);
-    try std.testing.expectEqual(@as(u16, 1), admin.required_dma_pages);
+    try std.testing.expectEqual(@as(u32, 2560), admin.queue_memory_bytes);
+    try std.testing.expectEqual(@as(u32, 2560), admin.host_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 1), admin.required_host_dma_pages);
     try std.testing.expectEqual(@as(u32, 0), admin.sq_doorbell_offset);
     try std.testing.expectEqual(@as(u32, 8), admin.cq_doorbell_offset);
 
@@ -26,7 +27,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
 }
 
-test "phase12 nvme pci plans io queue pairs with DMA page rounding and monotonic queue ids" {
+test "phase12 nvme pci separates queue footprint from host DMA when CMB backs SQ" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 16);
     _ = try lab.planAdminQueue(64, 64, false);
 
@@ -35,14 +36,17 @@ test "phase12 nvme pci plans io queue pairs with DMA page rounding and monotonic
     try std.testing.expectEqual(@as(u16, 1), first.queue_id);
     try std.testing.expectEqual(@as(u32, 32768), first.sq_bytes);
     try std.testing.expectEqual(@as(u32, 8192), first.cq_bytes);
-    try std.testing.expectEqual(@as(u32, 40960), first.combined_dma_bytes);
-    try std.testing.expectEqual(@as(u16, 10), first.required_dma_pages);
+    try std.testing.expectEqual(@as(u32, 40960), first.queue_memory_bytes);
+    try std.testing.expectEqual(@as(u32, 8192), first.host_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 2), first.required_host_dma_pages);
     try std.testing.expectEqual(@as(u32, 32), first.sq_doorbell_offset);
     try std.testing.expectEqual(@as(u32, 48), first.cq_doorbell_offset);
     try std.testing.expect(first.uses_cmb);
 
     const second = try lab.planIoQueue(128, 32, false);
     try std.testing.expectEqual(@as(u16, 2), second.queue_id);
+    try std.testing.expectEqual(@as(u32, 6144), second.host_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 2), second.required_host_dma_pages);
     try std.testing.expectEqual(@as(u32, 64), second.sq_doorbell_offset);
     try std.testing.expectEqual(@as(u32, 80), second.cq_doorbell_offset);
 
