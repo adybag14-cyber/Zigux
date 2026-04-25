@@ -36,8 +36,9 @@ pub const QueuePairPlanSummary = struct {
     sq_entry_bytes: u16,
     sq_bytes: u32,
     cq_bytes: u32,
-    combined_dma_bytes: u32,
-    required_dma_pages: u16,
+    queue_memory_bytes: u32,
+    host_dma_bytes: u32,
+    required_host_dma_pages: u16,
     sq_doorbell_offset: u32,
     cq_doorbell_offset: u32,
     uses_cmb: bool,
@@ -154,8 +155,9 @@ pub const NvmePciQueueLab = struct {
 
         const sq_bytes = try checkedMulU32(queue_depth, checked_sq_entry_bytes);
         const cq_bytes = try checkedMulU32(queue_depth, completion_entry_bytes);
-        const combined_dma_bytes = try checkedAddU32(sq_bytes, cq_bytes);
-        const required_dma_pages = try checkedDivCeilU16(combined_dma_bytes, self.page_size);
+        const queue_memory_bytes = try checkedAddU32(sq_bytes, cq_bytes);
+        const host_dma_bytes = if (uses_cmb) cq_bytes else queue_memory_bytes;
+        const required_host_dma_pages = try checkedDivCeilU16(host_dma_bytes, self.page_size);
         const sq_doorbell_offset = try checkedMulWideU32(@as(u32, queue_id) * 2, self.doorbell_stride_bytes);
         const cq_doorbell_offset = try checkedAddU32(sq_doorbell_offset, self.doorbell_stride_bytes);
 
@@ -167,8 +169,9 @@ pub const NvmePciQueueLab = struct {
             .sq_entry_bytes = checked_sq_entry_bytes,
             .sq_bytes = sq_bytes,
             .cq_bytes = cq_bytes,
-            .combined_dma_bytes = combined_dma_bytes,
-            .required_dma_pages = required_dma_pages,
+            .queue_memory_bytes = queue_memory_bytes,
+            .host_dma_bytes = host_dma_bytes,
+            .required_host_dma_pages = required_host_dma_pages,
             .sq_doorbell_offset = sq_doorbell_offset,
             .cq_doorbell_offset = cq_doorbell_offset,
             .uses_cmb = uses_cmb,
