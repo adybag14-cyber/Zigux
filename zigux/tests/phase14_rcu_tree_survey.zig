@@ -72,7 +72,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("P14-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0b03b7694f88b5f6d490a4d029062079356ccf7d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("e023a288013cb2231da9a010b3934773a4b39778", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.tree_c_lines >= 4900);
     try std.testing.expect(manifest.survey_summary.tree_plugin_h_lines >= 1300);
