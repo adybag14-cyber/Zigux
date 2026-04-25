@@ -31,6 +31,15 @@ pub const BoundaryMap = struct {
     areas: []const BoundaryArea,
 };
 
+pub const AuditCheckpoint = struct {
+    id: []const u8,
+    boundary_area_id: []const u8,
+    summary: []const u8,
+    expected_owner: Ownership,
+    anchor_symbols: []const []const u8,
+    rationale: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "submission-routing",
@@ -69,6 +78,33 @@ const boundary_areas = [_]BoundaryArea{
     },
 };
 
+const audit_checkpoints = [_]AuditCheckpoint{
+    .{
+        .id = "pool-lock-ownership",
+        .boundary_area_id = "worker-pool-concurrency",
+        .summary = "Audit how manage_workers() and maybe_create_worker() depend on pool->lock ownership before any wrapper claims concurrency state transitions.",
+        .expected_owner = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "manage_workers", "maybe_create_worker", "pool->lock" },
+        .rationale = "This is the smallest honest concurrency audit follow-up because worker creation, idle transitions, and forward-progress repair all pivot on lock-protected pool state that Zigux should keep in C.",
+    },
+    .{
+        .id = "rescuer-mayday-path",
+        .boundary_area_id = "rescuer-and-scheduler-hooks",
+        .summary = "Audit rescuer_thread() against mayday wakeups before any metadata wrapper grows into rescue execution ownership.",
+        .expected_owner = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "rescuer_thread", "send_mayday", "MAYDAY_INTERVAL" },
+        .rationale = "The mayday-to-rescuer path is the first bounded rescue audit surface because it ties stalled progress detection to shared emergency workers without a safe wrapper-first decomposition yet.",
+    },
+    .{
+        .id = "scheduler-hook-pairing",
+        .boundary_area_id = "rescuer-and-scheduler-hooks",
+        .summary = "Audit the pairing of wq_worker_running() and wq_worker_sleeping() before any wrapper describes scheduler-visible execution state.",
+        .expected_owner = .stay_in_c,
+        .anchor_symbols = &[_][]const u8{ "wq_worker_running", "wq_worker_sleeping", "WORKER_NOT_RUNNING" },
+        .rationale = "These hooks expose scheduler-facing transitions and worker flag semantics, so Phase 14 should keep them as explicit audit checkpoints instead of broadening the bridge into live execution tracking.",
+    },
+};
+
 pub const WorkqueueBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -90,6 +126,10 @@ pub const WorkqueueBridgeLab = struct {
             .posture = descriptor().posture,
             .areas = boundary_areas[0..],
         };
+    }
+
+    pub fn concurrencyAuditChecklist() []const AuditCheckpoint {
+        return audit_checkpoints[0..];
     }
 
     pub fn stayInCDecisionCount() usize {
@@ -144,4 +184,20 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expect(map.areas[4].ownership == .stay_in_c);
     try std.testing.expectEqualStrings("wq_worker_running", map.areas[4].anchor_symbols[1]);
     try std.testing.expectEqualStrings("wq_worker_sleeping", map.areas[4].anchor_symbols[2]);
+}
+
+test "workqueue bridge exposes a bounded concurrency audit checklist" {
+    const checklist = WorkqueueBridgeLab.concurrencyAuditChecklist();
+
+    try std.testing.expectEqual(@as(usize, 3), checklist.len);
+    try std.testing.expectEqualStrings("pool-lock-ownership", checklist[0].id);
+    try std.testing.expectEqualStrings("worker-pool-concurrency", checklist[0].boundary_area_id);
+    try std.testing.expect(checklist[0].expected_owner == .stay_in_c);
+    try std.testing.expectEqualStrings("manage_workers", checklist[0].anchor_symbols[0]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[0].rationale, "forward-progress") != null);
+
+    try std.testing.expectEqualStrings("rescuer-mayday-path", checklist[1].id);
+    try std.testing.expectEqualStrings("rescuer_thread", checklist[1].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("scheduler-hook-pairing", checklist[2].id);
+    try std.testing.expectEqualStrings("WORKER_NOT_RUNNING", checklist[2].anchor_symbols[2]);
 }
