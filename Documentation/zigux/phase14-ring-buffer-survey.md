@@ -7,6 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
+- survey provenance refreshed against verified `master` head `b25f34c1c65f7c9ccbb966fc39d8d48f3eddd90b`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -31,6 +32,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
 - the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, and remote-reader metadata so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
+
+## Decision checklist
+
+- landed `phase14-ring-buffer-boundary-decision-checklist`
+- `reserve-commit-publication`: keep `ring_buffer_lock_reserve()`, `ring_buffer_unlock_commit()`, and `rb_move_tail()` in C because nested writers, pending commits, and per-CPU commit publication remain coupled.
+- `head-page-reader-handoff`: keep `rb_handle_head_page()`, `rb_set_head_page()`, and `ring_buffer_read_page()` in C because head-page rotation, reader-page extraction, and commit-page adjacency still move together.
+- `remote-reader-metadata`: keep `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` in C because callback-driven metadata refresh and remote reader-page import rules sit on top of the already-coupled local model.
 
 ## Recorded gaps
 
