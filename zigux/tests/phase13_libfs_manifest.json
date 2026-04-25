@@ -1,0 +1,79 @@
+{
+  "lane_key": "P13-L03",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-reviewability",
+  "anchor": "fs/libfs.c",
+  "roadmap_destinations": [
+    "fs/libfs.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "libfs_c_lines": 2314,
+    "preexisting_phase13_build_present": true,
+    "preexisting_phase13_make_target_present": true,
+    "preexisting_fs_libfs_zig_present": true,
+    "preexisting_phase13_libfs_test_present": true,
+    "preexisting_phase13_slice_note_present": true,
+    "preexisting_phase13_reviewability_present": true,
+    "preexisting_phase13_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase13-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "The shared Phase 13 build now compiles both the landed libfs starter tests and the new reviewability gate so the helper lane stays honest as it grows."
+    },
+    {
+      "id": "phase13-make-target",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "The existing make target keeps the bounded libfs starter and reviewability checks runnable through the same repeatable path as the other Zigux tranche checkpoints."
+    },
+    {
+      "id": "phase13-libfs-starter",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The landed starter already mirrors the pure helper-facing shape of simple_statfs(), always_delete_dentry(), and simple_lookup() without claiming live dcache mutation, inode locking, or VFS registration."
+    },
+    {
+      "id": "phase13-libfs-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_libfs.zig",
+      "why_now": "Dedicated starter tests keep the current wrapper honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, and name-length rejection."
+    },
+    {
+      "id": "phase13-libfs-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-libfs-slice.md",
+      "why_now": "The slice note records the narrow boundary of the landed helper lab so the lane does not overstate itself as live libfs or VFS parity."
+    },
+    {
+      "id": "phase13-libfs-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
+      "why_now": "A dedicated reviewability gate ties the current starter, tests, slice note, and survey note together so future runs can confirm the lane state before widening helper coverage."
+    },
+    {
+      "id": "phase13-libfs-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-libfs-survey.md",
+      "why_now": "The survey note now describes the landed starter truthfully and keeps the remaining gap around directory iteration, offset policy, and deeper VFS state explicit."
+    },
+    {
+      "id": "phase13-libfs-directory-read-followup",
+      "status": "ready_next",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The next honest step is one small directory-reading or offset-policy helper around dcache_readdir() or the early offset surface, keeping the work cursor-free and in-memory before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
+    }
+  ]
+}
