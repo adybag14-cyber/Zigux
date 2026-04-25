@@ -29,9 +29,24 @@ The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice l
 - bounded feature-index guards that reject requests outside the lab model's fixed feature-bit capacity
 - queue callback registration bookkeeping that stays blocked until feature negotiation succeeds and never pretends to touch real transport setup
 - queue callback enable, disable, unregister, and notification accounting that remains entirely in-memory for lab validation
+- queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
+
+## Roadmap Gap Snapshot
+
+- covered now:
+  - lab-only validation for `drivers/virtio/virtio.c`
+  - core-side status sequencing and feature negotiation
+  - bounded queue callback bookkeeping and queue shape metadata for reviewable lab tests
+- still intentionally missing:
+  - real virtqueue wrappers from `virtio_ring.c`
+  - real MMIO wrappers from `virtio_mmio.c`
+  - dual implementations for risky transport-facing paths
+  - probe, remove, and real device lifecycle wiring
+
+This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
 
 ## Non-goals
 
@@ -52,4 +67,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio-core lane and add one small queue-descriptor metadata helper next so the lab callback bookkeeping can describe bounded queue shape without widening into `virtio_mmio` or `virtio_ring` transport work.
+Stay in the Phase 10 virtio-core lane and add the next small core-only bridge from `drivers/virtio/virtio.c`, such as config-change enable and disable bookkeeping, before widening into `virtio_mmio` or `virtio_ring` transport work.
