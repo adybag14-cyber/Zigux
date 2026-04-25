@@ -14,6 +14,8 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     roadmap_requirement: []const u8,
     anchor: []const u8,
+    current_approval_state: []const u8,
+    ownership_evidence_fields: []const []const u8,
     trigger_conditions: []const []const u8,
     required_review_packet_fields: []const []const u8,
     decision_buckets: []const []const u8,
@@ -46,11 +48,15 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqualStrings("40aa574db33204bfbb0c972f1de37ad4cb396a77", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
+    try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
+    try std.testing.expectEqual(@as(usize, 4), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
+    try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
+    try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
     try std.testing.expectEqualStrings("requested decision bucket", manifest.required_review_packet_fields[2]);
     try std.testing.expectEqualStrings("keep_in_c", manifest.decision_buckets[0]);
@@ -63,7 +69,8 @@ test "phase 15 architecture council review-process manifest records the bounded 
     var saw_test = false;
     var saw_checklist = false;
     var saw_build = false;
-    var saw_parity_followup = false;
+    var saw_parity_baseline = false;
+    var saw_approval_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -98,11 +105,17 @@ test "phase 15 architecture council review-process manifest records the bounded 
             saw_build = true;
             try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "phase15-parity-scorecard-template")) {
-            saw_parity_followup = true;
+        if (std.mem.eql(u8, gap.id, "phase15-parity-scorecard-baseline")) {
+            saw_parity_baseline = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live evidence attachment point") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase15-stay-in-c-approval-evidence-followup")) {
+            saw_approval_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/parity-scorecard.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity-scorecard") != null or std.mem.indexOf(u8, gap.why_now, "parity scorecard") != null);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "approval evidence archive") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -110,14 +123,15 @@ test "phase 15 architecture council review-process manifest records the bounded 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 5), landed_count);
+    try std.testing.expectEqual(@as(usize, 6), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_doc);
     try std.testing.expect(saw_manifest);
     try std.testing.expect(saw_test);
     try std.testing.expect(saw_checklist);
     try std.testing.expect(saw_build);
-    try std.testing.expect(saw_parity_followup);
+    try std.testing.expect(saw_parity_baseline);
+    try std.testing.expect(saw_approval_followup);
 }
 
 test "phase 15 architecture council review-process doc records the required process language" {
@@ -135,6 +149,9 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Decision Buckets") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current ownership evidence is limited to named `owner` and `rollback owner` fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "written rationale") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "parity scorecard link, or an explicit blocker record") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`keep_in_c`") != null);
