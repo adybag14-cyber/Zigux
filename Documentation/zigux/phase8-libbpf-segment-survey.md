@@ -6,9 +6,11 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest and validation scaffold only
+- scope: segment manifest plus one landed helper-first starter slice
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
+  - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
+  - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_build.zig`
 
@@ -36,7 +38,23 @@ The manifest currently records six bounded segments:
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-The first three are marked `ready_next`, while the last two stay explicitly deferred as high-risk surfaces until helper-first segments have landed and been validated.
+`cpu-mask-parsing` has now moved from `ready_next` to a landed starter slice under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, while `logging-version-and-errno` and `pin-path-helpers` remain the next two low-risk `ready_next` segments. The last two stay explicitly deferred as high-risk surfaces until more helper-first segments have landed and been validated.
+
+## Current landed segment progress
+
+The current starter implementation stays deliberately bounded:
+
+- `cpu_mask.zig` ports the string-parsing core of `parse_cpu_mask_str()`
+- the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
+- delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
+- malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
+
+The current tests check:
+
+- mixed single-CPU and `start-end` ranges expand into the expected dense mask
+- repeated delimiters and newline-terminated inputs still parse cleanly
+- the bounded set-bit counter matches the parsed mask contents
+- empty and malformed ranges report explicit errors
 
 ## Gates
 
@@ -51,6 +69,7 @@ The first three are marked `ready_next`, while the last two stay explicitly defe
 This survey slice does not yet claim:
 
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
+- `parse_cpu_mask_file()` parity or direct file reads
 - BTF relocation parity
 - ELF loader parity
 - perf-buffer runtime behavior
@@ -58,4 +77,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and start one of the `ready_next` helper-first segments, with `logging.zig`, `pin_path.zig`, or `cpu_mask.zig` as the best low-risk entry candidates.
+Stay in `tools/lib/bpf/zigux_segments/` and either extend `cpu_mask.zig` with an injected file-buffer reader that keeps real file I/O deferred, or start the next `ready_next` helper-first segment in `logging.zig` or `pin_path.zig`.
