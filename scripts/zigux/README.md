@@ -37,6 +37,7 @@ Phase 3 flow
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, parity wrappers, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory.
 - `phase3_catalog.py --self-test` exercises isolated slug discovery and manifest selection across docs, wrappers, dumps, and fixture candidates.
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper.
+- `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, and wrapper-template helpers without running Zig parity builds.
 - `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
 - `generate-phase3-check-wrappers.py --self-test` exercises isolated missing-wrapper, stale-wrapper, and clean `--check` behavior without touching the committed tree.
 - `generate-phase3-check-wrappers.py --check` fails when any discovered wrapper drifts from that shared template.
