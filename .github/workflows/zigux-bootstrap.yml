@@ -66,6 +66,9 @@ jobs:
       - name: Self-test Phase 3 catalog
         run: python3 scripts/zigux/phase3_catalog.py --self-test
 
+      - name: Self-test Phase 3 runner
+        run: python3 scripts/zigux/run-phase3-checks.py --self-test
+
       - name: Self-test Phase 3 wrapper generator
         run: python3 scripts/zigux/generate-phase3-check-wrappers.py --self-test
 
