@@ -1,0 +1,63 @@
+{
+  "lane_key": "P9-L09",
+  "phase": "Phase 9",
+  "surveyed_commit": "2a72108b2f47f1582de69e5198d72e022e61bfab",
+  "anchor": "samples/trace_events/trace-events-sample.c",
+  "roadmap_destinations": [
+    "zigux/tests/runtime_*",
+    "samples/zigux/runtime_*"
+  ],
+  "survey_summary": {
+    "trace_events_sample_c_lines": 153,
+    "trace_events_sample_h_lines": 640,
+    "ftrace_selftest_references": 2,
+    "preexisting_runtime_trace_events_test_files": 0,
+    "preexisting_runtime_trace_events_sample_present": false,
+    "preexisting_phase9_build_present": true,
+    "preexisting_runtime_trace_events_doc_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase9-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The existing Phase 9 build step is the narrowest honest place to make the trace-events lane reviewable without pretending the runtime sample already exists."
+    },
+    {
+      "id": "runtime-trace-events-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_trace_events_survey.zig",
+      "why_now": "A dedicated survey gate records the roadmap anchor, current repo gap, and remaining bounded next steps before the first runtime trace-events starter lands."
+    },
+    {
+      "id": "runtime-trace-events-sample-module",
+      "status": "ready_next",
+      "kind": "sample_starter",
+      "zigux_destination": "samples/zigux/runtime_trace_events.zig",
+      "why_now": "The next meaningful product step is a small sample-backed lifecycle starter that models descriptor metadata and a narrow event catalog instead of jumping straight to a broad runtime implementation."
+    },
+    {
+      "id": "runtime-trace-events-module-tests",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_trace_events_module.zig",
+      "why_now": "A dedicated Phase 9 module test should land alongside the first starter sample so lifecycle and event-name expectations stay bounded and reviewable."
+    },
+    {
+      "id": "runtime-trace-events-event-catalog",
+      "status": "ready_next",
+      "kind": "event_catalog",
+      "zigux_destination": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "why_now": "The Linux sample and its ftrace selftests already point to a small named event family, so the survey note should preserve that scope for the eventual starter instead of leaving the lane underspecified."
+    },
+    {
+      "id": "runtime-trace-events-substrate-handoff",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
+      "why_now": "A loadable trace-events module, registration hooks, and lifecycle parity still depend on runtime substrate pieces that the repo has not started yet."
+    }
+  ]
+}
