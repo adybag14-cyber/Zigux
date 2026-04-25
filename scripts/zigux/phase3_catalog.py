@@ -170,6 +170,48 @@ class Phase3SlugRenameImpact:
         )
 
 
+@dataclass(frozen=True)
+class Phase3SlugMergePrepReference:
+    root: Path
+    path: Path
+    line_number: int
+    scope: str
+    kinds: tuple[str, ...]
+
+    def to_row(self) -> str:
+        return "\t".join(
+            (
+                _rel(self.path, self.root),
+                str(self.line_number),
+                self.scope,
+                ",".join(self.kinds),
+            )
+        )
+
+
+@dataclass(frozen=True)
+class Phase3SlugMergePrep:
+    root: Path
+    slug: str
+    canonical_slug: str
+    issue_codes: tuple[str, ...]
+    retire_paths: tuple[Path, ...]
+    references: tuple[Phase3SlugMergePrepReference, ...]
+
+    def to_row(self) -> str:
+        return "\t".join(
+            (
+                self.slug,
+                self.canonical_slug,
+                ",".join(self.issue_codes),
+                str(len(self.retire_paths)),
+                ",".join(_rel(path, self.root) for path in self.retire_paths),
+                str(len(self.references)),
+                ",".join(reference.to_row().replace("\t", ":") for reference in self.references),
+            )
+        )
+
+
 DEFAULT_PATHS = Phase3Paths(
     root=ROOT,
     docs_dir=DOCS_DIR,
@@ -690,6 +732,89 @@ def discover_phase3_slug_rename_impacts(entries: list[Phase3Slice]) -> list[Phas
     return impacts
 
 
+def _phase3_merge_reference_scope(path: Path, paths: Phase3Paths) -> str:
+    if path == paths.tests_dir / "build.zig":
+        return "build-step"
+    if path.is_relative_to(paths.docs_dir):
+        return "documentation"
+    if path.is_relative_to(paths.root / ".github" / "workflows"):
+        return "workflow"
+    if path.name.startswith(SCRIPT_PREFIX) and path.name.endswith(SCRIPT_SUFFIX):
+        return "wrapper"
+    return "script"
+
+
+def _discover_phase3_slug_merge_references(
+    entry: Phase3Slice,
+    retire_paths: tuple[Path, ...],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[Phase3SlugMergePrepReference]:
+    needles = (
+        ("build-step", entry.build_step),
+        ("wrapper", entry.check_script.name),
+        ("runner", f"--slug {entry.slug}"),
+        ("fixture-key", entry.fixture_key),
+        ("slug", entry.slug),
+    )
+    reference_paths = [
+        *sorted(paths.docs_dir.rglob("*.md")),
+        *sorted(paths.scripts_dir.glob("*.py")),
+        *sorted((paths.root / ".github" / "workflows").glob("*.y*ml")),
+        paths.tests_dir / "build.zig",
+    ]
+    excluded = {path.resolve() for path in retire_paths if path.exists()}
+    seen_rows: set[tuple[Path, int, tuple[str, ...]]] = set()
+    references: list[Phase3SlugMergePrepReference] = []
+
+    for path in reference_paths:
+        if not path.exists() or path.resolve() in excluded:
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (FileNotFoundError, OSError, UnicodeDecodeError):
+            continue
+        for line_number, line in enumerate(lines, start=1):
+            matched_kinds = tuple(kind for kind, needle in needles if needle in line)
+            if not matched_kinds:
+                continue
+            row_key = (path, line_number, matched_kinds)
+            if row_key in seen_rows:
+                continue
+            seen_rows.add(row_key)
+            references.append(
+                Phase3SlugMergePrepReference(
+                    root=paths.root,
+                    path=path,
+                    line_number=line_number,
+                    scope=_phase3_merge_reference_scope(path, paths),
+                    kinds=matched_kinds,
+                )
+            )
+    return references
+
+
+def discover_phase3_slug_merge_prep(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[Phase3SlugMergePrep]:
+    impacts = discover_phase3_slug_rename_impacts(entries)
+    merge_prep: list[Phase3SlugMergePrep] = []
+    for impact in impacts:
+        entry = next(entry for entry in entries if entry.slug == impact.slug)
+        references = _discover_phase3_slug_merge_references(entry, impact.paths, paths)
+        merge_prep.append(
+            Phase3SlugMergePrep(
+                root=impact.root,
+                slug=impact.slug,
+                canonical_slug=impact.canonical_slug,
+                issue_codes=impact.issue_codes,
+                retire_paths=impact.paths,
+                references=tuple(references),
+            )
+        )
+    return merge_prep
+
+
 def audit_phase3_doc_sync(
     entries: list[Phase3Slice],
     paths: Phase3Paths = DEFAULT_PATHS,
@@ -1118,7 +1243,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         ordered_entries = discover_artifact_diff_phase3_order(entries, artifact_diff_path)
-        assert [entry.slug for entry in ordered_entries[:4]] == ["abi", "alpha", "custom", "gamma"]
+        assert [entry.slug for entry in ordered_entries[:4]] == ["abi", "alpha", "bitmap-cpumask", "custom"]
         assert all(entry.slug != "delta" for entry in ordered_entries)
         assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
         rewritten_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
@@ -1336,6 +1461,42 @@ def run_self_test() -> int:
                 f"phase3_{repetitive_with_prefix.replace('-', '_')}_manifest.json"
             ),
         }
+        (paths.docs_dir / "phase3-merge-notes.md").write_text(
+            "\n".join(
+                [
+                    "# Merge notes",
+                    "",
+                    f"- `python3 scripts/zigux/run-phase3-checks.py --slug {repetitive_with_prefix}`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "build.zig").write_text(
+            "\n".join(
+                [
+                    "const std = @import(\"std\");",
+                    "",
+                    "pub fn build(b: *std.Build) void {",
+                    f"    _ = b.step(\"{build_step_for_slug(repetitive_with_prefix)}\", \"demo step\");",
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        merge_prep = discover_phase3_slug_merge_prep(discover_phase3_slices(paths), paths)
+        merge_entry = next(prep for prep in merge_prep if prep.slug == repetitive_with_prefix)
+        assert merge_entry.canonical_slug == repetitive_canonical_slug
+        assert tuple(_rel(path, paths.root) for path in merge_entry.retire_paths) == tuple(
+            _rel(path, paths.root) for path in rename_impact.paths
+        )
+        assert [reference.to_row() for reference in merge_entry.references] == [
+            "Documentation/zigux/phase3-merge-notes.md\t3\tdocumentation\trunner,slug",
+            "zigux/tests/build.zig\t4\tbuild-step\tbuild-step,slug",
+        ]
 
         mismatched_canonical_slug = "mismatch-window-policy-budget"
         (paths.docs_dir / f"phase3-{mismatched_canonical_slug}-slice.md").write_text(
@@ -1466,6 +1627,7 @@ def run_self_test() -> int:
         assert parser.parse_args(["--audit-slug-sanity"]).audit_slug_sanity is True
         assert parser.parse_args(["--suggest-slug-renames"]).suggest_slug_renames is True
         assert parser.parse_args(["--suggest-slug-rename-paths"]).suggest_slug_rename_paths is True
+        assert parser.parse_args(["--suggest-slug-merge-prep"]).suggest_slug_merge_prep is True
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -1520,6 +1682,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--suggest-slug-rename-paths",
         action="store_true",
         help="List the core slice files and directories that a suggested Phase 3 slug rename would touch.",
+    )
+    parser.add_argument(
+        "--suggest-slug-merge-prep",
+        action="store_true",
+        help="List the retireable slice artifacts plus the extra docs, workflow, script, or build-step references that still mention each safe long slug elsewhere in the tree.",
     )
     return parser
 
@@ -1590,6 +1757,14 @@ if __name__ == "__main__":
             impacts = discover_phase3_slug_rename_impacts(entries)
             for impact in impacts:
                 print(impact.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+    if args.suggest_slug_merge_prep:
+        try:
+            merge_prep = discover_phase3_slug_merge_prep(entries)
+            for prep in merge_prep:
+                print(prep.to_row())
         except BrokenPipeError:
             sys.exit(0)
         raise SystemExit(0)
