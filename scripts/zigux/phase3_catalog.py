@@ -356,6 +356,36 @@ def discover_non_doc_legacy_wrapper_references(
     return references
 
 
+def rewrite_non_slice_doc_legacy_wrapper_references(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[str]:
+    discovered_slugs = {entry.slug for entry in entries}
+    rewritten: list[str] = []
+    docs_exclude = {entry.doc_path.resolve() for entry in entries}
+
+    def replace_reference(match: re.Match[str]) -> str:
+        slug = match.group("slug")
+        if slug not in discovered_slugs:
+            return match.group(0)
+        return f"python3 scripts/zigux/run-phase3-checks.py --slug {slug}"
+
+    for path in sorted(paths.docs_dir.glob("*.md")):
+        if path.resolve() in docs_exclude:
+            continue
+        try:
+            original = path.read_text(encoding="utf-8")
+        except (FileNotFoundError, OSError):
+            continue
+        updated = LEGACY_WRAPPER_REF_RE.sub(replace_reference, original)
+        if updated == original:
+            continue
+        path.write_text(updated, encoding="utf-8", newline="\n")
+        rewritten.append(_rel(path, paths.root))
+
+    return rewritten
+
+
 def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
     slices: list[Phase3Slice] = []
     for slug in _collect_slugs(paths):
@@ -546,6 +576,18 @@ def run_self_test() -> int:
             "zigux/tests/fixtures/phase3_alpha_manifest.json\t1\talpha\tpath\tmanifest\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
         ]
 
+        rewritten = rewrite_non_slice_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
+        assert rewritten == ["Documentation/zigux/artifact-diff.md"], rewritten
+        artifact_diff = (paths.docs_dir / "artifact-diff.md").read_text(encoding="utf-8")
+        assert "check-phase3-alpha.py" not in artifact_diff
+        assert "check-phase3-gamma.py" not in artifact_diff
+        assert "run-phase3-checks.py --slug alpha" in artifact_diff
+        assert "run-phase3-checks.py --slug gamma" in artifact_diff
+        remaining = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
+        assert [reference.to_row() for reference in remaining] == [
+            "zigux/tests/fixtures/phase3_alpha_manifest.json\t1\talpha\tpath\tmanifest\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
+        ]
+
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
 
@@ -567,6 +609,11 @@ if __name__ == "__main__":
         "--legacy-wrapper-references",
         action="store_true",
         help="List remaining discovered Phase 3 wrapper mentions outside the slice docs.",
+    )
+    parser.add_argument(
+        "--rewrite-shared-runner-reference-docs",
+        action="store_true",
+        help="Rewrite discovered non-slice documentation references to the shared run-phase3-checks.py --slug form.",
     )
     args = parser.parse_args()
 
@@ -593,6 +640,11 @@ if __name__ == "__main__":
                 print(reference.to_row())
         except BrokenPipeError:
             sys.exit(0)
+        raise SystemExit(0)
+    if args.rewrite_shared_runner_reference_docs:
+        rewritten = rewrite_non_slice_doc_legacy_wrapper_references(entries)
+        for path in rewritten:
+            print(path)
         raise SystemExit(0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
