@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime trace-events survey manifest records the starter slice and remaining gaps" {
+test "phase 9 runtime trace-events survey manifest records the landed starter slice and remaining gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -53,10 +53,10 @@ test "phase 9 runtime trace-events survey manifest records the starter slice and
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
-    try std.testing.expectEqual(@as(usize, 0), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
-    try std.testing.expect(!manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
+    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.gaps.len >= 5);
 
     var runtime_test_destination_count: usize = 0;
