@@ -1,0 +1,74 @@
+{
+  "lane_key": "P15-L05",
+  "phase": "Phase 15",
+  "surveyed_commit": "40aa574db33204bfbb0c972f1de37ad4cb396a77",
+  "roadmap_requirement": "Architecture Council review process",
+  "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
+  "trigger_conditions": [
+    "freeze-map list change",
+    "freeze-map status-bucket change",
+    "bounded dual-implementation request for a deep-core study target",
+    "contradictory validation needing a written council decision"
+  ],
+  "required_review_packet_fields": [
+    "linux anchor path",
+    "phase",
+    "requested decision bucket",
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "parity scorecard link or blocker record",
+    "explicit non-goals",
+    "written rationale"
+  ],
+  "decision_buckets": [
+    "keep_in_c",
+    "study_only_followup",
+    "bounded_dual_implementation",
+    "defer_or_reject"
+  ],
+  "gaps": [
+    {
+      "id": "phase15-architecture-council-review-process-doc",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The roadmap names an Architecture Council review process, but the live repo lacked a reviewable process note that says when council review is required and what packet it must carry."
+    },
+    {
+      "id": "phase15-architecture-council-review-process-manifest",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+      "why_now": "A dedicated manifest keeps the new governance slice explicit and machine-checkable instead of burying the scope inside prose."
+    },
+    {
+      "id": "phase15-architecture-council-review-process-test",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process.zig",
+      "why_now": "The Phase 15 review-process note should stay runnable so future edits do not quietly drop required trigger, packet, or decision-bucket language."
+    },
+    {
+      "id": "phase15-review-checklist-hook",
+      "status": "starter_landed",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/review-checklist.md",
+      "why_now": "The live review checklist needed one explicit prompt that links freeze-map status-change requests back to the Architecture Council review record and decision bucket."
+    },
+    {
+      "id": "phase15-build-gate-review-process",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_build.zig",
+      "why_now": "The shared Phase 15 build gate should run the review-process test alongside the existing freeze-map governance test so the governance lane stays coherent."
+    },
+    {
+      "id": "phase15-parity-scorecard-template",
+      "status": "ready_next",
+      "kind": "governance",
+      "zigux_destination": "Documentation/zigux/parity-scorecard.md",
+      "why_now": "The next honest Phase 15 step is still a bounded parity-scorecard template so Architecture Council requests can attach evidence instead of only a process note."
+    }
+  ]
+}
