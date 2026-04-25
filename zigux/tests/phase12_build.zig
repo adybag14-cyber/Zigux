@@ -41,6 +41,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase12_libbpf_segments_module = b.createModule(.{
+        .root_source_file = b.path("phase12_libbpf_segments.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase12_nvme_pci_tests = b.addTest(.{
         .name = "phase12-nvme-pci-tests",
@@ -62,6 +67,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase12_virtio_scsi_survey_module,
     });
     const run_phase12_virtio_scsi_survey_tests = b.addRunArtifact(phase12_virtio_scsi_survey_tests);
+    const phase12_libbpf_segments_tests = b.addTest(.{
+        .name = "phase12-libbpf-segment-survey-tests",
+        .root_module = phase12_libbpf_segments_module,
+    });
+    const run_phase12_libbpf_segments_tests = b.addRunArtifact(phase12_libbpf_segments_tests);
     const phase12_virtio_scsi_tests = b.addTest(.{
         .name = "phase12-virtio-scsi-tests",
         .root_module = phase12_virtio_scsi_module,
@@ -74,4 +84,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
+    test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
 }
