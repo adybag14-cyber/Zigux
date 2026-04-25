@@ -1,12 +1,12 @@
 # Phase 11 BCM2835 Watchdog Survey
 
-This survey note tracks the current Phase 11 gap around `drivers/watchdog/bcm2835_wdt.c`.
+This survey note tracks the current Phase 11 gap around `drivers/watchdog/bcm2835_wdt.c` on `master` `b6c2dc8bb6869db064b14df4f94b7326eb95b9eb`.
 
 The live repo state is now:
 
 - `drivers/watchdog/gpio_wdt.zig` already provides one bounded Phase 11 watchdog starter, so the tranche has a real foothold
-- `drivers/watchdog/bcm2835_wdt.zig` now adds the first bcm2835 starter for timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, and halt-partition bookkeeping
-- `zigux/tests/phase11_bcm2835_wdt.zig` and `Documentation/zigux/phase11-bcm2835-wdt-slice.md` now keep that starter reviewable without claiming platform registration or hardware-backed execution
+- `drivers/watchdog/bcm2835_wdt.zig` already ships the bounded bcm2835 starter for timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, and halt-partition bookkeeping
+- `zigux/tests/phase11_bcm2835_wdt.zig` and `Documentation/zigux/phase11-bcm2835-wdt-slice.md` keep that starter reviewable without claiming platform registration or hardware-backed execution
 - `zigux/tests/phase11_bcm2835_wdt_survey.zig` and `zigux/tests/phase11_bcm2835_wdt_manifest.json` still track the remaining bcm2835_wdt gap against the roadmap so the lane does not overclaim progress
 - `zigux/tests/phase11_build.zig` runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place
 
