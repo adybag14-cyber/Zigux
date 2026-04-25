@@ -1,0 +1,133 @@
+const std = @import("std");
+
+pub const pm_password: u32 = 0x5a00_0000;
+pub const pm_rsts_halt: u32 = 0x0000_0555;
+pub const pm_wdog_time_set: u32 = 0x000f_ffff;
+pub const pm_rstc_wrcfg_clr: u32 = 0xffff_ffcf;
+pub const pm_rstc_wrcfg_full_reset: u32 = 0x0000_0020;
+pub const pm_rstc_reset: u32 = 0x0000_0102;
+pub const restart_ticks: u32 = 10;
+pub const min_timeout_sec: u32 = 1;
+pub const max_timeout_sec: u32 = pm_wdog_time_set >> 16;
+pub const max_hw_heartbeat_ms: u32 = ticksToMilliseconds(pm_wdog_time_set);
+
+pub const ModuleDescriptor = struct {
+    name: []const u8,
+    anchor: []const u8,
+    provides_simple_driver_starter: bool,
+    touches_platform_registration: bool,
+    touches_poweroff_plumbing: bool,
+};
+
+pub const RegisterImage = struct {
+    rstc: u32 = 0,
+    rsts: u32 = 0,
+    wdog: u32 = 0,
+};
+
+pub const ConfigSnapshot = struct {
+    anchor: []const u8,
+    timeout_sec: u32,
+    max_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+};
+
+pub const RuntimeSnapshot = struct {
+    anchor: []const u8,
+    running: bool,
+    full_reset_requested: bool,
+    restart_armed: bool,
+    halt_partition_requested: bool,
+    timeout_sec: u32,
+    time_left_sec: u32,
+    registers: RegisterImage,
+};
+
+pub const Bcm2835WatchdogLab = struct {
+    const Self = @This();
+
+    timeout_sec: u32,
+    registers: RegisterImage = .{},
+
+    pub fn descriptor() ModuleDescriptor {
+        return .{
+            .name = "bcm2835_wdt_lab",
+            .anchor = "drivers/watchdog/bcm2835_wdt.c",
+            .provides_simple_driver_starter = true,
+            .touches_platform_registration = false,
+            .touches_poweroff_plumbing = false,
+        };
+    }
+
+    pub fn init(timeout_sec: u32) !Self {
+        try validateTimeout(timeout_sec);
+        return .{ .timeout_sec = timeout_sec };
+    }
+
+    pub fn configSnapshot(self: *const Self) ConfigSnapshot {
+        return .{
+            .anchor = descriptor().anchor,
+            .timeout_sec = self.timeout_sec,
+            .max_timeout_sec = max_timeout_sec,
+            .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
+        };
+    }
+
+    pub fn loadRegisters(self: *Self, registers: RegisterImage) RuntimeSnapshot {
+        self.registers = registers;
+        return self.runtimeSnapshot();
+    }
+
+    pub fn isRunning(self: *const Self) bool {
+        return (self.registers.rstc & pm_rstc_wrcfg_full_reset) != 0;
+    }
+
+    pub fn start(self: *Self) RuntimeSnapshot {
+        self.registers.wdog = pm_password | (secondsToTicks(self.timeout_sec) & pm_wdog_time_set);
+        self.registers.rstc = pm_password | (self.registers.rstc & pm_rstc_wrcfg_clr) | pm_rstc_wrcfg_full_reset;
+        return self.runtimeSnapshot();
+    }
+
+    pub fn stop(self: *Self) RuntimeSnapshot {
+        self.registers.rstc = pm_password | pm_rstc_reset;
+        return self.runtimeSnapshot();
+    }
+
+    pub fn armRestart(self: *Self) RuntimeSnapshot {
+        self.registers.wdog = pm_password | restart_ticks;
+        self.registers.rstc = pm_password | (self.registers.rstc & pm_rstc_wrcfg_clr) | pm_rstc_wrcfg_full_reset;
+        return self.runtimeSnapshot();
+    }
+
+    pub fn runtimeSnapshot(self: *const Self) RuntimeSnapshot {
+        const running = self.isRunning();
+        const raw_ticks = self.registers.wdog & pm_wdog_time_set;
+        return .{
+            .anchor = descriptor().anchor,
+            .running = running,
+            .full_reset_requested = running,
+            .restart_armed = running and raw_ticks == restart_ticks,
+            .halt_partition_requested = (self.registers.rsts & pm_rsts_halt) == pm_rsts_halt,
+            .timeout_sec = self.timeout_sec,
+            .time_left_sec = if (running) ticksToSeconds(raw_ticks) else 0,
+            .registers = self.registers,
+        };
+    }
+};
+
+pub fn secondsToTicks(seconds: u32) u32 {
+    return seconds << 16;
+}
+
+pub fn ticksToSeconds(ticks: u32) u32 {
+    return ticks >> 16;
+}
+
+pub fn ticksToMilliseconds(ticks: u32) u32 {
+    return (ticks * 1000) >> 16;
+}
+
+fn validateTimeout(timeout_sec: u32) !void {
+    if (timeout_sec < min_timeout_sec) return error.TimeoutTooSmall;
+    if (timeout_sec > max_timeout_sec) return error.TimeoutTooLarge;
+}
