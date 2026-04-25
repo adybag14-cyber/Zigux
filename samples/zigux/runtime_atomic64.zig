@@ -1,0 +1,106 @@
+const std = @import("std");
+const atomic = @import("atomic");
+
+pub const ModuleStage = enum(u8) {
+    cold,
+    initialized,
+    selftest_complete,
+    exited,
+};
+
+pub const OperationFamily = enum {
+    arithmetic,
+    bitwise,
+    returning_ops,
+    swap_ops,
+    guard_ops,
+};
+
+pub const ModuleDescriptor = struct {
+    name: []const u8,
+    anchor: []const u8,
+    requires_runtime_substrate: bool,
+    provides_selftest_hook: bool,
+};
+
+pub const SelftestSummary = struct {
+    anchor: []const u8,
+    operation_families: []const OperationFamily,
+    checked_returning_paths: bool,
+    checked_guard_paths: bool,
+};
+
+pub const RuntimeAtomic64Sample = struct {
+    const Self = @This();
+
+    stage_bits: u8 = @intFromEnum(ModuleStage.cold),
+    counter: i64 = 0,
+    init_runs: usize = 0,
+    selftest_runs: usize = 0,
+    exit_runs: usize = 0,
+
+    pub fn descriptor() ModuleDescriptor {
+        return .{
+            .name = "runtime_atomic64",
+            .anchor = "lib/atomic64_test.c",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+        };
+    }
+
+    pub fn stage(self: *const Self) ModuleStage {
+        return @enumFromInt(atomic.load(u8, &self.stage_bits, .seq_cst));
+    }
+
+    fn setStage(self: *Self, next: ModuleStage) void {
+        atomic.store(u8, &self.stage_bits, @intFromEnum(next), .seq_cst);
+    }
+
+    pub fn init(self: *Self, seed: i64) !void {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        atomic.store(i64, &self.counter, seed, .seq_cst);
+        self.init_runs += 1;
+        self.setStage(.initialized);
+    }
+
+    pub fn snapshotCounter(self: *const Self) i64 {
+        return atomic.load(i64, &self.counter, .seq_cst);
+    }
+
+    pub fn swapCounter(self: *Self, next: i64) !i64 {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => atomic.exchange(i64, &self.counter, next, .seq_cst),
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn runSelftest(self: *Self) !SelftestSummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        self.selftest_runs += 1;
+        self.setStage(.selftest_complete);
+        return .{
+            .anchor = descriptor().anchor,
+            .operation_families = &.{
+                .arithmetic,
+                .bitwise,
+                .returning_ops,
+                .swap_ops,
+                .guard_ops,
+            },
+            .checked_returning_paths = true,
+            .checked_guard_paths = true,
+        };
+    }
+
+    pub fn exit(self: *Self) !void {
+        switch (self.stage()) {
+            .initialized, .selftest_complete => {},
+            else => return error.InvalidLifecycleTransition,
+        }
+
+        self.exit_runs += 1;
+        self.setStage(.exited);
+    }
+};
