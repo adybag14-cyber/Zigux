@@ -127,6 +127,75 @@ pub fn parseOptionStr(str: []const u8, option: []const u8) bool {
     return false;
 }
 
+pub const NextArgResult = struct {
+    rest: []u8,
+    param: []const u8,
+    value: ?[]const u8,
+};
+
+pub fn nextArg(args: []u8) NextArgResult {
+    if (args.len == 0) {
+        return .{ .rest = args, .param = "", .value = null };
+    }
+
+    var start: usize = 0;
+    var quoted = false;
+    var in_quote = false;
+    if (args[0] == '"') {
+        start = 1;
+        quoted = true;
+        in_quote = true;
+    }
+
+    const current = args[start..];
+    var equals_index: ?usize = null;
+    var index: usize = 0;
+    while (index < current.len and current[index] != 0) : (index += 1) {
+        if (!in_quote and std.ascii.isWhitespace(current[index])) {
+            break;
+        }
+        if (equals_index == null and current[index] == '=') {
+            equals_index = index;
+        }
+        if (current[index] == '"') {
+            in_quote = !in_quote;
+        }
+    }
+
+    var value: ?[]const u8 = null;
+    if (equals_index) |equals| {
+        current[equals] = 0;
+        var value_start = equals + 1;
+        if (value_start < current.len and current[value_start] == '"') {
+            value_start += 1;
+            if (index > 0 and current[index - 1] == '"') {
+                current[index - 1] = 0;
+            }
+        }
+        value = cStringPrefix(current[value_start..]);
+    }
+
+    if (quoted and index > 0 and current[index - 1] == '"') {
+        current[index - 1] = 0;
+    }
+
+    const rest_start = start + index;
+    if (rest_start < args.len and args[rest_start] != 0) {
+        args[rest_start] = 0;
+        return .{
+            .rest = skipSpaces(args[rest_start + 1 ..]),
+            .param = cStringPrefix(current),
+            .value = value,
+        };
+    }
+
+    return .{
+        .rest = skipSpaces(args[rest_start..]),
+        .param = cStringPrefix(current),
+        .value = value,
+    };
+}
+
 fn getRange(str: *[]const u8, lower: i32, out: []i32) ?usize {
     if (str.*.len == 0 or str.*[0] != '-') {
         return null;
@@ -149,6 +218,10 @@ fn getRange(str: *[]const u8, lower: i32, out: []i32) ?usize {
     }
 
     return @intCast(delta);
+}
+
+fn cStringPrefix(s: []const u8) []const u8 {
+    return s[0 .. std.mem.indexOfScalar(u8, s, 0) orelse s.len];
 }
 
 fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
@@ -218,6 +291,12 @@ fn truncateToI32(value: i64) i32 {
     return @bitCast(bits);
 }
 
+fn skipSpaces(s: []u8) []u8 {
+    var index: usize = 0;
+    while (index < s.len and s[index] != 0 and std.ascii.isWhitespace(s[index])) : (index += 1) {}
+    return s[index..];
+}
+
 test "getOption parses signed integers and updates the remaining slice" {
     var rest: []const u8 = "-5,tail";
     var value: i32 = 0;
@@ -280,4 +359,22 @@ test "parseOptionStr only matches full comma-delimited options" {
     try std.testing.expect(parseOptionStr("debug", "debug"));
     try std.testing.expect(!parseOptionStr("nodebug,quiet", "debug"));
     try std.testing.expect(!parseOptionStr("debug=1,quiet", "debug"));
+}
+
+test "nextArg splits parameter-value pairs and trims quoted values" {
+    var buffer = [_]u8{ 'm', 'o', 'd', 'e', '=', '"', 'f', 'a', 's', 't', ' ', 'b', 'o', 'o', 't', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("mode", parsed.param);
+    try std.testing.expectEqualStrings("fast boot", parsed.value.?);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+}
+
+test "nextArg keeps a whole quoted token together without inventing a value" {
+    var buffer = [_]u8{ '"', 't', 'w', 'o', ' ', 'w', 'o', 'r', 'd', 's', '"', ' ', 't', 'a', 'i', 'l', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("two words", parsed.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
 }
