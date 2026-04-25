@@ -42,6 +42,7 @@ Phase 3 flow
 - `phase3_catalog.py --rewrite-legacy-wrapper-references` rewrites those non-slice documentation references to the shared runner form, leaving `artifact-diff.md` and similar policy docs on the same scripted cleanup path as the slice records.
 - `phase3_catalog.py --rewrite-artifact-diff-phase3-section` regenerates the detailed `Documentation/zigux/artifact-diff.md` Phase 3 policy block from the discovered slice catalog.
 - `phase3_catalog.py --audit-doc-sync` reports stale non-slice wrapper references plus a stale `artifact-diff.md` Phase 3 block, and bootstrap now runs it so documentation drift fails fast.
+- `phase3_catalog.py --suggest-slug-renames` turns the slug sanity audit into concrete cleanup candidates by pairing each overgrown slug with the longest clean prefix already present in the catalog.
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
 - `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, wrapper-template, and argument-parsing helpers without running Zig parity builds.
 - `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
@@ -51,7 +52,6 @@ Phase 3 flow
 - `validate-phase3.py --self-test` exercises manifest, optional-wrapper, obsolete-wrapper, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
 - `run-phase3-checks.py` lists or executes every discovered Phase 3 slice from catalog metadata through one shared entrypoint, even when a wrapper stub is missing.
 - `run-phase3-checks.py --self-test` checks slug filtering plus direct runner and fail-fast behavior without launching Zig parity builds.
-- `make -C zigux phase3-validate` now mirrors the lightweight CI safety net for this tranche by running the validator, the validator/catalog/shared-helper/runner self-tests, the documentation-sync audit, and the wrapper-template check before the parity suite.
 
 Rules
 - keep helpers narrow and product-facing
