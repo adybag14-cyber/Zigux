@@ -1,0 +1,101 @@
+{
+  "lane_key": "P15-L13",
+  "phase": "Phase 15",
+  "surveyed_commit": "5ef3897e33afaf014a686206f368ebd52c433b2c",
+  "roadmap_requirement": "policy for code that remains in C indefinitely",
+  "anchors": [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c"
+  ],
+  "supporting_artifacts": [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-evidence-archives/"
+  ],
+  "indefinite_c_requirements": [
+    {
+      "id": "indefinite-c-source-of-truth",
+      "summary": "The existing C implementation remains the product source of truth for the current plan horizon.",
+      "required_terms": [
+        "product source of truth",
+        "remains in C indefinitely"
+      ]
+    },
+    {
+      "id": "indefinite-c-recordkeeping",
+      "summary": "The review record must preserve decision, blocker, archive, replay, rollback, and reopen information.",
+      "required_terms": [
+        "decision record ID",
+        "latest blocker disposition",
+        "evidence archive path",
+        "reopen conditions"
+      ]
+    },
+    {
+      "id": "indefinite-c-allowed-work",
+      "summary": "Only bounded surveys, manifests, validation gates, and non-goal records may continue after an explicit stay-in-C outcome.",
+      "required_terms": [
+        "survey notes, boundary manifests, validation gates, and explicit non-goal records",
+        "explicit stay-in-C outcome"
+      ]
+    },
+    {
+      "id": "indefinite-c-reopen-gate",
+      "summary": "Status review may reopen only with a narrower seam, updated validation, fresh linked evidence, and Architecture Council review.",
+      "required_terms": [
+        "new bounded seam inventory",
+        "updated validation plan",
+        "fresh linked evidence",
+        "Architecture Council review request"
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "id": "phase15-indefinite-c-policy-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The roadmap explicitly requires a policy for code that remains in C indefinitely, and the live repo previously carried that posture only as distributed wording."
+    },
+    {
+      "id": "phase15-indefinite-c-policy-manifest",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.json",
+      "why_now": "The indefinite-C policy needs a machine-checkable record so the long-term stay-in-C posture does not collapse back into prose only."
+    },
+    {
+      "id": "phase15-indefinite-c-policy-test",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_policy.zig",
+      "why_now": "A dedicated Phase 15 test is the smallest honest way to keep the indefinite-C policy aligned with the freeze map, review process, parity scorecard, and archive templates."
+    },
+    {
+      "id": "phase15-build-gate-indefinite-c-policy",
+      "status": "starter_landed",
+      "kind": "test_gate",
+      "zigux_destination": "zigux/tests/phase15_build.zig",
+      "why_now": "The shared Phase 15 build should replay the indefinite-C policy slice alongside the rest of the governance lane."
+    },
+    {
+      "id": "phase15-indefinite-c-field-sync-followup",
+      "status": "ready_next",
+      "kind": "followup",
+      "zigux_destination": "Documentation/zigux/phase15-evidence-archives/",
+      "why_now": "The next bounded step is a small field-sync follow-up so the new policy note stays aligned with the review-process packet fields and per-anchor archive templates."
+    },
+    {
+      "id": "phase15-deep-core-status-change-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "freeze_map",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The live repo still lacks evidence strong enough to move any freeze-in-C anchor out of the current long-term C-owned posture."
+    }
+  ]
+}
