@@ -24,6 +24,7 @@ Current closure records
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
 - `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest.
+- `python3 scripts/zigux/phase3_catalog.py --self-test` and `python3 scripts/zigux/run-phase3-checks.py --self-test` cover the discovery and slug-selection paths without launching the full parity suite.
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check` catches wrapper-template drift before the parity suite runs.
 - `python3 scripts/zigux/run-phase3-checks.py --list` shows the currently discovered Phase 3 parity wrappers.
 - `python3 scripts/zigux/run-phase3-checks.py` executes the full discovered Phase 3 parity suite.
