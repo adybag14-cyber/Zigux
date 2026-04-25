@@ -16,12 +16,31 @@ pub fn build(b: *std.Build) void {
     });
     string_helpers_root_module.addImport("string_helpers", string_helpers_module);
 
+    const cmdline_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/cmdline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const cmdline_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_cmdline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cmdline_root_module.addImport("cmdline", cmdline_module);
+
     const string_helpers_tests = b.addTest(.{
         .name = "phase7-string-helpers-tests",
         .root_module = string_helpers_root_module,
     });
     const run_string_helpers_tests = b.addRunArtifact(string_helpers_tests);
 
-    const test_step = b.step("test", "Run Phase 7 string helper tests");
+    const cmdline_tests = b.addTest(.{
+        .name = "phase7-cmdline-tests",
+        .root_module = cmdline_root_module,
+    });
+    const run_cmdline_tests = b.addRunArtifact(cmdline_tests);
+
+    const test_step = b.step("test", "Run Phase 7 runtime helper tests");
     test_step.dependOn(&run_string_helpers_tests.step);
+    test_step.dependOn(&run_cmdline_tests.step);
 }
