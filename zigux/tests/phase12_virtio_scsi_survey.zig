@@ -40,7 +40,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 virtio_scsi survey manifest records the landed queue starter and remaining roadmap gap" {
+test "phase12 virtio_scsi survey manifest records the landed queue starter and probe snapshot follow-up" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -59,7 +59,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and r
     try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
-    try std.testing.expectEqualStrings("50d4fad800585c8058238c66df6ffd63f6149664", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("ee64eec272a352da1d967999c99bb3c3560c9b97", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_scsi_c_lines >= 1000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -167,11 +167,13 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and r
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-queue-freeze-recovery-helper")) {
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-probe-config-snapshot-starter")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport freeze and restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_probe()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "num_queues") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "max_target") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-queues-and-scan")) {
