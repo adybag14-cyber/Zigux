@@ -38,6 +38,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     kallsyms_root_module.addImport("kallsyms", kallsyms_module);
+    const cpu_mask_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/cpu_mask.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const cpu_mask_root_module = b.createModule(.{
+        .root_source_file = b.path("phase8_cpu_mask.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    cpu_mask_root_module.addImport("cpu_mask", cpu_mask_module);
     const libbpf_segments_root_module = b.createModule(.{
         .root_source_file = b.path("phase8_libbpf_segments.zig"),
         .target = target,
@@ -67,6 +78,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase8-kallsyms-tests",
         .root_module = kallsyms_root_module,
     });
+    const cpu_mask_tests = b.addTest(.{
+        .name = "phase8-cpu-mask-tests",
+        .root_module = cpu_mask_root_module,
+    });
     const libbpf_segments_tests = b.addTest(.{
         .name = "phase8-libbpf-segment-tests",
         .root_module = libbpf_segments_root_module,
@@ -79,6 +94,7 @@ pub fn build(b: *std.Build) void {
     const run_exec_cmd_tests = b.addRunArtifact(exec_cmd_tests);
     const run_help_tests = b.addRunArtifact(help_tests);
     const run_kallsyms_tests = b.addRunArtifact(kallsyms_tests);
+    const run_cpu_mask_tests = b.addRunArtifact(cpu_mask_tests);
     const run_libbpf_segments_tests = b.addRunArtifact(libbpf_segments_tests);
     const run_bpf_type_names_tests = b.addRunArtifact(bpf_type_names_tests);
 
@@ -86,6 +102,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_exec_cmd_tests.step);
     test_step.dependOn(&run_help_tests.step);
     test_step.dependOn(&run_kallsyms_tests.step);
+    test_step.dependOn(&run_cpu_mask_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
     test_step.dependOn(&run_bpf_type_names_tests.step);
 }
