@@ -44,7 +44,7 @@ It is a small substrate that makes future ports measurable:
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
-- `PHASE3_ABI_GATE=python3 scripts/zigux/check-phase3-abi.py`
+- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-abi.py`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 
 ## Interop rules
@@ -78,7 +78,3 @@ This slice does not claim:
 - full runtime allocator integration
 - driver ports
 - scheduler ports
-- DMA or ring management ports
-- full Rust-export parity replacement
-
-This slice only establishes the initial permanent substrate those later phases will build on.

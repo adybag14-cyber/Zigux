@@ -31,6 +31,8 @@ Current bootstrap helpers
 
 Phase 3 flow
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, parity wrappers, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory.
+- `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper.
+- `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
 - `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers.
 - `run-phase3-checks.py` lists or executes every discovered `check-phase3-*.py` wrapper through one shared entrypoint.
 

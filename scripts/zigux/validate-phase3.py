@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from phase3_catalog import discover_phase3_slices
+from phase3_check_lib import render_wrapper_stub
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -61,6 +62,15 @@ def validate_doc_markers(doc_path: Path, slug: str, manifest: dict[str, object] 
             issues.append(f"{slug}:missing_doc_marker={marker}")
 
 
+def validate_wrapper_template(script_path: Path, slug: str, issues: list[str]) -> None:
+    if not script_path.exists():
+        return
+    expected = render_wrapper_stub()
+    current = script_path.read_text(encoding="utf-8")
+    if current != expected:
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(ROOT).as_posix()}")
+
+
 def main() -> int:
     issues: list[str] = []
     slices = discover_phase3_slices()
@@ -79,6 +89,7 @@ def main() -> int:
 
         manifest = validate_manifest(entry.manifest_path, entry.slug, issues)
         validate_doc_markers(entry.doc_path, entry.slug, manifest, issues)
+        validate_wrapper_template(entry.check_script, entry.slug, issues)
 
     if issues:
         print("PHASE3_VALIDATION=fail")
