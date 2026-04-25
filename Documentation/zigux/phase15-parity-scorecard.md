@@ -111,14 +111,28 @@ The current lane state is:
 - landed `phase15-freeze-map-governance-note`
 - landed `phase15-review-checklist-scorecard-question`
 - landed `phase15-parity-scorecard-note`
+- landed `phase15-council-review-gate`
 - landed `phase15-parity-scorecard-manifest`
 - landed `phase15-parity-scorecard-test`
 - landed `phase15-build-gate`
 - landed `phase15-make-target`
-- ready-next `phase15-stay-in-c-policy-followup`
+- ready-next `phase15-evidence-archive-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+
+## Architecture Council Review Gate
+
+Before a freeze-in-C anchor can enter active status-review discussion, the scorecard record must carry one Architecture Council decision record that names:
+
+- the decision record ID and the lane owner responsible for the proposed seam
+- the current validation gate set and the rollback owner who would return the anchor to C-only operation
+- the evidence archive path that preserves linked surveys and blocker follow-ups, benchmark notes, and replay commands
+- the latest blocker disposition stating whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
+
+A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, and latest blocker disposition are all recorded together in the scorecard.
+
+If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
 ## Non-goals
 
@@ -141,4 +155,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small stay-in-C policy follow-up next, limited to documenting how a frozen anchor is retired from active discussion only after council sign-off, validation evidence, and rollback ownership are all recorded in the scorecard.
+Stay in the Phase 15 governance lane and add one small evidence-archive follow-up next, limited to standardizing where Council decision records, benchmark notes, blocker dispositions, and replay commands are stored for each frozen anchor.

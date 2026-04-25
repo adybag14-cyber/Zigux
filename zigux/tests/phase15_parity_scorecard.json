@@ -1,7 +1,24 @@
 {
-  "lane_key": "P15-L03",
+  "lane_key": "P15-L06",
   "phase": "Phase 15",
-  "surveyed_commit": "07d53ee63ae7cb8d148ca38b93e7e7a6d867603c",
+  "surveyed_commit": "f1f0a107f136bf05654184643a26a0c344791994",
+  "review_process": {
+    "decision_record_required": true,
+    "required_record_fields": [
+      "decision record ID",
+      "lane owner",
+      "validation gate set",
+      "rollback owner",
+      "evidence archive path",
+      "latest blocker disposition"
+    ],
+    "retirement_rule": "A frozen anchor leaves active discussion only after Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, and latest blocker disposition are all recorded together in the scorecard.",
+    "archive_requirements": [
+      "linked surveys and blocker follow-ups",
+      "benchmark notes",
+      "replay commands"
+    ]
+  },
   "anchors": [
     {
       "path": "kernel/sched/core.c",
@@ -126,6 +143,13 @@
       "why_now": "Phase 15 needed a reviewable scorecard that records council inputs, evidence thresholds, validation gates, and rollback ownership for every active freeze-in-C anchor."
     },
     {
+      "id": "phase15-council-review-gate",
+      "status": "starter_landed",
+      "kind": "review_process",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The Architecture Council review process now requires one decision record with the lane owner, evidence archive path, rollback owner, and latest blocker disposition before a frozen anchor can enter active status review."
+    },
+    {
       "id": "phase15-parity-scorecard-manifest",
       "status": "starter_landed",
       "kind": "validation",
@@ -154,11 +178,11 @@
       "why_now": "A make target keeps the Phase 15 scorecard runnable with the same discipline as other bounded tranche lanes."
     },
     {
-      "id": "phase15-stay-in-c-policy-followup",
+      "id": "phase15-evidence-archive-followup",
       "status": "ready_next",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
-      "why_now": "The next honest governance step is a small follow-up that documents exactly when a frozen anchor leaves active discussion and what evidence archive must be preserved."
+      "why_now": "The next honest governance step is a small follow-up that standardizes where each frozen anchor stores benchmark notes, blocker dispositions, and replay commands for Architecture Council review."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
