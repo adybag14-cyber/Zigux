@@ -82,6 +82,53 @@ test "phase10 virtio input suppresses MSC_TIMESTAMP status loops for multitouch 
     try std.testing.expectEqual(@as(usize, 1), summary.suppressed_status_count);
 }
 
+test "phase10 virtio input records bounded config bitmap summaries for property and event selectors" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-4", 4, null);
+
+    try std.testing.expectError(
+        error.UnsupportedConfigBitmapSelect,
+        device.configureConfigBitmap(.abs_info, 0, &[_]u16{ 0 }),
+    );
+    try std.testing.expectError(
+        error.EmptyConfigBitmap,
+        device.configureConfigBitmap(.prop_bits, 0, &[_]u16{}),
+    );
+    try std.testing.expectError(
+        error.ConfigBitmapBitDuplicate,
+        device.configureConfigBitmap(.prop_bits, 2, &[_]u16{ 1, 1 }),
+    );
+    try std.testing.expectError(
+        error.ConfigBitmapBitOutOfRange,
+        device.configureConfigBitmap(.prop_bits, 1, &[_]u16{ virtio_input.config_bitmap_bit_capacity }),
+    );
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 1, 5 });
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_msc, &[_]u16{ virtio_input.msc_timestamp, 0x06 });
+
+    const prop_summary = try device.configBitmapSummary(.prop_bits, 0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", prop_summary.anchor);
+    try std.testing.expectEqual(virtio_input.ConfigSelect.prop_bits, prop_summary.select);
+    try std.testing.expectEqual(@as(u8, 0), prop_summary.subsel);
+    try std.testing.expectEqual(@as(usize, 3), prop_summary.supported_bit_count);
+    try std.testing.expect(!prop_summary.surfaces_selected_event_type);
+
+    const event_summary = try device.configBitmapSummary(.ev_bits, virtio_input.ev_msc);
+    try std.testing.expectEqual(virtio_input.ConfigSelect.ev_bits, event_summary.select);
+    try std.testing.expectEqual(@as(u8, virtio_input.ev_msc), event_summary.subsel);
+    try std.testing.expectEqual(@as(usize, 2), event_summary.supported_bit_count);
+    try std.testing.expect(event_summary.surfaces_selected_event_type);
+    try std.testing.expect(try device.configBitmapSupportsBit(.ev_bits, virtio_input.ev_msc, virtio_input.msc_timestamp));
+    try std.testing.expect(!(try device.configBitmapSupportsBit(.prop_bits, 0, 9)));
+    try std.testing.expectError(
+        error.ConfigBitmapAlreadyConfigured,
+        device.configureConfigBitmap(.ev_bits, virtio_input.ev_msc, &[_]u16{ 7 }),
+    );
+    try std.testing.expectError(
+        error.ConfigBitmapNotConfigured,
+        device.configBitmapSummary(.ev_bits, 0x11),
+    );
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
@@ -92,10 +139,12 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     _ = try device.fillEventBuffers();
     try device.markReady();
     _ = try device.sendStatus(0x11, 0x01, 1);
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
     device.setMultitouch(true);
 
     device.reset();
 
     try std.testing.expectError(error.EventQueueNotConfigured, device.queuePlanSummary());
     try std.testing.expectError(error.StatusQueueNotConfigured, device.sendStatus(0x11, 0x01, 1));
+    try std.testing.expectError(error.ConfigBitmapNotConfigured, device.configBitmapSummary(.prop_bits, 0));
 }
