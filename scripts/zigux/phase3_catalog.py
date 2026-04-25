@@ -5,6 +5,7 @@ import argparse
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 import sys
 import tempfile
 from typing import Iterable
@@ -44,6 +45,7 @@ SPECIAL_DESCRIPTIONS = {
 }
 
 INTEROP_GATE_PREFIX = "PHASE3_INTEROP_GATE="
+LEGACY_WRAPPER_REF_RE = re.compile(r"(?P<command>python3\s+)?scripts/zigux/check-phase3-(?P<slug>[a-z0-9-]+)\.py")
 
 
 @dataclass(frozen=True)
@@ -92,6 +94,33 @@ class Phase3Slice:
             "interop_gate": self.interop_gate,
             "interop_gate_mode": self.interop_gate_mode,
         }
+
+
+@dataclass(frozen=True)
+class LegacyWrapperReference:
+    root: Path
+    path: Path
+    line_number: int
+    slug: str
+    line: str
+    kind: str
+    scope: str
+
+    @property
+    def replacement(self) -> str:
+        return f"python3 scripts/zigux/run-phase3-checks.py --slug {self.slug}"
+
+    def to_row(self) -> str:
+        return "\t".join(
+            [
+                _rel(self.path, self.root),
+                str(self.line_number),
+                self.slug,
+                self.kind,
+                self.scope,
+                self.replacement,
+            ]
+        )
 
 
 DEFAULT_PATHS = Phase3Paths(
@@ -271,6 +300,62 @@ def rewrite_legacy_wrapper_docs(entries: list[Phase3Slice]) -> list[str]:
     return rewritten
 
 
+def _discover_legacy_wrapper_references_in_file(
+    path: Path,
+    root: Path,
+    discovered_slugs: set[str],
+    scope: str,
+) -> list[LegacyWrapperReference]:
+    references: list[LegacyWrapperReference] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (FileNotFoundError, OSError):
+        return references
+
+    for line_number, line in enumerate(lines, start=1):
+        for match in LEGACY_WRAPPER_REF_RE.finditer(line):
+            slug = match.group("slug")
+            if slug not in discovered_slugs:
+                continue
+            kind = "command" if match.group("command") else "path"
+            references.append(
+                LegacyWrapperReference(
+                    root=root,
+                    path=path,
+                    line_number=line_number,
+                    slug=slug,
+                    line=line.strip(),
+                    kind=kind,
+                    scope=scope,
+                )
+            )
+    return references
+
+
+def discover_non_doc_legacy_wrapper_references(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[LegacyWrapperReference]:
+    discovered_slugs = {entry.slug for entry in entries}
+    references: list[LegacyWrapperReference] = []
+
+    docs_exclude = {entry.doc_path.resolve() for entry in entries}
+    for path in sorted(paths.docs_dir.glob("*.md")):
+        if path.resolve() in docs_exclude:
+            continue
+        references.extend(
+            _discover_legacy_wrapper_references_in_file(path, paths.root, discovered_slugs, "documentation")
+        )
+
+    manifest_paths = sorted(paths.fixtures_dir.glob(f"{FIXTURE_PREFIX}*{MANIFEST_SUFFIX}"))
+    for path in manifest_paths:
+        references.extend(
+            _discover_legacy_wrapper_references_in_file(path, paths.root, discovered_slugs, "manifest")
+        )
+
+    return references
+
+
 def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
     slices: list[Phase3Slice] = []
     for slug in _collect_slugs(paths):
@@ -430,6 +515,37 @@ def run_self_test() -> int:
         assert entry_map["legacy"].interop_gate_mode == "shared-runner"
         assert rewrite_legacy_wrapper_docs(entries) == []
 
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "- `scripts/zigux/check-phase3-alpha.py` compares artifacts.",
+                    "- `python3 scripts/zigux/check-phase3-gamma.py`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.fixtures_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-fixture",
+                    "files": ["scripts/zigux/check-phase3-alpha.py"],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        references = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
+        assert [reference.to_row() for reference in references] == [
+            "Documentation/zigux/artifact-diff.md\t1\talpha\tpath\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
+            "Documentation/zigux/artifact-diff.md\t2\tgamma\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug gamma",
+            "zigux/tests/fixtures/phase3_alpha_manifest.json\t1\talpha\tpath\tmanifest\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
+        ]
+
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
 
@@ -446,6 +562,11 @@ if __name__ == "__main__":
         "--rewrite-shared-runner-docs",
         action="store_true",
         help="Rewrite discovered legacy Phase 3 doc commands to the shared run-phase3-checks.py --slug form.",
+    )
+    parser.add_argument(
+        "--legacy-wrapper-references",
+        action="store_true",
+        help="List remaining discovered Phase 3 wrapper mentions outside the slice docs.",
     )
     args = parser.parse_args()
 
@@ -465,6 +586,13 @@ if __name__ == "__main__":
         rewritten = rewrite_legacy_wrapper_docs(entries)
         for path in rewritten:
             print(path)
+        raise SystemExit(0)
+    if args.legacy_wrapper_references:
+        try:
+            for reference in discover_non_doc_legacy_wrapper_references(entries):
+                print(reference.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
         raise SystemExit(0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
