@@ -25,6 +25,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - module descriptor metadata naming the `lib/test_bitmap.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, and `copyFrom` behavior
+- dedicated harness checks that keep zero-length range mutations as no-ops and reject copy attempts from a still-cold source
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
