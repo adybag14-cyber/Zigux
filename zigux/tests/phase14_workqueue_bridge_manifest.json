@@ -72,11 +72,18 @@
       "why_now": "The survey note compares the 8,439-line `kernel/workqueue.c` anchor and its supporting header or test surfaces against the new boundary map so future runs stay honest about what still belongs in C."
     },
     {
-      "id": "phase14-workqueue-concurrency-audit-followup",
+      "id": "phase14-workqueue-concurrency-audit-outline",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The live `workqueue_bridge.zig` slice now includes a bounded concurrency audit checklist around `manage_workers()`, `pool->lock` ownership, the mayday-to-rescuer path, and `wq_worker_running()` or `wq_worker_sleeping()` pairing so the lane stops describing that audit surface as future work."
+    },
+    {
+      "id": "phase14-workqueue-field-audit-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is a small concurrency audit outline around `manage_workers()`, `wq_worker_running()`, `wq_worker_sleeping()`, and `rescuer_thread()` so Zigux can name lock and scheduler boundaries before any wrapper claims leave the boundary-map-only posture."
+      "why_now": "The next honest Phase 14 step is to tighten the landed audit with one field-level follow-up around forward-progress state, `WORKER_NOT_RUNNING`, and the narrowest lock-domain wording before any wrapper claims leave the boundary-map-only posture."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
