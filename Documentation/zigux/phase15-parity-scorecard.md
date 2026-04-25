@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-stay-in-c-retirement-rule`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, and the retained stay-in-C closeout state for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `f52714d220c9507020ff725dcb9cb42401f4afe2`
+- `PHASE15_SLICE=parity-scorecard-owner-tracking-followup`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, and explicit per-anchor owner tracking for the active freeze-in-C anchors
+- survey provenance refreshed against verified `master` head `49f3ea7d00e2407b83b5350ef6de457b3e966d13`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -29,6 +29,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 ### `kernel/sched/core.c`
 
 - current status: `freeze_in_c`
+- lane owner: `Architecture Council`
 - current repo evidence:
   - active freeze-map anchor with no Zig surface or dedicated Phase 15 validation gate
   - large 11,235-line scheduler core still exceeds the current bounded-lane posture
@@ -55,6 +56,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 ### `mm/page_alloc.c`
 
 - current status: `freeze_in_c`
+- lane owner: `Architecture Council`
 - current repo evidence:
   - active freeze-map anchor with no Zig surface or dedicated Phase 15 validation gate
   - large 7,795-line allocator core still exceeds the current bounded-lane posture
@@ -81,6 +83,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 ### `kernel/rcu/tree.c`
 
 - current status: `freeze_in_c`
+- lane owner: `ABI and Runtime Team`
 - current repo evidence:
   - active freeze-map anchor with a published Phase 14 survey and blocker evidence
   - `kernel/rcu/tree.c` is 4,931 lines, with `tree_plugin.h`, `tree_exp.h`, and `tree_nocb.h` still documenting tight sidecar coupling
@@ -107,6 +110,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 ### `net/core/skbuff.c`
 
 - current status: `freeze_in_c`
+- lane owner: `Shared Subsystems Pod`
 - current repo evidence:
   - active freeze-map anchor with a published Phase 14 skbuff boundary survey
   - `net/core/skbuff.c` is 7,476 lines and `include/linux/skbuff.h` adds 5,467 lines of shared metadata and inline rules
@@ -145,6 +149,7 @@ The current lane state is:
 - landed `phase15-evidence-archive-reporting`
 - landed `phase15-decision-record-template-followup`
 - landed `phase15-template-field-sync-followup`
+- landed `phase15-anchor-owner-tracking`
 - landed `phase15-stay-in-c-retirement-rule`
 - ready-next `phase15-reopen-trigger-catalog-followup`
 - blocked `phase15-deep-core-status-change-blocker`
@@ -182,6 +187,7 @@ Each closeout packet must also record the reopen triggers that would bring the a
 
 Each frozen anchor now carries one reporting block that reserves:
 
+- the lane owner responsible for keeping the blocked or retired packet current
 - one decision record path under `Documentation/zigux/phase15-evidence-archives/`
 - the linked evidence set that reviewers must be able to open from the scorecard
 - a benchmark-notes status line that says whether performance notes exist yet
