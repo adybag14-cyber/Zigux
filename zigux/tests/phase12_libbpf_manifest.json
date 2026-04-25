@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L13",
   "phase": "Phase 12",
-  "surveyed_commit": "ee64eec272a352da1d967999c99bb3c3560c9b97",
+  "surveyed_commit": "361e052f78f0eb9a3b58e1a971990bc62c585aa9",
   "anchor": "tools/lib/bpf/libbpf.c",
   "roadmap_destinations": [
     "tools/lib/bpf/zigux_segments/",
@@ -19,7 +19,8 @@
     "preexisting_cpu_mask_zig_present": true,
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_libbpf_survey_present": true,
-    "preexisting_phase12_survey_note_present": true
+    "preexisting_phase12_survey_note_present": true,
+    "preexisting_phase12_reviewability_gate_present": false
   },
   "gaps": [
     {
@@ -63,6 +64,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_libbpf_segments.zig",
       "why_now": "A dedicated survey gate keeps the roadmap placement explicit now that libbpf helper work started earlier under the tooling tranche but the heavy-consumer rollout still belongs to Phase 12."
+    },
+    {
+      "id": "phase12-libbpf-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_libbpf_reviewability.zig",
+      "why_now": "The Phase 12 lane should verify that the landed zigux_segments foundations still compile and that the manifest matches which segment files are landed versus still deferred, instead of relying only on older Phase 8 coverage."
     },
     {
       "id": "phase12-libbpf-survey-note",

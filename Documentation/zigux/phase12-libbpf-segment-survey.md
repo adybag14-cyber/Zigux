@@ -10,6 +10,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 - product boundary:
   - `zigux/tests/phase12_libbpf_manifest.json`
   - `zigux/tests/phase12_libbpf_segments.zig`
+  - `zigux/tests/phase12_libbpf_reviewability.zig`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 
@@ -19,7 +20,7 @@ The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other
 
 That matters because the live repo already has real helper-first progress under `tools/lib/bpf/zigux_segments/`: a segment catalog, type-name helpers, and a CPU-mask parser. Those are useful footholds, but they do not yet replace the need for a current Phase 12 survey checkpoint that explains how the earlier helper work fits the modern roadmap instead of leaving libbpf stranded in Phase 8 wording.
 
-The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
+The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
 
 ## Survey findings
 
@@ -28,6 +29,7 @@ The highest-value honest step in this lane is therefore a survey checkpoint that
   - `type_names.zig` for exported attach, link, map, and program type string tables
   - `cpu_mask.zig` for bounded CPU-mask parsing and set-bit counting
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
+- the current Phase 12 build now re-checks the landed helper-first foundations directly by compiling `type_names.zig` and `cpu_mask.zig` through a reviewability gate and by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory.
 - the repo still has no `logging.zig`, `pin_path.zig`, `object_loader.zig`, or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
 - the next honest libbpf-facing step is one more helper-first segment, with `logging.zig` currently the smallest roadmap-aligned follow-up.
 
@@ -41,6 +43,7 @@ The survey manifest now records:
 - the landed `phase12-libbpf-type-name-helper-foundation`
 - the landed `phase12-libbpf-cpu-mask-helper-foundation`
 - the landed `phase12-libbpf-survey-gate`
+- the landed `phase12-libbpf-reviewability-gate`
 - the landed `phase12-libbpf-survey-note`
 - the ready-next `phase12-libbpf-logging-helper`
 - the still-blocked `phase12-libbpf-object-loader-and-program-load`
