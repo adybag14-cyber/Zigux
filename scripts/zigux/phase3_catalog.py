@@ -140,6 +140,16 @@ class Phase3AuditIssue:
         return f"{self.code}\t{self.detail}"
 
 
+@dataclass(frozen=True)
+class Phase3SlugRenameCandidate:
+    slug: str
+    canonical_slug: str
+    issue_codes: tuple[str, ...]
+
+    def to_row(self) -> str:
+        return "\t".join((self.slug, self.canonical_slug, ",".join(self.issue_codes)))
+
+
 DEFAULT_PATHS = Phase3Paths(
     root=ROOT,
     docs_dir=DOCS_DIR,
@@ -514,6 +524,44 @@ def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssu
     return issues
 
 
+def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[Phase3SlugRenameCandidate]:
+    issues_by_slug: dict[str, set[str]] = {}
+    for issue in audit_phase3_slug_sanity(entries):
+        slug, _, _detail = issue.detail.partition("\t")
+        issues_by_slug.setdefault(slug, set()).add(issue.code)
+
+    if not issues_by_slug:
+        return []
+
+    entry_by_slug = {entry.slug: entry for entry in entries}
+    clean_slugs = {
+        entry.slug
+        for entry in entries
+        if entry.slug not in issues_by_slug
+    }
+    rename_candidates: list[Phase3SlugRenameCandidate] = []
+
+    for slug in sorted(issues_by_slug):
+        tokens = slug.split("-")
+        canonical_slug: str | None = None
+        for prefix_len in range(len(tokens) - 1, 0, -1):
+            candidate = "-".join(tokens[:prefix_len])
+            if candidate in clean_slugs and candidate in entry_by_slug:
+                canonical_slug = candidate
+                break
+        if canonical_slug is None:
+            continue
+        rename_candidates.append(
+            Phase3SlugRenameCandidate(
+                slug=slug,
+                canonical_slug=canonical_slug,
+                issue_codes=tuple(sorted(issues_by_slug[slug])),
+            )
+        )
+
+    return rename_candidates
+
+
 def audit_phase3_doc_sync(
     entries: list[Phase3Slice],
     paths: Phase3Paths = DEFAULT_PATHS,
@@ -871,11 +919,27 @@ def run_self_test() -> int:
             in slug_issues
         )
 
+        canonical_slug = "alpha-beta-gamma-delta"
+        (paths.docs_dir / f"phase3-{canonical_slug}-slice.md").write_text(
+            "canonical\n",
+            encoding="utf-8",
+        )
+        overgrown_with_prefix = f"{canonical_slug}-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
+        (paths.docs_dir / f"phase3-{overgrown_with_prefix}-slice.md").write_text(
+            "prefix\n",
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        rename_candidate = next(candidate for candidate in rename_candidates if candidate.slug == overgrown_with_prefix)
+        assert rename_candidate.canonical_slug == canonical_slug
+        assert "slug-too-many-tokens" in rename_candidate.issue_codes
+
         parser = build_parser()
         assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
         assert parser.parse_args(["--rewrite-shared-runner-reference-docs"]).rewrite_legacy_wrapper_references is True
         assert parser.parse_args(["--audit-doc-sync"]).audit_doc_sync is True
         assert parser.parse_args(["--audit-slug-sanity"]).audit_slug_sanity is True
+        assert parser.parse_args(["--suggest-slug-renames"]).suggest_slug_renames is True
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -920,6 +984,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--audit-slug-sanity",
         action="store_true",
         help="Report suspiciously repetitive or overgrown discovered Phase 3 slugs, then exit non-zero when any are found.",
+    )
+    parser.add_argument(
+        "--suggest-slug-renames",
+        action="store_true",
+        help="List overgrown discovered Phase 3 slugs that have a shorter clean prefix already present in the catalog.",
     )
     return parser
 
@@ -977,5 +1046,13 @@ if __name__ == "__main__":
         except BrokenPipeError:
             sys.exit(0)
         raise SystemExit(1 if issues else 0)
+    if args.suggest_slug_renames:
+        try:
+            candidates = discover_phase3_slug_rename_candidates(entries)
+            for candidate in candidates:
+                print(candidate.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
