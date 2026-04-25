@@ -29,6 +29,10 @@ Current bootstrap helpers
 - `check-phase2-cross.py`
 - `check-mk-elfconfig-diff.py`
 
+Zig toolchain gate
+- `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
+- `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
+
 Phase 3 flow
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, parity wrappers, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory.
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper.
