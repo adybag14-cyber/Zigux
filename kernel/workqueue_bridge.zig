@@ -50,14 +50,14 @@ const boundary_areas = [_]BoundaryArea{
     },
     .{
         .id = "allocation-and-attrs",
-        .summary = "Document the workqueue allocation and attribute surface as a future wrapper candidate, not a live allocator port.",
+        .summary = "Document the workqueue allocation and attribute surface as a study checkpoint with any wrapper follow-up deferred until the concurrency audit is tighter.",
         .ownership = .boundary_map_only,
         .anchor_symbols = &[_][]const u8{ "__alloc_workqueue", "devm_alloc_workqueue" },
-        .rationale = "Allocation and attribute shaping are reviewable as metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C.",
+        .rationale = "Allocation and attribute shaping are reviewable as metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C, so any wrapper language here should stay explicitly deferred.",
     },
     .{
         .id = "flush-and-cancel",
-        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is wrapped.",
+        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is described outside the existing C implementation.",
         .ownership = .boundary_map_only,
         .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "cancel_work_sync" },
         .rationale = "Flush and cancel are caller-facing synchronization surfaces, but their correctness depends on active-color accounting, pool state, and worker progress that should stay under the existing C implementation for now.",
@@ -143,7 +143,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit manage_workers(), worker_pool lock ownership, rescuer_thread(), and wq_worker_running()/wq_worker_sleeping() transitions before any wrapper leaves the boundary-map-only posture.";
+        return "Tighten the landed audit around pool->lock ownership, the mayday-to-rescuer path, and wq_worker_running()/wq_worker_sleeping() pairing before any wrapper leaves the boundary-map-only posture.";
     }
 };
 
@@ -168,8 +168,8 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "manage_workers()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "rescuer_thread()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "pool->lock") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "mayday-to-rescuer") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
