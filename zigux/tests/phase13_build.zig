@@ -15,13 +15,25 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase13_libfs_module.addImport("libfs", libfs_module);
+    const phase13_libfs_reviewability_module = b.createModule(.{
+        .root_source_file = b.path("phase13_libfs_reviewability.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase13_libfs_reviewability_module.addImport("libfs", libfs_module);
 
     const phase13_libfs_tests = b.addTest(.{
         .name = "phase13-libfs-tests",
         .root_module = phase13_libfs_module,
     });
     const run_phase13_libfs_tests = b.addRunArtifact(phase13_libfs_tests);
+    const phase13_libfs_reviewability_tests = b.addTest(.{
+        .name = "phase13-libfs-reviewability-tests",
+        .root_module = phase13_libfs_reviewability_module,
+    });
+    const run_phase13_libfs_reviewability_tests = b.addRunArtifact(phase13_libfs_reviewability_tests);
 
     const test_step = b.step("test", "Run Phase 13 filesystem helper tests");
     test_step.dependOn(&run_phase13_libfs_tests.step);
+    test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
 }
