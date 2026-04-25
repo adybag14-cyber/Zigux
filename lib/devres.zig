@@ -24,6 +24,10 @@ pub const ManagedIoremapAcquireInput = struct {
     mapped_address: ?usize,
 };
 
+pub const ReleaseAction = enum {
+    iounmap,
+};
+
 pub const ManagedIoremapAcquireResult = struct {
     anchor: []const u8,
     kind: ManagedIoremapKind,
@@ -31,6 +35,7 @@ pub const ManagedIoremapAcquireResult = struct {
     added_to_devres: bool,
     release_record_retained: bool,
     release_record_freed: bool,
+    release_action: ?ReleaseAction,
     should_unmap_on_detach: bool,
 };
 
@@ -121,6 +126,7 @@ pub const DevresHelperLab = struct {
                 .added_to_devres = false,
                 .release_record_retained = false,
                 .release_record_freed = true,
+                .release_action = null,
                 .should_unmap_on_detach = false,
             };
         }
@@ -132,6 +138,7 @@ pub const DevresHelperLab = struct {
             .added_to_devres = true,
             .release_record_retained = true,
             .release_record_freed = false,
+            .release_action = .iounmap,
             .should_unmap_on_detach = true,
         };
     }
