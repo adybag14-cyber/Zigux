@@ -9,10 +9,10 @@
   ],
   "survey_summary": {
     "test_bitmap_c_lines": 1567,
-    "preexisting_runtime_bitmap_test_files": 0,
-    "preexisting_runtime_bitmap_sample_present": false,
+    "preexisting_runtime_bitmap_test_files": 3,
+    "preexisting_runtime_bitmap_sample_present": true,
     "preexisting_phase9_build_present": true,
-    "preexisting_runtime_bitmap_doc_present": false
+    "preexisting_runtime_bitmap_doc_present": true
   },
   "gaps": [
     {
@@ -45,10 +45,10 @@
     },
     {
       "id": "runtime-bitmap-diff-gate",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_bitmap_diff.zig",
-      "why_now": "The next meaningful bitmap step is to turn a few lib/test_bitmap.c expectations into a differential gate before widening the runtime starter or pretending parity across the whole API."
+      "why_now": "A narrow differential gate now captures a few lib/test_bitmap.c expectations for first-set, first-zero, weight, range mutation, and copy behavior before any broader runtime substrate work."
     },
     {
       "id": "runtime-bitmap-substrate-handoff",

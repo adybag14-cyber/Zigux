@@ -6,10 +6,11 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
-- scope: lifecycle starter, bitmap range mutation and copy behavior, dedicated Phase 9 test wiring, and lane-local manifest closure only
+- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 test wiring, and lane-local manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `zigux/tests/runtime_bitmap_module.zig`
+  - `zigux/tests/runtime_bitmap_diff.zig`
   - `zigux/tests/runtime_bitmap_manifest.json`
   - `zigux/tests/runtime_bitmap_survey.zig`
   - `zigux/tests/phase9_build.zig`
@@ -25,8 +26,8 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - module descriptor metadata naming the `lib/test_bitmap.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, and `copyFrom` behavior
-- dedicated harness checks that keep zero-length range mutations as no-ops and reject copy attempts from a still-cold source
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
+- a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
@@ -48,4 +49,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and add a small differential gate under `zigux/tests/runtime_bitmap_diff.zig` that turns a few `lib/test_bitmap.c` expectations into table-driven checks before attempting broader runtime substrate work.
+Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining runtime-substrate blocker, most likely a tiny loader or lifecycle handoff scaffold that makes the sample's `requires_runtime_substrate` contract reviewable without pretending full kernel module parity exists.
