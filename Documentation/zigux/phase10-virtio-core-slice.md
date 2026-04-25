@@ -25,6 +25,8 @@ The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice l
 - bounded reset behavior that clears negotiated state without pretending to touch real transport registers
 - explicit `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, `DRIVER_OK`, `FAILED`, and `DEVICE_NEEDS_RESET` status-bit handling
 - feature-offer validation that rejects driver requests for features the device did not advertise
+- feature-window closure checks that keep driver feature offers closed once `FEATURES_OK` negotiation has been finalized
+- bounded feature-index guards that reject requests outside the lab model's fixed feature-bit capacity
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
 
