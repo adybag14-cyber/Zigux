@@ -3,7 +3,7 @@
 PHASE3_STATUS=active
 PHASE3_SLICE=idr-slot-view-interop
 PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py
-PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-idr-slot.py
+PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug idr-slot
 PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig
 
 Scope
