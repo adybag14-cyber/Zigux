@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "ec444d926874ab19b346f4f172407d158e560221",
+  "surveyed_commit": "1bf6d0b80e010b1922c5f0f17793e47d813a12ef",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -17,24 +17,45 @@
   "gaps": [
     {
       "id": "phase9-build-gate",
-      "status": "ready_next",
-      "kind": "reviewability",
+      "status": "starter_landed",
+      "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "Phase 9 had no dedicated build entry point, so runtime pilot-module work could not be reviewed or rerun as a bounded lane."
+      "why_now": "The dedicated Phase 9 build step is the smallest honest review gate for runtime pilot-module work."
     },
     {
       "id": "runtime-atomic64-survey-gate",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The roadmap names lib/atomic64_test.c as a pilot-module anchor, but the repo had no runtime_* Zigux test to record the current gap against that anchor."
+      "why_now": "The survey gate keeps the roadmap anchor and remaining runtime-substrate blockers explicit while the lane is still narrow."
     },
     {
       "id": "runtime-atomic64-sample-module",
-      "status": "blocked_on_runtime_substrate",
-      "kind": "sample",
+      "status": "starter_landed",
+      "kind": "sample_starter",
       "zigux_destination": "samples/zigux/runtime_atomic64.zig",
-      "why_now": "A sample-backed pilot module should follow once the runtime module lifecycle surface exists, rather than landing as a disconnected placeholder."
+      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing step that can reuse existing atomic helpers without pretending the full module substrate already exists."
+    },
+    {
+      "id": "runtime-atomic64-module-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_atomic64_module.zig",
+      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions plus the selftest-facing atomic64 surface."
+    },
+    {
+      "id": "runtime-atomic64-diff-gate",
+      "status": "ready_next",
+      "kind": "differential_validation",
+      "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
+      "why_now": "The next meaningful step is to turn selected atomic64_test.c expectations into a differential gate before widening the runtime starter."
+    },
+    {
+      "id": "runtime-atomic64-substrate-handoff",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
+      "why_now": "A loadable module entry point and lifecycle parity still depend on runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
