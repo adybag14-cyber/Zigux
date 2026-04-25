@@ -1,6 +1,7 @@
 PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-abi phase3-interop phase3
 PHONY += phase6-test phase6
+PHONY += phase7-test phase7
 
 PYTHON ?= python3
 ZIG ?= zig
@@ -52,3 +53,8 @@ phase6-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig
 
 phase6: phase6-test
+
+phase7-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig
+
+phase7: phase7-test
