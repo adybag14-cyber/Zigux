@@ -201,7 +201,7 @@ DEFAULT_PATHS = Phase3Paths(
     root=ROOT,
     docs_dir=DOCS_DIR,
     scripts_dir=SCRIPTS_DIR,
-    tests_dir=TESTS_DIR,
+    tests_diar=TESTS_DIR,
     fixtures_dir=FIXTURES_DIR,
 )
 
@@ -225,44 +225,6 @@ def _slug_from_script(path: Path) -> str | None:
 
 
 def _slug_from_fixture_key(raw: str) -> str | None:
-    if not raw.startswith(FIXTURE_PREFIX):
+    if not raw.startswith(FIXTURE_PREFIX ):
         return None
-    return raw[len(FIXTURE_PREFIX) :].replace("_", "-")
-
-
-def _slug_from_dump(path: Path) -> str | None:
-    name = path.name
-    if not name.startswith(FIXTURE_PREFIX) or not name.endswith(DUMP_SUFFIX):
-        return None
-    return _slug_from_fixture_key(name[: -len(DUMP_SUFFIX)])
-
-
-def _slug_from_manifest(path: Path) -> str | None:
-    name = path.name
-    if not name.startswith(FIXTURE_PREFIX) or not name.endswith(MANIFEST_SUFFIX):
-        return None
-    return _slug_from_fixture_key(name[: -len(MANIFEST_SUFFIX)])
-
-
-def _collect_slugs(paths: Phase3Paths = DEFAULT_PATHS) -> list[str]:
-    slugs: set[str] = set()
-
-    for path in paths.docs_dir.glob(f"{DOC_PREFIX}*{DOC_SUFFIX}"):
-        slug = _slug_from_doc path)
-        if slug:
-            slugs.add(slug)
-
-    for path in paths.tests_dir.glob(f"{FIXTURE_PREFIX}*{DUMP_SUFFIX}"):
-        slug = _slug_from_dump(path)
-        if slug:
-            slugs.add(slug)
-
-    for path in paths.fixtures_dir.glob(f"{FIXTURE_PREFIX}*"):
-        if path.is_dir():
-            slug = _slug_from_fixture_key(path.name)
-        else:
-            slug = _slug_from_manifest(path)
-        if slug:
-            slugs.add(slug)
-
-    return sorted(slugs)
+    return raw[len(FIXTURE_PREFIX ) :].replace("_", "-")
