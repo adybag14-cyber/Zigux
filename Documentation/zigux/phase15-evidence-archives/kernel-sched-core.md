@@ -35,6 +35,15 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 - latest blocker disposition: `blocked_no_bounded_scheduler_seam`
 
+## Discussion State
+
+- current discussion state: `active_review_required_until_complete_packet_exists`
+- retained discussion state after closeout: `retired_from_active_discussion`
+- reopen triggers:
+  - a narrower scheduler seam inventory exists and answers `blocked_no_bounded_scheduler_seam`
+  - linked validation, benchmark, or blocker evidence becomes stale or contradictory
+  - rollback ownership or validation gates change enough to invalidate the closed stay-in-C packet
+
 ## Explicit Non-goals
 
 - no scheduler port claim
