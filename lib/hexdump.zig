@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
+const builtin = @import("builtin");
 const std = @import("std");
 
 pub const hex_asc = "0123456789abcdef";
@@ -10,83 +11,324 @@ pub const HexError = error{
     DestinationTooSmall,
 };
 
+pub fn hexAscHi(byte: u8) u8 {
+    return hex_asc[(byte >> 4) & 0x0f];
+}
+
+pub fn hexAscLo(byte: u8) u8 {
+    return hex_asc[byte & 0x0f];
+}
+
+pub fn hexAscUpperHi(byte: u8) u8 {
+    return hex_asc_upper[(byte >> 4) & 0x0f];
+}
+
+pub fn hexAscUpperLo(byte: u8) u8 {
+    return hex_asc_upper[byte & 0x0f];
+}
+
+pub fn hexBytePack(buf: []u8, byte: u8) HexError![]u8 {
+    if (buf.len < 2) {
+        return HexError.DestinationTooSmall;
+    }
+    buf[0] = hexAscHi(byte);
+    buf[1] = hexAscLo(byte);
+    return buf[2..];
+}
+
+pub fn hexBytePackUpper(buf: []u8, byte: u8) HexError![]u8 {
+    if (buf.len < 2) {
+        return HexError.DestinationTooSmall;
+    }
+    buf[0] = hexAscUpperHi(byte);
+    buf[1] = hexAscUpperLo(byte);
+    return buf[2..];
+}
+
 pub fn hexToBin(ch: u8) i32 {
     const cu = ch & 0xdf;
     return -1 +
-        ((@as(i32, ch) - '0' + 1) & @as(i32, @bitCast(((@as(i32, ch) - '9' - 1) & ('0' - 1 - @as(i32, ch))) >> 8))) +
-        ((@as(i32, cu) - 'A' + 11) & @as(i32, @bitCast(((@as(i32, cu) - 'F' - 1) & ('A' - 1 - @as(i32, cu))) >> 8)));
+        decodeRange(ch, '0', '9', 1) +
+        decodeRange(cu, 'A', 'F', 11);
 }
 
 pub fn hex2bin(dst: []u8, src: []const u8) HexError!void {
     if (src.len != dst.len * 2) {
-        return error.InvalidSourceLength;
+        return HexError.InvalidSourceLength;
     }
 
-    for (dst, 0..) |*out, index| {
+    for (dst, 0..) |*byte, index| {
         const hi = hexToBin(src[index * 2]);
         if (hi < 0) {
-            return error.InvalidHexDigit;
+            return HexError.InvalidHexDigit;
         }
 
         const lo = hexToBin(src[index * 2 + 1]);
         if (lo < 0) {
-            return error.InvalidHexDigit;
+            return HexError.InvalidHexDigit;
         }
 
-        out.* = (@as(u8, @intCast(hi)) << 4) | @as(u8, @intCast(lo));
+        byte.* = (@as(u8, @intCast(hi)) << 4) | @as(u8, @intCast(lo));
     }
 }
 
 pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
     if (dst.len < src.len * 2) {
-        return error.DestinationTooSmall;
+        return HexError.DestinationTooSmall;
     }
 
-    for (src, 0..) |byte, index| {
-        dst[index * 2] = hex_asc[byte >> 4];
-        dst[index * 2 + 1] = hex_asc[byte & 0x0f];
+    var rest = dst;
+    for (src) |byte| {
+        rest = try hexBytePack(rest, byte);
     }
-
     return dst[0 .. src.len * 2];
 }
 
-test "hexToBin accepts lower, upper, and rejects non-hex digits" {
+pub fn hexDumpToBuffer(
+    buf: []const u8,
+    rowsize_input: usize,
+    groupsize_input: usize,
+    linebuf: []u8,
+    ascii: bool,
+) usize {
+    const rowsize = if (rowsize_input == 16 or rowsize_input == 32) rowsize_input else 16;
+    const len = @min(buf.len, rowsize);
+
+    var groupsize = groupsize_input;
+    if (!std.math.isPowerOfTwo(groupsize) or groupsize > 8 or groupsize == 0) {
+        groupsize = 1;
+    }
+    if (len % groupsize != 0) {
+        groupsize = 1;
+    }
+
+    if (linebuf.len == 0) {
+        return requiredLength(rowsize, len, groupsize, ascii);
+    }
+
+    if (len == 0) {
+        linebuf[0] = 0;
+        return 0;
+    }
+
+    var writer = TruncatingWriter.init(linebuf);
+    const ngroups = len / groupsize;
+    const ascii_column = rowsize * 2 + rowsize / groupsize + 1;
+
+    switch (groupsize) {
+        8 => {
+            var index: usize = 0;
+            while (index < ngroups) : (index += 1) {
+                if (index != 0) writer.appendByte(' ');
+                writer.appendFixedWidthHex(readNativeInt(u64, buf[index * 8 ..][0..8]), 16);
+            }
+        },
+        4 => {
+            var index: usize = 0;
+            while (index < ngroups) : (index += 1) {
+                if (index != 0) writer.appendByte(' ');
+                writer.appendFixedWidthHex(readNativeInt(u32, buf[index * 4 ..][0..4]), 8);
+            }
+        },
+        2 => {
+            var index: usize = 0;
+            while (index < ngroups) : (index += 1) {
+                if (index != 0) writer.appendByte(' ');
+                writer.appendFixedWidthHex(readNativeInt(u16, buf[index * 2 ..][0..2]), 4);
+            }
+        },
+        else => {
+            for (buf[0..len]) |byte| {
+                writer.appendByte(hexAscHi(byte));
+                writer.appendByte(hexAscLo(byte));
+                writer.appendByte(' ');
+            }
+            if (len != 0) {
+                writer.removeLastByte();
+            }
+        },
+    }
+
+    if (ascii) {
+        while (writer.required < ascii_column) {
+            writer.appendByte(' ');
+        }
+        for (buf[0..len]) |byte| {
+            writer.appendByte(if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.');
+        }
+    }
+
+    writer.finish();
+    return writer.required;
+}
+
+fn requiredLength(rowsize: usize, len: usize, groupsize: usize, ascii: bool) usize {
+    const ngroups = len / groupsize;
+    if (ascii) {
+        return rowsize * 2 + rowsize / groupsize + 1 + len;
+    }
+    return if (ngroups == 0) 0 else (groupsize * 2 + 1) * ngroups - 1;
+}
+
+fn decodeRange(ch: u8, first: u8, last: u8, bias: i8) i8 {
+    const ch_i: i32 = ch;
+    const first_i: i32 = first;
+    const last_i: i32 = last;
+    const bias_i: i32 = bias;
+
+    const mask = @as(u32, @bitCast((ch_i - last_i - 1) & (first_i - 1 - ch_i))) >> 8;
+    return @intCast((ch_i - first_i + bias_i) & @as(i32, @bitCast(mask)));
+}
+
+fn readNativeInt(comptime T: type, bytes: []const u8) T {
+    std.debug.assert(bytes.len == @sizeOf(T));
+
+    const Shift = std.math.Log2Int(T);
+    var value: T = 0;
+
+    if (builtin.cpu.arch.endian() == .little) {
+        for (bytes, 0..) |byte, index| {
+            const shift: Shift = @intCast(index * 8);
+            value |= @as(T, byte) << shift;
+        }
+    } else {
+        for (bytes) |byte| {
+            value = (value << @as(Shift, 8)) | @as(T, byte);
+        }
+    }
+
+    return value;
+}
+
+const TruncatingWriter = struct {
+    buffer: []u8,
+    required: usize = 0,
+
+    fn init(buffer: []u8) TruncatingWriter {
+        return .{ .buffer = buffer };
+    }
+
+    fn appendByte(self: *TruncatingWriter, byte: u8) void {
+        if (self.required + 1 < self.buffer.len) {
+            self.buffer[self.required] = byte;
+        }
+        self.required += 1;
+    }
+
+    fn appendFixedWidthHex(self: *TruncatingWriter, value: anytype, digits: usize) void {
+        const Int = @TypeOf(value);
+        const Shift = std.math.Log2Int(Int);
+        var remaining = digits;
+        while (remaining > 0) {
+            remaining -= 1;
+            const shift: Shift = @intCast(remaining * 4);
+            const nibble: u8 = @intCast((value >> shift) & 0x0f);
+            self.appendByte(hex_asc[nibble]);
+        }
+    }
+
+    fn removeLastByte(self: *TruncatingWriter) void {
+        if (self.required == 0) {
+            return;
+        }
+        self.required -= 1;
+    }
+
+    fn finish(self: *TruncatingWriter) void {
+        const terminator_index = @min(self.required, self.buffer.len - 1);
+        self.buffer[terminator_index] = 0;
+    }
+};
+
+test "hexToBin accepts digits and both alphabetic cases" {
     try std.testing.expectEqual(@as(i32, 0), hexToBin('0'));
     try std.testing.expectEqual(@as(i32, 9), hexToBin('9'));
     try std.testing.expectEqual(@as(i32, 10), hexToBin('a'));
+    try std.testing.expectEqual(@as(i32, 10), hexToBin('A'));
+    try std.testing.expectEqual(@as(i32, 15), hexToBin('f'));
     try std.testing.expectEqual(@as(i32, 15), hexToBin('F'));
-    try std.testing.expectEqual(@as(i32, -1), hexToBin('/'));
     try std.testing.expectEqual(@as(i32, -1), hexToBin('g'));
+    try std.testing.expectEqual(@as(i32, -1), hexToBin('/'));
 }
 
-test "hex2bin decodes mixed-case input" {
-    var decoded: [6]u8 = undefined;
-    try hex2bin(&decoded, "DeAdBEEF0123");
-    try std.testing.expectEqualSlices(u8, &.{ 0xde, 0xad, 0xbe, 0xef, 0x01, 0x23 }, &decoded);
+test "hex2bin and bin2hex round-trip payloads" {
+    const source = "be32db7b0a1893b2";
+    var decoded: [8]u8 = undefined;
+    try hex2bin(decoded[0..], source);
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2 }, decoded[0..]);
+
+    var encoded: [16]u8 = undefined;
+    const text = try bin2hex(encoded[0..], decoded[0..]);
+    try std.testing.expectEqualSlices(u8, source, text);
 }
 
-test "hex2bin rejects malformed source lengths and invalid digits" {
+test "hex2bin rejects invalid length and bad digits" {
     var decoded: [2]u8 = undefined;
-
-    try std.testing.expectError(error.InvalidSourceLength, hex2bin(&decoded, "abc"));
-    try std.testing.expectError(error.InvalidHexDigit, hex2bin(&decoded, "0x00"));
+    try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "abc"));
+    try std.testing.expectError(HexError.InvalidHexDigit, hex2bin(decoded[0..], "zz00"));
 }
 
-test "bin2hex encodes bytes and round-trips through hex2bin" {
-    const source = [_]u8{ 0x00, 0x12, 0xab, 0xff, 0x34 };
-    var encoded: [source.len * 2]u8 = undefined;
-    var decoded: [source.len]u8 = undefined;
+test "hexDumpToBuffer matches the kernel-style 16-byte line output" {
+    const data = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
+    };
+    const ascii_part = ".2.{....p..$}.4.";
 
-    const written = try bin2hex(&encoded, &source);
-    try std.testing.expectEqualStrings("0012abff34", written);
+    var line: [16 * 3 + 2 + 16 + 1]u8 = undefined;
 
-    try hex2bin(&decoded, written);
-    try std.testing.expectEqualSlices(u8, &source, &decoded);
+    const plain_len = hexDumpToBuffer(data[0..], 16, 1, line[0..], false);
+    try std.testing.expectEqual(@as(usize, 47), plain_len);
+    try std.testing.expectEqualSlices(u8, "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b", std.mem.sliceTo(line[0..], 0));
+
+    const ascii_len = hexDumpToBuffer(data[0..], 16, 1, line[0..], true);
+    try std.testing.expectEqual(@as(usize, 65), ascii_len);
+    try std.testing.expectEqualSlices(
+        u8,
+        "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b  .2.{....p..$}.4.",
+        std.mem.sliceTo(line[0..], 0),
+    );
+    try std.testing.expectEqualSlices(u8, ascii_part, std.mem.sliceTo(line[49..], 0));
 }
 
-test "bin2hex reports short destinations" {
-    const source = [_]u8{ 0xaa, 0xbb };
-    var encoded: [3]u8 = undefined;
+test "hexDumpToBuffer uses native-endian grouping for 2, 4, and 8 byte groups" {
+    const data = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
+    };
 
-    try std.testing.expectError(error.DestinationTooSmall, bin2hex(&encoded, &source));
+    const expected_2 = if (builtin.cpu.arch.endian() == .big)
+        "be32 db7b 0a18 93b2 70ba c424 7d83 349b"
+    else
+        "32be 7bdb 180a b293 ba70 24c4 837d 9b34";
+    const expected_4 = if (builtin.cpu.arch.endian() == .big)
+        "be32db7b 0a1893b2 70bac424 7d83349b"
+    else
+        "7bdb32be b293180a 24c4ba70 9b34837d";
+    const expected_8 = if (builtin.cpu.arch.endian() == .big)
+        "be32db7b0a1893b2 70bac4247d83349b"
+    else
+        "b293180a7bdb32be 9b34837d24c4ba70";
+
+    var line: [80]u8 = undefined;
+
+    _ = hexDumpToBuffer(data[0..], 16, 2, line[0..], false);
+    try std.testing.expectEqualSlices(u8, expected_2, std.mem.sliceTo(line[0..], 0));
+
+    _ = hexDumpToBuffer(data[0..], 16, 4, line[0..], false);
+    try std.testing.expectEqualSlices(u8, expected_4, std.mem.sliceTo(line[0..], 0));
+
+    _ = hexDumpToBuffer(data[0..], 16, 8, line[0..], false);
+    try std.testing.expectEqualSlices(u8, expected_8, std.mem.sliceTo(line[0..], 0));
+}
+
+test "hexDumpToBuffer reports full length when the caller buffer truncates" {
+    const data = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
+    var line: [8]u8 = [_]u8{0xaa} ** 8;
+
+    const written = hexDumpToBuffer(data[0..], 16, 1, line[0..], true);
+    try std.testing.expectEqual(@as(usize, 53), written);
+    try std.testing.expectEqual(@as(u8, 0), line[line.len - 1]);
+    try std.testing.expectEqualSlices(u8, "be 32 d", std.mem.sliceTo(line[0..], 0));
 }
