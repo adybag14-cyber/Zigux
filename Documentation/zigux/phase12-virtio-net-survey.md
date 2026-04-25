@@ -1,6 +1,6 @@
 # Phase 12 Virtio Net Survey
 
-This document records the first bounded Phase 12 survey lane around `drivers/net/virtio_net.c`.
+This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c`.
 
 ## Status
 
@@ -15,18 +15,18 @@ This document records the first bounded Phase 12 survey lane around `drivers/net
 
 ## Why this slice exists
 
-The Phase 12 roadmap explicitly names `drivers/net/virtio_net.c` as a complex production-driver target, but the live repo still has no `drivers/net/virtio_net.zig` starter and no Phase 12 harness at all.
+The Phase 12 roadmap explicitly names `drivers/net/virtio_net.c` as a complex production-driver target, but the live repo still has no `drivers/net/virtio_net.zig` starter.
 
 That matters because `virtio_net.c` is not a small leaf helper. The live file is 7,288 lines and mixes probe-time feature negotiation, receive and transmit virtqueue management, NAPI poll loops, XDP and XSK fast paths, page-pool and DMA handling, control-virtqueue commands, RSS and multiqueue configuration, ethtool hooks, and full `net_device` lifecycle work.
 
-The highest-value honest step in this lane is therefore a survey checkpoint, not a premature driver scaffold.
+The highest-value honest step in this lane is therefore a survey checkpoint with bounded build wiring and risk notes, not a premature driver scaffold.
 
 ## Survey findings
 
 - `drivers/net/virtio_net.c` is present on `master` and is much larger than the earlier Phase 10 and Phase 11 starter anchors, which makes a direct first-pass Zig port a poor fit for the roadmap's bounded-delivery rule.
-- the live repo does already ship the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
-- that Phase 10 footing is useful, but it still stops at in-memory queue and device bookkeeping. It does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
-- the live repo still has no `drivers/net/virtio_net.zig`, no dedicated Phase 12 build file, no `make -C zigux phase12` target, and no Phase 12 survey note before this slice.
+- the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
+- that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
+- the Phase 12 lane currently consists of a dedicated build file, `make -C zigux phase12`, the survey gate, and this note. It still has no `drivers/net/virtio_net.zig`, no probe snapshot helper, and no runtime driver coverage.
 - the next honest driver-facing step is one tiny probe snapshot helper around negotiated feature bits, queue-pair counts, control-virtqueue presence, mergeable-buffer mode, and RSS or hash-report capability detection from `virtnet_probe()`.
 
 ## Recorded gaps
@@ -42,7 +42,7 @@ The survey manifest now records:
 - the ready-next `phase12-virtio-net-probe-snapshot-starter`
 - the still-blocked `phase12-virtio-net-runtime-data-path`
 
-This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 checkpoint, but it does not yet claim any net-driver implementation.
+This keeps the lane explicit without overstating progress: Zigux has a reviewable Phase 12 checkpoint, but it does not yet claim any net-driver implementation.
 
 ## Non-goals
 
