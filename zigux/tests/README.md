@@ -23,6 +23,7 @@ Phase 3 fixtures
 - each Phase 3 slice keeps its expected JSON and C harness under `zigux/tests/fixtures/phase3_*`
 - manifests may live beside the fixture directory or inside it; the Phase 3 catalog selects the best valid manifest candidate
 - the catalog also discovers the matching dump entrypoint under `zigux/tests/phase3_*_dump.zig`
+- the shared runner now executes slices directly from catalog metadata, so wrapper stubs are convenience entrypoints rather than the execution path
 
 Guidance
 - keep parity fixtures committed and readable
