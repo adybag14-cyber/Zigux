@@ -6,31 +6,28 @@ This document records the bounded Phase 12 survey lane around `drivers/scsi/virt
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-scsi-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, a lane note that compares the live repo state against the roadmap, and the first queue-layout starter for `drivers/scsi/virtio_scsi.zig`
+- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, and a lane note that compares the live repo state against the roadmap for `drivers/scsi/virtio_scsi.zig`
 - product boundary:
   - `zigux/tests/phase12_virtio_scsi_manifest.json`
   - `zigux/tests/phase12_virtio_scsi_survey.zig`
-  - `zigux/tests/phase12_virtio_scsi.zig`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-virtio-scsi-survey.md`
-  - `Documentation/zigux/phase12-virtio-scsi-slice.md`
-  - `drivers/scsi/virtio_scsi.zig`
 
 ## Why this slice exists
 
-The Phase 12 roadmap explicitly names `drivers/scsi/virtio_scsi.c` as a complex production-driver target, and the live repo now has the first bounded `drivers/scsi/virtio_scsi.zig` starter.
+The Phase 12 roadmap explicitly names `drivers/scsi/virtio_scsi.c` as a complex production-driver target.
 
-That matters because `virtio_scsi.c` is not a small helper. The live file is 1,106 lines and mixes probe-time config reads, control and event virtqueue wiring, blk-mq request-queue fanout, command submission and completion, TMF and async notification handling, host scanning, and PM freeze or restore behavior.
+That still matters even after the first Zigux starter landed because `virtio_scsi.c` is not a small helper. The live Linux anchor is 1,106 lines and mixes probe-time config reads, control and event virtqueue wiring, blk-mq request-queue fanout, command submission and completion, TMF and async notification handling, host scanning, and PM freeze or restore behavior.
 
-The highest-value honest move in this lane is therefore still a narrow checkpoint: keep the survey artifacts, but pair them with a tiny in-memory queue-layout starter instead of pretending the rest of the driver is ready.
+The highest-value honest step in this lane is therefore to keep the survey, validation, and risk notes aligned with the bounded starter that now exists, rather than pretending the lane is still pre-driver or widening into premature runtime scaffolding.
 
 ## Survey findings
 
-- `drivers/scsi/virtio_scsi.c` is present on `master` and is large enough to cross multiple subsystem boundaries at once: virtio config, virtqueue topology, SCSI host setup, blk-mq queue planning, event handling, TMF, and recovery.
+- `drivers/scsi/virtio_scsi.c` is present on `master` and is large enough to cross multiple subsystem boundaries at once: virtio config, virtqueue topology, SCSI host setup, blk-mq queue planning, and event or TMF handling.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
-- that footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, and ring-local queue-shape bookkeeping. It still does not cover the queue ownership, DMA-safe request buffers, SCSI-host lifecycle, or recovery behavior that the roadmap requires before real virtio_scsi work can land honestly.
-- the live repo also now ships a small `drivers/scsi/virtio_scsi.zig` queue-family planner that models the control, event, request, and `request_poll` queue split derived from the Linux driver's request-queue count and poll-queue hint, while preserving the rule that one default request queue must remain.
-- the next honest driver-facing step is one tiny recovery helper that freezes request planning and event recycling intent across transport freeze and restore before any blk-mq request flow, TMF handling, SCSI host registration, or DMA-backed queue work.
+- that footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, and ring-local queue-shape bookkeeping. It still does not cover queue ownership, DMA-safe request buffers, SCSI-host lifecycle, or recovery behavior at the depth that the roadmap requires before real virtio_scsi runtime work can land honestly.
+- the live repo also now ships a bounded `drivers/scsi/virtio_scsi.zig` starter, dedicated `zigux/tests/phase12_virtio_scsi.zig` coverage, and `Documentation/zigux/phase12-virtio-scsi-slice.md`. That starter is intentionally narrow: it only models control, event, request, and request_poll queue-family planning in memory, plus poll-queue clamping and stable global virtqueue indexes.
+- the next honest driver-facing step is one tiny probe snapshot helper around `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, `max_sectors`, and the derived control or event versus request virtqueue layout.
 
 ## Recorded gaps
 
@@ -45,10 +42,10 @@ The survey manifest now records:
 - the landed `phase12-virtio-scsi-driver-starter`
 - the landed `phase12-virtio-scsi-driver-tests`
 - the landed `phase12-virtio-scsi-slice-note`
-- the ready-next `phase12-virtio-scsi-queue-freeze-recovery-helper`
+- the ready-next `phase12-virtio-scsi-probe-config-snapshot-starter`
 - the still-blocked `phase12-virtio-scsi-runtime-queues-and-scan`
 
-This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 checkpoint plus a first queue-topology foothold for the SCSI anchor, but it does not yet claim command submission, host lifecycle parity, or recovery plumbing.
+This keeps the lane explicit without overstating progress: Zigux now has a bounded virtio_scsi queue-layout starter, but it still does not claim command submission, event completion, TMF flow, SCSI-host registration, PM recovery, or DMA-backed virtqueue ownership.
 
 ## Non-goals
 
@@ -58,7 +55,7 @@ This survey slice does not claim:
 - TMF or async notification helpers
 - virtqueue buffer ownership or kick behavior
 - `scsi_add_host()` or `scsi_scan_host()` lifecycle parity
-- blk-mq queue mapping or polling support beyond the in-memory queue split
+- blk-mq queue mapping or polling support
 - PM freeze or restore behavior
 - DMA-backed request or response buffer handling
 
@@ -72,4 +69,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 12 virtio_scsi lane and add one tiny recovery helper inside `drivers/scsi/virtio_scsi.zig` next so the lane can describe transport freeze and restore intent before any blk-mq request flow, event handling, SCSI host registration, or DMA-backed queue work.
+Stay in the Phase 12 virtio_scsi lane and add one tiny `drivers/scsi/virtio_scsi.zig` probe snapshot helper next so the lane can describe the `virtscsi_probe()` config-and-topology branch before any blk-mq request flow, event handling, SCSI host registration, or DMA-backed queue work.
