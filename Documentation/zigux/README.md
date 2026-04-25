@@ -32,6 +32,7 @@ Phase 3 notes
 - `python3 scripts/zigux/phase3_catalog.py --rewrite-artifact-diff-phase3-section` regenerates the detailed `Documentation/zigux/artifact-diff.md` Phase 3 policy block from the current discovered slice catalog.
 - `python3 scripts/zigux/phase3_catalog.py --audit-doc-sync` reports stale non-slice wrapper references plus a stale artifact-diff Phase 3 block, and bootstrap now runs it so documentation drift fails fast.
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check` catches wrapper-template drift and obsolete wrapper files before the parity suite runs.
+- `make -C zigux phase3-validate` runs the same lightweight Phase 3 validator, self-test, wrapper-check, and documentation-sync audit mix that the bootstrap workflow expects before the heavier parity steps.
 - `python3 scripts/zigux/run-phase3-checks.py --list` shows the currently discovered Phase 3 parity slices.
 - `python3 scripts/zigux/run-phase3-checks.py` executes the full discovered Phase 3 parity suite.
 
