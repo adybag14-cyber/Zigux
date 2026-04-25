@@ -11,12 +11,16 @@ pub const restrict_self_log_new_exec_on: u32 = 1 << 1;
 pub const restrict_self_log_subdomains_off: u32 = 1 << 2;
 pub const restrict_self_tsync: u32 = 1 << 3;
 
+pub const rule_type_path_beneath: u32 = 1;
+pub const rule_type_net_port: u32 = 2;
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_abi_shape_reporting: bool,
     provides_create_ruleset_query_planning: bool,
     provides_restrict_self_flag_planning: bool,
+    provides_add_rule_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -83,6 +87,30 @@ pub const RestrictSelfPlan = struct {
     propagates_to_siblings: bool,
 };
 
+pub const AddRuleAction = enum {
+    path_beneath,
+    net_port,
+};
+
+pub const AddRuleRequest = struct {
+    flags: u32 = 0,
+    rule_type: u32,
+    handled_access_fs: u64 = 0,
+    handled_access_net: u64 = 0,
+    path_beneath_attr: PathBeneathAttr = .{},
+    net_port_attr: NetPortAttr = .{},
+};
+
+pub const AddRulePlan = struct {
+    anchor: []const u8,
+    action: AddRuleAction,
+    allowed_access: u64,
+    requires_ruleset_write_access: bool,
+    requires_path_lookup: bool,
+    parent_fd: i32 = -1,
+    port: ?u16 = null,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -91,6 +119,7 @@ pub const SyscallsHelperLab = struct {
             .provides_abi_shape_reporting = true,
             .provides_create_ruleset_query_planning = true,
             .provides_restrict_self_flag_planning = true,
+            .provides_add_rule_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -200,5 +229,52 @@ pub const SyscallsHelperLab = struct {
             .log_subdomains = (flags & restrict_self_log_subdomains_off) == 0,
             .propagates_to_siblings = (flags & restrict_self_tsync) != 0,
         };
+    }
+
+    pub fn planAddRule(request: AddRuleRequest) !AddRulePlan {
+        if (request.flags != 0) {
+            return error.InvalidFlags;
+        }
+
+        switch (request.rule_type) {
+            rule_type_path_beneath => {
+                if (request.path_beneath_attr.allowed_access == 0) {
+                    return error.EmptyAccess;
+                }
+                if ((request.path_beneath_attr.allowed_access | request.handled_access_fs) != request.handled_access_fs) {
+                    return error.InvalidPathAccessMask;
+                }
+
+                return .{
+                    .anchor = descriptor().anchor,
+                    .action = .path_beneath,
+                    .allowed_access = request.path_beneath_attr.allowed_access,
+                    .requires_ruleset_write_access = true,
+                    .requires_path_lookup = true,
+                    .parent_fd = request.path_beneath_attr.parent_fd,
+                };
+            },
+            rule_type_net_port => {
+                if (request.net_port_attr.allowed_access == 0) {
+                    return error.EmptyAccess;
+                }
+                if ((request.net_port_attr.allowed_access | request.handled_access_net) != request.handled_access_net) {
+                    return error.InvalidNetAccessMask;
+                }
+                if (request.net_port_attr.port > std.math.maxInt(u16)) {
+                    return error.PortTooLarge;
+                }
+
+                return .{
+                    .anchor = descriptor().anchor,
+                    .action = .net_port,
+                    .allowed_access = request.net_port_attr.allowed_access,
+                    .requires_ruleset_write_access = true,
+                    .requires_path_lookup = false,
+                    .port = @intCast(request.net_port_attr.port),
+                };
+            },
+            else => return error.InvalidRuleType,
+        }
     }
 };

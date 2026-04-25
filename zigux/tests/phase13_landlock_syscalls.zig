@@ -55,7 +55,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("bfd60deac631b66bf5eab7608c8ffd8f982893cb", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("4587e1015c53641c115200b5611083b5964cd5d3", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -75,8 +75,8 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_test_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
-    var saw_followup = false;
-    var saw_blocked = false;
+    var saw_add_rule = false;
+    var saw_fd_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -122,18 +122,18 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-syscalls-survey.md", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-add-rule-followup")) {
-            saw_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_add_rule = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_add_rule()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rule-type dispatch") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "net-port bounds") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-landlock-live-fd-path-and-cred-state")) {
-            saw_blocked = true;
-            try std.testing.expectEqualStrings("blocked_on_live_lsm_state", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase13_landlock_syscalls.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anon_inode_getfd") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "prepare_creds") != null);
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-fd-mode-followup")) {
+            saw_fd_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_ruleset_from_fd()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "FMODE_CAN_WRITE") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -141,7 +141,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -149,8 +149,8 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_followup);
-    try std.testing.expect(saw_blocked);
+    try std.testing.expect(saw_add_rule);
+    try std.testing.expect(saw_fd_followup);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -161,6 +161,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_abi_shape_reporting);
     try std.testing.expect(descriptor.provides_create_ruleset_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
+    try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(!descriptor.touches_live_fd_table);
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
@@ -276,4 +277,68 @@ test "phase13 landlock syscalls restrict_self planning models the mute-only exce
         syscalls.restrict_self_log_new_exec_on,
     ));
     try std.testing.expectError(error.InvalidFlags, syscalls.SyscallsHelperLab.planRestrictSelf(3, 1 << 7));
+}
+
+test "phase13 landlock syscalls add_rule planning dispatches path and net rules" {
+    const path_plan = try syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = syscalls.rule_type_path_beneath,
+        .handled_access_fs = 0b1111,
+        .path_beneath_attr = .{
+            .allowed_access = 0b0011,
+            .parent_fd = 42,
+        },
+    });
+    try std.testing.expectEqual(syscalls.AddRuleAction.path_beneath, path_plan.action);
+    try std.testing.expect(path_plan.requires_ruleset_write_access);
+    try std.testing.expect(path_plan.requires_path_lookup);
+    try std.testing.expectEqual(@as(i32, 42), path_plan.parent_fd);
+    try std.testing.expectEqual(@as(?u16, null), path_plan.port);
+
+    const net_plan = try syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = syscalls.rule_type_net_port,
+        .handled_access_net = 0b0111,
+        .net_port_attr = .{
+            .allowed_access = 0b0011,
+            .port = 443,
+        },
+    });
+    try std.testing.expectEqual(syscalls.AddRuleAction.net_port, net_plan.action);
+    try std.testing.expect(net_plan.requires_ruleset_write_access);
+    try std.testing.expect(!net_plan.requires_path_lookup);
+    try std.testing.expectEqual(@as(?u16, 443), net_plan.port);
+}
+
+test "phase13 landlock syscalls add_rule planning rejects invalid flags and bounds drift" {
+    try std.testing.expectError(error.InvalidFlags, syscalls.SyscallsHelperLab.planAddRule(.{
+        .flags = 1,
+        .rule_type = syscalls.rule_type_path_beneath,
+    }));
+    try std.testing.expectError(error.EmptyAccess, syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = syscalls.rule_type_path_beneath,
+        .handled_access_fs = 0b1111,
+    }));
+    try std.testing.expectError(error.InvalidPathAccessMask, syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = syscalls.rule_type_path_beneath,
+        .handled_access_fs = 0b0001,
+        .path_beneath_attr = .{ .allowed_access = 0b0010 },
+    }));
+    try std.testing.expectError(error.InvalidNetAccessMask, syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = syscalls.rule_type_net_port,
+        .handled_access_net = 0b0001,
+        .net_port_attr = .{
+            .allowed_access = 0b0010,
+            .port = 80,
+        },
+    }));
+    try std.testing.expectError(error.PortTooLarge, syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = syscalls.rule_type_net_port,
+        .handled_access_net = 0b1111,
+        .net_port_attr = .{
+            .allowed_access = 0b0010,
+            .port = 70000,
+        },
+    }));
+    try std.testing.expectError(error.InvalidRuleType, syscalls.SyscallsHelperLab.planAddRule(.{
+        .rule_type = 99,
+    }));
 }

@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L13",
   "phase": "Phase 13",
-  "surveyed_commit": "bfd60deac631b66bf5eab7608c8ffd8f982893cb",
+  "surveyed_commit": "4587e1015c53641c115200b5611083b5964cd5d3",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -63,17 +63,17 @@
     },
     {
       "id": "phase13-landlock-add-rule-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one small in-memory planner around `landlock_add_rule()` rule-type dispatch, empty-access rejection, and net-port bounds so Zigux can capture rule-shape validation before any real ruleset FD validation or path resolution is attempted."
+    },
+    {
+      "id": "phase13-landlock-ruleset-fd-mode-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The next honest syscall step is one small in-memory planner around `landlock_add_rule()` rule-type dispatch, empty-access rejection, and net-port bounds before any real ruleset FD validation or path resolution is attempted."
-    },
-    {
-      "id": "phase13-landlock-live-fd-path-and-cred-state",
-      "status": "blocked_on_live_lsm_state",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_landlock_syscalls.zig",
-      "why_now": "Real `anon_inode_getfd()` ownership, `get_ruleset_from_fd()` checks, path-backed rule import, `prepare_creds()` updates, thread synchronization, and domain merges remain blocked until smaller syscall planners land and the roadmap allows live Landlock state beyond pure helper accounting."
+      "why_now": "The next honest syscall step is one small in-memory planner around `get_ruleset_from_fd()` type and `FMODE_CAN_WRITE` or `FMODE_CAN_READ` checks before widening into path-backed rule import, credential updates, or live domain state."
     }
   ]
 }
