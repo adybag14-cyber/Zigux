@@ -4,6 +4,7 @@ PHONY += phase6-test phase6
 PHONY += phase7-test phase7
 PHONY += phase8-test phase8
 PHONY += phase9-test phase9
+PHONY += phase10-test phase10
 
 PYTHON ?= python3
 ZIG ?= zig
@@ -70,3 +71,8 @@ phase9-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig
 
 phase9: phase9-test
+
+phase10-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig
+
+phase10: phase10-test
