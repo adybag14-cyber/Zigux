@@ -13,6 +13,10 @@ from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, 
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
+    return rel.startswith("scripts/zigux/check-phase3-") and rel.endswith(".py")
+
+
 def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
     if path is None:
         issues.append(f"{slug}:missing_manifest")
@@ -40,6 +44,8 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
     if file_count != len(files):
         issues.append(f"{slug}:manifest_file_count={file_count}")
     for rel in files:
+        if _is_legacy_wrapper_manifest_file(rel):
+            issues.append(f"{slug}:manifest_legacy_wrapper_file={rel}")
         if not (root / rel).exists():
             issues.append(f"{slug}:manifest_missing_file={rel}")
     return data
@@ -72,7 +78,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     expected = render_wrapper_stub()
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
 
 
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -181,6 +187,27 @@ def run_self_test() -> int:
         )
         assert validate_slices(root, slices) == []
 
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-slice",
+                    "files": ["scripts/zigux/check-phase3-alpha.py", manifest_rel],
+                    "file_count": 2,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices)
+        assert "alpha:manifest_legacy_wrapper_file=scripts/zigux/check-phase3-alpha.py" in issues
+
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(manifest),
+            encoding="utf-8",
+            newline="\n",
+        )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text("# stale\n", encoding="utf-8", newline="\n")
         issues = validate_slices(root, slices)
         assert "alpha:wrapper_template_mismatch:scripts/zigux/check-phase3-alpha.py" in issues
