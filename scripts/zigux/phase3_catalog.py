@@ -230,13 +230,22 @@ def legacy_wrapper_gate_for_slug(slug: str) -> str:
     return f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/check-phase3-{slug}.py"
 
 
+def _extract_interop_gate_marker(line: str) -> str | None:
+    stripped = line.strip()
+    if stripped.startswith("- `") and stripped.endswith("`"):
+        stripped = stripped[3:-1]
+    if stripped.startswith(INTEROP_GATE_PREFIX):
+        return stripped
+    return None
+
+
 def discover_doc_interop_gate(doc_path: Path, slug: str) -> tuple[str | None, str]:
     try:
         lines = doc_path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
         return None, "missing_doc"
 
-    marker = next((line.strip() for line in lines if line.startswith(INTEROP_GATE_PREFIX)), None)
+    marker = next((candidate for line in lines if (candidate := _extract_interop_gate_marker(line)) is not None), None)
     if marker is None:
         return None, "missing"
     if marker == shared_runner_gate_for_slug(slug):
@@ -244,6 +253,22 @@ def discover_doc_interop_gate(doc_path: Path, slug: str) -> tuple[str | None, st
     if marker == legacy_wrapper_gate_for_slug(slug):
         return marker, "legacy-wrapper"
     return marker, "custom"
+
+
+def rewrite_legacy_wrapper_docs(entries: list[Phase3Slice]) -> list[str]:
+    rewritten: list[str] = []
+    for entry in entries:
+        if entry.interop_gate_mode != "legacy-wrapper":
+            continue
+        legacy = f"python3 scripts/zigux/check-phase3-{entry.slug}.py"
+        shared = f"python3 scripts/zigux/run-phase3-checks.py --slug {entry.slug}"
+        doc = entry.doc_path.read_text(encoding="utf-8")
+        updated = doc.replace(legacy, shared)
+        if updated == doc:
+            continue
+        entry.doc_path.write_text(updated, encoding="utf-8", newline="\n")
+        rewritten.append(_rel(entry.doc_path, entry.root))
+    return rewritten
 
 
 def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
@@ -380,6 +405,30 @@ def run_self_test() -> int:
         assert entry_map["shared"].interop_gate == shared_runner_gate_for_slug("shared")
         assert entry_map["custom"].interop_gate_mode == "custom"
         assert entry_map["custom"].interop_gate == f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py"
+        assert _extract_interop_gate_marker(f"- `{legacy_wrapper_gate_for_slug('legacy')}`") == legacy_wrapper_gate_for_slug("legacy")
+        assert _extract_interop_gate_marker("scope: none") is None
+
+        (paths.docs_dir / "phase3-legacy-slice.md").write_text(
+            "\n".join(
+                [
+                    "2. check legacy parity",
+                    f"- `python3 scripts/zigux/check-phase3-legacy.py`",
+                    f"- `{legacy_wrapper_gate_for_slug('legacy')}`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        rewritten = rewrite_legacy_wrapper_docs(discover_phase3_slices(paths))
+        assert "Documentation/zigux/phase3-legacy-slice.md" in rewritten
+        legacy_doc_text = (paths.docs_dir / "phase3-legacy-slice.md").read_text(encoding="utf-8")
+        assert "python3 scripts/zigux/check-phase3-legacy.py" not in legacy_doc_text
+        assert "python3 scripts/zigux/run-phase3-checks.py --slug legacy" in legacy_doc_text
+        entries = discover_phase3_slices(paths)
+        entry_map = {entry.slug: entry for entry in entries}
+        assert entry_map["legacy"].interop_gate_mode == "shared-runner"
+        assert rewrite_legacy_wrapper_docs(entries) == []
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -392,6 +441,11 @@ if __name__ == "__main__":
         "--legacy-wrapper-docs",
         action="store_true",
         help="List discovered Phase 3 slices whose docs still point at legacy per-slice wrapper commands.",
+    )
+    parser.add_argument(
+        "--rewrite-shared-runner-docs",
+        action="store_true",
+        help="Rewrite discovered legacy Phase 3 doc commands to the shared run-phase3-checks.py --slug form.",
     )
     args = parser.parse_args()
 
@@ -406,6 +460,11 @@ if __name__ == "__main__":
                     print(f"{entry.slug}\t{_rel(entry.doc_path, entry.root)}\t{entry.interop_gate}")
         except BrokenPipeError:
             sys.exit(0)
+        raise SystemExit(0)
+    if args.rewrite_shared_runner_docs:
+        rewritten = rewrite_legacy_wrapper_docs(entries)
+        for path in rewritten:
+            print(path)
         raise SystemExit(0)
 
     print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
