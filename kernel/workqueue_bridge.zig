@@ -31,13 +31,29 @@ pub const BoundaryMap = struct {
     areas: []const BoundaryArea,
 };
 
+pub const AuditGuard = enum {
+    pool_lock_held,
+    pool_lock_released_and_reacquired,
+    mayday_lock_then_pool_lock,
+    scheduler_callback_under_pool_lock,
+};
+
 pub const AuditCheckpoint = struct {
     id: []const u8,
-    boundary_area_id: []const u8,
+    anchor_symbol: []const u8,
     summary: []const u8,
-    expected_owner: Ownership,
-    anchor_symbols: []const []const u8,
-    rationale: []const u8,
+    guard: AuditGuard,
+    observed_fields: []const []const u8,
+    blocked_by: []const u8,
+    ownership: Ownership,
+};
+
+pub const ConcurrencyAudit = struct {
+    anchor: []const u8,
+    posture: []const u8,
+    checkpoints: []const AuditCheckpoint,
+    blocked_live_behaviors: []const []const u8,
+    next_step: []const u8,
 };
 
 const boundary_areas = [_]BoundaryArea{
@@ -50,14 +66,14 @@ const boundary_areas = [_]BoundaryArea{
     },
     .{
         .id = "allocation-and-attrs",
-        .summary = "Document the workqueue allocation and attribute surface as a study checkpoint with any wrapper follow-up deferred until the concurrency audit is tighter.",
+        .summary = "Document the workqueue allocation and attribute surface as a future wrapper candidate, not a live allocator port.",
         .ownership = .boundary_map_only,
         .anchor_symbols = &[_][]const u8{ "__alloc_workqueue", "devm_alloc_workqueue" },
-        .rationale = "Allocation and attribute shaping are reviewable as metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C, so any wrapper language here should stay explicitly deferred.",
+        .rationale = "Allocation and attribute shaping are reviewable as metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C.",
     },
     .{
         .id = "flush-and-cancel",
-        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is described outside the existing C implementation.",
+        .summary = "Capture flush and cancellation coordination as boundary-map checkpoints before any completion or draining behavior is wrapped.",
         .ownership = .boundary_map_only,
         .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "cancel_work_sync" },
         .rationale = "Flush and cancel are caller-facing synchronization surfaces, but their correctness depends on active-color accounting, pool state, and worker progress that should stay under the existing C implementation for now.",
@@ -80,29 +96,49 @@ const boundary_areas = [_]BoundaryArea{
 
 const audit_checkpoints = [_]AuditCheckpoint{
     .{
-        .id = "pool-lock-ownership",
-        .boundary_area_id = "worker-pool-concurrency",
-        .summary = "Audit how manage_workers() and maybe_create_worker() depend on pool->lock ownership before any wrapper claims concurrency state transitions.",
-        .expected_owner = .stay_in_c,
-        .anchor_symbols = &[_][]const u8{ "manage_workers", "maybe_create_worker", "pool->lock" },
-        .rationale = "This is the smallest honest concurrency audit follow-up because worker creation, idle transitions, and forward-progress repair all pivot on lock-protected pool state that Zigux should keep in C.",
+        .id = "manager-role-serialization",
+        .anchor_symbol = "manage_workers",
+        .summary = "Record that only one manager may own a pool at a time even though worker creation can drop and reacquire the pool lock.",
+        .guard = .pool_lock_released_and_reacquired,
+        .observed_fields = &[_][]const u8{ "pool->flags", "pool->manager" },
+        .blocked_by = "manage_workers() flips POOL_MANAGER_ACTIVE and pool->manager before maybe_create_worker() drops and regrabs pool->lock, so Zigux should audit the single-manager contract rather than claim a live wrapper.",
+        .ownership = .stay_in_c,
     },
     .{
-        .id = "rescuer-mayday-path",
-        .boundary_area_id = "rescuer-and-scheduler-hooks",
-        .summary = "Audit rescuer_thread() against mayday wakeups before any metadata wrapper grows into rescue execution ownership.",
-        .expected_owner = .stay_in_c,
-        .anchor_symbols = &[_][]const u8{ "rescuer_thread", "send_mayday", "MAYDAY_INTERVAL" },
-        .rationale = "The mayday-to-rescuer path is the first bounded rescue audit surface because it ties stalled progress detection to shared emergency workers without a safe wrapper-first decomposition yet.",
+        .id = "worker-pool-forward-progress",
+        .anchor_symbol = "struct worker_pool",
+        .summary = "Keep forward-progress and runnable-worker accounting under the existing worker_pool lock discipline.",
+        .guard = .pool_lock_held,
+        .observed_fields = &[_][]const u8{ "pool->last_progress_ts", "pool->nr_running", "pool->worklist" },
+        .blocked_by = "worker_pool forward-progress timestamps, runnable counts, and pending worklist state are all lock-coupled and watchdog-adjacent, so Phase 14 should only name the fields and leave the live updates in C.",
+        .ownership = .stay_in_c,
     },
     .{
-        .id = "scheduler-hook-pairing",
-        .boundary_area_id = "rescuer-and-scheduler-hooks",
-        .summary = "Audit the pairing of wq_worker_running() and wq_worker_sleeping() before any wrapper describes scheduler-visible execution state.",
-        .expected_owner = .stay_in_c,
-        .anchor_symbols = &[_][]const u8{ "wq_worker_running", "wq_worker_sleeping", "WORKER_NOT_RUNNING" },
-        .rationale = "These hooks expose scheduler-facing transitions and worker flag semantics, so Phase 14 should keep them as explicit audit checkpoints instead of broadening the bridge into live execution tracking.",
+        .id = "scheduler-running-hooks",
+        .anchor_symbol = "wq_worker_running/wq_worker_sleeping",
+        .summary = "Track the scheduler-facing running and sleeping callbacks as a separate audit surface tied to worker flags and nr_running transitions.",
+        .guard = .scheduler_callback_under_pool_lock,
+        .observed_fields = &[_][]const u8{ "worker->flags", "pool->nr_running" },
+        .blocked_by = "The scheduler-visible hooks adjust WORKER_NOT_RUNNING state and nr_running while coordinating wakeups under pool->lock, which is exactly the sort of live concurrency ownership Zigux should keep in C.",
+        .ownership = .stay_in_c,
     },
+    .{
+        .id = "rescuer-mayday-handoff",
+        .anchor_symbol = "rescuer_thread",
+        .summary = "Capture the rescuer's mayday-list handoff into pool-locked rescue work without claiming the execution loop itself.",
+        .guard = .mayday_lock_then_pool_lock,
+        .observed_fields = &[_][]const u8{ "wq->maydays", "pwq->nr_active", "pwq->mayday_cursor" },
+        .blocked_by = "rescuer_thread() walks wq->maydays, attaches to a pool, rescues pending work, and then kicks regular workers again, so the whole handoff remains a stay-in-C concurrency boundary.",
+        .ownership = .stay_in_c,
+    },
+};
+
+const blocked_live_behaviors = [_][]const u8{
+    "live worker_pool execution",
+    "pool draining and flush completion",
+    "scheduler callback parity",
+    "rescuer execution ownership",
+    "hotplug-driven worker migration",
 };
 
 pub const WorkqueueBridgeLab = struct {
@@ -128,8 +164,14 @@ pub const WorkqueueBridgeLab = struct {
         };
     }
 
-    pub fn concurrencyAuditChecklist() []const AuditCheckpoint {
-        return audit_checkpoints[0..];
+    pub fn concurrencyAudit() ConcurrencyAudit {
+        return .{
+            .anchor = descriptor().anchor,
+            .posture = descriptor().posture,
+            .checkpoints = audit_checkpoints[0..],
+            .blocked_live_behaviors = blocked_live_behaviors[0..],
+            .next_step = nextAuditFocus(),
+        };
     }
 
     pub fn stayInCDecisionCount() usize {
@@ -142,8 +184,12 @@ pub const WorkqueueBridgeLab = struct {
         return count;
     }
 
+    pub fn auditCheckpointCount() usize {
+        return audit_checkpoints.len;
+    }
+
     pub fn nextAuditFocus() []const u8 {
-        return "Tighten the landed audit around pool->lock ownership, the mayday-to-rescuer path, and wq_worker_running()/wq_worker_sleeping() pairing before any wrapper leaves the boundary-map-only posture.";
+        return "Audit __queue_work() lock handoff, process_one_work() lock release boundaries, and worker_thread() sleep or wake transitions before any wrapper leaves the boundary-map-only posture.";
     }
 };
 
@@ -168,8 +214,8 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "pool->lock") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "mayday-to-rescuer") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "manage_workers()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "rescuer_thread()") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -186,18 +232,32 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("wq_worker_sleeping", map.areas[4].anchor_symbols[2]);
 }
 
-test "workqueue bridge exposes a bounded concurrency audit checklist" {
-    const checklist = WorkqueueBridgeLab.concurrencyAuditChecklist();
+test "workqueue bridge concurrency audit stays review-only" {
+    const audit = WorkqueueBridgeLab.concurrencyAudit();
 
-    try std.testing.expectEqual(@as(usize, 3), checklist.len);
-    try std.testing.expectEqualStrings("pool-lock-ownership", checklist[0].id);
-    try std.testing.expectEqualStrings("worker-pool-concurrency", checklist[0].boundary_area_id);
-    try std.testing.expect(checklist[0].expected_owner == .stay_in_c);
-    try std.testing.expectEqualStrings("manage_workers", checklist[0].anchor_symbols[0]);
-    try std.testing.expect(std.mem.indexOf(u8, checklist[0].rationale, "forward-progress") != null);
+    try std.testing.expectEqualStrings("kernel/workqueue.c", audit.anchor);
+    try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
+    try std.testing.expectEqual(@as(usize, 4), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 4), WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__queue_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "process_one_work()") != null);
 
-    try std.testing.expectEqualStrings("rescuer-mayday-path", checklist[1].id);
-    try std.testing.expectEqualStrings("rescuer_thread", checklist[1].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("scheduler-hook-pairing", checklist[2].id);
-    try std.testing.expectEqualStrings("WORKER_NOT_RUNNING", checklist[2].anchor_symbols[2]);
+    try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
+    try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
+    try std.testing.expectEqualStrings("pool->manager", audit.checkpoints[0].observed_fields[1]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[0].blocked_by, "POOL_MANAGER_ACTIVE") != null);
+
+    try std.testing.expectEqualStrings("worker-pool-forward-progress", audit.checkpoints[1].id);
+    try std.testing.expect(audit.checkpoints[1].guard == .pool_lock_held);
+    try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
+
+    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[2].id);
+    try std.testing.expect(audit.checkpoints[2].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[2].observed_fields[1]);
+
+    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[3].id);
+    try std.testing.expect(audit.checkpoints[3].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[3].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[3].blocked_by, "kicks regular workers") != null);
 }
