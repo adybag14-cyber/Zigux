@@ -8,6 +8,8 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
+    try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_pretty_name_helper);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
 }
@@ -55,4 +57,163 @@ test "phase13 devres rejects ioremap planning when the release record cannot be 
 test "phase13 devres release matching stays pointer-exact" {
     try std.testing.expect(devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4000));
     try std.testing.expect(!devres.DevresHelperLab.ioremapReleaseMatches(0x4000, 0x4010));
+}
+
+test "phase13 devres plans a non-posted managed ioremap resource mapping" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "serial",
+        .resource = .{
+            .start = 0x1000,
+            .end = 0x10ff,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "regs",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqualStrings("serial regs", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.np, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x100), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => |failure| {
+            std.debug.print("unexpected failure: {any}\n", .{failure});
+            return error.UnexpectedFailure;
+        },
+    }
+}
+
+test "phase13 devres keeps requested mapping types and unnamed pretty names" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "gpu0",
+        .resource = .{
+            .start = 0x2000,
+            .end = 0x201f,
+            .is_memory = true,
+            .nonposted = true,
+            .name = null,
+        },
+        .requested_type = .wc,
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("gpu0", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.wc, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x20), plan.size);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres rejects missing or non-memory resources" {
+    const missing = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "i2c0",
+        .resource = null,
+    });
+    switch (missing) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.invalid_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.invalid, failure.error_code);
+            try std.testing.expect(!failure.requests_region);
+        },
+    }
+
+    const wrong_type = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "i2c0",
+        .resource = .{
+            .start = 0x3000,
+            .end = 0x300f,
+            .is_memory = false,
+            .nonposted = false,
+            .name = "ports",
+        },
+    });
+    switch (wrong_type) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.invalid_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.invalid, failure.error_code);
+        },
+    }
+}
+
+test "phase13 devres records busy region requests and remap cleanup" {
+    const busy = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "eth0",
+        .resource = .{
+            .start = 0x4000,
+            .end = 0x40ff,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "mmio",
+        },
+        .request_region_granted = false,
+    });
+    switch (busy) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.request_region, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.busy, failure.error_code);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
+    }
+
+    const remap_failure = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "eth0",
+        .resource = .{
+            .start = 0x5000,
+            .end = 0x507f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "mmio",
+        },
+        .remap_succeeds = false,
+    });
+    switch (remap_failure) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.remap, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(failure.releases_region_on_remap_failure);
+        },
+    }
+}
+
+test "phase13 devres models pretty-name allocation failure and resource sizing" {
+    const alloc_failure = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "uart0",
+        .resource = .{
+            .start = 0x6000,
+            .end = 0x6003,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "regs",
+        },
+        .fail_pretty_name_allocation = true,
+    });
+    switch (alloc_failure) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.pretty_name, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);
+            try std.testing.expect(!failure.requests_region);
+        },
+    }
+
+    try std.testing.expectError(error.InvalidRange, devres.DevresHelperLab.resourceSize(.{
+        .start = 9,
+        .end = 3,
+        .is_memory = true,
+        .nonposted = false,
+    }));
 }
