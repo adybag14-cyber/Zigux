@@ -63,6 +63,21 @@ test "phase11 dw_wdt irq mode keeps pretimeout bookkeeping and counts the second
     try std.testing.expectEqual(@as(u32, 3), runtime.time_left_sec);
 }
 
+test "phase11 dw_wdt loadRegisters re-derives imported running state from hardware bits" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const runtime = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, runtime.response_mode);
+    try std.testing.expectEqual(@as(u32, 16), runtime.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), runtime.pretimeout_sec);
+    try std.testing.expectEqual(@as(u32, 10), runtime.time_left_sec);
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
@@ -82,4 +97,8 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expect(runtime.restart_armed);
     try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
     try std.testing.expectEqual(@as(u32, 0), runtime.registers.timeout_range);
+
+    runtime = restart_lab.loadRegisters(.{});
+    try std.testing.expect(!runtime.running);
+    try std.testing.expect(!runtime.hardware_running);
 }
