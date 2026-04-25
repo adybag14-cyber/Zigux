@@ -70,7 +70,7 @@
     {
       "id": "P8-L13-S03",
       "slug": "cpu-mask-parsing",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c:14379-14480"
