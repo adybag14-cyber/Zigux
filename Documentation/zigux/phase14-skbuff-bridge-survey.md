@@ -29,8 +29,8 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - `include/linux/skbuff.h` makes the coupling visible: `struct skb_shared_info`, the split `dataref`, header-clone rules, `destructor_arg`, checksum metadata, and GSO fields show exactly why this lane needs explicit stay-in-C decisions before implementation claims.
 - `net/core/datagram.c` is a useful nearby consumer because it still relies on the shipped skbuff lifetime model rather than any alternate wrapper surface.
 - the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
-- the bridge also carries one small lifetime audit outline around `skb_cloned()` or `skb_header_cloned()`, `pskb_expand_head()`, `skb_release_head_state()` or `skb_release_data()`, and `__skb_checksum_complete()` or `skb_segment()`, still without claiming live allocator, refcount, destructor, or packet-shaping ownership.
-- the next honest skbuff-facing step is a tighter lifetime-audit pass around `pskb_expand_head()`, `skb_release_head_state()` or `skb_release_data()`, and `skb_segment()` so the lane names clone-or-reallocate handoff, destructor-ordered teardown, and checksum or frag metadata ownership before any wrapper claim approaches live packet lifetime behavior.
+- the bridge now separates checksum-complete state around `__skb_checksum_complete()` and `skb_checksum_complete_unset()` from the broader `skb_segment()` frag handoff, which makes the ownership boundary around `skb->csum`, `skb->ip_summed`, `skb->csum_valid`, and `skb->csum_complete_sw` explicit without claiming live checksum-state control.
+- the next honest skbuff-facing step is a tighter segmentation-handoff study around `skb_segment()`, `skb_orphan_frags()`, and `skb_zerocopy_clone()` so the lane names how frag ownership and checksum metadata move before any wrapper claim approaches live packet lifetime behavior.
 
 ## Recorded gaps
 
@@ -43,10 +43,11 @@ The current lane state is:
 - landed `phase14-skbuff-slice-note`
 - landed `phase14-skbuff-survey-note`
 - landed `phase14-skbuff-lifetime-audit-outline`
-- ready-next `phase14-skbuff-lifetime-handoff-followup`
+- landed `phase14-skbuff-checksum-state-audit`
+- ready-next `phase14-skbuff-segmentation-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map and lifetime-audit foothold, but it still does not claim live refcount transitions, destructor ordering, checksum completion ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, and a more explicit checksum-state audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
 ## Non-goals
 
@@ -70,4 +71,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 skbuff lane and add one tiny lifetime-audit tightening next, limited to `pskb_expand_head()`, `skb_release_head_state()` or `skb_release_data()`, and `skb_segment()` so the bridge records clone-or-reallocate handoff, destructor-ordered teardown, and checksum or frag metadata ownership before any wrapper leaves the current boundary-map-only posture.
+Stay in the Phase 14 skbuff lane and add one tiny segmentation-handoff study next, limited to `skb_segment()`, `skb_orphan_frags()`, and `skb_zerocopy_clone()` so the bridge records how frag ownership and checksum metadata move before any wrapper leaves the current boundary-map-only posture.
