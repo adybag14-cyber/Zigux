@@ -1,6 +1,6 @@
 # Phase 7 Cmdline Slice
 
-This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/cmdline.c`.
+This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/cmdline.c`.
 
 ## Status
 
@@ -16,10 +16,9 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux aroun
 
 Phase 7 explicitly calls out `lib/cmdline.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This starter slice keeps the work bounded to runtime-safe parsing helpers that:
+This current slice keeps the work bounded to runtime-safe parsing helpers that:
 
 - do not allocate
-- stay outside deeper parameter matching or escape handling
 - can be validated with deterministic Zig-only tests
 
 ## Gates
@@ -47,16 +46,17 @@ The current tests check:
 - descending-range early stop behavior
 - memory-size suffix scaling with accurate parse-stop reporting
 - exact bare-option matching for comma-delimited flags
-- quoted argument/value token splitting with in-place NUL termination
+- quoted argument/value splitting with in-place NUL termination and trimmed rest handling
+- quoted bare-token parsing without inventing a value pointer
 
 ## Non-goals
 
-This slice does not yet claim:
+This slice still does not yet claim:
 
-- parameter-name normalization beyond the raw token split
-- escaped-quote handling beyond the Linux helper's bounded quote toggling
 - exhaustive overflow compatibility with every `simple_strtoull()` corner case
+- broader parameter-name normalization or cross-subsystem callers beyond the local helper surface
+- serialized C fixture generation for `next_arg()` edge cases
 
 ## Next bounded step
 
-Verify `next_arg()` against a broader mixed-spacing and quote-edge fixture set, then decide whether the lane should stay in `lib/cmdline.c` with another small parser primitive or close the starter cmdline slice.
+Add a small serialized fixture layer for `next_arg()` edge cases, or close this cmdline helper lane if no further Phase 7 review drift remains.
