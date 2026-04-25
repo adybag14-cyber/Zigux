@@ -1,0 +1,94 @@
+{
+  "lane_key": "P10-L13",
+  "phase": "Phase 10",
+  "surveyed_commit": "e78bec79c8bfead1b6542cc929b6cfdbdf2b09dc",
+  "anchor": "drivers/virtio/virtio_input.c",
+  "roadmap_destinations": [
+    "drivers/virtio/*.zig",
+    "zigux/helpers/"
+  ],
+  "survey_summary": {
+    "virtio_input_c_lines": 421,
+    "preexisting_phase10_test_files": 5,
+    "preexisting_phase10_build_present": true,
+    "preexisting_virtio_core_zig_present": true,
+    "preexisting_virtio_ring_zig_present": true,
+    "preexisting_virtio_mmio_survey_present": true,
+    "preexisting_virtio_input_zig_present": true,
+    "preexisting_virtio_input_test_present": true,
+    "preexisting_virtio_input_slice_note_present": true,
+    "preexisting_virtio_input_module_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase10-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_build.zig",
+      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_input survey reviewable alongside the already-landed helper."
+    },
+    {
+      "id": "phase10-virtio-core-lab-starter",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The existing virtio core lab slice already covers status and queue bookkeeping, so the virtio_input lane can rely on that footing instead of reopening core-side work."
+    },
+    {
+      "id": "phase10-virtio-ring-lab-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live repo already has a bounded in-memory ring helper for queue shape and notification bookkeeping, which is the minimum queue-facing support the virtio_input starter depends on."
+    },
+    {
+      "id": "phase10-virtio-input-lab-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The first virtio_input-specific helper is already landed and models identity snapshots, queue planning, ready-state gating, and multitouch timestamp suppression without claiming transport parity."
+    },
+    {
+      "id": "phase10-virtio-input-lab-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
+      "why_now": "Dedicated Phase 10 tests already keep the starter helper honest around capped string copies, queue planning, ready gating, reset behavior, and MSC_TIMESTAMP suppression."
+    },
+    {
+      "id": "phase10-virtio-input-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-input-slice.md",
+      "why_now": "The slice note already records what the landed helper covers so the survey can focus on the remaining roadmap gap rather than re-explaining the starter surface."
+    },
+    {
+      "id": "phase10-virtio-input-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig",
+      "why_now": "A dedicated survey gate keeps the current virtio_input roadmap gap explicit now that the repo already has a starter helper and test path."
+    },
+    {
+      "id": "phase10-virtio-input-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
+      "why_now": "The lane needs a Phase 10 note that compares the live starter against the roadmap and prevents the repo from overstating input-driver progress."
+    },
+    {
+      "id": "phase10-virtio-input-config-bitmap-helper",
+      "status": "ready_next",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The next honest virtio_input step is one small in-memory helper for config bitmap or ABS-info decoding so the lab model can describe `virtinput_cfg_bits()` and `virtinput_cfg_abs()` behavior before any transport or input-core registration work."
+    },
+    {
+      "id": "phase10-virtio-input-registration-lifecycle",
+      "status": "blocked_on_risky_transport",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until config bitmap or ABS-info helpers and broader queue callback plumbing are in place."
+    }
+  ]
+}
