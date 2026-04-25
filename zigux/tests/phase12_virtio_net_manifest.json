@@ -1,0 +1,80 @@
+{
+  "lane_key": "P12-L01",
+  "phase": "Phase 12",
+  "surveyed_commit": "5e9f574d2dd6af384db83f8c1dc98be14f28e832",
+  "anchor": "drivers/net/virtio_net.c",
+  "roadmap_destinations": [
+    "drivers/net/virtio_net.zig",
+    "zigux/tests/"
+  ],
+  "survey_summary": {
+    "virtio_net_c_lines": 7288,
+    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_build_present": true,
+    "preexisting_virtio_core_zig_present": true,
+    "preexisting_virtio_ring_zig_present": true,
+    "preexisting_virtio_input_zig_present": true,
+    "preexisting_phase12_build_present": true,
+    "preexisting_phase12_virtio_net_survey_present": true,
+    "preexisting_phase12_survey_note_present": true,
+    "preexisting_virtio_net_zig_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase12-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_build.zig",
+      "why_now": "The first honest Phase 12 landing is a shared build gate that keeps the virtio_net survey reviewable without pretending a complex net-driver starter already exists."
+    },
+    {
+      "id": "phase12-make-target",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "A dedicated make target keeps the survey lane runnable in the same bounded way as the earlier phase slices instead of hiding the new checkpoint behind ad hoc commands."
+    },
+    {
+      "id": "phase12-virtio-core-foundation",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The Phase 10 virtio core slice already covers status sequencing, feature negotiation, queue metadata, and callback bookkeeping, which is the minimum foundation a future virtio_net starter would build on."
+    },
+    {
+      "id": "phase12-virtio-ring-foundation",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The existing virtio_ring helper keeps queue-shape and callback-enable bookkeeping in memory only, which is the closest current Zigux support surface for a future virtio_net queue plan."
+    },
+    {
+      "id": "phase12-virtio-net-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
+      "why_now": "A dedicated survey test is the smallest truthful way to record that `virtio_net.c` is present, Phase 10 virtio groundwork exists, and the repo still has no `drivers/net/virtio_net.zig` starter."
+    },
+    {
+      "id": "phase12-virtio-net-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
+      "why_now": "The lane needs a note that spells out the real scope of `virtio_net.c` so future runs do not confuse a very large production driver with a ready-to-port helper slice."
+    },
+    {
+      "id": "phase12-virtio-net-probe-snapshot-starter",
+      "status": "ready_next",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The next honest virtio_net step is one tiny probe-time snapshot helper around negotiated feature bits, queue-pair counts, ctrl-vq presence, mergeable-buffer mode, and RSS or hash-report capability so the lane can describe `virtnet_probe()` before any NAPI, XDP, DMA, or netdev registration work."
+    },
+    {
+      "id": "phase12-virtio-net-runtime-data-path",
+      "status": "blocked_on_dma_transport",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
+      "why_now": "NAPI poll loops, page_pool DMA handling, XDP or XSK paths, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle coverage remain blocked until a much smaller probe snapshot exists and the roadmap-approved DMA and queueing substrate is in place."
+    }
+  ]
+}
