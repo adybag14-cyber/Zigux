@@ -60,6 +60,22 @@ test "phase10 virtio core models transport refusal of features ok" {
     try std.testing.expect(!(try device.hasNegotiatedFeature(8)));
 }
 
+test "phase10 virtio core closes the feature window after finalize" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 3, 11 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(3);
+    _ = try device.finalizeFeatures();
+
+    try std.testing.expectError(error.FeatureWindowClosed, device.offerDriverFeature(11));
+
+    try device.markDriverReady();
+    try std.testing.expectError(error.FeatureWindowClosed, device.offerDriverFeature(11));
+    try std.testing.expectEqual(@as(usize, 1), device.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(3));
+}
+
 test "phase10 virtio core reset clears negotiated state and keeps failure bits opt-in" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 9 });
 
@@ -79,4 +95,16 @@ test "phase10 virtio core reset clears negotiated state and keeps failure bits o
     try std.testing.expect(!(try device.hasNegotiatedFeature(4)));
     try std.testing.expectEqual(@as(usize, 1), device.finalize_count);
     try std.testing.expectEqual(@as(usize, 1), device.reset_count);
+}
+
+test "phase10 virtio core rejects feature bits outside the bounded lab capacity" {
+    try std.testing.expectError(error.FeatureBitOutOfRange, virtio_core.VirtioCoreLabDevice.init(&.{virtio_core.feature_bit_capacity}));
+
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 9 });
+    device.acknowledge();
+    try device.attachDriver();
+
+    try std.testing.expectError(error.FeatureBitOutOfRange, device.offerDriverFeature(virtio_core.feature_bit_capacity));
+    try std.testing.expectError(error.FeatureBitOutOfRange, device.hasDeviceFeature(virtio_core.feature_bit_capacity));
+    try std.testing.expectError(error.FeatureBitOutOfRange, device.hasNegotiatedFeature(virtio_core.feature_bit_capacity));
 }
