@@ -16,7 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/subcmd/help.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/subcmd/*.zig` as the first Zigux destination for this tranche.
 
-After `exec-cmd.zig` landed, the live repo still had no sibling `help.zig` slice. The highest-value bounded step inside this lane was to port the stable command-list manipulation logic first, because it is easier to validate honestly than terminal-size probing, directory walking, environment inspection, or output emission.
+This lane keeps the shipped `help.zig` starter slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than terminal-size probing, directory walking, environment inspection, or output emission.
 
 ## Gates
 
@@ -46,9 +46,9 @@ The current tests check:
 - copied command names do not alias mutable caller buffers
 - sorted duplicate removal keeps one stable owned copy
 - sorted exclusions remove matching entries without disturbing survivors
-- executable-entry filtering ignores non-prefixed or non-executable candidates and strips `.exe` suffixes
+- executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
 - membership and longest-name tracking stay aligned with stored entries
-- layout planning preserves the same column math used before printing
+- layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals and the empty-list row contract
 
 ## Non-goals
 
