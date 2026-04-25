@@ -16,6 +16,7 @@ Key entrypoints
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
+- `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/phase3_catalog.py --self-test`
