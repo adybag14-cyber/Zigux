@@ -1,0 +1,61 @@
+{
+  "lane_key": "P9-L13",
+  "phase": "Phase 9",
+  "surveyed_commit": "248bfeaa7f2beddc283c3e398fc36fec3c841242",
+  "anchor": "samples/kprobes/kretprobe_example.c",
+  "roadmap_destinations": [
+    "zigux/tests/runtime_*",
+    "samples/zigux/runtime_*"
+  ],
+  "survey_summary": {
+    "kretprobe_example_c_lines": 106,
+    "preexisting_runtime_kretprobe_test_files": 0,
+    "preexisting_runtime_kretprobe_sample_present": false,
+    "preexisting_phase9_build_present": true,
+    "preexisting_runtime_kretprobe_doc_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase9-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The existing Phase 9 build path is the smallest honest place to make the runtime kretprobe lane visible beside atomic64, bitmap, and trace-events without widening into an unfinished starter."
+    },
+    {
+      "id": "runtime-kretprobe-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig",
+      "why_now": "A dedicated survey gate keeps the missing runtime kretprobe pilot explicit, reviewable, and tied to one Linux sample anchor instead of disappearing into generic roadmap prose."
+    },
+    {
+      "id": "runtime-kretprobe-sample-module",
+      "status": "ready_next",
+      "kind": "sample_starter",
+      "zigux_destination": "samples/zigux/runtime_kretprobe.zig",
+      "why_now": "The next real product step is a bounded starter that models probe descriptor metadata, registration lifecycle, and entry-versus-return accounting without claiming kernel-loader parity."
+    },
+    {
+      "id": "runtime-kretprobe-module-tests",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_kretprobe_module.zig",
+      "why_now": "A focused module gate should arrive with the starter sample so lifecycle transitions, missed-instance accounting, and elapsed-time bookkeeping stay reviewable."
+    },
+    {
+      "id": "runtime-kretprobe-diff-gate",
+      "status": "ready_next",
+      "kind": "differential_validation",
+      "zigux_destination": "zigux/tests/runtime_kretprobe_diff.zig",
+      "why_now": "After the starter lands, a tiny table-driven differential gate can replay symbol-name, maxactive, and nmissed expectations from the Linux sample before any broader runtime work."
+    },
+    {
+      "id": "runtime-kretprobe-substrate-handoff",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
+      "why_now": "Real register_kretprobe, unregister_kretprobe, pt_regs handling, and module-init parity still depend on runtime substrate pieces that Zigux has not started yet."
+    }
+  ]
+}
