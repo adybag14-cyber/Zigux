@@ -75,6 +75,15 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
 
 
+def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str]) -> None:
+    expected_paths = {entry.check_script.resolve() for entry in slices}
+    scripts_dir = root / "scripts" / "zigux"
+    for path in sorted(scripts_dir.glob("check-phase3-*.py")):
+        if path.resolve() in expected_paths:
+            continue
+        issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
+
+
 def validate_slices(root: Path, slices: list[object]) -> list[str]:
     issues: list[str] = []
 
@@ -93,6 +102,7 @@ def validate_slices(root: Path, slices: list[object]) -> list[str]:
         validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
+    validate_obsolete_wrappers(root, slices, issues)
     return issues
 
 
@@ -148,6 +158,12 @@ def run_self_test() -> int:
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
         assert validate_slices(root, slices) == []
+
+        obsolete_wrapper = paths.scripts_dir / "check-phase3-stale.py"
+        obsolete_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        issues = validate_slices(root, slices)
+        assert "obsolete_wrapper:scripts/zigux/check-phase3-stale.py" in issues
+        obsolete_wrapper.unlink()
 
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
