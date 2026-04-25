@@ -22,6 +22,26 @@ test "phase11 dw_wdt exposes the bounded descriptor and fixed-top limits" {
     try std.testing.expect(!config.can_stop);
 }
 
+test "phase11 dw_wdt exposes the fixed-top timeout matrix in ascending order" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(32_768, false);
+    const windows = watchdog.timeoutWindows();
+
+    try std.testing.expectEqual(@as(usize, dw_wdt.num_tops), windows.len);
+    try std.testing.expectEqual(@as(u32, 0), windows[0].top_val);
+    try std.testing.expectEqual(@as(u32, 2), windows[0].sec);
+    try std.testing.expectEqual(@as(u32, 0), windows[0].msec);
+    try std.testing.expectEqual(@as(u32, 15), windows[15].top_val);
+    try std.testing.expectEqual(@as(u32, 65_536), windows[15].sec);
+
+    for (windows[1..], 1..) |window, idx| {
+        const previous = windows[idx - 1];
+        try std.testing.expect(window.sec >= previous.sec);
+        if (window.sec == previous.sec) {
+            try std.testing.expect(window.msec >= previous.msec);
+        }
+    }
+}
+
 test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" {
     var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     const config = try watchdog.setTimeout(9);
