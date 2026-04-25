@@ -74,18 +74,25 @@
       "why_now": "The bridge now carries a small lifetime audit outline around dataref splits, pskb_expand_head() clone-or-reallocate handoff, destructor_arg and frag-list teardown, and checksum or GSO metadata coupling so Zigux can name the ownership risks without claiming live allocator, refcount, or destructor control."
     },
     {
-      "id": "phase14-skbuff-lifetime-handoff-followup",
+      "id": "phase14-skbuff-checksum-state-audit",
+      "status": "starter_landed",
+      "kind": "lifetime_audit",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The bridge now separates checksum-complete state around __skb_checksum_complete() and skb_checksum_complete_unset() so the lane can name skb->csum, skb->ip_summed, skb->csum_valid, and skb->csum_complete_sw without claiming live checksum-state ownership."
+    },
+    {
+      "id": "phase14-skbuff-segmentation-followup",
       "status": "ready_next",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff step is a tighter lifetime-audit pass around pskb_expand_head(), skb_release_head_state() or skb_release_data(), and skb_segment() so the lane can document clone-or-reallocate handoff, destructor-ordered teardown, and checksum or frag metadata ownership without weakening the current boundary-map-only posture."
+      "why_now": "The next honest skbuff step is a tighter study of skb_segment(), skb_orphan_frags(), and skb_zerocopy_clone() so the lane can document how frag ownership and checksum metadata move across segmentation without weakening the current stay-in-C posture."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_skbuff_bridge.zig",
-      "why_now": "Live skbuff allocation, dataref transitions, destructor-driven teardown, frag-list ownership, checksum completion, and GSO segmentation remain blocked until Phase 14 has much stronger stay-in-C evidence and still keeps those mechanisms in the existing C implementation."
+      "why_now": "Live skbuff allocation, dataref transitions, checksum-state caching, destructor-driven teardown, frag-list ownership, and GSO segmentation remain blocked until Phase 14 has much stronger stay-in-C evidence and still keeps those mechanisms in the existing C implementation."
     }
   ]
 }
