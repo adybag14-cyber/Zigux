@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution and command-vector preparation only
+- scope: path-resolution, injected env updates, and command-vector preparation only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -37,12 +37,14 @@ The current starter slice covers:
 - `get_argv_exec_path()` precedence across explicit path, environment path, and configured fallback
 - `extract_argv0_path()` splitting for directory-prefixed tool invocations
 - `setup_path()`-adjacent path assembly via relative-to-cwd normalization
+- injected `PREFIX`, exec-path, and `PATH` environment updates for `exec_cmd_init()` and `setup_path()`-style callers
 - `prepare_exec_cmd()`-style argv prefixing for later `execv()` plumbing
 
 The current tests check:
 
 - path fallback precedence stays stable
 - relative search-path entries become absolute against the current working directory input
+- env-update wrappers preserve expected variable names and payloads without mutating process state
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - prepared argv vectors start with the configured executable name
 
@@ -51,10 +53,10 @@ The current tests check:
 This slice does not yet claim:
 
 - direct `execvp()` parity or process-launch behavior
-- environment mutation side effects from `exec_cmd_init()` or `setup_path()`
+- filesystem-backed `getcwd()` versus `PWD` reconciliation from `get_pwd_cwd()`
 - the terminal/help listing surface from `tools/lib/subcmd/help.c`
 - the larger Phase 8 anchors in `tools/lib/symbol/` or `tools/lib/bpf/`
 
 ## Next bounded step
 
-Stay in `tools/lib/subcmd/exec-cmd.zig` and either add an injected environment wrapper for `setup_path()` and `exec_cmd_init()` semantics, or start the sibling `tools/lib/subcmd/help.zig` lane once this starter surface is accepted.
+Stay in `tools/lib/subcmd/exec-cmd.zig` and add the remaining `get_pwd_cwd()` parity layer or direct `execv_cmd()` launch plumbing, keeping the slice helper-first and deterministic before widening into `help.zig`.
