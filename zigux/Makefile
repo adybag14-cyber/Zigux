@@ -31,71 +31,13 @@ phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross
 
 phase3-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check
 
 phase3-abi:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig
 
 phase3-interop:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-bitmap-cpumask.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-list-hlist.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-errptr-xarray.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-xarray-slot.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-idr-slot.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-bitmap.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-alloc.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-range.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-range-set.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-ida-policy.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-minor-alloc.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-dev-region.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-cdev-add.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-cdev-lookup.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-open.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-fops.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-route.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-io.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-xfer.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-resume.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-retry.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-requeue.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-complete.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-policy.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-policy.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery-window-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-chrdev-notify-ack-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py
 
 phase3: phase3-validate phase3-abi phase3-interop
