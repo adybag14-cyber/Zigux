@@ -6,10 +6,11 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- scope: lifecycle starter, bounded return-probe bookkeeping, dedicated Phase 9 test wiring, and survey-manifest closure only
+- scope: lifecycle starter, bounded return-probe bookkeeping, a tiny differential gate, dedicated Phase 9 test wiring, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `zigux/tests/runtime_kretprobe_module.zig`
+  - `zigux/tests/runtime_kretprobe_diff.zig`
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
   - `zigux/tests/phase9_build.zig`
@@ -26,6 +27,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a retargetable symbol-name starter that defaults to `kernel_clone`, matching the Linux sample's module parameter
 - bounded entry-handler skip behavior for kernel-thread-like contexts, return-value and duration bookkeeping, and explicit `nmissed` tracking
+- a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
@@ -35,7 +37,6 @@ This slice does not yet claim:
 - a kernel-loadable Zigux kretprobe module
 - real `register_kretprobe()` or `unregister_kretprobe()` parity
 - architecture-specific register extraction parity for `regs_return_value()`
-- a C-vs-Zig differential gate for specific kretprobe example timelines
 
 ## Gates
 
@@ -47,4 +48,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime kretprobe lane and add a tiny `zigux/tests/runtime_kretprobe_diff.zig` gate that replays a few entry-skip, duration, and `nmissed` expectations from the Linux sample before attempting any broader runtime substrate work.
+Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until there is a small honest substrate handoff for `register_kretprobe()` and `unregister_kretprobe()` lifecycle wiring.
