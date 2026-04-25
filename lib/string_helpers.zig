@@ -49,6 +49,10 @@ pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     }
 }
 
+pub fn stringIsTerminated(s: []const u8, len: usize) bool {
+    return std.mem.indexOfScalar(u8, s[0..@min(len, s.len)], 0) != null;
+}
+
 pub fn stringUpper(dest: []u8, src: []const u8) void {
     copyCStringMapped(dest, src, std.ascii.toUpper);
 }
@@ -127,6 +131,13 @@ test "memcpyAndPad matches the bounded copy-and-pad contract" {
     var truncated = [_]u8{ 0, 0, 0, 0 };
     memcpyAndPad(&truncated, "zigux", 5, '.');
     try std.testing.expectEqualSlices(u8, "zigu", &truncated);
+}
+
+test "stringIsTerminated reports whether a bounded window contains NUL" {
+    try std.testing.expect(stringIsTerminated("ok\x00tail", 3));
+    try std.testing.expect(stringIsTerminated("ok\x00tail", 32));
+    try std.testing.expect(!stringIsTerminated("ok\x00tail", 2));
+    try std.testing.expect(!stringIsTerminated("plain", 5));
 }
 
 test "stringUpper and stringLower perform bounded ASCII case conversion" {
