@@ -5,9 +5,11 @@ This survey note tracks the current Phase 11 gap around `drivers/watchdog/bcm283
 The live repo state is now:
 
 - `drivers/watchdog/gpio_wdt.zig` already provides one bounded Phase 11 watchdog starter, so the tranche has a real foothold
-- `zigux/tests/phase11_bcm2835_wdt_survey.zig` and `zigux/tests/phase11_bcm2835_wdt_manifest.json` now record the `bcm2835_wdt` gap against the roadmap without pretending a second watchdog starter has landed
-- `zigux/tests/phase11_build.zig` runs the gpio starter checks and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place
+- `drivers/watchdog/bcm2835_wdt.zig` now adds the first bcm2835 starter for timeout tick encoding, running-bit detection, bounded start and stop register transitions, restart intent, and halt-partition bookkeeping
+- `zigux/tests/phase11_bcm2835_wdt.zig` and `Documentation/zigux/phase11-bcm2835-wdt-slice.md` now keep that starter reviewable without claiming platform registration or hardware-backed execution
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig` and `zigux/tests/phase11_bcm2835_wdt_manifest.json` still track the remaining bcm2835_wdt gap against the roadmap so the lane does not overclaim progress
+- `zigux/tests/phase11_build.zig` runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together so Phase 11 watchdog drift is visible in one place
 
-This lane still does not claim `drivers/watchdog/bcm2835_wdt.zig`, dedicated bcm2835 driver tests, watchdog-core registration, PM base wiring, restart and poweroff integration, module-parameter parity, or hardware validation coverage.
+This lane still does not claim watchdog-core registration, PM base wiring, restart-priority setup, poweroff-handler coordination, module-parameter parity, or hardware validation coverage.
 
-The next honest bounded step inside the same lane is to add the first narrow `drivers/watchdog/bcm2835_wdt.zig` starter for timeout tick encoding, running-bit detection, and bounded restart or poweroff intent bookkeeping before any platform or MMIO-backed behavior.
+The next honest bounded step inside the same lane is to add a tiny probe-time summary and registration-facing bookkeeping helper before any platform or MMIO-backed behavior.
