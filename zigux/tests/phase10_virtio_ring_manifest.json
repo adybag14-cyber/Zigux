@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L06",
   "phase": "Phase 10",
-  "surveyed_commit": "e150348b25687684bd5c22f192c5ca8dcfc8972a",
+  "surveyed_commit": "55d9daca2d5fe73905a3baf4f921d6773d7cbf2b",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -29,14 +29,14 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The existing virtio core lab slice already covers status negotiation and bounded queue callback bookkeeping, so the ring survey should build on that real foothold instead of inventing a second starter."
+      "why_now": "The existing virtio core lab slice already covers status negotiation, bounded queue callback bookkeeping, descriptor-shape metadata, and notification accounting, so the ring survey should build on that real foothold instead of pretending those core-side capabilities are still missing."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable while the repo still lacks a queue-shape helper under drivers/virtio."
+      "why_now": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable now that the repo has both the core slice and the first ring-local helper, so the lane can track the remaining in-memory queue behavior honestly."
     },
     {
       "id": "phase10-virtio-ring-survey-note",
@@ -57,14 +57,14 @@
       "status": "ready_next",
       "kind": "bridging_helper",
       "zigux_destination": "zigux/helpers/virtqueue_layout.zig",
-      "why_now": "If queue metadata starts spreading beyond one file, a tiny shared helper in zigux/helpers is the roadmap-approved place to keep descriptor-shape assertions bounded."
+      "why_now": "If queue-shape or callback-suppression metadata starts spreading beyond the current core and ring slices, a tiny shared helper in zigux/helpers is the roadmap-approved place to keep those assertions bounded."
     },
     {
       "id": "phase10-mmio-wrapper-lane",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap puts virtqueue wrappers ahead of MMIO work, and MMIO plus DMA-facing behavior stays too risky to start honestly before a queue-shape slice exists."
+      "why_now": "The roadmap still keeps MMIO behind virtqueue wrappers, and MMIO plus DMA-facing behavior remains too risky to start honestly until the in-memory ring lane closes another small callback-enable or used-buffer polling step."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
