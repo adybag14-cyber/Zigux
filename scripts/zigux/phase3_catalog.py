@@ -576,4 +576,1197 @@ def _discover_legacy_wrapper_references_in_file(
 ) -> list[LegacyWrapperReference]:
     references: list[LegacyWrapperReference] = []
     try:
-        lines = path.read_text(encoding="utf-8").splitlinmuÓ_-¢G§²ÚîÆ­yÒ76W'BÆÂ†6æF–FFRç6ÇVrÒ÷fW&w&÷vå÷v—F…÷&Vf—‚f÷"6æF–FFR–â&VæÖUö6æF–FFW2 ¢&WWF—F—fUö6æöæ–6Å÷6ÇVrÒ&Æö÷×v–æF÷r×öÆ–7’Ö'VFvWB ¢‡F‡2æFö75öF—"òb'†6S2×·&WWF—F—fUö6æöæ–6Å÷6ÇVwÒ×6Æ–6RæÖB"’çw&—FU÷FW‡B€¢'&WWF—F—fR6æöæ–6ÅÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢&WWF—F—fUö6æöæ–6Åöf—‡GW&RÒF‡2æf—‡GW&W5öF—"òb'†6S5÷·&WWF—F—fUö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—Ò ¢&WWF—F—fUö6æöæ–6Åöf—‡GW&RæÖ¶F—"‚¢‡F‡2çFW7G5öF—"òb'†6S5÷·&WWF—F—fUö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"’çw&—FU÷FW‡B€¢"òò&WWF—F—fR6æöæ–6ÅÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢‡&WWF—F—fUö6æöæ–6Åöf—‡GW&Rò&W‡V7FVBæ§6öâ"’çw&—FU÷FW‡B€¢'·ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢&WWF—F—fUö6æöæ–6Åöf—‡GW&P¢òb'†6S5÷·&WWF—F—fUö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’çw&—FU÷FW‡B€¢&–çBÖ–â‡fö–B’²&WGW&â²ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢&WWF—F—fUö6æöæ–6Åöf—‡GW&P¢òb'†6S5÷·&WWF—F—fUö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'†6R#¢%†6R2"Â'7FGW2#¢'&VG’"Â'6Æ–6R#¢'&WWF—F—fR6æöæ–6Â"Â&f–ÆW2#¢µÒÂ&f–ÆUö6÷VçB#¢Ò’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢&WWF—F—fU÷v—F…÷&Vf—‚Òb'·&WWF—F—fUö6æöæ–6Å÷6ÇVwÒ×v–æF÷r×öÆ–7’Ö'VFvWB×v–æF÷r×öÆ–7’ ¢&WWF—F—fUöf—‡GW&RÒF‡2æf—‡GW&W5öF—"òb'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Ò ¢&WWF—F—fUöf—‡GW&RæÖ¶F—"‚¢‡F‡2æFö75öF—"òb'†6S2×·&WWF—F—fU÷v—F…÷&Vf—‡Ò×6Æ–6RæÖB"’çw&—FU÷FW‡B€¢'&WWF—F—fR&Vf—…Æâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢‡F‡2çFW7G5öF—"òb'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"’çw&—FU÷FW‡B€¢"òò&WWF—F—fR&Vf—…Æâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢‡&WWF—F—fUöf—‡GW&Rò&W‡V7FVBæ§6öâ"’çw&—FU÷FW‡B€¢'·ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢&WWF—F—fUöf—‡GW&P¢òb'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’çw&—FU÷FW‡B€¢&–çBÖ–â‡fö–B’²&WGW&â²ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢&WWF—F—fUöf—‡GW&P¢òb'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'†6R#¢%†6R2"Â'7FGW2#¢'&VG’"Â'6Æ–6R#¢'&WWF—F—fR"Â&f–ÆW2#¢µÒÂ&f–ÆUö6÷VçB#¢Ò’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢&VæÖUö6æF–FFW2ÒF—66÷fW%÷†6S5÷6ÇVu÷&VæÖUö6æF–FFW2†F—66÷fW%÷†6S5÷6Æ–6W2‡F‡2’¢76W'BÆÂ†6æF–FFRç6ÇVrÒ÷fW&w&÷vå÷v—F…÷&Vf—‚f÷"6æF–FFR–â&VæÖUö6æF–FFW2¢&WWF—F—fUö6æF–FFRÒæW‡B†6æF–FFRf÷"6æF–FFR–â&VæÖUö6æF–FFW2–b6æF–FFRç6ÇVrÓÒ&WWF—F—fU÷v—F…÷&Vf—‚¢76W'B&WWF—F—fUö6æF–FFRæ6æöæ–6Å÷6ÇVrÓÒ&WWF—F—fUö6æöæ–6Å÷6ÇVp¢76W'B'6ÇVr×&WVFVB×‡&6R"–â&WWF—F—fUö6æF–FFRæ—77VUö6öFW0¢&VæÖUö–×7G2ÒF—66÷fW%÷†6S5÷6ÇVu÷&VæÖUö–×7G2†F—66÷fW%÷†6S5÷6Æ–6W2‡F‡2’¢76W'BÆÂ†–×7Bç6ÇVrÒ÷fW&w&÷vå÷v—F…÷&Vf—‚f÷"–×7B–â&VæÖUö–×7G2¢&VæÖUö–×7BÒæW‡B†–×7Bf÷"–×7B–â&VæÖUö–×7G2–b–×7Bç6ÇVrÓÒ&WWF—F—fU÷v—F…÷&Vf—‚¢76W'B&VæÖUö–×7Bæ6æöæ–6Å÷6ÇVrÓÒ&WWF—F—fUö6æöæ–6Å÷6ÇVp¢76W'B'6ÇVr×&WVFVB×‡&6R"–â&VæÖUö–×7Bæ—77VUö6öFW0¢76W'BÆVâ‡&VæÖUö–×7BçF‡2’ÓÒ`¢76W'Bµ÷&VÂ‡F‚ÂF‡2ç&ö÷B’f÷"F‚–â&VæÖUö–×7BçF‡7ÒÓÒ°¢b$Fö7VÖVçFF–öâ÷¦–wW‚÷†6S2×·&WWF—F—fU÷v—F…÷&Vf—‡Ò×6Æ–6RæÖB"À¢b'¦–wW‚÷FW7G2÷†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"À¢b'¦–wW‚÷FW7G2öf—‡GW&W2÷†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Ò"À¢b'¦–wW‚÷FW7G2öf—‡GW&W2÷†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÒöW‡V7FVBæ§6öâ"À¢€¢'¦–wW‚÷FW7G2öf—‡GW&W2ò ¢b'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Òò ¢b'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’À¢€¢'¦–wW‚÷FW7G2öf—‡GW&W2ò ¢b'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Òò ¢b'†6S5÷·&WWF—F—fU÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’À¢Ð¢‡F‡2æFö75öF—"ò'†6S2ÖÖW&vRÖæ÷FW2æÖB"’çw&—FU÷FW‡B€¢%Æâ"æ¦ö–â€¢°¢"2ÖW&vRæ÷FW2"À¢""À¢b"Ò—F†öã267&—G2÷¦–wW‚÷'Vâ×†6S2Ö6†V6·2ç’Ò×6ÇVr·&WWF—F—fU÷v—F…÷&Vf—‡Ö"À¢""À¢Ð¢’À¢Væ6öF–æsÒ'WFbÓ‚"À¢æWvÆ–æSÒ%Æâ"À¢¢‡F‡2çFW7G5öF—"ò&'V–ÆBç¦–r"’çw&—FU÷FW‡B€¢%Æâ"æ¦ö–â€¢°¢&6öç7B7FBÒ–×÷'B…Â'7FEÂ"“²"À¢""À¢'V"fâ'V–ÆB†#¢§7FBä'V–ÆB’fö–B²"À¢b"òÒ"ç7FW…Â'¶'V–ÆE÷7FWöf÷%÷6ÇVr‡&WWF—F—fU÷v—F…÷&Vf—‚—ÕÂ"ÂÂ&FVÖò7FWÂ"“²"À¢'Ò"À¢""À¢Ð¢’À¢Væ6öF–æsÒ'WFbÓ‚"À¢æWvÆ–æSÒ%Æâ"À¢¢ÖW&vU÷&WÒF—66÷fW%÷†6S5÷6ÇVuöÖW&vU÷&W†F—66÷fW%÷†6S5÷6Æ–6W2‡F‡2’ÂF‡2¢ÖW&vUöVçG'’ÒæW‡B‡&Wf÷"&W–âÖW&vU÷&W–b&Wç6ÇVrÓÒ&WWF—F—fU÷v—F…÷&Vf—‚¢76W'BÖW&vUöVçG'’æ6æöæ–6Å÷6ÇVrÓÒ&WWF—F—fUö6æöæ–6Å÷6ÇVp¢76W'BGWÆR…÷&VÂ‡F‚ÂF‡2ç&ö÷B’f÷"F‚–âÖW&vUöVçG'’ç&WF—&U÷F‡2’ÓÒGWÆR€¢÷&VÂ‡F‚ÂF‡2ç&ö÷B’f÷"F‚–â&VæÖUö–×7BçF‡0¢¢76W'B·&VfW&Væ6RçFõ÷&÷r‚’f÷"&VfW&Væ6R–âÖW&vUöVçG'’ç&VfW&Væ6W5ÒÓÒ°¢$Fö7VÖVçFF–öâ÷¦–wW‚÷†6S2ÖÖW&vRÖæ÷FW2æÖEÇC5ÇFFö7VÖVçFF–öåÇG'VææW"Ç6ÇVr"À¢'¦–wW‚÷FW7G2ö'V–ÆBç¦–uÇCEÇF'V–ÆB×7FWÇF'V–ÆB×7FWÇ6ÇVr"À¢Ð ¢Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVrÒ&Ö—6ÖF6‚×v–æF÷r×öÆ–7’Ö'VFvWB ¢‡F‡2æFö75öF—"òb'†6S2×¶Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVwÒ×6Æ–6RæÖB"’çw&—FU÷FW‡B€¢&Ö—6ÖF6†VB6æöæ–6ÅÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢Ö—6ÖF6†VEö6æöæ–6Åöf—‡GW&RÒF‡2æf—‡GW&W5öF—"òb'†6S5÷¶Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—Ò ¢Ö—6ÖF6†VEö6æöæ–6Åöf—‡GW&RæÖ¶F—"‚¢‡F‡2çFW7G5öF—"òb'†6S5÷¶Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"’çw&—FU÷FW‡B€¢"òòÖ—6ÖF6†VB6æöæ–6ÅÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢†Ö—6ÖF6†VEö6æöæ–6Åöf—‡GW&Rò&W‡V7FVBæ§6öâ"’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'7VÖÖ'’#¢²&6¶VB#¢×ÒÂ6÷'Eö¶W—3ÕG'VR’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Ö—6ÖF6†VEö6æöæ–6Åöf—‡GW&P¢òb'†6S5÷¶Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’çw&—FU÷FW‡B€¢&–çBÖ–â‡fö–B’²&WGW&â²ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Ö—6ÖF6†VEö6æöæ–6Åöf—‡GW&P¢òb'†6S5÷¶Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'†6R#¢%†6R2"Â'7FGW2#¢'&VG’"Â'6Æ–6R#¢&Ö—6ÖF6†VB6æöæ–6Â"Â&f–ÆW2#¢µÒÂ&f–ÆUö6÷VçB#¢Ò’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢Ö—6ÖF6†VE÷v—F…÷&Vf—‚Òb'¶Ö—6ÖF6†VEö6æöæ–6Å÷6ÇVwÒ×v–æF÷r×öÆ–7’Ö'VFvWB×v–æF÷r×öÆ–7’ ¢Ö—6ÖF6†VEöf—‡GW&RÒF‡2æf—‡GW&W5öF—"òb'†6S5÷¶Ö—6ÖF6†VE÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Ò ¢Ö—6ÖF6†VEöf—‡GW&RæÖ¶F—"‚¢‡F‡2æFö75öF—"òb'†6S2×¶Ö—6ÖF6†VE÷v—F…÷&Vf—‡Ò×6Æ–6RæÖB"’çw&—FU÷FW‡B€¢&Ö—6ÖF6†VB&Vf—…Æâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢‡F‡2çFW7G5öF—"òb'†6S5÷¶Ö—6ÖF6†VE÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"’çw&—FU÷FW‡B€¢"òòÖ—6ÖF6†VB&Vf—…Æâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢†Ö—6ÖF6†VEöf—‡GW&Rò&W‡V7FVBæ§6öâ"’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'7VÖÖ'’#¢²&6¶VB#¢Â&FVfW'&VB#¢×ÒÂ6÷'Eö¶W—3ÕG'VR’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Ö—6ÖF6†VEöf—‡GW&P¢òb'†6S5÷¶Ö—6ÖF6†VE÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’çw&—FU÷FW‡B€¢&–çBÖ–â‡fö–B’²&WGW&â²ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Ö—6ÖF6†VEöf—‡GW&P¢òb'†6S5÷¶Ö—6ÖF6†VE÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'†6R#¢%†6R2"Â'7FGW2#¢'&VG’"Â'6Æ–6R#¢&Ö—6ÖF6†VB&Vf—‚"Â&f–ÆW2#¢µÒÂ&f–ÆUö6÷VçB#¢Ò’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢&VæÖUö6æF–FFW2ÒF—66÷fW%÷†6S5÷6ÇVu÷&VæÖUö6æF–FFW2†F—66÷fW%÷†6S5÷6Æ–6W2‡F‡2’¢76W'BÆÂ†6æF–FFRç6ÇVrÒÖ—6ÖF6†VE÷v—F…÷&Vf—‚f÷"6æF–FFR–â&VæÖUö6æF–FFW2 ¢Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVrÒ&Öæ–fW7B×v–æF÷r×öÆ–7’Ö'VFvWB ¢‡F‡2æFö75öF—"òb'†6S2×¶Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVwÒ×6Æ–6RæÖB"’çw&—FU÷FW‡B€¢&Öæ–fW7B6æöæ–6ÅÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢Öæ–fW7EööæÇ•ö6æöæ–6Åöf—‡GW&RÒF‡2æf—‡GW&W5öF—"òb'†6S5÷¶Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—Ò ¢Öæ–fW7EööæÇ•ö6æöæ–6Åöf—‡GW&RæÖ¶F—"‚¢‡F‡2çFW7G5öF—"òb'†6S5÷¶Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"’çw&—FU÷FW‡B€¢"òòÖæ–fW7B6æöæ–6ÅÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢†Öæ–fW7EööæÇ•ö6æöæ–6Åöf—‡GW&Rò&W‡V7FVBæ§6öâ"’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'7VÖÖ'’#¢²&6¶VB#¢×ÒÂ6÷'Eö¶W—3ÕG'VR’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Öæ–fW7EööæÇ•ö6æöæ–6Åöf—‡GW&P¢òb'†6S5÷¶Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’çw&—FU÷FW‡B€¢&–çBÖ–â‡fö–B’²&WGW&â²ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Öæ–fW7EööæÇ•ö6æöæ–6Åöf—‡GW&P¢òb'†6S5÷¶Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVrç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'†6R#¢%†6R2"Â'7FGW2#¢'&VG’"Â'6Æ–6R#¢&Öæ–fW7B6æöæ–6Â"Â&f–ÆW2#¢·²'F‚#¢&W‡V7FVBæ§6öâ'ÕÒÂ&f–ÆUö6÷VçB#¢ÒÂ6÷'Eö¶W—3ÕG'VR’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢Öæ–fW7EööæÇ•÷v—F…÷&Vf—‚Òb'¶Öæ–fW7EööæÇ•ö6æöæ–6Å÷6ÇVwÒ×v–æF÷r×öÆ–7’Ö'VFvWB×v–æF÷r×öÆ–7’ ¢Öæ–fW7EööæÇ•öf—‡GW&RÒF‡2æf—‡GW&W5öF—"òb'†6S5÷¶Öæ–fW7EööæÇ•÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Ò ¢Öæ–fW7EööæÇ•öf—‡GW&RæÖ¶F—"‚¢‡F‡2æFö75öF—"òb'†6S2×¶Öæ–fW7EööæÇ•÷v—F…÷&Vf—‡Ò×6Æ–6RæÖB"’çw&—FU÷FW‡B€¢&Öæ–fW7B&Vf—…Æâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢‡F‡2æFW7G5öF—"òb'†6S5÷¶Öæ–fW7EööæÇ•÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöGV×ç¦–r"’çw&—FU÷FW‡B€¢"òòÖæ–fW7B&Vf—…Æâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢†Öæ–fW7EööæÇ•öf—‡GW&Rò&W‡V7FVBæ§6öâ"’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'7VÖÖ'’#¢²&6¶VB#¢×ÒÂ6÷'Eö¶W—3ÕG'VR’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Öæ–fW7EööæÇ•öf—‡GW&P¢òb'†6S5÷¶Öæ–fW7EööæÇ•÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—Õö5ö†&æW72æ2 ¢’çw&—FU÷FW‡B€¢&–çBÖ–â‡fö–B’²&WGW&â²ÕÆâ"À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢€¢Öæ–fW7EööæÇ•öf—‡GW&P¢òb'†6S5÷¶Öæ–fW7EööæÇ•÷v—F…÷&Vf—‚ç&WÆ6R‚rÒrÂuòr—ÕöÖæ–fW7Bæ§6öâ ¢’çw&—FU÷FW‡B€¢§6öâæGV×2‡²'†6R#¢%†6R2"Â'7FGW2#¢'&VG’"Â'6Æ–6R#¢&Öæ–fW7B&Vf—‚"Â&f–ÆW2#¢·²'F‚#¢&W‡V7FVBæ§6öâ"Â&¶–æB#¢&W‡G&'ÕÒÂ&f–ÆUö6÷VçB#¢ÒÂ6÷'Eö¶W—3ÕG'VR’À¢Væ6öF–æsÒ'WFbÓ‚"À¢¢&VæÖUö6æF–FFW2ÒF—66÷fW%÷†6S5÷6ÇVu÷&VæÖUö6æF–FFW2†F—66÷fW%÷†6S5÷6Æ–6W2‡F‡2’¢76W'BÆÂ†6æF–FFRç6ÇVrÒÖæ–fW7EööæÇ•÷v—F…÷&Vf—‚f÷"6æF–FFR–â&VæÖUö6æF–FFW2 ¢'6W"Ò'V–ÆE÷'6W"‚¢76W'B'6W"ç'6Uö&w2…²"Ò×&Ww&—FRÖÆVv7’×w&W"×&VfW&Væ6W2%Ò’ç&Ww&—FUöÆVv7•÷w&W%÷&VfW&Væ6W2—2G'VP¢76W'B'6W"ç'6Uö&w2…²"Ò×&Ww&—FR×6†&VB×'VææW"×&VfW&Væ6RÖFö72%Ò’ç&Ww&—FUöÆVv7•÷w&W%÷&VfW&Væ6W2—2G'VP¢76W'B'6W"ç'6Uö&w2…²"ÒÖVF—BÖFö2×7–æ2%Ò’æVF—EöFö5÷7–æ2—2G'VP¢76W'B'6W"ç'6Uö&w2…²"ÒÖVF—B×6ÇVr×6æ—G’%Ò’æVF—E÷6ÇVu÷6æ—G’—2G'VP¢76W'B'6W"ç'6Uö&w2…²"Ò×7VvvW7B×6ÇVr×&VæÖW2%Ò’ç7VvvW7E÷6ÇVu÷&VæÖW2—2G'VP¢76W'B'6W"ç'6Uö&w2…²"Ò×7VvvW7B×6ÇVr×&VæÖR×F‡2%Ò’ç7VvvW7E÷6ÇVu÷&VæÖU÷F‡2—2G'VP¢76W'B'6W"ç'6Uö&w2…²"Ò×7VvvW7B×6ÇVrÖÖW&vR×&W%Ò’ç7VvvW7E÷6ÇVuöÖW&vU÷&W—2G'VP¢76W'B'6W"ç'6Uö&w2…²"Ò×7VvvW7B×6ÇVrÖÖW&vR×Æç2%Ò’ç7VvvW7E÷6ÇVuöÖW&vU÷&W—2G'VP ¢&–çB‚%„4S5ô4DÄôuõ4TÄeõDU5C×72"¢&WGW&â   ¦FVb'V–ÆE÷'6W"‚’Óâ&w'6Rä&wVÖVçE'6W# ¢'6W"Ò&w'6Rä&wVÖVçE'6W"†FW67&—F–öãÒ$F—66÷fW"¦–wW‚†6R26Æ–6W2æBF†V—"vVæW&FVB6ö×æ–öâF‡2â"¢'6W"æFEö&wVÖVçB‚"Ò×6VÆb×FW7B"Â7F–öãÒ'7F÷&U÷G'VR"Â†VÇÒ%'Vâ—6öÆFVBF—66÷fW'’æBÖæ–fW7B×6VÆV7F–öâ6†V6·2â"¢'6W"æFEö&wVÖVçB€¢"ÒÖÆVv7’×w&W"ÖFö72"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ$Æ—7BF—66÷fW&VB†6R26Æ–6W2v†÷6RFö727F–ÆÂö–çBBÆVv7’W"×6Æ–6Rw&W"6öÖÖæG2â"À¢¢'6W"æFEö&wVÖVçB€¢"Ò×&Ww&—FR×6†&VB×'VææW"ÖFö72"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ%&Ww&—FRF—66÷fW&VBÆVv7’†6R2Fö26öÖÖæG2FòF†R6†&VB'Vâ×†6S2Ö6†V6·2ç’Ò×6ÇVrf÷&Òâ"À¢¢'6W"æFEö&wVÖVçB€¢"ÒÖÆVv7’×w&W"×&VfW&Væ6W2"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ$Æ—7B&VÖ–æ–ærF—66÷fW&VB†6R2w&W"ÖVçF–öç2–âæöâ×6Æ–6RFö7VÖVçFF–öââ"À¢¢'6W"æFEö&wVÖVçB€¢"Ò×&Ww&—FRÖÆVv7’×w&W"×&VfW&Væ6W2"À¢"Ò×&Ww&—FR×6†&VB×'VææW"×&VfW&Væ6RÖFö72"À¢FW7CÒ'&Ww&—FUöÆVv7•÷w&W%÷&VfW&Væ6W2"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ%&Ww&—FRæöâ×6Æ–6RFö7VÖVçFF–öâw&W"ÖVçF–öç2FòF†R6†&VB'Vâ×†6S2Ö6†V6·2ç’Ò×6ÇVrf÷&Òâ"À¢¢'6W"æFEö&wVÖVçB€¢"Ò×&Ww&—FRÖ'F–f7BÖF–fb×†6S2×6V7F–öâ"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ%&Ww&—FRF†R'F–f7BÖF–fb†6R26V7F–öâg&öÒF†RF—66÷fW&VB6Æ–6R6FÆörâ"À¢¢'6W"æFEö&wVÖVçB€¢"ÒÖVF—BÖFö2×7–æ2"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ%&W÷'B7FÆRæöâ×6Æ–6Rw&W"&VfW&Væ6W2æB'F–f7BÖF–fb†6R2G&–gBÂF†VâW†—Bæöâ×¦W&òv†Vâç’&Rf÷VæBâ"À¢¢'6W"æFEö&wVÖVçB€¢"ÒÖVF—B×6ÇVr×6æ—G’"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ%&W÷'B7W7–6–÷W6Ç’&WWF—F—fR÷"÷fW&w&÷vâF—66÷fW&VB†6R26ÇVw2ÂF†VâW†—Bæöâ×¦W&òv†Vâç’&Rf÷VæBâ"À¢¢'6W"æFEö&wVÖVçB€¢"Ò×7VvvW7B×6ÇVr×&VæÖW2"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ$Æ—7B÷fW&w&÷vâF—66÷fW&VB†6R26ÇVw2F†B†fR6†÷'FW"6ÆVâ&Vf—‚Ç&VG’&W6VçB–âF†R6FÆörâ"À¢¢'6W"æFEö&wVÖVçB€¢"Ò×7VvvW7B×6ÇVr×&VæÖR×F‡2"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ$Æ—7BF†R6÷&R6Æ–6Rf–ÆW2æBF—&V7F÷&–W2F†B7VvvW7FVB†6R26ÇVr&VæÖRv÷VÆBF÷V6‚â"À¢¢'6W"æFEö&wVÖVçB€¢"Ò×7VvvW7B×6ÇVrÖÖW&vR×&W"À¢"Ò×7VvvW7B×6ÇVrÖÖW&vR×Æç2"À¢7F–öãÒ'7F÷&U÷G'VR"À¢†VÇÒ$Æ—7BF†R&WF—&V&ÆR6Æ–6R'F–f7G2ÇW2F†RW‡G&Fö72Âv÷&¶fÆ÷rÂ67&—BÂ÷"'V–ÆB×7FW&VfW&Væ6W2F†B7F–ÆÂÖVçF–öâV6‚6fRÆöær6ÇVrVÇ6Wv†W&R–âF†RG&VRâ"À¢¢&WGW&â'6W   ¦–bõöæÖUõòÓÒ%õöÖ–åõò# ¢'6W"Ò'V–ÆE÷'6W"‚¢&w2Ò'6W"ç'6Uö&w2‚ ¢–b&w2ç6VÆe÷FW7C ¢&—6R7—7FVÔW†—B‡'Vå÷6VÆe÷FW7B‚’ ¢VçG&–W2ÒF—66÷fW%÷†6S5÷6Æ–6W2‚¢–b&w2æÆVv7•÷w&W%öFö73 ¢G'“ ¢f÷"VçG'’–âVçG&–W3 ¢–bVçG'’æ–çFW&÷övFUöÖöFRÓÒ&ÆVv7’×w&W"# ¢&–çB†b'¶VçG'’ç6ÇVwÕÇGµ÷&VÂ†VçG'’æFö5÷F‚ÂVçG'’ç&ö÷B—ÕÇG¶VçG'’æ–çFW&÷övFWÒ"¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ¢–b&w2ç&Ww&—FU÷6†&VE÷'VææW%öFö73 ¢&Ww&—GFVâÒ&Ww&—FUöÆVv7•÷w&W%öFö72†VçG&–W2¢f÷"F‚–â&Ww&—GFVã ¢&–çB‡F‚¢&—6R7—7FVÔW†—Bƒ¢–b&w2æÆVv7•÷w&W%÷&VfW&Væ6W3 ¢G'“ ¢f÷"&VfW&Væ6R–âF—66÷fW%öæöåöFö5öÆVv7•÷w&W%÷&VfW&Væ6W2†VçG&–W2“ ¢&–çB‡&VfW&Væ6RçFõ÷&÷r‚’¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ¢–b&w2ç&Ww&—FUöÆVv7•÷w&W%÷&VfW&Væ6W3 ¢&Ww&—GFVâÒ&Ww&—FUöæöåöFö5öÆVv7•÷w&W%÷&VfW&Væ6W2†VçG&–W2¢f÷"F‚–â&Ww&—GFVã ¢&–çB‡F‚¢&—6R7—7FVÔW†—Bƒ¢–b&w2ç&Ww&—FUö'F–f7EöF–fe÷†6S5÷6V7F–öã ¢–b&Ww&—FUö'F–f7EöF–fe÷†6S5÷6V7F–öâ†VçG&–W2“ ¢&–çB…÷&VÂ„%D”d5EôD”deõD‚’¢&—6R7—7FVÔW†—Bƒ¢–b&w2æVF—EöFö5÷7–æ3 ¢G'“ ¢—77VW2ÒVF—E÷†6S5öFö5÷7–æ2†VçG&–W2¢f÷"—77VR–â—77VW3 ¢&–çB†—77VRçFõ÷&÷r‚’¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ–b—77VW2VÇ6R¢–b&w2æVF—E÷6ÇVu÷6æ—G“ ¢G'“ ¢—77VW2ÒVF—E÷†6S5÷6ÇVu÷6æ—G’†VçG&–W2¢f÷"—77VR–â—77VW3 ¢&–çB†—77VRçFõ÷&÷r‚’¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ–b—77VW2VÇ6R¢–b&w2ç7VvvW7E÷6ÇVu÷&VæÖW3 ¢G'“ ¢6æF–FFW2ÒF—66÷fW%÷†6S5÷6ÇVu÷&VæÖUö6æF–FFW2†VçG&–W2¢f÷"6æF–FFR–â6æF–FFW3 ¢&–çB†6æF–FFRçFõ÷&÷r‚’¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ¢–b&w2ç7VvvW7E÷6ÇVu÷&VæÖU÷F‡3 ¢G'“ ¢–×7G2ÒF—66÷fW%÷†6S5÷6ÇVu÷&VæÖUö–×7G2†VçG&–W2¢f÷"–×7B–â–×7G3 ¢&–çB†–×7BçFõ÷&÷r‚’¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ¢–b&w2ç7VvvW7E÷6ÇVuöÖW&vU÷&W ¢G'“ ¢ÖW&vU÷&WÒF—66÷fW%÷†6S5÷6ÇVuöÖW&vU÷&W†VçG&–W2¢f÷"&W–âÖW&vU÷&W ¢&–çB‡&WçFõ÷&÷r‚’¢W†6WB'&ö¶Vå—TW'&÷# ¢7—2æW†—Bƒ¢&—6R7—7FVÔW†—Bƒ ¢&–çB†§6öâæGV×2…¶VçG'’çFõöF–7B‚’f÷"VçG'’–âVçG&–W5ÒÂ–æFVçCÓ"Â6÷'Eö¶W—3ÕG'VR’
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (FileNotFoundError, OSError):
+        return references
+
+    for line_number, line in enumerate(lines, start=1):
+        for match in LEGACY_WRAPPER_REF_RE.finditer(line):
+            slug = match.group("slug")
+            if slug not in discovered_slugs:
+                continue
+            kind = "command" if match.group("command") else "path"
+            references.append(
+                LegacyWrapperReference(
+                    root=root,
+                    path=path,
+                    line_number=line_number,
+                    slug=slug,
+                    line=line.strip(),
+                    kind=kind,
+                    scope=scope,
+                )
+            )
+    return references
+
+
+def discover_non_doc_legacy_wrapper_references(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[LegacyWrapperReference]:
+    discovered_slugs = {entry.slug for entry in entries}
+    references: list[LegacyWrapperReference] = []
+
+    docs_exclude = {entry.doc_path.resolve() for entry in entries}
+    for path in sorted(paths.docs_dir.glob("*.md")):
+        if path.resolve() in docs_exclude:
+            continue
+        references.extend(
+            _discover_legacy_wrapper_references_in_file(path, paths.root, discovered_slugs, "documentation")
+        )
+
+    return references
+
+
+def _repeated_ngrams(tokens: list[str], size: int) -> list[tuple[str, int]]:
+    if len(tokens) < size:
+        return []
+    counts = Counter("-".join(tokens[index : index + size]) for index in range(len(tokens) - size + 1))
+    return sorted((ngram, count) for ngram, count in counts.items() if count > 1)
+
+
+def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
+    issues: list[Phase3AuditIssue] = []
+    for entry in entries:
+        tokens = [token for token in entry.slug.split("-") if token]
+        if len(tokens) > MAX_SLUG_TOKENS:
+            issues.append(Phase3AuditIssue("slug-too-many-tokens", f"{entry.slug}\t{len(tokens)}"))
+        if len(entry.slug) > MAX_SLUG_CHARS:
+            issues.append(Phase3AuditIssue("slug-too-long", f"{entry.slug}\t{len(entry.slug)}"))
+
+        repeated_tokens = sorted(
+            f"{token}:{count}" for token, count in Counter(tokens).items() if count > MAX_REPEATED_TOKEN_COUNT
+        )
+        if repeated_tokens:
+            issues.append(Phase3AuditIssue("slug-repeated-token", f"{entry.slug}\t{','.join(repeated_tokens)}"))
+
+        repeated_bigrams = [
+            f"{ngram}:{count}" for ngram, count in _repeated_ngrams(tokens, 2) if count > MAX_REPEATED_BIGRAM_COUNT
+        ]
+        if repeated_bigrams:
+            issues.append(Phase3AuditIssue("slug-repeated-phrase", f"{entry.slug}\t{','.join(repeated_bigrams)}"))
+    return issues
+
+
+def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[Phase3SlugRenameCandidate]:
+    issues_by_slug: dict[str, set[str]] = {}
+    for issue in audit_phase3_slug_sanity(entries):
+        slug, _, _detail = issue.detail.partition("\t")
+        issues_by_slug.setdefault(slug, set()).add(issue.code)
+
+    if not issues_by_slug:
+        return []
+
+    entry_by_slug = {entry.slug: entry for entry in entries}
+    clean_slugs = {
+        entry.slug
+        for entry in entries
+        if entry.slug not in issues_by_slug
+    }
+    rename_candidates: list[Phase3SlugRenameCandidate] = []
+
+    for slug in sorted(issues_by_slug):
+        issue_codes = issues_by_slug[slug]
+        # A long token chain alone is too weak a signal because legitimate
+        # follow-on slices can cross the token threshold before the name
+        # actually starts looping. Only suggest a rename once repetition or
+        # outright overlength shows up alongside the prefix match.
+        if issue_codes == {"slug-too-many-tokens"}:
+            continue
+        tokens = slug.split("-")
+        canonical_slug: str | None = None
+        for prefix_len in range(len(tokens) - 1, 0, -1):
+            candidate = "-".join(tokens[:prefix_len])
+            if candidate in clean_slugs and candidate in entry_by_slug:
+                canonical_slug = candidate
+                break
+        if canonical_slug is None:
+            continue
+        canonical_entry = entry_by_slug[canonical_slug]
+        entry = entry_by_slug[slug]
+        # Only promote a rename when every available normalized artifact shape
+        # agrees. This keeps follow-on slices that happen to share a prefix and
+        # bookkeeping manifest from being collapsed together when their expected
+        # JSON still proves they model different parity surfaces.
+        if not _slice_rename_evidence_matches(entry, canonical_entry):
+            continue
+        rename_candidates.append(
+            Phase3SlugRenameCandidate(
+                slug=slug,
+                canonical_slug=canonical_slug,
+                issue_codes=tuple(sorted(issue_codes)),
+            )
+        )
+
+    return rename_candidates
+
+
+def discover_phase3_slug_rename_impacts(entries: list[Phase3Slice]) -> list[Phase3SlugRenameImpact]:
+    entry_by_slug = {entry.slug: entry for entry in entries}
+    impacts: list[Phase3SlugRenameImpact] = []
+
+    for candidate in discover_phase3_slug_rename_candidates(entries):
+        entry = entry_by_slug[candidate.slug]
+        impact_paths: list[Path] = []
+        for path in (
+            entry.doc_path,
+            entry.check_script,
+            entry.dump_path,
+            entry.fixture_dir,
+            entry.expected_path,
+            entry.harness_path,
+            *entry.manifest_candidates,
+        ):
+            if path.exists() and path not in impact_paths:
+                impact_paths.append(path)
+        impacts.append(
+            Phase3SlugRenameImpact(
+                root=entry.root,
+                slug=candidate.slug,
+                canonical_slug=candidate.canonical_slug,
+                issue_codes=candidate.issue_codes,
+                paths=tuple(impact_paths),
+            )
+        )
+
+    return impacts
+
+
+def _phase3_merge_reference_scope(path: Path, paths: Phase3Paths) -> str:
+    if path == paths.tests_dir / "build.zig":
+        return "build-step"
+    if path.is_relative_to(paths.docs_dir):
+        return "documentation"
+    if path.is_relative_to(paths.root / ".github" / "workflows"):
+        return "workflow"
+    if path.name.startswith(SCRIPT_PREFIX) and path.name.endswith(SCRIPT_SUFFIX):
+        return "wrapper"
+    return "script"
+
+
+def _discover_phase3_slug_merge_references(
+    entry: Phase3Slice,
+    retire_paths: tuple[Path, ...],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[Phase3SlugMergePrepReference]:
+    needles = (
+        ("build-step", entry.build_step),
+        ("wrapper", entry.check_script.name),
+        ("runner", f"--slug {entry.slug}"),
+        ("fixture-key", entry.fixture_key),
+        ("slug", entry.slug),
+    )
+    reference_paths = [
+        *sorted(paths.docs_dir.rglob("*.md")),
+        *sorted(paths.scripts_dir.glob("*.py")),
+        *sorted((paths.root / ".github" / "workflows").glob("*.y*ml")),
+        paths.tests_dir / "build.zig",
+    ]
+    excluded = {path.resolve() for path in retire_paths if path.exists()}
+    seen_rows: set[tuple[Path, int, tuple[str, ...]]] = set()
+    references: list[Phase3SlugMergePrepReference] = []
+
+    for path in reference_paths:
+        if not path.exists() or path.resolve() in excluded:
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (FileNotFoundError, OSError, UnicodeDecodeError):
+            continue
+        for line_number, line in enumerate(lines, start=1):
+            matched_kinds = tuple(kind for kind, needle in needles if needle in line)
+            if not matched_kinds:
+                continue
+            row_key = (path, line_number, matched_kinds)
+            if row_key in seen_rows:
+                continue
+            seen_rows.add(row_key)
+            references.append(
+                Phase3SlugMergePrepReference(
+                    root=paths.root,
+                    path=path,
+                    line_number=line_number,
+                    scope=_phase3_merge_reference_scope(path, paths),
+                    kinds=matched_kinds,
+                )
+            )
+    return references
+
+
+def discover_phase3_slug_merge_prep(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+) -> list[Phase3SlugMergePrep]:
+    impacts = discover_phase3_slug_rename_impacts(entries)
+    merge_prep: list[Phase3SlugMergePrep] = []
+    for impact in impacts:
+        entry = next(entry for entry in entries if entry.slug == impact.slug)
+        references = _discover_phase3_slug_merge_references(entry, impact.paths, paths)
+        merge_prep.append(
+            Phase3SlugMergePrep(
+                root=impact.root,
+                slug=impact.slug,
+                canonical_slug=impact.canonical_slug,
+                issue_codes=impact.issue_codes,
+                retire_paths=impact.paths,
+                references=tuple(references),
+            )
+        )
+    return merge_prep
+
+
+def audit_phase3_doc_sync(
+    entries: list[Phase3Slice],
+    paths: Phase3Paths = DEFAULT_PATHS,
+    artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
+) -> list[Phase3AuditIssue]:
+    issues = [
+        Phase3AuditIssue("legacy-wrapper-reference", reference.to_row())
+        for reference in discover_non_doc_legacy_wrapper_references(entries, paths)
+    ]
+    if artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path):
+        issues.append(
+            Phase3AuditIssue(
+                "artifact-diff-phase3-stale",
+                _rel(artifact_diff_path, paths.root),
+            )
+        )
+    return issues
+
+
+def discover_phase3_slices(paths: Phase3Paths = DEFAULT_PATHS) -> list[Phase3Slice]:
+    slices: list[Phase3Slice] = []
+    for slug in _collect_slugs(paths):
+        fixture_key = f"{FIXTURE_PREFIX}{slug.replace('-', '_')}"
+        fixture_dir = paths.fixtures_dir / fixture_key
+        manifest_candidates = (
+            paths.fixtures_dir / f"{fixture_key}_manifest.json",
+            fixture_dir / f"{fixture_key}_manifest.json",
+        )
+        doc_path = paths.docs_dir / f"{DOC_PREFIX}{slug}{DOC_SUFFIX}"
+        check_script = paths.scripts_dir / f"{SCRIPT_PREFIX}{slug}{SCRIPT_SUFFIX}"
+        dump_path = paths.tests_dir / f"{fixture_key}{DUMP_SUFFIX}"
+        expected_path = fixture_dir / "expected.json"
+        harness_path = fixture_dir / f"{fixture_key}_c_harness.c"
+        manifest_path = _pick_manifest(slug, manifest_candidates)
+        interop_gate, interop_gate_mode = discover_doc_interop_gate(doc_path, slug)
+        slices.append(
+            Phase3Slice(
+                root=paths.root,
+                slug=slug,
+                description=description_for_slug(slug),
+                build_step=build_step_for_slug(slug),
+                doc_path=doc_path,
+                check_script=check_script,
+                dump_path=dump_path,
+                fixture_dir=fixture_dir,
+                expected_path=expected_path,
+                harness_path=harness_path,
+                manifest_candidates=manifest_candidates,
+                manifest_path=manifest_path,
+                interop_gate=interop_gate,
+                interop_gate_mode=interop_gate_mode,
+            )
+        )
+    return slices
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        paths = Phase3Paths(
+            root=root,
+            docs_dir=root / "Documentation" / "zigux",
+            scripts_dir=root / "scripts" / "zigux",
+            tests_dir=root / "zigux" / "tests",
+            fixtures_dir=root / "zigux" / "tests" / "fixtures",
+        )
+        paths.docs_dir.mkdir(parents=True)
+        paths.scripts_dir.mkdir(parents=True)
+        paths.tests_dir.mkdir(parents=True)
+        paths.fixtures_dir.mkdir(parents=True)
+
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "alpha doc\n",
+            encoding="utf-8",
+        )
+        alpha_fixture_dir = paths.fixtures_dir / "phase3_alpha"
+        alpha_fixture_dir.mkdir()
+        (alpha_fixture_dir / "expected.json").write_text(
+            json.dumps({"alpha": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (alpha_fixture_dir / "phase3_alpha_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text(
+            "// alpha\n",
+            encoding="utf-8",
+        )
+        (paths.fixtures_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-fixture",
+                    "files": ["expected.json", "phase3_alpha_c_harness.c"],
+                    "file_count": 2,
+                },
+                indent=2,
+                sort_keys=True,
+            ) + "\n",
+            encoding="utf-8",
+        )
+
+        (paths.docs_dir / "phase3-gamma-slice.md").write_text(
+            "gamma doc\n",
+            encoding="utf-8",
+        )
+        gamma_fixture_dir = paths.fixtures_dir / "phase3_gamma"
+        gamma_fixture_dir.mkdir()
+        (gamma_fixture_dir / "expected.json").write_text(
+            json.dumps({"gamma": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (gamma_fixture_dir / "phase3_gamma_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_gamma_dump.zig").write_text(
+            "// gamma\n",
+            encoding="utf-8",
+        )
+
+        (paths.docs_dir / "phase3-abi-slice.md").write_text(
+            "abi doc\n",
+            encoding="utf-8",
+        )
+        abi_fixture_dir = paths.fixtures_dir / "phase3_abi"
+        abi_fixture_dir.mkdir()
+        (abi_fixture_dir / "expected.json").write_text(
+            json.dumps({"abi": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (abi_fixture_dir / "phase3_abi_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_abi_dump.zig").write_text(
+            "// abi\n",
+            encoding="utf-8",
+        )
+        (paths.fixtures_dir / "phase3_abi_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "abi-substrate-skeleton",
+                    "files": ["zigux/tests/fixtures/phase3_abi/expected.json"],
+                    "file_count": 1,
+                },
+                indent=2,
+                sort_keys=True,
+            ) + "\n",
+            encoding="utf-8",
+        )
+        nested_abi_manifest = abi_fixture_dir / "phase3_abi_manifest.json"
+        nested_abi_manifest.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "stale",
+                    "slice": "abi-stale",
+                },
+                indent=2,
+                sort_keys=True,
+            ) + "\n",
+            encoding="utf-8",
+        )
+
+        (paths.docs_dir / "phase3-bitmap-cpumask-slice.md").write_text(
+            "bitmap doc\n",
+            encoding="utf-8",
+        )
+        bitmap_fixture_dir = paths.fixtures_dir / "phase3_bitmap_cpumask"
+        bitmap_fixture_dir.mkdir()
+        (bitmap_fixture_dir / "expected.json").write_text(
+            json.dumps({"bitmap": True}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (bitmap_fixture_dir / "phase3_bitmap_cpumask_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_bitmap_cpumask_dump.zig").write_text(
+            "// bitmap\n",
+            encoding="utf-8",
+        )
+
+        entries = discover_phase3_slices(paths)
+        assert [entry.slug for entry in entries] == ["abi", "alpha", "bitmap-cpumask", "gamma"]
+        entry_map = {entry.slug: entry for entry in entries}
+        assert entry_map["abi"].build_step == "phase3-dump"
+        assert entry_map["bitmap-cpumask"].build_step == "phase3-bitmap-cpumask-dump"
+        assert entry_map["abi"].manifest_path == paths.fixtures_dir / "phase3_abi_manifest.json"
+        assert entry_map["alpha"].manifest_path == paths.fixtures_dir / "phase3_alpha_manifest.json"
+        assert entry_map["gamma"].manifest_path is None
+        expected_entry_json = {
+            "build_step": "phase3-alpha-dump",
+            "check_script": "scripts/zigux/check-phase3-alpha.py",
+            "description": "alpha",
+            "doc": "Documentation/zigux/phase3-alpha-slice.md",
+            "dump": "zigux/tests/phase3_alpha_dump.zig",
+            "expected": "zigux/tests/fixtures/phase3_alpha/expected.json",
+            "fixture_dir": "zigux/tests/fixtures/phase3_alpha",
+            "harness": "zigux/tests/fixtures/phase3_alpha/phase3_alpha_c_harness.c",
+            "interop_gate": None,
+            "interop_gate_mode": "missing",
+            "manifest": "zigux/tests/fixtures/phase3_alpha_manifest.json",
+            "manifest_candidates": [
+                "zigux/tests/fixtures/phase3_alpha_manifest.json",
+                "zigux/tests/fixtures/phase3_alpha/phase3_alpha_manifest.json",
+            ],
+            "slug": "alpha",
+        }
+        assert entry_map["alpha"].to_dict() == expected_entry_json
+        assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
+        assert build_step_for_slug("bitmap-cpumask") == "phase3-bitmap-cpumask-dump"
+        assert shared_runner_gate_for_slug("alpha") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
+        assert legacy_wrapper_gate_for_slug("alpha") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
+
+        wrapper_scripts = discover_phase3_wrapper_scripts(paths)
+        assert wrapper_scripts == []
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text(
+            "#!/usr/bin/env python3\n",
+            encoding="utf-8",
+        )
+        (paths.scripts_dir / "check-phase3-gamma.py").write_text(
+            "#!/usr/bin/env python3\n",
+            encoding="utf-8",
+        )
+        assert [path.name for path in discover_phase3_wrapper_scripts(paths)] == [
+            "check-phase3-alpha.py",
+            "check-phase3-gamma.py",
+        ]
+
+        (paths.docs_dir / "phase3-legacy-slice.md").write_text(
+            "\n".join(
+                [
+                    "legacy doc",
+                    f"- `{legacy_wrapper_gate_for_slug('legacy')}`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        legacy_fixture = paths.fixtures_dir / "phase3_legacy"
+        legacy_fixture.mkdir()
+        (legacy_fixture / "expected.json").write_text(
+            json.dumps({"kind": "legacy"}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (legacy_fixture / "phase3_legacy_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_legacy_dump.zig").write_text(
+            "// legacy\n",
+            encoding="utf-8",
+        )
+        (paths.docs_dir / "phase3-shared-slice.md").write_text(
+            "\n".join(
+                [
+                    "shared doc",
+                    f"- `{shared_runner_gate_for_slug('shared')}`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        shared_fixture = paths.fixtures_dir / "phase3_shared"
+        shared_fixture.mkdir()
+        (shared_fixture / "expected.json").write_text(
+            json.dumps({"kind": "shared"}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (shared_fixture / "phase3_shared_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_shared_dump.zig").write_text(
+            "// shared\n",
+            encoding="utf-8",
+        )
+        (paths.docs_dir / "phase3-custom-slice.md").write_text(
+            "\n".join(
+                [
+                    "custom doc",
+                    f"- `{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        custom_fixture = paths.fixtures_dir / "phase3_custom"
+        custom_fixture.mkdir()
+        (custom_fixture / "expected.json").write_text(
+            json.dumps({"kind": "custom"}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        (custom_fixture / "phase3_custom_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / "phase3_custom_dump.zig").write_text(
+            "// custom\n",
+            encoding="utf-8",
+        )
+
+        entries = discover_phase3_slices(paths)
+        entry_map = {entry.slug: entry for entry in entries}
+        assert entry_map["legacy"].interop_gate_mode == "legacy-wrapper"
+        assert entry_map["legacy"].interop_gate == legacy_wrapper_gate_for_slug("legacy")
+        assert entry_map["shared"].interop_gate_mode == "shared-runner"
+        assert entry_map["shared"].interop_gate == shared_runner_gate_for_slug("shared")
+        assert entry_map["custom"].interop_gate_mode == "custom"
+        assert entry_map["custom"].interop_gate == f"{INTEROP_GATE_PREFIX}python3 scripts/zigux/custom-phase3-custom.py"
+        assert _extract_interop_gate_marker(f"- `{legacy_wrapper_gate_for_slug('legacy')}`") == legacy_wrapper_gate_for_slug("legacy")
+        assert _extract_interop_gate_marker("scope: none") is None
+
+        (paths.docs_dir / "phase3-legacy-slice.md").write_text(
+            "\n".join(
+                [
+                    "2. check legacy parity",
+                    f"- `python3 scripts/zigux/check-phase3-legacy.py`",
+                    f"- `{legacy_wrapper_gate_for_slug('legacy')}`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        rewritten = rewrite_legacy_wrapper_docs(discover_phase3_slices(paths))
+        assert "Documentation/zigux/phase3-legacy-slice.md" in rewritten
+        legacy_doc_text = (paths.docs_dir / "phase3-legacy-slice.md").read_text(encoding="utf-8")
+        assert "python3 scripts/zigux/check-phase3-legacy.py" not in legacy_doc_text
+        assert "python3 scripts/zigux/run-phase3-checks.py --slug legacy" in legacy_doc_text
+        entries = discover_phase3_slices(paths)
+        entry_map = {entry.slug: entry for entry in entries}
+        assert entry_map["legacy"].interop_gate_mode == "shared-runner"
+        assert rewrite_legacy_wrapper_docs(entries) == []
+
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "- `scripts/zigux/check-phase3-alpha.py` compares artifacts.",
+                    "- `python3 scripts/zigux/check-phase3-gamma.py`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.fixtures_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-fixture",
+                    "files": ["scripts/zigux/check-phase3-alpha.py"],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        references = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
+        assert [reference.to_row() for reference in references] == [
+            "Documentation/zigux/artifact-diff.md\t1\talpha\tpath\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
+            "Documentation/zigux/artifact-diff.md\t2\tgamma\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug gamma",
+        ]
+        rewritten = rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
+        assert rewritten == ["Documentation/zigux/artifact-diff.md"]
+        artifact_diff = (paths.docs_dir / "artifact-diff.md").read_text(encoding="utf-8")
+        assert "scripts/zigux/check-phase3-alpha.py" not in artifact_diff
+        assert "python3 scripts/zigux/check-phase3-gamma.py" not in artifact_diff
+        assert "python3 scripts/zigux/run-phase3-checks.py --slug alpha" in artifact_diff
+        assert "python3 scripts/zigux/run-phase3-checks.py --slug gamma" in artifact_diff
+        assert "python3 python3 scripts/zigux/run-phase3-checks.py" not in artifact_diff
+        references = discover_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths)
+        assert references == []
+        assert rewrite_non_doc_legacy_wrapper_references(discover_phase3_slices(paths), paths) == []
+
+        artifact_diff_path = paths.docs_dir / "artifact-diff.md"
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        entries = discover_phase3_slices(paths)
+        expected_block = [
+            "Current Phase 3 use",
+            "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.",
+            "- `python3 scripts/zigux/run-phase3-checks.py --slug abi` compares that committed JSON fixture against both the bounded C harness and the Zig ABI layout dump.",
+        ]
+        generated = artifact_diff_phase3_lines(entries)
+        assert generated[:2] == expected_block[1:]
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug delta`",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug abi`",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        ordered_entries = discover_artifact_diff_phase3_order(entries, artifact_diff_path)
+        assert [entry.slug for entry in ordered_entries[:4]] == ["abi", "alpha", "bitmap-cpumask", "custom"]
+        assert all(entry.slug != "delta" for entry in ordered_entries)
+        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
+        rewritten_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
+        assert "stale line" not in rewritten_artifact_diff
+        assert "phase3_delta/expected.json" not in rewritten_artifact_diff
+        assert "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim." in rewritten_artifact_diff
+        assert "Rules\n- keep fixtures reviewable\n" in rewritten_artifact_diff
+        artifact_diff_path.write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path) is True
+        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is True
+        assert artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path) is False
+        assert rewrite_artifact_diff_phase3_section(entries, artifact_diff_path) is False
+
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "# Artifact Diff Policy",
+                    "",
+                    "Current Phase 3 use",
+                    "- stale line",
+                    "",
+                    "Rules",
+                    "- keep fixtures reviewable",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / "phase3-notes.md").write_text(
+            "\n".join(
+                [
+                    "# Notes",
+                    "",
+                    "- `python3 scripts/zigux/check-phase3-alpha.py`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        audit_issues = audit_phase3_doc_sync(entries, paths, artifact_diff_path)
+        assert [issue.to_row() for issue in audit_issues] == [
+            "legacy-wrapper-reference\tDocumentation/zigux/phase3-notes.md\t3\talpha\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug alpha",
+            "artifact-diff-phase3-stale\tDocumentation/zigux/artifact-diff.md",
+        ]
+        rewrite_non_doc_legacy_wrapper_references(entries, paths)
+        rewrite_artifact_diff_phase3_section(entries, artifact_diff_path)
+        assert audit_phase3_doc_sync(entries, paths, artifact_diff_path) == []
+
+        overgrown_slug = "alpha-beta-gamma-delta-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
+        (paths.docs_dir / f"phase3-{overgrown_slug}-slice.md").write_text(
+            "tokens\n",
+            encoding="utf-8",
+        )
+        too_long_slug = "this-is-a-deliberately-overgrown-phase3-slug-with-many-extra-descriptor-tokens-for-audit-coverage-padding"
+        (paths.docs_dir / f"phase3-{too_long_slug}-slice.md").write_text(
+            "length\n",
+            encoding="utf-8",
+        )
+        repetitive_slug = "loop-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
+        (paths.docs_dir / f"phase3-{repetitive_slug}-slice.md").write_text(
+            "loop\n",
+            encoding="utf-8",
+        )
+        slug_issues = [issue.to_row() for issue in audit_phase3_slug_sanity(discover_phase3_slices(paths))]
+        assert (
+            f"slug-too-many-tokens\t{overgrown_slug}\t13"
+            in slug_issues
+        )
+        assert any(row.startswith(f"slug-too-long\t{too_long_slug}\t") for row in slug_issues)
+        assert (
+            f"slug-repeated-token\t{repetitive_slug}\tpolicy:4,window:4"
+            in slug_issues
+        )
+        assert (
+            f"slug-repeated-phrase\t{repetitive_slug}\tbudget-window:3,policy-budget:3,window-policy:4"
+            in slug_issues
+        )
+
+        canonical_slug = "alpha-beta-gamma-delta"
+        (paths.docs_dir / f"phase3-{canonical_slug}-slice.md").write_text(
+            "canonical\n",
+            encoding="utf-8",
+        )
+        overgrown_with_prefix = f"{canonical_slug}-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
+        overgrown_with_prefix_fixture = paths.fixtures_dir / f"phase3_{overgrown_with_prefix.replace('-', '_')}"
+        overgrown_with_prefix_fixture.mkdir()
+        (paths.docs_dir / f"phase3-{overgrown_with_prefix}-slice.md").write_text(
+            "prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{overgrown_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// prefix\n",
+            encoding="utf-8",
+        )
+        (overgrown_with_prefix_fixture / "expected.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
+        (
+            overgrown_with_prefix_fixture
+            / f"phase3_{overgrown_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            overgrown_with_prefix_fixture
+            / f"phase3_{overgrown_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "prefix", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        assert all(candidate.slug != overgrown_with_prefix for candidate in rename_candidates)
+
+        repetitive_canonical_slug = "loop-window-policy-budget"
+        (paths.docs_dir / f"phase3-{repetitive_canonical_slug}-slice.md").write_text(
+            "repetitive canonical\n",
+            encoding="utf-8",
+        )
+        repetitive_canonical_fixture = paths.fixtures_dir / f"phase3_{repetitive_canonical_slug.replace('-', '_')}"
+        repetitive_canonical_fixture.mkdir()
+        (paths.tests_dir / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_dump.zig").write_text(
+            "// repetitive canonical\n",
+            encoding="utf-8",
+        )
+        (repetitive_canonical_fixture / "expected.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_canonical_fixture
+            / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_canonical_fixture
+            / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "repetitive canonical", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        repetitive_with_prefix = f"{repetitive_canonical_slug}-window-policy-budget-window-policy"
+        repetitive_fixture = paths.fixtures_dir / f"phase3_{repetitive_with_prefix.replace('-', '_')}"
+        repetitive_fixture.mkdir()
+        (paths.docs_dir / f"phase3-{repetitive_with_prefix}-slice.md").write_text(
+            "repetitive prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{repetitive_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// repetitive prefix\n",
+            encoding="utf-8",
+        )
+        (repetitive_fixture / "expected.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_fixture
+            / f"phase3_{repetitive_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_fixture
+            / f"phase3_{repetitive_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "repetitive", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        assert all(candidate.slug != overgrown_with_prefix for candidate in rename_candidates)
+        repetitive_candidate = next(candidate for candidate in rename_candidates if candidate.slug == repetitive_with_prefix)
+        assert repetitive_candidate.canonical_slug == repetitive_canonical_slug
+        assert "slug-repeated-phrase" in repetitive_candidate.issue_codes
+        rename_impacts = discover_phase3_slug_rename_impacts(discover_phase3_slices(paths))
+        assert all(impact.slug != overgrown_with_prefix for impact in rename_impacts)
+        rename_impact = next(impact for impact in rename_impacts if impact.slug == repetitive_with_prefix)
+        assert rename_impact.canonical_slug == repetitive_canonical_slug
+        assert "slug-repeated-phrase" in rename_impact.issue_codes
+        assert len(rename_impact.paths) == 6
+        assert {_rel(path, paths.root) for path in rename_impact.paths} == {
+            f"Documentation/zigux/phase3-{repetitive_with_prefix}-slice.md",
+            f"zigux/tests/phase3_{repetitive_with_prefix.replace('-', '_')}_dump.zig",
+            f"zigux/tests/fixtures/phase3_{repetitive_with_prefix.replace('-', '_')}",
+            f"zigux/tests/fixtures/phase3_{repetitive_with_prefix.replace('-', '_')}/expected.json",
+            (
+                "zigux/tests/fixtures/"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}/"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}_c_harness.c"
+            ),
+            (
+                "zigux/tests/fixtures/"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}/"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}_manifest.json"
+            ),
+        }
+        (paths.docs_dir / "phase3-merge-notes.md").write_text(
+            "\n".join(
+                [
+                    "# Merge notes",
+                    "",
+                    f"- `python3 scripts/zigux/run-phase3-checks.py --slug {repetitive_with_prefix}`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "build.zig").write_text(
+            "\n".join(
+                [
+                    "const std = @import(\"std\");",
+                    "",
+                    "pub fn build(b: *std.Build) void {",
+                    f"    _ = b.step(\"{build_step_for_slug(repetitive_with_prefix)}\", \"demo step\");",
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        merge_prep = discover_phase3_slug_merge_prep(discover_phase3_slices(paths), paths)
+        merge_entry = next(prep for prep in merge_prep if prep.slug == repetitive_with_prefix)
+        assert merge_entry.canonical_slug == repetitive_canonical_slug
+        assert tuple(_rel(path, paths.root) for path in merge_entry.retire_paths) == tuple(
+            _rel(path, paths.root) for path in rename_impact.paths
+        )
+        assert [reference.to_row() for reference in merge_entry.references] == [
+            "Documentation/zigux/phase3-merge-notes.md\t3\tdocumentation\trunner,slug",
+            "zigux/tests/build.zig\t4\tbuild-step\tbuild-step,slug",
+        ]
+
+        mismatched_canonical_slug = "mismatch-window-policy-budget"
+        (paths.docs_dir / f"phase3-{mismatched_canonical_slug}-slice.md").write_text(
+            "mismatched canonical\n",
+            encoding="utf-8",
+        )
+        mismatched_canonical_fixture = paths.fixtures_dir / f"phase3_{mismatched_canonical_slug.replace('-', '_')}"
+        mismatched_canonical_fixture.mkdir()
+        (paths.tests_dir / f"phase3_{mismatched_canonical_slug.replace('-', '_')}_dump.zig").write_text(
+            "// mismatched canonical\n",
+            encoding="utf-8",
+        )
+        (mismatched_canonical_fixture / "expected.json").write_text(
+            json.dumps({"summary": {"acked": 1}}, sort_keys=True),
+            encoding="utf-8",
+        )
+        (
+            mismatched_canonical_fixture
+            / f"phase3_{mismatched_canonical_slug.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            mismatched_canonical_fixture
+            / f"phase3_{mismatched_canonical_slug.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "mismatched canonical", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        mismatched_with_prefix = f"{mismatched_canonical_slug}-window-policy-budget-window-policy"
+        mismatched_fixture = paths.fixtures_dir / f"phase3_{mismatched_with_prefix.replace('-', '_')}"
+        mismatched_fixture.mkdir()
+        (paths.docs_dir / f"phase3-{mismatched_with_prefix}-slice.md").write_text(
+            "mismatched prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{mismatched_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// mismatched prefix\n",
+            encoding="utf-8",
+        )
+        (mismatched_fixture / "expected.json").write_text(
+            json.dumps({"summary": {"acked": 1, "deferred": 0}}, sort_keys=True),
+            encoding="utf-8",
+        )
+        (
+            mismatched_fixture
+            / f"phase3_{mismatched_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            mismatched_fixture
+            / f"phase3_{mismatched_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "mismatched prefix", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        assert all(candidate.slug != mismatched_with_prefix for candidate in rename_candidates)
+
+        manifest_only_canonical_slug = "manifest-window-policy-budget"
+        (paths.docs_dir / f"phase3-{manifest_only_canonical_slug}-slice.md").write_text(
+            "manifest canonical\n",
+            encoding="utf-8",
+        )
+        manifest_only_canonical_fixture = paths.fixtures_dir / f"phase3_{manifest_only_canonical_slug.replace('-', '_')}"
+        manifest_only_canonical_fixture.mkdir()
+        (paths.tests_dir / f"phase3_{manifest_only_canonical_slug.replace('-', '_')}_dump.zig").write_text(
+            "// manifest canonical\n",
+            encoding="utf-8",
+        )
+        (manifest_only_canonical_fixture / "expected.json").write_text(
+            json.dumps({"summary": {"acked": 1}}, sort_keys=True),
+            encoding="utf-8",
+        )
+        (
+            manifest_only_canonical_fixture
+            / f"phase3_{manifest_only_canonical_slug.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            manifest_only_canonical_fixture
+            / f"phase3_{manifest_only_canonical_slug.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "manifest canonical", "files": [{"path": "expected.json"}], "file_count": 1}, sort_keys=True),
+            encoding="utf-8",
+        )
+        manifest_only_with_prefix = f"{manifest_only_canonical_slug}-window-policy-budget-window-policy"
+        manifest_only_fixture = paths.fixtures_dir / f"phase3_{manifest_only_with_prefix.replace('-', '_')}"
+        manifest_only_fixture.mkdir()
+        (paths.docs_dir / f"phase3-{manifest_only_with_prefix}-slice.md").write_text(
+            "manifest prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{manifest_only_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// manifest prefix\n",
+            encoding="utf-8",
+        )
+        (manifest_only_fixture / "expected.json").write_text(
+            json.dumps({"summary": {"acked": 1}}, sort_keys=True),
+            encoding="utf-8",
+        )
+        (
+            manifest_only_fixture
+            / f"phase3_{manifest_only_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            manifest_only_fixture
+            / f"phase3_{manifest_only_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "manifest prefix", "files": [{"path": "expected.json", "kind": "extra"}], "file_count": 1}, sort_keys=True),
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        assert all(candidate.slug != manifest_only_with_prefix for candidate in rename_candidates)
+
+        parser = build_parser()
+        assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
+        assert parser.parse_args(["--rewrite-shared-runner-reference-docs"]).rewrite_legacy_wrapper_references is True
+        assert parser.parse_args(["--audit-doc-sync"]).audit_doc_sync is True
+        assert parser.parse_args(["--audit-slug-sanity"]).audit_slug_sanity is True
+        assert parser.parse_args(["--suggest-slug-renames"]).suggest_slug_renames is True
+        assert parser.parse_args(["--suggest-slug-rename-paths"]).suggest_slug_rename_paths is True
+        assert parser.parse_args(["--suggest-slug-merge-prep"]).suggest_slug_merge_prep is True
+
+    print("PHASE3_CATALOG_SELF_TEST=pass")
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Discover Zigux Phase 3 slices and their generated companion paths.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated discovery and manifest-selection checks.")
+    parser.add_argument(
+        "--legacy-wrapper-docs",
+        action="store_true",
+        help="List discovered Phase 3 slices whose docs still point at legacy per-slice wrapper commands.",
+    )
+    parser.add_argument(
+        "--rewrite-shared-runner-docs",
+        action="store_true",
+        help="Rewrite discovered legacy Phase 3 doc commands to the shared run-phase3-checks.py --slug form.",
+    )
+    parser.add_argument(
+        "--legacy-wrapper-references",
+        action="store_true",
+        help="List remaining discovered Phase 3 wrapper mentions in non-slice documentation.",
+    )
+    parser.add_argument(
+        "--rewrite-legacy-wrapper-references",
+        "--rewrite-shared-runner-reference-docs",
+        dest="rewrite_legacy_wrapper_references",
+        action="store_true",
+        help="Rewrite non-slice documentation wrapper mentions to the shared run-phase3-checks.py --slug form.",
+    )
+    parser.add_argument(
+        "--rewrite-artifact-diff-phase3-section",
+        action="store_true",
+        help="Rewrite the artifact-diff Phase 3 section from the discovered slice catalog.",
+    )
+    parser.add_argument(
+        "--audit-doc-sync",
+        action="store_true",
+        help="Report stale non-slice wrapper references and artifact-diff Phase 3 drift, then exit non-zero when any are found.",
+    )
+    parser.add_argument(
+        "--audit-slug-sanity",
+        action="store_true",
+        help="Report suspiciously repetitive or overgrown discovered Phase 3 slugs, then exit non-zero when any are found.",
+    )
+    parser.add_argument(
+        "--suggest-slug-renames",
+        action="store_true",
+        help="List overgrown discovered Phase 3 slugs that have a shorter clean prefix already present in the catalog.",
+    )
+    parser.add_argument(
+        "--suggest-slug-rename-paths",
+        action="store_true",
+        help="List the core slice files and directories that a suggested Phase 3 slug rename would touch.",
+    )
+    parser.add_argument(
+        "--suggest-slug-merge-prep",
+        action="store_true",
+        help="List the retireable slice artifacts plus the extra docs, workflow, script, or build-step references that still mention each safe long slug elsewhere in the tree.",
+    )
+    return parser
+
+
+if __name__ == "__main__":
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if args.self_test:
+        raise SystemExit(run_self_test())
+
+    entries = discover_phase3_slices()
+    if args.legacy_wrapper_docs:
+        try:
+            for entry in entries:
+                if entry.interop_gate_mode == "legacy-wrapper":
+                    print(f"{entry.slug}\t{_rel(entry.doc_path, entry.root)}\t{entry.interop_gate}")
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+    if args.rewrite_shared_runner_docs:
+        rewritten = rewrite_legacy_wrapper_docs(entries)
+        for path in rewritten:
+            print(path)
+        raise SystemExit(0)
+    if args.legacy_wrapper_references:
+        try:
+            for reference in discover_non_doc_legacy_wrapper_references(entries):
+                print(reference.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+    if args.rewrite_legacy_wrapper_references:
+        rewritten = rewrite_non_doc_legacy_wrapper_references(entries)
+        for path in rewritten:
+            print(path)
+        raise SystemExit(0)
+    if args.rewrite_artifact_diff_phase3_section:
+        if rewrite_artifact_diff_phase3_section(entries):
+            print(_rel(ARTIFACT_DIFF_PATH))
+        raise SystemExit(0)
+    if args.audit_doc_sync:
+        try:
+            issues = audit_phase3_doc_sync(entries)
+            for issue in issues:
+                print(issue.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(1 if issues else 0)
+    if args.audit_slug_sanity:
+        try:
+            issues = audit_phase3_slug_sanity(entries)
+            for issue in issues:
+                print(issue.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(1 if issues else 0)
+    if args.suggest_slug_renames:
+        try:
+            candidates = discover_phase3_slug_rename_candidates(entries)
+            for candidate in candidates:
+                print(candidate.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+    if args.suggest_slug_rename_paths:
+        try:
+            impacts = discover_phase3_slug_rename_impacts(entries)
+            for impact in impacts:
+                print(impact.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+    if args.suggest_slug_merge_prep:
+        try:
+            merge_prep = discover_phase3_slug_merge_prep(entries)
+            for prep in merge_prep:
+                print(prep.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(0)
+
+    print(json.dumps([entry.to_dict() for entry in entries], indent=2, sort_keys=True))
