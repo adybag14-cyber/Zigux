@@ -37,6 +37,7 @@ const Fixture = struct {
         andnot_result: bool,
         andnot_values: []const u64,
         or_values: []const u64,
+        xor_values: []const u64,
         equal: bool,
         intersects: bool,
         subset: bool,
@@ -190,6 +191,8 @@ test "phase 1 helper ports match committed parity fixture" {
     try expectWordSlice(&bitmap_dst, fixture.bitmap.andnot_values);
     bitmap.orBits(&bitmap_dst, &bitmap_lhs, &bitmap_rhs, 8);
     try expectWordSlice(&bitmap_dst, fixture.bitmap.or_values);
+    bitmap.xorBits(&bitmap_dst, &bitmap_lhs, &bitmap_rhs, 8);
+    try expectWordSlice(&bitmap_dst, fixture.bitmap.xor_values);
     try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&bitmap_lhs, &[_]bitmap.Word{ 0x0e, 0 }, 8));
     try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&bitmap_lhs, &bitmap_rhs, 8));
     try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&bitmap_rhs, &bitmap_lhs, 8));

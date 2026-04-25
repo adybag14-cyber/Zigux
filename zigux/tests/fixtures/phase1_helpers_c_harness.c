@@ -106,6 +106,8 @@ static void run_bitmap_section(void)
 	unsigned long andnot_values[2] = {dst[0], dst[1]};
 	bitmap_or(dst, lhs, rhs, 8);
 	unsigned long or_values[2] = {dst[0], dst[1]};
+	bitmap_xor(dst, lhs, rhs, 8);
+	unsigned long xor_values[2] = {dst[0], dst[1]};
 	bitmap_fill(dst, BITS_PER_LONG * 2);
 	bool full_result = bitmap_full(dst, BITS_PER_LONG * 2);
 	bitmap_zero(dst, BITS_PER_LONG * 2);
@@ -126,6 +128,7 @@ static void run_bitmap_section(void)
 	printf("\"andnot_result\":%s,", andnot_result ? "true" : "false");
 	printf("\"andnot_values\":"); emit_word_array(andnot_values, 2); printf(",");
 	printf("\"or_values\":"); emit_word_array(or_values, 2); printf(",");
+	printf("\"xor_values\":"); emit_word_array(xor_values, 2); printf(",");
 	printf("\"equal\":%s,", equal_result ? "true" : "false");
 	printf("\"intersects\":%s,", intersects_result ? "true" : "false");
 	printf("\"subset\":%s,", subset_result ? "true" : "false");

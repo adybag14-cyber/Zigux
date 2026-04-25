@@ -75,6 +75,17 @@ pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize)
     }
 }
 
+pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
+    const nwords = bitsToWords(nbits);
+    std.debug.assert(dst.len >= nwords);
+    std.debug.assert(src1.len >= nwords);
+    std.debug.assert(src2.len >= nwords);
+
+    for (0..nwords) |idx| {
+        dst[idx] = src1[idx] ^ src2[idx];
+    }
+}
+
 pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
@@ -313,6 +324,8 @@ test "bitmap and andnot equal intersects subset" {
     try std.testing.expect(andBits(&dst, &lhs, &rhs, 8));
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b1010, 0 }, &dst);
     try std.testing.expect(andNotBits(&dst, &lhs, &rhs, 8));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0b0100, 0 }, &dst);
+    xorBits(&dst, &lhs, &rhs, 8);
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b0100, 0 }, &dst);
     try std.testing.expect(equal(&lhs, &[_]Word{ 0b1110, 0 }, 8));
     try std.testing.expect(intersects(&lhs, &rhs, 8));
