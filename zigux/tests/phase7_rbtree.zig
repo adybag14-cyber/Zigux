@@ -81,6 +81,57 @@ test "phase 7 rbtree replaceNode and postorder helpers preserve structure" {
     try std.testing.expectEqual(@as(usize, 4), count);
 }
 
+test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    const inserted_expected = [_]i32{ 5, 10, 15, 20, 25 };
+    var inserted_actual: [inserted_expected.len]i32 = undefined;
+    var inserted_index: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        inserted_actual[inserted_index] = entry.key;
+        inserted_index += 1;
+    }
+    try std.testing.expectEqual(inserted_expected.len, inserted_index);
+    try std.testing.expectEqualSlices(i32, &inserted_expected, inserted_actual[0..inserted_index]);
+
+    rbtree.erase(&entries[1].node, &root);
+    rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
+
+    const replaced_expected = [_]i32{ 5, 10, 15, 25 };
+    var replaced_actual: [replaced_expected.len]i32 = undefined;
+    var replaced_index: usize = 0;
+    current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        replaced_actual[replaced_index] = entry.key;
+        replaced_index += 1;
+    }
+    try std.testing.expectEqual(replaced_expected.len, replaced_index);
+    try std.testing.expectEqualSlices(i32, &replaced_expected, replaced_actual[0..replaced_index]);
+}
+
 test "phase 7 rbtree clearNode marks detached nodes as empty" {
     var node = rbtree.Node.init();
 
