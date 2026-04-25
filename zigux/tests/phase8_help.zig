@@ -5,12 +5,13 @@ test "phase 8 help module imports cleanly" {
     _ = help;
 }
 
-test "phase 8 help starter slice covers command-list ownership, sorting, exclusion, and layout planning" {
+test "phase 8 help starter slice covers command-list ownership, filtering, exclusion, and layout planning" {
     var main_cmds = help.CmdNames.init(std.testing.allocator);
     defer main_cmds.deinit();
-    try main_cmds.addCmdName("trace", 5);
-    try main_cmds.addCmdName("record", 6);
-    try main_cmds.addCmdName("trace", 5);
+    try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
+    try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-record.exe", "perf-", true));
+    try std.testing.expect(!(try help.addExecutableEntry(&main_cmds, "README.md", "perf-", true)));
+    try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
     main_cmds.sort();
     main_cmds.uniq();
 
@@ -24,6 +25,7 @@ test "phase 8 help starter slice covers command-list ownership, sorting, exclusi
     try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
     try std.testing.expect(main_cmds.isInCmdList("trace"));
     try std.testing.expectEqual(@as(usize, 5), main_cmds.longestNameLen());
+    try std.testing.expectEqualStrings("record", help.commandNameFromEntry("perf-record.exe", "perf-").?);
 
     const layout = help.planPrettyPrint(7, 8, 41);
     try std.testing.expectEqual(@as(usize, 4), layout.cols);
