@@ -39,21 +39,8 @@ Phase 3 flow
 - `phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice docs that still point at legacy `check-phase3-*.py` compatibility wrappers.
 - `phase3_catalog.py --rewrite-shared-runner-docs` rewrites those legacy per-slice doc commands to the shared `run-phase3-checks.py --slug ...` form so wrapper-reference cleanup is scripted instead of manual.
 - `phase3_catalog.py --legacy-wrapper-references` lists remaining discovered Phase 3 wrapper mentions in non-slice documentation, which keeps stray policy-doc references auditable now that the manifest cleanup is complete.
-- `phase3_catalog.py --rewrite-legacy-wrapper-references` rewrites those non-slice documentation references to the shared runner form, leaving `artifact-diff.md` and similar policy docs on the same scripted cleanup path as the slice records.
+- `phase3_catalog.py --rewrite-legacy-wrapper-references  rewrites those non-slice documentation references to the shared runner form, leaving `artifact-diff.md` and similar policy docs on the same scripted cleanup path as the slice records.
 - `phase3_catalog.py --rewrite-artifact-diff-phase3-section` regenerates the detailed `Documentation/zigux/artifact-diff.md` Phase 3 policy block from the discovered slice catalog.
 - `phase3_catalog.py --audit-doc-sync` reports stale non-slice wrapper references plus a stale `artifact-diff.md` Phase 3 block, and bootstrap now runs it so documentation drift fails fast.
-- `phase3_catalog.py --suggest-slug-renames` turns the slug sanity audit into concrete cleanup candidates by pairing each repetitively overgrown slug with the longest clean prefix already present in the catalog, while skipping slugs whose only issue is crossing the token-count threshold or whose normalized `expected.json` schema clearly diverges from that shorter prefix.
+- `phase3_catalog.py --suggest-slug-renames` turns the slug sanity audit into concrete cleanup candidates by pairing each repetitively overgrown slug with the longest clean prefix already present in the catalog, while skipping slugs whose only issue is crossing the token-count threshold and suppressing prefix matches whose normalized fixture manifest or `expected.json` schema does not actually line up with the shorter slice.
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
-- `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, wrapper-template, and argument-parsing helpers without running Zig parity builds.
-- `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
-- `generate-phase3-check-wrappers.py --self-test` exercises isolated missing-wrapper, stale-wrapper, obsolete-wrapper, and clean `--check` behavior without touching the committed tree.
-- `generate-phase3-check-wrappers.py --check` fails when any discovered wrapper drifts from that shared template or when an obsolete wrapper should be removed.
-- `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers, accepts either the shared runner gate (`run-phase3-checks.py --slug ...`) or a legacy `check-phase3-*.py` wrapper in the slice doc, reports obsolete wrapper shims that no longer map to a discovered slice, and rejects legacy wrapper script paths inside Phase 3 manifests so those manifests stay focused on source, dump, harness, and committed fixture artifacts.
-- `validate-phase3.py --self-test` exercises manifest, optional-wrapper, obsolete-wrapper, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
-- `run-phase3-checks.py` lists or executes every discovered Phase 3 slice from catalog metadata through one shared entrypoint, even when a wrapper stub is missing.
-- `run-phase3-checks.py --self-test` checks slug filtering plus direct runner and fail-fast behavior without launching Zig parity builds.
-
-Rules
-- keep helpers narrow and product-facing
-- do not duplicate general Linux scripts here
-- if a helper becomes broadly useful, move it or integrate it with the native subsystem flow
