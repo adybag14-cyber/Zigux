@@ -5,8 +5,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-baseline`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, and current blocker posture for the active freeze-in-C anchors
+- `PHASE15_SLICE=parity-scorecard-evidence-archive-reporting`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, and one concrete evidence-archive reporting block for the active freeze-in-C anchors
+- survey provenance refreshed against verified `master` head `36f313d5bd0b3be22beb3284730a98dff5e7f335`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -18,9 +19,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 ## Why this slice exists
 
-The roadmap says Phase 15 is about honest long-term governance for the final mixed-language steady state. The live repo already records the freeze set in `Documentation/zigux/freeze-map.md`, but it still lacked the required parity scorecard that tells reviewers what evidence is needed before any frozen anchor can change status.
+The roadmap says Phase 15 is about honest long-term governance for the final mixed-language steady state. The live repo already records the freeze set in `Documentation/zigux/freeze-map.md`, but it still needed the next bounded reporting step that says where each frozen anchor keeps its Architecture Council evidence packet.
 
-That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, `kernel/rcu/tree_plugin.h` is 1,369 lines, `kernel/rcu/tree_exp.h` is 1,118 lines, `kernel/rcu/tree_nocb.h` is 1,702 lines, `net/core/skbuff.c` is 7,476 lines, and `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes a governance scorecard the next honest step instead of another implementation starter.
+That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, `kernel/rcu/tree_plugin.h` is 1,369 lines, `kernel/rcu/tree_exp.h` is 1,118 lines, `kernel/rcu/tree_nocb.h` is 1,702 lines, `net/core/skbuff.c` is 7,476 lines, and `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes a reporting-grade evidence-archive block the next honest step instead of another implementation starter.
 
 ## Scorecard Entries
 
@@ -43,6 +44,12 @@ That gap matters because the current anchors are still large and deeply coupled:
   - a future lane-local parity harness before any status change
   - explicit rollback rehearsal and owner
 - rollback owner: `Architecture Council + PMO / Release Management`
+- evidence archive reporting:
+  - decision record path: `Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md`
+  - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-parity-scorecard.md`
+  - benchmark notes: `pending_until_bounded_scheduler_seam_exists`
+  - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+  - latest blocker disposition: `blocked_no_bounded_scheduler_seam`
 
 ### `mm/page_alloc.c`
 
@@ -63,6 +70,12 @@ That gap matters because the current anchors are still large and deeply coupled:
   - a future lane-local parity harness before any status change
   - explicit rollback rehearsal and owner
 - rollback owner: `Architecture Council + Validation and Perf Team`
+- evidence archive reporting:
+  - decision record path: `Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md`
+  - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-parity-scorecard.md`
+  - benchmark notes: `pending_until_bounded_allocator_seam_exists`
+  - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+  - latest blocker disposition: `blocked_no_bounded_allocator_seam`
 
 ### `kernel/rcu/tree.c`
 
@@ -83,6 +96,12 @@ That gap matters because the current anchors are still large and deeply coupled:
   - existing Phase 14 survey evidence must stay green
   - a future lane-local parity harness before any status change
 - rollback owner: `Architecture Council + ABI and Runtime Team`
+- evidence archive reporting:
+  - decision record path: `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
+  - linked evidence: `Documentation/zigux/phase14-rcu-tree-survey.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-parity-scorecard.md`
+  - benchmark notes: `pending_until_rcu_followup_is_narrower_than_freeze_boundary`
+  - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+  - latest blocker disposition: `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
 
 ### `net/core/skbuff.c`
 
@@ -103,6 +122,12 @@ That gap matters because the current anchors are still large and deeply coupled:
   - existing Phase 14 survey evidence must stay green
   - a future lane-local parity harness before any status change
 - rollback owner: `Architecture Council + Shared Subsystems Pod`
+- evidence archive reporting:
+  - decision record path: `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
+  - linked evidence: `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-parity-scorecard.md`
+  - benchmark notes: `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`
+  - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+  - latest blocker disposition: `blocked_packet_lifetime_boundary_still_too_wide`
 
 ## Recorded Gaps
 
@@ -116,10 +141,11 @@ The current lane state is:
 - landed `phase15-parity-scorecard-test`
 - landed `phase15-build-gate`
 - landed `phase15-make-target`
-- ready-next `phase15-evidence-archive-followup`
+- landed `phase15-evidence-archive-reporting`
+- ready-next `phase15-decision-record-template-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, plus a concrete reporting block that says where Architecture Council evidence belongs, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
@@ -133,6 +159,18 @@ Before a freeze-in-C anchor can enter active status-review discussion, the score
 A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, and latest blocker disposition are all recorded together in the scorecard.
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
+
+## Evidence Archive Reporting Standard
+
+Each frozen anchor now carries one reporting block that reserves:
+
+- one decision record path under `Documentation/zigux/phase15-evidence-archives/`
+- the linked evidence set that reviewers must be able to open from the scorecard
+- a benchmark-notes status line that says whether performance notes exist yet
+- the replay command reviewers should run before trusting the current packet
+- the latest blocker disposition that keeps the stay-in-C posture explicit
+
+These reporting fields do not claim a decision record already exists. They standardize where the record will live and what still remains missing until a narrower seam earns Architecture Council review.
 
 ## Non-goals
 
@@ -155,4 +193,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small evidence-archive follow-up next, limited to standardizing where Council decision records, benchmark notes, blocker dispositions, and replay commands are stored for each frozen anchor.
+Stay in the Phase 15 governance lane and add one small per-anchor decision-record template follow-up next, limited to reserving the packet headings under `Documentation/zigux/phase15-evidence-archives/` without claiming any status change approval.
