@@ -13,7 +13,9 @@ Key entrypoints
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase3_abi.zig`
 - `scripts/zigux/validate-phase3.py`
+- `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/generate-phase3-check-wrappers.py --check`
+- `scripts/zigux/run-phase3-checks.py --self-test`
 - `scripts/zigux/run-phase3-checks.py`
 
 Phase 3 fixtures
