@@ -1,0 +1,117 @@
+{
+  "lane_key": "P8-L13",
+  "phase": "Phase 8",
+  "surveyed_commit": "63799ed231dfdbe5dbafe32bdcaac1fc78afcfc1",
+  "anchor": "tools/lib/bpf/libbpf.c",
+  "survey_summary": {
+    "libbpf_c_lines": 14771,
+    "preexisting_zigux_segments_present": false,
+    "preexisting_phase8_libbpf_note_present": false,
+    "companion_c_files": [
+      {
+        "path": "tools/lib/bpf/bpf.c",
+        "lines": 1419
+      },
+      {
+        "path": "tools/lib/bpf/btf.c",
+        "lines": 6360
+      },
+      {
+        "path": "tools/lib/bpf/features.c",
+        "lines": 727
+      },
+      {
+        "path": "tools/lib/bpf/libbpf_utils.c",
+        "lines": 256
+      },
+      {
+        "path": "tools/lib/bpf/linker.c",
+        "lines": 3116
+      },
+      {
+        "path": "tools/lib/bpf/netlink.c",
+        "lines": 938
+      },
+      {
+        "path": "tools/lib/bpf/nlattr.c",
+        "lines": 194
+      },
+      {
+        "path": "tools/lib/bpf/ringbuf.c",
+        "lines": 684
+      }
+    ]
+  },
+  "segments": [
+    {
+      "id": "P8-L13-S01",
+      "slug": "logging-version-and-errno",
+      "status": "ready_next",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:233-364",
+        "tools/lib/bpf/libbpf_utils.c:31-84"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/logging.zig",
+      "why_now": "This slice is mostly string tables, log-level gating, and version reporting, so it gives Zigux a low-risk libbpf foothold with stable output semantics."
+    },
+    {
+      "id": "P8-L13-S02",
+      "slug": "pin-path-helpers",
+      "status": "ready_next",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:2538-2565",
+        "tools/lib/bpf/libbpf.c:9054-9352"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/pin_path.zig",
+      "why_now": "Path concatenation, bpffs validation, and pin-name sanitization are bounded helpers that can be validated without entering ELF loading or verifier-facing behavior."
+    },
+    {
+      "id": "P8-L13-S03",
+      "slug": "cpu-mask-parsing",
+      "status": "ready_next",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:14379-14480"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+      "why_now": "The CPU mask parser is self-contained text processing that future perf-buffer and feature probes can share, which makes it a good first real port after the survey scaffold."
+    },
+    {
+      "id": "P8-L13-S04",
+      "slug": "skeleton-population",
+      "status": "blocked_on_object_model",
+      "kind": "object_adjacent",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:14482-14771"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/skeleton.zig",
+      "why_now": "This is still a bounded cluster, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
+    },
+    {
+      "id": "P8-L13-S05",
+      "slug": "object-and-elf-loader",
+      "status": "deferred_high_risk",
+      "kind": "core_loader",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:1514-2065",
+        "tools/lib/bpf/libbpf.c:3705-4514"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/object_loader.zig",
+      "why_now": "The object-model and ELF collection surface is the first place mirror-tree sprawl becomes likely, so it should stay deferred until helper-first segments are proven."
+    },
+    {
+      "id": "P8-L13-S06",
+      "slug": "btf-relocation-and-program-load",
+      "status": "deferred_high_risk",
+      "kind": "verifier_facing",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:3325-3609",
+        "tools/lib/bpf/libbpf.c:4572-9049"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/relocation.zig",
+      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions are the densest libbpf surface and need proven helper segments ahead of them."
+    }
+  ]
+}
