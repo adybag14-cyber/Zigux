@@ -1,7 +1,7 @@
 {
-  "lane_key": "P14-L05",
+  "lane_key": "P14-L06",
   "phase": "Phase 14",
-  "surveyed_commit": "81501dc396bd2fb1f9b78ec0d0d3cea7992210ad",
+  "surveyed_commit": "b25f34c1c65f7c9ccbb966fc39d8d48f3eddd90b",
   "anchor": "kernel/trace/ring_buffer.c",
   "roadmap_destinations": [
     "zigux/tests/",
@@ -22,6 +22,40 @@
     "preexisting_phase14_ring_buffer_survey_test_present": true,
     "preexisting_phase14_ring_buffer_survey_note_present": true
   },
+  "decision_checklist": [
+    {
+      "id": "reserve-commit-publication",
+      "summary": "Keep reserve and commit publication in C while the survey records the lockless boundary around nested writers.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "ring_buffer_lock_reserve",
+        "ring_buffer_unlock_commit",
+        "rb_move_tail"
+      ],
+      "rationale": "The reserve and commit path still couples cmpxchg transitions to nested writer ordering and per-CPU commit movement, so Phase 14 should record the decision boundary rather than claim wrapper ownership."
+    },
+    {
+      "id": "head-page-reader-handoff",
+      "summary": "Treat head-page rotation and reader-page extraction as a stay-in-C handoff boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "rb_handle_head_page",
+        "rb_set_head_page",
+        "ring_buffer_read_page"
+      ],
+      "rationale": "The reader-page swap spans head-page movement, commit-page adjacency, and page handoff semantics that are documented upstream but still too coupled for a wrapper-first move."
+    },
+    {
+      "id": "remote-reader-metadata",
+      "summary": "Keep remote-reader metadata and reader-page import decisions in C while the survey records their callback boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "rb_read_remote_meta_page",
+        "__rb_get_reader_page_from_remote"
+      ],
+      "rationale": "Remote readers add callback-driven metadata refresh and reader-page import rules on top of the local ring-buffer model, so the current lane should only name the boundary and not invent Zig ownership."
+    }
+  ],
   "gaps": [
     {
       "id": "phase14-build-gate",
@@ -60,10 +94,17 @@
     },
     {
       "id": "phase14-ring-buffer-boundary-decision-checklist",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "zigux/tests/phase14_ring_buffer_manifest.json",
-      "why_now": "The next honest step is still study-only: extend this survey into a small decision checklist around reserve or commit ownership, reader-page rotation, overwrite and loss accounting, and mmap or splice-facing behavior before any bridge candidate is entertained."
+      "why_now": "This lane now carries a small decision checklist around reserve or commit ownership, reader-page rotation, and remote callback boundaries so the ring-buffer survey names the first reviewable seams before any bridge candidate is entertained."
+    },
+    {
+      "id": "phase14-ring-buffer-overwrite-audit-followup",
+      "status": "ready_next",
+      "kind": "boundary_audit",
+      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "why_now": "The next honest step is still study-only: add one small overwrite and lost-event audit around `rb_move_tail()`, overwrite mode, and lost-event reporting before any bridge candidate is entertained."
     },
     {
       "id": "phase14-ring-buffer-zig-port-blocker",
