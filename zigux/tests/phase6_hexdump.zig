@@ -188,3 +188,14 @@ test "phase 6 hexdump overflow contract matches truncation expectations" {
         }
     }
 }
+
+test "phase 6 hexdump covers normalization and empty-buffer edge cases" {
+    try assertParityCase(0, 16, 1, false);
+    try assertParityCase(12, 99, 3, true);
+    try assertParityCase(9, 32, 4, false);
+
+    var empty: [1]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, 65), hexdump.hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));
+    try std.testing.expectEqual(@as(usize, 47), hexdump.hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], false));
+    try std.testing.expectEqual(@as(usize, 129), hexdump.hexDumpToBuffer(test_data_b[0..32], 32, 1, empty[0..0], true));
+}
