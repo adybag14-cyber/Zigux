@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L13",
   "phase": "Phase 11",
-  "surveyed_commit": "80caf4955443c06226c8446c9673036c3b33d31a",
+  "surveyed_commit": "5e9f574d2dd6af384db83f8c1dc98be14f28e832",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
@@ -12,8 +12,8 @@
     "hvc_console_c_lines": 1066,
     "preexisting_phase11_build_present": true,
     "preexisting_phase11_watchdog_lanes": 3,
-    "hvc_console_zig_present": false,
-    "hvc_console_test_present": false,
+    "hvc_console_zig_present": true,
+    "hvc_console_test_present": true,
     "hvc_console_survey_gate_present": true,
     "hvc_console_survey_note_present": true
   },
@@ -23,42 +23,42 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "The shared Phase 11 build entry now runs the new hvc_console survey beside the existing watchdog lanes so this missing tty anchor stops being invisible in the tranche review path."
+      "why_now": "The shared Phase 11 build entry now runs the bounded hvc_console starter beside the existing watchdog starters and survey gates so this tty anchor stays visible in the tranche review path."
     },
     {
       "id": "phase11-hvc-console-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
-      "why_now": "A dedicated survey gate makes the missing hvc_console lane reviewable without overclaiming a Zig driver starter, tty registration path, or console-thread behavior that has not been ported."
+      "why_now": "The archival survey gate now verifies that the first bounded hvc_console starter has landed while keeping the remaining tty-registration and host-backed behavior gaps reviewable."
     },
     {
       "id": "phase11-hvc-console-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
-      "why_now": "The survey note records that the roadmap names hvc_console as a simple production driver anchor while the live Zigux tree still has no drivers/tty/hvc scaffold, keeping the gap explicit for later Phase 11 work."
+      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter while preserving an explicit checkpoint for the remaining tty and teardown parity work."
     },
     {
       "id": "phase11-hvc-console-driver-starter",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "The next honest bounded step is a tiny in-memory descriptor and console-slot bookkeeping starter around early vterm range checks, CRLF console write framing, and adapter-presence gating before any tty registration, kthread polling, or live hypervisor I/O."
+      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, and adapter-presence gating without claiming tty registration, khvcd polling, or live hypervisor I/O."
     },
     {
       "id": "phase11-hvc-console-driver-tests",
-      "status": "blocked_on_driver_scaffold",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "Dedicated driver tests remain blocked until a first drivers/tty/hvc/hvc_console.zig scaffold exists to model console-slot validation, newline framing, and flush retry bookkeeping without touching tty core integration."
+      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, fatal-write drop behavior, and teardown gating without touching tty core integration."
     },
     {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
-      "status": "blocked_on_driver_scaffold",
+      "status": "blocked_on_kernel_integration",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "TTY driver registration, port lifetime, close-wait handling, sysrq integration, polling kthread behavior, and teardown parity should stay blocked until the lane first lands a bounded starter plus a hardware-validation matrix for those side effects."
+      "why_now": "TTY driver registration, setup_hvc_console() close-wait boundaries, khvcd polling behavior, sysrq integration, and host-backed teardown parity should stay blocked until the lane adds one more probe-facing note and a kernel-integration validation matrix for those side effects."
     }
   ]
 }
