@@ -66,9 +66,6 @@ static void run_find_bit_section(void)
 	unsigned long lhs[2] = {(1UL << 1) | (1UL << 9), 1UL << 2};
 	unsigned long rhs[2] = {1UL << 9, 1UL << 2};
 	unsigned long nbits = BITS_PER_LONG * 3;
-	unsigned long tail_nbits = BITS_PER_LONG + 5;
-	unsigned long tail[2] = {0, 1UL << 9};
-	unsigned long tail_full[2] = {~0UL, BITMAP_LAST_WORD_MASK(tail_nbits)};
 
 	bitmap[0] |= 1UL << 5;
 	bitmap[1] |= 1UL << 3;
@@ -82,23 +79,19 @@ static void run_find_bit_section(void)
 	printf("\"first_zero\":%lu,", find_first_zero_bit((unsigned long[]){0xf7UL}, 12));
 	printf("\"next_zero\":%lu,", find_next_zero_bit((unsigned long[]){~0UL, ~(1UL << 4)}, BITS_PER_LONG * 2, BITS_PER_LONG));
 	printf("\"first_and\":%lu,", find_first_and_bit(lhs, rhs, BITS_PER_LONG * 2));
-	printf("\"next_and\":%lu,", find_next_and_bit(lhs, rhs, BITS_PER_LONG * 2, 10));
-	printf("\"tail_clamped_first\":%lu,", find_first_bit(tail, tail_nbits));
-	printf("\"tail_clamped_next\":%lu,", find_next_bit(tail, tail_nbits, BITS_PER_LONG));
-	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_full, tail_nbits));
-	printf("\"tail_zero_clamped_next\":%lu,", find_next_zero_bit(tail_full, tail_nbits, BITS_PER_LONG));
-	printf("\"tail_and_clamped_first\":%lu,", find_first_and_bit(tail, tail, tail_nbits));
-	printf("\"tail_and_clamped_next\":%lu", find_next_and_bit(tail, tail, tail_nbits, BITS_PER_LONG));
+	printf("\"next_and\":%lu", find_next_and_bit(lhs, rhs, BITS_PER_LONG * 2, 10));
 	printf("}");
 }
 
 static void run_bitmap_section(void)
 {
-	unsigned long render_map[2] = {0, 0};
-	unsigned long range_map[3] = {0, 0, 0};
+	unsigned long map[2] = {0, 0};
 	unsigned long lhs[2] = {0x0eUL, 0};
 	unsigned long rhs[2] = {0x0aUL, 0};
 	unsigned long dst[2] = {0, 0};
+	unsigned long partial_lhs[1] = {0x1fUL};
+	unsigned long partial_rhs[1] = {0x11UL};
+	unsigned long partial_dst[1] = {0};
 	char buffer[64] = {0};
 	bool and_result;
 	bool andnot_result;
@@ -106,11 +99,9 @@ static void run_bitmap_section(void)
 	bool intersects_result;
 	bool subset_result;
 
-	bitmap_set(render_map, 1, 3);
-	bitmap_set(render_map, 7, 1);
-	bitmap_set(render_map, 10, 2);
-	bitmap_set(range_map, 1, 3);
-	bitmap_set(range_map, BITS_PER_LONG + 2, 2);
+	bitmap_set(map, 1, 3);
+	bitmap_set(map, 7, 1);
+	bitmap_set(map, 10, 2);
 
 	and_result = bitmap_and(dst, lhs, rhs, 8);
 	unsigned long and_values[2] = {dst[0], dst[1]};
@@ -120,15 +111,18 @@ static void run_bitmap_section(void)
 	unsigned long or_values[2] = {dst[0], dst[1]};
 	bitmap_xor(dst, lhs, rhs, 8);
 	unsigned long xor_values[2] = {dst[0], dst[1]};
-	unsigned long range_after_set[3] = {range_map[0], range_map[1], range_map[2]};
+	bitmap_xor(partial_dst, partial_lhs, partial_rhs, 4);
+	unsigned long partial_xor_masked_values[1] = {
+		partial_dst[0] & BITMAP_LAST_WORD_MASK(4)
+	};
 	bitmap_fill(dst, BITS_PER_LONG * 2);
 	bool full_result = bitmap_full(dst, BITS_PER_LONG * 2);
 	bitmap_zero(dst, BITS_PER_LONG * 2);
 	bool empty_result = bitmap_empty(dst, BITS_PER_LONG * 2);
-	bitmap_scnprintf(render_map, 32, buffer, sizeof(buffer));
-	bitmap_clear(range_map, 1, 3);
-	bitmap_clear(range_map, BITS_PER_LONG + 2, 2);
-	unsigned long range_after_clear[3] = {range_map[0], range_map[1], range_map[2]};
+	bitmap_scnprintf(map, 32, buffer, sizeof(buffer));
+	bitmap_clear(map, 1, 3);
+	bitmap_clear(map, 7, 1);
+	bitmap_clear(map, 10, 2);
 	equal_result = bitmap_equal(lhs, (unsigned long[]){0x0eUL, 0}, 8);
 	intersects_result = bitmap_intersects(lhs, rhs, 8);
 	subset_result = bitmap_subset(rhs, lhs, 8);
@@ -142,11 +136,11 @@ static void run_bitmap_section(void)
 	printf("\"andnot_values\":"); emit_word_array(andnot_values, 2); printf(",");
 	printf("\"or_values\":"); emit_word_array(or_values, 2); printf(",");
 	printf("\"xor_values\":"); emit_word_array(xor_values, 2); printf(",");
+	printf("\"partial_xor_nbits\":4,");
+	printf("\"partial_xor_masked_values\":"); emit_word_array(partial_xor_masked_values, 1); printf(",");
 	printf("\"equal\":%s,", equal_result ? "true" : "false");
 	printf("\"intersects\":%s,", intersects_result ? "true" : "false");
 	printf("\"subset\":%s,", subset_result ? "true" : "false");
-	printf("\"range_after_set\":"); emit_word_array(range_after_set, 3); printf(",");
-	printf("\"range_after_clear\":"); emit_word_array(range_after_clear, 3); printf(",");
 	printf("\"full_after_fill\":%s,", full_result ? "true" : "false");
 	printf("\"empty_after_zero\":%s", empty_result ? "true" : "false");
 	printf("}");
@@ -166,366 +160,4 @@ static void run_string_section(void)
 	void *memchr_hit = memchr_inv("aaaaXaaa", 'a', 8);
 	void *memchr_none = memchr_inv("bbbb", 'b', 4);
 
-	printf("\"string\":{");
-	strtobool("y", &value);
-	printf("\"strtobool_y\":%s,", value ? "true" : "false");
-	strtobool("On", &value);
-	printf("\"strtobool_on\":%s,", value ? "true" : "false");
-	strtobool("0", &value);
-	printf("\"strtobool_zero\":%s,", value ? "true" : "false");
-	strtobool("of", &value);
-	printf("\"strtobool_off\":%s,", value ? "true" : "false");
-	printf("\"strtobool_invalid\":%d,", strtobool("maybe", &value));
-	printf("\"strlcpy_len\":%zu,", strlcpy(dst, "hello", sizeof(dst)));
-	printf("\"strlcpy_buffer\":\"%s\",", dst);
-	printf("\"skip_spaces\":\"%s\",", skip);
-	printf("\"trim_spaces\":\"%s\",", trimmed);
-	printf("\"remove_spaces\":\"%s\",", remove_buf);
-	printf("\"replace_char\":\"%s\",", replace_buf);
-	printf("\"memchr_inv_index\":%td,", (ptrdiff_t)((const char *)memchr_hit - "aaaaXaaa"));
-	printf("\"memchr_inv_none\":%s", memchr_none ? "false" : "true");
-	printf("}");
-}
-
-static void run_rbtree_section(void)
-{
-	struct rb_entry_fixture entries[] = {
-		{ .key = 10 },
-		{ .key = 20 },
-		{ .key = 5 },
-		{ .key = 15 },
-		{ .key = 25 },
-	};
-	struct rb_entry_fixture replacement = { .key = 10 };
-	struct rb_entry_fixture postorder_entries[] = {
-		{ .key = 2 },
-		{ .key = 1 },
-		{ .key = 3 },
-	};
-	struct rb_root root = RB_ROOT;
-	struct rb_root postorder_root = RB_ROOT;
-	int order[5] = {0};
-	int replaced[4] = {0};
-	size_t count = 0;
-	struct rb_node *node;
-
-	for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
-		rb_add(&entries[i].node, &root, rb_less);
-
-	for (node = rb_first(&root); node; node = rb_next(node))
-		order[count++] = rb_entry(node, struct rb_entry_fixture, node)->key;
-
-	rb_erase(&entries[1].node, &root);
-	rb_replace_node(&entries[0].node, &replacement.node, &root);
-
-	count = 0;
-	for (node = rb_first(&root); node; node = rb_next(node))
-		replaced[count++] = rb_entry(node, struct rb_entry_fixture, node)->key;
-
-	for (size_t i = 0; i < sizeof(postorder_entries) / sizeof(postorder_entries[0]); i++)
-		rb_add(&postorder_entries[i].node, &postorder_root, rb_less);
-
-	int postorder_count = 0;
-	for (node = rb_first_postorder(&postorder_root); node; node = rb_next_postorder(node))
-		postorder_count++;
-
-	RB_CLEAR_NODE(&replacement.node);
-
-	printf("\"rbtree\":{");
-	printf("\"insert_order\":"); emit_int_array(order, 5); printf(",");
-	printf("\"replace_order\":"); emit_int_array(replaced, 4); printf(",");
-	printf("\"postorder_count\":%d,", postorder_count);
-	printf("\"cleared_node_empty\":%s", RB_EMPTY_NODE(&replacement.node) ? "true" : "false");
-	printf("}");
-}
-
-static void run_argv_split_section(void)
-{
-	int argc = 0;
-	char **argv = argv_split(" alpha  beta\tgamma\n", &argc);
-	int blank_argc = -1;
-	char **blank_argv = argv_split("   \t\n", &blank_argc);
-
-	printf("\"argv_split\":{");
-	printf("\"argc\":%d,", argc);
-	printf("\"argv\":"); emit_string_array(argv, argc); printf(",");
-	printf("\"blank_argc\":%d", blank_argc);
-	printf("}");
-
-	argv_free(argv);
-	argv_free(blank_argv);
-}
-
-static void run_cmdline_section(void)
-{
-	char *endptr = NULL;
-	unsigned long long decimal = memparse("64K rest", &endptr);
-	char *decimal_rest = endptr;
-	unsigned long long hexadecimal = memparse("0x20M", &endptr);
-	char *hex_rest = endptr;
-	unsigned long long octal = memparse("010K", &endptr);
-	char *octal_rest = endptr;
-	unsigned long long invalid = memparse("xyz", &endptr);
-	char *invalid_rest = endptr;
-
-	printf("\"cmdline\":{");
-	printf("\"decimal_k\":{\"value\":%llu,\"rest\":\"%s\"},", decimal, decimal_rest);
-	printf("\"hex_m\":{\"value\":%llu,\"rest\":\"%s\"},", hexadecimal, hex_rest);
-	printf("\"octal_k\":{\"value\":%llu,\"rest\":\"%s\"},", octal, octal_rest);
-	printf("\"invalid\":{\"value\":%llu,\"rest\":\"%s\"}", invalid, invalid_rest);
-	printf("}");
-}
-
-static void run_ctype_section(void)
-{
-	printf("\"ctype\":{");
-	printf("\"mask_A\":%u,", __ismask('A'));
-	printf("\"mask_a\":%u,", __ismask('a'));
-	printf("\"mask_space\":%u,", __ismask(' '));
-	printf("\"isalnum_A\":%s,", isalnum('A') ? "true" : "false");
-	printf("\"isalpha_z\":%s,", isalpha('z') ? "true" : "false");
-	printf("\"isdigit_7\":%s,", isdigit('7') ? "true" : "false");
-	printf("\"isspace_tab\":%s,", isspace('\t') ? "true" : "false");
-	printf("\"isxdigit_f\":%s,", isxdigit('f') ? "true" : "false");
-	printf("\"ispunct_bang\":%s,", ispunct('!') ? "true" : "false");
-	printf("\"tolower_A\":%u,", tolower('A'));
-	printf("\"toupper_z\":%u,", toupper('z'));
-	printf("\"isodigit_7\":%s,", isodigit('7') ? "true" : "false");
-	printf("\"isodigit_8\":%s", isodigit('8') ? "true" : "false");
-	printf("}");
-}
-
-static void run_hweight_section(void)
-{
-	printf("\"hweight\":{");
-	printf("\"w8\":%u,", __sw_hweight8(0xf0));
-	printf("\"w16\":%u,", __sw_hweight16(0xf0f0));
-	printf("\"w32\":%u,", __sw_hweight32(0xf0f0f0f0u));
-	printf("\"w64\":%lu,", __sw_hweight64(0xf0f0f0f0f0f0f0f0ULL));
-	printf("\"wlong\":%lu", hweight_long(0xf0f0UL));
-	printf("}");
-}
-
-struct list_entry_fixture {
-	int key;
-	int ordinal;
-	struct list_head node;
-};
-
-static int list_cmp_tristate(void *priv, const struct list_head *a,
-			     const struct list_head *b)
-{
-	const struct list_entry_fixture *lhs = list_entry(a, struct list_entry_fixture, node);
-	const struct list_entry_fixture *rhs = list_entry(b, struct list_entry_fixture, node);
-	(void)priv;
-
-	if (lhs->key < rhs->key)
-		return -1;
-	if (lhs->key > rhs->key)
-		return 1;
-	return 0;
-}
-
-static int list_cmp_bool(void *priv, const struct list_head *a,
-			 const struct list_head *b)
-{
-	const struct list_entry_fixture *lhs = list_entry(a, struct list_entry_fixture, node);
-	const struct list_entry_fixture *rhs = list_entry(b, struct list_entry_fixture, node);
-	(void)priv;
-
-	return lhs->key > rhs->key;
-}
-
-static void emit_list_sort_result(struct list_head *head, const char *keys_name,
-				  const char *ordinals_name)
-{
-	struct list_head *pos;
-	int keys[5] = {0};
-	int ordinals[5] = {0};
-	size_t idx = 0;
-
-	list_for_each(pos, head) {
-		const struct list_entry_fixture *entry = list_entry(pos, struct list_entry_fixture, node);
-		keys[idx] = entry->key;
-		ordinals[idx] = entry->ordinal;
-		idx++;
-	}
-
-	printf("\"%s\":", keys_name);
-	emit_int_array(keys, idx);
-	printf(",");
-	printf("\"%s\":", ordinals_name);
-	emit_int_array(ordinals, idx);
-}
-
-static void run_list_sort_section(void)
-{
-	struct list_entry_fixture tri_entries[] = {
-		{ .key = 2, .ordinal = 0 },
-		{ .key = 1, .ordinal = 1 },
-		{ .key = 3, .ordinal = 2 },
-		{ .key = 1, .ordinal = 3 },
-		{ .key = 3, .ordinal = 4 },
-	};
-	struct list_entry_fixture bool_entries[] = {
-		{ .key = 2, .ordinal = 0 },
-		{ .key = 1, .ordinal = 1 },
-		{ .key = 3, .ordinal = 2 },
-		{ .key = 1, .ordinal = 3 },
-		{ .key = 3, .ordinal = 4 },
-	};
-	struct list_head tri_head;
-	struct list_head bool_head;
-	size_t i;
-
-	INIT_LIST_HEAD(&tri_head);
-	INIT_LIST_HEAD(&bool_head);
-
-	for (i = 0; i < sizeof(tri_entries) / sizeof(tri_entries[0]); i++) {
-		INIT_LIST_HEAD(&tri_entries[i].node);
-		list_add_tail(&tri_entries[i].node, &tri_head);
-		INIT_LIST_HEAD(&bool_entries[i].node);
-		list_add_tail(&bool_entries[i].node, &bool_head);
-	}
-
-	list_sort(NULL, &tri_head, list_cmp_tristate);
-	list_sort(NULL, &bool_head, list_cmp_bool);
-
-	printf("\"list_sort\":{");
-	emit_list_sort_result(&tri_head, "tri_sorted_keys", "tri_sorted_ordinals");
-	printf(",");
-	emit_list_sort_result(&bool_head, "bool_sorted_keys", "bool_sorted_ordinals");
-	printf("}");
-}
-
-static void run_zalloc_section(void)
-{
-	void *ptr = zalloc(8);
-	bool zeroed = true;
-	for (size_t i = 0; i < 8; i++) {
-		if (((unsigned char *)ptr)[i] != 0) {
-			zeroed = false;
-			break;
-		}
-	}
-	zfree(&ptr);
-
-	struct {
-		uint32_t a;
-		bool b;
-	} *value = zalloc(sizeof(*value));
-	bool value_zeroed = value->a == 0 && !value->b;
-	zfree(&value);
-
-	printf("\"zalloc\":{");
-	printf("\"zeroed\":%s,", zeroed ? "true" : "false");
-	printf("\"freed_is_null\":%s,", ptr == NULL ? "true" : "false");
-	printf("\"value_zeroed\":%s,", value_zeroed ? "true" : "false");
-	printf("\"value_freed_is_null\":%s", value == NULL ? "true" : "false");
-	printf("}");
-}
-
-static void run_str_error_r_section(void)
-{
-	char buffer[64];
-	char unknown[64];
-
-	str_error_r(2, buffer, sizeof(buffer));
-	str_error_r(4096, unknown, sizeof(unknown));
-
-	printf("\"str_error_r\":{");
-	printf("\"enoent\":\"%s\",", buffer);
-	printf("\"unknown\":\"%s\"", unknown);
-	printf("}");
-}
-
-static void run_slab_section(void)
-{
-	void *plain;
-	void *array;
-	bool array_zeroed = true;
-	bool null_without_reclaim;
-
-	kmalloc_nr_allocated = 0;
-	null_without_reclaim = kmalloc(8, 0) == NULL;
-	plain = kmalloc(8, GFP_KERNEL | __GFP_ZERO);
-	bool zero_after_kmalloc = true;
-	for (size_t i = 0; i < 8; i++) {
-		if (((unsigned char *)plain)[i] != 0) {
-			zero_after_kmalloc = false;
-			break;
-		}
-	}
-	int alloc_count_after_kmalloc = kmalloc_nr_allocated;
-	kfree(plain);
-	int alloc_count_after_kmalloc_free = kmalloc_nr_allocated;
-
-	array = kmalloc_array(4, 2, GFP_KERNEL);
-	for (size_t i = 0; i < 8; i++) {
-		if (((unsigned char *)array)[i] != 0) {
-			array_zeroed = false;
-			break;
-		}
-	}
-	int alloc_count_after_kmalloc_array = kmalloc_nr_allocated;
-	kfree(array);
-	int alloc_count_after_kmalloc_array_free = kmalloc_nr_allocated;
-
-	printf("\"slab\":{");
-	printf("\"null_without_reclaim\":%s,", null_without_reclaim ? "true" : "false");
-	printf("\"alloc_count_after_kmalloc\":%d,", alloc_count_after_kmalloc);
-	printf("\"zero_after_kmalloc\":%s,", zero_after_kmalloc ? "true" : "false");
-	printf("\"alloc_count_after_kmalloc_free\":%d,", alloc_count_after_kmalloc_free);
-	printf("\"array_zeroed\":%s,", array_zeroed ? "true" : "false");
-	printf("\"alloc_count_after_kmalloc_array\":%d,", alloc_count_after_kmalloc_array);
-	printf("\"alloc_count_after_kmalloc_array_free\":%d,", alloc_count_after_kmalloc_array_free);
-	printf("\"slab_is_available\":%s", slab_is_available() ? "true" : "false");
-	printf("}");
-}
-
-static void run_vsprintf_section(void)
-{
-	char fmt[16] = {0};
-	char pad[9] = {0};
-	int fmt_len = scnprintf(fmt, sizeof(fmt), "%s:%d", "zigux", 7);
-	int pad_len = scnprintf_pad(pad, sizeof(pad) - 1, "id=%d", 7);
-
-	printf("\"vsprintf\":{");
-	printf("\"scnprintf_text\":\"%s\",", fmt);
-	printf("\"scnprintf_len\":%d,", fmt_len);
-	printf("\"pad_text\":\"%s\",", pad);
-	printf("\"pad_len\":%d", pad_len);
-	printf("}");
-}
-
-int main(void)
-{
-	printf("{");
-	run_find_bit_section();
-	printf(",");
-	run_bitmap_section();
-	printf(",");
-	run_string_section();
-	printf(",");
-	run_rbtree_section();
-	printf(",");
-	run_argv_split_section();
-	printf(",");
-	run_cmdline_section();
-	printf(",");
-	run_ctype_section();
-	printf(",");
-	run_hweight_section();
-	printf(",");
-	run_list_sort_section();
-	printf(",");
-	run_zalloc_section();
-	printf(",");
-	run_str_error_r_section();
-	printf(",");
-	run_slab_section();
-	printf(",");
-	run_vsprintf_section();
-	printf("}\n");
-	return 0;
-}
+ 

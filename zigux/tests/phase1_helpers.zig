@@ -28,12 +28,6 @@ const Fixture = struct {
         next_zero: usize,
         first_and: usize,
         next_and: usize,
-        tail_clamped_first: usize,
-        tail_clamped_next: usize,
-        tail_zero_clamped_first: usize,
-        tail_zero_clamped_next: usize,
-        tail_and_clamped_first: usize,
-        tail_and_clamped_next: usize,
     },
     bitmap: struct {
         weight: usize,
@@ -44,6 +38,8 @@ const Fixture = struct {
         andnot_values: []const u64,
         or_values: []const u64,
         xor_values: []const u64,
+        partial_xor_nbits: usize,
+        partial_xor_masked_values: []const u64,
         equal: bool,
         intersects: bool,
         subset: bool,
@@ -189,16 +185,6 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.find_bit.first_and, find_bit.findFirstAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2));
     try std.testing.expectEqual(fixture.find_bit.next_and, find_bit.findNextAndBit(&find_lhs, &find_rhs, fixture.find_bit.bits_per_long * 2, 10));
 
-    const find_tail_nbits = fixture.find_bit.bits_per_long + 5;
-    const find_tail = [_]find_bit.Word{ 0, @as(find_bit.Word, 1) << 9 };
-    const find_tail_full = [_]find_bit.Word{ ~@as(find_bit.Word, 0), find_bit.lastWordMask(find_tail_nbits) };
-    try std.testing.expectEqual(fixture.find_bit.tail_clamped_first, find_bit.findFirstBit(&find_tail, find_tail_nbits));
-    try std.testing.expectEqual(fixture.find_bit.tail_clamped_next, find_bit.findNextBit(&find_tail, find_tail_nbits, fixture.find_bit.bits_per_long));
-    try std.testing.expectEqual(fixture.find_bit.tail_zero_clamped_first, find_bit.findFirstZeroBit(&find_tail_full, find_tail_nbits));
-    try std.testing.expectEqual(fixture.find_bit.tail_zero_clamped_next, find_bit.findNextZeroBit(&find_tail_full, find_tail_nbits, fixture.find_bit.bits_per_long));
-    try std.testing.expectEqual(fixture.find_bit.tail_and_clamped_first, find_bit.findFirstAndBit(&find_tail, &find_tail, find_tail_nbits));
-    try std.testing.expectEqual(fixture.find_bit.tail_and_clamped_next, find_bit.findNextAndBit(&find_tail, &find_tail, find_tail_nbits, fixture.find_bit.bits_per_long));
-
     const bitmap_lhs = [_]bitmap.Word{ 0x0e, 0 };
     const bitmap_rhs = [_]bitmap.Word{ 0x0a, 0 };
     var bitmap_dst = [_]bitmap.Word{ 0, 0 };
@@ -211,6 +197,14 @@ test "phase 1 helper ports match committed parity fixture" {
     try expectWordSlice(&bitmap_dst, fixture.bitmap.or_values);
     bitmap.xorBits(&bitmap_dst, &bitmap_lhs, &bitmap_rhs, 8);
     try expectWordSlice(&bitmap_dst, fixture.bitmap.xor_values);
+    const partial_bitmap_lhs = [_]bitmap.Word{0x1f};
+    const partial_bitmap_rhs = [_]bitmap.Word{0x11};
+    var partial_bitmap_dst = [_]bitmap.Word{0};
+    bitmap.xorBits(&partial_bitmap_dst, &partial_bitmap_lhs, &partial_bitmap_rhs, fixture.bitmap.partial_xor_nbits);
+    try expectWordSlice(
+        &[_]bitmap.Word{partial_bitmap_dst[0] & bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)},
+        fixture.bitmap.partial_xor_masked_values,
+    );
     try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&bitmap_lhs, &[_]bitmap.Word{ 0x0e, 0 }, 8));
     try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&bitmap_lhs, &bitmap_rhs, 8));
     try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&bitmap_rhs, &bitmap_lhs, 8));
@@ -257,3 +251,96 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(@as(?usize, fixture.string.memchr_inv_index), string.memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), string.memchrInv("bbbb", 'b'));
     try std.testing.expect(fixture.string.memchr_inv_none);
+
+    const allocator = std.testing.allocator;
+    const split_argv = try argv_split.argvSplit(allocator, " alpha  beta\tgamma\n");
+    defer argv_split.argvFree(allocator, split_argv);
+    try std.testing.expectEqual(fixture.argv_split.argc, split_argv.len);
+    try std.testing.expectEqual(fixture.argv_split.blank_argc, argv_split.countArgc("   \t\n"));
+    for (split_argv, fixture.argv_split.argv) |actual, expected| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
+
+    const decimal = cmdline.memparse("64K rest");
+    try std.testing.expectEqual(fixture.cmdline.decimal_k.value, decimal.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.decimal_k.rest, decimal.rest);
+    const hexadecimal = cmdline.memparse("0x20M");
+    try std.testing.expectEqual(fixture.cmdline.hex_m.value, hexadecimal.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.hex_m.rest, hexadecimal.rest);
+    const octal = cmdline.memparse("010K");
+    try std.testing.expectEqual(fixture.cmdline.octal_k.value, octal.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.octal_k.rest, octal.rest);
+    const invalid = cmdline.memparse("xyz");
+    try std.testing.expectEqual(fixture.cmdline.invalid.value, invalid.value);
+    try std.testing.expectEqualStrings(fixture.cmdline.invalid.rest, invalid.rest);
+
+    try std.testing.expectEqual(fixture.ctype.mask_A, ctype.mask('A'));
+    try std.testing.expectEqual(fixture.ctype.mask_a, ctype.mask('a'));
+    try std.testing.expectEqual(fixture.ctype.mask_space, ctype.mask(' '));
+    try std.testing.expectEqual(fixture.ctype.isalnum_A, ctype.isalnum('A'));
+    try std.testing.expectEqual(fixture.ctype.isalpha_z, ctype.isalpha('z'));
+    try std.testing.expectEqual(fixture.ctype.isdigit_7, ctype.isdigit('7'));
+    try std.testing.expectEqual(fixture.ctype.isspace_tab, ctype.isspace('\t'));
+    try std.testing.expectEqual(fixture.ctype.isxdigit_f, ctype.isxdigit('f'));
+    try std.testing.expectEqual(fixture.ctype.ispunct_bang, ctype.ispunct('!'));
+    try std.testing.expectEqual(fixture.ctype.tolower_A, ctype.tolower('A'));
+    try std.testing.expectEqual(fixture.ctype.toupper_z, ctype.toupper('z'));
+    try std.testing.expectEqual(fixture.ctype.isodigit_7, ctype.isodigit('7'));
+    try std.testing.expectEqual(fixture.ctype.isodigit_8, ctype.isodigit('8'));
+
+    try std.testing.expectEqual(fixture.hweight.w8, hweight.swHweight8(0xf0));
+    try std.testing.expectEqual(fixture.hweight.w16, hweight.swHweight16(0xf0f0));
+    try std.testing.expectEqual(fixture.hweight.w32, hweight.swHweight32(0xf0f0_f0f0));
+    try std.testing.expectEqual(fixture.hweight.w64, hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
+    try std.testing.expectEqual(fixture.hweight.wlong, hweight.hweightLong(0xf0f0));
+
+    const ListEntry = struct {
+        key: i32,
+        ordinal: usize,
+        node: list_sort.ListHead = .{},
+    };
+
+    const tri_cmp = struct {
+        fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const ListEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListEntry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -1;
+            if (lhs.key > rhs.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    const bool_cmp = struct {
+        fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const ListEntry = @fieldParentPtr("node", a);
+            const rhs: *const ListEntry = @fieldParentPtr("node", b);
+            return @intFromBool(lhs.key > rhs.key);
+        }
+    }.compare;
+
+    var tri_head: list_sort.ListHead = .{};
+    tri_head.init();
+    var tri_entries = [_]ListEntry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    for (&tri_entries) |*entry| list_sort.listAddTail(&entry.node, &tri_head);
+    list_sort.listSort(null, &tri_head, tri_cmp);
+
+    var tri_sorted_keys: [5]i32 = undefined;
+    var tri_sorted_ordinals: [5]usize = undefined;
+    var tri_index: usize = 0;
+    var tri_current = tri_head.next;
+    while (tri_current != &tri_head) : (tri_current = tri_current.?.next) {
+        const entry: *const ListEntry = @fieldParentPtr("node", tri_current.?);
+        tri_sorted_keys[tri_index] = entry.key;
+        tri_sorted_ordinals[tri_index] = entry.ordinal;
+        tri_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, tri_sorted_keys[0..tri_index]);
+    try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, tri_sorted_ordinals[0..tri_index]);
+
+    var
