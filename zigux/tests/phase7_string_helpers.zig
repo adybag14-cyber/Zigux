@@ -28,3 +28,14 @@ test "phase 7 replacement and padding helpers work in place" {
     string_helpers.memcpyAndPad(&padded, "xy", 2, '.');
     try std.testing.expectEqualSlices(u8, "xy...", &padded);
 }
+
+test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
+    var upper = [_]u8{ '.', '.', '.', '.', '.', '.', '.' };
+    string_helpers.stringUpper(&upper, "aBc1!\x00tail");
+    try std.testing.expectEqualSlices(u8, "ABC1!\x00", upper[0..6]);
+    try std.testing.expectEqual(@as(u8, '.'), upper[6]);
+
+    var lower = [_]u8{ '.', '.', '.', '.' };
+    string_helpers.stringLower(&lower, "Zz9!");
+    try std.testing.expectEqualSlices(u8, "zz9!", &lower);
+}
