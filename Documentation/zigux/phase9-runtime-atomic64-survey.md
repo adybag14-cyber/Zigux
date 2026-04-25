@@ -28,13 +28,15 @@ The live repo still carried the Linux atomic64 runtime test, but it had no dedic
 
 ## Recorded gaps
 
-The manifest captures three bounded follow-on gaps:
+The manifest started as a survey-only inventory and now records:
 
-- `phase9-build-gate`
-- `runtime-atomic64-survey-gate`
-- `runtime-atomic64-sample-module`
+- the landed `phase9-build-gate`
+- the landed `runtime-atomic64-survey-gate`
+- the landed `runtime-atomic64-sample-module` starter
+- the next `runtime-atomic64-diff-gate`
+- the still-blocked runtime substrate handoff
 
-The first two are `ready_next` reviewability and validation steps. The sample module itself stays blocked on the runtime module lifecycle substrate so this lane does not create a fake pilot module just to make the tree look busy.
+This keeps the survey useful after the first starter slice lands without pretending that Zigux already has a loadable runtime module.
 
 ## Gates
 
@@ -46,13 +48,13 @@ The first two are `ready_next` reviewability and validation steps. The sample mo
 
 ## Non-goals
 
-This survey slice does not yet claim:
+This survey slice still does not claim:
 
 - a loadable Zigux runtime module implementation
 - runtime module lifecycle parity
 - selftest hook parity
-- a `samples/zigux/runtime_atomic64.zig` sample
+- a kernel-loadable `samples/zigux/runtime_atomic64.zig` module
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and start the first honest runtime-facing scaffold, most likely a tiny sample-backed module lifecycle skeleton under `samples/zigux/` once the runtime substrate boundary is ready to host it.
+Stay in the Phase 9 runtime atomic64 lane and add the first differential gate or substrate handoff around the landed starter sample before widening into any broader runtime module work.
