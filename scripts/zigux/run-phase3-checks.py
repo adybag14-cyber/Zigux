@@ -3,57 +3,80 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import subprocess
-import sys
 import tempfile
 
 from phase3_catalog import discover_phase3_slices
+from phase3_check_lib import run_phase3_check
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def run(cmd: list[str]) -> int:
-    completed = subprocess.run(cmd, cwd=str(ROOT), check=False)
-    return completed.returncode
-
-
-def select_slices(entries: list[object], selected_slugs: list[str], require_existing_check_script: bool = True) -> list[object]:
+def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
     slices = list(entries)
-    if require_existing_check_script:
-        slices = [entry for entry in slices if entry.check_script.exists()]
-
     selected = set(selected_slugs)
     if selected:
         slices = [entry for entry in slices if entry.slug in selected]
         missing = sorted(selected.difference({entry.slug for entry in slices}))
         if missing:
             raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
-
     return slices
+
+
+def execute_slices(entries: list[object], fail_fast: bool, runner) -> list[str]:
+    failures: list[str] = []
+    for entry in entries:
+        print(f"PHASE3_RUN={entry.slug}")
+        rc = runner(entry)
+        if rc != 0:
+            failures.append(entry.slug)
+            if fail_fast:
+                break
+    return failures
 
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_runner_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         alpha = tmp_dir / "check-phase3-alpha.py"
-        beta = tmp_dir / "check-phase3-beta.py"
-        alpha.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+        alpha.write_text("# alpha\n", encoding="utf-8")
 
         entries = [
-            type("Entry", (), {"slug": "alpha", "check_script": alpha})(),
-            type("Entry", (), {"slug": "beta", "check_script": beta})(),
+            type("Entry", (), {"slug": "alpha", "build_step": "phase3-alpha-dump", "description": "alpha", "check_script": alpha})(),
+            type("Entry", (), {"slug": "beta", "build_step": "phase3-beta-dump", "description": "beta", "check_script": tmp_dir / "check-phase3-beta.py"})(),
+            type("Entry", (), {"slug": "gamma", "build_step": "phase3-gamma-dump", "description": "gamma", "check_script": tmp_dir / "check-phase3-gamma.py"})(),
         ]
 
-        assert [entry.slug for entry in select_slices(entries, [], require_existing_check_script=True)] == ["alpha"]
-        assert [entry.slug for entry in select_slices(entries, ["alpha"], require_existing_check_script=True)] == ["alpha"]
-        assert [entry.slug for entry in select_slices(entries, ["beta"], require_existing_check_script=False)] == ["beta"]
+        assert [entry.slug for entry in select_slices(entries, [])] == ["alpha", "beta", "gamma"]
+        assert [entry.slug for entry in select_slices(entries, ["beta"])] == ["beta"]
         try:
-            select_slices(entries, ["missing"], require_existing_check_script=False)
+            select_slices(entries, ["missing"])
         except SystemExit as exc:
             assert str(exc) == "unknown Phase 3 slugs: missing"
         else:
             raise AssertionError("expected missing slug to fail")
+
+        calls: list[tuple[str, str, str]] = []
+
+        def fake_runner(entry) -> int:
+            calls.append((entry.slug, entry.description, entry.build_step))
+            return 1 if entry.slug == "beta" else 0
+
+        failures = execute_slices(select_slices(entries, []), fail_fast=False, runner=fake_runner)
+        assert failures == ["beta"]
+        assert calls == [
+            ("alpha", "alpha", "phase3-alpha-dump"),
+            ("beta", "beta", "phase3-beta-dump"),
+            ("gamma", "gamma", "phase3-gamma-dump"),
+        ]
+
+        calls.clear()
+        failures = execute_slices(select_slices(entries, []), fail_fast=True, runner=fake_runner)
+        assert failures == ["beta"]
+        assert calls == [
+            ("alpha", "alpha", "phase3-alpha-dump"),
+            ("beta", "beta", "phase3-beta-dump"),
+        ]
 
     print("PHASE3_RUNNER_SELF_TEST=pass")
     return 0
@@ -71,7 +94,7 @@ def main() -> int:
     parser.add_argument("--zig", help="Forward an explicit zig executable path to each check.")
     parser.add_argument("--cc", help="Forward an explicit C compiler path to each check.")
     parser.add_argument("--fail-fast", action="store_true", help="Stop after the first failing check.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated slug-selection checks without executing parity wrappers.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated slug-selection checks without executing Phase 3 builds.")
     args = parser.parse_args()
 
     if args.self_test:
@@ -87,19 +110,15 @@ def main() -> int:
     if not slices:
         raise SystemExit("no Phase 3 checks discovered")
 
-    failures: list[str] = []
-    for entry in slices:
-        cmd = [sys.executable, str(entry.check_script)]
+    def runner(entry) -> int:
+        argv: list[str] = []
         if args.zig:
-            cmd.extend(["--zig", args.zig])
+            argv.extend(["--zig", args.zig])
         if args.cc:
-            cmd.extend(["--cc", args.cc])
-        print(f"PHASE3_RUN={entry.slug}")
-        rc = run(cmd)
-        if rc != 0:
-            failures.append(entry.slug)
-            if args.fail_fast:
-                break
+            argv.extend(["--cc", args.cc])
+        return run_phase3_check(entry.slug, description=entry.description, build_step=entry.build_step, argv=argv)
+
+    failures = execute_slices(slices, fail_fast=args.fail_fast, runner=runner)
 
     if failures:
         print("PHASE3_RUN_STATUS=fail")
