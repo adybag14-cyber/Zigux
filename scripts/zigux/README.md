@@ -51,6 +51,7 @@ Phase 3 flow
 - `validate-phase3.py --self-test` exercises manifest, optional-wrapper, obsolete-wrapper, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
 - `run-phase3-checks.py` lists or executes every discovered Phase 3 slice from catalog metadata through one shared entrypoint, even when a wrapper stub is missing.
 - `run-phase3-checks.py --self-test` checks slug filtering plus direct runner and fail-fast behavior without launching Zig parity builds.
+- `make -C zigux phase3-validate` now mirrors the lightweight CI safety net for this tranche by running the validator, the validator/catalog/shared-helper/runner self-tests, the documentation-sync audit, and the wrapper-template check before the parity suite.
 
 Rules
 - keep helpers narrow and product-facing
