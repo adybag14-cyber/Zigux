@@ -37,6 +37,15 @@ pub const QueueRegistrationSummary = struct {
     notification_count: usize,
 };
 
+pub const QueueDescriptorShapeSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    readable_descriptor_count: u16,
+    writable_descriptor_count: u16,
+    uses_indirect_descriptors: bool,
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
@@ -47,6 +56,9 @@ pub const VirtioCoreLabDevice = struct {
         callback_enabled: bool = false,
         callback_invocation_count: usize = 0,
         notification_count: usize = 0,
+        readable_descriptor_count: u16 = 0,
+        writable_descriptor_count: u16 = 0,
+        uses_indirect_descriptors: bool = false,
     };
 
     status: u8 = 0,
@@ -227,6 +239,44 @@ pub const VirtioCoreLabDevice = struct {
             .callback_enabled = slot.callback_enabled,
             .callback_invocation_count = slot.callback_invocation_count,
             .notification_count = slot.notification_count,
+        };
+    }
+
+    pub fn configureQueueDescriptorShape(
+        self: *Self,
+        queue_index: u16,
+        readable_descriptor_count: u16,
+        writable_descriptor_count: u16,
+        uses_indirect_descriptors: bool,
+    ) !void {
+        const slot = try self.checkedQueueSlot(queue_index);
+        if (readable_descriptor_count == 0 and writable_descriptor_count == 0) {
+            return error.EmptyQueueDescriptorShape;
+        }
+
+        const total_descriptor_count = @as(u32, readable_descriptor_count) + @as(u32, writable_descriptor_count);
+        if (total_descriptor_count > slot.descriptor_count) return error.QueueDescriptorShapeOverflow;
+
+        slot.readable_descriptor_count = readable_descriptor_count;
+        slot.writable_descriptor_count = writable_descriptor_count;
+        slot.uses_indirect_descriptors = uses_indirect_descriptors;
+    }
+
+    pub fn queueDescriptorShapeSummary(self: *const Self, queue_index: u16) !QueueDescriptorShapeSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotRegistered;
+        if (slot.readable_descriptor_count == 0 and slot.writable_descriptor_count == 0) {
+            return error.QueueDescriptorShapeNotConfigured;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = slot.descriptor_count,
+            .readable_descriptor_count = slot.readable_descriptor_count,
+            .writable_descriptor_count = slot.writable_descriptor_count,
+            .uses_indirect_descriptors = slot.uses_indirect_descriptors,
         };
     }
 
