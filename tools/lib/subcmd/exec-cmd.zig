@@ -19,16 +19,6 @@ pub const ExtractArgv0Result = struct {
     }
 };
 
-pub const EnvironmentUpdate = struct {
-    name: []const u8,
-    value: []u8,
-
-    pub fn deinit(self: *EnvironmentUpdate, allocator: std.mem.Allocator) void {
-        allocator.free(self.value);
-        self.* = undefined;
-    }
-};
-
 pub fn isAbsolutePath(path: []const u8) bool {
     return path.len != 0 and path[0] == '/';
 }
@@ -136,45 +126,17 @@ pub fn buildSearchPath(
     return builder.toOwnedSlice(allocator);
 }
 
-pub fn makePrefixEnv(allocator: std.mem.Allocator, config: Config) !EnvironmentUpdate {
-    return .{
-        .name = "PREFIX",
-        .value = try allocator.dupe(u8, config.prefix),
-    };
-}
-
-pub fn makeExecPathEnv(
-    allocator: std.mem.Allocator,
-    config: Config,
-    exec_path: []const u8,
-) !EnvironmentUpdate {
-    return .{
-        .name = config.exec_path_env,
-        .value = try allocator.dupe(u8, exec_path),
-    };
-}
-
-pub fn makePathEnv(
-    allocator: std.mem.Allocator,
-    cwd: []const u8,
-    argv_exec_path: []const u8,
-    argv0_path: ?[]const u8,
-    old_path: ?[]const u8,
-) !EnvironmentUpdate {
-    return .{
-        .name = "PATH",
-        .value = try buildSearchPath(allocator, cwd, argv_exec_path, argv0_path, old_path),
-    };
-}
-
 pub fn prepareExecCmd(
     allocator: std.mem.Allocator,
     config: Config,
     argv: []const []const u8,
-) ![][]const u8 {
-    var nargv = try allocator.alloc([]const u8, argv.len + 1);
+) ![]const ?[]const u8 {
+    var nargv = try allocator.alloc(?[]const u8, argv.len + 2);
     nargv[0] = config.exec_name;
-    @memcpy(nargv[1..], argv);
+    for (argv, 0..) |arg, index| {
+        nargv[index + 1] = arg;
+    }
+    nargv[argv.len + 1] = null;
     return nargv;
 }
 
@@ -250,7 +212,7 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
-test "prepareExecCmd prepends the configured executable name" {
+test "prepareExecCmd prepends the configured executable name and preserves a trailing null slot" {
     const config = Config{
         .exec_name = "perf",
         .prefix = "/unused",
@@ -265,38 +227,25 @@ test "prepareExecCmd prepends the configured executable name" {
     );
     defer std.testing.allocator.free(prepared);
 
-    try std.testing.expectEqual(@as(usize, 3), prepared.len);
-    try std.testing.expectEqualStrings("perf", prepared[0]);
-    try std.testing.expectEqualStrings("status", prepared[1]);
-    try std.testing.expectEqualStrings("--help", prepared[2]);
+    try std.testing.expectEqual(@as(usize, 4), prepared.len);
+    try std.testing.expectEqualStrings("perf", prepared[0].?);
+    try std.testing.expectEqualStrings("status", prepared[1].?);
+    try std.testing.expectEqualStrings("--help", prepared[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), prepared[3]);
 }
 
-test "environment update helpers model exec-cmd init and setup behavior" {
+test "prepareExecCmd keeps the null terminator even when no subcommand args are present" {
     const config = Config{
         .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
+        .prefix = "/unused",
         .exec_path = "unused",
         .exec_path_env = "PERF_EXEC_PATH",
     };
 
-    var prefix_env = try makePrefixEnv(std.testing.allocator, config);
-    defer prefix_env.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("PREFIX", prefix_env.name);
-    try std.testing.expectEqualStrings("/usr/libexec/perf-core", prefix_env.value);
+    const prepared = try prepareExecCmd(std.testing.allocator, config, &.{});
+    defer std.testing.allocator.free(prepared);
 
-    var exec_path_env = try makeExecPathEnv(std.testing.allocator, config, "/custom/perf");
-    defer exec_path_env.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("PERF_EXEC_PATH", exec_path_env.name);
-    try std.testing.expectEqualStrings("/custom/perf", exec_path_env.value);
-
-    var path_env = try makePathEnv(
-        std.testing.allocator,
-        "/repo",
-        "tools/bin",
-        "scripts",
-        "/usr/bin",
-    );
-    defer path_env.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("PATH", path_env.name);
-    try std.testing.expectEqualStrings("/repo/tools/bin:/repo/scripts:/usr/bin", path_env.value);
+    try std.testing.expectEqual(@as(usize, 2), prepared.len);
+    try std.testing.expectEqualStrings("perf", prepared[0].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
 }
