@@ -46,6 +46,8 @@ The current tests check:
 - strict non-goal behavior where quote characters stay inside the returned tokens
 - copied-buffer ownership so later source mutation does not affect split results
 
+The dedicated Phase 7 review gate now keeps those argv expectations in one focused fixture-style table instead of scattering them across separate ad hoc token assertions.
+
 ## Non-goals
 
 This slice does not yet claim:
@@ -57,4 +59,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Add a small serialized fixture layer that cross-checks the whitespace-only split behavior against `lib/argv_split.c`, or close this lane if the current starter helper surface is considered sufficient for Phase 7.
+Either externalize the current focused parity fixtures into generated C-backed artifacts from `lib/argv_split.c`, or close this lane and move on now that the starter helper surface and dedicated review gate are aligned.
