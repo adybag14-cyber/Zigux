@@ -36,15 +36,15 @@ Zig toolchain gate
 Phase 3 flow
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, parity wrappers, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions and build-step overrides.
 - `phase3_catalog.py --self-test` exercises isolated slug discovery and manifest selection across docs, wrappers, dumps, and fixture candidates.
-- `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper.
-- `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, and wrapper-template helpers without running Zig parity builds.
+- `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
+- `phase3_check_lib.py --self-test` checks the shared slug, fixture-key, build-step, status-name, wrapper-template, and argument-parsing helpers without running Zig parity builds.
 - `generate-phase3-check-wrappers.py` regenerates the tiny `check-phase3-*.py` wrapper stubs from one shared template.
 - `generate-phase3-check-wrappers.py --self-test` exercises isolated missing-wrapper, stale-wrapper, and clean `--check` behavior without touching the committed tree.
 - `generate-phase3-check-wrappers.py --check` fails when any discovered wrapper drifts from that shared template.
 - `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers.
 - `validate-phase3.py --self-test` exercises manifest, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
-- `run-phase3-checks.py` lists or executes every discovered `check-phase3-*.py` wrapper through one shared entrypoint.
-- `run-phase3-checks.py --self-test` checks slug filtering and missing-wrapper handling without launching Zig parity builds.
+- `run-phase3-checks.py` lists or executes every discovered Phase 3 slice from catalog metadata through one shared entrypoint, even when a wrapper stub is missing.
+- `run-phase3-checks.py --self-test` checks slug filtering plus direct runner and fail-fast behavior without launching Zig parity builds.
 
 Rules
 - keep helpers narrow and product-facing
