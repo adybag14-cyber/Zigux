@@ -42,6 +42,7 @@ Phase 3 flow
 - `generate-phase3-check-wrappers.py --self-test` exercises isolated missing-wrapper, stale-wrapper, and clean `--check` behavior without touching the committed tree.
 - `generate-phase3-check-wrappers.py --check` fails when any discovered wrapper drifts from that shared template.
 - `validate-phase3.py` validates every discovered slice, its selected manifest, and the required documentation markers.
+- `validate-phase3.py --self-test` exercises manifest, wrapper-template, and documentation-marker checks in a temporary Phase 3 fixture tree.
 - `run-phase3-checks.py` lists or executes every discovered `check-phase3-*.py` wrapper through one shared entrypoint.
 - `run-phase3-checks.py --self-test` checks slug filtering and missing-wrapper handling without launching Zig parity builds.
 
