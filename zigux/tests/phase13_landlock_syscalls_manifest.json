@@ -1,0 +1,79 @@
+{
+  "lane_key": "P13-L13",
+  "phase": "Phase 13",
+  "surveyed_commit": "bfd60deac631b66bf5eab7608c8ffd8f982893cb",
+  "anchor": "security/landlock/syscalls.c",
+  "roadmap_destinations": [
+    "security/landlock/syscalls.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "syscalls_c_lines": 592,
+    "landlock_security_file_count": 31,
+    "preexisting_phase13_build_present": true,
+    "preexisting_phase13_make_target_present": true,
+    "preexisting_syscalls_zig_present": true,
+    "preexisting_phase13_landlock_syscalls_test_present": true,
+    "preexisting_phase13_landlock_syscalls_slice_note_present": true,
+    "preexisting_phase13_landlock_syscalls_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase13-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "The shared Phase 13 build now compiles the first Landlock syscall helper lab beside the existing ruleset, libfs, and devres slices so this security-helper lane is reviewable without pretending it belongs in the live kernel build yet."
+    },
+    {
+      "id": "phase13-make-target",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "The existing Phase 13 make target keeps the bounded Landlock syscall helper lab runnable through the same repeatable tranche gate as the other shared-helper lanes."
+    },
+    {
+      "id": "phase13-landlock-syscalls-starter",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The first honest `syscalls.zig` foothold stays in-memory around `build_check_abi()`, `landlock_create_ruleset()`, and `landlock_restrict_self()` so Zigux can model ABI sizing, query handling, mask validation, and logging-flag translation before any file-descriptor lookup, path import, or credential mutation is attempted."
+    },
+    {
+      "id": "phase13-landlock-syscalls-test-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_landlock_syscalls.zig",
+      "why_now": "A dedicated Phase 13 test gate now checks both the helper behavior and the survey manifest so future runs can see the narrow syscall starter and the still-missing kernel state in one place."
+    },
+    {
+      "id": "phase13-landlock-syscalls-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+      "why_now": "The slice note records the exact helper-first boundary of the new syscall lab so the lane does not overstate ABI and flag planning as live syscall plumbing."
+    },
+    {
+      "id": "phase13-landlock-syscalls-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+      "why_now": "The survey note compares the 592-line `syscalls.c` anchor against the new starter and keeps the remaining gap around rule insertion, file descriptors, path import, and credential changes explicit."
+    },
+    {
+      "id": "phase13-landlock-add-rule-followup",
+      "status": "ready_next",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The next honest syscall step is one small in-memory planner around `landlock_add_rule()` rule-type dispatch, empty-access rejection, and net-port bounds before any real ruleset FD validation or path resolution is attempted."
+    },
+    {
+      "id": "phase13-landlock-live-fd-path-and-cred-state",
+      "status": "blocked_on_live_lsm_state",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_landlock_syscalls.zig",
+      "why_now": "Real `anon_inode_getfd()` ownership, `get_ruleset_from_fd()` checks, path-backed rule import, `prepare_creds()` updates, thread synchronization, and domain merges remain blocked until smaller syscall planners land and the roadmap allows live Landlock state beyond pure helper accounting."
+    }
+  ]
+}
