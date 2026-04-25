@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L02",
+  "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "07d53ee63ae7cb8d148ca38b93e7e7a6d867603c",
+  "surveyed_commit": "d418cc803bd7012f0892286f12cacb9b97d1a43e",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -15,39 +15,34 @@
   ],
   "governance_requirements": [
     {
-      "id": "architecture-council-rationale",
-      "summary": "Changing either freeze-map list requires an Architecture Council decision with written rationale.",
+      "id": "freeze-map-council-decision",
+      "summary": "Freeze-map list changes require explicit Architecture Council approval.",
       "required_terms": [
         "Architecture Council",
         "written rationale"
       ]
     },
     {
-      "id": "lane-record-ownership-fields",
-      "summary": "Any lane touching a listed anchor must declare owner, phase, status bucket, validation gate, and rollback owner.",
+      "id": "freeze-map-lane-ownership",
+      "summary": "Every freeze-map lane must record owner, phase, status bucket, validation gate, and rollback owner.",
       "required_terms": [
-        "owner",
-        "phase",
-        "status bucket",
-        "validation gate",
-        "rollback owner"
+        "owner, phase, status bucket, validation gate, and rollback owner"
       ]
     },
     {
-      "id": "parity-scorecard-before-status-change",
-      "summary": "A freeze-in-C anchor stays blocked from direct Zig bridge or port claims until a parity scorecard entry exists and the Architecture Council records why the status can change.",
+      "id": "freeze-map-parity-gate",
+      "summary": "Freeze-in-C anchors stay blocked until a parity scorecard exists and the Architecture Council records why the status can change.",
       "required_terms": [
         "parity scorecard",
-        "Architecture Council",
-        "status can change"
+        "Architecture Council"
       ]
     },
     {
-      "id": "stay-in-c-default-on-weak-evidence",
-      "summary": "If validation is incomplete, contradictory, or weak, the code stays in C and the blocker must be recorded.",
+      "id": "freeze-map-stay-in-c-policy",
+      "summary": "Ambiguous validation must keep the code in C with an explicit blocker.",
       "required_terms": [
-        "keep the code in C",
-        "blocker"
+        "## Stay-In-C Policy",
+        "keep the code in C and record the blocker"
       ]
     }
   ],
@@ -55,37 +50,37 @@
     {
       "id": "phase15-freeze-map-governance-doc",
       "status": "starter_landed",
-      "kind": "policy",
+      "kind": "documentation",
       "zigux_destination": "Documentation/zigux/freeze-map.md",
-      "why_now": "The live freeze map existed, but it needed explicit governance rules so freeze-in-C and study-only status changes are no longer implied by momentum alone."
+      "why_now": "The freeze-in-C anchors needed explicit governance text before future status changes could be reviewed honestly."
     },
     {
       "id": "phase15-freeze-map-governance-note",
       "status": "starter_landed",
-      "kind": "documentation",
+      "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "A Phase 15 lane note keeps the new governance rule reviewable beside the roadmap instead of hiding it inside a small doc edit."
+      "why_now": "Phase 15 needed a lane-local note that records the bounded governance slice and its remaining scorecard follow-up."
     },
     {
       "id": "phase15-build-gate",
       "status": "starter_landed",
-      "kind": "validation",
+      "kind": "test_gate",
       "zigux_destination": "zigux/tests/phase15_build.zig",
-      "why_now": "The shared Phase 15 build gate is the smallest honest way to keep the freeze-map governance slice runnable."
+      "why_now": "The governance slice needed a dedicated Phase 15 build gate so freeze-map policy drift stays reviewable."
     },
     {
       "id": "phase15-make-target",
       "status": "starter_landed",
-      "kind": "validation",
+      "kind": "build_entrypoint",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "The convenience target keeps the Phase 15 governance slice aligned with the rest of the repo's bounded phase gates."
+      "why_now": "A convenience make target keeps the bounded parity scorecard and freeze-map governance checks easy to replay."
     },
     {
       "id": "phase15-parity-scorecard-followup",
       "status": "ready_next",
-      "kind": "governance",
+      "kind": "followup",
       "zigux_destination": "Documentation/zigux/parity-scorecard.md",
-      "why_now": "The next honest Phase 15 step is a small parity scorecard starter so a future status-change request has a concrete comparison artifact rather than only policy language."
+      "why_now": "The parity scorecard follow-up is still the next bounded governance step before any freeze-in-C anchor can change status."
     }
   ]
 }
