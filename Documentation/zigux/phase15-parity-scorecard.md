@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-decision-record-templates`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, and reserved per-anchor decision-record templates for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `f3805234e72688b1f6c94545c560ef4e77057b2a`
+- `PHASE15_SLICE=parity-scorecard-stay-in-c-retirement-rule`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, and the retained stay-in-C closeout state for the active freeze-in-C anchors
+- survey provenance refreshed against verified `master` head `f52714d220c9507020ff725dcb9cb42401f4afe2`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -144,10 +144,12 @@ The current lane state is:
 - landed `phase15-make-target`
 - landed `phase15-evidence-archive-reporting`
 - landed `phase15-decision-record-template-followup`
-- ready-next `phase15-template-field-sync-followup`
+- landed `phase15-template-field-sync-followup`
+- landed `phase15-stay-in-c-retirement-rule`
+- ready-next `phase15-reopen-trigger-catalog-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, and reserved packet templates at those paths, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, and one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
@@ -157,10 +159,24 @@ Before a freeze-in-C anchor can enter active status-review discussion, the score
 - the current validation gate set and the rollback owner who would return the anchor to C-only operation
 - the evidence archive path that preserves linked surveys and blocker follow-ups, benchmark notes, and replay commands
 - the latest blocker disposition stating whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
+- the retained discussion state showing whether the anchor closes review as `retired_from_active_discussion`
+- the reopen triggers that name which evidence changes can reopen the stay-in-C discussion later without implying approval
 
-A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, and latest blocker disposition are all recorded together in the scorecard.
+A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
+
+## Stay-in-C Retirement Rule
+
+When a freeze-in-C anchor closes review without a status change, the scorecard records one retained discussion state: `retired_from_active_discussion`.
+
+That retained state does not mean the blocker disappeared. It means the active discussion is closed for now, the anchor remains governed as in-C, and the evidence archive still has to preserve the decision record, linked evidence, benchmark-note status, replay command, and latest blocker disposition that justified the closeout.
+
+Each closeout packet must also record the reopen triggers that would bring the anchor back into active discussion. The minimum triggers are:
+
+- a narrower seam inventory that answers the latest blocker disposition
+- linked validation, benchmark, or blocker evidence becoming stale or contradictory
+- rollback ownership or validation gates changing enough to invalidate the closed stay-in-C packet
 
 ## Evidence Archive Reporting Standard
 
@@ -171,6 +187,7 @@ Each frozen anchor now carries one reporting block that reserves:
 - a benchmark-notes status line that says whether performance notes exist yet
 - the replay command reviewers should run before trusting the current packet
 - the latest blocker disposition that keeps the stay-in-C posture explicit
+- the retained discussion state and reopen triggers that explain how a closed review stays reviewable later
 
 These reporting fields do not claim a decision record already exists. They standardize where the record will live and what still remains missing until a narrower seam earns Architecture Council review.
 
@@ -183,7 +200,7 @@ The scorecard's reserved evidence-archive paths now exist as template packet fil
 - `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
 - `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
 
-Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
+Each template keeps the current status bucket, requested decision bucket, decision record ID, ownership, validation gate summary, linked evidence, benchmark-notes status, replay command, latest blocker disposition, retained discussion state, reopen triggers, explicit non-goals, and written rationale visible in one place without claiming that any Architecture Council approval has already happened.
 
 ## Non-goals
 
@@ -206,4 +223,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small template-field sync follow-up next, limited to keeping the per-anchor decision-record templates aligned with the review-process packet fields and scorecard wording if either side changes.
+Stay in the Phase 15 governance lane and add one small reopen-trigger catalog follow-up next, limited to keeping the retained stay-in-C closeout state and its allowed reopen conditions phrased consistently across the scorecard and review-process packet if Phase 15 governance wording changes again.
