@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
-import sys
+import tempfile
 
-from phase3_catalog import discover_phase3_slices
+from phase3_catalog import Phase3Paths, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def validate_manifest(path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
+def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
     if path is None:
         issues.append(f"{slug}:missing_manifest")
         return None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        issues.append(f"{slug}:missing_manifest:{path.relative_to(ROOT).as_posix()}")
+        issues.append(f"{slug}:missing_manifest:{path.relative_to(root).as_posix()}")
         return None
     except json.JSONDecodeError as exc:
-        issues.append(f"{slug}:invalid_manifest:{path.relative_to(ROOT).as_posix()}:{exc.msg}")
+        issues.append(f"{slug}:invalid_manifest:{path.relative_to(root).as_posix()}:{exc.msg}")
         return None
 
     if data.get("phase") != "Phase 3":
@@ -39,14 +40,14 @@ def validate_manifest(path: Path | None, slug: str, issues: list[str]) -> dict[s
     if file_count != len(files):
         issues.append(f"{slug}:manifest_file_count={file_count}")
     for rel in files:
-        if not (ROOT / rel).exists():
+        if not (root / rel).exists():
             issues.append(f"{slug}:manifest_missing_file={rel}")
     return data
 
 
-def validate_doc_markers(doc_path: Path, slug: str, manifest: dict[str, object] | None, issues: list[str]) -> None:
+def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[str, object] | None, issues: list[str]) -> None:
     if not doc_path.exists():
-        issues.append(f"{slug}:missing_doc:{doc_path.relative_to(ROOT).as_posix()}")
+        issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
         return
     doc = doc_path.read_text(encoding="utf-8")
     expected = [
@@ -62,18 +63,17 @@ def validate_doc_markers(doc_path: Path, slug: str, manifest: dict[str, object] 
             issues.append(f"{slug}:missing_doc_marker={marker}")
 
 
-def validate_wrapper_template(script_path: Path, slug: str, issues: list[str]) -> None:
+def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: list[str]) -> None:
     if not script_path.exists():
         return
     expected = render_wrapper_stub()
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(ROOT).as_posix()}")
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
 
 
-def main() -> int:
+def validate_slices(root: Path, slices: list[object]) -> list[str]:
     issues: list[str] = []
-    slices = discover_phase3_slices()
 
     for entry in slices:
         required = {
@@ -85,12 +85,83 @@ def main() -> int:
         }
         for label, path in required.items():
             if not path.exists():
-                issues.append(f"{entry.slug}:missing_{label}:{path.relative_to(ROOT).as_posix()}")
+                issues.append(f"{entry.slug}:missing_{label}:{path.relative_to(root).as_posix()}")
 
-        manifest = validate_manifest(entry.manifest_path, entry.slug, issues)
-        validate_doc_markers(entry.doc_path, entry.slug, manifest, issues)
-        validate_wrapper_template(entry.check_script, entry.slug, issues)
+        manifest = validate_manifest(root, entry.manifest_path, entry.slug, issues)
+        validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
+        validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
+    return issues
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
+        root = Path(tmp_dir_str)
+        paths = Phase3Paths(
+            root=root,
+            docs_dir=root / "Documentation" / "zigux",
+            scripts_dir=root / "scripts" / "zigux",
+            tests_dir=root / "zigux" / "tests",
+            fixtures_dir=root / "zigux" / "tests" / "fixtures",
+        )
+        fixture_dir = paths.fixtures_dir / "phase3_alpha"
+
+        for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, fixture_dir):
+            path.mkdir(parents=True, exist_ok=True)
+
+        manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
+        manifest = {
+            "phase": "Phase 3",
+            "status": "ready",
+            "slice": "alpha-slice",
+            "files": [manifest_rel],
+            "file_count": 1,
+        }
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(manifest),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=alpha-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+
+        slices = discover_phase3_slices(paths)
+        assert validate_slices(root, slices) == []
+
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text("PHASE3_STATUS=ready\n", encoding="utf-8", newline="\n")
+        issues = validate_slices(root, slices)
+        assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
+
+    print("PHASE3_VALIDATE_SELF_TEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate discovered Phase 3 slice assets and documentation markers.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validation coverage in a temporary workspace.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    slices = discover_phase3_slices()
+    issues = validate_slices(ROOT, slices)
     if issues:
         print("PHASE3_VALIDATION=fail")
         print("MISSING_PHASE3_MARKERS_START")
