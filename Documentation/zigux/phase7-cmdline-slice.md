@@ -46,6 +46,7 @@ The current tests check:
 - descending-range early stop behavior
 - memory-size suffix scaling with accurate parse-stop reporting
 - exact bare-option matching for comma-delimited flags
+- C-style stop-at-NUL handling for bare-option scans
 - quoted argument/value splitting with in-place NUL termination and trimmed rest handling
 - quoted bare-token parsing without inventing a value pointer
 
