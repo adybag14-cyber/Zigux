@@ -562,6 +562,13 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
     rename_candidates: list[Phase3SlugRenameCandidate] = []
 
     for slug in sorted(issues_by_slug):
+        issue_codes = issues_by_slug[slug]
+        # A long token chain alone is too weak a signal because legitimate
+        # follow-on slices can cross the token threshold before the name
+        # actually starts looping. Only suggest a rename once repetition or
+        # outright overlength shows up alongside the prefix match.
+        if issue_codes == {"slug-too-many-tokens"}:
+            continue
         tokens = slug.split("-")
         canonical_slug: str | None = None
         for prefix_len in range(len(tokens) - 1, 0, -1):
@@ -575,7 +582,7 @@ def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[P
             Phase3SlugRenameCandidate(
                 slug=slug,
                 canonical_slug=canonical_slug,
-                issue_codes=tuple(sorted(issues_by_slug[slug])),
+                issue_codes=tuple(sorted(issue_codes)),
             )
         )
 
@@ -1005,28 +1012,67 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
-        rename_candidate = next(candidate for candidate in rename_candidates if candidate.slug == overgrown_with_prefix)
-        assert rename_candidate.canonical_slug == canonical_slug
-        assert "slug-too-many-tokens" in rename_candidate.issue_codes
+        assert all(candidate.slug != overgrown_with_prefix for candidate in rename_candidates)
+
+        repetitive_canonical_slug = "loop-window-policy-budget"
+        (paths.docs_dir / f"phase3-{repetitive_canonical_slug}-slice.md").write_text(
+            "repetitive canonical\n",
+            encoding="utf-8",
+        )
+        repetitive_with_prefix = f"{repetitive_canonical_slug}-window-policy-budget-window-policy"
+        repetitive_fixture = paths.fixtures_dir / f"phase3_{repetitive_with_prefix.replace('-', '_')}"
+        repetitive_fixture.mkdir()
+        (paths.docs_dir / f"phase3-{repetitive_with_prefix}-slice.md").write_text(
+            "repetitive prefix\n",
+            encoding="utf-8",
+        )
+        (paths.tests_dir / f"phase3_{repetitive_with_prefix.replace('-', '_')}_dump.zig").write_text(
+            "// repetitive prefix\n",
+            encoding="utf-8",
+        )
+        (repetitive_fixture / "expected.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_fixture
+            / f"phase3_{repetitive_with_prefix.replace('-', '_')}_c_harness.c"
+        ).write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+        )
+        (
+            repetitive_fixture
+            / f"phase3_{repetitive_with_prefix.replace('-', '_')}_manifest.json"
+        ).write_text(
+            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "repetitive", "files": [], "file_count": 0}),
+            encoding="utf-8",
+        )
+        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
+        assert all(candidate.slug != overgrown_with_prefix for candidate in rename_candidates)
+        repetitive_candidate = next(candidate for candidate in rename_candidates if candidate.slug == repetitive_with_prefix)
+        assert repetitive_candidate.canonical_slug == repetitive_canonical_slug
+        assert "slug-repeated-phrase" in repetitive_candidate.issue_codes
         rename_impacts = discover_phase3_slug_rename_impacts(discover_phase3_slices(paths))
-        rename_impact = next(impact for impact in rename_impacts if impact.slug == overgrown_with_prefix)
-        assert rename_impact.canonical_slug == canonical_slug
-        assert "slug-too-many-tokens" in rename_impact.issue_codes
+        assert all(impact.slug != overgrown_with_prefix for impact in rename_impacts)
+        rename_impact = next(impact for impact in rename_impacts if impact.slug == repetitive_with_prefix)
+        assert rename_impact.canonical_slug == repetitive_canonical_slug
+        assert "slug-repeated-phrase" in rename_impact.issue_codes
         assert len(rename_impact.paths) == 6
         assert {_rel(path, paths.root) for path in rename_impact.paths} == {
-            f"Documentation/zigux/phase3-{overgrown_with_prefix}-slice.md",
-            f"zigux/tests/phase3_{overgrown_with_prefix.replace('-', '_')}_dump.zig",
-            f"zigux/tests/fixtures/phase3_{overgrown_with_prefix.replace('-', '_')}",
-            f"zigux/tests/fixtures/phase3_{overgrown_with_prefix.replace('-', '_')}/expected.json",
+            f"Documentation/zigux/phase3-{repetitive_with_prefix}-slice.md",
+            f"zigux/tests/phase3_{repetitive_with_prefix.replace('-', '_')}_dump.zig",
+            f"zigux/tests/fixtures/phase3_{repetitive_with_prefix.replace('-', '_')}",
+            f"zigux/tests/fixtures/phase3_{repetitive_with_prefix.replace('-', '_')}/expected.json",
             (
                 "zigux/tests/fixtures/"
-                f"phase3_{overgrown_with_prefix.replace('-', '_')}/"
-                f"phase3_{overgrown_with_prefix.replace('-', '_')}_c_harness.c"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}/"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}_c_harness.c"
             ),
             (
                 "zigux/tests/fixtures/"
-                f"phase3_{overgrown_with_prefix.replace('-', '_')}/"
-                f"phase3_{overgrown_with_prefix.replace('-', '_')}_manifest.json"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}/"
+                f"phase3_{repetitive_with_prefix.replace('-', '_')}_manifest.json"
             ),
         }
 
