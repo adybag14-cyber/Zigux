@@ -1,0 +1,92 @@
+const std = @import("std");
+
+const CompanionFile = struct {
+    path: []const u8,
+    lines: usize,
+};
+
+const SurveySummary = struct {
+    libbpf_c_lines: usize,
+    preexisting_zigux_segments_present: bool,
+    preexisting_phase8_libbpf_note_present: bool,
+    companion_c_files: []const CompanionFile,
+};
+
+const Segment = struct {
+    id: []const u8,
+    slug: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    anchor_ranges: []const []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    anchor: []const u8,
+    survey_summary: SurveySummary,
+    segments: []const Segment,
+};
+
+fn isAllowedStatus(status: []const u8) bool {
+    return std.mem.eql(u8, status, "ready_next") or
+        std.mem.eql(u8, status, "blocked_on_object_model") or
+        std.mem.eql(u8, status, "deferred_high_risk");
+}
+
+test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+    try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
+    try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
+    try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
+    try std.testing.expect(manifest.survey_summary.companion_c_files.len >= 5);
+    try std.testing.expect(manifest.segments.len >= 6);
+
+    var ready_next_count: usize = 0;
+    var deferred_high_risk_count: usize = 0;
+
+    for (manifest.segments, 0..) |segment, i| {
+        try std.testing.expect(segment.id.len > 0);
+        try std.testing.expect(segment.slug.len > 0);
+        try std.testing.expect(segment.kind.len > 0);
+        try std.testing.expect(segment.anchor_ranges.len > 0);
+        try std.testing.expect(segment.why_now.len > 0);
+        try std.testing.expect(isAllowedStatus(segment.status));
+        try std.testing.expect(std.mem.startsWith(u8, segment.zigux_destination, "tools/lib/bpf/zigux_segments/"));
+
+        if (std.mem.eql(u8, segment.status, "ready_next")) {
+            ready_next_count += 1;
+        }
+        if (std.mem.eql(u8, segment.status, "deferred_high_risk")) {
+            deferred_high_risk_count += 1;
+        }
+
+        for (manifest.segments[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, segment.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, segment.slug, other.slug));
+        }
+    }
+
+    try std.testing.expect(ready_next_count >= 3);
+    try std.testing.expect(deferred_high_risk_count >= 2);
+}
