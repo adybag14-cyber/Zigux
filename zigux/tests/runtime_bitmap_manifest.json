@@ -1,0 +1,61 @@
+{
+  "lane_key": "P9-L06",
+  "phase": "Phase 9",
+  "surveyed_commit": "b2dc39dbae0efeacdb7a3ea03c6c95f904a180d9",
+  "anchor": "lib/test_bitmap.c",
+  "roadmap_destinations": [
+    "zigux/tests/runtime_*",
+    "samples/zigux/runtime_*"
+  ],
+  "survey_summary": {
+    "test_bitmap_c_lines": 1567,
+    "preexisting_runtime_bitmap_test_files": 0,
+    "preexisting_runtime_bitmap_sample_present": false,
+    "preexisting_phase9_build_present": true,
+    "preexisting_runtime_bitmap_doc_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase9-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The existing Phase 9 build step is the narrowest honest place to widen runtime pilot coverage from atomic64 into bitmap without inventing a broader runtime substrate."
+    },
+    {
+      "id": "runtime-bitmap-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_bitmap_survey.zig",
+      "why_now": "A bitmap-specific survey gate keeps the lib/test_bitmap.c anchor, starter status, and remaining blockers explicit while the pilot surface stays small."
+    },
+    {
+      "id": "runtime-bitmap-sample-module",
+      "status": "starter_landed",
+      "kind": "sample_starter",
+      "zigux_destination": "samples/zigux/runtime_bitmap.zig",
+      "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing bitmap step that can reuse the existing bitmap-view helper without pretending the full module substrate already exists."
+    },
+    {
+      "id": "runtime-bitmap-module-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_bitmap_module.zig",
+      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions, range mutation, copy, and summary behavior."
+    },
+    {
+      "id": "runtime-bitmap-diff-gate",
+      "status": "ready_next",
+      "kind": "differential_validation",
+      "zigux_destination": "zigux/tests/runtime_bitmap_diff.zig",
+      "why_now": "The next meaningful bitmap step is to turn a few lib/test_bitmap.c expectations into a differential gate before widening the runtime starter or pretending parity across the whole API."
+    },
+    {
+      "id": "runtime-bitmap-substrate-handoff",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
+      "why_now": "A loadable module entry point and lifecycle parity still depend on runtime substrate pieces that the repo has not started yet."
+    }
+  ]
+}
