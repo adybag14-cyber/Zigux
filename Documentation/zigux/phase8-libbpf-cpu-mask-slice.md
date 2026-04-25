@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-cpu-mask-starter`
-- scope: injected CPU-mask string parsing and set-bit counting only
+- scope: injected CPU-mask string parsing, chunk-reader ingestion, and set-bit counting only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
@@ -36,6 +36,7 @@ The current starter slice covers:
 
 - `parse_cpu_mask_str()`-adjacent parsing for `N` and `N-M` fragments
 - repeated comma and newline delimiter skipping for sysfs-style CPU mask strings
+- an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
 
@@ -43,8 +44,10 @@ The current tests check:
 
 - mixed single-value and ranged fragments
 - newline-terminated and repeated-delimiter inputs
+- chunked reader input that splits ranges and delimiters across buffer boundaries
 - sparse masks with unset gaps preserved
 - explicit error handling for empty and malformed ranges
+- reader contract failures such as zero-length chunks, oversized counts, and injected read errors
 
 ## Non-goals
 
@@ -57,4 +60,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and either add an injected file-buffer reader that keeps file I/O mocked, or move to the next helper-first libbpf segment in `logging.zig` or `pin_path.zig`.
+Stay in `tools/lib/bpf/zigux_segments/` and move to the next helper-first libbpf segment in `logging.zig` or `pin_path.zig` now that the deferred cpu-mask reader interface is covered.
