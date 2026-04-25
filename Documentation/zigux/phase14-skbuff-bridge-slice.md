@@ -14,4 +14,4 @@ The current bridge stays intentionally narrow:
 
 This slice still does not claim live allocation, refcount transitions, header-write eligibility, destructor callbacks, frag-list teardown, checksum completion, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
-The next honest bounded step in this same lane is to tighten the checksum-and-segmentation study around `skb_segment()` and `__skb_checksum_complete()` so the bridge records how frag and checksum metadata move without weakening the current boundary-map-only posture.
+The next honest bounded step in this same lane is to tighten the lifetime audit around `pskb_expand_head()`, `skb_release_head_state()` or `skb_release_data()`, and `skb_segment()` so the bridge records clone-or-reallocate handoff, destructor-ordered teardown, and checksum or frag metadata ownership without weakening the current boundary-map-only posture.
