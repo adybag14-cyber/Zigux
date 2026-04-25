@@ -1,0 +1,40 @@
+{
+  "lane_key": "P9-L01",
+  "phase": "Phase 9",
+  "surveyed_commit": "ec444d926874ab19b346f4f172407d158e560221",
+  "anchor": "lib/atomic64_test.c",
+  "roadmap_destinations": [
+    "zigux/tests/runtime_*",
+    "samples/zigux/runtime_*"
+  ],
+  "survey_summary": {
+    "atomic64_test_c_lines": 277,
+    "preexisting_runtime_test_files": 0,
+    "preexisting_samples_zigux_present": false,
+    "preexisting_phase9_build_present": false,
+    "preexisting_phase9_doc_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase9-build-gate",
+      "status": "ready_next",
+      "kind": "reviewability",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "Phase 9 had no dedicated build entry point, so runtime pilot-module work could not be reviewed or rerun as a bounded lane."
+    },
+    {
+      "id": "runtime-atomic64-survey-gate",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
+      "why_now": "The roadmap names lib/atomic64_test.c as a pilot-module anchor, but the repo had no runtime_* Zigux test to record the current gap against that anchor."
+    },
+    {
+      "id": "runtime-atomic64-sample-module",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "sample",
+      "zigux_destination": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "A sample-backed pilot module should follow once the runtime module lifecycle surface exists, rather than landing as a disconnected placeholder."
+    }
+  ]
+}
