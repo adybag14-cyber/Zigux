@@ -38,6 +38,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_bitmap_sample_module.addImport("bitmap_view", bitmap_view_module);
+    const runtime_trace_events_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_trace_events.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const runtime_atomic64_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_module.zig"),
         .target = target,
@@ -56,6 +61,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_bitmap_diff_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
+    const runtime_trace_events_module = b.createModule(.{
+        .root_source_file = b.path("runtime_trace_events_module.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_trace_events_module.addImport("runtime_trace_events_sample", runtime_trace_events_sample_module);
 
     const runtime_atomic64_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_survey.zig"),
@@ -88,6 +99,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_diff_module,
     });
     const run_runtime_bitmap_diff_tests = b.addRunArtifact(runtime_bitmap_diff_tests);
+    const runtime_trace_events_module_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-module-tests",
+        .root_module = runtime_trace_events_module,
+    });
+    const run_runtime_trace_events_module_tests = b.addRunArtifact(runtime_trace_events_module_tests);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-survey-tests",
@@ -105,10 +121,11 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_trace_events_survey_tests = b.addRunArtifact(runtime_trace_events_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime pilot-module survey and starter tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, and trace-events pilot-module tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_bitmap_module_tests.step);
     test_step.dependOn(&run_runtime_bitmap_diff_tests.step);
+    test_step.dependOn(&run_runtime_trace_events_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
