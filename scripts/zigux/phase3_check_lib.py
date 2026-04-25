@@ -193,3 +193,53 @@ def run_phase3_check(slug: str, description: str | None = None, build_step: str 
 def run_from_wrapper(path: str | Path) -> int:
     slug = slug_from_wrapper_path(path)
     return run_phase3_check(slug)
+
+
+def run_self_test() -> int:
+    expected_wrapper = "\n".join(
+        [
+            "#!/usr/bin/env python3",
+            "from __future__ import annotations",
+            "",
+            "from phase3_check_lib import run_from_wrapper",
+            "",
+            "",
+            'if __name__ == "__main__":',
+            '    raise SystemExit(run_from_wrapper(__file__))',
+            "",
+        ]
+    )
+    assert render_wrapper_stub() == expected_wrapper
+
+    assert slug_from_wrapper_path("/tmp/check-phase3-alpha-beta.py") == "alpha-beta"
+    try:
+        slug_from_wrapper_path("/tmp/phase3-alpha-beta.py")
+    except SystemExit as exc:
+        assert str(exc) == "unsupported Phase 3 wrapper path: /tmp/phase3-alpha-beta.py"
+    else:
+        raise AssertionError("expected invalid wrapper path to fail")
+
+    assert fixture_key_for_slug("alpha-beta") == "phase3_alpha_beta"
+    assert build_step_for_slug("alpha-beta") == "phase3-alpha-beta-dump"
+    assert build_step_for_slug("abi") == "phase3-dump"
+    assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
+    assert description_for_slug("alpha-beta") == "alpha beta"
+    assert status_name_for_slug("alpha-beta") == "PHASE3_ALPHA_BETA_DIFF"
+
+    print("PHASE3_CHECK_LIB_SELF_TEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Shared Phase 3 parity helper library.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated helper checks without launching parity builds.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    raise SystemExit("phase3_check_lib.py is a shared library; pass --self-test to run helper coverage")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
