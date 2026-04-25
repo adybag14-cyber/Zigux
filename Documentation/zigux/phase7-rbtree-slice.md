@@ -6,7 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 - `PHASE7_STATUS=active`
 - `PHASE7_SLICE=rbtree-runtime-leaf`
-- scope: starter intrusive tree helpers including balancing and traversal
+- scope: first bounded balancing and traversal helpers
 - product boundary:
   - `lib/rbtree.zig`
   - `zigux/tests/phase7_rbtree.zig`
@@ -16,14 +16,14 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 explicitly calls out `lib/rbtree.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This starter slice now covers a small but usable intrusive tree surface:
+This slice stays intentionally narrow and ports the first practical runtime-safe red-black tree surface:
 
 - root and node initialization
 - empty-node and empty-root state helpers
-- explicit node linking and ordered insertion
-- recoloring and erase balancing
+- explicit node linking
+- balancing and ordered insertion helpers
+- ordered erase plus direct node replacement
 - in-order and postorder traversal helpers
-- direct node replacement for already-linked trees
 
 ## Gates
 
@@ -41,9 +41,9 @@ The current starter slice covers:
 - `RB_EMPTY_NODE()`
 - `RB_CLEAR_NODE()`
 - `rb_link_node()`
-- `rb_insert_color()` through `insertColor()`
-- ordered insertion through `add()`
-- `rb_erase()` through `erase()`
+- `rb_insert_color()` via `insertColor()`
+- `rb_add()` via `add()`
+- `rb_erase()` via `erase()`
 - `rb_first()`
 - `rb_last()`
 - `rb_next()`
@@ -54,11 +54,10 @@ The current starter slice covers:
 
 The current tests check:
 
-- manual tree linking and ordered traversal
-- predecessor and successor behavior around interior nodes
-- fast node replacement without rebuilding the tree
-- postorder walking on a linked tree
-- ordered insertion and erase stability through the balancing helpers
+- ordered inserts and sorted forward traversal
+- reverse traversal via `last()` and `prev()`
+- erase-and-replace consistency after structural updates
+- postorder walking on a minimally balanced tree
 - detached-node clearing semantics
 
 ## Non-goals
@@ -68,7 +67,8 @@ This slice does not yet claim:
 - cached-tree helpers
 - augmented-rbtree support
 - lockless-iteration or memory-ordering guarantees beyond the local helper semantics
+- generated C fixture parity artifacts
 
 ## Next bounded step
 
-Add a small deterministic C-vs-Zig parity fixture layer for insert, erase, and traversal expectations derived from `lib/rbtree.c`, or close this lane if the starter balancing surface is already sufficient for current Phase 7 review.
+Either add a tiny serialized fixture or harness layer that cross-checks this ordered insert/erase surface against `lib/rbtree.c`, or close the lane now that the runtime-family starter helper includes balancing, updates, and dedicated review coverage.
