@@ -47,6 +47,14 @@ def status_name_for_slug(slug: str) -> str:
     return f"PHASE3_{slug.replace('-', '_').upper()}_DIFF"
 
 
+def shared_runner_gate_for_slug(slug: str) -> str:
+    return f"PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug {slug}"
+
+
+def legacy_wrapper_gate_for_slug(slug: str) -> str:
+    return f"PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-{slug}.py"
+
+
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
@@ -209,6 +217,8 @@ def run_self_test() -> int:
     assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
     assert description_for_slug("alpha-beta") == "alpha beta"
     assert status_name_for_slug("alpha-beta") == "PHASE3_ALPHA_BETA_DIFF"
+    assert shared_runner_gate_for_slug("alpha-beta") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha-beta"
+    assert legacy_wrapper_gate_for_slug("alpha-beta") == "PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha-beta.py"
     parsed = parse_phase3_args(["--cc", "/tmp/cc", "--zig", "/tmp/zig"])
     assert parsed.cc == "/tmp/cc"
     assert parsed.zig == "/tmp/zig"
