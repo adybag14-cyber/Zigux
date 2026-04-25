@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -48,6 +49,11 @@ SPECIAL_DESCRIPTIONS = {
 INTEROP_GATE_PREFIX = "PHASE3_INTEROP_GATE="
 LEGACY_WRAPPER_REF_RE = re.compile(r"(?P<command>python3\s+)?scripts/zigux/check-phase3-(?P<slug>[a-z0-9-]+)\.py")
 ARTIFACT_DIFF_PHASE3_SLUG_RE = re.compile(r"--slug (?P<slug>[a-z0-9-]+)")
+
+MAX_SLUG_TOKENS = 12
+MAX_SLUG_CHARS = 96
+MAX_REPEATED_TOKEN_COUNT = 3
+MAX_REPEATED_BIGRAM_COUNT = 2
 
 
 @dataclass(frozen=True)
@@ -126,7 +132,7 @@ class LegacyWrapperReference:
 
 
 @dataclass(frozen=True)
-class Phase3DocAuditIssue:
+class Phase3AuditIssue:
     code: str
     detail: str
 
@@ -478,18 +484,48 @@ def discover_non_doc_legacy_wrapper_references(
     return references
 
 
+def _repeated_ngrams(tokens: list[str], size: int) -> list[tuple[str, int]]:
+    if len(tokens) < size:
+        return []
+    counts = Counter("-".join(tokens[index : index + size]) for index in range(len(tokens) - size + 1))
+    return sorted((ngram, count) for ngram, count in counts.items() if count > 1)
+
+
+def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
+    issues: list[Phase3AuditIssue] = []
+    for entry in entries:
+        tokens = [token for token in entry.slug.split("-") if token]
+        if len(tokens) > MAX_SLUG_TOKENS:
+            issues.append(Phase3AuditIssue("slug-too-many-tokens", f"{entry.slug}\t{len(tokens)}"))
+        if len(entry.slug) > MAX_SLUG_CHARS:
+            issues.append(Phase3AuditIssue("slug-too-long", f"{entry.slug}\t{len(entry.slug)}"))
+
+        repeated_tokens = sorted(
+            f"{token}:{count}" for token, count in Counter(tokens).items() if count > MAX_REPEATED_TOKEN_COUNT
+        )
+        if repeated_tokens:
+            issues.append(Phase3AuditIssue("slug-repeated-token", f"{entry.slug}\t{','.join(repeated_tokens)}"))
+
+        repeated_bigrams = [
+            f"{ngram}:{count}" for ngram, count in _repeated_ngrams(tokens, 2) if count > MAX_REPEATED_BIGRAM_COUNT
+        ]
+        if repeated_bigrams:
+            issues.append(Phase3AuditIssue("slug-repeated-phrase", f"{entry.slug}\t{','.join(repeated_bigrams)}"))
+    return issues
+
+
 def audit_phase3_doc_sync(
     entries: list[Phase3Slice],
     paths: Phase3Paths = DEFAULT_PATHS,
     artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
-) -> list[Phase3DocAuditIssue]:
+) -> list[Phase3AuditIssue]:
     issues = [
-        Phase3DocAuditIssue("legacy-wrapper-reference", reference.to_row())
+        Phase3AuditIssue("legacy-wrapper-reference", reference.to_row())
         for reference in discover_non_doc_legacy_wrapper_references(entries, paths)
     ]
     if artifact_diff_phase3_section_needs_rewrite(entries, artifact_diff_path):
         issues.append(
-            Phase3DocAuditIssue(
+            Phase3AuditIssue(
                 "artifact-diff-phase3-stale",
                 _rel(artifact_diff_path, paths.root),
             )
@@ -805,10 +841,41 @@ def run_self_test() -> int:
         rewrite_artifact_diff_phase3_section(entries, artifact_diff_path)
         assert audit_phase3_doc_sync(entries, paths, artifact_diff_path) == []
 
+        overgrown_slug = "alpha-beta-gamma-delta-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
+        (paths.docs_dir / f"phase3-{overgrown_slug}-slice.md").write_text(
+            "tokens\n",
+            encoding="utf-8",
+        )
+        too_long_slug = "this-is-a-deliberately-overgrown-phase3-slug-with-many-extra-descriptor-tokens-for-audit-coverage-padding"
+        (paths.docs_dir / f"phase3-{too_long_slug}-slice.md").write_text(
+            "length\n",
+            encoding="utf-8",
+        )
+        repetitive_slug = "loop-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
+        (paths.docs_dir / f"phase3-{repetitive_slug}-slice.md").write_text(
+            "loop\n",
+            encoding="utf-8",
+        )
+        slug_issues = [issue.to_row() for issue in audit_phase3_slug_sanity(discover_phase3_slices(paths))]
+        assert (
+            f"slug-too-many-tokens\t{overgrown_slug}\t13"
+            in slug_issues
+        )
+        assert any(row.startswith(f"slug-too-long\t{too_long_slug}\t") for row in slug_issues)
+        assert (
+            f"slug-repeated-token\t{repetitive_slug}\tpolicy:4,window:4"
+            in slug_issues
+        )
+        assert (
+            f"slug-repeated-phrase\t{repetitive_slug}\tbudget-window:3,policy-budget:3,window-policy:4"
+            in slug_issues
+        )
+
         parser = build_parser()
         assert parser.parse_args(["--rewrite-legacy-wrapper-references"]).rewrite_legacy_wrapper_references is True
         assert parser.parse_args(["--rewrite-shared-runner-reference-docs"]).rewrite_legacy_wrapper_references is True
         assert parser.parse_args(["--audit-doc-sync"]).audit_doc_sync is True
+        assert parser.parse_args(["--audit-slug-sanity"]).audit_slug_sanity is True
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -848,6 +915,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--audit-doc-sync",
         action="store_true",
         help="Report stale non-slice wrapper references and artifact-diff Phase 3 drift, then exit non-zero when any are found.",
+    )
+    parser.add_argument(
+        "--audit-slug-sanity",
+        action="store_true",
+        help="Report suspiciously repetitive or overgrown discovered Phase 3 slugs, then exit non-zero when any are found.",
     )
     return parser
 
@@ -892,6 +964,14 @@ if __name__ == "__main__":
     if args.audit_doc_sync:
         try:
             issues = audit_phase3_doc_sync(entries)
+            for issue in issues:
+                print(issue.to_row())
+        except BrokenPipeError:
+            sys.exit(0)
+        raise SystemExit(1 if issues else 0)
+    if args.audit_slug_sanity:
+        try:
+            issues = audit_phase3_slug_sanity(entries)
             for issue in issues:
                 print(issue.to_row())
         except BrokenPipeError:
