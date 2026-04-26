@@ -16,7 +16,8 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_TOOL = ROOT / 'scripts' / 'mod' / 'mk_elfconfig.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'mk_elfconfig.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig'
-CASES = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+CASES_PATH = FIXTURE_DIR / 'cases.json'
+CASES = json.loads(CASES_PATH.read_text(encoding='utf-8'))
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -58,6 +59,47 @@ def windows_to_wsl(path: Path) -> str:
 def read_hex_fixture(path: Path) -> bytes:
     text = path.read_text(encoding='utf-8').strip()
     return bytes.fromhex(text)
+
+
+def validate_cases(cases: object) -> list[dict[str, str]]:
+    if not isinstance(cases, list) or not cases:
+        raise ValueError(f'{CASES_PATH} must contain a non-empty JSON list')
+
+    validated: list[dict[str, str]] = []
+    seen_names: set[str] = set()
+    seen_inputs: set[str] = set()
+    seen_expected: set[str] = set()
+    required_fields = ('name', 'input_hex', 'expected')
+
+    for index, raw_case in enumerate(cases):
+        if not isinstance(raw_case, dict):
+            raise ValueError(f'{CASES_PATH} entry {index} must be a JSON object')
+
+        case: dict[str, str] = {}
+        for field_name in required_fields:
+            field_value = raw_case.get(field_name)
+            if not isinstance(field_value, str) or not field_value:
+                raise ValueError(f'{CASES_PATH} entry {index} is missing non-empty {field_name!r}')
+            case[field_name] = field_value
+
+        if case['name'] in seen_names:
+            raise ValueError(f'{CASES_PATH} reuses case name {case["name"]!r}')
+        if case['input_hex'] in seen_inputs:
+            raise ValueError(f'{CASES_PATH} reuses input_hex {case["input_hex"]!r}')
+        if case['expected'] in seen_expected:
+            raise ValueError(f'{CASES_PATH} reuses expected artifact {case["expected"]!r}')
+
+        for field_name in ('input_hex', 'expected'):
+            case_path = FIXTURE_DIR / case[field_name]
+            if not case_path.exists():
+                raise FileNotFoundError(f'{CASES_PATH} references missing {field_name} file {case[field_name]!r}')
+
+        seen_names.add(case['name'])
+        seen_inputs.add(case['input_hex'])
+        seen_expected.add(case['expected'])
+        validated.append(case)
+
+    return validated
 
 
 def compile_c(tmp_dir: Path, compiler: str) -> Path:
@@ -143,13 +185,14 @@ def main() -> int:
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
+    cases = validate_cases(CASES)
 
     with tempfile.TemporaryDirectory(prefix='zigux_mkelfconfig_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         c_exe = compile_c(tmp_dir, compiler)
         zig_exe = compile_zig(tmp_dir, zig)
 
-        for case in CASES:
+        for case in cases:
             input_path = FIXTURE_DIR / case['input_hex']
             expected_path = FIXTURE_DIR / case['expected']
             c_actual = tmp_dir / f"{case['name']}.c.actual.json"
