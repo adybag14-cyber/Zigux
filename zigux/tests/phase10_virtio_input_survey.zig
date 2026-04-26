@@ -98,6 +98,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "identity snapshots") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config bitmap") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timestamp suppression") != null);
         }
 
@@ -113,12 +114,12 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_input_survey.zig", gap.zigux_destination);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-config-bitmap-helper")) {
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-abs-info-helper")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtinput_cfg_bits()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtinput_cfg_abs()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtinput_cfg_bits()") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {
@@ -127,6 +128,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_input.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "input_register_device()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze or restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ABS-info helper") != null);
         }
     }
 
