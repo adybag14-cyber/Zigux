@@ -52,6 +52,17 @@ pub fn build(b: *std.Build) void {
     });
     rbtree_root_module.addImport("rbtree", rbtree_module);
 
+    const rbtree_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_rbtree_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const rbtree_survey_tests = b.addTest(.{
+        .name = "phase7-rbtree-survey-tests",
+        .root_module = rbtree_survey_root_module,
+    });
+    const run_rbtree_survey_tests = b.addRunArtifact(rbtree_survey_tests);
+
     const string_helpers_tests = b.addTest(.{
         .name = "phase7-string-helpers-tests",
         .root_module = string_helpers_root_module,
@@ -81,4 +92,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_cmdline_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
     test_step.dependOn(&run_rbtree_tests.step);
+    test_step.dependOn(&run_rbtree_survey_tests.step);
 }
