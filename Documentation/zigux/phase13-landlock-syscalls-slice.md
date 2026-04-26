@@ -8,7 +8,8 @@ The current helper stays intentionally narrow:
 - models the query and validation path of `landlock_create_ruleset()` around version and errata requests, minimum struct sizing, page-size bounds, handled-access mask filtering, and empty-ruleset rejection
 - translates the logging and thread-sync flags used by `landlock_restrict_self()`, including the special `ruleset_fd == -1` mute-subdomains-only case
 - adds one in-memory `landlock_add_rule()` planner for rule-type dispatch, empty-access rejection, handled-access subset checks, and net-port bounds without touching file descriptors or paths
+- adds one in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard without touching the live FD table
 
-This slice does not claim anonymous-fd creation, ruleset FD lookup, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
+This slice does not claim anonymous-fd creation, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
-The next honest bounded step in this same lane is to add one small in-memory planner around `get_ruleset_from_fd()` type and access-mode checks before widening into path-backed rule import, credential updates, or live domain state.
+The next honest bounded step in this same lane is to add one small in-memory planner around `get_path_from_fd()` rejection rules before widening into path-backed rule import, credential updates, or live domain state.
