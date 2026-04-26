@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-lab-starter`
-- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
+- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, config-change bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
 - product boundary:
   - `drivers/virtio/virtio.zig`
   - `zigux/tests/phase10_virtio_core.zig`
@@ -30,6 +30,7 @@ The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice l
 - queue callback registration bookkeeping that stays blocked until feature negotiation succeeds and never pretends to touch real transport setup
 - queue callback enable, disable, unregister, and notification accounting that remains entirely in-memory for lab validation
 - queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
+- config-change bookkeeping that models `virtio_config_changed()` plus core-enable and driver-disable pending behavior without claiming interrupt or transport delivery
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
@@ -39,14 +40,14 @@ The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice l
 - covered now:
   - lab-only validation for `drivers/virtio/virtio.c`
   - core-side status sequencing and feature negotiation
-  - bounded queue callback bookkeeping and queue shape metadata for reviewable lab tests
+  - bounded queue callback bookkeeping, queue shape metadata, and config-change pending or delivery bookkeeping for reviewable lab tests
 - still intentionally missing:
   - real virtqueue wrappers from `virtio_ring.c`
   - real MMIO wrappers from `virtio_mmio.c`
   - dual implementations for risky transport-facing paths
   - probe, remove, and real device lifecycle wiring
 
-This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
+This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape and one config-change pending or delivery path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
 
 ## Non-goals
 
@@ -67,4 +68,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio-core lane and add the next small core-only bridge from `drivers/virtio/virtio.c`, such as config-change enable and disable bookkeeping, before widening into `virtio_mmio` or `virtio_ring` transport work.
+Stay in the Phase 10 virtio-core lane and add the next small core-only bridge from `drivers/virtio/virtio.c`, such as bounded config-change callback-presence bookkeeping or one tiny driver-name summary helper, before widening into `virtio_mmio` or `virtio_ring` transport work.
