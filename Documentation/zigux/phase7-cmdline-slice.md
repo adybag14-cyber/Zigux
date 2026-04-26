@@ -49,7 +49,7 @@ The current tests check:
 - memory-size suffix scaling with accurate parse-stop reporting
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
-- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, and empty-rest termination
+- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination
 
 ## Non-goals
 
