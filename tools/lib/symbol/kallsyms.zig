@@ -276,6 +276,59 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
     try std.testing.expectEqual(@as(u8, 'd'), parsed.items[1].symbol_type);
 }
 
+test "forEachParsedChunked preserves callback failures across buffered records" {
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Fixture = struct {
+        fn failOnWeakSymbol(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) anyerror!void {
+            if (symbol.symbol_type == 'W') {
+                return error.StopOnWeakSymbol;
+            }
+
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    var state = ChunkFixtureState{
+        .chunks = &.{
+            "ffffffff81000000 T start",
+            "up_64\nffffffff81000300 W weak_",
+            "tail\nffffffff81000400 t ignored_after_callback_error\n",
+        },
+    };
+
+    var parsed = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        parsed.deinit(std.testing.allocator);
+    }
+
+    try std.testing.expectError(error.StopOnWeakSymbol, forEachParsedChunked(
+        std.testing.allocator,
+        &state,
+        nextFixtureChunk,
+        &parsed,
+        Fixture.failOnWeakSymbol,
+    ));
+    try std.testing.expectEqual(@as(usize, 1), parsed.items.len);
+    try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
+}
+
 test "forEachParsedChunked propagates oversized-symbol errors from buffered lines" {
     const OwnedParsedSymbol = struct {
         name: []u8,
