@@ -5,8 +5,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 ## Status
 
 - `PHASE8_STATUS=active`
-- `PHASE8_SLICE=kallsyms-chunked-reader-starter`
-- scope: symbol-type helpers, injected line parsing, and injected chunked reader iteration only
+- `PHASE8_SLICE=kallsyms-reader-adapter-starter`
+- scope: symbol-type helpers, injected line parsing, chunked reader iteration, and a thin Zig reader adapter only
 - product boundary:
   - `tools/lib/symbol/kallsyms.zig`
   - `zigux/tests/phase8_kallsyms.zig`
@@ -38,6 +38,7 @@ The current starter slice covers:
 - `kallsyms__is_function()`-adjacent function detection
 - injected per-line parsing for `"<hex> <type> <name>"` records with malformed-line skipping
 - injected chunked reader iteration that reconstructs split lines before reusing the same parser
+- a thin `reader.read()` adapter that feeds the same chunk parser through a caller-provided scratch buffer
 - a bounded symbol-name length guard that keeps the starter parser honest
 
 The current tests check:
@@ -46,6 +47,7 @@ The current tests check:
 - valid symbol lines expose the expected address, type, and name slices
 - malformed lines are skipped without stopping iteration
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
+- the direct Zig reader adapter preserves those same semantics under short reads and rejects an empty scratch buffer explicitly
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
@@ -59,4 +61,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/symbol/kallsyms.zig` and add a thin filename or `api/io.h` adapter that feeds the existing chunked reader surface without widening into downstream ELF emission.
+Stay in `tools/lib/symbol/kallsyms.zig` and add a thin filename-backed adapter that opens a real file and feeds the existing reader surface without widening into downstream ELF emission.
