@@ -20,8 +20,8 @@ Use this checklist before opening or merging Zigux product work.
 - if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?
 - if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
-- if the change asks for a freeze-map status change, is the Architecture Council review record linked and is the requested decision bucket explicit?
-- if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
+- if the change asks for a freeze-map status change, is the Architecture Council review record linked and are the current status bucket plus requested decision bucket explicit?
+- if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
 - if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state and reopen triggers explicit?
 - if a freeze-map anchor remains blocked, does the scorecard still name the current lane owner responsible for keeping that blocked evidence packet up to date?
 
