@@ -34,6 +34,17 @@ pub fn fold(sum: u32) u16 {
     return ~from32to16(sum);
 }
 
+pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
+    var result = normalize(sum);
+    result = add(result, saddr >> 16);
+    result = add(result, saddr & 0xffff);
+    result = add(result, daddr >> 16);
+    result = add(result, daddr & 0xffff);
+    result = add(result, proto);
+    result = add(result, len);
+    return normalize(result);
+}
+
 pub fn partial(bytes: []const u8, seed: u32) u32 {
     var sum = normalize(seed);
     var index: usize = 0;
@@ -109,6 +120,33 @@ test "partial checksums compose across split buffers" {
 
     try std.testing.expectEqual(whole, normalize(combined));
     try std.testing.expectEqual(fold(whole), compute(bytes));
+}
+
+test "tcpUdpNofold matches pseudo header accumulation" {
+    const payload = "zigux checksum";
+    const payload_partial = partial(payload, 0);
+    const saddr: u32 = 0xc0a8_0001;
+    const daddr: u32 = 0xc0a8_00c7;
+    const proto: u8 = 17;
+
+    var pseudo_header: [12]u8 = undefined;
+    pseudo_header[0] = 0xc0;
+    pseudo_header[1] = 0xa8;
+    pseudo_header[2] = 0x00;
+    pseudo_header[3] = 0x01;
+    pseudo_header[4] = 0xc0;
+    pseudo_header[5] = 0xa8;
+    pseudo_header[6] = 0x00;
+    pseudo_header[7] = 0xc7;
+    pseudo_header[8] = 0;
+    pseudo_header[9] = proto;
+    pseudo_header[10] = 0;
+    pseudo_header[11] = payload.len;
+
+    const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
+    const actual = tcpUdpNofold(payload_partial, saddr, daddr, payload.len, proto);
+
+    try std.testing.expectEqual(normalize(expected), actual);
 }
 
 test "add, sub, and offset shifting preserve checksum arithmetic" {
