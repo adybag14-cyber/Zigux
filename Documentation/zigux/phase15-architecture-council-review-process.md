@@ -119,4 +119,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and take the already-recorded `phase15-indefinite-c-field-sync-followup` next so the indefinite-C policy note keeps the same review-packet fields, retained discussion state, and reopen-trigger catalog as the scorecard and review-process note.
+Keep the Phase 15 governance lane in maintenance mode. The indefinite-C field-sync follow-up is already landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
