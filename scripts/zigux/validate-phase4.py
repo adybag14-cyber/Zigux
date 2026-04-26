@@ -38,11 +38,13 @@ phase4_gate_expectations = {
     'runtime_atomic64_diff.zig': {
         'owner': 'ABI and Runtime Team',
         'rollback_owner': 'ABI and Runtime Team',
+        'fallback_path': 'keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses',
         'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
     },
     'bitmap_diff.zig': {
         'owner': 'Shared Subsystems Pod',
         'rollback_owner': 'Shared Subsystems Pod',
+        'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
     },
 }
@@ -150,6 +152,10 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
     if f"- rollback owner: `{expectation['rollback_owner']}`" not in gate_block:
         missing.append(
             f"phase4_matrix:rollback_owner:{gate_name}:{expectation['rollback_owner']}"
+        )
+    if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}"
         )
     if expectation['threshold_posture'] not in row:
         missing.append(
