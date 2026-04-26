@@ -68,7 +68,7 @@ The current gap is not "Zigux has no kobject sample guidance." The more precise 
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, dispatch, parse failures, and teardown
 - contributor guidance still needs to keep the in-memory directory and unnamed-group shape visibly separate from real sysfs or module substrate claims
-- the broader roadmap still expects the other Phase 5 reference-sample anchors too, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
+- the broader roadmap still expects the last Phase 5 reference-sample anchor, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
 
@@ -92,4 +92,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and add the next missing reference-sample anchor, most likely a bounded non-runtime reading of `samples/kprobes/kretprobe_example.c`, while keeping the same pattern of exact checks and explicit non-goals.
+Stay in the Phase 5 samples-and-reference-patterns lane and add the last missing reference-sample anchor for `samples/trace_events/trace-events-sample.c`, while keeping the same pattern of exact checks and explicit non-goals.
