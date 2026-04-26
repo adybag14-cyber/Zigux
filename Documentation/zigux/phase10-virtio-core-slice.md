@@ -17,7 +17,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 The Phase 10 roadmap explicitly names `drivers/virtio/virtio.c` as the first virtio-core anchor and calls for lab-only validation before any deeper queue, transport, or MMIO work.
 
-The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice lands the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks and transport refusal handling.
+This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, transport refusal handling, and config-change bookkeeping.
 
 ## Landed starter surface
 
@@ -30,7 +30,7 @@ The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice l
 - queue callback registration bookkeeping that stays blocked until feature negotiation succeeds and never pretends to touch real transport setup
 - queue callback enable, disable, unregister, and notification accounting that remains entirely in-memory for lab validation
 - queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
-- config-change bookkeeping that models `virtio_config_changed()` plus core-enable and driver-disable pending behavior without claiming interrupt or transport delivery
+- config-change enable, disable, pending, flush, and reset bookkeeping that stays entirely in memory while making the later `virtio_config_enable()` and `virtio_config_disable()` review surface concrete
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
@@ -40,14 +40,14 @@ The live repo did not yet have any `drivers/virtio/*.zig` foothold. This slice l
 - covered now:
   - lab-only validation for `drivers/virtio/virtio.c`
   - core-side status sequencing and feature negotiation
-  - bounded queue callback bookkeeping, queue shape metadata, and config-change pending or delivery bookkeeping for reviewable lab tests
+  - bounded queue callback bookkeeping and queue shape metadata for reviewable lab tests
 - still intentionally missing:
   - real virtqueue wrappers from `virtio_ring.c`
   - real MMIO wrappers from `virtio_mmio.c`
   - dual implementations for risky transport-facing paths
   - probe, remove, and real device lifecycle wiring
 
-This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape and one config-change pending or delivery path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
+This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape and one bounded config-change path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
 
 ## Non-goals
 
@@ -68,4 +68,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio-core lane and add the next small core-only bridge from `drivers/virtio/virtio.c`, such as bounded config-change callback-presence bookkeeping or one tiny driver-name summary helper, before widening into `virtio_mmio` or `virtio_ring` transport work.
+Stay in the Phase 10 virtio-core lane only for another small core-local bridge that is still missing after the landed config-change bookkeeping, such as a bounded config-generation or driver-name bookkeeping summary, before widening into `virtio_mmio` or `virtio_ring` transport work.
