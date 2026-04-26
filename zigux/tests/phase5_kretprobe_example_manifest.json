@@ -1,0 +1,53 @@
+{
+  "lane_key": "P5-L14",
+  "phase": "Phase 5",
+  "surveyed_commit": "master",
+  "anchor": "samples/kprobes/kretprobe_example.c",
+  "sample_path": "samples/zigux/kretprobe_example.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the manifest and survey test still describe the exact skip, return-value, duration, and missed-summary contract run through phase5_build.zig",
+    "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
+    "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
+    "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
+  ],
+  "exact_checks": [
+    {
+      "id": "default-symbol",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample keeps kernel_clone as the default symbol name while allowing pre-init retargeting"
+    },
+    {
+      "id": "skip-kernel-thread",
+      "kind": "bounded_handler_path",
+      "expected": "runAnchorReplay checks that an entry with no current mm is skipped instead of arming a tracked instance"
+    },
+    {
+      "id": "return-duration",
+      "kind": "bounded_handler_path",
+      "expected": "the replay records retval 42 and duration 75 ns after an entry timestamp of 100 and a return timestamp of 175"
+    },
+    {
+      "id": "missed-summary",
+      "kind": "bounded_summary",
+      "expected": "the replay records one missed instance so the exit-side nmissed summary remains reviewable without claiming register_kretprobe pressure parity"
+    },
+    {
+      "id": "outstanding-instance-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "exit rejects an armed sample until retHandler clears the outstanding tracked instance"
+    },
+    {
+      "id": "post-exit-rejection",
+      "kind": "ownership_lifetime",
+      "expected": "after exit the sample rejects later recordMissedInstance or handler calls"
+    }
+  ],
+  "non_goals": [
+    "register_kretprobe parity",
+    "unregister_kretprobe parity",
+    "pt_regs or regs_return_value parity",
+    "loadable module wiring"
+  ]
+}
