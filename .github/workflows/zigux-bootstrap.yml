@@ -144,6 +144,9 @@ jobs:
       - name: Run Phase 4 diff tests
         run: zig build test --build-file zigux/tests/phase4_build.zig
 
+      - name: Run Phase 5 reference sample tests
+        run: zig build test --build-file zigux/tests/phase5_build.zig --summary all
+
   phase2-cross:
     runs-on: ubuntu-latest
     strategy:
