@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L09",
   "phase": "Phase 10",
-  "surveyed_commit": "6006b56b94da100c84563f29a94ddb4baf2e279a",
+  "surveyed_commit": "88c47b03d3052a84e5b6b895832a807a369c04c9",
   "anchor": "drivers/virtio/virtio_mmio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -31,7 +31,7 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The existing virtio core lab slice already covers status negotiation, queue callback bookkeeping, and bounded queue descriptor-shape metadata, so the MMIO lane should build on that real foothold instead of inventing a second core starter."
+      "why_now": "The existing virtio core lab slice already covers status negotiation, queue callback bookkeeping, bounded queue descriptor-shape metadata, and notification accounting, so the MMIO lane should build on that real foothold instead of inventing a second core starter."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live repo now has a tiny in-memory virtqueue helper for queue shape and notification bookkeeping, so the MMIO lane can survey the remaining transport gap against a real queue-facing foothold."
+      "why_now": "The live repo now has a tiny in-memory virtqueue helper for queue shape, notification bookkeeping, used-buffer polling, and callback re-enable state, so the MMIO lane can survey the remaining transport gap against a real queue-facing foothold."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
@@ -69,18 +69,18 @@
       "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope and the reasons it is still blocked behind more virtqueue work."
     },
     {
-      "id": "phase10-virtio-ring-callback-enable-helper",
+      "id": "phase10-callback-delay-helper",
       "status": "ready_next",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live virtio_ring helper already covers queue shape, used-buffer polling, and notification bookkeeping, so the next honest blocker before MMIO register work is one more in-memory ring-local callback-enable helper."
+      "why_now": "The live virtio_ring helper already covers queue shape, used-buffer polling, and callback re-enable, so the next honest blocker before MMIO register work is one more tiny in-memory delayed-callback helper."
     },
     {
       "id": "phase10-mmio-register-window-helper",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap requires virtqueue wrappers ahead of MMIO work, and `virtio_mmio.c` mixes register-window access, queue setup, interrupts, and reset paths that are still too transport-facing to start honestly before the next virtio_ring callback-enable helper lands."
+      "why_now": "The roadmap requires virtqueue wrappers ahead of MMIO work, and `virtio_mmio.c` mixes register-window access, queue setup, interrupts, and reset paths that are still too transport-facing to start honestly before the next virtio_ring delayed-callback helper lands after callback re-enable."
     }
   ]
 }
