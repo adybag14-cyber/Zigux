@@ -10,6 +10,7 @@ This document starts a bounded Phase 6 leaf-helper port for Zigux.
 - product boundary:
   - `lib/checksum.zig`
   - `zigux/tests/phase6_checksum.zig`
+  - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -48,9 +49,11 @@ The current checksum helper surface exercised by this slice covers:
 
 The current tests check:
 
-- IPv4-header checksum parity through the committed helper API
+- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs
 - incremental partial-sum chaining across even and odd fragment boundaries
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
+
+The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and borrows its edge-case shape from the existing `lib/tests/checksum_kunit.c` coverage without claiming a full KUnit surface port.
 
 ## Non-goals
 
