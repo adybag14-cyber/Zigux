@@ -9,7 +9,8 @@ The current helper stays intentionally narrow:
 - mirrors the per-layer request initialization done by `landlock_init_layer_masks()`, including the always-denied-by-default filesystem access bit when any filesystem mask is active
 - captures the `landlock_unmask_layers()` bit-clearing behavior that marks requested accesses as satisfied across layer positions
 - adds one in-memory `insert_rule()` planner that distinguishes the no-match insertion path from matching-rule access extension and merged-layer append behavior without allocating tree nodes or touching object references
+- adds one follow-on in-memory tree-search planner around `get_root()`, `walker_node`, and parent or insertion-side selection so the no-match search outcome is reviewable before any `rb_link_node()` or `rb_insert_color()` work is attempted
 
 This slice does not claim rb-tree mutation, object references, rule insertion, hierarchy allocation, merge or inherit behavior, workqueue-backed deferred frees, or any live Landlock hook integration.
 
-The next honest bounded step in this same lane is to add one small in-memory planner around the `insert_rule()` tree walk and no-match search outcomes, limited to `get_root()`, `walker_node`, and insertion-count bookkeeping before touching rb-tree storage, locking, or object ownership.
+The next honest bounded step in this same lane is to add one small in-memory planner for the no-match tree-link branch, limited to `rb_link_node()`, `rb_insert_color()`, and the already-selected insertion site before touching object ownership, hierarchy lifetime, or live policy state.
