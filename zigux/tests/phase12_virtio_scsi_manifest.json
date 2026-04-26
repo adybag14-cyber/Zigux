@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L09",
   "phase": "Phase 12",
-  "surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7",
+  "surveyed_commit": "ee64eec272a352da1d967999c99bb3c3560c9b97",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "roadmap_destinations": [
     "drivers/scsi/virtio_scsi.zig",
@@ -29,14 +29,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "The shared Phase 12 build gate now carries both the existing virtio_scsi survey and the new queue-layout starter tests so this complex-driver lane stays reviewable without widening into runtime transport code."
+      "why_now": "The shared Phase 12 build gate now carries both the existing virtio_scsi survey and the queue-layout plus recovery tests so this complex-driver lane stays reviewable without widening into runtime transport code."
     },
     {
       "id": "phase12-make-target",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "The existing make target keeps the survey lane and the new driver test lane runnable in the same bounded way as the other tranche checkpoints instead of hiding them behind ad hoc commands."
+      "why_now": "The existing make target keeps the survey lane and the bounded driver test lane runnable in the same way as the other tranche checkpoints instead of hiding them behind ad hoc commands."
     },
     {
       "id": "phase12-virtio-core-foundation",
@@ -64,42 +64,35 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner and recovery helper against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "The first honest virtio_scsi starter is now landed around an in-memory queue-family planner that models control, event, request, and request_poll virtqueue topology plus the Linux rule that poll queues must still leave one default request queue."
+      "why_now": "The first honest virtio_scsi starter is now landed around an in-memory queue-family planner that models control, event, request, and request_poll virtqueue topology, preserves the Linux rule that poll queues must still leave one default request queue, and records a lab-only freeze or restore summary that blocks planning while transport is frozen and clears queue state after restore."
     },
     {
       "id": "phase12-virtio-scsi-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, and request-versus-request_poll classification."
+      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, and the bounded freeze or restore contract for planning and event recycling intent."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-slice.md",
-      "why_now": "The slice note records exactly what the queue-layout starter covers so the survey can stay focused on the deeper transport, SCSI-host, and recovery work that is still intentionally missing."
+      "why_now": "The slice note records exactly what the queue-layout and recovery starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
     },
     {
       "id": "phase12-virtio-scsi-probe-config-snapshot-starter",
-      "status": "starter_landed",
-      "kind": "complex_driver_starter",
-      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "The bounded virtio_scsi starter now includes one small probe snapshot helper that records `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, and `max_sectors`, then derives the request-versus-poll queue topology after the Linux-style CPU-count and blk-mq queue caps are applied, without claiming blk-mq submission, TMF flow, or DMA-backed queue work."
-    },
-    {
-      "id": "phase12-virtio-scsi-host-limit-handoff-starter",
       "status": "ready_next",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "The next honest virtio_scsi step is one small host-limit handoff helper that records how the probe snapshot would feed `sg_tablesize`, `can_queue`, `cmd_per_lun`, `max_sectors`, `max_lun`, `max_id`, and `nr_maps` before any `scsi_add_host()`, `scsi_scan_host()`, blk-mq request flow, or DMA-backed queue ownership is attempted."
+      "why_now": "The next honest virtio_scsi step is one small probe snapshot helper that records virtscsi_probe() config fields such as num_queues, seg_max, cmd_per_lun, max_target, max_lun, and max_sectors, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
     },
     {
       "id": "phase12-virtio-scsi-runtime-queues-and-scan",

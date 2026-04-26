@@ -11,6 +11,11 @@ pub const RequestQueueKind = enum {
     request_poll,
 };
 
+pub const RecoveryAction = enum {
+    freeze,
+    restore,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -35,33 +40,6 @@ pub const QueueLayoutSummary = struct {
     event_buffer_count: u16,
 };
 
-pub const ProbeRequest = struct {
-    config_num_queues: u32,
-    config_seg_max: u32,
-    config_cmd_per_lun: u32,
-    config_max_target: u32,
-    config_max_lun: u32,
-    config_max_sectors: u32,
-    cpu_queue_limit: u16,
-    blk_mq_queue_limit: u16,
-    requested_poll_queues: u16,
-};
-
-pub const ProbeSnapshot = struct {
-    anchor: []const u8,
-    configured_request_queues: u16,
-    cpu_queue_limit: u16,
-    blk_mq_queue_limit: u16,
-    request_queues: u16,
-    seg_max: u32,
-    cmd_per_lun: u32,
-    max_target: u32,
-    num_targets: u32,
-    max_lun: u32,
-    max_sectors: u32,
-    layout: QueueLayoutSummary,
-};
-
 pub const RequestQueueSummary = struct {
     anchor: []const u8,
     local_index: u16,
@@ -69,11 +47,26 @@ pub const RequestQueueSummary = struct {
     kind: RequestQueueKind,
 };
 
+pub const RecoverySummary = struct {
+    anchor: []const u8,
+    action: RecoveryAction,
+    was_frozen: bool,
+    is_frozen: bool,
+    request_planning_available: bool,
+    event_recycling_enabled: bool,
+    remembered_request_queues: u16,
+    remembered_poll_queues: u16,
+    remembered_event_buffer_count: u16,
+    recovery_generation: u16,
+};
+
 pub const VirtioScsiQueueLab = struct {
     const Self = @This();
 
     last_layout: ?QueueLayoutSummary = null,
-    last_probe: ?ProbeSnapshot = null,
+    frozen_layout: ?QueueLayoutSummary = null,
+    transport_frozen: bool = false,
+    recovery_generation: u16 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -82,7 +75,7 @@ pub const VirtioScsiQueueLab = struct {
             .provides_queue_family_planner = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
-            .touches_transport_reset = false,
+            .touches_transport_reset = true,
         };
     }
 
@@ -90,44 +83,14 @@ pub const VirtioScsiQueueLab = struct {
         return .{};
     }
 
-    pub fn captureProbeSnapshot(self: *Self, request: ProbeRequest) !ProbeSnapshot {
-        if (request.cpu_queue_limit == 0 or request.blk_mq_queue_limit == 0) {
-            return error.InvalidQueueLimit;
-        }
-
-        var configured_request_queues = request.config_num_queues;
-        if (configured_request_queues == 0) configured_request_queues = 1;
-
-        const clamped_request_queues = @min(
-            configured_request_queues,
-            @as(u32, @min(request.cpu_queue_limit, request.blk_mq_queue_limit)),
-        );
-        const request_queues = std.math.cast(u16, clamped_request_queues) orelse return error.QueueCountOverflow;
-        const layout = try self.planQueueLayout(request_queues, request.requested_poll_queues);
-
-        const snapshot = ProbeSnapshot{
-            .anchor = descriptor().anchor,
-            .configured_request_queues = std.math.cast(u16, configured_request_queues) orelse return error.QueueCountOverflow,
-            .cpu_queue_limit = request.cpu_queue_limit,
-            .blk_mq_queue_limit = request.blk_mq_queue_limit,
-            .request_queues = request_queues,
-            .seg_max = if (request.config_seg_max == 0) 1 else request.config_seg_max,
-            .cmd_per_lun = if (request.config_cmd_per_lun == 0) 1 else request.config_cmd_per_lun,
-            .max_target = request.config_max_target,
-            .num_targets = try checkedAddU32(request.config_max_target, 1),
-            .max_lun = request.config_max_lun,
-            .max_sectors = if (request.config_max_sectors == 0) 0xFFFF else request.config_max_sectors,
-            .layout = layout,
-        };
-        self.last_probe = snapshot;
-        return snapshot;
-    }
-
     pub fn planQueueLayout(
         self: *Self,
         request_queues: u16,
         requested_poll_queues: u16,
     ) !QueueLayoutSummary {
+        if (self.transport_frozen) {
+            return error.TransportFrozen;
+        }
         if (request_queues < min_request_queues) {
             return error.InvalidRequestQueueCount;
         }
@@ -160,6 +123,10 @@ pub const VirtioScsiQueueLab = struct {
     }
 
     pub fn requestQueue(self: *const Self, local_index: u16) !RequestQueueSummary {
+        if (self.transport_frozen) {
+            return error.TransportFrozen;
+        }
+
         const layout = self.last_layout orelse return error.QueueLayoutUnavailable;
         if (local_index >= layout.request_queues) {
             return error.RequestQueueIndexOutOfRange;
@@ -173,13 +140,56 @@ pub const VirtioScsiQueueLab = struct {
         };
     }
 
+    pub fn freezeForTransportReset(self: *Self) !RecoverySummary {
+        if (self.transport_frozen) {
+            return error.TransportAlreadyFrozen;
+        }
+
+        const layout = self.last_layout orelse return error.QueueLayoutUnavailable;
+        self.transport_frozen = true;
+        self.frozen_layout = layout;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .action = .freeze,
+            .was_frozen = false,
+            .is_frozen = true,
+            .request_planning_available = false,
+            .event_recycling_enabled = false,
+            .remembered_request_queues = layout.request_queues,
+            .remembered_poll_queues = layout.poll_queues,
+            .remembered_event_buffer_count = layout.event_buffer_count,
+            .recovery_generation = self.recovery_generation,
+        };
+    }
+
+    pub fn restoreAfterTransportReset(self: *Self) !RecoverySummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        self.transport_frozen = false;
+        self.frozen_layout = null;
+        self.last_layout = null;
+        self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .action = .restore,
+            .was_frozen = true,
+            .is_frozen = false,
+            .request_planning_available = true,
+            .event_recycling_enabled = true,
+            .remembered_request_queues = layout.request_queues,
+            .remembered_poll_queues = layout.poll_queues,
+            .remembered_event_buffer_count = layout.event_buffer_count,
+            .recovery_generation = self.recovery_generation,
+        };
+    }
+
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
-    }
-
-    fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
-        const value = @as(u64, lhs) + rhs;
-        return std.math.cast(u32, value) orelse error.QueueCountOverflow;
     }
 };
