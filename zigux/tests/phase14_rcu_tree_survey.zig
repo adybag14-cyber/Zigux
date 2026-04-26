@@ -72,7 +72,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("P14-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("e023a288013cb2231da9a010b3934773a4b39778", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f05e02445443e7743c3675a6f8ca4f70f6e736fb", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.tree_c_lines >= 4900);
     try std.testing.expect(manifest.survey_summary.tree_plugin_h_lines >= 1300);
@@ -91,8 +91,8 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 3), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -101,6 +101,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     var saw_survey_gate = false;
     var saw_decision_checklist = false;
     var saw_followup = false;
+    var saw_callback_followup = false;
     var saw_bridge_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -136,10 +137,17 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-quiescent-state-followup")) {
             saw_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_report_qs_rnp()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "note_gp_changes()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-callback-enqueue-followup")) {
+            saw_callback_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__call_rcu_common()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_do_batch()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-bridge-blocker")) {
             saw_bridge_blocker = true;
@@ -152,13 +160,14 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), landed_count);
+    try std.testing.expectEqual(@as(usize, 7), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_note);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_decision_checklist);
     try std.testing.expect(saw_followup);
+    try std.testing.expect(saw_callback_followup);
     try std.testing.expect(saw_bridge_blocker);
 }
 
@@ -196,4 +205,10 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist" {
     try std.testing.expectEqualStrings("wake_nocb_gp_defer", checklist[2].anchor_symbols[1]);
     try std.testing.expectEqualStrings("do_nocb_deferred_wakeup", checklist[2].anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, checklist[2].rationale, "bypass") != null);
+
+    try std.testing.expectEqualStrings("quiescent-state-propagation-and-callback-acceleration", checklist[3].id);
+    try std.testing.expectEqualStrings("rcu_report_qs_rnp", checklist[3].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("note_gp_changes", checklist[3].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcu_accelerate_cbs", checklist[3].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[3].rationale, "segmented callback lists") != null);
 }
