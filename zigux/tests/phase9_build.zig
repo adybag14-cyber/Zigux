@@ -54,6 +54,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_kretprobe_loader_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_kretprobe_loader_module.addImport("runtime_kretprobe_sample", runtime_kretprobe_sample_module);
     const runtime_atomic64_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_module.zig"),
         .target = target,
@@ -169,6 +175,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_kretprobe_diff_module,
     });
     const run_runtime_kretprobe_diff_tests = b.addRunArtifact(runtime_kretprobe_diff_tests);
+    const runtime_kretprobe_loader_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-loader-tests",
+        .root_module = runtime_kretprobe_loader_module,
+    });
+    const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-survey-tests",
@@ -201,6 +212,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
+    test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
