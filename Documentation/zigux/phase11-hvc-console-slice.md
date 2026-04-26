@@ -12,4 +12,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim tty-driver registration, khvcd polling, sysrq handling, notifier callbacks, hotplug discovery, or live hypervisor-backed reads and writes yet.
 
-The next honest bounded step inside the same Phase 11 lane is to add the first kernel-integration validation matrix for tty registration, close-wait teardown parity, and khvcd-facing behavior without widening into host-backed I/O.
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for tty registration, close-wait teardown parity, and khvcd-facing behavior without widening into host-backed I/O.
+
+The next honest bounded step inside the same Phase 11 lane is a tiny tty-registration handoff summary that keeps `setup_hvc_console()` teardown parity and khvcd-facing behavior reviewable before any host-backed I/O widens the slice.

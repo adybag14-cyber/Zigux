@@ -54,7 +54,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("d197eb9c46920e26d7e146bdde0800b6c5b25c00", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("7fd4845c2f4f4f52d2be2080d00e7a56f49275b5", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -63,7 +63,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -73,6 +73,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_note = false;
     var saw_starter_gap = false;
     var saw_driver_test_block = false;
+    var saw_validation_matrix = false;
     var saw_tty_block = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -125,12 +126,20 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown gating") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-validation-matrix")) {
+            saw_validation_matrix = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-hvc-console-validation-matrix.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd-facing") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-tty-and-teardown-parity")) {
             saw_tty_block = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("blocked_on_kernel_integration", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "TTY driver registration") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling behavior") != null);
+            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd-facing behavior") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -138,13 +147,14 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_starter_gap);
     try std.testing.expect(saw_driver_test_block);
+    try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_block);
 }

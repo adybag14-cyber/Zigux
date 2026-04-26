@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L13",
   "phase": "Phase 11",
-  "surveyed_commit": "d197eb9c46920e26d7e146bdde0800b6c5b25c00",
+  "surveyed_commit": "7fd4845c2f4f4f52d2be2080d00e7a56f49275b5",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
@@ -54,11 +54,18 @@
       "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, hung-up close short-circuiting, and teardown gating without touching tty core integration."
     },
     {
+      "id": "phase11-hvc-console-validation-matrix",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 test gate, the bounded close-wait teardown evidence, and the still-pending tty-registration and khvcd-facing follow-up without claiming host-backed I/O."
+    },
+    {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
-      "status": "blocked_on_kernel_integration",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "TTY driver registration, setup_hvc_console() teardown parity, khvcd polling behavior, sysrq integration, and host-backed teardown checks should stay blocked until the lane adds a first kernel-integration validation matrix for those side effects."
+      "status": "ready_next",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "With the kernel-integration validation matrix now landed, the next bounded follow-up is a tiny tty-registration handoff summary that keeps setup_hvc_console() teardown parity and khvcd-facing behavior reviewable before any host-backed teardown or polling work lands."
     }
   ]
 }
