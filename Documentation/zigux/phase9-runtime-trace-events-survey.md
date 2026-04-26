@@ -9,6 +9,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
+  - `zigux/tests/runtime_trace_events_diff.zig`
   - `zigux/tests/runtime_trace_events_module.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
@@ -37,7 +38,7 @@ The manifest started as a survey-only inventory and now records:
 - the landed `runtime-trace-events-survey-gate`
 - the landed `runtime-trace-events-sample-module` starter
 - the landed `runtime-trace-events-module-tests`
-- the next `runtime-trace-events-diff-gate`
+- the landed `runtime-trace-events-diff-gate`
 - the still-blocked runtime substrate handoff
 
 This keeps the survey useful after the first starter slice lands without pretending that Zigux already has a loadable trace-events runtime module.
@@ -61,4 +62,4 @@ This survey slice still does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and add a narrow `zigux/tests/runtime_trace_events_diff.zig` gate that replays a few `foo_bar`, template, and function-callback expectations from the Linux sample before attempting any broader runtime substrate work.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest runtime-substrate handoff for module entry, thread creation, and tracepoint-registration lifecycle wiring.
