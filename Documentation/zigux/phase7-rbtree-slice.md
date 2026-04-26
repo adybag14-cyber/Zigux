@@ -10,6 +10,8 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 - product boundary:
   - `lib/rbtree.zig`
   - `zigux/tests/phase7_rbtree.zig`
+  - `zigux/tests/phase7_rbtree_survey.zig`
+  - `zigux/tests/phase7_rbtree_manifest.json`
   - `zigux/tests/phase7_build.zig`
 
 ## Why this slice exists
@@ -34,7 +36,10 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, and the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice without reopening implementation work.
+3. keep the survey record machine-checked
+- `zig test zigux/tests/phase7_rbtree_survey.zig`
+
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, and the survey record now captures what is landed versus still ready next without reopening implementation work.
 
 ## Current parity surface
 
@@ -66,6 +71,7 @@ The current tests check:
 - erase-and-replace consistency after structural updates
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
+- a machine-checked manifest that records the `lib/rbtree.c` anchor, the landed Phase 7 review surfaces, and the next parity-fixture follow-up
 
 ## Non-goals
 
