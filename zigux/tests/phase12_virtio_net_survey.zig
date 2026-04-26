@@ -56,7 +56,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
     try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-    try std.testing.expectEqualStrings("878f9e1df569cda365c364931c038650c0a301a1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("200651a73be45b091b8103c174d7bcd0738950a1", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -67,8 +67,8 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -141,9 +141,17 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-probe-snapshot-starter")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtnet_probe()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-queue-recovery-followup")) {
+            saw_ready_next = true;
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset-required") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control-vq") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -159,7 +167,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
