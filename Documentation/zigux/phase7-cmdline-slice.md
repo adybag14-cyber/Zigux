@@ -10,6 +10,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - product boundary:
   - `lib/cmdline.zig`
   - `zigux/tests/phase7_cmdline.zig`
+  - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
   - `zigux/tests/phase7_build.zig`
 
 ## Why this slice exists
@@ -47,8 +48,7 @@ The current tests check:
 - memory-size suffix scaling with accurate parse-stop reporting
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
-- quoted argument/value splitting with in-place NUL termination and trimmed rest handling
-- quoted bare-token parsing without inventing a value pointer
+- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, and empty-rest termination
 
 ## Non-goals
 
@@ -56,8 +56,7 @@ This slice still does not yet claim:
 
 - exhaustive overflow compatibility with every `simple_strtoull()` corner case
 - broader parameter-name normalization or cross-subsystem callers beyond the local helper surface
-- serialized C fixture generation for `next_arg()` edge cases
 
 ## Next bounded step
 
-Add a small serialized fixture layer for `next_arg()` edge cases, or close this cmdline helper lane if no further Phase 7 review drift remains.
+Leave this cmdline helper lane parked unless fresh repo inspection shows one more real `cmdline.c` parity gap inside the existing helper surface; otherwise move the next Phase 7 schedule to the next unfinished leaf helper family.
