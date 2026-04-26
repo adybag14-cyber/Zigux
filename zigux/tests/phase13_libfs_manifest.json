@@ -69,11 +69,18 @@
       "why_now": "The survey note now describes the landed starter truthfully and keeps the remaining gap around directory iteration, offset policy, and deeper VFS state explicit."
     },
     {
-      "id": "phase13-libfs-directory-read-followup",
+      "id": "phase13-libfs-offset-seek-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the early seek-policy surface from dcache_dir_lseek() and offset_dir_llseek() in pure planning form, including SEEK_SET and SEEK_CUR handling, negative-offset rejection, max-position bounds, and whether a positive-entry scan would become necessary."
+    },
+    {
+      "id": "phase13-libfs-directory-emit-followup",
       "status": "ready_next",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is one small directory-reading or offset-policy helper around dcache_readdir() or the early offset surface, keeping the work cursor-free and in-memory before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
+      "why_now": "The next honest step is one small directory-reading emit-policy helper around dcache_readdir() and ctx->pos offset bookkeeping, keeping the work cursor-free and in-memory before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
     }
   ]
 }
