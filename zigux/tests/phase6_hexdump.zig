@@ -63,6 +63,17 @@ fn assertFixtureOverflowCase(case: fixtures.OverflowCase) !void {
     }
 }
 
+fn assertFixtureLengthCase(case: fixtures.LengthCase) !void {
+    try std.testing.expectEqual(
+        case.expected_length,
+        hexdump.hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii),
+    );
+    try std.testing.expectEqual(
+        case.expected_length,
+        hexdump.hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, &[_]u8{}, case.ascii),
+    );
+}
+
 test "phase 6 hexdump module imports cleanly" {
     _ = hexdump;
 }
@@ -76,6 +87,12 @@ test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
 test "phase 6 hexdump serialized overflow vectors stay in sync" {
     for (fixtures.overflow_cases) |case| {
         try assertFixtureOverflowCase(case);
+    }
+}
+
+test "phase 6 hexdump serialized required-length vectors stay in sync" {
+    for (fixtures.length_cases) |case| {
+        try assertFixtureLengthCase(case);
     }
 }
 
