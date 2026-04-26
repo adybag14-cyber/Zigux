@@ -35,7 +35,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest records the landed starter and remaining probe gap" {
+test "phase11 bcm2835_wdt survey manifest records the landed starter and remaining registration or poweroff gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -54,7 +54,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("b6c2dc8bb6869db064b14df4f94b7326eb95b9eb", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("e1c5591d5bbfab8fc9439f4664de5b3654fb2fe3", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -64,7 +64,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -74,6 +74,8 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
     var saw_driver_gap = false;
     var saw_driver_tests = false;
     var saw_slice_note = false;
+    var saw_probe_summary = false;
+    var saw_registration_followup = false;
     var saw_registration_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -108,6 +110,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timeout tick") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "running-bit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-tests")) {
@@ -123,12 +126,22 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-probe-summary")) {
+            saw_probe_summary = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bootloader-carried running state") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "stop-on-reboot") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-registration-and-poweroff")) {
+            saw_registration_followup = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff claim-vs-conflict") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-platform-registration")) {
             saw_registration_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
@@ -141,7 +154,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -149,5 +162,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed starter and remaini
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_probe_summary);
+    try std.testing.expect(saw_registration_followup);
     try std.testing.expect(saw_registration_blocker);
 }
