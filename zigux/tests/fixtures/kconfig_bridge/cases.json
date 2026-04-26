@@ -23,6 +23,14 @@
       "config": "build/.config",
       "arch": "arm64",
       "expected": "alldefconfig_expected.json"
+    },
+    {
+      "name": "allmodconfig",
+      "mode": "allmodconfig",
+      "kconfig": "Kconfig",
+      "config": "mod/.config",
+      "arch": "arm",
+      "expected": "allmodconfig_expected.json"
     }
   ],
   "confdata_cases": [
