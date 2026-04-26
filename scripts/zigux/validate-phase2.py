@@ -1,8 +1,26 @@
 #!/usr/bin/env python3
+import json
 from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
+
+
+def expected_files_from_cases(case_manifest: Path) -> list[Path]:
+    cases = json.loads(case_manifest.read_text(encoding='utf-8'))
+    expected_files: list[Path] = []
+    seen: set[Path] = set()
+    for case in cases.get('cases', []):
+        expected_name = case.get('expected')
+        if not expected_name:
+            continue
+        expected_path = case_manifest.parent / expected_name
+        if expected_path in seen:
+            continue
+        seen.add(expected_path)
+        expected_files.append(expected_path)
+    return expected_files
 
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
@@ -37,12 +55,8 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'genksyms_crc_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'inputs.txt',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'debug_reference_types_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'long_options_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'quiet_overrides_warning_expected.json',
+    GENKSYMS_BRIDGE_DIR / 'genksyms_bridge_c_harness.c',
+    GENKSYMS_BRIDGE_DIR / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
@@ -60,6 +74,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'not_elf_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'truncated_expected.json',
 ]
+required_files.extend(expected_files_from_cases(GENKSYMS_BRIDGE_DIR / 'cases.json'))
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
