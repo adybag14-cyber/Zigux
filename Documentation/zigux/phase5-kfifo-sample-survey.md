@@ -61,18 +61,20 @@ The sample intentionally stays small:
 
 - it models only bounded in-memory FIFO state with a fixed 32-byte ring buffer
 - it replays the Linux anchor's queue-order behavior without any procfs or user-copy substrate
-- it exposes a single `runAnchorReplay()` self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
+- it now makes ownership and lifetime explicit through a tiny `init()` -> `runAnchorReplay()` -> `exit()` flow instead of implying a runtime-ready module lifecycle
+- it exposes a single bounded self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
 
 The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
-- the queue length is `15` after enqueueing `"hello"` and bytes `0` through `9`
-- the first drain returns `"hello"`
+- the queue length is `15` after enqueueing "hello" and bytes `0` through `9`
+- the first drain returns "hello"
 - the second drain returns bytes `0` and `1`, and those same bytes are re-enqueued at the tail
 - skipping the next byte removes `2`
 - peeking afterward observes `3` without draining it
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - empty-queue peek and skip return `null`, pushing past capacity returns `false`, and `reset()` restores an empty queue
+- the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
 
 ## Contributor refresh prompts for the landed sample
 
@@ -91,7 +93,7 @@ The current gap is not "Zigux lacks every sample." The more precise gap is:
 
 - the repo now has one reviewable Phase 5 sample plus later runtime-oriented starters in `samples/zigux/`
 - the roadmap still expects the other Phase 5 reference-sample anchors too
-- the kfifo sample still stops at bounded queue-order replay and intentionally does not claim procfs, user-copy, locking, or module registration support
+- the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
 

@@ -2,11 +2,19 @@ const std = @import("std");
 
 pub const fifo_capacity: usize = 32;
 
+pub const SampleStage = enum(u8) {
+    cold,
+    initialized,
+    replay_complete,
+    exited,
+};
+
 pub const SampleFocus = enum {
     bounded_fifo_order,
     wraparound_requeue,
     peek_and_skip,
     reset_and_replay,
+    ownership_and_lifetime,
 };
 
 pub const SampleDescriptor = struct {
@@ -18,6 +26,8 @@ pub const SampleDescriptor = struct {
 
 pub const ReplaySummary = struct {
     anchor: []const u8,
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
     len_after_initial_fill: usize,
     first_out: [5]u8,
     second_out: [2]u8,
@@ -38,6 +48,9 @@ pub const BytestreamFifoSample = struct {
     head: usize = 0,
     len: usize = 0,
     storage: [capacity]u8 = [_]u8{0} ** capacity,
+    stage_state: SampleStage = .cold,
+    init_runs: usize = 0,
+    exit_runs: usize = 0,
 
     pub fn descriptor() SampleDescriptor {
         return .{
@@ -52,10 +65,22 @@ pub const BytestreamFifoSample = struct {
         return self.len;
     }
 
+    pub fn stage(self: *const Self) SampleStage {
+        return self.stage_state;
+    }
+
     pub fn reset(self: *Self) void {
         self.head = 0;
         self.len = 0;
         @memset(self.storage[0..], 0);
+    }
+
+    pub fn init(self: *Self) !void {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        self.reset();
+        self.init_runs += 1;
+        self.stage_state = .initialized;
     }
 
     fn tailIndex(self: *const Self) usize {
@@ -109,7 +134,7 @@ pub const BytestreamFifoSample = struct {
         return self.dequeueSlice(dest);
     }
 
-    pub fn runAnchorReplay(self: *Self) !ReplaySummary {
+    fn runAnchorReplayInternal(self: *Self) !ReplaySummary {
         self.reset();
 
         const hello_len = self.enqueueSlice("hello");
@@ -143,6 +168,8 @@ pub const BytestreamFifoSample = struct {
 
         return .{
             .anchor = descriptor().anchor,
+            .stage_before_replay = .initialized,
+            .stage_after_replay = .replay_complete,
             .len_after_initial_fill = len_after_initial_fill,
             .first_out = first_out,
             .second_out = second_out,
@@ -157,8 +184,28 @@ pub const BytestreamFifoSample = struct {
                 .wraparound_requeue,
                 .peek_and_skip,
                 .reset_and_replay,
+                .ownership_and_lifetime,
             },
         };
+    }
+
+    pub fn runAnchorReplay(self: *Self) !ReplaySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        const replay = try self.runAnchorReplayInternal();
+        self.stage_state = .replay_complete;
+        return replay;
+    }
+
+    pub fn exit(self: *Self) !void {
+        switch (self.stage()) {
+            .initialized, .replay_complete => {},
+            else => return error.InvalidLifecycleTransition,
+        }
+
+        self.reset();
+        self.exit_runs += 1;
+        self.stage_state = .exited;
     }
 };
 
@@ -171,8 +218,11 @@ pub const expected_anchor_result = [_]u8{
 
 test "bytestream fifo sample replays the Linux anchor result sequence" {
     var sample = BytestreamFifoSample{};
+    try sample.init();
     const replay = try sample.runAnchorReplay();
 
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 15), replay.len_after_initial_fill);
     try std.testing.expectEqualStrings("hello", replay.first_out[0..]);
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
@@ -182,4 +232,11 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
+    try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+
+    try sample.exit();
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
 }

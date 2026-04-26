@@ -34,19 +34,20 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
     var saw_exact_sequence = false;
     var saw_capacity = false;
+    var saw_lifecycle = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
@@ -72,6 +73,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
         }
+        if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
+            saw_lifecycle = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires init before replay") != null);
+        }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, check.id, other.id));
@@ -82,6 +87,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_manifest_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
+    try std.testing.expect(saw_lifecycle);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
 }

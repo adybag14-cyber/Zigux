@@ -1,13 +1,13 @@
 {
-  "lane_key": "P5-L03",
+  "lane_key": "P5-L06",
   "phase": "Phase 5",
-  "surveyed_commit": "8e71e0348451cd0690124cb8436e292eaf52c068",
+  "surveyed_commit": "9d79c60932dcd33fbe81b66a96080675fe80999c",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact queue-order replay and bounded helper contract run through phase5_build.zig",
+    "the manifest and survey test still describe the exact queue-order replay, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
   ],
@@ -46,6 +46,11 @@
       "id": "bounded-helper-behavior",
       "kind": "helper_contract",
       "expected": "peek and skip return null when empty, pushing past capacity returns false, and reset restores an empty queue"
+    },
+    {
+      "id": "lifecycle-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "the sample starts cold, requires init before replay, marks replay_complete after the self-check, and exits back to an empty queue"
     }
   ],
   "non_goals": [
