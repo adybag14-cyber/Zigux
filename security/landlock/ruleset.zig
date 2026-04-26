@@ -14,6 +14,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_unmasking: bool,
     provides_rule_insertion_planning: bool,
     provides_rule_tree_search_planning: bool,
+    provides_rule_tree_link_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -103,6 +104,21 @@ pub const RuleTreeSearchPlan = struct {
     resulting_num_rules: u32,
 };
 
+pub const TreeLinkMode = enum {
+    install_root_node,
+    link_left_child,
+    link_right_child,
+};
+
+pub const RuleTreeLinkPlan = struct {
+    anchor: []const u8,
+    mode: TreeLinkMode,
+    parent_key_data: ?u64,
+    should_link_node: bool,
+    should_insert_color: bool,
+    resulting_num_rules: u32,
+};
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -114,6 +130,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_unmasking = true,
             .provides_rule_insertion_planning = true,
             .provides_rule_tree_search_planning = true,
+            .provides_rule_tree_link_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -341,5 +358,29 @@ pub const RulesetHelperLab = struct {
         }
         plan.resulting_num_rules = current_num_rules + 1;
         return plan;
+    }
+
+    pub fn planRuleTreeLink(search_plan: RuleTreeSearchPlan) !RuleTreeLinkPlan {
+        if (search_plan.matched_existing_rule) {
+            return error.RuleAlreadyExists;
+        }
+
+        const insertion_site = search_plan.insertion_site orelse return error.MissingInsertionSite;
+        if (insertion_site != .root and search_plan.parent_key_data == null) {
+            return error.MissingParentNode;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = switch (insertion_site) {
+                .root => .install_root_node,
+                .left => .link_left_child,
+                .right => .link_right_child,
+            },
+            .parent_key_data = search_plan.parent_key_data,
+            .should_link_node = true,
+            .should_insert_color = true,
+            .resulting_num_rules = search_plan.resulting_num_rules,
+        };
     }
 };
