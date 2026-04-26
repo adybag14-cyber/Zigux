@@ -7,6 +7,7 @@ pub const Mode = enum {
     defconfig,
     allnoconfig,
     allyesconfig,
+    alldefconfig,
     randconfig,
     syncconfig,
 
@@ -26,6 +27,7 @@ pub const Mode = enum {
             .defconfig => "--defconfig",
             .allnoconfig => "--allnoconfig",
             .allyesconfig => "--allyesconfig",
+            .alldefconfig => "--alldefconfig",
             .randconfig => "--randconfig",
             .syncconfig => "--syncconfig",
         };
@@ -38,6 +40,7 @@ pub const Mode = enum {
             .defconfig => "defconfig",
             .allnoconfig => "allnoconfig",
             .allyesconfig => "allyesconfig",
+            .alldefconfig => "alldefconfig",
             .randconfig => "randconfig",
             .syncconfig => "syncconfig",
         };
@@ -184,4 +187,42 @@ test "conf bridge emits syncconfig auto files" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"riscv64\"") != null);
+}
+
+test "conf bridge emits alldefconfig argv and env" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 128), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .alldefconfig,
+        .kconfig = "Kconfig",
+        .config = "build/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"alldefconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--alldefconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"build/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm64\"") != null);
 }
