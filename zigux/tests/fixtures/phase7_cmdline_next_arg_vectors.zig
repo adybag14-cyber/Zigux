@@ -49,4 +49,11 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_value = "fast boot",
         .expected_rest = "",
     },
+    .{
+        .name = "leading equals sign stays in the parameter token",
+        .input = "=bad next",
+        .expected_param = "=bad",
+        .expected_value = null,
+        .expected_rest = "next",
+    },
 };
