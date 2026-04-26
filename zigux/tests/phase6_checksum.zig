@@ -23,6 +23,22 @@ fn referenceInternetChecksum(bytes: []const u8) u16 {
     return ~@as(u16, @truncate(foldCarry(acc)));
 }
 
+fn referencePartial(bytes: []const u8, seed: u32) u32 {
+    var acc: u64 = seed;
+    var index: usize = 0;
+    while (index + 1 < bytes.len) : (index += 2) {
+        const pair: *const [2]u8 = @ptrCast(bytes[index .. index + 2]);
+        acc += std.mem.readInt(u16, pair, .big);
+    }
+    if (index < bytes.len) {
+        acc += @as(u16, bytes[index]) << 8;
+    }
+    while ((acc >> 16) != 0) {
+        acc = (acc & 0xffff) + (acc >> 16);
+    }
+    return @intCast(acc);
+}
+
 fn appendBigEndianU16(buffer: []u8, value: u16) void {
     const pair: *[2]u8 = @ptrCast(buffer[0..2]);
     std.mem.writeInt(u16, pair, value, .big);
@@ -55,6 +71,13 @@ test "partial sums compose across the fixture split matrix" {
         try std.testing.expectEqual(case.expected_partial, whole);
         try std.testing.expectEqual(case.expected_partial, checksum.partial("", combined));
         try std.testing.expectEqual(case.expected_fold, checksum.fold(whole));
+    }
+}
+
+test "seeded partial accumulation matches the fixture-backed reference" {
+    for (fixtures.seeded_cases) |case| {
+        try std.testing.expectEqual(case.expected_partial, checksum.partial(case.bytes, case.seed));
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
     }
 }
 
