@@ -113,6 +113,20 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
+pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []const u8 {
+    const pwd_value = pwd orelse return cwd;
+    if (pwd_value.len == 0) {
+        return cwd;
+    }
+    if (std.mem.eql(u8, pwd_value, cwd)) {
+        return cwd;
+    }
+    if (same_location) {
+        return pwd_value;
+    }
+    return cwd;
+}
+
 pub fn getArgvExecPath(
     allocator: std.mem.Allocator,
     config: Config,
@@ -440,4 +454,23 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         fallback,
     );
     try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
+}
+
+test "choosePwdCwd prefers PWD only when it points at the same location" {
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwd("/repo", null, false),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwd("/repo", "/repo", true),
+    );
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        choosePwdCwd("/repo", "/logical/repo", true),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwd("/repo", "/other", false),
+    );
 }
