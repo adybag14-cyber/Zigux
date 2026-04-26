@@ -214,6 +214,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     var index: usize = 0;
     while (index < args.len) : (index += 1) {
         const arg = args[index];
+        if (std.mem.eql(u8, arg, "--")) break;
         if (arg.len == 0 or arg[0] != '-') {
             return .{ .failure = .{ .invalid_option = arg } };
         }
@@ -318,6 +319,23 @@ test "genksyms bridge parses long options and quiet override" {
                 try std.testing.expectEqualStrings("types.symtypes", request.dump_types_file.?);
                 try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
                 try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge accepts explicit option terminator" {
+    const args = &.{ "--debug", "--", "--leftover", "positional" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 0), request.reference_files.len);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
             },
             else => return error.UnexpectedCommand,
         },
