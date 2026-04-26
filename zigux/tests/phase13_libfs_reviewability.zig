@@ -65,7 +65,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -73,6 +73,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     try std.testing.expect(descriptor.provides_lookup_policy);
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
+    try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -88,6 +89,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     var saw_survey_note = false;
     var saw_offset_followup = false;
     var saw_emit_followup = false;
+    var saw_transaction_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -145,12 +147,19 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_lseek") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset_dir_llseek") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-directory-emit-followup")) {
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-directory-emit-helper")) {
             saw_emit_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-buffer-followup")) {
+            saw_transaction_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "staging buffer") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -158,7 +167,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -170,4 +179,5 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_offset_followup);
     try std.testing.expect(saw_emit_followup);
+    try std.testing.expect(saw_transaction_followup);
 }
