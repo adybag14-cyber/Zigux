@@ -11,6 +11,8 @@
     "validation gate summary",
     "evidence archive path",
     "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
     "retained discussion state",
     "reopen triggers",
     "parity scorecard link or blocker record"
@@ -32,6 +34,8 @@
     "validation gate summary",
     "evidence archive path",
     "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
     "retained discussion state",
     "reopen triggers",
     "parity scorecard link or blocker record",
