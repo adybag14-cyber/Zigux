@@ -1,17 +1,12 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const hexdump = @import("hexdump");
+const fixtures = @import("phase6_hexdump_vectors");
 
-const test_data_b = [_]u8{
-    0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
-    0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
-    0xa6, 0x9c, 0x31, 0xad, 0x9c, 0x0f, 0xac, 0xe9,
-    0x4c, 0xd1, 0x19, 0x99, 0x43, 0xb1, 0xaf, 0x0c,
-};
-
-const test_ascii = ".2.{....p..$}.4...1.....L...C...";
-const fill_char: u8 = '#';
-const test_hexdump_buf_size = 32 * 3 + 2 + 32 + 1;
+const test_data_b = fixtures.data_b;
+const test_ascii = fixtures.data_a;
+const fill_char = fixtures.fill_char;
+const test_hexdump_buf_size = fixtures.test_hexdump_buf_size;
 
 const test_data_1 = [_][]const u8{
     "be", "32", "db", "7b", "0a", "18", "93", "b2",
@@ -154,8 +149,48 @@ fn assertOverflowCase(buflen: usize, len: usize, rowsize: usize, groupsize: usiz
     try std.testing.expectEqualSlices(u8, expected[0..], actual[0..]);
 }
 
+fn assertFixtureParityCase(case: fixtures.ParityCase) !void {
+    var actual: [test_hexdump_buf_size]u8 = undefined;
+    const required = hexdump.hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, actual[0..], case.ascii);
+
+    try std.testing.expectEqual(case.expected_length, required);
+    try std.testing.expectEqualSlices(u8, case.expected_text.current(), std.mem.sliceTo(actual[0..], 0));
+}
+
+fn assertFixtureOverflowCase(case: fixtures.OverflowCase) !void {
+    var actual: [test_hexdump_buf_size]u8 = [_]u8{fill_char} ** test_hexdump_buf_size;
+    const required = hexdump.hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, actual[0..case.buflen], case.ascii);
+
+    try std.testing.expectEqual(case.expected_length, required);
+    if (case.buflen == 0) {
+        try std.testing.expectEqualSlices(u8, &[_]u8{fill_char} ** test_hexdump_buf_size, actual[0..]);
+        return;
+    }
+
+    const visible = case.visible_text.current();
+    try std.testing.expectEqualSlices(u8, visible, std.mem.sliceTo(actual[0..], 0));
+
+    const terminator_index = @min(case.expected_length, case.buflen - 1);
+    try std.testing.expectEqual(@as(u8, 0), actual[terminator_index]);
+    for (actual[terminator_index + 1 ..]) |byte| {
+        try std.testing.expectEqual(fill_char, byte);
+    }
+}
+
 test "phase 6 hexdump module imports cleanly" {
     _ = hexdump;
+}
+
+test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
+    for (fixtures.parity_cases) |case| {
+        try assertFixtureParityCase(case);
+    }
+}
+
+test "phase 6 hexdump serialized overflow vectors stay in sync" {
+    for (fixtures.overflow_cases) |case| {
+        try assertFixtureOverflowCase(case);
+    }
 }
 
 test "phase 6 hexdump parity matrix matches kernel fixture preparation" {
