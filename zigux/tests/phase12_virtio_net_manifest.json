@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "878f9e1df569cda365c364931c038650c0a301a1",
+  "surveyed_commit": "200651a73be45b091b8103c174d7bcd0738950a1",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -17,7 +17,7 @@
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_virtio_net_survey_present": true,
     "preexisting_phase12_survey_note_present": true,
-    "preexisting_virtio_net_zig_present": false
+    "preexisting_virtio_net_zig_present": true
   },
   "gaps": [
     {
@@ -64,10 +64,17 @@
     },
     {
       "id": "phase12-virtio-net-probe-snapshot-starter",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/net/virtio_net.zig",
       "why_now": "The next honest virtio_net step is one tiny probe-time snapshot helper around negotiated feature bits, queue-pair counts, ctrl-vq presence, mergeable-buffer mode, and RSS or hash-report capability so the lane can describe `virtnet_probe()` before any NAPI, XDP, DMA, or netdev registration work."
+    },
+    {
+      "id": "phase12-virtio-net-queue-recovery-followup",
+      "status": "ready_next",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The next honest virtio_net step after the probe snapshot is one bounded queue-recovery follow-up around reset-required propagation, control-vq loss fallback, or RSS downgrade summaries before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
