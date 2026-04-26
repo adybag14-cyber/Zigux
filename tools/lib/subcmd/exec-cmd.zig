@@ -7,6 +7,57 @@ pub const Config = struct {
     exec_path_env: []const u8,
 };
 
+pub const EnvMap = struct {
+    allocator: std.mem.Allocator,
+    values: std.StringHashMap([]u8),
+
+    pub fn init(allocator: std.mem.Allocator) EnvMap {
+        return .{
+            .allocator = allocator,
+            .values = std.StringHashMap([]u8).init(allocator),
+        };
+    }
+
+    pub fn deinit(self: *EnvMap) void {
+        var iterator = self.values.iterator();
+        while (iterator.next()) |entry| {
+            self.allocator.free(entry.value_ptr.*);
+        }
+        self.values.deinit();
+        self.* = undefined;
+    }
+
+    pub fn get(self: *const EnvMap, key: []const u8) ?[]const u8 {
+        return self.values.get(key);
+    }
+
+    pub fn set(self: *EnvMap, key: []const u8, value: []const u8) !void {
+        const owned_value = try self.allocator.dupe(u8, value);
+        errdefer self.allocator.free(owned_value);
+
+        const entry = try self.values.getOrPut(key);
+        if (entry.found_existing) {
+            self.allocator.free(entry.value_ptr.*);
+        }
+        entry.value_ptr.* = owned_value;
+    }
+};
+
+pub const ExecCmdState = struct {
+    argv_exec_path: ?[]u8 = null,
+    argv0_path: ?[]u8 = null,
+
+    pub fn deinit(self: *ExecCmdState, allocator: std.mem.Allocator) void {
+        if (self.argv_exec_path) |path| {
+            allocator.free(path);
+        }
+        if (self.argv0_path) |path| {
+            allocator.free(path);
+        }
+        self.* = undefined;
+    }
+};
+
 pub const ExtractArgv0Result = struct {
     argv0_path: ?[]u8,
     command_name: []const u8,
@@ -81,6 +132,39 @@ pub fn getArgvExecPath(
     return systemPath(allocator, config, config.exec_path);
 }
 
+pub fn execCmdInit(env: *EnvMap, config: Config) !void {
+    try env.set("PREFIX", config.prefix);
+}
+
+pub fn setArgvExecPath(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: *ExecCmdState,
+    config: Config,
+    exec_path: []const u8,
+) !void {
+    if (state.argv_exec_path) |previous| {
+        allocator.free(previous);
+    }
+    state.argv_exec_path = try allocator.dupe(u8, exec_path);
+    try env.set(config.exec_path_env, exec_path);
+}
+
+pub fn setArgv0Path(
+    allocator: std.mem.Allocator,
+    state: *ExecCmdState,
+    argv0_path: ?[]const u8,
+) !void {
+    if (state.argv0_path) |previous| {
+        allocator.free(previous);
+        state.argv0_path = null;
+    }
+
+    if (argv0_path) |path| {
+        state.argv0_path = try allocator.dupe(u8, path);
+    }
+}
+
 fn appendPathEntry(
     builder: *std.ArrayList(u8),
     allocator: std.mem.Allocator,
@@ -124,6 +208,34 @@ pub fn buildSearchPath(
     }
 
     return builder.toOwnedSlice(allocator);
+}
+
+pub fn setupPath(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+) ![]u8 {
+    const argv_exec_path = try getArgvExecPath(
+        allocator,
+        config,
+        state.argv_exec_path,
+        env.get(config.exec_path_env),
+    );
+    defer allocator.free(argv_exec_path);
+
+    const new_path = try buildSearchPath(
+        allocator,
+        cwd,
+        argv_exec_path,
+        state.argv0_path,
+        env.get("PATH"),
+    );
+    errdefer allocator.free(new_path);
+
+    try env.set("PATH", new_path);
+    return new_path;
 }
 
 pub fn prepareExecCmd(
@@ -248,4 +360,84 @@ test "prepareExecCmd keeps the null terminator even when no subcommand args are 
     try std.testing.expectEqual(@as(usize, 2), prepared.len);
     try std.testing.expectEqualStrings("perf", prepared[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
+}
+
+test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try std.testing.expectEqualStrings("/usr/libexec/perf-core", env.get("PREFIX").?);
+
+    try setArgvExecPath(
+        std.testing.allocator,
+        &env,
+        &state,
+        config,
+        "/tmp/perf-core",
+    );
+    try std.testing.expectEqualStrings("/tmp/perf-core", state.argv_exec_path.?);
+    try std.testing.expectEqualStrings("/tmp/perf-core", env.get("PERF_EXEC_PATH").?);
+}
+
+test "setupPath updates PATH using stored exec path, argv0 path, and fallback defaults" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, "/repo");
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+
+    var fallback_env = EnvMap.init(std.testing.allocator);
+    defer fallback_env.deinit();
+    try execCmdInit(&fallback_env, config);
+
+    var fallback_state = ExecCmdState{};
+    defer fallback_state.deinit(std.testing.allocator);
+    try setArgvExecPath(std.testing.allocator, &fallback_env, &fallback_state, config, "tools/bin");
+
+    const fallback = try setupPath(
+        std.testing.allocator,
+        &fallback_env,
+        fallback_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(fallback);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/usr/local/bin:/usr/bin:/bin",
+        fallback,
+    );
+    try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
 }
