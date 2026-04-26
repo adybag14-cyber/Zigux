@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=help-command-source-and-terminal-starter`
-- scope: owned command-list handling, injected command-source filtering, injected raw-`PATH` splitting, injected terminal-dimensions resolution, and print-layout planning only
+- scope: owned command-list handling, injected command-source filtering, injected raw-`PATH` splitting, injected terminal-dimensions resolution, and pure pretty-print emission planning
 - product boundary:
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
@@ -43,6 +43,7 @@ The current starter slice covers:
 - raw `PATH` string splitting that preserves empty colon-delimited segments before injected directory population, matching the current `help.c` control flow
 - injected `get_term_dimensions()`-adjacent resolution that prefers explicit `LINES` and `COLUMNS` values before fallback terminal dimensions or the default `25x80`
 - `pretty_print_string_list()`-adjacent column and row planning without direct terminal I/O
+- `pretty_print_string_list()`-adjacent pure output emission through an injected writer, including the same column-major traversal, two-space indent, and ragged-last-column padding rules as the C helper
 
 The current tests check:
 
@@ -55,6 +56,7 @@ The current tests check:
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
+- pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
 
 ## Non-goals
 
@@ -62,8 +64,8 @@ This slice does not yet claim:
 
 - `opendir()` or `readdir()` parity for command discovery
 - direct `ioctl()`-backed terminal probing
-- direct `printf()` output formatting or direct environment reads
+- direct environment reads or a full `cmd_help()`-adjacent CLI surface
 
 ## Next bounded step
 
-Stay in `tools/lib/subcmd/help.zig` and thread the injected terminal-dimensions helper into a future output-emission surface before attempting direct `printf()` parity.
+Park the bounded `help.zig` lane unless a fresh parity gap appears, and prefer the next helper-first follow-up from `tools/lib/bpf/zigux_segments/` or another still-active tooling slice before widening this command into direct CLI or filesystem behavior.

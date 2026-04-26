@@ -200,3 +200,36 @@ test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusi
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
+
+test "phase 8 help output emission keeps column-major pretty-printing pure and testable" {
+    var cmds = help.CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("annotate", 8);
+    try cmds.addCmdName("bench", 5);
+    try cmds.addCmdName("diff", 4);
+    try cmds.addCmdName("report", 6);
+    try cmds.addCmdName("stat", 4);
+    cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try help.writePrettyPrintStringListForTerminal(
+        &rendered.writer,
+        cmds,
+        cmds.longestNameLen(),
+        "31",
+        "24",
+        .{
+            .rows = 25,
+            .cols = 80,
+        },
+    );
+
+    try std.testing.expectEqualStrings(
+        "  annotate report\n" ++
+            "  bench    stat\n" ++
+            "  diff\n",
+        rendered.writer.buffered(),
+    );
+}
