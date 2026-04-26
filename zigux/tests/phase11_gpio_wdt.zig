@@ -33,6 +33,36 @@ test "phase11 gpio_wdt parses the bounded property surface and reports config li
     try std.testing.expectError(error.WatchdogNotRunning, watchdog.ping());
 }
 
+test "phase11 gpio_wdt probe summary keeps startup and registration bookkeeping reviewable" {
+    var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const toggle_probe = toggle_watchdog.probeSummary(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_probe.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, toggle_probe.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, toggle_probe.start_mode);
+    try std.testing.expect(toggle_probe.starts_during_probe);
+    try std.testing.expect(toggle_probe.pre_registration_running);
+    try std.testing.expect(toggle_probe.pre_registration_line_is_output);
+    try std.testing.expect(toggle_probe.pre_registration_line_state);
+    try std.testing.expect(toggle_probe.parent_attached);
+    try std.testing.expect(toggle_probe.stop_on_reboot);
+    try std.testing.expect(toggle_probe.timeout_init_requested);
+    try std.testing.expect(toggle_probe.nowayout);
+    try std.testing.expectEqual(@as(u32, 20), toggle_probe.max_hw_heartbeat_ms);
+
+    var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const level_probe = level_watchdog.probeSummary(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_probe.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, level_probe.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, level_probe.start_mode);
+    try std.testing.expect(!level_probe.starts_during_probe);
+    try std.testing.expect(!level_probe.pre_registration_running);
+    try std.testing.expect(level_probe.pre_registration_line_is_output);
+    try std.testing.expect(!level_probe.pre_registration_line_state);
+    try std.testing.expect(!level_probe.nowayout);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_default), level_probe.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_min), level_probe.min_timeout_sec);
+}
+
 test "phase11 gpio_wdt toggle mode mirrors start, ping, and stop transitions" {
     var watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, false);
 
