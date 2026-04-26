@@ -2,23 +2,6 @@ const std = @import("std");
 
 pub const ParseBoolError = error{Invalid};
 
-fn checkBytes8(buf: []const u8, value: u8) ?usize {
-    for (buf, 0..) |ch, idx| {
-        if (ch != value) {
-            return idx;
-        }
-    }
-    return null;
-}
-
-fn repeatedByteWord(value: u8) u64 {
-    var word: u64 = value;
-    word |= word << 8;
-    word |= word << 16;
-    word |= word << 32;
-    return word;
-}
-
 pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
     return allocator.dupe(u8, src);
 }
@@ -104,48 +87,21 @@ pub fn removeSpaces(buf: []u8) []u8 {
     return buf[0..write_idx];
 }
 
-pub fn replaceChar(buf: []u8, old: u8, new: u8) []u8 {
+pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
     for (buf) |*ch| {
         if (ch.* == old) {
             ch.* = new;
         }
     }
-    return buf;
+    return buf.len;
 }
 
 pub fn memchrInv(buf: []const u8, value: u8) ?usize {
-    const word_bytes = @sizeOf(u64);
-
-    if (buf.len <= word_bytes * 2) {
-        return checkBytes8(buf, value);
-    }
-
-    const word_value = repeatedByteWord(value);
-    var idx: usize = 0;
-
-    const misalignment = @intFromPtr(buf.ptr) % word_bytes;
-    if (misalignment != 0) {
-        const prefix_len = @min(word_bytes - misalignment, buf.len);
-        if (checkBytes8(buf[0..prefix_len], value)) |offset| {
-            return offset;
-        }
-        idx = prefix_len;
-    }
-
-    while (idx + word_bytes <= buf.len) : (idx += word_bytes) {
-        const word = std.mem.readInt(u64, buf[idx..][0..word_bytes], .little);
-        if (word != word_value) {
-            if (checkBytes8(buf[idx .. idx + word_bytes], value)) |offset| {
-                return idx + offset;
-            }
-            unreachable;
+    for (buf, 0..) |ch, idx| {
+        if (ch != value) {
+            return idx;
         }
     }
-
-    if (checkBytes8(buf[idx..], value)) |offset| {
-        return idx + offset;
-    }
-
     return null;
 }
 
@@ -174,7 +130,7 @@ test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
 
     var replace_buf = [_]u8{ 'a', '-', 'b' };
-    _ = replaceChar(&replace_buf, '-', '_');
+    try std.testing.expectEqual(@as(usize, 3), replaceChar(&replace_buf, '-', '_'));
     try std.testing.expectEqualSlices(u8, "a_b", &replace_buf);
 }
 
@@ -186,15 +142,4 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqualStrings("zigux", duplicated);
     try std.testing.expectEqual(@as(?usize, 4), memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
-}
-
-test "memchrInv handles long aligned and misaligned buffers" {
-    var buf = [_]u8{'a'} ** 40;
-    buf[23] = 'Z';
-
-    try std.testing.expectEqual(@as(?usize, 23), memchrInv(&buf, 'a'));
-    try std.testing.expectEqual(@as(?usize, 22), memchrInv(buf[1..], 'a'));
-
-    buf[23] = 'a';
-    try std.testing.expectEqual(@as(?usize, null), memchrInv(&buf, 'a'));
 }

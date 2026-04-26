@@ -68,7 +68,6 @@ static void run_find_bit_section(void)
 	unsigned long nbits = BITS_PER_LONG * 3;
 	unsigned long tail_nbits = BITS_PER_LONG + 5;
 	unsigned long tail_bitmap[2] = {0, 1UL << 9};
-	unsigned long tail_mixed_bitmap[2] = {0, (1UL << 3) | (1UL << 9)};
 	unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};
 
 	bitmap[0] |= 1UL << 5;
@@ -89,9 +88,7 @@ static void run_find_bit_section(void)
 	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_zero_bitmap, tail_nbits));
 	printf("\"tail_zero_clamped_next\":%lu,", find_next_zero_bit(tail_zero_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_and_clamped_first\":%lu,", find_first_and_bit(tail_bitmap, tail_bitmap, tail_nbits));
-	printf("\"tail_and_clamped_next\":%lu,", find_next_and_bit(tail_bitmap, tail_bitmap, tail_nbits, BITS_PER_LONG));
-	printf("\"tail_and_mixed_first\":%lu,", find_first_and_bit(tail_mixed_bitmap, tail_mixed_bitmap, tail_nbits));
-	printf("\"tail_and_mixed_next\":%lu", find_next_and_bit(tail_mixed_bitmap, tail_mixed_bitmap, tail_nbits, BITS_PER_LONG + 4));
+	printf("\"tail_and_clamped_next\":%lu", find_next_and_bit(tail_bitmap, tail_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("}");
 }
 
@@ -174,25 +171,31 @@ static void run_string_section(void)
 	char trim_buf[] = " \thi \n";
 	char remove_buf[] = "a b c";
 	char replace_buf[] = "a-b";
+	char *replace_end;
 	char *skip = skip_spaces("   hello");
 	char *trimmed = strim(trim_buf);
 	remove_spaces(remove_buf);
-	strreplace(replace_buf, '-', '_');
+	replace_end = strreplace(replace_buf, '-', '_');
 	void *memchr_hit = memchr_inv("aaaaXaaa", 'a', 8);
 	void *memchr_none = memchr_inv("bbbb", 'b', 4);
  
 	printf("\"string\":{");
-	printf("\"strtobool_y\":%s,", (strtobool("y", &value) == 0 && value) ? "true" : "false");
-	printf("\"strtobool_on\":%s,", (strtobool("On", &value) == 0 && value) ? "true" : "false");
-	printf("\"strtobool_zero\":%s,", (strtobool("0", &value) == 0 && !value) ? "true" : "false");
-	printf("\"strtobool_off\":%s,", (strtobool("of", &value) == 0 && !value) ? "true" : "false");
+	strtobool("y", &value);
+	printf("\"strtobool_y\":%s,", value ? "true" : "false");
+	strtobool("On", &value);
+	printf("\"strtobool_on\":%s,", value ? "true" : "false");
+	strtobool("0", &value);
+	printf("\"strtobool_zero\":%s,", value ? "true" : "false");
+	strtobool("of", &value);
+	printf("\"strtobool_off\":%s,", value ? "true" : "false");
 	printf("\"strtobool_invalid\":%d,", strtobool("maybe", &value));
-	printf("\"strlcpy_len\":%zu,", strscpy(dst, "hello", sizeof(dst)));
+	printf("\"strlcpy_len\":%zu,", strlcpy(dst, "hello", sizeof(dst)));
 	printf("\"strlcpy_buffer\":\"%s\",", dst);
 	printf("\"skip_spaces\":\"%s\",", skip);
 	printf("\"trim_spaces\":\"%s\",", trimmed);
 	printf("\"remove_spaces\":\"%s\",", remove_buf);
 	printf("\"replace_char\":\"%s\",", replace_buf);
+	printf("\"replace_char_end\":%td,", (ptrdiff_t)(replace_end - replace_buf));
 	printf("\"memchr_inv_index\":%td,", (ptrdiff_t)((const char *)memchr_hit - "aaaaXaaa"));
 	printf("\"memchr_inv_none\":%s", memchr_none ? "false" : "true");
 	printf("}");

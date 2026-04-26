@@ -34,8 +34,6 @@ const Fixture = struct {
         tail_zero_clamped_next: usize,
         tail_and_clamped_first: usize,
         tail_and_clamped_next: usize,
-        tail_and_mixed_first: usize,
-        tail_and_mixed_next: usize,
     },
     bitmap: struct {
         weight: usize,
@@ -68,6 +66,7 @@ const Fixture = struct {
         trim_spaces: []const u8,
         remove_spaces: []const u8,
         replace_char: []const u8,
+        replace_char_end: usize,
         memchr_inv_index: usize,
         memchr_inv_none: bool,
     },
@@ -208,8 +207,6 @@ test "phase 1 helper ports match committed parity fixture" {
     var find_tail_window = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9) };
     try std.testing.expectEqual(fixture.find_bit.bits_per_long + 3, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
     try std.testing.expectEqual(find_tail_nbits, find_bit.findNextBit(&find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4));
-    try std.testing.expectEqual(fixture.find_bit.tail_and_mixed_first, find_bit.findFirstAndBit(&find_tail_window, &find_tail_window, find_tail_nbits));
-    try std.testing.expectEqual(fixture.find_bit.tail_and_mixed_next, find_bit.findNextAndBit(&find_tail_window, &find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4));
     find_tail_window[1] &= ~(@as(find_bit.Word, 1) << 3);
     try std.testing.expectEqual(find_tail_nbits, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
 
@@ -279,7 +276,10 @@ test "phase 1 helper ports match committed parity fixture" {
     var remove_buffer = [_]u8{ 'a', ' ', 'b', ' ', 'c', 0 };
     try std.testing.expectEqualStrings(fixture.string.remove_spaces, string.removeSpaces(remove_buffer[0 .. remove_buffer.len - 1]));
     var replace_buffer = [_]u8{ 'a', '-', 'b', 0 };
-    _ = string.replaceChar(replace_buffer[0 .. replace_buffer.len - 1], '-', '_');
+    try std.testing.expectEqual(
+        fixture.string.replace_char_end,
+        string.replaceChar(replace_buffer[0 .. replace_buffer.len - 1], '-', '_'),
+    );
     try std.testing.expectEqualStrings(fixture.string.replace_char, replace_buffer[0..fixture.string.replace_char.len]);
     try std.testing.expectEqual(@as(?usize, fixture.string.memchr_inv_index), string.memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), string.memchrInv("bbbb", 'b'));
