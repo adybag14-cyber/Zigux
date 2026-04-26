@@ -7,6 +7,16 @@ const DiffCase = struct {
     next: i64,
 };
 
+const CompareSwapCase = struct {
+    name: []const u8,
+    seed: i64,
+    expected: i64,
+    desired: i64,
+    previous: i64,
+    final: i64,
+    stored: bool,
+};
+
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -20,7 +30,17 @@ fn expectExchangeCase(case: DiffCase) !void {
     try std.testing.expectEqual(case.seed, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange expectations" {
+fn expectCompareSwapCase(case: CompareSwapCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.compareSwapCounter(case.expected, case.desired);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.stored, result.stored);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange and cmpxchg expectations" {
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
@@ -41,6 +61,31 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange expect
 
     for (cases) |case| {
         try expectExchangeCase(case);
+    }
+
+    const compare_swap_cases = [_]CompareSwapCase{
+        .{
+            .name = "cmpxchg success path stores the desired value when the expected value matches",
+            .seed = 0x2aaa_3137_4001_500d,
+            .expected = 0x2aaa_3137_4001_500d,
+            .desired = -0x2152_4110_2150_3502,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = -0x2152_4110_2150_3502,
+            .stored = true,
+        },
+        .{
+            .name = "cmpxchg mismatch keeps the original value visible",
+            .seed = 0x2aaa_3137_4001_500d,
+            .expected = -0x0531_5452_0ff2_0fff,
+            .desired = -0x2152_4110_2150_3502,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = 0x2aaa_3137_4001_500d,
+            .stored = false,
+        },
+    };
+
+    for (compare_swap_cases) |case| {
+        try expectCompareSwapCase(case);
     }
 }
 
