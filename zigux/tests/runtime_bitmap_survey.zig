@@ -48,7 +48,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
