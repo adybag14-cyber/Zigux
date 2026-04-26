@@ -6,6 +6,8 @@ const Symbol = struct {
     address: usize,
 };
 
+var counted_compare_calls: usize = 0;
+
 fn compareU32(key: *const u32, item: *const u32) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
@@ -20,6 +22,11 @@ fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
         .eq => 0,
         .gt => 1,
     };
+}
+
+fn compareU32Counted(key: *const u32, item: *const u32) i32 {
+    counted_compare_calls += 1;
+    return compareU32(key, item);
 }
 
 test "phase 6 bsearch module imports cleanly" {
@@ -66,4 +73,28 @@ test "phase 6 bsearch treats duplicate keys as found-or-null without claiming st
     try std.testing.expectEqual(@as(u32, 7), values[index]);
     try std.testing.expect(found_index >= 1 and found_index <= 3);
     try std.testing.expectEqual(@as(u32, 7), found.*);
+}
+
+test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {
+    const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 0), bsearch.searchIndex(u32, u32, &@as(u32, 3), values[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 7), bsearch.searchIndex(u32, u32, &@as(u32, 24), values[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 14), bsearch.searchIndex(u32, u32, &@as(u32, 45), values[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 26), values[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 50), values[0..], compareU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
 }
