@@ -45,6 +45,7 @@ The current tests check:
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful lookups
 - duplicate-key found-or-null parity without claiming stable duplicate selection
+- representative lookup work stays inside a bounded binary-search comparison budget
 
 ## Non-goals
 
@@ -56,4 +57,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper needs a narrow perf sanity gate before closing the Phase 6 bsearch lane.
+Decide whether the Phase 6 bsearch lane can be closed as complete, or whether it still needs a tiny external parity fixture sourced from kernel-side `bsearch` coverage before parking the helper.
