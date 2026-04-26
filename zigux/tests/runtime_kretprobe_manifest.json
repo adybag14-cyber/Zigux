@@ -51,11 +51,18 @@
       "why_now": "The next meaningful step is a tiny table-driven gate that replays a few entry-skip, duration, and nmissed expectations from the Linux sample before widening the starter."
     },
     {
+      "id": "runtime-kretprobe-loader-plan",
+      "status": "starter_landed",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
+      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, and private-data size explicit while the real runtime substrate is still unavailable."
+    },
+    {
       "id": "runtime-kretprobe-substrate-handoff",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
-      "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A loadable module entry point and real register_kretprobe parity still depend on runtime substrate pieces that the repo has not started yet."
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "A loadable module entry point and real register_kretprobe parity still depend on shared runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
