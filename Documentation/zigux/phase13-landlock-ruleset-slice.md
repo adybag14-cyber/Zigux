@@ -1,8 +1,8 @@
 # Phase 13 Landlock Ruleset Slice
 
-This bounded Phase 13 slice starts `security/landlock/ruleset.zig` with a pure helper-first foothold anchored to `security/landlock/ruleset.c`.
+This bounded Phase 13 slice keeps `security/landlock/ruleset.zig` as a pure helper-first lab anchored to `security/landlock/ruleset.c`.
 
-The current helper stays intentionally narrow:
+The current helper lab stays intentionally narrow:
 
 - models the empty-ruleset rejection and single-layer initialization path of `landlock_create_ruleset()` without claiming allocation, mutex setup, refcounts, or anonymous-fd plumbing
 - unions filesystem, network, and scope access masks across a layer stack so the lane can describe the handled-access summary that later ruleset and domain checks rely on
