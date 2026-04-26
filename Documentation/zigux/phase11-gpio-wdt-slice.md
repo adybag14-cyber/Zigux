@@ -8,7 +8,8 @@ The starter stays intentionally narrow:
 - enforces the same bounded hardware heartbeat margin window used by the C driver
 - models the in-memory start, ping, stop, and disable transitions for both hardware algorithms
 - preserves the `always-running` stop behavior so the lab model does not pretend the watchdog can be disabled when the platform contract forbids it
+- reports a probe-time summary for requested GPIO line mode, `always-running` startup behavior, `nowayout`, timeout init, parent linkage, and stop-on-reboot bookkeeping before watchdog registration
 
-This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring, or real hardware validation yet.
+This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or real hardware validation yet.
 
-The next honest bounded step inside the same Phase 11 lane is to add a tiny probe-time summary around startup state and registration-facing bookkeeping before any live GPIO or broader watchdog integration work.
+The next honest bounded step inside the same Phase 11 lane is to add a tiny nowayout-aware follow-up so the starter distinguishes watchdog-core stop gating from hardware `always-running` semantics before any live GPIO or broader watchdog integration work.
