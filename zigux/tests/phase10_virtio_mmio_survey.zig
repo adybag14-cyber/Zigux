@@ -55,7 +55,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expectEqualStrings("P10-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("6006b56b94da100c84563f29a94ddb4baf2e279a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("88c47b03d3052a84e5b6b895832a807a369c04c9", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
@@ -97,12 +97,12 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-callback-enable-helper")) {
+        if (std.mem.eql(u8, gap.id, "phase10-callback-delay-helper")) {
             saw_ring_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "used-buffer polling") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed-callback helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-mmio-survey-gate")) {
@@ -122,7 +122,8 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue wrappers") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed-callback helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
