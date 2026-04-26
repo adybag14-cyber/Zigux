@@ -1,0 +1,2 @@
+savedcmd_sample_comment_only.o := clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_comment_only.o
+
