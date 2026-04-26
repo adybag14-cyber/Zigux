@@ -36,6 +36,8 @@ It is a small substrate that makes future ports measurable:
 
 1. validate slice shape
 - `python3 scripts/zigux/validate-phase3.py`
+- bounded ABI replay when unrelated Phase 3 slices are still in flight:
+  `python3 scripts/zigux/validate-phase3.py --slug abi`
 
 2. check C-vs-Zig ABI layout parity
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
