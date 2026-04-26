@@ -93,4 +93,9 @@ test "runtime bitmap sample keeps zero-length mutations and invalid copy sources
 
     var cold_source = sample.RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&cold_source));
+
+    var exited_source = sample.RuntimeBitmapSample{};
+    try exited_source.initWithSetBits(&.{ 9, 13 });
+    try exited_source.exit();
+    try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
 }
