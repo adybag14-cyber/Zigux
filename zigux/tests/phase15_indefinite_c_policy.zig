@@ -63,7 +63,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("cf59271229b54757ec5e60f73b4ea56ac27f5f9c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0e0a011e407cd68c24c686e92e38950867d315b6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
@@ -208,6 +208,7 @@ test "phase 15 indefinite-C evidence archives and build wiring stay aligned with
             "replay command: `zig build test --build-file zigux/tests/phase15_build.zig`",
             "latest blocker disposition:",
             "retained discussion state after closeout: `retired_from_active_discussion`",
+            "rollback ownership, lane ownership, or validation gates",
             "## Explicit Non-goals",
             "written rationale",
         });
