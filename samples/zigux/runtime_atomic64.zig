@@ -30,6 +30,11 @@ pub const SelftestSummary = struct {
     checked_guard_paths: bool,
 };
 
+pub const CompareExchangeResult = struct {
+    previous: i64,
+    stored: bool,
+};
+
 pub const RuntimeAtomic64Sample = struct {
     const Self = @This();
 
@@ -71,6 +76,26 @@ pub const RuntimeAtomic64Sample = struct {
     pub fn swapCounter(self: *Self, next: i64) !i64 {
         return switch (self.stage()) {
             .initialized, .selftest_complete => atomic.exchange(i64, &self.counter, next, .seq_cst),
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn compareSwapCounter(self: *Self, expected: i64, desired: i64) !CompareExchangeResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const mismatch = atomic.compareExchange(
+                    i64,
+                    &self.counter,
+                    expected,
+                    desired,
+                    .seq_cst,
+                    .seq_cst,
+                );
+                break :blk if (mismatch) |previous|
+                    .{ .previous = previous, .stored = false }
+                else
+                    .{ .previous = expected, .stored = true };
+            },
             else => error.InvalidLifecycleTransition,
         };
     }
