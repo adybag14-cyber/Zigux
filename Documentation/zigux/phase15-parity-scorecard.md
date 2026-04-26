@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-owner-tracking-followup`
+- `PHASE15_SLICE=parity-scorecard-reopen-trigger-catalog-followup`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, and explicit per-anchor owner tracking for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `49f3ea7d00e2407b83b5350ef6de457b3e966d13`
+- survey provenance refreshed against verified `master` head `feb7b44c67afb49298f417705def5b0fabc3c963`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -151,7 +151,7 @@ The current lane state is:
 - landed `phase15-template-field-sync-followup`
 - landed `phase15-anchor-owner-tracking`
 - landed `phase15-stay-in-c-retirement-rule`
-- ready-next `phase15-reopen-trigger-catalog-followup`
+- landed `phase15-reopen-trigger-catalog-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, and one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
@@ -177,11 +177,19 @@ When a freeze-in-C anchor closes review without a status change, the scorecard r
 
 That retained state does not mean the blocker disappeared. It means the active discussion is closed for now, the anchor remains governed as in-C, and the evidence archive still has to preserve the decision record, linked evidence, benchmark-note status, replay command, and latest blocker disposition that justified the closeout.
 
-Each closeout packet must also record the reopen triggers that would bring the anchor back into active discussion. The minimum triggers are:
+Each closeout packet must also record the reopen triggers that would bring the anchor back into active discussion. The minimum catalog is:
 
-- a narrower seam inventory that answers the latest blocker disposition
-- linked validation, benchmark, or blocker evidence becoming stale or contradictory
-- rollback ownership or validation gates changing enough to invalidate the closed stay-in-C packet
+- `narrower_followup_answers_blocker`: a narrower seam inventory that answers the latest blocker disposition
+- `evidence_packet_stale_or_contradictory`: linked validation, benchmark, or blocker evidence becoming stale or contradictory
+- `ownership_or_validation_changed`: rollback ownership or validation gates changing enough to invalidate the closed stay-in-C packet
+
+## Reopen Trigger Catalog
+
+The bounded reopen-trigger catalog for retired stay-in-C packets is:
+
+- `narrower_followup_answers_blocker`: use when a narrower seam inventory or follow-up now answers the current blocker without widening the allowed boundary
+- `evidence_packet_stale_or_contradictory`: use when linked validation, benchmark, survey, or blocker evidence no longer agrees with the closed packet
+- `ownership_or_validation_changed`: use when rollback ownership, lane ownership, or validation gates changed enough that the closed packet must be reviewed again
 
 ## Evidence Archive Reporting Standard
 
@@ -193,7 +201,7 @@ Each frozen anchor now carries one reporting block that reserves:
 - a benchmark-notes status line that says whether performance notes exist yet
 - the replay command reviewers should run before trusting the current packet
 - the latest blocker disposition that keeps the stay-in-C posture explicit
-- the retained discussion state and reopen triggers that explain how a closed review stays reviewable later
+- the retained discussion state and one or more named catalog reopen triggers that explain how a closed review stays reviewable later
 
 These reporting fields do not claim a decision record already exists. They standardize where the record will live and what still remains missing until a narrower seam earns Architecture Council review.
 
@@ -229,4 +237,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 15 governance lane and add one small reopen-trigger catalog follow-up next, limited to keeping the retained stay-in-C closeout state and its allowed reopen conditions phrased consistently across the scorecard and review-process packet if Phase 15 governance wording changes again.
+Stay in the Phase 15 governance lane and take the already-recorded `phase15-indefinite-c-field-sync-followup` next so the indefinite-C policy note keeps sharing the same decision-record fields, retained discussion state, and reopen-trigger catalog as the scorecard and review-process packet.

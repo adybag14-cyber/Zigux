@@ -38,6 +38,7 @@ const RepoEvidence = struct {
 const ReviewProcess = struct {
     decision_record_required: bool,
     required_record_fields: []const []const u8,
+    reopen_trigger_catalog: []const []const u8,
     retirement_rule: []const u8,
     archive_requirements: []const []const u8,
 };
@@ -83,6 +84,9 @@ fn expectTemplateContains(
     try std.testing.expect(std.mem.indexOf(u8, template_doc, rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, replay_command) != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, latest_blocker_disposition) != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "narrower_followup_answers_blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "evidence_packet_stale_or_contradictory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "no Architecture Council approval claim") != null);
 }
 
@@ -110,13 +114,17 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("49f3ea7d00e2407b83b5350ef6de457b3e966d13", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("feb7b44c67afb49298f417705def5b0fabc3c963", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "active discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "evidence archive path") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "retained discussion state") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "reopen triggers") != null);
+    try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.review_process.reopen_trigger_catalog[0]);
+    try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", manifest.review_process.reopen_trigger_catalog[1]);
+    try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.review_process.reopen_trigger_catalog[2]);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.archive_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
@@ -278,8 +286,8 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         }
         if (std.mem.eql(u8, gap.id, "phase15-reopen-trigger-catalog-followup")) {
             saw_reopen_trigger_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopening a retired stay-in-C discussion") != null);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
@@ -292,8 +300,8 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_scorecard_note);
     try std.testing.expect(saw_council_review_gate);
@@ -338,6 +346,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     defer parsed.deinit();
 
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "decision record ID") != null);
@@ -353,6 +362,9 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "narrower_followup_answers_blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current lane owner responsible for keeping that blocked evidence packet up to date") != null);

@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L09",
   "phase": "Phase 15",
-  "surveyed_commit": "49f3ea7d00e2407b83b5350ef6de457b3e966d13",
+  "surveyed_commit": "feb7b44c67afb49298f417705def5b0fabc3c963",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
@@ -13,6 +13,11 @@
       "latest blocker disposition",
       "retained discussion state",
       "reopen triggers"
+    ],
+    "reopen_trigger_catalog": [
+      "narrower_followup_answers_blocker",
+      "evidence_packet_stale_or_contradictory",
+      "ownership_or_validation_changed"
     ],
     "retirement_rule": "A frozen anchor leaves active discussion only after Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.",
     "archive_requirements": [
@@ -264,10 +269,10 @@
     },
     {
       "id": "phase15-reopen-trigger-catalog-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
-      "why_now": "The next honest governance step is a tiny catalog that keeps the allowed reasons for reopening a retired stay-in-C discussion phrased consistently across the scorecard, the review-process note, and later exception records."
+      "why_now": "The scorecard now names the bounded reopen-trigger catalog so its retained stay-in-C closeout language stays aligned with the review-process note and evidence-archive packets."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",

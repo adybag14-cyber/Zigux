@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L14",
   "phase": "Phase 15",
-  "surveyed_commit": "f52714d220c9507020ff725dcb9cb42401f4afe2",
+  "surveyed_commit": "feb7b44c67afb49298f417705def5b0fabc3c963",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -37,6 +37,11 @@
     "parity scorecard link or blocker record",
     "explicit non-goals",
     "written rationale"
+  ],
+  "reopen_trigger_catalog": [
+    "narrower_followup_answers_blocker",
+    "evidence_packet_stale_or_contradictory",
+    "ownership_or_validation_changed"
   ],
   "decision_buckets": [
     "keep_in_c",
@@ -103,10 +108,10 @@
     },
     {
       "id": "phase15-reopen-trigger-catalog-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The next honest follow-up is a tiny catalog that keeps the allowed reasons for reopening a retired stay-in-C discussion phrased consistently across later exception records."
+      "why_now": "The review-process note now names the bounded reopen-trigger catalog so later exception records and scorecard updates reuse the same stay-in-C reopen vocabulary."
     }
   ]
 }
