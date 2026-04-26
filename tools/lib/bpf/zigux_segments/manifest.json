@@ -58,14 +58,14 @@
     {
       "id": "P8-L13-S02",
       "slug": "pin-path-helpers",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c:2538-2565",
         "tools/lib/bpf/libbpf.c:9054-9352"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/pin_path.zig",
-      "why_now": "Path concatenation, bpffs validation, and pin-name sanitization are bounded helpers that can be validated without entering ELF loading or verifier-facing behavior."
+      "why_now": "Path concatenation and bpffs-style pin-name sanitization are bounded helpers that can be validated without entering mkdir, statfs, unlink, or verifier-facing behavior."
     },
     {
       "id": "P8-L13-S03",
