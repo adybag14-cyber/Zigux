@@ -4,6 +4,29 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const virtio_core_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_ring_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_module.addImport("virtio", virtio_core_module);
+    virtio_net_module.addImport("virtio_ring", virtio_ring_module);
+    const phase12_virtio_net_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase12_virtio_net_module.addImport("virtio_net", virtio_net_module);
     const virtio_scsi_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/scsi/virtio_scsi.zig"),
         .target = target,
@@ -74,6 +97,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase12_nvme_pci_survey_module,
     });
     const run_phase12_nvme_pci_survey_tests = b.addRunArtifact(phase12_nvme_pci_survey_tests);
+    const phase12_virtio_net_tests = b.addTest(.{
+        .name = "phase12-virtio-net-tests",
+        .root_module = phase12_virtio_net_module,
+    });
+    const run_phase12_virtio_net_tests = b.addRunArtifact(phase12_virtio_net_tests);
     const phase12_virtio_net_survey_tests = b.addTest(.{
         .name = "phase12-virtio-net-survey-tests",
         .root_module = phase12_virtio_net_survey_module,
@@ -104,6 +132,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase12_virtio_scsi_tests.step);
     test_step.dependOn(&run_phase12_nvme_pci_tests.step);
     test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);
+    test_step.dependOn(&run_phase12_virtio_net_tests.step);
     test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
