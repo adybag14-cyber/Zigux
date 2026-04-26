@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution, injected environment setup, and null-terminated command-vector preparation only
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, and null-terminated command-vector preparation only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -38,6 +38,7 @@ The current starter slice covers:
 - `extract_argv0_path()` splitting for directory-prefixed tool invocations
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
+- a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
 
 The current tests check:
@@ -46,6 +47,7 @@ The current tests check:
 - relative search-path entries become absolute against the current working directory input
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned
+- `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 
 ## Non-goals
@@ -59,4 +61,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/subcmd/exec-cmd.zig` only if repo review still needs one more bounded parity step such as `PWD`-aware current-directory normalization from `get_pwd_cwd()`; otherwise keep the lane parked and continue Phase 8 work in sibling files.
+Stay in `tools/lib/subcmd/exec-cmd.zig` only if repo review still needs one more bounded parity step such as a pure `execl_cmd()`-style argv collector with the C helper's argument-count guard; otherwise keep the lane parked and continue Phase 8 work in sibling files.
