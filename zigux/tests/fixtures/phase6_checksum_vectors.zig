@@ -29,6 +29,14 @@ pub const PseudoHeaderCase = struct {
     expected_compute: u16,
 };
 
+pub const CarryDisciplineCase = struct {
+    name: []const u8,
+    bytes: []const u8,
+    seed: u32,
+    expected_partial: u32,
+    expected_compute: u16,
+};
+
 const ipv4_header = [_]u8{
     0x45, 0x00, 0x00, 0x3c,
     0x1c, 0x46, 0x40, 0x00,
@@ -38,6 +46,11 @@ const ipv4_header = [_]u8{
 };
 
 const carry_payload = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x7f };
+
+const all_ones_odd = [_]u8{0xff};
+const all_ones_even = [_]u8{ 0xff, 0xff };
+const no_carry_single = [_]u8{0x04};
+const no_carry_pair = [_]u8{ 0x04, 0x04 };
 
 pub const compute_cases = [_]ComputeCase{
     .{
@@ -118,5 +131,36 @@ pub const pseudo_header_cases = [_]PseudoHeaderCase{
         .daddr = 0xc0a800c7,
         .proto = 17,
         .expected_compute = 0x7a1b,
+    },
+};
+
+pub const carry_discipline_cases = [_]CarryDisciplineCase{
+    .{
+        .name = "all-ones odd payload with saturated seed",
+        .bytes = &all_ones_odd,
+        .seed = 0xffff_ffff,
+        .expected_partial = 0xff00,
+        .expected_compute = 0x00ff,
+    },
+    .{
+        .name = "all-ones even payload with zero seed",
+        .bytes = &all_ones_even,
+        .seed = 0,
+        .expected_partial = 0xffff,
+        .expected_compute = 0x0000,
+    },
+    .{
+        .name = "single-byte no-carry seed stays one step below overflow",
+        .bytes = &no_carry_single,
+        .seed = 0xffff_fbfb,
+        .expected_partial = 0xfffb,
+        .expected_compute = 0x0004,
+    },
+    .{
+        .name = "two-byte no-carry seed stays one step below overflow",
+        .bytes = &no_carry_pair,
+        .seed = 0xffff_f7f7,
+        .expected_partial = 0xfbfb,
+        .expected_compute = 0x0404,
     },
 };
