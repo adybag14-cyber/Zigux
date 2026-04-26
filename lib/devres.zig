@@ -6,6 +6,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_lifetime_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioremap_resource_planning: bool,
+    provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
     touches_live_device_lists: bool,
     touches_live_mmio: bool,
@@ -90,6 +91,45 @@ pub const ManagedIoremapOutcome = union(enum) {
     err: ManagedIoremapFailure,
 };
 
+pub const DeviceTreeIomapInput = struct {
+    device_name: []const u8,
+    index: usize,
+    resources: []const Resource,
+    requested_type: IoremapType = .normal,
+    report_size: bool = false,
+    request_region_granted: bool = true,
+    remap_succeeds: bool = true,
+};
+
+pub const DeviceTreeIomapStage = enum {
+    address_translation,
+    managed_ioremap_resource,
+};
+
+pub const DeviceTreeIomapPlan = struct {
+    anchor: []const u8,
+    index: usize,
+    reported_size: ?u64,
+    mapping: ManagedIoremapPlan,
+};
+
+pub const DeviceTreeIomapFailure = struct {
+    anchor: []const u8,
+    stage: DeviceTreeIomapStage,
+    error_code: ErrorCode,
+    index: usize,
+    reported_size: ?u64,
+    effective_type: IoremapType,
+    requests_region: bool,
+    releases_region_on_remap_failure: bool,
+    resource_stage: ?ErrorStage,
+};
+
+pub const DeviceTreeIomapOutcome = union(enum) {
+    mapped: DeviceTreeIomapPlan,
+    err: DeviceTreeIomapFailure,
+};
+
 pub const IoremapResourceInput = struct {
     device_name: []const u8,
     resource: ?Resource,
@@ -107,6 +147,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_lifetime_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioremap_resource_planning = true,
+            .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
             .touches_live_device_lists = false,
             .touches_live_mmio = false,
@@ -249,6 +290,59 @@ pub const DevresHelperLab = struct {
                 .size = size,
                 .requests_region = true,
                 .releases_region_on_remap_failure = false,
+            },
+        };
+    }
+
+    pub fn planDeviceTreeIomap(allocator: std.mem.Allocator, input: DeviceTreeIomapInput) !DeviceTreeIomapOutcome {
+        if (input.index >= input.resources.len) {
+            return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .stage = .address_translation,
+                    .error_code = .invalid,
+                    .index = input.index,
+                    .reported_size = null,
+                    .effective_type = input.requested_type,
+                    .requests_region = false,
+                    .releases_region_on_remap_failure = false,
+                    .resource_stage = null,
+                },
+            };
+        }
+
+        const resource = input.resources[input.index];
+        const translated_size = try resourceSize(resource);
+        const reported_size = if (input.report_size) translated_size else null;
+        const mapped_or_err = try planManagedIoremapResource(allocator, .{
+            .device_name = input.device_name,
+            .resource = resource,
+            .requested_type = input.requested_type,
+            .request_region_granted = input.request_region_granted,
+            .remap_succeeds = input.remap_succeeds,
+        });
+
+        return switch (mapped_or_err) {
+            .mapped => |plan| .{
+                .mapped = .{
+                    .anchor = descriptor().anchor,
+                    .index = input.index,
+                    .reported_size = reported_size,
+                    .mapping = plan,
+                },
+            },
+            .err => |failure| .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .stage = .managed_ioremap_resource,
+                    .error_code = failure.error_code,
+                    .index = input.index,
+                    .reported_size = reported_size,
+                    .effective_type = failure.effective_type,
+                    .requests_region = failure.requests_region,
+                    .releases_region_on_remap_failure = failure.releases_region_on_remap_failure,
+                    .resource_stage = failure.stage,
+                },
             },
         };
     }
