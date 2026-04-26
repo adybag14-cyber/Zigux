@@ -65,6 +65,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
+    var saw_substrate_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -96,6 +97,11 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-substrate-handoff")) {
+            saw_substrate_handoff = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", gap.zigux_destination);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -106,7 +112,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(runtime_test_destination_count >= 4);
     try std.testing.expect(starter_landed_count >= 5);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expect(blocked_count >= 1);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
+    try std.testing.expect(saw_substrate_handoff);
 }
