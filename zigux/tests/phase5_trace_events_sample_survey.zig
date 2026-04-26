@@ -40,7 +40,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -49,6 +49,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_non_goal_prompt = false;
     var saw_message_check = false;
     var saw_rel_loc_check = false;
+    var saw_vararg_check = false;
     var saw_counts_check = false;
     var saw_callback_balance_check = false;
     var saw_exit_check = false;
@@ -58,7 +59,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "relative-location") != null and
+        if (std.mem.indexOf(u8, prompt, "vararg-payload") != null and
+            std.mem.indexOf(u8, prompt, "relative-location") != null and
             std.mem.indexOf(u8, prompt, "callback-path") != null)
         {
             saw_payload_prompt = true;
@@ -90,6 +92,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0xdeadbeef") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative-location") != null);
         }
+        if (std.mem.eql(u8, check.id, "vararg-payload-path")) {
+            saw_vararg_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "vararg payload") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "va_list") != null);
+        }
         if (std.mem.eql(u8, check.id, "event-family-counts")) {
             saw_counts_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "six") != null);
@@ -116,6 +123,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_message_check);
     try std.testing.expect(saw_rel_loc_check);
+    try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
     try std.testing.expect(saw_callback_balance_check);
     try std.testing.expect(saw_exit_check);
