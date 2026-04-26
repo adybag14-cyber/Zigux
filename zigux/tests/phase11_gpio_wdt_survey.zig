@@ -30,7 +30,6 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
@@ -50,7 +49,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("41ee426b91cf612f2d7a5ef5e4754109fc8b6e16", manifest.surveyed_commit);
@@ -65,15 +64,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_driver_gap = false;
     var saw_build_gate = false;
     var saw_doc_gate = false;
     var saw_test_gate = false;
     var saw_slice_note = false;
-    var saw_next_followup = false;
-    var saw_registration_followup = false;
+    var saw_stop_followup = false;
+    var saw_handoff_followup = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -84,8 +82,6 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_driver_scaffold")) {
             blocked_count += 1;
         }
@@ -129,17 +125,17 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-nowayout-followup")) {
-            saw_next_followup = true;
+            saw_stop_followup = true;
             try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "nowayout") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog-core stop") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-registration-handoff-followup")) {
-            saw_registration_followup = true;
+            saw_handoff_followup = true;
             try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration") != null);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-platform-registration")) {
@@ -154,15 +150,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_doc_gate);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_next_followup);
-    try std.testing.expect(saw_registration_followup);
+    try std.testing.expect(saw_stop_followup);
+    try std.testing.expect(saw_handoff_followup);
     try std.testing.expect(saw_blocker);
 }
