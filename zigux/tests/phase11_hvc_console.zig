@@ -78,13 +78,21 @@ test "phase11 hvc_console adds carriage returns and keeps final flush intent on 
     try std.testing.expect(slot.adapter_present);
     try std.testing.expect(slot.usable_for_console);
 
-    const write = try console.stageWrite("boot\nok\n", 9);
+    var write = try console.stageWrite("boot\nok\n", 9);
     try std.testing.expectEqual(@as(usize, 10), write.framed_len);
     try std.testing.expectEqualStrings("boot\r\nok\r\n", write.framed[0..write.framed_len]);
     try std.testing.expectEqual(@as(usize, 1), write.remaining_len);
     try std.testing.expectEqualStrings("\n", write.remaining[0..write.remaining_len]);
     try std.testing.expectEqual(hvc_console.FlushIntent.final_drain, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.partial_write, write.flush_progress);
     try std.testing.expect(write.final_flush);
+    try std.testing.expect(!write.dropped_on_error);
+
+    write = try console.stageWrite("ok\n", 4);
+    try std.testing.expectEqual(@as(usize, 4), write.framed_len);
+    try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
+    try std.testing.expectEqual(hvc_console.FlushIntent.final_drain, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.fully_written, write.flush_progress);
     try std.testing.expect(!write.dropped_on_error);
 }
 
@@ -98,6 +106,7 @@ test "phase11 hvc_console keeps retry intent on eagain and clears the slot on te
     try std.testing.expectEqual(@as(usize, 3), write.remaining_len);
     try std.testing.expectEqualStrings("x\r\n", write.remaining[0..write.remaining_len]);
     try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.no_progress, write.flush_progress);
     try std.testing.expect(write.final_flush);
     try std.testing.expect(!write.dropped_on_error);
 
@@ -105,6 +114,7 @@ test "phase11 hvc_console keeps retry intent on eagain and clears the slot on te
     try std.testing.expectEqual(@as(usize, 7), write.framed_len);
     try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
     try std.testing.expectEqual(hvc_console.FlushIntent.none, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.dropped_on_error, write.flush_progress);
     try std.testing.expect(write.final_flush);
     try std.testing.expect(write.dropped_on_error);
 
