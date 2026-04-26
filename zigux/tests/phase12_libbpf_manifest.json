@@ -96,11 +96,18 @@
       "why_now": "The landed pin-path helper keeps bpffs path joining and dot-sanitization reviewable through bounded buffer APIs before any mkdir, statfs, unlink, or object-loader work enters the lane."
     },
     {
+      "id": "phase12-libbpf-skeleton-population",
+      "status": "blocked_on_object_model",
+      "kind": "object_adjacent",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/skeleton.zig",
+      "why_now": "The shared segment catalog already isolates skeleton population as the nearest post-helper libbpf cluster, but it still depends on `bpf_object`, `bpf_map`, and `bpf_program` model parity that the repo has not started yet."
+    },
+    {
       "id": "phase12-libbpf-object-loader-and-program-load",
       "status": "blocked_on_object_model",
       "kind": "core_loader",
       "zigux_destination": "tools/lib/bpf/zigux_segments/object_loader.zig",
-      "why_now": "ELF collection, object-model parity, relocation recording, and load-time verifier interactions still require a broader bpf_object and bpf_program model than the repo has today, so the roadmap keeps them blocked behind more helper-first progress."
+      "why_now": "ELF collection, loader setup, relocation recording, and load-time verifier interactions remain a broader follow-on risk even after the nearer skeleton-population cluster, so the roadmap keeps this heavier slice blocked behind more object-model progress."
     }
   ]
 }
