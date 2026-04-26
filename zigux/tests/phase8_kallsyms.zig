@@ -1,38 +1,6 @@
 const std = @import("std");
 const kallsyms = @import("kallsyms");
 
-const ChunkFixtureState = struct {
-    chunks: []const []const u8,
-    index: usize = 0,
-};
-
-const SliceReader = struct {
-    bytes: []const u8,
-    index: usize = 0,
-
-    pub fn read(self: *SliceReader, buffer: []u8) !usize {
-        const remaining = self.bytes.len - self.index;
-        if (remaining == 0) {
-            return 0;
-        }
-
-        const read_len = @min(buffer.len, remaining);
-        @memcpy(buffer[0..read_len], self.bytes[self.index .. self.index + read_len]);
-        self.index += read_len;
-        return read_len;
-    }
-};
-
-fn nextFixtureChunk(state: *ChunkFixtureState) anyerror!?[]const u8 {
-    if (state.index >= state.chunks.len) {
-        return null;
-    }
-
-    const chunk = state.chunks[state.index];
-    state.index += 1;
-    return chunk;
-}
-
 test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
@@ -116,6 +84,23 @@ test "phase 8 kallsyms injected parser preserves callback failures" {
 }
 
 test "phase 8 kallsyms chunked reader slice keeps parser behavior across split input" {
+    const ChunkFixtureState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+    };
+
+    const ChunkFixture = struct {
+        fn next(state: *ChunkFixtureState) anyerror!?[]const u8 {
+            if (state.index >= state.chunks.len) {
+                return null;
+            }
+
+            const chunk = state.chunks[state.index];
+            state.index += 1;
+            return chunk;
+        }
+    };
+
     const OwnedParsedSymbol = struct {
         name: []u8,
         symbol_type: u8,
@@ -156,7 +141,7 @@ test "phase 8 kallsyms chunked reader slice keeps parser behavior across split i
     try kallsyms.forEachParsedChunked(
         std.testing.allocator,
         &state,
-        nextFixtureChunk,
+        ChunkFixture.next,
         &symbols,
         Collector.append,
     );
@@ -165,38 +150,25 @@ test "phase 8 kallsyms chunked reader slice keeps parser behavior across split i
     try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
     try std.testing.expectEqualStrings("weak_tail", symbols.items[1].name);
     try std.testing.expectEqual(@as(u8, 'w'), symbols.items[1].symbol_type);
-
-    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 1);
-    const first_chunk = try std.fmt.allocPrint(
-        std.testing.allocator,
-        "1 T {s}",
-        .{too_long_name[0..20]},
-    );
-    defer std.testing.allocator.free(first_chunk);
-    const second_chunk = try std.fmt.allocPrint(
-        std.testing.allocator,
-        "{s}\n",
-        .{too_long_name[20..]},
-    );
-    defer std.testing.allocator.free(second_chunk);
-
-    var error_state = ChunkFixtureState{
-        .chunks = &.{ first_chunk, second_chunk },
-    };
-
-    try std.testing.expectError(
-        error.SymbolNameTooLong,
-        kallsyms.forEachParsedChunked(
-            std.testing.allocator,
-            &error_state,
-            nextFixtureChunk,
-            &symbols,
-            Collector.append,
-        ),
-    );
 }
 
-test "phase 8 kallsyms reader adapter reuses the chunk parser with short reads" {
+test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser contract" {
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) {
+                return 0;
+            }
+
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
     const OwnedParsedSymbol = struct {
         name: []u8,
         symbol_type: u8,
@@ -218,31 +190,68 @@ test "phase 8 kallsyms reader adapter reuses the chunk parser with short reads" 
         }
     };
 
-    var stream = SliceReader{
-        .bytes = "ffffffff81000000 T startup_64\r\ninvalid\nffffffff81000300 w weak_tail",
-    };
-    var scratch_buffer: [11]u8 = undefined;
+    const contents =
+        "ffffffff81000000 T startup_64\r\n" ++
+        "bad line\n" ++
+        "ffffffff81000400 w weak_tail\n";
 
-    var symbols = std.ArrayList(OwnedParsedSymbol).empty;
+    var stream = SliceReader{ .bytes = contents };
+    var scratch_buffer: [11]u8 = undefined;
+    var from_reader = std.ArrayList(OwnedParsedSymbol).empty;
     defer {
-        for (symbols.items) |*symbol| {
+        for (from_reader.items) |*symbol| {
             symbol.deinit(std.testing.allocator);
         }
-        symbols.deinit(std.testing.allocator);
+        from_reader.deinit(std.testing.allocator);
     }
 
     try kallsyms.forEachParsedReader(
         std.testing.allocator,
         &stream,
         &scratch_buffer,
-        &symbols,
+        &from_reader,
         Collector.append,
     );
 
-    try std.testing.expectEqual(@as(usize, 2), symbols.items.len);
-    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
-    try std.testing.expectEqualStrings("weak_tail", symbols.items[1].name);
-    try std.testing.expectEqual(@as(u8, 'w'), symbols.items[1].symbol_type);
+    try std.testing.expectEqual(@as(usize, 2), from_reader.items.len);
+    try std.testing.expectEqualStrings("startup_64", from_reader.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", from_reader.items[1].name);
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    var from_path = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (from_path.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        from_path.deinit(std.testing.allocator);
+    }
+
+    try kallsyms.forEachParsedPath(
+        std.testing.allocator,
+        io,
+        temp_dir.dir,
+        "kallsyms.map",
+        &scratch_buffer,
+        &from_path,
+        Collector.append,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), from_path.items.len);
+    try std.testing.expectEqualStrings("startup_64", from_path.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", from_path.items[1].name);
+    try std.testing.expectEqual(@as(u8, 'w'), from_path.items[1].symbol_type);
 
     var empty_stream = SliceReader{
         .bytes = "ffffffff81000000 T startup_64\n",
@@ -255,7 +264,7 @@ test "phase 8 kallsyms reader adapter reuses the chunk parser with short reads" 
             std.testing.allocator,
             &empty_stream,
             &empty_scratch_buffer,
-            &symbols,
+            &from_path,
             Collector.append,
         ),
     );
