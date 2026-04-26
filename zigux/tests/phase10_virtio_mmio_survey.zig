@@ -101,8 +101,8 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             saw_ring_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable") != null or
-                std.mem.indexOf(u8, gap.why_now, "used-buffer polling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "used-buffer polling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-mmio-survey-gate")) {
@@ -122,8 +122,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue wrappers") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable") != null or
-                std.mem.indexOf(u8, gap.why_now, "used-buffer polling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-enable helper") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
