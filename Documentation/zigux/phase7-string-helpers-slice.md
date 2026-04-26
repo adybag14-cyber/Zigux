@@ -4,7 +4,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 
 ## Status
 
-- `PHASE7_STATUS=active`
+- `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
 - product boundary:
@@ -44,6 +44,7 @@ The current starter slice covers:
 - `string_upper()`
 - `string_lower()`
 - `string_unescape()`
+- `string_escape_mem()` over the bounded runtime-safe escape subset
 
 The current tests check:
 
@@ -56,6 +57,10 @@ The current tests check:
 - bounded ASCII case conversion that stops at the first NUL
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination
+- deterministic escape-space, special, null, octal, and hex output cases
+- dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
+- printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset
+- truncation accounting that returns the full would-be escaped length without promising an appended terminator
 
 ## Non-goals
 
@@ -63,9 +68,8 @@ This slice does not yet claim:
 
 - parity for `string_get_size()`
 - integer parsing helpers
-- `string_escape_mem()`
 - allocation-backed duplication helpers
 
 ## Next bounded step
 
-Port a narrow `string_escape_mem()` subset with deterministic fixtures derived from `lib/string_helpers.c`, now that `string_unescape()` and the smaller header-adjacent helpers are aligned with the dedicated Phase 7 gate.
+Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded `string_escape_mem()` proof, such as a small `string_get_size()` or parsing helper requirement that is still clearly Phase 7-sized.

@@ -7,6 +7,17 @@ pub const UNESCAPE_OCTAL: u32 = 1 << 1;
 pub const UNESCAPE_HEX: u32 = 1 << 2;
 pub const UNESCAPE_SPECIAL: u32 = 1 << 3;
 pub const UNESCAPE_ANY: u32 = UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL;
+pub const ESCAPE_SPACE: u32 = 1 << 0;
+pub const ESCAPE_SPECIAL: u32 = 1 << 1;
+pub const ESCAPE_NULL: u32 = 1 << 2;
+pub const ESCAPE_OCTAL: u32 = 1 << 3;
+pub const ESCAPE_ANY: u32 = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_SPECIAL | ESCAPE_NULL;
+pub const ESCAPE_NP: u32 = 1 << 4;
+pub const ESCAPE_ANY_NP: u32 = ESCAPE_ANY | ESCAPE_NP;
+pub const ESCAPE_HEX: u32 = 1 << 5;
+pub const ESCAPE_NA: u32 = 1 << 6;
+pub const ESCAPE_NAP: u32 = 1 << 7;
+pub const ESCAPE_APPEND: u32 = 1 << 8;
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
     return std.mem.eql(u8, sysfsComparablePrefix(s1), sysfsComparablePrefix(s2));
@@ -123,6 +134,63 @@ pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize
     return dst_index;
 }
 
+pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8) usize {
+    var dst_index: usize = 0;
+    const dict = only orelse "";
+    const has_dict = dict.len != 0;
+    const is_append = (flags & ESCAPE_APPEND) != 0;
+
+    for (src) |ch| {
+        const in_dict = has_dict and std.mem.indexOfScalar(u8, dict, ch) != null;
+
+        if (!is_append and has_dict and !in_dict) {
+            escapePassthrough(ch, dst, &dst_index);
+            continue;
+        }
+
+        if (!(is_append and in_dict) and isAscii(ch) and isPrint(ch) and (flags & ESCAPE_NAP) != 0) {
+            escapePassthrough(ch, dst, &dst_index);
+            continue;
+        }
+
+        if (!(is_append and in_dict) and isPrint(ch) and (flags & ESCAPE_NP) != 0) {
+            escapePassthrough(ch, dst, &dst_index);
+            continue;
+        }
+
+        if (!(is_append and in_dict) and isAscii(ch) and (flags & ESCAPE_NA) != 0) {
+            escapePassthrough(ch, dst, &dst_index);
+            continue;
+        }
+
+        if ((flags & ESCAPE_SPACE) != 0 and escapeSpace(ch, dst, &dst_index)) {
+            continue;
+        }
+
+        if ((flags & ESCAPE_SPECIAL) != 0 and escapeSpecial(ch, dst, &dst_index)) {
+            continue;
+        }
+
+        if ((flags & ESCAPE_NULL) != 0 and escapeNull(ch, dst, &dst_index)) {
+            continue;
+        }
+
+        if ((flags & ESCAPE_OCTAL) != 0) {
+            escapeOctal(ch, dst, &dst_index);
+            continue;
+        }
+
+        if ((flags & ESCAPE_HEX) != 0) {
+            escapeHex(ch, dst, &dst_index);
+            continue;
+        }
+
+        escapePassthrough(ch, dst, &dst_index);
+    }
+
+    return dst_index;
+}
+
 fn cStringPrefix(s: []const u8) []const u8 {
     return s[0 .. std.mem.indexOfScalar(u8, s, 0) orelse s.len];
 }
@@ -230,6 +298,71 @@ fn isOctalDigit(ch: u8) bool {
     return ch >= '0' and ch <= '7';
 }
 
+fn escapePassthrough(ch: u8, dst: []u8, dst_index: *usize) void {
+    if (dst_index.* < dst.len) {
+        dst[dst_index.*] = ch;
+    }
+    dst_index.* += 1;
+}
+
+fn escapeSpace(ch: u8, dst: []u8, dst_index: *usize) bool {
+    const escaped: u8 = switch (ch) {
+        '\n' => 'n',
+        '\r' => 'r',
+        '\t' => 't',
+        0x0b => 'v',
+        0x0c => 'f',
+        else => return false,
+    };
+    escapePassthrough('\\', dst, dst_index);
+    escapePassthrough(escaped, dst, dst_index);
+    return true;
+}
+
+fn escapeSpecial(ch: u8, dst: []u8, dst_index: *usize) bool {
+    const escaped: u8 = switch (ch) {
+        '\\' => '\\',
+        0x07 => 'a',
+        0x1b => 'e',
+        '"' => '"',
+        else => return false,
+    };
+    escapePassthrough('\\', dst, dst_index);
+    escapePassthrough(escaped, dst, dst_index);
+    return true;
+}
+
+fn escapeNull(ch: u8, dst: []u8, dst_index: *usize) bool {
+    if (ch != 0) {
+        return false;
+    }
+    escapePassthrough('\\', dst, dst_index);
+    escapePassthrough('0', dst, dst_index);
+    return true;
+}
+
+fn escapeOctal(ch: u8, dst: []u8, dst_index: *usize) void {
+    escapePassthrough('\\', dst, dst_index);
+    escapePassthrough(((ch >> 6) & 0x07) + '0', dst, dst_index);
+    escapePassthrough(((ch >> 3) & 0x07) + '0', dst, dst_index);
+    escapePassthrough((ch & 0x07) + '0', dst, dst_index);
+}
+
+fn escapeHex(ch: u8, dst: []u8, dst_index: *usize) void {
+    escapePassthrough('\\', dst, dst_index);
+    escapePassthrough('x', dst, dst_index);
+    escapePassthrough(std.fmt.digitToChar((ch >> 4) & 0x0f, .lower), dst, dst_index);
+    escapePassthrough(std.fmt.digitToChar(ch & 0x0f, .lower), dst, dst_index);
+}
+
+fn isAscii(ch: u8) bool {
+    return ch <= 0x7f;
+}
+
+fn isPrint(ch: u8) bool {
+    return ch >= 0x20 and ch <= 0x7e;
+}
+
 test "sysfsStreq accepts optional trailing newline" {
     try std.testing.expect(sysfsStreq("enabled", "enabled\n"));
     try std.testing.expect(sysfsStreq("enabled\n", "enabled"));
@@ -333,4 +466,53 @@ test "stringUnescape exact-fit destination still decodes an escape" {
     try std.testing.expectEqual(@as(usize, 1), len);
     try std.testing.expectEqual(@as(u8, '\n'), out[0]);
     try std.testing.expectEqual(@as(u8, 0), out[1]);
+}
+
+test "stringEscapeMem covers the bounded Linux escape classes" {
+    var out = [_]u8{0} ** 64;
+
+    try std.testing.expectEqual(@as(usize, 11), stringEscapeMem("\x0c \n\r\t\x0b", &out, ESCAPE_SPACE, null));
+    try std.testing.expectEqualSlices(u8, "\\f \\n\\r\\t\\v", out[0..11]);
+
+    try std.testing.expectEqual(@as(usize, 8), stringEscapeMem("\\\"\x07\x1b", &out, ESCAPE_SPECIAL, null));
+    try std.testing.expectEqualSlices(u8, "\\\\\\\"\\a\\e", out[0..8]);
+
+    try std.testing.expectEqual(@as(usize, 2), stringEscapeMem("\x00", &out, ESCAPE_NULL, null));
+    try std.testing.expectEqualSlices(u8, "\\0", out[0..2]);
+
+    try std.testing.expectEqual(@as(usize, 12), stringEscapeMem("A\x00\x1b", &out, ESCAPE_HEX, null));
+    try std.testing.expectEqualSlices(u8, "\\x41\\x00\\x1b", out[0..12]);
+
+    try std.testing.expectEqual(@as(usize, 12), stringEscapeMem("A\x00\x1b", &out, ESCAPE_OCTAL, null));
+    try std.testing.expectEqualSlices(u8, "\\101\\000\\033", out[0..12]);
+}
+
+test "stringEscapeMem honors only and append selection rules" {
+    var out = [_]u8{0} ** 64;
+
+    try std.testing.expectEqual(@as(usize, 5), stringEscapeMem("A\n\tZ", &out, ESCAPE_SPACE, "\n"));
+    try std.testing.expectEqualSlices(u8, "A\\n\tZ", out[0..5]);
+
+    try std.testing.expectEqual(@as(usize, 6), stringEscapeMem("A\nZ", &out, ESCAPE_NAP | ESCAPE_HEX | ESCAPE_APPEND, "\n"));
+    try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..6]);
+}
+
+test "stringEscapeMem supports printable and ascii passthrough filters" {
+    var out = [_]u8{0} ** 64;
+
+    try std.testing.expectEqual(@as(usize, 6), stringEscapeMem("A\x01z", &out, ESCAPE_NP | ESCAPE_HEX, null));
+    try std.testing.expectEqualSlices(u8, "A\\x01z", out[0..6]);
+
+    try std.testing.expectEqual(@as(usize, 6), stringEscapeMem("A\x80z", &out, ESCAPE_NA | ESCAPE_HEX, null));
+    try std.testing.expectEqualSlices(u8, "A\\x80z", out[0..6]);
+
+    try std.testing.expectEqual(@as(usize, 10), stringEscapeMem("A\x01\x80z", &out, ESCAPE_NAP | ESCAPE_HEX, null));
+    try std.testing.expectEqualSlices(u8, "A\\x01\\x80z", out[0..10]);
+}
+
+test "stringEscapeMem reports truncated output length without forcing a terminator" {
+    var out = [_]u8{ '?', '?', '?', '?', '?' };
+    const len = stringEscapeMem("\n", &out, ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), len);
+    try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
 }

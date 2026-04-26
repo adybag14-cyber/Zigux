@@ -96,3 +96,27 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqual(@as(u8, 0), bounded[2]);
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
 }
+
+test "phase 7 stringEscapeMem covers the bounded escape subset" {
+    var out = [_]u8{0} ** 64;
+
+    const any_len = string_helpers.stringEscapeMem("\n\\\x00", &out, string_helpers.ESCAPE_ANY, null);
+    try std.testing.expectEqual(@as(usize, 6), any_len);
+    try std.testing.expectEqualSlices(u8, "\\n\\\\\\0", out[0..any_len]);
+
+    const hex_len = string_helpers.stringEscapeMem("A\x01z", &out, string_helpers.ESCAPE_NP | string_helpers.ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 6), hex_len);
+    try std.testing.expectEqualSlices(u8, "A\\x01z", out[0..hex_len]);
+}
+
+test "phase 7 stringEscapeMem keeps only and append behavior deterministic" {
+    var out = [_]u8{0} ** 64;
+
+    const dict_len = string_helpers.stringEscapeMem("A\n\tZ", &out, string_helpers.ESCAPE_SPACE, "\n");
+    try std.testing.expectEqual(@as(usize, 5), dict_len);
+    try std.testing.expectEqualSlices(u8, "A\\n\tZ", out[0..dict_len]);
+
+    const append_len = string_helpers.stringEscapeMem("A\nZ", &out, string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, "\n");
+    try std.testing.expectEqual(@as(usize, 6), append_len);
+    try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..append_len]);
+}
