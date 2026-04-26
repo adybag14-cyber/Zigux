@@ -65,6 +65,11 @@
       "name": "sample_crlf",
       "input": "sample_crlf.config",
       "expected": "sample_crlf_expected.json"
+    },
+    {
+      "name": "explicit_n_tristate",
+      "input": "explicit_n_tristate.config",
+      "expected": "explicit_n_tristate_expected.json"
     }
   ]
 }
