@@ -30,8 +30,8 @@ The highest-value honest step in this lane is therefore not to sketch a fake asy
 - `lib/test_workqueue.c` shows there is already a kernel-side test surface around real execution behavior, which reinforces that the first Zigux artifact should be descriptive and reviewable rather than another runtime.
 - the live repo already had `zigux/kernel/export_shim.zig`, which made a kernel-adjacent Phase 14 boundary-map file a natural next step without inventing a new namespace.
 - the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, flush or cancel coordination, worker-pool concurrency ownership, and rescuer or scheduler hooks.
-- the bridge now carries one small concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
-- the next honest workqueue-facing step is a tighter lock-handoff audit around `__queue_work()`, `process_one_work()`, and `worker_thread()` so the lane names where `last_pool->lock`, `pool->lock`, and sleep or wake transitions are released and reacquired before any wrapper claims live enqueue or execution ownership.
+- the bridge now carries one small concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` or ordered inactive-list gate, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
+- the next honest workqueue-facing step is the remaining lock-handoff audit around `__queue_work()`, `process_one_work()`, and `worker_thread()` so the lane names where `last_pool->lock`, `pool->lock`, and sleep or wake transitions are released and reacquired before any wrapper claims live enqueue or execution ownership.
 
 ## Recorded gaps
 
@@ -45,6 +45,7 @@ The current lane state is:
 - landed `phase14-workqueue-slice-note`
 - landed `phase14-workqueue-survey-note`
 - landed `phase14-workqueue-concurrency-audit-outline`
+- landed `phase14-workqueue-max-active-audit`
 - ready-next `phase14-workqueue-lock-handoff-followup`
 - blocked `phase14-workqueue-live-execution-blocker`
 
@@ -72,4 +73,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` lock-handoff audit next, limited to `__queue_work()`, `process_one_work()`, and `worker_thread()` so the bridge records where pool locks and sleep or wake transitions are released and reacquired before any wrapper leaves the current boundary-map-only posture.
+Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` lock-handoff audit next, limited to `__queue_work()`, `process_one_work()`, and `worker_thread()` so the bridge records where `last_pool->lock`, `pool->lock`, and sleep or wake transitions are released and reacquired before any wrapper leaves the current boundary-map-only posture.
