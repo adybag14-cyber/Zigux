@@ -36,6 +36,16 @@ pub const QueueNotificationSummary = struct {
     needs_kick: bool,
 };
 
+pub const UsedBufferPollSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    newly_used_chain_count: u16,
+    outstanding_chain_count: u16,
+    has_newly_used_chains: bool,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -46,6 +56,7 @@ pub const VirtioRingLab = struct {
         uses_indirect_descriptors: bool = false,
         avail_idx_shadow: u16 = 0,
         last_used_idx: u16 = 0,
+        last_polled_used_idx: u16 = 0,
         outstanding_chain_count: u16 = 0,
         num_added: u16 = 0,
         notification_count: usize = 0,
@@ -130,6 +141,24 @@ pub const VirtioRingLab = struct {
 
         slot.outstanding_chain_count -= used_chain_count;
         slot.last_used_idx +%= used_chain_count;
+    }
+
+    pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        const previous_poll_idx = slot.last_polled_used_idx;
+        const newly_used_chain_count = slot.last_used_idx -% previous_poll_idx;
+
+        const summary = UsedBufferPollSummary{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = previous_poll_idx,
+            .newly_used_chain_count = newly_used_chain_count,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .has_newly_used_chains = newly_used_chain_count != 0,
+        };
+        slot.last_polled_used_idx = slot.last_used_idx;
+        return summary;
     }
 
     pub fn queueShapeSummary(self: *const Self, queue_index: u16) !QueueShapeSummary {

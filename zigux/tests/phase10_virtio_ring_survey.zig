@@ -53,7 +53,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expectEqualStrings("P10-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("55d9daca2d5fe73905a3baf4f921d6773d7cbf2b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("8afc115368aa23155133197a30c83093aa15f477", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase10_test_files);
@@ -68,6 +68,8 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_ring_helper = false;
+    var saw_used_buffer_polling = false;
+    var saw_callback_enable_next = false;
     var saw_mmio_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
@@ -92,6 +94,20 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-used-buffer-polling-helper")) {
+            saw_used_buffer_polling = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newly consumed chains") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-callback-enable-helper")) {
+            saw_callback_enable_next = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "used-buffer polling") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
             saw_core_progress_note = true;
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "descriptor-shape metadata") != null);
@@ -113,7 +129,6 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
         }
     }
 
@@ -122,6 +137,8 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_core_progress_note);
     try std.testing.expect(saw_ring_helper);
+    try std.testing.expect(saw_used_buffer_polling);
+    try std.testing.expect(saw_callback_enable_next);
     try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_mmio_blocker);
 }

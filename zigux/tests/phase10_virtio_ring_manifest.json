@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L06",
   "phase": "Phase 10",
-  "surveyed_commit": "55d9daca2d5fe73905a3baf4f921d6773d7cbf2b",
+  "surveyed_commit": "8afc115368aa23155133197a30c83093aa15f477",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -53,18 +53,25 @@
       "why_now": "The first honest virtio_ring step is now landed as a tiny in-memory helper for queue index, descriptor count, split or packed layout metadata, and notification bookkeeping that mirrors only the smallest reviewable shape from virtio_ring.c."
     },
     {
-      "id": "phase10-shared-virtqueue-layout-helper",
+      "id": "phase10-used-buffer-polling-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice now adds a tiny in-memory used-buffer polling helper that reports only newly consumed chains since the previous poll, which keeps queue-lifecycle review moving without claiming interrupts, DMA, or real descriptor memory."
+    },
+    {
+      "id": "phase10-callback-enable-helper",
       "status": "ready_next",
-      "kind": "bridging_helper",
-      "zigux_destination": "zigux/helpers/virtqueue_layout.zig",
-      "why_now": "If queue-shape or callback-suppression metadata starts spreading beyond the current core and ring slices, a tiny shared helper in zigux/helpers is the roadmap-approved place to keep those assertions bounded."
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "With queue shape, notify bookkeeping, and used-buffer polling now landed, the next honest virtio_ring step is one small callback-enable helper that stays queue-local before any MMIO or DMA-facing work."
     },
     {
       "id": "phase10-mmio-wrapper-lane",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap still keeps MMIO behind virtqueue wrappers, and MMIO plus DMA-facing behavior remains too risky to start honestly until the in-memory ring lane closes another small callback-enable or used-buffer polling step."
+      "why_now": "The roadmap still keeps MMIO behind virtqueue wrappers, and MMIO plus DMA-facing behavior remains too risky to start honestly until the in-memory ring lane closes one more small callback-enable step after the newly landed used-buffer polling helper."
     },
     {
       "id": "phase10-virtio-ring-slice-note",

@@ -88,3 +88,42 @@ test "phase10 virtio ring rejects queue overflow and used batches beyond outstan
     try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
     try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
 }
+
+test "phase10 virtio ring polls newly used buffers without transport callbacks" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(5, 8, .split, true, false);
+
+    var poll_summary = try ring.pollUsedBuffers(5);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", poll_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expect(!poll_summary.has_newly_used_chains);
+
+    try ring.publishDescriptorChain(5);
+    try ring.publishDescriptorChain(5);
+    try ring.recordUsedChains(5, 1);
+
+    poll_summary = try ring.pollUsedBuffers(5);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+
+    poll_summary = try ring.pollUsedBuffers(5);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.outstanding_chain_count);
+    try std.testing.expect(!poll_summary.has_newly_used_chains);
+
+    try ring.recordUsedChains(5, 1);
+    poll_summary = try ring.pollUsedBuffers(5);
+    try std.testing.expectEqual(@as(u16, 2), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+}
