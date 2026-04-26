@@ -1,5 +1,28 @@
 const std = @import("std");
 const cmdline = @import("cmdline");
+const next_arg_vectors = @import("fixtures/phase7_cmdline_next_arg_vectors.zig");
+
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
+fn expectNextArgFixture(fixture: next_arg_vectors.NextArgCase) !void {
+    var buffer = [_]u8{0} ** 128;
+    try std.testing.expect(fixture.input.len <= buffer.len);
+    @memcpy(buffer[0..fixture.input.len], fixture.input);
+
+    const parsed = cmdline.nextArg(buffer[0..fixture.input.len]);
+    try std.testing.expectEqualStrings(fixture.expected_param, parsed.param);
+
+    if (fixture.expected_value) |expected| {
+        try std.testing.expect(parsed.value != null);
+        try std.testing.expectEqualStrings(expected, parsed.value.?);
+    } else {
+        try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    }
+
+    try std.testing.expectEqualStrings(fixture.expected_rest, cStringPrefix(parsed.rest));
+}
 
 test "phase 7 cmdline module imports cleanly" {
     _ = cmdline;
@@ -33,16 +56,8 @@ test "phase 7 parseOptionStr matches only exact bare options" {
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
 }
 
-test "phase 7 nextArg keeps quoted values together and advances to the next token" {
-    var pair = [_]u8{ 'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', ' ', '1', '"', ' ', 'r', 'o', 0 };
-    const parsed_pair = cmdline.nextArg(&pair);
-    try std.testing.expectEqualStrings("root", parsed_pair.param);
-    try std.testing.expectEqualStrings("/dev/sda 1", parsed_pair.value.?);
-    try std.testing.expectEqualStrings("ro", parsed_pair.rest[0..2]);
-
-    var quoted = [_]u8{ '"', 'n', 'o', 'p', 'a', 'r', 'a', 'm', ' ', 'v', 'a', 'l', 'u', 'e', '"', ' ', 'n', 'e', 'x', 't', 0 };
-    const parsed_quoted = cmdline.nextArg(&quoted);
-    try std.testing.expectEqualStrings("noparam value", parsed_quoted.param);
-    try std.testing.expectEqual(@as(?[]const u8, null), parsed_quoted.value);
-    try std.testing.expectEqualStrings("next", parsed_quoted.rest[0..4]);
+test "phase 7 nextArg matches serialized edge fixtures" {
+    for (next_arg_vectors.next_arg_cases) |fixture| {
+        try expectNextArgFixture(fixture);
+    }
 }
