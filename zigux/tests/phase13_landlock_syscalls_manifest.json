@@ -70,10 +70,17 @@
     },
     {
       "id": "phase13-landlock-ruleset-fd-mode-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one small in-memory planner around `get_ruleset_from_fd()` bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard so Zigux can model the shared read-versus-write gate before any path-backed rule import, credential updates, or live domain state."
+    },
+    {
+      "id": "phase13-landlock-path-fd-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The next honest syscall step is one small in-memory planner around `get_ruleset_from_fd()` type and `FMODE_CAN_WRITE` or `FMODE_CAN_READ` checks before widening into path-backed rule import, credential updates, or live domain state."
+      "why_now": "The next honest syscall step is one small in-memory planner around `get_path_from_fd()` rejecting ruleset FDs, internal mounts, and private or non-user-visible inodes before widening into path-backed rule import, credential updates, or live domain state."
     }
   ]
 }
