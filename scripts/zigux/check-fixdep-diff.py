@@ -126,6 +126,15 @@ def compare_returncode(label: str, expected: int, actual: int) -> None:
         raise RuntimeError(f'{label} return code mismatch: expected {expected}, got {actual}')
 
 
+def write_result(stdout_path: Path, stderr_path: Path, result: subprocess.CompletedProcess[str]) -> None:
+    stdout_path.write_text(result.stdout, encoding='utf-8')
+    stderr_path.write_text(result.stderr, encoding='utf-8')
+
+
+def diff_text(expected: Path, actual: Path) -> None:
+    run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(expected), str(actual)], cwd=str(ROOT))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded fixdep C/Zig artifact parity.')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected output from current C fixdep.')
@@ -149,15 +158,17 @@ def main() -> int:
             tmp_dir = Path(tmp_dir_str)
             c_actual = tmp_dir / 'fixdep.c.actual.txt'
             c_actual_stderr = tmp_dir / 'fixdep.c.actual.stderr.txt'
+            c_repeat = tmp_dir / 'fixdep.c.repeat.txt'
+            c_repeat_stderr = tmp_dir / 'fixdep.c.repeat.stderr.txt'
             zig_actual = tmp_dir / 'fixdep.zig.actual.txt'
             zig_actual_stderr = tmp_dir / 'fixdep.zig.actual.stderr.txt'
+            zig_repeat = tmp_dir / 'fixdep.zig.repeat.txt'
+            zig_repeat_stderr = tmp_dir / 'fixdep.zig.repeat.stderr.txt'
 
             c_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline)
             zig_result = run_zig(zig, tmp_dir, depfile, target, cmdline)
-            c_actual.write_text(c_result.stdout, encoding='utf-8')
-            c_actual_stderr.write_text(c_result.stderr, encoding='utf-8')
-            zig_actual.write_text(zig_result.stdout, encoding='utf-8')
-            zig_actual_stderr.write_text(zig_result.stderr, encoding='utf-8')
+            write_result(c_actual, c_actual_stderr, c_result)
+            write_result(zig_actual, zig_actual_stderr, zig_result)
 
             if args.refresh:
                 expected_stdout.write_text(c_result.stdout, encoding='utf-8')
@@ -165,23 +176,35 @@ def main() -> int:
                     expected_stderr.write_text(c_result.stderr, encoding='utf-8')
                 continue
 
-            diff_base = [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text']
+            c_repeat_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline)
+            zig_repeat_result = run_zig(zig, tmp_dir, depfile, target, cmdline)
+            write_result(c_repeat, c_repeat_stderr, c_repeat_result)
+            write_result(zig_repeat, zig_repeat_stderr, zig_repeat_result)
+
             compare_returncode(f"{case['name']} C", expected_exit_code, c_result.returncode)
             compare_returncode(f"{case['name']} Zig", expected_exit_code, zig_result.returncode)
             compare_returncode(f"{case['name']} C-vs-Zig", c_result.returncode, zig_result.returncode)
-            run(diff_base + [str(expected_stdout), str(c_actual)], cwd=str(ROOT))
-            run(diff_base + [str(expected_stdout), str(zig_actual)], cwd=str(ROOT))
-            run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
+            compare_returncode(f"{case['name']} C repeat", c_result.returncode, c_repeat_result.returncode)
+            compare_returncode(f"{case['name']} Zig repeat", zig_result.returncode, zig_repeat_result.returncode)
+
+            diff_text(expected_stdout, c_actual)
+            diff_text(expected_stdout, zig_actual)
+            diff_text(c_actual, zig_actual)
+            diff_text(c_actual, c_repeat)
+            diff_text(zig_actual, zig_repeat)
+            diff_text(c_actual_stderr, zig_actual_stderr)
+            diff_text(c_actual_stderr, c_repeat_stderr)
+            diff_text(zig_actual_stderr, zig_repeat_stderr)
             if expected_stderr is not None:
-                run(diff_base + [str(expected_stderr), str(c_actual_stderr)], cwd=str(ROOT))
-                run(diff_base + [str(expected_stderr), str(zig_actual_stderr)], cwd=str(ROOT))
-                run(diff_base + [str(c_actual_stderr), str(zig_actual_stderr)], cwd=str(ROOT))
+                diff_text(expected_stderr, c_actual_stderr)
+                diff_text(expected_stderr, zig_actual_stderr)
 
     if args.refresh:
         print('FIXDEP_REFRESH=pass')
         print(f'FIXTURE_DIR={FIXTURE_DIR}')
     else:
         print('FIXDEP_DIFF=pass')
+        print('FIXDEP_DETERMINISM=pass')
         print(f'FIXTURE_DIR={FIXTURE_DIR}')
     return 0
 
