@@ -17,6 +17,7 @@ Use this checklist before opening or merging Zigux product work.
 - is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
 - is there a stated rollback owner and fallback path?
 - if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?
+- if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
 - if the change asks for a freeze-map status change, is the Architecture Council review record linked and is the requested decision bucket explicit?
 - if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
@@ -34,3 +35,4 @@ Use this checklist before opening or merging Zigux product work.
 - if the target stays in C, does the change record that ongoing policy honestly instead of implying a premature port commitment?
 - does the change strengthen the product repo instead of just extending experimental scope?
 - if the change is a Phase 5 sample, does it separate reviewable idiom guidance from later runtime-substrate claims such as procfs, user-copy, or module registration parity?
+- if the change is a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?
