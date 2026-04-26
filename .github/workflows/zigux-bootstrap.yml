@@ -4,6 +4,7 @@ on:
   push:
     branches: [ master ]
     paths:
+      - 'lib/**'
       - 'zigux-alpha/**'
       - 'Documentation/zigux/**'
       - 'scripts/zigux/**'
@@ -14,6 +15,7 @@ on:
       - '.github/workflows/zigux-bootstrap.yml'
   pull_request:
     paths:
+      - 'lib/**'
       - 'zigux-alpha/**'
       - 'Documentation/zigux/**'
       - 'scripts/zigux/**'
