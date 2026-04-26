@@ -12,6 +12,13 @@ pub const FlushIntent = enum {
     final_drain,
 };
 
+pub const FlushProgress = enum {
+    no_progress,
+    partial_write,
+    fully_written,
+    dropped_on_error,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -62,6 +69,7 @@ pub const WriteSnapshot = struct {
     remaining_len: usize,
     remaining: [outbuf_capacity * 2]u8,
     flush_intent: FlushIntent,
+    flush_progress: FlushProgress,
     final_flush: bool,
     dropped_on_error: bool,
 };
@@ -152,26 +160,7 @@ pub const HvcConsoleLab = struct {
         var remaining: [outbuf_capacity * 2]u8 = undefined;
         @memset(&remaining, 0);
 
-        var remaining_len: usize = 0;
-        var flush_intent: FlushIntent = .none;
-        var dropped_on_error = false;
-
-        if (put_result <= 0) {
-            if (put_result == eagain) {
-                flush_intent = .retry_after_eagain;
-                remaining_len = framed_len;
-                std.mem.copyForwards(u8, remaining[0..remaining_len], framed[0..remaining_len]);
-            } else {
-                dropped_on_error = true;
-            }
-        } else {
-            const written = @min(@as(usize, @intCast(put_result)), framed_len);
-            remaining_len = framed_len - written;
-            if (remaining_len > 0) {
-                std.mem.copyForwards(u8, remaining[0..remaining_len], framed[written..framed_len]);
-            }
-            flush_intent = .final_drain;
-        }
+        const summary = summarizeFlushProgress(framed[0..framed_len], put_result, &remaining);
 
         return .{
             .anchor = descriptor().anchor,
@@ -179,17 +168,63 @@ pub const HvcConsoleLab = struct {
             .adapter_present = self.adapter_present,
             .framed_len = framed_len,
             .framed = framed,
-            .remaining_len = remaining_len,
+            .remaining_len = summary.remaining_len,
             .remaining = remaining,
-            .flush_intent = flush_intent,
+            .flush_intent = summary.flush_intent,
+            .flush_progress = summary.flush_progress,
             .final_flush = true,
-            .dropped_on_error = dropped_on_error,
+            .dropped_on_error = summary.dropped_on_error,
         };
     }
 };
 
 pub fn validateConsoleSlot(slot_index: usize) !void {
     if (slot_index >= max_nr_hvc_consoles) return error.InvalidConsoleSlot;
+}
+
+const FlushProgressSummary = struct {
+    remaining_len: usize,
+    flush_intent: FlushIntent,
+    flush_progress: FlushProgress,
+    dropped_on_error: bool,
+};
+
+fn summarizeFlushProgress(
+    framed: []const u8,
+    put_result: isize,
+    remaining: *[outbuf_capacity * 2]u8,
+) FlushProgressSummary {
+    if (put_result <= 0) {
+        if (put_result == eagain) {
+            std.mem.copyForwards(u8, remaining[0..framed.len], framed);
+            return .{
+                .remaining_len = framed.len,
+                .flush_intent = .retry_after_eagain,
+                .flush_progress = .no_progress,
+                .dropped_on_error = false,
+            };
+        }
+
+        return .{
+            .remaining_len = 0,
+            .flush_intent = .none,
+            .flush_progress = .dropped_on_error,
+            .dropped_on_error = true,
+        };
+    }
+
+    const written = @min(@as(usize, @intCast(put_result)), framed.len);
+    const remaining_len = framed.len - written;
+    if (remaining_len > 0) {
+        std.mem.copyForwards(u8, remaining[0..remaining_len], framed[written..]);
+    }
+
+    return .{
+        .remaining_len = remaining_len,
+        .flush_intent = .final_drain,
+        .flush_progress = if (remaining_len == 0) .fully_written else .partial_write,
+        .dropped_on_error = false,
+    };
 }
 
 fn frameConsoleWrite(input: []const u8, output: *[outbuf_capacity * 2]u8) !usize {
