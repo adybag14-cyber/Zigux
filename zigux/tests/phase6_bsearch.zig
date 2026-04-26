@@ -55,3 +55,15 @@ test "phase 6 bsearch supports string keys against sorted records" {
     try std.testing.expectEqual(@intFromPtr(&symbols[2]), @intFromPtr(found));
     try std.testing.expect(bsearch.search([]const u8, Symbol, &@as([]const u8, "vfree"), symbols[0..], compareSymbolName) == null);
 }
+
+test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {
+    const values = [_]u32{ 2, 7, 7, 7, 12, 18 };
+    const index = bsearch.searchIndex(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
+    const found = bsearch.search(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
+    const found_index = (@intFromPtr(found) - @intFromPtr(&values[0])) / @sizeOf(u32);
+
+    try std.testing.expect(index >= 1 and index <= 3);
+    try std.testing.expectEqual(@as(u32, 7), values[index]);
+    try std.testing.expect(found_index >= 1 and found_index <= 3);
+    try std.testing.expectEqual(@as(u32, 7), found.*);
+}
