@@ -6,7 +6,7 @@ The starter stays intentionally narrow:
 
 - validates the early-console slot range and adapter-presence gate
 - models CRLF write framing for the bounded console print path
-- records retry-after-`-EAGAIN` flush intent and fatal-write drop behavior without claiming backend I/O
+- records retry-after-`-EAGAIN`, partial-write, full-write, and fatal-drop flush progress without claiming backend I/O
 - summarizes the setup-state and final-close wait boundary, including the `HVC_CLOSE_WAIT`-shaped final-close gate, without claiming tty registration
 - mirrors the slot teardown that clears the early-console binding
 
