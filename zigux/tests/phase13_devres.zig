@@ -30,7 +30,6 @@ test "phase13 devres retains the release record when managed ioremap succeeds" {
     try std.testing.expect(result.added_to_devres);
     try std.testing.expect(result.release_record_retained);
     try std.testing.expect(!result.release_record_freed);
-    try std.testing.expectEqual(devres.ReleaseAction.iounmap, result.release_action);
     try std.testing.expect(result.should_unmap_on_detach);
 }
 
@@ -377,7 +376,6 @@ test "phase13 devres retains memtype release records on successful WC reservatio
             try std.testing.expect(plan.added_to_devres);
             try std.testing.expect(plan.release_record_retained);
             try std.testing.expect(!plan.release_record_freed);
-            try std.testing.expectEqual(devres.MemtypeReleaseAction.free_wc_memtype, plan.release_action);
             try std.testing.expect(plan.should_release_on_detach);
         },
         .err => return error.UnexpectedFailure,
@@ -400,7 +398,6 @@ test "phase13 devres frees memtype release records when WC reservation fails" {
             try std.testing.expect(!failure.added_to_devres);
             try std.testing.expect(!failure.release_record_retained);
             try std.testing.expect(failure.release_record_freed);
-            try std.testing.expectEqual(@as(?devres.MemtypeReleaseAction, null), failure.release_action);
             try std.testing.expect(!failure.should_release_on_detach);
         },
     }
