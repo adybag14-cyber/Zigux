@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shlex
 import shutil
 import subprocess
@@ -21,6 +22,10 @@ FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
+
+
+def run_capture(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=False, text=True, capture_output=True, **kwargs)
 
 
 def find_compiler(explicit: str | None) -> str:
@@ -93,6 +98,51 @@ def run_zig(zig: str, tmp_dir: Path, actual: Path, argv: list[str]) -> None:
     actual.write_text(result.stdout, encoding='utf-8', newline='\n')
 
 
+def normalize_cli_stderr(text: str) -> str:
+    patterns = (
+        re.compile(r"^.+: (invalid option -- '.+')$"),
+        re.compile(r"^.+: (option requires an argument -- '.+')$"),
+        re.compile(r"^.+: (unrecognized option '.+')$"),
+    )
+    normalized_lines: list[str] = []
+    for line in text.splitlines():
+        normalized = line
+        for pattern in patterns:
+            match = pattern.match(line)
+            if match:
+                normalized = match.group(1)
+                break
+        normalized_lines.append(normalized)
+    if not normalized_lines:
+        return ''
+    return '\n'.join(normalized_lines) + '\n'
+
+
+def write_process_json(path: Path, result: subprocess.CompletedProcess[str], *, normalize_stderr: bool) -> None:
+    payload = {
+        'stdout': result.stdout,
+        'stderr': normalize_cli_stderr(result.stderr) if normalize_stderr else result.stderr,
+        'exit_code': result.returncode,
+    }
+    path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8', newline='\n')
+
+
+def capture_run_c(tmp_dir: Path, actual: Path, compiler: str, argv: list[str], *, normalize_stderr: bool) -> None:
+    exe = tmp_dir / ('genksyms-bridge-c.exe' if os.name == 'nt' else 'genksyms-bridge-c')
+    if os.name == 'nt' and shutil.which('wsl'):
+        raise SystemExit('CLI parity capture is not implemented for Windows WSL mode')
+    run([compiler, '-std=c11', '-Wall', '-Wextra', '-o', str(exe), str(C_HARNESS)], cwd=str(ROOT))
+    result = run_capture([str(exe), *argv], cwd=str(ROOT))
+    write_process_json(actual, result, normalize_stderr=normalize_stderr)
+
+
+def capture_run_zig(zig: str, tmp_dir: Path, actual: Path, argv: list[str], *, normalize_stderr: bool) -> None:
+    exe = tmp_dir / ('genksyms-bridge-zig.exe' if os.name == 'nt' else 'genksyms-bridge-zig')
+    run([zig, 'build-exe', str(ZIG_TOOL), '-femit-bin=' + str(exe)], cwd=str(ROOT))
+    result = run_capture([str(exe), *argv], cwd=str(ROOT))
+    write_process_json(actual, result, normalize_stderr=normalize_stderr)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded genksyms bridge parity.')
     parser.add_argument('--cc', help='C compiler to use')
@@ -107,10 +157,18 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         for case in cases['cases']:
+            mode = case.get('mode', 'stdout_json')
             c_actual = tmp_dir / f"{case['name']}.c.actual.json"
             zig_actual = tmp_dir / f"{case['name']}.zig.actual.json"
-            compile_run_c(tmp_dir, c_actual, compiler, case['argv'])
-            run_zig(zig, tmp_dir, zig_actual, case['argv'])
+            if mode == 'process_json':
+                normalize_stderr = bool(case.get('normalize_stderr', False))
+                capture_run_c(tmp_dir, c_actual, compiler, case['argv'], normalize_stderr=normalize_stderr)
+                capture_run_zig(zig, tmp_dir, zig_actual, case['argv'], normalize_stderr=normalize_stderr)
+            elif mode == 'stdout_json':
+                compile_run_c(tmp_dir, c_actual, compiler, case['argv'])
+                run_zig(zig, tmp_dir, zig_actual, case['argv'])
+            else:
+                raise SystemExit(f"Unsupported genksyms bridge case mode: {mode}")
 
             expected = FIXTURE_DIR / case['expected']
             if args.refresh:
