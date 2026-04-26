@@ -84,3 +84,11 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqual(@as(u8, 0), bounded[2]);
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
 }
+
+test "phase 7 stringUnescape decodes escapes in an exact-fit destination" {
+    var out = [_]u8{ '!', '!' };
+    const len = string_helpers.stringUnescape("\\n", &out, out.len, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 1), len);
+    try std.testing.expectEqual(@as(u8, '\n'), out[0]);
+    try std.testing.expectEqual(@as(u8, 0), out[1]);
+}
