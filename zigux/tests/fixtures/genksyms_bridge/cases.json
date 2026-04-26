@@ -21,6 +21,11 @@
       "expected": "quiet_overrides_warning_expected.json"
     },
     {
+      "name": "explicit_option_terminator",
+      "argv": ["--", "--leftover", "positional"],
+      "expected": "explicit_option_terminator_expected.json"
+    },
+    {
       "name": "help",
       "argv": ["--help"],
       "mode": "process_json",
