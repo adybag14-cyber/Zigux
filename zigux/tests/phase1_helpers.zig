@@ -38,6 +38,8 @@ const Fixture = struct {
     bitmap: struct {
         weight: usize,
         scnprintf: []const u8,
+        scnprintf_trunc_len: usize,
+        scnprintf_trunc: []const u8,
         and_result: bool,
         and_values: []const u64,
         andnot_result: bool,
@@ -263,6 +265,11 @@ test "phase 1 helper ports match committed parity fixture" {
     var bitmap_buffer: [64]u8 = undefined;
     const bitmap_len = bitmap.scnprintf(&bitmap_render, 32, &bitmap_buffer);
     try std.testing.expectEqualStrings(fixture.bitmap.scnprintf, bitmap_buffer[0..bitmap_len]);
+    var bitmap_trunc_buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    const bitmap_trunc_len = bitmap.scnprintf(&bitmap_render, 8, &bitmap_trunc_buffer);
+    try std.testing.expectEqual(fixture.bitmap.scnprintf_trunc_len, bitmap_trunc_len);
+    try std.testing.expectEqualStrings(fixture.bitmap.scnprintf_trunc, bitmap_trunc_buffer[0..bitmap_trunc_len]);
+    try std.testing.expectEqual(@as(u8, 0), bitmap_trunc_buffer[bitmap_trunc_len]);
 
     try std.testing.expectEqual(fixture.string.strtobool_y, try string.strtobool("y"));
     try std.testing.expectEqual(fixture.string.strtobool_on, try string.strtobool("On"));
