@@ -11,6 +11,7 @@ test "phase11 bcm2835_wdt reports bounded timeout limits and descriptor state" {
 
     try std.testing.expectEqual(@as(u32, 15), bcm2835_wdt.max_timeout_sec);
     try std.testing.expectEqual(@as(u32, 15_999), bcm2835_wdt.max_hw_heartbeat_ms);
+    try std.testing.expectEqual(@as(u32, 128), bcm2835_wdt.restart_priority);
     try std.testing.expectError(error.TimeoutTooSmall, bcm2835_wdt.Bcm2835WatchdogLab.init(0));
     try std.testing.expectError(error.TimeoutTooLarge, bcm2835_wdt.Bcm2835WatchdogLab.init(16));
 
@@ -19,6 +20,34 @@ test "phase11 bcm2835_wdt reports bounded timeout limits and descriptor state" {
     try std.testing.expectEqual(@as(u32, 12), config.timeout_sec);
     try std.testing.expectEqual(@as(u32, 15), config.max_timeout_sec);
     try std.testing.expectEqual(@as(u32, 15_999), config.max_hw_heartbeat_ms);
+}
+
+test "phase11 bcm2835_wdt probe summary keeps probe-time watchdog-core bookkeeping reviewable" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const running_probe = watchdog.probeSummary(true, true, true);
+    try std.testing.expectEqual(@as(u32, 9), running_probe.timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_timeout_sec), running_probe.max_timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_hw_heartbeat_ms), running_probe.max_hw_heartbeat_ms);
+    try std.testing.expect(running_probe.nowayout);
+    try std.testing.expect(running_probe.bootloader_running);
+    try std.testing.expect(running_probe.framework_marks_hw_running);
+    try std.testing.expect(running_probe.framework_ping_expected);
+    try std.testing.expect(running_probe.heartbeat_init_requested);
+    try std.testing.expect(running_probe.parent_attached);
+    try std.testing.expect(running_probe.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), running_probe.restart_priority);
+    try std.testing.expect(running_probe.system_power_controller);
+
+    const stopped_probe = watchdog.probeSummary(false, false, false);
+    try std.testing.expect(!stopped_probe.nowayout);
+    try std.testing.expect(!stopped_probe.bootloader_running);
+    try std.testing.expect(!stopped_probe.framework_marks_hw_running);
+    try std.testing.expect(!stopped_probe.framework_ping_expected);
+    try std.testing.expect(stopped_probe.heartbeat_init_requested);
+    try std.testing.expect(stopped_probe.parent_attached);
+    try std.testing.expect(stopped_probe.stop_on_reboot);
+    try std.testing.expect(!stopped_probe.system_power_controller);
 }
 
 test "phase11 bcm2835_wdt mirrors running-state detection and start or stop register writes" {
