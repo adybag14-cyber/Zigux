@@ -89,7 +89,14 @@ test "phase12 nvme pci freezes queue planning across reset and restarts io numbe
     try std.testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
     try std.testing.expectEqual(@as(u16, 32), recovery.last_admin_queue_depth);
 
+    const admin_after_reset = try lab.planAdminQueue(24, 64, false);
+    try std.testing.expectEqual(@as(u16, 0), admin_after_reset.queue_id);
+    try std.testing.expectEqual(@as(u32, 1), admin_after_reset.reset_generation);
+
     const io_after_reset = try lab.planIoQueue(16, 64, false);
     try std.testing.expectEqual(@as(u16, 1), io_after_reset.queue_id);
     try std.testing.expectEqual(@as(u32, 1), io_after_reset.reset_generation);
+
+    recovery = lab.recoverySummary();
+    try std.testing.expectEqual(@as(u16, 24), recovery.last_admin_queue_depth);
 }
