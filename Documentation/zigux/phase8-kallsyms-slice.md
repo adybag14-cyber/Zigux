@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=kallsyms-parse-wrapper-starter`
 - scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, and one direct parse wrapper only
 - product boundary:
