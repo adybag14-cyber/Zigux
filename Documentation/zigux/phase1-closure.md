@@ -41,6 +41,13 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot`
 
+- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond `nbits`.
+- find_bit fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
+- find_bit manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+- `PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
+- `PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits`
+
 ## Closure Gates
 
 Phase 1 is only considered closed when all of the following are green:
