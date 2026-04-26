@@ -5,25 +5,31 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
-- `PHASE5_SLICE=kfifo-reference-sample-survey`
-- scope: roadmap-vs-repo survey, approved reference-sample idiom guidance, and the smallest documentation updates needed so future `samples/zigux/` work does not confuse Phase 5 sample ports with later runtime-module lanes
+- `PHASE5_SLICE=kfifo-reference-sample-starter`
+- scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the first `samples/zigux/` kfifo-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/bytestream_fifo.zig`
+  - `zigux/tests/phase5_build.zig`
+  - `zigux/tests/phase5_bytestream_fifo.zig`
+  - `zigux/tests/phase5_bytestream_fifo_manifest.json`
+  - `zigux/tests/phase5_bytestream_fifo_survey.zig`
 
 ## Why this slice exists
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kfifo/bytestream-example.c` as one of the four Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection shows that `samples/zigux/` already carries runtime-oriented starters for:
+Fresh repo inspection now shows that `samples/zigux/` carries both one bounded Phase 5 reference sample and several later runtime-oriented starters:
 
+- `bytestream_fifo.zig`
 - `runtime_atomic64.zig`
 - `runtime_bitmap.zig`
 - `runtime_kretprobe.zig`
 - `runtime_trace_events.zig`
 
-That is useful later-phase work, but it does not yet explain the earlier Phase 5 reference-sample style or what a kfifo-shaped Zigux sample is allowed to claim before runtime substrate exists.
+The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the other Phase 5 anchors still lack side-by-side starters.
 
 ## Survey findings
 
@@ -32,7 +38,7 @@ That is useful later-phase work, but it does not yet explain the earlier Phase 5
   - bounded in-memory FIFO behavior such as `kfifo_in`, `kfifo_out`, `kfifo_put`, `kfifo_get`, `kfifo_skip`, and `kfifo_peek`
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
-- the live Zigux repo does not yet ship any Phase 5 side-by-side sample under `samples/zigux/` for `kfifo`, `kobject`, or the non-runtime reading of `kretprobe_example.c`.
+- the live Zigux repo now ships a bounded Phase 5 side-by-side sample under `samples/zigux/` for the `kfifo` anchor, but `kobject` and the non-runtime reading of `kretprobe_example.c` still remain open.
 - the generic review checklist already covers scope, safety, validation, ABI, and product discipline, but it does not yet say how a reference sample should distinguish "reviewable idiom" from "runtime-ready module."
 
 ## Approved idiom for a future kfifo-style sample
@@ -47,15 +53,36 @@ Until a bounded runtime substrate exists, a Phase 5 `samples/zigux/` reference s
 
 In practice, that means the approved first idiom is a side-by-side behavior sample, not a claim that Zigux already has `proc_create()`, `kfifo_from_user()`, or module-load parity.
 
+## Landed sample and exact checks
+
+The repo now carries that first bounded sample in `samples/zigux/bytestream_fifo.zig`.
+
+The sample intentionally stays small:
+
+- it models only bounded in-memory FIFO state with a fixed 32-byte ring buffer
+- it replays the Linux anchor's queue-order behavior without any procfs or user-copy substrate
+- it exposes a single `runAnchorReplay()` self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
+
+The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
+
+- the queue length is `15` after enqueueing `"hello"` and bytes `0` through `9`
+- the first drain returns `"hello"`
+- the second drain returns bytes `0` and `1`, and those same bytes are re-enqueued at the tail
+- skipping the next byte removes `2`
+- peeking afterward observes `3` without draining it
+- the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
+- the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
+- empty-queue peek and skip return `null`, pushing past capacity returns `false`, and `reset()` restores an empty queue
+
 ## Recorded gap vs roadmap
 
 The current gap is not "Zigux lacks every sample." The more precise gap is:
 
-- the repo has later runtime-oriented starters in `samples/zigux/`
-- the roadmap still expects a Phase 5 reference-sample layer
-- there is no reviewable note that tells contributors how the `kfifo` anchor should be translated into an approved Zigux sample idiom without over-claiming runtime support
+- the repo now has one reviewable Phase 5 sample plus later runtime-oriented starters in `samples/zigux/`
+- the roadmap still expects the other Phase 5 reference-sample anchors too
+- the kfifo sample still stops at bounded queue-order replay and intentionally does not claim procfs, user-copy, locking, or module registration support
 
-This survey closes that documentation gap so the next bounded Phase 5 step can be a real sample or guide update instead of another round of ambiguous sample naming.
+This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
 
 ## Review gates for this survey
 
@@ -65,15 +92,18 @@ This survey closes that documentation gap so the next bounded Phase 5 step can b
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
 - `find samples/zigux -maxdepth 1 -type f | sort`
 
+3. run the exact bounded Phase 5 sample checks
+- `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+
 ## Non-goals
 
 This survey does not yet claim:
 
-- a landed `samples/zigux/bytestream_fifo.zig` reference port
 - procfs parity
 - `kfifo_from_user()` or `kfifo_to_user()` parity
 - loadable-module wiring or runtime registration support
+- lock-contention or blocking semantics
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and add one small honest kfifo-shaped sample artifact next, most likely a side-by-side `samples/zigux/bytestream_fifo.zig` starter plus a focused review note or fixture-backed self-check that proves queue-order behavior without claiming procfs or user-copy substrate.
+Stay in the Phase 5 samples-and-reference-patterns lane and add the next missing reference-sample anchor, most likely a bounded `samples/zigux/kobject_example.zig` or a non-runtime reading of `samples/kprobes/kretprobe_example.c`, while keeping the same pattern of exact checks and explicit non-goals.
