@@ -8,6 +8,13 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const Handoff = struct {
+    current_mode: []const u8,
+    replay_commands: []const []const u8,
+    blocker_posture_requirement: []const u8,
+    next_step: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -20,6 +27,7 @@ const Manifest = struct {
     required_review_packet_fields: []const []const u8,
     reopen_trigger_catalog: []const []const u8,
     decision_buckets: []const []const u8,
+    handoff: Handoff,
     gaps: []const Gap,
 };
 
@@ -46,7 +54,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("3eac40e856ac7673f705447a1d6025f3d0193b5e", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("febebdae089598f228fff0bc6ee44c1a860fd905", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -77,6 +85,12 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.reopen_trigger_catalog[2]);
     try std.testing.expectEqualStrings("keep_in_c", manifest.decision_buckets[0]);
     try std.testing.expectEqualStrings("bounded_dual_implementation", manifest.decision_buckets[2]);
+    try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
+    try std.testing.expectEqual(@as(usize, 2), manifest.handoff.replay_commands.len);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", manifest.handoff.replay_commands[0]);
+    try std.testing.expectEqualStrings("make -C zigux phase15", manifest.handoff.replay_commands[1]);
+    try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
+    try std.testing.expectEqualStrings("wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice", manifest.handoff.next_step);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -181,8 +195,14 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Decision Buckets") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this review-process slice is parked in maintenance mode until one of the named reopen triggers fires or the deep-core blocker posture changes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current lane posture: `maintenance_mode`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "replay before trusting this parked handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "deep-core blocker posture changes enough to justify a new bounded review-process follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "retained discussion state") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "narrower_followup_answers_blocker") != null);
