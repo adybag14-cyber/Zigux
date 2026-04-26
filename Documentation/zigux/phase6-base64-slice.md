@@ -51,7 +51,7 @@ The current tests check:
 - output-length accounting through `chars`
 - destination-bounds failures before partial writes
 - shared encode fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
-- invalid-input rejection for malformed and variant-mismatched decode inputs
+- invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 
 ## Non-goals
 
@@ -63,4 +63,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper needs a small external C-vs-Zig fixture layer for decode vectors derived from `lib/tests/base64_kunit.c`, or whether the current encode-plus-decode parity gate is already sufficient for a bounded Phase 6 leaf port.
+Decide whether the helper needs a small external C-vs-Zig fixture layer for decode vectors derived from `lib/tests/base64_kunit.c`, or whether the current encode-plus-decode parity gate is already strong enough to pause this Phase 6 leaf port and move to the next helper lane.
