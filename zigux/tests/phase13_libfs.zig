@@ -8,6 +8,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_statfs_defaults);
     try std.testing.expect(descriptor.provides_lookup_policy);
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
+    try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -131,4 +132,44 @@ test "phase13 libfs buffer helpers keep no-op offset windows stable" {
     try std.testing.expectEqual(@as(i64, 3), memory_result.new_pos);
     try std.testing.expectEqual(@as(i64, 3), memory_pos);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 7, 8 }, memory_destination[0..]);
+}
+
+test "phase13 libfs dcache seek planning keeps dots stable and flags positive scans" {
+    const dots = try libfs.LibFsHelperLab.dcacheDirSeekPlan(2, 0, .set);
+    try std.testing.expectEqualStrings("fs/libfs.c", dots.anchor);
+    try std.testing.expectEqual(@as(i64, 0), dots.new_pos);
+    try std.testing.expect(dots.changed);
+    try std.testing.expect(!dots.requires_positive_scan);
+    try std.testing.expect(dots.stays_in_dots_window);
+
+    const scan = try libfs.LibFsHelperLab.dcacheDirSeekPlan(1, 4, .cur);
+    try std.testing.expectEqual(@as(i64, 5), scan.new_pos);
+    try std.testing.expect(scan.changed);
+    try std.testing.expect(scan.requires_positive_scan);
+    try std.testing.expect(!scan.stays_in_dots_window);
+
+    const stable = try libfs.LibFsHelperLab.dcacheDirSeekPlan(5, 5, .set);
+    try std.testing.expectEqual(@as(i64, 5), stable.new_pos);
+    try std.testing.expect(!stable.changed);
+    try std.testing.expect(!stable.requires_positive_scan);
+
+    try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheDirSeekPlan(1, -3, .set));
+    try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheDirSeekPlan(1, -2, .cur));
+    try std.testing.expectError(error.UnsupportedWhence, libfs.LibFsHelperLab.dcacheDirSeekPlan(1, 0, .end));
+}
+
+test "phase13 libfs offset seek planning stays bounded by vfs-style max positions" {
+    const within_range = try libfs.LibFsHelperLab.offsetDirSeekPlan(3, 4, .cur, 16);
+    try std.testing.expectEqualStrings("fs/libfs.c", within_range.anchor);
+    try std.testing.expectEqual(@as(i64, 7), within_range.new_pos);
+    try std.testing.expect(within_range.changed);
+    try std.testing.expect(!within_range.requires_positive_scan);
+    try std.testing.expect(!within_range.stays_in_dots_window);
+
+    const dots = try libfs.LibFsHelperLab.offsetDirSeekPlan(0, 2, .set, 16);
+    try std.testing.expectEqual(@as(i64, 2), dots.new_pos);
+    try std.testing.expect(dots.stays_in_dots_window);
+
+    try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.offsetDirSeekPlan(3, 20, .set, 16));
+    try std.testing.expectError(error.UnsupportedWhence, libfs.LibFsHelperLab.offsetDirSeekPlan(3, 0, .hole, 16));
 }
