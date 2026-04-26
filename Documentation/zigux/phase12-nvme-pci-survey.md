@@ -6,7 +6,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=nvme-pci-survey`
-- scope: archival survey manifest, dedicated survey gate, shared Phase 12 build wiring, and a lane note that compares the landed `pci.zig` starter against the remaining roadmap gap
+- scope: archival survey manifest, dedicated survey gate, shared Phase 12 build and make-target wiring, and a lane note that compares the landed `pci.zig` starter against the remaining roadmap gap and the current Phase 12 tranche state
 - product boundary:
   - `drivers/nvme/host/pci.zig`
   - `zigux/tests/phase12_nvme_pci.zig`
@@ -27,7 +27,8 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 ## Survey findings
 
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
-- the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, and shared `zigux/tests/phase12_build.zig` wiring.
+- the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
+- the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, and freezes queue planning across reset generations.
 - that footing is useful, but it still does not cover PRP or SGL descriptor shaping, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
 - the next honest driver-facing step is one tiny PRP-or-SGL-facing buffer-shape helper or an equally small recovery-summary helper before any live DMA, blk-mq, or PCI lifecycle work.
@@ -37,10 +38,12 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 The survey manifest now records:
 
 - the landed `phase12-build-gate`
+- the landed `phase12-make-target`
 - the landed `phase12-nvme-pci-driver-starter`
 - the landed `phase12-nvme-pci-driver-tests`
 - the landed `phase12-nvme-pci-slice-note`
-- the landed `phase12-virtio-net-survey-gate`
+- the landed `phase12-virtio-net-driver-starter`
+- the landed `phase12-virtio-scsi-driver-starter`
 - the landed `phase12-nvme-pci-survey-gate`
 - the landed `phase12-nvme-pci-survey-note`
 - the ready-next `phase12-nvme-pci-prp-or-sgl-shape-helper`
