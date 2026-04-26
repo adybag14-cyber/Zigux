@@ -102,6 +102,7 @@ def normalize_cli_stderr(text: str) -> str:
     patterns = (
         re.compile(r"^.+: (invalid option -- '.+')$"),
         re.compile(r"^.+: (option requires an argument -- '.+')$"),
+        re.compile(r"^.+: (option '--.+?' requires an argument)$"),
         re.compile(r"^.+: (unrecognized option '.+')$"),
     )
     normalized_lines: list[str] = []
