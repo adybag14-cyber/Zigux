@@ -46,6 +46,14 @@ if missing_markers:
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 required_workflow_markers = [
     'lib/**',
+    'zigux-alpha/**',
+    'Documentation/zigux/**',
+    'scripts/zigux/**',
+    'tools/lib/*.zig',
+    'zigux/**',
+    'include/linux/zigux.h',
+    'include/zigux/**',
+    '.github/workflows/zigux-bootstrap.yml',
 ]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
 if missing_workflow_markers:
