@@ -10,6 +10,7 @@ This document records the bounded Phase 12 survey lane around `drivers/net/virti
 - product boundary:
   - `zigux/tests/phase12_virtio_net_manifest.json`
   - `zigux/tests/phase12_virtio_net_survey.zig`
+  - `zigux/tests/phase12_virtio_net.zig`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-virtio-net-survey.md`
 
@@ -26,7 +27,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - `drivers/net/virtio_net.c` is present on `master` and is much larger than the earlier Phase 10 and Phase 11 starter anchors, which makes a direct first-pass Zig port a poor fit for the roadmap's bounded-delivery rule.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
-- the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and a focused direct test for the new starter. The starter stays probe-time only and still has no runtime driver coverage.
+- the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and a focused direct test for the new starter. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice.
 - the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, RSS or hash-report capability, and whether probe should treat the device as stable, renegotiate features, or reset-required.
 - the next honest driver-facing step is one bounded queue-recovery follow-up around reset-required propagation, control-vq loss fallback, or RSS downgrade summaries before any NAPI, XDP, DMA, control-virtqueue command, or `net_device` lifecycle work.
 
