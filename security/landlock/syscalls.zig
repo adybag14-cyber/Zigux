@@ -115,26 +115,25 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
-pub const RulesetFdKind = enum {
-    ruleset,
-    other,
+pub const RulesetFdAccess = enum {
+    read,
+    write,
 };
 
 pub const RulesetFdRequest = struct {
     fd_present: bool = true,
-    file_kind: RulesetFdKind = .ruleset,
-    file_mode: u32 = 0,
-    required_mode: u32,
-    layer_count: usize = 1,
+    file_is_ruleset: bool = true,
+    file_mode: u32 = fmode_can_read | fmode_can_write,
+    required_access: RulesetFdAccess,
+    num_layers: u32 = 1,
 };
 
 pub const RulesetFdPlan = struct {
     anchor: []const u8,
-    required_mode: u32,
-    validates_fd_type: bool,
-    validates_mode: bool,
-    acquires_ruleset_reference: bool,
-    expected_layer_count: usize,
+    required_access: RulesetFdAccess,
+    validates_ruleset_type: bool,
+    validates_single_layer_ruleset: bool,
+    requires_owned_ruleset_ref: bool,
 };
 
 pub const SyscallsHelperLab = struct {
@@ -306,31 +305,30 @@ pub const SyscallsHelperLab = struct {
     }
 
     pub fn planGetRulesetFromFd(request: RulesetFdRequest) !RulesetFdPlan {
-        switch (request.required_mode) {
-            fmode_can_read, fmode_can_write => {},
-            else => return error.InvalidRequestedMode,
-        }
+        const required_mode = switch (request.required_access) {
+            .read => fmode_can_read,
+            .write => fmode_can_write,
+        };
 
         if (!request.fd_present) {
-            return error.BadFileDescriptor;
+            return error.MissingFd;
         }
-        if (request.file_kind != .ruleset) {
-            return error.InvalidRulesetFdType;
+        if (!request.file_is_ruleset) {
+            return error.InvalidRulesetFd;
         }
-        if ((request.file_mode & request.required_mode) == 0) {
-            return error.InsufficientMode;
+        if ((request.file_mode & required_mode) == 0) {
+            return error.InsufficientAccessMode;
         }
-        if (request.layer_count != 1) {
-            return error.InvalidLayerCount;
+        if (request.num_layers != 1) {
+            return error.InvalidRulesetLayers;
         }
 
         return .{
             .anchor = descriptor().anchor,
-            .required_mode = request.required_mode,
-            .validates_fd_type = true,
-            .validates_mode = true,
-            .acquires_ruleset_reference = true,
-            .expected_layer_count = 1,
+            .required_access = request.required_access,
+            .validates_ruleset_type = true,
+            .validates_single_layer_ruleset = true,
+            .requires_owned_ruleset_ref = true,
         };
     }
 };
