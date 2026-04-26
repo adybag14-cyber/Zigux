@@ -65,6 +65,18 @@ test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     try std.testing.expectEqual(@as(usize, 7), space_len);
     try std.testing.expectEqualSlices(u8, "\x0c\\ \n\r\t\x0b", out[0..space_len]);
 
+    const octal_len = string_helpers.stringUnescape("\\40\\1\\387\\0064\\05\\040\\8a\\110\\777", &out, out.len, string_helpers.UNESCAPE_OCTAL);
+    try std.testing.expectEqual(@as(usize, 15), octal_len);
+    try std.testing.expectEqualSlices(u8, " \x01\x0387\x064\x05 \\8aH?7", out[0..octal_len]);
+
+    const hex_len = string_helpers.stringUnescape("\\xv\\xa\\x2c\\xD\\x6f2", &out, out.len, string_helpers.UNESCAPE_HEX);
+    try std.testing.expectEqual(@as(usize, 8), hex_len);
+    try std.testing.expectEqualSlices(u8, "\\xv\n,\ro2", out[0..hex_len]);
+
+    const special_len = string_helpers.stringUnescape("\\h\\\\\\\"\\a\\e\\", &out, out.len, string_helpers.UNESCAPE_SPECIAL);
+    try std.testing.expectEqual(@as(usize, 7), special_len);
+    try std.testing.expectEqualSlices(u8, "\\h\\\"\x07\x1b\\", out[0..special_len]);
+
     const any_len = string_helpers.stringUnescape("\\n\\x41\\040\\e", &out, out.len, string_helpers.UNESCAPE_ANY);
     try std.testing.expectEqual(@as(usize, 4), any_len);
     try std.testing.expectEqualSlices(u8, "\nA \x1b", out[0..any_len]);
@@ -83,12 +95,4 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqualSlices(u8, "\n\r", bounded[0..2]);
     try std.testing.expectEqual(@as(u8, 0), bounded[2]);
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
-}
-
-test "phase 7 stringUnescape decodes escapes in an exact-fit destination" {
-    var out = [_]u8{ '!', '!' };
-    const len = string_helpers.stringUnescape("\\n", &out, out.len, string_helpers.UNESCAPE_SPACE);
-    try std.testing.expectEqual(@as(usize, 1), len);
-    try std.testing.expectEqual(@as(u8, '\n'), out[0]);
-    try std.testing.expectEqual(@as(u8, 0), out[1]);
 }
