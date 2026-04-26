@@ -1,12 +1,12 @@
 # Phase 12 Virtio Net Survey
 
-This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c`.
+This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c` and the first landed Zigux starter tied to it.
 
 ## Status
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-net-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, and a lane note that compares the live repo state against the roadmap for `drivers/net/virtio_net.zig`
+- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the first `drivers/net/virtio_net.zig` probe snapshot starter, and a lane note that compares the live repo state against the roadmap for the broader driver
 - product boundary:
   - `zigux/tests/phase12_virtio_net_manifest.json`
   - `zigux/tests/phase12_virtio_net_survey.zig`
@@ -15,19 +15,20 @@ This document records the bounded Phase 12 survey lane around `drivers/net/virti
 
 ## Why this slice exists
 
-The Phase 12 roadmap explicitly names `drivers/net/virtio_net.c` as a complex production-driver target, but the live repo still has no `drivers/net/virtio_net.zig` starter.
+The Phase 12 roadmap explicitly names `drivers/net/virtio_net.c` as a complex production-driver target, and the live repo now carries only the first tiny `drivers/net/virtio_net.zig` starter for that lane.
 
-That matters because `virtio_net.c` is not a small leaf helper. The live file is 7,288 lines and mixes probe-time feature negotiation, receive and transmit virtqueue management, NAPI poll loops, XDP and XSK fast paths, page-pool and DMA handling, control-virtqueue commands, RSS and multiqueue configuration, ethtool hooks, and full `net_device` lifecycle work.
+That still matters because `virtio_net.c` is not a small leaf helper. The live file is 7,288 lines and mixes probe-time feature negotiation, receive and transmit virtqueue management, NAPI poll loops, XDP and XSK fast paths, page-pool and DMA handling, control-virtqueue commands, RSS and multiqueue configuration, ethtool hooks, and full `net_device` lifecycle work.
 
-The highest-value honest step in this lane is therefore a survey checkpoint with bounded build wiring and risk notes, not a premature driver scaffold.
+The highest-value honest step in this lane is therefore a very small probe snapshot helper with bounded build wiring and risk notes, not a premature runtime data-path or net-device scaffold.
 
 ## Survey findings
 
 - `drivers/net/virtio_net.c` is present on `master` and is much larger than the earlier Phase 10 and Phase 11 starter anchors, which makes a direct first-pass Zig port a poor fit for the roadmap's bounded-delivery rule.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
-- the Phase 12 lane currently consists of a dedicated build file, `make -C zigux phase12`, the survey gate, and this note. It still has no `drivers/net/virtio_net.zig`, no probe snapshot helper, and no runtime driver coverage.
-- the next honest driver-facing step is one tiny probe snapshot helper around negotiated feature bits, queue-pair counts, control-virtqueue presence, mergeable-buffer mode, and RSS or hash-report capability detection from `virtnet_probe()`.
+- the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and a focused direct test for the new starter. The starter stays probe-time only and still has no runtime driver coverage.
+- the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, RSS or hash-report capability, and whether probe should treat the device as stable, renegotiate features, or reset-required.
+- the next honest driver-facing step is one bounded queue-recovery follow-up around reset-required propagation, control-vq loss fallback, or RSS downgrade summaries before any NAPI, XDP, DMA, control-virtqueue command, or `net_device` lifecycle work.
 
 ## Recorded gaps
 
@@ -39,20 +40,20 @@ The survey manifest now records:
 - the landed `phase12-virtio-ring-foundation`
 - the landed `phase12-virtio-net-survey-gate`
 - the landed `phase12-virtio-net-survey-note`
-- the ready-next `phase12-virtio-net-probe-snapshot-starter`
+- the landed `phase12-virtio-net-probe-snapshot-starter`
+- the ready-next `phase12-virtio-net-queue-recovery-followup`
 - the still-blocked `phase12-virtio-net-runtime-data-path`
 
-This keeps the lane explicit without overstating progress: Zigux has a reviewable Phase 12 checkpoint, but it does not yet claim any net-driver implementation.
+This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
 
 ## Non-goals
 
 This survey slice does not claim:
 
-- a `drivers/net/virtio_net.zig` starter
 - NAPI poll behavior
 - page-pool or DMA-backed buffer management
 - XDP or XSK fast paths
-- control-virtqueue command helpers
+- control-virtqueue command helpers beyond presence or fallback reporting
 - RSS table programming, ethtool hooks, or channel reconfiguration
 - `net_device` registration, open or close flows, suspend or resume, or teardown parity
 
@@ -66,4 +67,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 12 virtio_net lane and add one tiny `drivers/net/virtio_net.zig` probe snapshot helper next so the lane can describe the feature and queue-plan branch of `virtnet_probe()` before any NAPI, XDP, DMA, control-virtqueue, or `net_device` lifecycle work.
+Stay in the Phase 12 virtio_net lane and add one bounded queue-recovery follow-up next so the starter can explain reset-required or control-vq loss handling a little more clearly before any NAPI, XDP, DMA, control-virtqueue command, or `net_device` lifecycle work.
