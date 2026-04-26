@@ -49,22 +49,6 @@ test "phase 8 exec-cmd starter slice covers path resolution and null-terminated 
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[3]);
 }
 
-test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" {
-    const config = exec_cmd.Config{
-        .exec_name = "perf",
-        .prefix = "/usr/libexec/perf-core",
-        .exec_path = "libexec/perf-core",
-        .exec_path_env = "PERF_EXEC_PATH",
-    };
-
-    const prepared = try exec_cmd.prepareExecCmd(std.testing.allocator, config, &.{});
-    defer std.testing.allocator.free(prepared);
-
-    try std.testing.expectEqual(@as(usize, 2), prepared.len);
-    try std.testing.expectEqualStrings("perf", prepared[0].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
-}
-
 test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PATH updates" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
@@ -100,4 +84,35 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
         updated,
     );
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+}
+
+test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwd("/repo", null, false),
+    );
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        exec_cmd.choosePwdCwd("/repo", "/logical/repo", true),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwd("/repo", "/other", false),
+    );
+}
+
+test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    const prepared = try exec_cmd.prepareExecCmd(std.testing.allocator, config, &.{});
+    defer std.testing.allocator.free(prepared);
+
+    try std.testing.expectEqual(@as(usize, 2), prepared.len);
+    try std.testing.expectEqualStrings("perf", prepared[0].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
 }
