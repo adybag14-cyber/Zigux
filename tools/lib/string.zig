@@ -88,7 +88,10 @@ pub fn removeSpaces(buf: []u8) []u8 {
 }
 
 pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
-    for (buf) |*ch| {
+    for (buf, 0..) |*ch, idx| {
+        if (ch.* == 0) {
+            return idx;
+        }
         if (ch.* == old) {
             ch.* = new;
         }
@@ -132,6 +135,10 @@ test "skip trim remove and replace spaces work in place" {
     var replace_buf = [_]u8{ 'a', '-', 'b' };
     try std.testing.expectEqual(@as(usize, 3), replaceChar(&replace_buf, '-', '_'));
     try std.testing.expectEqualSlices(u8, "a_b", &replace_buf);
+
+    var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-' };
+    try std.testing.expectEqual(@as(usize, 2), replaceChar(&replace_cstr_buf, '-', '_'));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-' }, &replace_cstr_buf);
 }
 
 test "memdup and memchrInv preserve byte content" {
