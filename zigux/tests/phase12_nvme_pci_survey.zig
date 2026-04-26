@@ -7,7 +7,11 @@ const SurveySummary = struct {
     preexisting_virtio_core_zig_present: bool,
     preexisting_virtio_ring_zig_present: bool,
     preexisting_phase12_build_present: bool,
+    preexisting_phase12_make_target_present: bool,
     preexisting_phase12_virtio_net_survey_present: bool,
+    preexisting_phase12_virtio_net_starter_present: bool,
+    preexisting_phase12_virtio_scsi_survey_present: bool,
+    preexisting_phase12_virtio_scsi_starter_present: bool,
     nvme_pci_zig_present: bool,
     nvme_pci_test_present: bool,
     nvme_pci_slice_note_present: bool,
@@ -58,7 +62,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
-    try std.testing.expectEqualStrings("500886d4894d9165c303df700920cd01c247b9eb", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("99fee8fa2380ab06f7dd90a232c81f4169237634", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.nvme_pci_c_lines >= 4000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -66,22 +70,28 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_starter_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_starter_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_zig_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_test_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_slice_note_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_build_gate = false;
+    var saw_make_target = false;
     var saw_starter = false;
     var saw_tests = false;
     var saw_slice_note = false;
-    var saw_virtio_phase12 = false;
+    var saw_virtio_net_starter = false;
+    var saw_virtio_scsi_starter = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
     var saw_ready_next = false;
@@ -107,6 +117,12 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-make-target")) {
+            saw_make_target = true;
+            try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-driver-starter")) {
             saw_starter = true;
             try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
@@ -129,10 +145,18 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-survey-gate")) {
-            saw_virtio_phase12 = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-driver-starter")) {
+            saw_virtio_net_starter = true;
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe snapshot starter") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-driver-starter")) {
+            saw_virtio_scsi_starter = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-layout starter") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-survey-gate")) {
@@ -168,14 +192,16 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
     try std.testing.expect(saw_tests);
     try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_virtio_phase12);
+    try std.testing.expect(saw_virtio_net_starter);
+    try std.testing.expect(saw_virtio_scsi_starter);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_ready_next);
