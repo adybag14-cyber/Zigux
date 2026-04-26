@@ -63,11 +63,11 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("4f87aca30adf909dbda21c4e597ec027c0c51289", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0e0a011e407cd68c24c686e92e38950867d315b6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.indefinite_c_requirements.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
@@ -78,6 +78,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     var saw_allowed_work = false;
     var saw_exception_path = false;
     var saw_reopen_gate = false;
+    var saw_reopen_trigger_catalog = false;
 
     for (manifest.indefinite_c_requirements, 0..) |requirement, i| {
         try std.testing.expect(requirement.id.len > 0);
@@ -90,8 +91,18 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("remains in C indefinitely", requirement.required_terms[1]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-recordkeeping")) {
             saw_recordkeeping = true;
-            try std.testing.expectEqualStrings("decision record ID", requirement.required_terms[0]);
-            try std.testing.expectEqualStrings("latest blocker disposition", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("current status bucket", requirement.required_terms[0]);
+            try std.testing.expectEqualStrings("requested decision bucket", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("decision record ID", requirement.required_terms[2]);
+            try std.testing.expectEqualStrings("owner", requirement.required_terms[3]);
+            try std.testing.expectEqualStrings("rollback owner", requirement.required_terms[4]);
+            try std.testing.expectEqualStrings("validation gate summary", requirement.required_terms[5]);
+            try std.testing.expectEqualStrings("latest blocker disposition", requirement.required_terms[6]);
+            try std.testing.expectEqualStrings("evidence archive path", requirement.required_terms[7]);
+            try std.testing.expectEqualStrings("retained discussion state", requirement.required_terms[8]);
+            try std.testing.expectEqualStrings("parity scorecard link or blocker record", requirement.required_terms[9]);
+            try std.testing.expectEqualStrings("explicit non-goals", requirement.required_terms[10]);
+            try std.testing.expectEqualStrings("written rationale", requirement.required_terms[11]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-allowed-work")) {
             saw_allowed_work = true;
             try std.testing.expectEqualStrings("explicit stay-in-C outcome", requirement.required_terms[1]);
@@ -104,6 +115,11 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             saw_reopen_gate = true;
             try std.testing.expectEqualStrings("new bounded seam inventory", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("Architecture Council review request", requirement.required_terms[3]);
+        } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
+            saw_reopen_trigger_catalog = true;
+            try std.testing.expectEqualStrings("narrower_followup_answers_blocker", requirement.required_terms[0]);
+            try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("ownership_or_validation_changed", requirement.required_terms[2]);
         }
 
         for (manifest.indefinite_c_requirements[i + 1 ..]) |other| {
@@ -116,6 +132,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expect(saw_allowed_work);
     try std.testing.expect(saw_exception_path);
     try std.testing.expect(saw_reopen_gate);
+    try std.testing.expect(saw_reopen_trigger_catalog);
 }
 
 test "phase 15 indefinite-C policy doc and linked artifacts keep exception and blocker posture explicit" {
@@ -128,12 +145,25 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "## Allowed work after an indefinite-C outcome",
         "## Exception posture",
         "## Reopen conditions",
+        "## Reopen Trigger Catalog",
+        "current status bucket",
+        "requested decision bucket",
+        "owner",
+        "validation gate summary",
+        "retained discussion state",
+        "parity scorecard link or blocker record",
+        "explicit non-goals",
+        "written rationale",
         "product source of truth",
         "remains in C indefinitely",
         "explicit stay-in-C outcome",
         "no silent exception path",
         "Architecture Council reopen request",
         "existing blocker remains recorded",
+        "retired_from_active_discussion",
+        "narrower_followup_answers_blocker",
+        "evidence_packet_stale_or_contradictory",
+        "ownership_or_validation_changed",
     });
 
     try expectContains(io_instance.io(), "Documentation/zigux/freeze-map.md", &.{
@@ -174,8 +204,12 @@ test "phase 15 indefinite-C evidence archives and build wiring stay aligned with
             "current status bucket: `freeze_in_c`",
             "requested decision bucket: `pending_no_request`",
             "decision record ID",
+            "parity scorecard link or blocker record",
             "replay command: `zig build test --build-file zigux/tests/phase15_build.zig`",
             "latest blocker disposition:",
+            "retained discussion state after closeout: `retired_from_active_discussion`",
+            "## Explicit Non-goals",
+            "written rationale",
         });
     }
 
@@ -238,7 +272,8 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
             try std.testing.expectEqualStrings("zigux/tests/phase15_build.zig", gap.zigux_destination);
         } else if (std.mem.eql(u8, gap.id, "phase15-indefinite-c-field-sync-followup")) {
             saw_sync_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reopen-trigger catalog") != null);
         } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -250,8 +285,8 @@ test "phase 15 indefinite-C policy gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 4), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 5), landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_manifest);

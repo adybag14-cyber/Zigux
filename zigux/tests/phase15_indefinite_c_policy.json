@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L15",
   "phase": "Phase 15",
-  "surveyed_commit": "4f87aca30adf909dbda21c4e597ec027c0c51289",
+  "surveyed_commit": "0e0a011e407cd68c24c686e92e38950867d315b6",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -27,12 +27,20 @@
     },
     {
       "id": "indefinite-c-recordkeeping",
-      "summary": "The review record must preserve decision, blocker, archive, replay, rollback, and reopen information.",
+      "summary": "The review record must preserve the shared review-packet fields, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
       "required_terms": [
+        "current status bucket",
+        "requested decision bucket",
         "decision record ID",
+        "owner",
+        "rollback owner",
+        "validation gate summary",
         "latest blocker disposition",
         "evidence archive path",
-        "reopen conditions"
+        "retained discussion state",
+        "parity scorecard link or blocker record",
+        "explicit non-goals",
+        "written rationale"
       ]
     },
     {
@@ -60,6 +68,15 @@
         "updated validation plan",
         "fresh linked evidence",
         "Architecture Council review request"
+      ]
+    },
+    {
+      "id": "indefinite-c-reopen-trigger-catalog",
+      "summary": "A retained stay-in-C packet must reuse the shared reopen-trigger catalog so later reviews do not drift in vocabulary.",
+      "required_terms": [
+        "narrower_followup_answers_blocker",
+        "evidence_packet_stale_or_contradictory",
+        "ownership_or_validation_changed"
       ]
     }
   ],
@@ -94,10 +111,10 @@
     },
     {
       "id": "phase15-indefinite-c-field-sync-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "followup",
       "zigux_destination": "Documentation/zigux/phase15-evidence-archives/",
-      "why_now": "The next bounded step is a small field-sync follow-up so the new policy note stays aligned with the review-process packet fields and per-anchor archive templates."
+      "why_now": "The policy note now reuses the review-process packet fields, retained discussion state, reopen-trigger catalog, and per-anchor archive vocabulary so stay-in-C records cannot drift silently."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",

@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 ## Status
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
-- `PHASE15_SLICE=stay-in-c-policy-indefinite-c`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the shared Phase 15 build wiring for current policy, exception, and blocker evidence
-- survey provenance refreshed against verified `master` head `4f87aca30adf909dbda21c4e597ec027c0c51289`
+- `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the linked field-sync between the policy note, review-process packet fields, parity scorecard wording, and reserved evidence-archive templates
+- survey provenance refreshed against verified `master` head `0e0a011e407cd68c24c686e92e38950867d315b6`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -43,11 +43,13 @@ This policy does not claim a permanent forever verdict. It records the current l
 When an anchor is recorded under the indefinite-C policy, the reviewable record must keep all of the following explicit:
 
 - the Linux anchor path and the current roadmap phase
-- the decision record ID and the current decision bucket
-- the latest blocker disposition and the reason the anchor remains in C
-- the evidence archive path and the replay command reviewers should use
-- the rollback owner and the current validation gate set
-- the reopen conditions that would justify a future status-review request
+- the current status bucket and the requested decision bucket
+- the decision record ID, the named owner, and the rollback owner
+- the validation gate summary, the evidence archive path, and the replay command reviewers should use
+- the latest blocker disposition and the written rationale for why the anchor remains in C
+- the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change
+- the reopen triggers and the parity scorecard link or blocker record that keep the closed packet reviewable later
+- the explicit non-goals that keep the packet from widening into deep-core delivery
 
 ## Allowed work after an indefinite-C outcome
 
@@ -83,6 +85,16 @@ An anchor recorded as remaining in C indefinitely may re-enter status review onl
 
 If those reopen conditions are not met, the anchor remains in C and the review closes with the existing blocker still recorded.
 
+## Reopen Trigger Catalog
+
+The bounded reopen-trigger catalog for a retained stay-in-C packet is:
+
+- `narrower_followup_answers_blocker`: a narrower seam inventory or follow-up now answers the latest blocker disposition without widening the approved boundary
+- `evidence_packet_stale_or_contradictory`: linked validation, benchmark, survey, or blocker evidence has become stale or contradictory enough that the closed packet no longer stands on its own
+- `ownership_or_validation_changed`: rollback ownership, lane ownership, or validation gates changed enough to invalidate the closed stay-in-C packet
+
+Every retained stay-in-C closeout must cite at least one of these catalog items in its evidence archive so the policy note, review-process packet, parity scorecard, and per-anchor archive template keep the same reopen vocabulary.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -91,7 +103,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-manifest`
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
-- ready-next `phase15-indefinite-c-field-sync-followup`
+- landed `phase15-indefinite-c-field-sync-followup`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, but it still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
@@ -115,4 +127,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the same Phase 15 governance lane and add one small indefinite-C field-sync follow-up next, limited to keeping the new policy note aligned with the per-anchor decision-record templates, scorecard wording, and review-process packet fields if either side changes.
+No narrower indefinite-C follow-up is justified yet. Keep this lane in maintenance mode until new stay-in-C evidence changes one of the named reopen triggers or the deep-core blocker posture changes.
