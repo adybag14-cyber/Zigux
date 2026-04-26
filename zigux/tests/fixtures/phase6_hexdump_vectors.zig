@@ -42,6 +42,15 @@ pub const OverflowCase = struct {
     visible_text: ExpectedText,
 };
 
+pub const LengthCase = struct {
+    name: []const u8,
+    len: usize,
+    rowsize: usize,
+    groupsize: usize,
+    ascii: bool,
+    expected_length: usize,
+};
+
 fn same(text: []const u8) ExpectedText {
     return .{ .little = text, .big = text };
 }
@@ -276,5 +285,64 @@ pub const overflow_cases = [_]OverflowCase{
         .ascii = true,
         .expected_length = 64,
         .visible_text = same("be 32 db 7b"),
+    },
+};
+
+pub const length_cases = [_]LengthCase{
+    .{
+        .name = "empty plain line reports zero length",
+        .len = 0,
+        .rowsize = 16,
+        .groupsize = 1,
+        .ascii = false,
+        .expected_length = 0,
+    },
+    .{
+        .name = "plain rowsize-16 group-1 line length",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 1,
+        .ascii = false,
+        .expected_length = 47,
+    },
+    .{
+        .name = "ascii rowsize-16 group-1 line length",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 1,
+        .ascii = true,
+        .expected_length = 65,
+    },
+    .{
+        .name = "ascii rowsize-32 group-1 line length",
+        .len = 32,
+        .rowsize = 32,
+        .groupsize = 1,
+        .ascii = true,
+        .expected_length = 129,
+    },
+    .{
+        .name = "plain rowsize-16 group-8 line length",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 8,
+        .ascii = false,
+        .expected_length = 33,
+    },
+    .{
+        .name = "normalized rowsize and groupsize fallback line length",
+        .len = 16,
+        .rowsize = 7,
+        .groupsize = 3,
+        .ascii = true,
+        .expected_length = 65,
+    },
+    .{
+        .name = "uneven group fallback line length",
+        .len = 9,
+        .rowsize = 32,
+        .groupsize = 4,
+        .ascii = false,
+        .expected_length = 26,
     },
 };
