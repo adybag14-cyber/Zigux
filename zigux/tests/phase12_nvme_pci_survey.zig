@@ -62,7 +62,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
-    try std.testing.expectEqualStrings("99fee8fa2380ab06f7dd90a232c81f4169237634", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.nvme_pci_c_lines >= 4000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -171,12 +171,13 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-prp-or-sgl-shape-helper")) {
+        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-prp-shape-helper")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP") != null or
-                std.mem.indexOf(u8, gap.why_now, "SGL") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP buffer-shape helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "first-page offset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page-list bound checks") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-live-queue-and-dma")) {
@@ -185,6 +186,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Host Memory Buffer") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP buffer-shape helper") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
