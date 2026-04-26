@@ -23,9 +23,9 @@ This survey exists so the lane can compare that live starter against the roadmap
 
 - `drivers/virtio/virtio_input.c` is present on `master` at 421 lines and mixes config-space selection, bitmap and ABS metadata reads, event-queue refill, status-queue sends, multitouch timestamp suppression, input-device registration, freeze or restore hooks, and teardown paths.
 - the live repo already ships `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md`.
-- the landed Zigux starter already covers identity snapshots, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
-- the live repo still does not model config bitmap parsing, ABS-info decoding, real event delivery, `input_register_device()` capability setup, freeze or restore parity, or transport-backed queue callbacks.
-- this means the next honest virtio_input step is one tiny in-memory config bitmap or ABS-info helper, not probe, remove, MMIO, or input core lifecycle work.
+- the landed Zigux starter already covers identity snapshots, bounded property-bit and event-bit config bitmap summaries, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
+- the live repo still does not model ABS-info decoding, real event delivery, `input_register_device()` capability setup, freeze or restore parity, or transport-backed queue callbacks.
+- this means the next honest virtio_input step is one tiny in-memory ABS-info helper, not probe, remove, MMIO, or input core lifecycle work.
 
 ## Recorded gaps
 
@@ -39,7 +39,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-input-slice-note`
 - the landed `phase10-virtio-input-survey-gate`
 - the landed `phase10-virtio-input-survey-note`
-- the ready-next `phase10-virtio-input-config-bitmap-helper`
+- the ready-next `phase10-virtio-input-abs-info-helper`
 - the still-blocked `phase10-virtio-input-registration-lifecycle`
 
 This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, but most of the config and registration surface from `virtio_input.c` remains intentionally out of scope.
@@ -48,7 +48,7 @@ This keeps the lane concrete and reviewable without overstating progress: the st
 
 This survey slice does not yet claim:
 
-- real config bitmap parsing for props, event bits, or ABS metadata
+- real ABS metadata decoding
 - `input_dev` capability setup or registration parity
 - real event delivery or status completion callbacks
 - freeze, restore, remove, or reset lifecycle parity
@@ -64,4 +64,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio_input lane and add one small in-memory config bitmap or ABS-info helper next inside `drivers/virtio/virtio_input.zig` so the lab slice can describe more of the `virtio_input_config` flow before any transport, interrupt, or input-device registration work.
+Stay in the Phase 10 virtio_input lane and add one small in-memory ABS-info helper next inside `drivers/virtio/virtio_input.zig` so the lab slice can describe more of the `virtio_input_config` flow before any transport, interrupt, or input-device registration work.
