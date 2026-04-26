@@ -21,6 +21,10 @@ pub const ModuleDescriptor = struct {
     provides_selftest_hook: bool,
 };
 
+pub const InstancePrivateData = struct {
+    entry_stamp_ns: i64 = -1,
+};
+
 pub const ProbeResult = struct {
     retval: usize,
     duration_ns: i64,
@@ -37,6 +41,18 @@ pub const SelftestSummary = struct {
     last_duration_ns: i64,
     nmissed: usize,
     maxactive: usize,
+};
+
+pub const RuntimeKretprobeSummary = struct {
+    symbol_name: []const u8,
+    maxactive: usize,
+    active_instances: usize,
+    skipped_kernel_threads: usize,
+    nmissed: usize,
+    last_retval: usize,
+    last_duration_ns: i64,
+    selftest_runs: usize,
+    entry_timestamp_armed: bool,
 };
 
 pub const RuntimeKretprobeSample = struct {
@@ -69,6 +85,20 @@ pub const RuntimeKretprobeSample = struct {
 
     pub fn stage(self: *const Self) ModuleStage {
         return self.stage_state;
+    }
+
+    pub fn summary(self: *const Self) RuntimeKretprobeSummary {
+        return .{
+            .symbol_name = self.symbol_name,
+            .maxactive = self.maxactive,
+            .active_instances = self.active_instances,
+            .skipped_kernel_threads = self.skipped_kernel_threads,
+            .nmissed = self.nmissed,
+            .last_retval = self.last_retval,
+            .last_duration_ns = self.last_duration_ns,
+            .selftest_runs = self.selftest_runs,
+            .entry_timestamp_armed = self.entry_stamp_ns >= 0,
+        };
     }
 
     fn ensureMutable(self: *const Self) !void {
