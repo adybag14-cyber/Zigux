@@ -85,6 +85,28 @@ Phase 10 notes
 - `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, virtio ring, virtio input, and virtio mmio survey bundle together, so new Phase 10 virtio work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 10 decision is no longer whether the virtio core lane still needs config-change bookkeeping or reset-proof coverage; those pieces are now landed, so the next follow-up should stay in the smallest core-only or survey-backed virtio step that sharpens queue or device bookkeeping without widening into transport implementation churn.
 
+Phase 11 notes
+- `Documentation/zigux/phase11-bcm2835-wdt-slice.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
+- `Documentation/zigux/phase11-gpio-wdt-slice.md`
+- `Documentation/zigux/phase11-gpio-wdt-survey.md`
+- `Documentation/zigux/phase11-dw-wdt-slice.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `Documentation/zigux/phase11-hvc-console-slice.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `zigux/tests/phase11_build.zig` and `make -C zigux phase11` now gate the current bcm2835, gpio, and dw watchdog slices together with the hvc console tranche, so new Phase 11 work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- the current bounded Phase 11 decision is no longer whether the bcm2835 watchdog lane needs another ownership summary helper; those pieces are now landed, so the next follow-up should stay in one tiny hardware-validation matrix before any platform registration, PM base plumbing, or live poweroff-handler coordination is attempted.
+
+Phase 12 notes
+- `Documentation/zigux/phase12-nvme-pci-slice.md`
+- `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-virtio-net-survey.md`
+- `Documentation/zigux/phase12-virtio-scsi-slice.md`
+- `Documentation/zigux/phase12-virtio-scsi-survey.md`
+- `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- `zigux/tests/phase12_build.zig` and `make -C zigux phase12` now gate the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle together, so new Phase 12 work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- the current bounded Phase 12 decision is no longer whether the tranche needs first-driver footholds; those starters and survey gates are now landed, so the next follow-up should stay in one tiny driver-facing helper such as the nvme PCI PRP-or-SGL shape helper, the virtio_scsi probe snapshot helper, the virtio_net queue-recovery follow-up, or the libbpf logging helper.
+
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
 - `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest, accepts either the shared runner gate (`python3 scripts/zigux/run-phase3-checks.py --slug <slug>`) or a legacy per-slice wrapper gate in each slice record, reports obsolete `check-phase3-*.py` wrapper files that no longer belong to a discovered slice, and rejects legacy wrapper script paths inside Phase 3 manifests so those manifests remain a record of slice artifacts rather than compatibility entrypoints.
