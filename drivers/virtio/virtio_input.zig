@@ -5,6 +5,7 @@ pub const max_descriptor_count: u16 = 1024;
 pub const static_event_buffer_capacity: u16 = 64;
 pub const config_bitmap_capacity: usize = 8;
 pub const config_bitmap_bit_capacity: usize = 1024;
+pub const abs_info_capacity: usize = 16;
 
 pub const event_queue_index: u16 = 0;
 pub const status_queue_index: u16 = 1;
@@ -77,6 +78,24 @@ pub const ConfigBitmapSummary = struct {
     surfaces_selected_event_type: bool,
 };
 
+pub const AbsInfo = struct {
+    minimum: i32,
+    maximum: i32,
+    fuzz: i32 = 0,
+    flat: i32 = 0,
+    resolution: i32 = 0,
+};
+
+pub const AbsInfoSummary = struct {
+    anchor: []const u8,
+    abs_code: u16,
+    minimum: i32,
+    maximum: i32,
+    fuzz: i32,
+    flat: i32,
+    resolution: i32,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -86,6 +105,14 @@ pub const VirtioInputLab = struct {
         subsel: u8 = 0,
         supported_bits: ConfigBitmapBitSet = ConfigBitmapBitSet.initEmpty(),
         surfaces_selected_event_type: bool = false,
+    };
+    const AbsInfoRecord = struct {
+        active: bool = false,
+        abs_code: u16 = 0,
+        metadata: AbsInfo = .{
+            .minimum = 0,
+            .maximum = 0,
+        },
     };
 
     name_buffer: [64]u8 = [_]u8{0} ** 64,
@@ -102,6 +129,8 @@ pub const VirtioInputLab = struct {
     suppressed_status_count: usize = 0,
     config_bitmap_count: usize = 0,
     config_bitmaps: [config_bitmap_capacity]ConfigBitmapRecord = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity,
+    abs_info_count: usize = 0,
+    abs_info_records: [abs_info_capacity]AbsInfoRecord = [_]AbsInfoRecord{AbsInfoRecord{}} ** abs_info_capacity,
     ready: bool = false,
     multitouch_enabled: bool = false,
 
@@ -139,6 +168,8 @@ pub const VirtioInputLab = struct {
         self.suppressed_status_count = 0;
         self.config_bitmap_count = 0;
         self.config_bitmaps = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity;
+        self.abs_info_count = 0;
+        self.abs_info_records = [_]AbsInfoRecord{AbsInfoRecord{}} ** abs_info_capacity;
         self.ready = false;
         self.multitouch_enabled = false;
     }
@@ -235,6 +266,35 @@ pub const VirtioInputLab = struct {
         return self.config_bitmaps[index].supported_bits.isSet(bit);
     }
 
+    pub fn configureAbsInfo(self: *Self, abs_code: u16, metadata: AbsInfo) !void {
+        if (metadata.minimum > metadata.maximum) return error.AbsInfoRangeInvalid;
+        if (metadata.fuzz < 0) return error.AbsInfoNegativeFuzz;
+        if (metadata.flat < 0) return error.AbsInfoNegativeFlat;
+        if (metadata.resolution < 0) return error.AbsInfoNegativeResolution;
+        if (self.findAbsInfoIndex(abs_code) != null) return error.AbsInfoAlreadyConfigured;
+
+        const record = try self.allocateAbsInfoRecord();
+        record.* = .{
+            .active = true,
+            .abs_code = abs_code,
+            .metadata = metadata,
+        };
+    }
+
+    pub fn absInfoSummary(self: *const Self, abs_code: u16) !AbsInfoSummary {
+        const index = self.findAbsInfoIndex(abs_code) orelse return error.AbsInfoNotConfigured;
+        const record = self.abs_info_records[index];
+        return .{
+            .anchor = descriptor().anchor,
+            .abs_code = record.abs_code,
+            .minimum = record.metadata.minimum,
+            .maximum = record.metadata.maximum,
+            .fuzz = record.metadata.fuzz,
+            .flat = record.metadata.flat,
+            .resolution = record.metadata.resolution,
+        };
+    }
+
     pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {
         if (self.status_descriptor_count == 0) return error.StatusQueueNotConfigured;
         if (!self.ready) return error.DeviceNotReady;
@@ -293,6 +353,23 @@ pub const VirtioInputLab = struct {
         for (self.config_bitmaps, 0..) |record, index| {
             if (!record.active) continue;
             if (record.select == select and record.subsel == subsel) return index;
+        }
+        return null;
+    }
+
+    fn allocateAbsInfoRecord(self: *Self) !*AbsInfoRecord {
+        for (&self.abs_info_records) |*record| {
+            if (record.active) continue;
+            self.abs_info_count += 1;
+            return record;
+        }
+        return error.AbsInfoCapacityExceeded;
+    }
+
+    fn findAbsInfoIndex(self: *const Self, abs_code: u16) ?usize {
+        for (self.abs_info_records, 0..) |record, index| {
+            if (!record.active) continue;
+            if (record.abs_code == abs_code) return index;
         }
         return null;
     }
