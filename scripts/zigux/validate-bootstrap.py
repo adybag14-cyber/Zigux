@@ -43,6 +43,19 @@ if missing_markers:
     print('MISSING_MARKERS_END')
     sys.exit(1)
 
+workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+required_workflow_markers = [
+    'lib/**',
+]
+missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
+if missing_workflow_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_WORKFLOW_MARKERS_START')
+    for marker in missing_workflow_markers:
+        print(marker)
+    print('MISSING_WORKFLOW_MARKERS_END')
+    sys.exit(1)
+
 print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers)}')
+print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers) + len(required_workflow_markers)}')
