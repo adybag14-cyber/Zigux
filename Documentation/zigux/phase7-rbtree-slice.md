@@ -22,6 +22,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - empty-node and empty-root state helpers
 - explicit node linking
 - balancing and ordered insertion helpers
+- comparison-based plain-tree lookup helpers
 - ordered erase plus direct node replacement
 - in-order and postorder traversal helpers
 
@@ -43,6 +44,9 @@ The current starter slice covers:
 - `rb_link_node()`
 - `rb_insert_color()` via `insertColor()`
 - `rb_add()` via `add()`
+- `rb_find()` via `find()`
+- `rb_find_first()` via `findFirst()`
+- `rb_next_match()` via `nextMatch()`
 - `rb_erase()` via `erase()`
 - `rb_first()`
 - `rb_last()`
@@ -56,13 +60,14 @@ The current tests check:
 
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
+- duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
 - erase-and-replace consistency after structural updates
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
 
 ## Non-goals
 
-This slice does not yet claim:
+This slice still does not claim:
 
 - cached-tree helpers
 - augmented-rbtree support
@@ -71,4 +76,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Either add a tiny serialized fixture or harness layer that cross-checks this ordered insert/erase surface against `lib/rbtree.c`, or close the lane now that the runtime-family starter helper includes balancing, updates, and dedicated review coverage.
+Either add a tiny serialized fixture or harness layer that cross-checks the plain-tree insert and duplicate-key lookup surface against `lib/rbtree.c`, or park the lane now that the runtime-family starter helper includes balancing, updates, lookups, and dedicated review coverage.
