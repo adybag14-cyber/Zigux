@@ -38,6 +38,7 @@ pub const AuditGuard = enum {
     checksum_complete_state_cache,
     segmentation_orphan_and_zerocopy_handoff,
     segmentation_checksum_metadata_handoff,
+    segmentation_partial_tail_owner_transfer,
 };
 
 pub const AuditCheckpoint = struct {
@@ -158,6 +159,15 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .blocked_by = "skb_segment() can clear ip_summed to CHECKSUM_NONE, copy checksum bytes through skb_copy_and_csum_bits(), or recompute checksum state through skb_checksum() before it seeds SKB_GSO_CB(nskb), so Zigux should keep checksum and GSO metadata ownership in C while only recording the handoff.",
         .ownership = .stay_in_c,
     },
+    .{
+        .id = "segmentation-partial-tail-owner-transfer",
+        .anchor_symbol = "skb_segment/SKB_GSO_PARTIAL/sock_wfree",
+        .summary = "Record the partial-seg metadata rewrite and the final tail-owner transfer once segmentation has built the output list.",
+        .guard = .segmentation_partial_tail_owner_transfer,
+        .observed_fields = &[_][]const u8{ "skb_shinfo(iter)->gso_size", "skb_shinfo(iter)->gso_segs", "skb_shinfo(iter)->gso_type", "SKB_GSO_CB(iter)->data_offset", "tail->truesize", "tail->destructor", "tail->sk", "head_skb->destructor" },
+        .blocked_by = "skb_segment() revisits every output skb to stamp SKB_GSO_PARTIAL or clear SKB_GSO_DODGY, rewrites SKB_GSO_CB(iter)->data_offset for the walk back down the stack, and finally swaps truesize, destructor, and sk onto the tail when head_skb->destructor == sock_wfree, so Zigux should keep that partial-seg metadata rewrite and socket-backpressure ownership in C while only recording the handoff.",
+        .ownership = .stay_in_c,
+    },
 };
 
 const blocked_live_behaviors = [_][]const u8{
@@ -167,6 +177,7 @@ const blocked_live_behaviors = [_][]const u8{
     "checksum-complete state transitions",
     "segmentation orphan-frag and zerocopy ownership handoff",
     "segmentation checksum metadata recompute and GSO handoff",
+    "segmentation partial-seg metadata and tail-owner transfer",
 };
 
 pub const SkbuffBridgeLab = struct {
@@ -217,7 +228,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit skb_segment() partial-seg metadata updates and the sock_wfree tail-ownership transfer around SKB_GSO_PARTIAL before any wrapper leaves the boundary-map-only posture.";
+        return "Audit the checksum-to-data-offset crossover in skb_segment() around SKB_GSO_CB(nskb)->csum, SKB_GSO_CB(nskb)->csum_start, SKB_GSO_CB(iter)->data_offset, and remcsum_offload before any wrapper leaves the boundary-map-only posture.";
     }
 };
 
@@ -242,8 +253,8 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "SKB_GSO_PARTIAL") != null);
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb_segment()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "SKB_GSO_CB(iter)->data_offset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "remcsum_offload") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -264,11 +275,11 @@ test "skbuff bridge lifetime audit stays review-only" {
 
     try std.testing.expectEqualStrings("net/core/skbuff.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 6), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 6), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 6), SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "SKB_GSO_PARTIAL") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "sock_wfree") != null);
+    try std.testing.expectEqual(@as(usize, 7), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 7), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 7), SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "SKB_GSO_CB(iter)->data_offset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "remcsum_offload") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -297,4 +308,11 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqualStrings("SKB_GSO_CB(nskb)->csum_start", audit.checkpoints[5].observed_fields[3]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[5].blocked_by, "CHECKSUM_NONE") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[5].blocked_by, "skb_checksum()") != null);
+
+    try std.testing.expectEqualStrings("segmentation-partial-tail-owner-transfer", audit.checkpoints[6].id);
+    try std.testing.expect(audit.checkpoints[6].guard == .segmentation_partial_tail_owner_transfer);
+    try std.testing.expectEqualStrings("SKB_GSO_CB(iter)->data_offset", audit.checkpoints[6].observed_fields[3]);
+    try std.testing.expectEqualStrings("head_skb->destructor", audit.checkpoints[6].observed_fields[7]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[6].blocked_by, "SKB_GSO_PARTIAL") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[6].blocked_by, "sock_wfree") != null);
 }
