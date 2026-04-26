@@ -95,7 +95,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const name = line[0..eq_index];
         const raw_value = line[eq_index + 1 ..];
 
-        const kind: EntryKind = if (std.mem.eql(u8, raw_value, "y") or std.mem.eql(u8, raw_value, "m"))
+        const kind: EntryKind = if (std.mem.eql(u8, raw_value, "y") or std.mem.eql(u8, raw_value, "m") or std.mem.eql(u8, raw_value, "n"))
             .tristate
         else if (raw_value.len >= 2 and raw_value[0] == '"' and raw_value[raw_value.len - 1] == '"')
             .string
@@ -260,4 +260,21 @@ test "confdata bridge accepts CRLF config lines" {
     try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
     try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
+}
+
+test "confdata bridge keeps explicit n assignments as tristate values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=n
+        \\CONFIG_BETA=y
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
 }
