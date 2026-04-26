@@ -75,7 +75,9 @@ const Fixture = struct {
         insert_order: []const i32,
         reverse_order: []const i32,
         replace_order: []const i32,
+        erase_init_order: []const i32,
         postorder_count: usize,
+        erase_init_node_empty: bool,
         cleared_node_empty: bool,
     },
     argv_split: struct {
@@ -524,6 +526,18 @@ test "phase 1 helper ports match committed parity fixture" {
         replace_index += 1;
     }
     try std.testing.expectEqualSlices(i32, fixture.rbtree.replace_order, replace_order[0..replace_index]);
+
+    rbtree.eraseInit(&replacement.node, &root);
+    var erase_init_order: [3]i32 = undefined;
+    var erase_init_index: usize = 0;
+    current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        erase_init_order[erase_init_index] = entry.key;
+        erase_init_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.erase_init_order, erase_init_order[0..erase_init_index]);
+    try std.testing.expectEqual(fixture.rbtree.erase_init_node_empty, rbtree.emptyNode(&replacement.node));
 
     var postorder_entries = [_]Entry{
         .{ .key = 2 },
