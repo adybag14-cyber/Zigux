@@ -1,0 +1,70 @@
+const std = @import("std");
+
+const ExactCheck = struct {
+    id: []const u8,
+    kind: []const u8,
+    expected: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    anchor: []const u8,
+    sample_path: []const u8,
+    validation_entrypoint: []const u8,
+    exact_checks: []const ExactCheck,
+    non_goals: []const []const u8,
+};
+
+test "phase 5 bytestream fifo manifest records the exact bounded checks" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P5-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
+    try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
+    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+
+    var saw_exact_sequence = false;
+    var saw_capacity = false;
+
+    for (manifest.exact_checks, 0..) |check, i| {
+        try std.testing.expect(check.id.len > 0);
+        try std.testing.expect(check.kind.len > 0);
+        try std.testing.expect(check.expected.len > 0);
+
+        if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
+            saw_exact_sequence = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
+        }
+        if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
+            saw_capacity = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
+        }
+
+        for (manifest.exact_checks[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, check.id, other.id));
+        }
+    }
+
+    try std.testing.expect(saw_exact_sequence);
+    try std.testing.expect(saw_capacity);
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
+}
