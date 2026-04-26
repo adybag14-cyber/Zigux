@@ -69,6 +69,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_cpu_mask = false;
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
+    var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
 
     for (manifest.gaps) |gap| {
@@ -103,6 +104,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_pin_path = true;
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
+            saw_blocked_skeleton = true;
+            try std.testing.expect(!exists);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
             saw_blocked_object_loader = true;
             try std.testing.expect(!exists);
@@ -114,6 +119,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_cpu_mask);
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
+    try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
 }
 
