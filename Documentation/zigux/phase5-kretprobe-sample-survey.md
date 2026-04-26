@@ -92,4 +92,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and add the last missing reference-sample anchor for `samples/trace_events/trace-events-sample.c` while keeping the same pattern of exact checks and explicit non-goals.
+Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping this landed Phase 5 sample distinct from the separate Phase 9 runtime starter.
