@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L05",
   "phase": "Phase 12",
-  "surveyed_commit": "99fee8fa2380ab06f7dd90a232c81f4169237634",
+  "surveyed_commit": "f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
     "drivers/nvme/host/pci.zig",
@@ -91,18 +91,18 @@
       "why_now": "The lane needs an archival note that compares the current starter against the roadmap so future runs do not mistake the queue planner for a production PCI port."
     },
     {
-      "id": "phase12-nvme-pci-prp-or-sgl-shape-helper",
+      "id": "phase12-nvme-pci-prp-shape-helper",
       "status": "ready_next",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The next honest nvme PCI step is one tiny PRP or SGL-facing buffer-shape helper that describes descriptor fanout limits without crossing into live DMA mapping, request submission, or hardware-backed queue setup."
+      "why_now": "The next honest nvme PCI step is one tiny PRP buffer-shape helper that records first-page offset, rounded span, and page-list bound checks without crossing into SGL setup, live DMA mapping, request submission, or hardware-backed queue setup."
     },
     {
       "id": "phase12-nvme-pci-live-queue-and-dma",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked until one smaller descriptor-shape helper exists and the roadmap-approved DMA-safe transport substrate is in place."
+      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked until one smaller PRP buffer-shape helper exists and the roadmap-approved DMA-safe transport substrate is in place."
     }
   ]
 }
