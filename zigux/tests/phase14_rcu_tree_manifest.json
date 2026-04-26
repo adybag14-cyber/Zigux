@@ -1,7 +1,7 @@
 {
-  "lane_key": "P14-L13",
+  "lane_key": "P14-L14",
   "phase": "Phase 14",
-  "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+  "surveyed_commit": "938667204613903ee75fa1e9e3575c0a0948275f",
   "anchor": "kernel/rcu/tree.c",
   "roadmap_destinations": [
     "zigux/tests/",
@@ -71,6 +71,17 @@
         "rcu_accelerate_cbs"
       ],
       "rationale": "Quiescent-state reporting still climbs the rcu_node hierarchy under lock, `note_gp_changes()` still folds gp-sequence changes into per-CPU callback state, and callback acceleration still depends on segmented callback lists and offload state, so this seam remains study-only."
+    },
+    {
+      "id": "callback-enqueue-and-batch-invocation",
+      "summary": "Keep callback enqueue, grace-period kick decisions, and batch invocation in C while the survey records the coupled callback lifecycle.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "__call_rcu_common",
+        "call_rcu_core",
+        "rcu_do_batch"
+      ],
+      "rationale": "Callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded batch execution, so this seam is still coupled to live Tree RCU state rather than a narrow wrapper contract."
     }
   ],
   "gaps": [
@@ -125,10 +136,17 @@
     },
     {
       "id": "phase14-rcu-tree-callback-enqueue-followup",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
+      "why_now": "The survey now records `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` as a landed stay-in-C audit so callback enqueue, grace-period kicks, and callback invocation remain reviewable without implying active `kernel/rcu/tree_bridge.zig` delivery."
+    },
+    {
+      "id": "phase14-rcu-tree-callback-offload-followup",
       "status": "ready_next",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The next honest step remains survey-only: audit `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` so callback enqueue and batch invocation stay explicitly in C instead of becoming a quiet opening for `kernel/rcu/tree_bridge.zig`."
+      "why_now": "The next honest step remains survey-only: audit `call_rcu_nocb()`, `nocb_gp_wait()`, and `rcu_nocb_flush_deferred_wakeup()` so offloaded callback enqueue and wakeup behavior stay explicitly in C instead of becoming a quiet side door toward `kernel/rcu/tree_bridge.zig`."
     },
     {
       "id": "phase14-rcu-tree-bridge-blocker",
