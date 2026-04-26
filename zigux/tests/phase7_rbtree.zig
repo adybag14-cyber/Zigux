@@ -9,8 +9,30 @@ fn orderToInt(order: std.math.Order) i32 {
     };
 }
 
+const Fixture = struct {
+    ordered: struct {
+        insert_order: []const i32,
+        reverse_order: []const i32,
+        replace_order: []const i32,
+    },
+    duplicates: struct {
+        key: i32,
+        match_serials: []const i32,
+    },
+    postorder: struct {
+        traversal: []const i32,
+    },
+};
+
+fn loadFixture(allocator: std.mem.Allocator) !std.json.Parsed(Fixture) {
+    return std.json.parseFromSlice(Fixture, allocator, @embedFile("fixtures/phase7_rbtree.json"), .{
+        .ignore_unknown_fields = true,
+    });
+}
+
 const Entry = struct {
     key: i32,
+    serial: i32 = 0,
     node: rbtree.Node = rbtree.Node.init(),
 };
 
@@ -102,6 +124,10 @@ test "phase 7 rbtree replaceNode and postorder helpers preserve structure" {
 }
 
 test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
     const less = struct {
         fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
             const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
@@ -133,8 +159,9 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
         inserted_actual[inserted_index] = entry.key;
         inserted_index += 1;
     }
+    try std.testing.expectEqual(inserted_expected.len, fixture.ordered.insert_order.len);
     try std.testing.expectEqual(inserted_expected.len, inserted_index);
-    try std.testing.expectEqualSlices(i32, &inserted_expected, inserted_actual[0..inserted_index]);
+    try std.testing.expectEqualSlices(i32, fixture.ordered.insert_order, inserted_actual[0..inserted_index]);
 
     const reverse_expected = [_]i32{ 25, 20, 15, 10, 5 };
     var reverse_actual: [reverse_expected.len]i32 = undefined;
@@ -145,8 +172,9 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
         reverse_actual[reverse_index] = entry.key;
         reverse_index += 1;
     }
+    try std.testing.expectEqual(reverse_expected.len, fixture.ordered.reverse_order.len);
     try std.testing.expectEqual(reverse_expected.len, reverse_index);
-    try std.testing.expectEqualSlices(i32, &reverse_expected, reverse_actual[0..reverse_index]);
+    try std.testing.expectEqualSlices(i32, fixture.ordered.reverse_order, reverse_actual[0..reverse_index]);
     try expectStarterBalanceInvariants(&root);
 
     rbtree.erase(&entries[1].node, &root);
@@ -161,8 +189,9 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
         replaced_actual[replaced_index] = entry.key;
         replaced_index += 1;
     }
+    try std.testing.expectEqual(replaced_expected.len, fixture.ordered.replace_order.len);
     try std.testing.expectEqual(replaced_expected.len, replaced_index);
-    try std.testing.expectEqualSlices(i32, &replaced_expected, replaced_actual[0..replaced_index]);
+    try std.testing.expectEqualSlices(i32, fixture.ordered.replace_order, replaced_actual[0..replaced_index]);
 }
 
 test "phase 7 rbtree clearNode marks detached nodes as empty" {
@@ -179,6 +208,10 @@ test "phase 7 rbtree clearNode marks detached nodes as empty" {
 }
 
 test "phase 7 rbtree find helpers walk duplicate-key ranges" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
     const less = struct {
         fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
             const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
@@ -186,7 +219,7 @@ test "phase 7 rbtree find helpers walk duplicate-key ranges" {
             if (lhs_entry.key != rhs_entry.key) {
                 return lhs_entry.key < rhs_entry.key;
             }
-            return @intFromPtr(lhs) < @intFromPtr(rhs);
+            return lhs_entry.serial < rhs_entry.serial;
         }
     }.compare;
 
@@ -198,12 +231,12 @@ test "phase 7 rbtree find helpers walk duplicate-key ranges" {
     }.compare;
 
     var entries = [_]Entry{
-        .{ .key = 10 },
-        .{ .key = 20 },
-        .{ .key = 10 },
-        .{ .key = 5 },
-        .{ .key = 10 },
-        .{ .key = 15 },
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
     };
     var root = rbtree.Root.init();
 
@@ -211,16 +244,59 @@ test "phase 7 rbtree find helpers walk duplicate-key ranges" {
         rbtree.add(&entry.node, &root, less);
     }
 
-    const first_match = rbtree.findFirst(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
-    const found = rbtree.find(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
-    const second_match = rbtree.nextMatch(@as(i32, 10), first_match, cmp) orelse return error.TestUnexpectedResult;
-    const third_match = rbtree.nextMatch(@as(i32, 10), second_match, cmp) orelse return error.TestUnexpectedResult;
+    const first_match = rbtree.findFirst(fixture.duplicates.key, &root, cmp) orelse return error.TestUnexpectedResult;
+    const found = rbtree.find(fixture.duplicates.key, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(fixture.duplicates.key, (@as(*const Entry, @fieldParentPtr("node", found))).key);
 
-    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", found))).key);
-    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", first_match))).key);
-    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", second_match))).key);
-    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", third_match))).key);
-    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.nextMatch(@as(i32, 10), third_match, cmp));
+    var actual_serials: [3]i32 = undefined;
+    var match_count: usize = 0;
+    var current_match: ?*rbtree.Node = first_match;
+    while (current_match) |match| : (current_match = rbtree.nextMatch(fixture.duplicates.key, match, cmp)) {
+        const entry: *const Entry = @fieldParentPtr("node", match);
+        try std.testing.expectEqual(fixture.duplicates.key, entry.key);
+        actual_serials[match_count] = entry.serial;
+        match_count += 1;
+    }
+
+    try std.testing.expectEqual(fixture.duplicates.match_serials.len, match_count);
+    try std.testing.expectEqualSlices(i32, fixture.duplicates.match_serials, actual_serials[0..match_count]);
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.find(@as(i32, 99), &root, cmp));
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findFirst(@as(i32, 99), &root, cmp));
+}
+
+test "phase 7 rbtree postorder traversal matches committed parity fixture" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    var actual: [3]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.firstPostorder(&root);
+    while (current) |node| : (current = rbtree.nextPostorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        actual[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(fixture.postorder.traversal.len, count);
+    try std.testing.expectEqualSlices(i32, fixture.postorder.traversal, actual[0..count]);
 }
