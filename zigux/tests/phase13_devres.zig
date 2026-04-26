@@ -327,6 +327,40 @@ test "phase13 devres preserves translated size when devm_of_iomap hits downstrea
     }
 }
 
+test "phase13 devres preserves translated size when devm_of_iomap hits downstream region busy" {
+    const resources = [_]devres.Resource{
+        .{
+            .start = 0xa000,
+            .end = 0xa05f,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "regs",
+        },
+    };
+
+    const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "spi1",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+        .request_region_granted = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.busy, failure.error_code);
+            try std.testing.expectEqual(@as(usize, 0), failure.index);
+            try std.testing.expectEqual(@as(?u64, 0x60), failure.reported_size);
+            try std.testing.expectEqual(devres.IoremapType.np, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+            try std.testing.expectEqual(@as(?devres.ErrorStage, .request_region), failure.resource_stage);
+        },
+    }
+}
+
 test "phase13 devres retains memtype release records on successful WC reservation" {
     const outcome = try devres.DevresHelperLab.planArchIoReserveMemtypeWc(.{
         .start = 0x7000,
