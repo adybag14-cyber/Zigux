@@ -37,7 +37,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 virtio_net survey manifest records the first bounded survey gap" {
+test "phase12 virtio_net survey manifest stays aligned with the landed probe starter" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -48,6 +48,14 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const build_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_file);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -70,6 +78,10 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
     try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
+
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
@@ -79,6 +91,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
     var saw_ring_foundation = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
+    var saw_probe_starter = false;
     var saw_ready_next = false;
     var saw_blocker = false;
 
@@ -100,6 +113,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
             saw_build_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_build.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct probe-starter gate") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-make-target")) {
@@ -130,6 +144,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "build wiring") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-survey-note")) {
@@ -139,7 +154,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-probe-snapshot-starter")) {
-            saw_ready_next = true;
+            saw_probe_starter = true;
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtnet_probe()") != null);
@@ -176,6 +191,7 @@ test "phase12 virtio_net survey manifest records the first bounded survey gap" {
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_probe_starter);
     try std.testing.expect(saw_ready_next);
     try std.testing.expect(saw_blocker);
 }
