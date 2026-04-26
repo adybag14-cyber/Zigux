@@ -11,6 +11,7 @@ pub const SampleStage = enum(u8) {
 pub const SampleFocus = enum {
     symbol_selection,
     entry_timestamp,
+    private_data_shape,
     return_duration,
     missed_summary,
     ownership_and_lifetime,
@@ -34,6 +35,7 @@ pub const ReplaySummary = struct {
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
     skipped_kernel_thread_path_checked: bool,
+    private_data_size_bytes: usize,
     return_value: usize,
     duration_ns: i64,
     nmissed: usize,
@@ -43,6 +45,9 @@ pub const ReplaySummary = struct {
 
 pub const KretprobeExampleSample = struct {
     const Self = @This();
+    const InstanceData = struct {
+        entry_stamp_ns: i64 = -1,
+    };
 
     pub const default_symbol_name = "kernel_clone";
     pub const default_maxactive: usize = 20;
@@ -53,7 +58,7 @@ pub const KretprobeExampleSample = struct {
     active_instances: usize = 0,
     skipped_kernel_threads: usize = 0,
     nmissed: usize = 0,
-    entry_stamp_ns: i64 = -1,
+    instance_data: InstanceData = .{},
     last_retval: usize = 0,
     last_duration_ns: i64 = 0,
     init_runs: usize = 0,
@@ -73,6 +78,10 @@ pub const KretprobeExampleSample = struct {
         return self.stage_state;
     }
 
+    pub fn privateDataSizeBytes(_: *const Self) usize {
+        return @sizeOf(InstanceData);
+    }
+
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         if (self.symbol_name.len == 0) return error.InvalidSymbolName;
@@ -80,7 +89,7 @@ pub const KretprobeExampleSample = struct {
         self.active_instances = 0;
         self.skipped_kernel_threads = 0;
         self.nmissed = 0;
-        self.entry_stamp_ns = -1;
+        self.instance_data = .{};
         self.last_retval = 0;
         self.last_duration_ns = 0;
         self.init_runs += 1;
@@ -106,19 +115,19 @@ pub const KretprobeExampleSample = struct {
         if (self.active_instances >= 1) return error.OutstandingProbeInstance;
 
         self.active_instances = 1;
-        self.entry_stamp_ns = stamp_ns;
+        self.instance_data.entry_stamp_ns = stamp_ns;
         self.stage_state = .armed;
         return true;
     }
 
     pub fn retHandler(self: *Self, retval: usize, now_ns: i64) !ProbeResult {
         if (self.stage() != .armed) return error.InvalidLifecycleTransition;
-        if (self.entry_stamp_ns < 0 or self.active_instances == 0) return error.MissingEntryTimestamp;
-        if (now_ns < self.entry_stamp_ns) return error.InvalidTimestampOrder;
+        if (self.instance_data.entry_stamp_ns < 0 or self.active_instances == 0) return error.MissingEntryTimestamp;
+        if (now_ns < self.instance_data.entry_stamp_ns) return error.InvalidTimestampOrder;
 
-        const duration_ns = now_ns - self.entry_stamp_ns;
+        const duration_ns = now_ns - self.instance_data.entry_stamp_ns;
         self.active_instances = 0;
-        self.entry_stamp_ns = -1;
+        self.instance_data = .{};
         self.last_retval = retval;
         self.last_duration_ns = duration_ns;
         self.stage_state = .initialized;
@@ -155,6 +164,7 @@ pub const KretprobeExampleSample = struct {
             .stage_before_replay = .initialized,
             .stage_after_replay = .replay_complete,
             .skipped_kernel_thread_path_checked = self.skipped_kernel_threads == 1,
+            .private_data_size_bytes = self.privateDataSizeBytes(),
             .return_value = result.retval,
             .duration_ns = result.duration_ns,
             .nmissed = self.nmissed,
@@ -162,6 +172,7 @@ pub const KretprobeExampleSample = struct {
             .checked_focus = &.{
                 .symbol_selection,
                 .entry_timestamp,
+                .private_data_shape,
                 .return_duration,
                 .missed_summary,
                 .ownership_and_lifetime,
@@ -177,7 +188,7 @@ pub const KretprobeExampleSample = struct {
         }
 
         self.active_instances = 0;
-        self.entry_stamp_ns = -1;
+        self.instance_data = .{};
         self.last_retval = 0;
         self.last_duration_ns = 0;
         self.exit_runs += 1;
@@ -195,9 +206,10 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expect(replay.skipped_kernel_thread_path_checked);
+    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), replay.private_data_size_bytes);
     try std.testing.expectEqual(@as(usize, 42), replay.return_value);
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
 }
