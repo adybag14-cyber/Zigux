@@ -73,6 +73,26 @@ pub const RuntimeSnapshot = struct {
     last_pulse_width_usec: u32,
 };
 
+pub const StopDisposition = enum {
+    blocked_by_nowayout,
+    stopped,
+    kept_running,
+};
+
+pub const StopSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    disposition: StopDisposition,
+    stop_allowed_by_watchdog_core: bool,
+    driver_stop_invoked: bool,
+    running: bool,
+    line_state: bool,
+    line_is_output: bool,
+    disable_count: usize,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -226,6 +246,39 @@ pub const GpioWatchdogLab = struct {
         }
 
         return self.runtimeSnapshot();
+    }
+
+    pub fn requestStop(self: *Self, nowayout: bool) StopSummary {
+        if (nowayout) {
+            return .{
+                .anchor = descriptor().anchor,
+                .hw_algo = self.hw_algo,
+                .always_running = self.always_running,
+                .nowayout = true,
+                .disposition = .blocked_by_nowayout,
+                .stop_allowed_by_watchdog_core = false,
+                .driver_stop_invoked = false,
+                .running = self.running,
+                .line_state = self.line_state,
+                .line_is_output = self.line_is_output,
+                .disable_count = self.disable_count,
+            };
+        }
+
+        const runtime = self.stop();
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = false,
+            .disposition = if (self.always_running) .kept_running else .stopped,
+            .stop_allowed_by_watchdog_core = true,
+            .driver_stop_invoked = true,
+            .running = runtime.running,
+            .line_state = runtime.line_state,
+            .line_is_output = runtime.line_is_output,
+            .disable_count = runtime.disable_count,
+        };
     }
 
     fn disable(self: *Self) void {
