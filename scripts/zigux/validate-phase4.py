@@ -34,6 +34,19 @@ doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding
 phase4_matrix = (ROOT / 'Documentation' / 'zigux' / 'phase4-validation-matrix.md').read_text(encoding='utf-8')
 phase4_build = (ROOT / 'zigux' / 'tests' / 'phase4_build.zig').read_text(encoding='utf-8')
 
+phase4_gate_expectations = {
+    'runtime_atomic64_diff.zig': {
+        'owner': 'ABI and Runtime Team',
+        'rollback_owner': 'ABI and Runtime Team',
+        'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
+    },
+    'bitmap_diff.zig': {
+        'owner': 'Shared Subsystems Pod',
+        'rollback_owner': 'Shared Subsystems Pod',
+        'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
+    },
+}
+
 required_make_markers = [
     'PHONY += phase4-validate phase4-test phase4',
     'phase4-validate:',
@@ -110,6 +123,49 @@ for marker in required_phase4_matrix_markers:
 for marker in required_phase4_build_markers:
     if marker not in phase4_build:
         missing_markers.append(f'phase4_build:{marker}')
+
+
+def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> list[str]:
+    gate_heading = f"### `zigux/tests/{gate_name}`"
+    gate_heading_index = phase4_matrix.find(gate_heading)
+    if gate_heading_index == -1:
+        return [f'phase4_matrix:missing_gate_heading:{gate_name}']
+
+    next_heading_index = phase4_matrix.find('\n### `zigux/tests/', gate_heading_index + len(gate_heading))
+    matrix_heading_index = phase4_matrix.find('\n## Lab And CI Matrix', gate_heading_index + len(gate_heading))
+    gate_block_end = matrix_heading_index
+    if next_heading_index != -1 and next_heading_index < matrix_heading_index:
+        gate_block_end = next_heading_index
+    gate_block = phase4_matrix[gate_heading_index:gate_block_end]
+
+    row_prefix = f"| `zigux/tests/{gate_name}` |"
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+
+    missing = []
+    if f"- owner: `{expectation['owner']}`" not in gate_block:
+        missing.append(f"phase4_matrix:owner:{gate_name}:{expectation['owner']}")
+    if f"- rollback owner: `{expectation['rollback_owner']}`" not in gate_block:
+        missing.append(
+            f"phase4_matrix:rollback_owner:{gate_name}:{expectation['rollback_owner']}"
+        )
+    if expectation['threshold_posture'] not in row:
+        missing.append(
+            f"phase4_matrix:threshold_posture:{gate_name}:{expectation['threshold_posture']}"
+        )
+    if expectation['owner'] not in row:
+        missing.append(f"phase4_matrix:matrix_owner:{gate_name}:{expectation['owner']}")
+    if expectation['rollback_owner'] not in row:
+        missing.append(
+            f"phase4_matrix:matrix_rollback_owner:{gate_name}:{expectation['rollback_owner']}"
+        )
+    return missing
+
+
+for gate_name, expectation in phase4_gate_expectations.items():
+    missing_markers.extend(check_gate_matrix_alignment(gate_name, expectation))
 
 if missing_markers:
     print('PHASE4_VALIDATION=fail')
