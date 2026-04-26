@@ -37,11 +37,13 @@
         "find_bit.tail_zero_clamped_first",
         "find_bit.tail_zero_clamped_next",
         "find_bit.tail_and_clamped_first",
-        "find_bit.tail_and_clamped_next"
+        "find_bit.tail_and_clamped_next",
+        "find_bit.tail_and_mixed_first",
+        "find_bit.tail_and_mixed_next"
       ],
-      "summary": "Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond nbits.",
-      "unit_test_anchor": "tools/lib/find_bit.zig:test \"empty and boundary scans return nbits\"",
-      "unit_test_contract": "Direct Zig unit coverage keeps empty scans at 0 and boundary-start scans at nbits for set, zero, and AND entry points."
+      "summary": "Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past nbits.",
+      "unit_test_anchor": "tools/lib/find_bit.zig:test \"tail mask keeps the in-range shared bit for and scans\"",
+      "unit_test_contract": "Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits."
     }
   }
 }
