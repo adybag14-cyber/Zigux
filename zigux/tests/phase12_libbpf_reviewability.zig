@@ -1,6 +1,8 @@
 const std = @import("std");
 const cpu_mask = @import("cpu_mask");
 const bpf_type_names = @import("bpf_type_names");
+const logging = @import("logging");
+const pin_path = @import("pin_path");
 
 const Gap = struct {
     id: []const u8,
@@ -49,7 +51,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_manifest = false;
     var saw_landed_type_names = false;
     var saw_landed_cpu_mask = false;
-    var saw_ready_next_logging = false;
+    var saw_landed_logging = false;
+    var saw_landed_pin_path = false;
     var saw_blocked_object_loader = false;
 
     for (manifest.gaps) |gap| {
@@ -76,9 +79,13 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_cpu_mask = true;
             try std.testing.expect(exists);
         }
-        if (std.mem.eql(u8, gap.id, "phase12-libbpf-logging-helper")) {
-            saw_ready_next_logging = true;
-            try std.testing.expect(!exists);
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-logging-helper-foundation")) {
+            saw_landed_logging = true;
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-pin-path-helper-foundation")) {
+            saw_landed_pin_path = true;
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
             saw_blocked_object_loader = true;
@@ -89,15 +96,27 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_manifest);
     try std.testing.expect(saw_landed_type_names);
     try std.testing.expect(saw_landed_cpu_mask);
-    try std.testing.expect(saw_ready_next_logging);
+    try std.testing.expect(saw_landed_logging);
+    try std.testing.expect(saw_landed_pin_path);
     try std.testing.expect(saw_blocked_object_loader);
 }
 
 test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
     const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,3");
     defer parsed.deinit(std.testing.allocator);
+    var path_buffer: [64]u8 = undefined;
+    var error_buffer: [64]u8 = undefined;
 
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(parsed.values));
     try std.testing.expectEqualStrings("xdp", bpf_type_names.libbpfBpfAttachTypeStr(37).?);
     try std.testing.expectEqualStrings("ringbuf", bpf_type_names.libbpfBpfMapTypeStr(27).?);
+    try std.testing.expectEqualStrings("v1.8", logging.libbpfVersionString());
+    try std.testing.expectEqualStrings(
+        "Internal error in libbpf",
+        try logging.formatErrorString(&error_buffer, -4004),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/demo_map",
+        try pin_path.buildSanitizedMapPinPath(&path_buffer, null, "demo.map"),
+    );
 }
