@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const max_num_layers: usize = 16;
 pub const max_num_rules: u32 = std.math.maxInt(u32);
+pub const max_tree_search_depth: usize = 16;
 pub const initially_denied_fs_access: u32 = 1 << 13;
 
 pub const ModuleDescriptor = struct {
@@ -12,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_layer_mask_init: bool,
     provides_rule_unmasking: bool,
     provides_rule_insertion_planning: bool,
+    provides_rule_tree_search_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -68,6 +70,39 @@ pub const LayerMaskPlan = struct {
     masks: [max_num_layers]u32,
 };
 
+pub const TreeRoot = enum {
+    inode,
+    net_port,
+};
+
+pub const SearchDirection = enum {
+    left,
+    right,
+    match,
+};
+
+pub const InsertionSite = enum {
+    root,
+    left,
+    right,
+};
+
+pub const TreeSearchStep = struct {
+    node_key_data: u64,
+    direction: SearchDirection,
+};
+
+pub const RuleTreeSearchPlan = struct {
+    anchor: []const u8,
+    root: TreeRoot,
+    search_depth: usize,
+    search_steps: [max_tree_search_depth]TreeSearchStep,
+    matched_existing_rule: bool,
+    parent_key_data: ?u64,
+    insertion_site: ?InsertionSite,
+    resulting_num_rules: u32,
+};
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -78,6 +113,7 @@ pub const RulesetHelperLab = struct {
             .provides_layer_mask_init = true,
             .provides_rule_unmasking = true,
             .provides_rule_insertion_planning = true,
+            .provides_rule_tree_search_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -115,6 +151,13 @@ pub const RulesetHelperLab = struct {
         return switch (key_type) {
             .inode => if (layer.fs == 0) 0 else layer.fs | initially_denied_fs_access,
             .net_port => layer.net,
+        };
+    }
+
+    fn selectRoot(key_type: KeyType) TreeRoot {
+        return switch (key_type) {
+            .inode => .inode,
+            .net_port => .net_port,
         };
     }
 
@@ -230,5 +273,73 @@ pub const RulesetHelperLab = struct {
             .resulting_rule = try copyRulePlan(incoming_layers),
             .resulting_num_rules = current_num_rules + 1,
         };
+    }
+
+    pub fn planRuleTreeSearch(key_type: KeyType, root_present: bool, search_key_data: u64, walker_keys: []const u64, current_num_rules: u32) !RuleTreeSearchPlan {
+        var plan = RuleTreeSearchPlan{
+            .anchor = descriptor().anchor,
+            .root = selectRoot(key_type),
+            .search_depth = 0,
+            .search_steps = [_]TreeSearchStep{.{ .node_key_data = 0, .direction = .left }} ** max_tree_search_depth,
+            .matched_existing_rule = false,
+            .parent_key_data = null,
+            .insertion_site = null,
+            .resulting_num_rules = current_num_rules,
+        };
+
+        if (!root_present) {
+            if (walker_keys.len != 0) {
+                return error.UnexpectedWalkerPath;
+            }
+            if (current_num_rules >= max_num_rules) {
+                return error.TooManyRules;
+            }
+            plan.insertion_site = .root;
+            plan.resulting_num_rules = current_num_rules + 1;
+            return plan;
+        }
+
+        if (walker_keys.len == 0) {
+            return error.MissingRootNode;
+        }
+        if (walker_keys.len > max_tree_search_depth) {
+            return error.TooDeepSearch;
+        }
+
+        for (walker_keys, 0..) |walker_key, i| {
+            const direction: SearchDirection = if (walker_key == search_key_data)
+                .match
+            else if (walker_key < search_key_data)
+                .right
+            else
+                .left;
+
+            plan.search_steps[i] = .{
+                .node_key_data = walker_key,
+                .direction = direction,
+            };
+            plan.search_depth += 1;
+
+            if (direction == .match) {
+                plan.matched_existing_rule = true;
+                plan.parent_key_data = walker_key;
+                plan.insertion_site = null;
+                plan.resulting_num_rules = current_num_rules;
+                return plan;
+            }
+
+            plan.parent_key_data = walker_key;
+            plan.insertion_site = switch (direction) {
+                .left => .left,
+                .right => .right,
+                .match => unreachable,
+            };
+        }
+
+        if (current_num_rules >= max_num_rules) {
+            return error.TooManyRules;
+        }
+        plan.resulting_num_rules = current_num_rules + 1;
+        return plan;
     }
 };
