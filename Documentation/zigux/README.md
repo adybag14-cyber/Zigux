@@ -21,6 +21,9 @@ Current closure records
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase2-closure.md`
 
+Phase 4 notes
+- `python3 scripts/zigux/validate-phase4.py` keeps the bounded `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
+
 Phase 6 notes
 - `Documentation/zigux/phase6-checksum-slice.md`
 

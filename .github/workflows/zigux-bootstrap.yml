@@ -63,6 +63,9 @@ jobs:
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
+      - name: Validate Phase 4 diff gates
+        run: python3 scripts/zigux/validate-phase4.py
+
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
 
@@ -86,9 +89,6 @@ jobs:
 
       - name: Check Zig toolchain policy
         run: python3 scripts/zigux/check-zig-toolchain.py
-
-      - name: Self-test artifact diff helper
-        run: python3 scripts/zigux/artifact_diff.py --self-test
 
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
@@ -140,6 +140,9 @@ jobs:
 
       - name: Run Phase 3 ABI/interp substrate tests
         run: zig build phase3-test --build-file zigux/tests/build.zig
+
+      - name: Run Phase 4 diff tests
+        run: zig build test --build-file zigux/tests/phase4_build.zig
 
   phase2-cross:
     runs-on: ubuntu-latest

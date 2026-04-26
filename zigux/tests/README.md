@@ -10,6 +10,8 @@ Purpose
 Key entrypoints
 - `zigux/tests/build.zig`
 - `zigux/tests/atomic64_diff.zig`
+- `zigux/tests/bitmap_diff.zig`
+- `zigux/tests/phase4_build.zig`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
@@ -20,6 +22,7 @@ Key entrypoints
 - `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
 - `scripts/zigux/validate-phase3.py`
+- `scripts/zigux/validate-phase4.py`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
 - `scripts/zigux/generate-phase3-check-wrappers.py --check`
