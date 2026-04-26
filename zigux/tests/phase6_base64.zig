@@ -65,6 +65,8 @@ test "phase 6 base64 standard decode parity matches kernel vectors" {
         .{ .input = "Zm9vYmE=", .expected = "fooba", .padding = true, .variant = .std },
         .{ .input = "Zm9vYmFy", .expected = "foobar", .padding = true, .variant = .std },
         .{ .input = "SGVsbG8sIHdvcmxkIQ==", .expected = "Hello, world!", .padding = true, .variant = .std },
+        .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=", .expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", .padding = true, .variant = .std },
+        .{ .input = "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=", .expected = "abcdefghijklmnopqrstuvwxyz", .padding = true, .variant = .std },
         .{ .input = "", .expected = "", .padding = false, .variant = .std },
         .{ .input = "Zg", .expected = "f", .padding = false, .variant = .std },
         .{ .input = "Zm8", .expected = "fo", .padding = false, .variant = .std },
@@ -72,6 +74,9 @@ test "phase 6 base64 standard decode parity matches kernel vectors" {
         .{ .input = "Zm9vYg", .expected = "foob", .padding = false, .variant = .std },
         .{ .input = "Zm9vYmE", .expected = "fooba", .padding = false, .variant = .std },
         .{ .input = "Zm9vYmFy", .expected = "foobar", .padding = false, .variant = .std },
+        .{ .input = "SGVsbG8sIHdvcmxkIQ", .expected = "Hello, world!", .padding = false, .variant = .std },
+        .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", .expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", .padding = false, .variant = .std },
+        .{ .input = "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo", .expected = "abcdefghijklmnopqrstuvwxyz", .padding = false, .variant = .std },
         .{ .input = "MDEyMzQ1Njc4OSsv", .expected = "0123456789+/", .padding = false, .variant = .std },
     };
 
@@ -82,6 +87,7 @@ test "phase 6 base64 standard decode parity matches kernel vectors" {
 
 test "phase 6 base64 decode rejects invalid kernel-style vectors" {
     var buf: [128]u8 = undefined;
+    const with_nul = [_]u8{ 'Z', 'g', 0, '=' };
     const invalid_cases = [_]struct {
         input: []const u8,
         padding: bool,
@@ -93,9 +99,14 @@ test "phase 6 base64 decode rejects invalid kernel-style vectors" {
         .{ .input = "Zg", .padding = true, .variant = .std },
         .{ .input = "Zm9v====", .padding = true, .variant = .std },
         .{ .input = "Zm==A", .padding = true, .variant = .std },
+        .{ .input = &with_nul, .padding = true, .variant = .std },
+        .{ .input = "Zg=!", .padding = false, .variant = .std },
+        .{ .input = "Zm$=", .padding = false, .variant = .std },
+        .{ .input = "Z===", .padding = false, .variant = .std },
         .{ .input = "Zg=", .padding = false, .variant = .std },
         .{ .input = "Zm9v====", .padding = false, .variant = .std },
         .{ .input = "Zm==v", .padding = false, .variant = .std },
+        .{ .input = &with_nul, .padding = false, .variant = .std },
         .{ .input = "Zg==", .padding = false, .variant = .urlsafe },
         .{ .input = "Zg==", .padding = false, .variant = .imap },
     };
