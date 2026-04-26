@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=help-command-source-and-terminal-starter`
-- scope: owned command-list handling, injected command-source filtering, injected terminal-dimensions resolution, and print-layout planning only
+- scope: owned command-list handling, injected command-source filtering, injected raw-`PATH` splitting, injected terminal-dimensions resolution, and print-layout planning only
 - product boundary:
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
@@ -40,6 +40,7 @@ The current starter slice covers:
 - `is_in_cmdlist()` membership checks
 - injected command-entry filtering that strips the `perf-` prefix and optional `.exe` suffix before storage
 - injected command-source loading that models `load_command_list()` exec-path priority, PATH de-duplication, and cross-list exclusion without direct `readdir()` or `stat()` calls
+- raw `PATH` string splitting that preserves empty colon-delimited segments before injected directory population, matching the current `help.c` control flow
 - injected `get_term_dimensions()`-adjacent resolution that prefers explicit `LINES` and `COLUMNS` values before fallback terminal dimensions or the default `25x80`
 - `pretty_print_string_list()`-adjacent column and row planning without direct terminal I/O
 
@@ -50,6 +51,7 @@ The current tests check:
 - sorted exclusions remove matching entries without disturbing survivors
 - executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
 - command-source loading keeps the exec-path list stable, skips the exec-path directory when it also appears on PATH, removes commands already present in the exec-path list, and preserves the `perf-` default prefix behavior
+- raw `PATH` splitting keeps leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
@@ -60,8 +62,8 @@ This slice does not yet claim:
 
 - `opendir()` or `readdir()` parity for command discovery
 - direct `ioctl()`-backed terminal probing
-- direct `printf()` output formatting or PATH scanning behavior
+- direct `printf()` output formatting or direct environment reads
 
 ## Next bounded step
 
-Stay in `tools/lib/subcmd/help.zig` and thread the injected terminal-dimensions helper into a future output-emission surface before attempting direct `printf()` parity, or narrow further into PATH-string splitting if repo review still shows that helper gap inside the same command-discovery slice.
+Stay in `tools/lib/subcmd/help.zig` and thread the injected terminal-dimensions helper into a future output-emission surface before attempting direct `printf()` parity.
