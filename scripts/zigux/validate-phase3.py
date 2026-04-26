@@ -17,6 +17,7 @@ from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, 
 
 
 ROOT = Path(__file__).resolve().parents[2]
+BUILD_FILE_REL = "zigux/tests/build.zig"
 
 
 def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
@@ -98,6 +99,25 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
 
 
+def _has_build_step(build_file: Path, step_name: str) -> bool:
+    marker = f'b.step("{step_name}"'
+    return marker in build_file.read_text(encoding="utf-8")
+
+
+def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
+    build_file = root / BUILD_FILE_REL
+    if not build_file.exists():
+        issues.append(f"build:missing_file:{BUILD_FILE_REL}")
+        return
+
+    if not _has_build_step(build_file, "phase3-test"):
+        issues.append(f"build:missing_step:{BUILD_FILE_REL}:phase3-test")
+
+    for entry in slices:
+        if not _has_build_step(build_file, entry.build_step):
+            issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
+
+
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
     if not check_all_wrappers:
         return
@@ -163,6 +183,7 @@ def validate_slices(
         validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
+    validate_build_steps(root, slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
@@ -188,6 +209,18 @@ def run_self_test() -> int:
 
         for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, fixture_dir):
             path.mkdir(parents=True, exist_ok=True)
+
+        (paths.tests_dir / "build.zig").write_text(
+            "\n".join(
+                [
+                    'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
+                    'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
 
         manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
         manifest = {
@@ -349,6 +382,34 @@ def run_self_test() -> int:
         )
         issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md" in issues
+
+        (paths.tests_dir / "build.zig").write_text(
+            'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=False)
+        assert f"build:missing_step:{BUILD_FILE_REL}:phase3-test" in issues
+
+        (paths.tests_dir / "build.zig").write_text(
+            'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=False)
+        assert f"alpha:missing_build_step:{BUILD_FILE_REL}:phase3-alpha-dump" in issues
+
+        (paths.tests_dir / "build.zig").write_text(
+            "\n".join(
+                [
+                    'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
+                    'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
 
         loop_slug = "loop-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
         loop_fixture_dir = paths.fixtures_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy"
