@@ -19,11 +19,12 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expect(replay.skipped_kernel_thread_path_checked);
+    try std.testing.expectEqual(module.privateDataSizeBytes(), replay.private_data_size_bytes);
     try std.testing.expectEqual(@as(usize, 42), replay.return_value);
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
@@ -37,6 +38,7 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
     try module.retargetSymbol("do_sys_openat2");
     try module.init();
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
+    try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
     try std.testing.expect(try module.entryHandler(true, 100));
@@ -69,6 +71,7 @@ test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit"
 
     const recovered = try module.retHandler(9, 260);
     try std.testing.expectEqual(@as(i64, 60), recovered.duration_ns);
+    try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 
     try module.exit();
@@ -76,5 +79,6 @@ test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit"
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), module.active_instances);
+    try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.recordMissedInstance());
 }
