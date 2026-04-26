@@ -70,6 +70,12 @@ pub const ExtractArgv0Result = struct {
     }
 };
 
+pub const max_execl_slots: usize = 32;
+pub const CollectExeclArgsError = error{
+    MissingNullTerminator,
+    TooManyArguments,
+};
+
 pub fn isAbsolutePath(path: []const u8) bool {
     return path.len != 0 and path[0] == '/';
 }
@@ -266,6 +272,32 @@ pub fn prepareExecCmd(
     return nargv;
 }
 
+pub fn collectExeclArgs(
+    allocator: std.mem.Allocator,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) (CollectExeclArgsError || std.mem.Allocator.Error)![]const ?[]const u8 {
+    var argc: usize = 1;
+    var collected = std.ArrayList(?[]const u8).empty;
+    errdefer collected.deinit(allocator);
+
+    try collected.append(allocator, cmd);
+
+    for (argv_tail) |arg| {
+        argc += 1;
+        if (argc >= max_execl_slots) {
+            return error.TooManyArguments;
+        }
+        if (arg == null) {
+            try collected.append(allocator, null);
+            return collected.toOwnedSlice(allocator);
+        }
+        try collected.append(allocator, arg);
+    }
+
+    return error.MissingNullTerminator;
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -374,6 +406,34 @@ test "prepareExecCmd keeps the null terminator even when no subcommand args are 
     try std.testing.expectEqual(@as(usize, 2), prepared.len);
     try std.testing.expectEqualStrings("perf", prepared[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
+}
+
+test "collectExeclArgs keeps the command head and first null terminator" {
+    const collected = try collectExeclArgs(
+        std.testing.allocator,
+        "record",
+        &[_]?[]const u8{ "-a", "--call-graph", null, "--ignored" },
+    );
+    defer std.testing.allocator.free(collected);
+
+    try std.testing.expectEqual(@as(usize, 4), collected.len);
+    try std.testing.expectEqualStrings("record", collected[0].?);
+    try std.testing.expectEqualStrings("-a", collected[1].?);
+    try std.testing.expectEqualStrings("--call-graph", collected[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
+}
+
+test "collectExeclArgs rejects the C helper's too-many-args shape" {
+    var argv_tail: [31]?[]const u8 = undefined;
+    for (argv_tail[0..30]) |*slot| {
+        slot.* = "x";
+    }
+    argv_tail[30] = null;
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        collectExeclArgs(std.testing.allocator, "record", &argv_tail),
+    );
 }
 
 test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
