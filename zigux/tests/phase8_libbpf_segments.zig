@@ -65,8 +65,10 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
 
     var ready_next_count: usize = 0;
     var starter_landed_count: usize = 0;
+    var blocked_on_object_model_count: usize = 0;
     var deferred_high_risk_count: usize = 0;
     var saw_logging_segment = false;
+    var saw_pin_path_segment = false;
     var saw_cpu_mask_segment = false;
 
     for (manifest.segments, 0..) |segment, i| {
@@ -84,6 +86,9 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
         if (std.mem.eql(u8, segment.status, "starter_landed")) {
             starter_landed_count += 1;
         }
+        if (std.mem.eql(u8, segment.status, "blocked_on_object_model")) {
+            blocked_on_object_model_count += 1;
+        }
         if (std.mem.eql(u8, segment.status, "deferred_high_risk")) {
             deferred_high_risk_count += 1;
         }
@@ -97,6 +102,11 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/logging.zig", segment.zigux_destination);
         }
+        if (std.mem.eql(u8, segment.slug, "pin-path-helpers")) {
+            saw_pin_path_segment = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/pin_path.zig", segment.zigux_destination);
+        }
 
         for (manifest.segments[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, segment.id, other.id));
@@ -104,9 +114,11 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
         }
     }
 
-    try std.testing.expect(ready_next_count >= 1);
-    try std.testing.expect(starter_landed_count >= 2);
+    try std.testing.expect(ready_next_count == 0);
+    try std.testing.expect(starter_landed_count >= 3);
+    try std.testing.expect(blocked_on_object_model_count >= 1);
     try std.testing.expect(deferred_high_risk_count >= 2);
     try std.testing.expect(saw_logging_segment);
+    try std.testing.expect(saw_pin_path_segment);
     try std.testing.expect(saw_cpu_mask_segment);
 }
