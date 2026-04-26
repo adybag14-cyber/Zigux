@@ -55,6 +55,7 @@ pub const Request = struct {
     kconfig: []const u8,
     config: []const u8,
     arch: []const u8,
+    mode_arg: ?[]const u8 = null,
 };
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
@@ -73,7 +74,13 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll(request.mode.text());
     try writer.writeAll("\",\"argv\":[\"scripts/kconfig/conf\",\"");
     try writer.writeAll(request.mode.flag());
-    try writer.writeAll("\",\"");
+    try writer.writeAll("\"");
+    if (request.mode_arg) |mode_arg| {
+        try writer.writeAll(",\"");
+        try writeJsonEscaped(writer, mode_arg);
+        try writer.writeAll("\"");
+    }
+    try writer.writeAll(",\"");
     try writeJsonEscaped(writer, request.kconfig);
     try writer.writeAll("\"],\"env\":{\"ARCH\":\"");
     try writeJsonEscaped(writer, request.arch);
@@ -91,10 +98,10 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len != 5) {
+    if (args.len < 5 or args.len > 6) {
         var stderr_buffer: [160]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch>\n");
+        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
@@ -107,6 +114,22 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     };
 
+    const mode_arg = if (args.len == 6) args[5] else null;
+    if (mode == .defconfig and mode_arg == null) {
+        var stderr_buffer: [160]u8 = undefined;
+        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+        try stderr_writer.interface.writeAll("Error: defconfig mode requires <defconfig>\n");
+        try stderr_writer.interface.flush();
+        std.process.exit(1);
+    }
+    if (mode != .defconfig and mode_arg != null) {
+        var stderr_buffer: [160]u8 = undefined;
+        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+        try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
+        try stderr_writer.interface.flush();
+        std.process.exit(1);
+    }
+
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     try runConfBridge(&stdout_writer.interface, .{
@@ -114,6 +137,7 @@ pub fn main(init: std.process.Init) !void {
         .kconfig = args[2],
         .config = args[3],
         .arch = args[4],
+        .mode_arg = mode_arg,
     });
     try stdout_writer.interface.flush();
 }
@@ -266,4 +290,42 @@ test "conf bridge emits allmodconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allmodconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"mod/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm\"") != null);
+}
+
+test "conf bridge emits defconfig mode argument before kconfig" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .defconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "arm64",
+        .mode_arg = "arch/arm64/configs/defconfig",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"defconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/defconfig\",\"Kconfig\"]") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"out/.config\"") != null);
 }

@@ -54,13 +54,16 @@ def main() -> int:
 
         for case in CASES['conf_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([
+            cmd = [
                 str(conf_exe),
                 case['mode'],
                 case['kconfig'],
                 case['config'],
                 case['arch'],
-            ], cwd=str(ROOT), capture_output=True)
+            ]
+            if 'mode_arg' in case:
+                cmd.append(case['mode_arg'])
+            result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
             run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(FIXTURE_DIR / case['expected']), str(actual)], cwd=str(ROOT))
 
