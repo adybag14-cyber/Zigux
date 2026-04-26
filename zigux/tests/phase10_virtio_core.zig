@@ -100,7 +100,7 @@ test "phase10 virtio core reset clears negotiated state and keeps failure bits o
 test "phase10 virtio core rejects feature bits outside the bounded lab capacity" {
     try std.testing.expectError(error.FeatureBitOutOfRange, virtio_core.VirtioCoreLabDevice.init(&.{virtio_core.feature_bit_capacity}));
 
-    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 9 });
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{9});
     device.acknowledge();
     try device.attachDriver();
 
@@ -220,4 +220,72 @@ test "phase10 virtio core rejects invalid queue descriptor shapes and clears the
     device.reset();
 
     try std.testing.expectError(error.QueueNotRegistered, device.queueDescriptorShapeSummary(1));
+}
+
+test "phase10 virtio core delivers config changes immediately when core and driver paths are enabled" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 2, 5 });
+
+    device.acknowledge();
+    try device.attachDriver();
+
+    try device.noteConfigChanged();
+    const summary = device.configChangeSummary();
+
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+}
+
+test "phase10 virtio core keeps config changes pending while the driver path is disabled and flushes on enable" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 3, 9 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.disableConfigDriver();
+    try device.noteConfigChanged();
+
+    var summary = device.configChangeSummary();
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(summary.driver_disabled);
+    try std.testing.expect(summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+
+    try device.enableConfigDriver();
+    summary = device.configChangeSummary();
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+}
+
+test "phase10 virtio core keeps config changes pending while the core path is disabled and clears them on reset" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 11 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.disableConfigCore();
+    try device.noteConfigChanged();
+
+    var summary = device.configChangeSummary();
+    try std.testing.expect(!summary.core_enabled);
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+
+    try device.enableConfigCore();
+    summary = device.configChangeSummary();
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+
+    try device.disableConfigCore();
+    try device.noteConfigChanged();
+    device.reset();
+
+    summary = device.configChangeSummary();
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 }
