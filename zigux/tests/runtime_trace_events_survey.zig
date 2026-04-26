@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime trace-events survey manifest records the landed diff gate and remaining blocker" {
+test "phase 9 runtime trace-events survey manifest stays anchored to the survey lane while recording the landed diff gate and blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -48,7 +48,7 @@ test "phase 9 runtime trace-events survey manifest records the landed diff gate 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
