@@ -175,6 +175,54 @@ pub fn addExecutableEntry(
     return true;
 }
 
+pub const DirectoryEntry = struct {
+    name: []const u8,
+    is_executable: bool,
+};
+
+pub fn addExecutableEntries(
+    cmds: *CmdNames,
+    entries: []const DirectoryEntry,
+    prefix: ?[]const u8,
+) !void {
+    const actual_prefix = prefix orelse "perf-";
+    for (entries) |entry| {
+        _ = try addExecutableEntry(cmds, entry.name, actual_prefix, entry.is_executable);
+    }
+}
+
+pub fn loadCommandListsFromSource(
+    prefix: ?[]const u8,
+    exec_path: ?[]const u8,
+    path_entries: []const []const u8,
+    main_cmds: *CmdNames,
+    other_cmds: *CmdNames,
+    source_context: anytype,
+    comptime populate_dir: fn (@TypeOf(source_context), *CmdNames, []const u8, []const u8) anyerror!void,
+) !void {
+    const actual_prefix = prefix orelse "perf-";
+
+    if (exec_path) |path| {
+        try populate_dir(source_context, main_cmds, path, actual_prefix);
+        main_cmds.sort();
+        main_cmds.uniq();
+    }
+
+    for (path_entries) |path| {
+        if (exec_path) |main_path| {
+            if (std.mem.eql(u8, path, main_path)) {
+                continue;
+            }
+        }
+
+        try populate_dir(source_context, other_cmds, path, actual_prefix);
+    }
+
+    other_cmds.sort();
+    other_cmds.uniq();
+    other_cmds.excludeCmds(main_cmds.*);
+}
+
 pub fn planPrettyPrint(count: usize, longest: usize, terminal_cols: usize) PrettyPrintLayout {
     const spacing = longest + 1;
     if (count == 0) {
@@ -287,6 +335,69 @@ test "addExecutableEntry models load_command_list filtering without directory I/
     try std.testing.expectEqual(@as(usize, 2), cmds.count());
     try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
     try std.testing.expectEqualStrings("stat", cmds.names.items[1].name);
+}
+
+test "loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "README.md", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+        .{ .name = "perf-diff", .is_executable = false },
+        .{ .name = "trace", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromSource(
+        null,
+        "/opt/perf/bin",
+        &.{ "/opt/perf/bin", "/usr/bin" },
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
 test "pretty-print layout follows the same column math as help.c" {
