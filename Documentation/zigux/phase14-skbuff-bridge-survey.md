@@ -5,8 +5,8 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 ## Status
 
 - `PHASE14_STATUS=active`
-- `PHASE14_SLICE=skbuff-boundary-map-starter`
-- scope: the landed `net/core/skbuff_bridge.zig` boundary map plus its initial lifetime audit outline, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
+- `PHASE14_SLICE=skbuff-segmentation-tail-owner-followup`
+- scope: the landed `net/core/skbuff_bridge.zig` boundary map, its seven-checkpoint lifetime audit outline, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the current skbuff foothold against the roadmap
 - product boundary:
   - `net/core/skbuff_bridge.zig`
   - `zigux/tests/phase14_skbuff_bridge.zig`
@@ -28,7 +28,7 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - `net/core/skbuff.c` is present on `master` and is large enough that even a minimal wrapper can easily overstate what Zigux owns if the boundary is not written down first.
 - `include/linux/skbuff.h` makes the coupling visible: `struct skb_shared_info`, the split `dataref`, header-clone rules, `destructor_arg`, checksum metadata, and GSO fields show exactly why this lane needs explicit stay-in-C decisions before implementation claims.
 - `net/core/datagram.c` is a useful nearby consumer because it still relies on the shipped skbuff lifetime model rather than any alternate wrapper surface.
-- the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
+- the current `net/core/skbuff_bridge.zig` bridge stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
 - the bridge now keeps checksum-complete state around `__skb_checksum_complete()` and `skb_checksum_complete_unset()` separate from the segmentation study, which keeps the ownership boundary around `skb->csum`, `skb->ip_summed`, `skb->csum_valid`, and `skb->csum_complete_sw` explicit without claiming live checksum-state control.
 - the bridge now makes the first segmentation-handoff study explicit around `skb_segment()`, `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, `nskb->ip_summed`, and `SKB_GSO_CB(nskb)` so the lane names where frag ownership and checksum metadata move while still keeping live packet shaping in C.
 - the bridge now also records the smaller `skb_segment()` partial-seg metadata rewrite and tail-owner transfer around `SKB_GSO_PARTIAL`, `SKB_GSO_DODGY`, `SKB_GSO_CB(iter)->data_offset`, and the `sock_wfree` tail transfer so the lane names where GSO metadata and socket backpressure ownership still stay in C.
