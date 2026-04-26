@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
-- survey provenance refreshed against verified `master` head `0af2325a9652a7ae23e2c9b0331707239103d2d0`
+- survey provenance refreshed against verified `master` head `946d5c73fdb763ba860a20879b05da54e1896e8c`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -64,6 +64,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - Splice behavior also remains tied to the mapped-reader contract. The docs say mapped buffers lose the copyless swap path, and `tracing_buffers_splice_read()` falls back to allocating read pages, calling `ring_buffer_read_page()`, and pushing those pages through `splice_to_pipe()`, so the tracefs read path stays coupled to the same mapped-reader bookkeeping instead of exposing a separate zero-copy bridge candidate.
 - `TRACE_MMAP_IOCTL_GET_READER` reinforces that this is still one shared boundary. The ioctl waits through `ring_buffer_wait()` when blocking reads are allowed and then delegates to `ring_buffer_map_get_reader()`, so mapped-reader advancement, wakeups, lost-event publication, and the resize or snapshot lockouts all remain coordinated in C.
 
+## Mapped-reader ioctl audit
+
+- `tracing_buffers_ioctl()` keeps the mapped-reader handoff attached to the existing wait and wake contract. Blocking callers of `TRACE_MMAP_IOCTL_GET_READER` first go through `ring_buffer_wait()`, while non-blocking callers skip straight to the same reader handoff, so the ioctl does not create an independent reader-visible policy surface.
+- `ring_buffer_map_get_reader()` also refuses to operate on an unmapped buffer. It enters through `rb_get_mapped_buffer()`, which depends on the mapping state built by `ring_buffer_map()`, and then serializes the reader transition under `reader_lock`, so the ioctl path still shares ownership with the same mapped-buffer lifetime rules and lock choreography as the rest of the tracefs mapping surface.
+- The handoff is not a tiny pointer swap. If the current reader page still has unread bytes, `ring_buffer_map_get_reader()` advances the in-page reader to the end before it will consider a new page, and if the reader has already caught up with `commit_page` it stops instead of fabricating a handoff. Only when a new page is truly needed does it call `rb_get_reader_page()`, which keeps mapped-reader advancement coupled to the same reader-page rotation rules that already block wrapper-first ownership elsewhere in the survey.
+- Lost-event and metadata publication stay in the same C-owned handoff. When missed events exist, `ring_buffer_map_get_reader()` tries to encode them into the exported page state, then flushes the mapped range and calls `rb_update_meta_page()` before releasing `reader_lock`, so user space still depends on one combined kernel handoff for page contents, loss accounting, and meta-page refresh.
+- The concurrent-reader warning in `Documentation/trace/ring-buffer-map.rst` lines up with the implementation details. Multiple user mappings increment `user_mapped`, `ring_buffer_map_dup()` preserves that shared state across duplicated mappings, and the docs still call the resulting output unpredictable, which confirms that `TRACE_MMAP_IOCTL_GET_READER` remains part of a shared reader-competition contract rather than a clean Zig bridge seam.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -77,7 +85,8 @@ The current lane state is:
 - landed `phase14-ring-buffer-overwrite-audit`
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
-- ready-next `phase14-ring-buffer-mapped-reader-ioctl-followup`
+- landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
+- ready-next `phase14-ring-buffer-reader-page-consume-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -103,4 +112,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only mapped-reader ioctl follow-up next, limited to `TRACE_MMAP_IOCTL_GET_READER`, `ring_buffer_map_get_reader()`, and concurrent mapped-reader handoff before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only reader-page follow-up next, limited to `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` before anyone proposes `kernel/trace/ring_buffer.zig`.
