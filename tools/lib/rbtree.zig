@@ -25,6 +25,7 @@ pub const Root = struct {
 };
 
 pub const LessFn = *const fn (*const Node, *const Node) bool;
+pub const CmpNodeFn = *const fn (*const Node, *const Node) i32;
 
 pub fn emptyRoot(root: *const Root) bool {
     return root.node == null;
@@ -189,6 +190,27 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColor(node, root);
+}
+
+pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+    return null;
 }
 
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
@@ -614,4 +636,54 @@ test "rbtree postorder and empty node helpers behave" {
     var detached = Node.init();
     clearNode(&detached);
     try std.testing.expect(emptyNode(&detached));
+}
+
+test "rbtree findAdd keeps the first duplicate and inserts new keys" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 10, .serial = 3 },
+        .{ .key = 15, .serial = 4 },
+    };
+    var root = Root.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[0].node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[1].node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[2].node, &root, cmp));
+
+    const existing = findAdd(&entries[3].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    const existing_entry: *const Entry = @fieldParentPtr("node", existing);
+    try std.testing.expectEqual(@as(i32, 10), existing_entry.key);
+    try std.testing.expectEqual(@as(usize, 0), existing_entry.serial);
+
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[4].node, &root, cmp));
+
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20 }, order[0..count]);
 }
