@@ -71,7 +71,9 @@ const Fixture = struct {
         memchr_inv_none: bool,
     },
     rbtree: struct {
+        empty_root: bool,
         insert_order: []const i32,
+        reverse_order: []const i32,
         replace_order: []const i32,
         postorder_count: usize,
         cleared_node_empty: bool,
@@ -486,6 +488,7 @@ test "phase 1 helper ports match committed parity fixture" {
     };
     var replacement = Entry{ .key = 10 };
     var root = rbtree.Root.init();
+    try std.testing.expectEqual(fixture.rbtree.empty_root, rbtree.emptyRoot(&root));
     for (&entries) |*entry| {
         rbtree.add(&entry.node, &root, less);
     }
@@ -499,6 +502,16 @@ test "phase 1 helper ports match committed parity fixture" {
         insert_index += 1;
     }
     try std.testing.expectEqualSlices(i32, fixture.rbtree.insert_order, insert_order[0..insert_index]);
+
+    var reverse_order: [5]i32 = undefined;
+    var reverse_index: usize = 0;
+    current = rbtree.last(&root);
+    while (current) |node| : (current = rbtree.prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        reverse_order[reverse_index] = entry.key;
+        reverse_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.reverse_order, reverse_order[0..reverse_index]);
 
     rbtree.erase(&entries[1].node, &root);
     rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
