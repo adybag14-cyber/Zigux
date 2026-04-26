@@ -40,6 +40,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `head-page-reader-handoff`: keep `rb_handle_head_page()`, `rb_set_head_page()`, and `ring_buffer_read_page()` in C because head-page rotation, reader-page extraction, and commit-page adjacency still move together.
 - `remote-reader-metadata`: keep `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` in C because callback-driven metadata refresh and remote reader-page import rules sit on top of the already-coupled local model.
 
+## Overwrite and lost-event audit
+
+- `rb_move_tail()` is still the key overwrite boundary. When the tail page catches the head page and overwrite mode is disabled, the writer increments `dropped_events` and backs out. When overwrite mode is enabled, it must move the head-page state forward before the write can proceed, which keeps the overwrite path coupled to the same reader-visible page choreography described in `Documentation/trace/ring-buffer-design.rst`.
+- The overwrite toggle is not a tiny local policy bit. `ring_buffer_change_overwrite()` changes whether the full-buffer path drops new events or advances the head to evict old ones, so the Phase 14 lane should keep overwrite behavior as a traced C-owned contract instead of implying a Zig-side helper can safely own it.
+- Lost-event reporting is finalized on the reader side, not at the overwrite point itself. After the reader swaps in the next page, the code compares `overrun` against `last_overrun` and publishes the delta through `lost_events`, which means overwrite accounting stays coupled to reader-page replacement and should remain study-only for now.
+- The supporting docs line up with that code path: `Documentation/trace/ring-buffer-design.rst` explains that overwrite mode must move the head page before the tail can advance, and `Documentation/trace/ftrace.rst` distinguishes dropped events from overwritten or unread data in the exposed trace stats.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -50,7 +57,8 @@ The current lane state is:
 - landed `phase14-ring-buffer-survey-gate`
 - landed `phase14-ring-buffer-survey-note`
 - landed `phase14-ring-buffer-boundary-decision-checklist`
-- ready-next `phase14-ring-buffer-overwrite-audit-followup`
+- landed `phase14-ring-buffer-overwrite-audit`
+- ready-next `phase14-ring-buffer-wakeup-mmap-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -76,4 +84,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only overwrite and lost-event audit next, limited to `rb_move_tail()`, overwrite mode, and lost-event reporting before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only wakeup and mmap follow-up next, limited to tracefs reader wakeup watermarks, `ring_buffer_wait()`, and the mmap-facing notes in `Documentation/trace/ring-buffer-map.rst` before anyone proposes `kernel/trace/ring_buffer.zig`.
