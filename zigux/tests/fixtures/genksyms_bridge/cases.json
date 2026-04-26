@@ -26,6 +26,11 @@
       "expected": "explicit_option_terminator_expected.json"
     },
     {
+      "name": "positional_passthrough",
+      "argv": ["leftover.c", "-d", "rightover.h", "-r", "foo.symref"],
+      "expected": "positional_passthrough_expected.json"
+    },
+    {
       "name": "help",
       "argv": ["--help"],
       "mode": "process_json",

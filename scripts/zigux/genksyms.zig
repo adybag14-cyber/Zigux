@@ -3,6 +3,7 @@ const Io = std.Io;
 
 pub const Request = struct {
     raw_args: []const []const u8,
+    rendered_args: []const []const u8,
     debug_level: usize = 0,
     warnings: bool = false,
     dump_defs: bool = false,
@@ -87,7 +88,7 @@ fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
 
 pub fn renderGenksymsBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\"");
-    for (request.raw_args) |arg| {
+    for (request.rendered_args) |arg| {
         try writer.writeByte(',');
         try writer.writeByte('"');
         try writeJsonEscaped(writer, arg);
@@ -207,32 +208,61 @@ fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, ind
 }
 
 pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseOutcome {
-    var request = Request{ .raw_args = args };
+    var request = Request{ .raw_args = args, .rendered_args = &.{} };
     var references = std.ArrayList([]const u8).empty;
+    var rendered_args = std.ArrayList([]const u8).empty;
+    var positional_args = std.ArrayList([]const u8).empty;
     defer references.deinit(allocator);
+    defer rendered_args.deinit(allocator);
+    defer positional_args.deinit(allocator);
 
     var index: usize = 0;
     while (index < args.len) : (index += 1) {
         const arg = args[index];
-        if (std.mem.eql(u8, arg, "--")) break;
+        if (std.mem.eql(u8, arg, "--")) {
+            try rendered_args.appendSlice(allocator, positional_args.items);
+            try rendered_args.append(allocator, arg);
+            if (index + 1 < args.len) {
+                try rendered_args.appendSlice(allocator, args[index + 1 ..]);
+            }
+            break;
+        }
         if (arg.len == 0 or arg[0] != '-') {
-            return .{ .failure = .{ .invalid_option = arg } };
+            try positional_args.append(allocator, arg);
+            continue;
         }
         if (std.mem.startsWith(u8, arg, "--")) {
             switch (try parseLongOption(allocator, args, &index, &request, &references)) {
-                .none => {},
+                .none => {
+                    try rendered_args.append(allocator, arg);
+                    if ((std.mem.eql(u8, arg, "--reference") or std.mem.eql(u8, arg, "--dump-types")) and index > 0 and index < args.len) {
+                        try rendered_args.append(allocator, args[index]);
+                    }
+                },
                 .command => |command| return .{ .command = command },
                 .failure => |failure| return .{ .failure = failure },
             }
         } else {
             switch (try parseShortOptions(allocator, args, &index, &request, &references)) {
-                .none => {},
+                .none => {
+                    try rendered_args.append(allocator, arg);
+                    if (std.mem.eql(u8, arg, "-r") or std.mem.eql(u8, arg, "-T")) {
+                        if (index > 0 and index < args.len) {
+                            try rendered_args.append(allocator, args[index]);
+                        }
+                    }
+                },
                 .command => |command| return .{ .command = command },
                 .failure => |failure| return .{ .failure = failure },
             }
         }
     }
 
+    if (index >= args.len) {
+        try rendered_args.appendSlice(allocator, positional_args.items);
+    }
+
+    request.rendered_args = try rendered_args.toOwnedSlice(allocator);
     request.reference_files = try references.toOwnedSlice(allocator);
     return .{ .command = .{ .request = request } };
 }
@@ -292,6 +322,7 @@ test "genksyms bridge parses repeated short flags and arguments" {
         .command => |command| switch (command) {
             .request => |request| {
                 defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
                 try std.testing.expectEqual(@as(usize, 2), request.debug_level);
                 try std.testing.expect(request.warnings);
                 try std.testing.expect(request.dump_defs);
@@ -313,6 +344,7 @@ test "genksyms bridge parses long options and quiet override" {
         .command => |command| switch (command) {
             .request => |request| {
                 defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
                 try std.testing.expectEqual(@as(usize, 1), request.debug_level);
                 try std.testing.expect(!request.warnings);
                 try std.testing.expect(request.preserve);
@@ -333,9 +365,11 @@ test "genksyms bridge accepts explicit option terminator" {
         .command => |command| switch (command) {
             .request => |request| {
                 defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
                 try std.testing.expectEqual(@as(usize, 1), request.debug_level);
                 try std.testing.expectEqual(@as(usize, 0), request.reference_files.len);
                 try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
             },
             else => return error.UnexpectedCommand,
         },
@@ -366,7 +400,12 @@ test "genksyms bridge reports missing short option argument in getopt style" {
 }
 
 test "genksyms bridge renders normalized invocation plan" {
-    const request = Request{ .raw_args = &.{ "-d", "-r", "foo.symref" }, .debug_level = 1, .reference_files = &.{"foo.symref"} };
+    const request = Request{
+        .raw_args = &.{ "-d", "-r", "foo.symref" },
+        .rendered_args = &.{ "-d", "-r", "foo.symref" },
+        .debug_level = 1,
+        .reference_files = &.{"foo.symref"},
+    };
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
@@ -394,4 +433,24 @@ test "genksyms bridge renders normalized invocation plan" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"tool\":\"scripts/genksyms/genksyms\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"debug_level\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"reference_files\":[\"foo.symref\"]") != null);
+}
+
+test "genksyms bridge ignores positional args while still parsing later options" {
+    const args = &.{ "leftover.c", "-d", "rightover.h", "-r", "foo.symref" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, &.{ "-d", "-r", "foo.symref", "leftover.c", "rightover.h" }, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
 }
