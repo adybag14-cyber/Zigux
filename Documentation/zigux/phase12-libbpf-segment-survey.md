@@ -29,7 +29,7 @@ The highest-value honest step in this lane is therefore a survey checkpoint that
   - `type_names.zig` for exported attach, link, map, and program type string tables
   - `cpu_mask.zig` for bounded CPU-mask parsing, set-bit counting, and a deferred reader interface that still stops short of direct file I/O
   - `logging.zig` for bounded print-level parsing, version reporting, and libbpf-specific error text formatting
-  - `pin_path.zig` for bounded bpffs path joining and dot-sanitization without directory or syscall parity
+  - `pin_path.zig` for bounded bpffs path joining, pin-name and root-path validation, and dot-sanitization without directory or syscall parity
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
 - the current Phase 12 build now re-checks the landed helper-first foundations directly by compiling `type_names.zig`, `cpu_mask.zig`, `logging.zig`, and `pin_path.zig` through a reviewability gate and by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory.
 - the repo still has no `skeleton.zig`, `object_loader.zig`, or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
@@ -53,7 +53,7 @@ The survey manifest now records:
 - the still-blocked `phase12-libbpf-skeleton-population`
 - the still-blocked `phase12-libbpf-object-loader-and-program-load`
 
-This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path plus bounded logging and pin-path helpers, but the heavy helper consumer still stops first at the missing skeleton or object-model boundary and then well short of loader, relocation, or syscall-backed surfaces.
+This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path plus bounded logging and pin-path validation helpers, but the heavy helper consumer still stops first at the missing skeleton or object-model boundary and then well short of loader, relocation, or syscall-backed surfaces.
 
 ## Non-goals
 
