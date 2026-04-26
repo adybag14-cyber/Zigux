@@ -143,3 +143,28 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expect(kept_running.line_is_output);
     try std.testing.expectEqual(@as(usize, 0), kept_running.disable_count);
 }
+
+test "phase11 gpio_wdt registration handoff summary records startup state and stop policy" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, prestarted_handoff.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, prestarted_handoff.start_mode);
+    try std.testing.expect(prestarted_handoff.reaches_registration_running);
+    try std.testing.expect(prestarted_handoff.reaches_registration_line_state);
+    try std.testing.expect(prestarted_handoff.reaches_registration_line_is_output);
+    try std.testing.expect(!prestarted_handoff.stop_allowed_by_watchdog_core);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, prestarted_handoff.pre_registration_stop_disposition);
+    try std.testing.expect(prestarted_handoff.timeout_init_requested);
+    try std.testing.expect(prestarted_handoff.stop_on_reboot);
+    try std.testing.expect(prestarted_handoff.parent_attached);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_handoff = dormant_watchdog.registrationHandoffSummary(false);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, dormant_handoff.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_handoff.start_mode);
+    try std.testing.expect(!dormant_handoff.reaches_registration_running);
+    try std.testing.expect(!dormant_handoff.reaches_registration_line_state);
+    try std.testing.expect(dormant_handoff.reaches_registration_line_is_output);
+    try std.testing.expect(dormant_handoff.stop_allowed_by_watchdog_core);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, dormant_handoff.pre_registration_stop_disposition);
+}
