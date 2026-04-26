@@ -43,7 +43,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 - reopen triggers:
   - `narrower_followup_answers_blocker`: a narrower RCU follow-up exists and answers `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
   - `evidence_packet_stale_or_contradictory`: linked ordering, survey, or blocker evidence becomes stale or contradictory
-  - `ownership_or_validation_changed`: rollback ownership or validation gates change enough to invalidate the closed stay-in-C packet
+  - `ownership_or_validation_changed`: rollback ownership, lane ownership, or validation gates change enough to invalidate the closed stay-in-C packet
 
 ## Explicit Non-goals
 
