@@ -163,17 +163,17 @@ pub fn nextArg(args: []u8) NextArgResult {
         }
     }
 
-    var value: ?[]const u8 = null;
+    var value_start: ?usize = null;
     if (equals_index) |equals| {
         current[equals] = 0;
-        var value_start = equals + 1;
-        if (value_start < current.len and current[value_start] == '"') {
-            value_start += 1;
+        var value_index = equals + 1;
+        if (value_index < current.len and current[value_index] == '"') {
+            value_index += 1;
             if (index > 0 and current[index - 1] == '"') {
                 current[index - 1] = 0;
             }
         }
-        value = cStringPrefix(current[value_start..]);
+        value_start = value_index;
     }
 
     if (quoted and index > 0 and current[index - 1] == '"') {
@@ -186,14 +186,14 @@ pub fn nextArg(args: []u8) NextArgResult {
         return .{
             .rest = skipSpaces(args[rest_start + 1 ..]),
             .param = cStringPrefix(current),
-            .value = value,
+            .value = if (value_start) |value_offset| cStringPrefix(current[value_offset..]) else null,
         };
     }
 
     return .{
         .rest = skipSpaces(args[rest_start..]),
         .param = cStringPrefix(current),
-        .value = value,
+        .value = if (value_start) |value_offset| cStringPrefix(current[value_offset..]) else null,
     };
 }
 
@@ -379,4 +379,20 @@ test "nextArg keeps a whole quoted token together without inventing a value" {
     try std.testing.expectEqualStrings("two words", parsed.param);
     try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
     try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
+}
+
+test "nextArg keeps unquoted values and empty quoted values bounded to the current token" {
+    var unquoted = [_]u8{ 'c', 'o', 'n', 's', 'o', 'l', 'e', '=', 't', 't', 'y', 'S', '0', ',', '1', '1', '5', '2', '0', '0', 'n', '8', ' ', 'p', 'a', 'n', 'i', 'c', '=', '-', '1', 0 };
+    const parsed_unquoted = nextArg(&unquoted);
+
+    try std.testing.expectEqualStrings("console", parsed_unquoted.param);
+    try std.testing.expectEqualStrings("ttyS0,115200n8", parsed_unquoted.value.?);
+    try std.testing.expectEqualStrings("panic=-1", cStringPrefix(parsed_unquoted.rest));
+
+    var empty = [_]u8{ 'r', 'd', 'i', 'n', 'i', 't', '=', '"', '"', ' ', 'q', 'u', 'i', 'e', 't', 0 };
+    const parsed_empty = nextArg(&empty);
+
+    try std.testing.expectEqualStrings("rdinit", parsed_empty.param);
+    try std.testing.expectEqualStrings("", parsed_empty.value.?);
+    try std.testing.expectEqualStrings("quiet", cStringPrefix(parsed_empty.rest));
 }
