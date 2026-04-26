@@ -62,6 +62,18 @@ Phase 8 notes
 - `zigux/tests/phase8_build.zig` and `make -C zigux phase8` now gate the current exec-cmd, help, kallsyms, libbpf cpu-mask, libbpf type-name, and segment-survey bundle together, so new Phase 8 tooling work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 8 decision is no longer whether `exec-cmd` still needs its pure `execl_cmd()` parity helper, whether `kallsyms.zig` still needs a direct parse wrapper, or whether `help.zig` still needs its pure pretty-print emission surface; those slices are now parked, so the next follow-up should come from the next helper-first libbpf segment or another still-active Phase 8 tooling slice.
 
+Phase 9 notes
+- `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
+- `Documentation/zigux/phase9-runtime-atomic64-survey.md`
+- `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`
+- `Documentation/zigux/phase9-runtime-bitmap-survey.md`
+- `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`
+- `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
+- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
+- `Documentation/zigux/phase9-runtime-trace-events-survey.md`
+- `zigux/tests/phase9_build.zig` and `make -C zigux phase9` now gate the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together, so new Phase 9 runtime work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- the current bounded Phase 9 decision is no longer whether the kretprobe lane still needs a starter, a survey gate, or shared build wiring; those pieces and the newer loader-handoff scaffold are now landed, so the next follow-up should be whichever small shared runtime loader substrate step can honestly consume the existing bitmap or kretprobe loader plans without widening into a larger runtime-module implementation.
+
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
 - `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest, accepts either the shared runner gate (`python3 scripts/zigux/run-phase3-checks.py --slug <slug>`) or a legacy per-slice wrapper gate in each slice record, reports obsolete `check-phase3-*.py` wrapper files that no longer belong to a discovered slice, and rejects legacy wrapper script paths inside Phase 3 manifests so those manifests remain a record of slice artifacts rather than compatibility entrypoints.
