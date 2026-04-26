@@ -36,7 +36,8 @@ pub const AuditGuard = enum {
     clone_or_reallocate_before_mutation,
     destructor_before_frag_release,
     checksum_complete_state_cache,
-    segmentation_frag_and_checksum_handoff,
+    segmentation_orphan_and_zerocopy_handoff,
+    segmentation_checksum_metadata_handoff,
 };
 
 pub const AuditCheckpoint = struct {
@@ -140,13 +141,22 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .ownership = .stay_in_c,
     },
     .{
-        .id = "segmentation-frag-and-csum-handoff",
-        .anchor_symbol = "skb_segment",
-        .summary = "Track how segmentation reuses frag ownership and checksum metadata across new skb outputs.",
-        .guard = .segmentation_frag_and_checksum_handoff,
-        .observed_fields = &[_][]const u8{ "skb_shinfo(head_skb)->gso_size", "skb_shinfo(head_skb)->frag_list", "skb_shinfo(nskb)->nr_frags", "SKB_GSO_CB(nskb)->csum_start" },
-        .blocked_by = "skb_segment() mixes orphaned frags, zerocopy clones, GSO sizing, and checksum bookkeeping while it builds output skbs, so Phase 14 should keep that packet-shaping handoff in C while only naming the boundary.",
-        .ownership = .boundary_map_only,
+        .id = "segmentation-orphan-and-zerocopy-handoff",
+        .anchor_symbol = "skb_segment/skb_orphan_frags/skb_zerocopy_clone",
+        .summary = "Track the orphan-frag gate and zerocopy carryover before segmented outputs reuse page-backed payload state.",
+        .guard = .segmentation_orphan_and_zerocopy_handoff,
+        .observed_fields = &[_][]const u8{ "skb_shinfo(head_skb)->frag_list", "skb_shinfo(head_skb)->flags", "skb_shinfo(nskb)->flags", "skb_shinfo(nskb)->nr_frags" },
+        .blocked_by = "skb_segment() first forces skb_orphan_frags(head_skb, GFP_ATOMIC) for zerocopy-backed input, then propagates SKBFL_SHARED_FRAG state and calls skb_zerocopy_clone() across frag_skb and frag_list members, so Zigux should keep that frag-ownership transfer in C while only naming the boundary.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "segmentation-checksum-metadata-handoff",
+        .anchor_symbol = "skb_segment/SKB_GSO_CB",
+        .summary = "Record where segmented outputs reset or recompute checksum metadata as GSO state moves onto each new skb.",
+        .guard = .segmentation_checksum_metadata_handoff,
+        .observed_fields = &[_][]const u8{ "nskb->remcsum_offload", "nskb->ip_summed", "SKB_GSO_CB(nskb)->csum", "SKB_GSO_CB(nskb)->csum_start", "skb_shinfo(head_skb)->gso_size" },
+        .blocked_by = "skb_segment() can clear ip_summed to CHECKSUM_NONE, copy checksum bytes through skb_copy_and_csum_bits(), or recompute checksum state through skb_checksum() before it seeds SKB_GSO_CB(nskb), so Zigux should keep checksum and GSO metadata ownership in C while only recording the handoff.",
+        .ownership = .stay_in_c,
     },
 };
 
@@ -155,7 +165,8 @@ const blocked_live_behaviors = [_][]const u8{
     "shared-data refcount transitions",
     "destructor callback and frag-list teardown",
     "checksum-complete state transitions",
-    "GSO segmentation frag and checksum handoff",
+    "segmentation orphan-frag and zerocopy ownership handoff",
+    "segmentation checksum metadata recompute and GSO handoff",
 };
 
 pub const SkbuffBridgeLab = struct {
@@ -206,7 +217,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit skb_segment() orphan-frag and zerocopy-clone handoff plus skb_checksum_complete_unset() mutation invalidation before any wrapper leaves the boundary-map-only posture.";
+        return "Audit skb_segment() partial-seg metadata updates and the sock_wfree tail-ownership transfer around SKB_GSO_PARTIAL before any wrapper leaves the boundary-map-only posture.";
     }
 };
 
@@ -231,7 +242,7 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb_checksum_complete_unset()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "SKB_GSO_PARTIAL") != null);
     try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb_segment()") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
@@ -253,11 +264,11 @@ test "skbuff bridge lifetime audit stays review-only" {
 
     try std.testing.expectEqualStrings("net/core/skbuff.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 5), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 5), SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb_checksum_complete_unset()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb_segment()") != null);
+    try std.testing.expectEqual(@as(usize, 6), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 6), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 6), SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "SKB_GSO_PARTIAL") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "sock_wfree") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -275,7 +286,15 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expect(audit.checkpoints[3].guard == .checksum_complete_state_cache);
     try std.testing.expectEqualStrings("skb->csum_complete_sw", audit.checkpoints[3].observed_fields[3]);
 
-    try std.testing.expectEqualStrings("segmentation-frag-and-csum-handoff", audit.checkpoints[4].id);
-    try std.testing.expect(audit.checkpoints[4].guard == .segmentation_frag_and_checksum_handoff);
-    try std.testing.expectEqualStrings("SKB_GSO_CB(nskb)->csum_start", audit.checkpoints[4].observed_fields[3]);
+    try std.testing.expectEqualStrings("segmentation-orphan-and-zerocopy-handoff", audit.checkpoints[4].id);
+    try std.testing.expect(audit.checkpoints[4].guard == .segmentation_orphan_and_zerocopy_handoff);
+    try std.testing.expectEqualStrings("skb_shinfo(nskb)->nr_frags", audit.checkpoints[4].observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[4].blocked_by, "skb_orphan_frags(head_skb, GFP_ATOMIC)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[4].blocked_by, "SKBFL_SHARED_FRAG") != null);
+
+    try std.testing.expectEqualStrings("segmentation-checksum-metadata-handoff", audit.checkpoints[5].id);
+    try std.testing.expect(audit.checkpoints[5].guard == .segmentation_checksum_metadata_handoff);
+    try std.testing.expectEqualStrings("SKB_GSO_CB(nskb)->csum_start", audit.checkpoints[5].observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[5].blocked_by, "CHECKSUM_NONE") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[5].blocked_by, "skb_checksum()") != null);
 }
