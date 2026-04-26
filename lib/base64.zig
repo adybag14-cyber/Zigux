@@ -11,6 +11,11 @@ pub const EncodeError = error{
     DestinationTooSmall,
 };
 
+pub const DecodeError = error{
+    DestinationTooSmall,
+    InvalidInput,
+};
+
 const std_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const urlsafe_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const imap_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
@@ -83,11 +88,172 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
     return out_index;
 }
 
+pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    const exact_len = try decodedLength(src, padding, variant);
+    if (dst.len < exact_len) {
+        return DecodeError.DestinationTooSmall;
+    }
+
+    var out_index: usize = 0;
+    var src_index: usize = 0;
+
+    while (src_index + 4 <= src.len) : (src_index += 4) {
+        const a = try decodeValue(src[src_index], variant);
+        const b = try decodeValue(src[src_index + 1], variant);
+        const third_char = src[src_index + 2];
+        const fourth_char = src[src_index + 3];
+
+        if (third_char == '=' or fourth_char == '=') {
+            var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
+            dst[out_index] = @truncate(value >> 10);
+            out_index += 1;
+
+            if (third_char != '=') {
+                const c = try decodeValue(third_char, variant);
+                value |= @as(u32, c);
+                dst[out_index] = @truncate(value >> 2);
+                out_index += 1;
+            }
+
+            return out_index;
+        }
+
+        const c = try decodeValue(third_char, variant);
+        const d = try decodeValue(fourth_char, variant);
+
+        const value = (@as(u32, a) << 18) |
+            (@as(u32, b) << 12) |
+            (@as(u32, c) << 6) |
+            @as(u32, d);
+        dst[out_index] = @truncate(value >> 16);
+        dst[out_index + 1] = @truncate(value >> 8);
+        dst[out_index + 2] = @truncate(value);
+        out_index += 3;
+    }
+
+    const tail = src.len - src_index;
+    if (tail == 0) {
+        return out_index;
+    }
+
+    const a = try decodeValue(src[src_index], variant);
+    const b = try decodeValue(src[src_index + 1], variant);
+    var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
+    dst[out_index] = @truncate(value >> 10);
+    out_index += 1;
+
+    if (tail == 2) {
+        return out_index;
+    }
+
+    const c = try decodeValue(src[src_index + 2], variant);
+    value |= @as(u32, c);
+    dst[out_index] = @truncate(value >> 2);
+    out_index += 1;
+    return out_index;
+}
+
 fn alphabet(variant: Variant) []const u8 {
     return switch (variant) {
         .std => std_table,
         .urlsafe => urlsafe_table,
         .imap => imap_table,
+    };
+}
+
+fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    var out_len: usize = 0;
+    var src_index: usize = 0;
+
+    while (src_index + 4 <= src.len) : (src_index += 4) {
+        const quartet = src[src_index .. src_index + 4];
+        const a = decodeValue(quartet[0], variant) catch return DecodeError.InvalidInput;
+        const b = decodeValue(quartet[1], variant) catch return DecodeError.InvalidInput;
+        _ = a;
+        _ = b;
+
+        const c = quartet[2];
+        const d = quartet[3];
+
+        if (c == '=' or d == '=') {
+            if (!padding or src_index + 4 != src.len or d != '=') {
+                return DecodeError.InvalidInput;
+            }
+
+            if (c == '=') {
+                out_len += try validateTail(src[src_index .. src_index + 2], variant);
+            } else {
+                _ = decodeValue(c, variant) catch return DecodeError.InvalidInput;
+                out_len += try validateTail(src[src_index .. src_index + 3], variant);
+            }
+            return out_len;
+        }
+
+        _ = decodeValue(c, variant) catch return DecodeError.InvalidInput;
+        _ = decodeValue(d, variant) catch return DecodeError.InvalidInput;
+        out_len += 3;
+    }
+
+    const tail = src.len - src_index;
+    if (tail == 0) {
+        return out_len;
+    }
+    if (padding or tail == 1) {
+        return DecodeError.InvalidInput;
+    }
+    return out_len + try validateTail(src[src_index..], variant);
+}
+
+fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
+    if (src.len < 2 or src.len > 3) {
+        return DecodeError.InvalidInput;
+    }
+
+    const a = try decodeValue(src[0], variant);
+    const b = try decodeValue(src[1], variant);
+    var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
+
+    if (src.len == 2) {
+        if ((value & 0x3ff) != 0) {
+            return DecodeError.InvalidInput;
+        }
+        return 1;
+    }
+
+    const c = try decodeValue(src[2], variant);
+    value |= @as(u32, c);
+    if ((value & 0x3) != 0) {
+        return DecodeError.InvalidInput;
+    }
+    return 2;
+}
+
+fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
+    return switch (ch) {
+        'A'...'Z' => ch - 'A',
+        'a'...'z' => ch - 'a' + 26,
+        '0'...'9' => ch - '0' + 52,
+        '+' => switch (variant) {
+            .std, .imap => 62,
+            .urlsafe => DecodeError.InvalidInput,
+        },
+        '/' => switch (variant) {
+            .std => 63,
+            .urlsafe, .imap => DecodeError.InvalidInput,
+        },
+        '-' => switch (variant) {
+            .urlsafe => 62,
+            .std, .imap => DecodeError.InvalidInput,
+        },
+        '_' => switch (variant) {
+            .urlsafe => 63,
+            .std, .imap => DecodeError.InvalidInput,
+        },
+        ',' => switch (variant) {
+            .imap => 63,
+            .std, .urlsafe => DecodeError.InvalidInput,
+        },
+        else => DecodeError.InvalidInput,
     };
 }
 
@@ -118,4 +284,33 @@ test "encode covers standard and variant alphabets" {
     try std.testing.expectEqualStrings("APv/f4A", std_buf[0..std_len]);
     try std.testing.expectEqualStrings("APv_f4A", url_buf[0..url_len]);
     try std.testing.expectEqualStrings("APv,f4A", imap_buf[0..imap_len]);
+}
+
+test "decode covers padded, unpadded, and variant inputs" {
+    var out: [16]u8 = undefined;
+    var variant_out: [8]u8 = undefined;
+
+    const padded_len = try decode(out[0..], "SGVsbG8sIHdvcmxkIQ==", true, .std);
+    try std.testing.expectEqualStrings("Hello, world!", out[0..padded_len]);
+
+    const unpadded_len = try decode(out[0..], "Zm9vYmFy", false, .std);
+    try std.testing.expectEqualStrings("foobar", out[0..unpadded_len]);
+
+    const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+    const url_len = try decode(variant_out[0..], "APv_f4A", false, .urlsafe);
+    try std.testing.expectEqualSlices(u8, &sample, variant_out[0..url_len]);
+
+    const imap_len = try decode(variant_out[0..], "APv,f4A", false, .imap);
+    try std.testing.expectEqualSlices(u8, &sample, variant_out[0..imap_len]);
+}
+
+test "decode rejects malformed input and reports destination bounds" {
+    var small: [2]u8 = undefined;
+    var buf: [16]u8 = undefined;
+
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decode(small[0..], "Zm9v", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg=!", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zm9v====", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg==", false, .urlsafe));
 }
