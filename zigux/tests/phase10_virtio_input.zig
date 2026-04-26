@@ -87,7 +87,7 @@ test "phase10 virtio input records bounded config bitmap summaries for property 
 
     try std.testing.expectError(
         error.UnsupportedConfigBitmapSelect,
-        device.configureConfigBitmap(.abs_info, 0, &[_]u16{ 0 }),
+        device.configureConfigBitmap(.abs_info, 0, &[_]u16{0}),
     );
     try std.testing.expectError(
         error.EmptyConfigBitmap,
@@ -99,7 +99,7 @@ test "phase10 virtio input records bounded config bitmap summaries for property 
     );
     try std.testing.expectError(
         error.ConfigBitmapBitOutOfRange,
-        device.configureConfigBitmap(.prop_bits, 1, &[_]u16{ virtio_input.config_bitmap_bit_capacity }),
+        device.configureConfigBitmap(.prop_bits, 1, &[_]u16{virtio_input.config_bitmap_bit_capacity}),
     );
 
     try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 1, 5 });
@@ -121,11 +121,80 @@ test "phase10 virtio input records bounded config bitmap summaries for property 
     try std.testing.expect(!(try device.configBitmapSupportsBit(.prop_bits, 0, 9)));
     try std.testing.expectError(
         error.ConfigBitmapAlreadyConfigured,
-        device.configureConfigBitmap(.ev_bits, virtio_input.ev_msc, &[_]u16{ 7 }),
+        device.configureConfigBitmap(.ev_bits, virtio_input.ev_msc, &[_]u16{7}),
     );
     try std.testing.expectError(
         error.ConfigBitmapNotConfigured,
         device.configBitmapSummary(.ev_bits, 0x11),
+    );
+}
+
+test "phase10 virtio input records bounded ABS metadata for configured axes" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-5", 5, null);
+
+    try std.testing.expectError(
+        error.AbsInfoRangeInvalid,
+        device.configureAbsInfo(0x00, .{
+            .minimum = 10,
+            .maximum = 9,
+        }),
+    );
+    try std.testing.expectError(
+        error.AbsInfoNegativeFuzz,
+        device.configureAbsInfo(0x00, .{
+            .minimum = 0,
+            .maximum = 100,
+            .fuzz = -1,
+        }),
+    );
+    try std.testing.expectError(
+        error.AbsInfoNegativeResolution,
+        device.configureAbsInfo(0x00, .{
+            .minimum = 0,
+            .maximum = 100,
+            .resolution = -1,
+        }),
+    );
+
+    try device.configureAbsInfo(0x00, .{
+        .minimum = -2048,
+        .maximum = 2047,
+        .fuzz = 4,
+        .flat = 8,
+        .resolution = 32,
+    });
+    try device.configureAbsInfo(0x01, .{
+        .minimum = 0,
+        .maximum = 4095,
+        .fuzz = 1,
+        .flat = 0,
+        .resolution = 48,
+    });
+
+    const x_summary = try device.absInfoSummary(0x00);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", x_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0x00), x_summary.abs_code);
+    try std.testing.expectEqual(@as(i32, -2048), x_summary.minimum);
+    try std.testing.expectEqual(@as(i32, 2047), x_summary.maximum);
+    try std.testing.expectEqual(@as(i32, 4), x_summary.fuzz);
+    try std.testing.expectEqual(@as(i32, 8), x_summary.flat);
+    try std.testing.expectEqual(@as(i32, 32), x_summary.resolution);
+
+    const y_summary = try device.absInfoSummary(0x01);
+    try std.testing.expectEqual(@as(u16, 0x01), y_summary.abs_code);
+    try std.testing.expectEqual(@as(i32, 4095), y_summary.maximum);
+    try std.testing.expectEqual(@as(i32, 48), y_summary.resolution);
+
+    try std.testing.expectError(
+        error.AbsInfoAlreadyConfigured,
+        device.configureAbsInfo(0x00, .{
+            .minimum = 0,
+            .maximum = 1,
+        }),
+    );
+    try std.testing.expectError(
+        error.AbsInfoNotConfigured,
+        device.absInfoSummary(0x02),
     );
 }
 
@@ -140,6 +209,11 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try device.markReady();
     _ = try device.sendStatus(0x11, 0x01, 1);
     try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
+    try device.configureAbsInfo(0x00, .{
+        .minimum = 0,
+        .maximum = 1024,
+        .resolution = 16,
+    });
     device.setMultitouch(true);
 
     device.reset();
@@ -147,4 +221,5 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try std.testing.expectError(error.EventQueueNotConfigured, device.queuePlanSummary());
     try std.testing.expectError(error.StatusQueueNotConfigured, device.sendStatus(0x11, 0x01, 1));
     try std.testing.expectError(error.ConfigBitmapNotConfigured, device.configBitmapSummary(.prop_bits, 0));
+    try std.testing.expectError(error.AbsInfoNotConfigured, device.absInfoSummary(0x00));
 }
