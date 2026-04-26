@@ -21,6 +21,9 @@ Current closure records
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase2-closure.md`
 
+Phase 5 notes
+- `Documentation/zigux/phase5-kfifo-sample-survey.md` records the current roadmap gap between the approved Phase 5 `samples/kfifo/bytestream-example.c` reference-sample anchor and the live `samples/zigux/` surface, and it names the approved non-runtime idiom for a future kfifo-style sample port.
+
 Phase 4 notes
 - `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, and lab or CI replay matrix.
