@@ -16,6 +16,8 @@ const DiffCase = struct {
     init_bits: []const u32,
     set_ranges: []const RangeOp,
     clear_ranges: []const RangeOp,
+    fill_prefixes: []const u32,
+    zero_prefixes: []const u32,
     expected_summary: SummaryExpectation,
     must_be_set: []const u32,
     must_be_clear: []const u32,
@@ -84,13 +86,25 @@ const BitmapHarness = struct {
         @memset(self.words[0..], ~@as(Word, 0));
     }
 
+    fn roundedPrefixLen(nbits: u32) !u32 {
+        if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
+        if (nbits == 0) return 0;
+
+        const words = (nbits + bits_per_long - 1) / bits_per_long;
+        return @min(bitmap_nbits, words * bits_per_long);
+    }
+
+    fn fillPrefix(self: *Self, nbits: u32) !void {
+        try self.setRange(0, try roundedPrefixLen(nbits));
+    }
+
+    fn zeroPrefix(self: *Self, nbits: u32) !void {
+        try self.clearRange(0, try roundedPrefixLen(nbits));
+    }
+
     fn copyFrom(self: *Self, other: *const Self, nbits: u32) !void {
         if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
-
-        if (nbits == 0) {
-            @memset(self.words[0..], 0);
-            return;
-        }
+        if (nbits == 0) return;
 
         const full_words: usize = @intCast(nbits / bits_per_long);
         const tail_bits = nbits % bits_per_long;
@@ -103,13 +117,6 @@ const BitmapHarness = struct {
         if (tail_bits != 0) {
             const mask: Word = (~@as(Word, 0)) >> @intCast(bits_per_long - tail_bits);
             self.words[full_words] = other.words[full_words] & mask;
-            index = full_words + 1;
-        } else {
-            index = full_words;
-        }
-
-        while (index < self.words.len) : (index += 1) {
-            self.words[index] = 0;
         }
     }
 
@@ -178,6 +185,12 @@ fn expectCase(case: DiffCase) !void {
     for (case.clear_ranges) |op| {
         try bitmap.clearRange(op.start, op.len);
     }
+    for (case.fill_prefixes) |nbits| {
+        try bitmap.fillPrefix(nbits);
+    }
+    for (case.zero_prefixes) |nbits| {
+        try bitmap.zeroPrefix(nbits);
+    }
 
     try expectSummary(bitmap.summary(), case.expected_summary);
 
@@ -216,28 +229,112 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = 9 }},
             .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{},
             .expected_summary = .{ .first_set = 0, .first_zero = 9, .weight = 9 },
             .must_be_set = &.{ 0, 8 },
             .must_be_clear = &.{ 9, 10, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
-            .name = "test_zero_clear cross-boundary cutout",
+            .name = "test_fill_set bitmap_fill rounds 35 bits to one full word",
+            .init_bits = &.{},
+            .set_ranges = &.{.{ .start = 0, .len = 9 }},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{35},
+            .zero_prefixes = &.{},
+            .expected_summary = .{ .first_set = 0, .first_zero = 64, .weight = 64 },
+            .must_be_set = &.{ 8, 63 },
+            .must_be_clear = &.{ 64, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
+            .name = "test_fill_set cross-boundary extension after rounded prefix",
+            .init_bits = &.{},
+            .set_ranges = &.{ .{ .start = 0, .len = 64 }, .{ .start = 79, .len = 19 } },
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{},
+            .expected_summary = .{ .first_set = 0, .first_zero = 64, .weight = 83 },
+            .must_be_set = &.{ 63, 79, 97 },
+            .must_be_clear = &.{ 64, 78, 98 },
+        },
+        .{
+            .name = "test_fill_set bitmap_fill rounds 115 bits to two full words",
+            .init_bits = &.{},
+            .set_ranges = &.{ .{ .start = 0, .len = 64 }, .{ .start = 79, .len = 19 } },
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{115},
+            .zero_prefixes = &.{},
+            .expected_summary = .{ .first_set = 0, .first_zero = 128, .weight = 128 },
+            .must_be_set = &.{ 97, 127 },
+            .must_be_clear = &.{ 128, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
+            .name = "test_zero_clear single-word starter",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
-            .clear_ranges = &.{.{ .start = 79, .len = 19 }},
+            .clear_ranges = &.{.{ .start = 0, .len = 9 }},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{},
             .expected_summary = .{
-                .first_set = 0,
-                .first_zero = 79,
-                .weight = BitmapHarness.bitmap_nbits - 19,
+                .first_set = 9,
+                .first_zero = 0,
+                .weight = BitmapHarness.bitmap_nbits - 9,
             },
-            .must_be_set = &.{ 0, 78, 98, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 79, 97 },
+            .must_be_set = &.{ 9, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 8 },
+        },
+        .{
+            .name = "test_zero_clear bitmap_zero rounds 35 bits to one full word",
+            .init_bits = &.{},
+            .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{35},
+            .expected_summary = .{
+                .first_set = 64,
+                .first_zero = 0,
+                .weight = BitmapHarness.bitmap_nbits - 64,
+            },
+            .must_be_set = &.{ 64, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 63 },
+        },
+        .{
+            .name = "test_zero_clear cross-boundary cutout after rounded prefix",
+            .init_bits = &.{},
+            .set_ranges = &.{.{ .start = 64, .len = BitmapHarness.bitmap_nbits - 64 }},
+            .clear_ranges = &.{.{ .start = 79, .len = 19 }},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{},
+            .expected_summary = .{
+                .first_set = 64,
+                .first_zero = 0,
+                .weight = BitmapHarness.bitmap_nbits - 64 - 19,
+            },
+            .must_be_set = &.{ 64, 78, 98, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 63, 79, 97 },
+        },
+        .{
+            .name = "test_zero_clear bitmap_zero rounds 115 bits to two full words",
+            .init_bits = &.{},
+            .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{115},
+            .expected_summary = .{
+                .first_set = 128,
+                .first_zero = 0,
+                .weight = BitmapHarness.bitmap_nbits - 128,
+            },
+            .must_be_set = &.{ 128, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 127 },
         },
         .{
             .name = "test_find_nth_bit starter population",
             .init_bits = &.{ 10, 20, 30, 40, 50, 60, 80, 123 },
             .set_ranges = &.{},
             .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{},
             .expected_summary = .{ .first_set = 10, .first_zero = 0, .weight = 8 },
             .must_be_set = &.{ 10, 80, 123 },
             .must_be_clear = &.{ 0, 79, 124 },
@@ -255,29 +352,37 @@ test "bitmap diff gate records exact bounded copy checks" {
             .name = "test_copy partial-word tail clearing at 109 bits",
             .source_set_len = 109,
             .copy_nbits = 109,
-            .expected_summary = .{ .first_set = 0, .first_zero = 109, .weight = 109 },
-            .must_be_set = &.{108},
-            .must_be_clear = &.{ 109, BitmapHarness.bitmap_nbits - 1 },
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 109,
+                .weight = 109 + (BitmapHarness.bitmap_nbits - 128),
+            },
+            .must_be_set = &.{ 108, 128, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 109, 127 },
         },
         .{
             .name = "test_copy aligned tail clearing at 97 bits",
             .source_set_len = 109,
             .copy_nbits = 97,
-            .expected_summary = .{ .first_set = 0, .first_zero = 97, .weight = 97 },
-            .must_be_set = &.{96},
-            .must_be_clear = &.{ 97, 108, BitmapHarness.bitmap_nbits - 1 },
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 97,
+                .weight = 97 + (BitmapHarness.bitmap_nbits - 128),
+            },
+            .must_be_set = &.{ 96, 128, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 97, 127 },
         },
         .{
-            .name = "test_zero_nbits zero-length copy clears destination",
+            .name = "test_zero_nbits zero-length copy leaves destination unchanged",
             .source_set_len = 109,
             .copy_nbits = 0,
             .expected_summary = .{
-                .first_set = BitmapHarness.bitmap_nbits,
-                .first_zero = 0,
-                .weight = 0,
+                .first_set = 0,
+                .first_zero = BitmapHarness.bitmap_nbits,
+                .weight = BitmapHarness.bitmap_nbits,
             },
-            .must_be_set = &.{},
-            .must_be_clear = &.{ 0, 96, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_set = &.{ 0, 96, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{},
         },
     };
 
