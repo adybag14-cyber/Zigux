@@ -79,6 +79,16 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const libbpf_logging_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/logging.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const libbpf_pin_path_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/pin_path.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase12_libbpf_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase12_libbpf_reviewability.zig"),
         .target = target,
@@ -86,6 +96,8 @@ pub fn build(b: *std.Build) void {
     });
     phase12_libbpf_reviewability_module.addImport("cpu_mask", libbpf_cpu_mask_module);
     phase12_libbpf_reviewability_module.addImport("bpf_type_names", libbpf_type_names_module);
+    phase12_libbpf_reviewability_module.addImport("logging", libbpf_logging_module);
+    phase12_libbpf_reviewability_module.addImport("pin_path", libbpf_pin_path_module);
 
     const phase12_nvme_pci_tests = b.addTest(.{
         .name = "phase12-nvme-pci-tests",
