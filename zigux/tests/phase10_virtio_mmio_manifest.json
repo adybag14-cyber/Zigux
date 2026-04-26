@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L09",
   "phase": "Phase 10",
-  "surveyed_commit": "88c47b03d3052a84e5b6b895832a807a369c04c9",
+  "surveyed_commit": "05650d80892a38d40ecb19c733816e3b674f6f5f",
   "anchor": "drivers/virtio/virtio_mmio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -9,13 +9,16 @@
   ],
   "survey_summary": {
     "virtio_mmio_c_lines": 829,
-    "preexisting_phase10_test_files": 4,
+    "preexisting_phase10_test_files": 6,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": true,
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_virtio_ring_doc_present": true,
     "preexisting_virtio_ring_survey_present": true,
+    "preexisting_virtio_input_zig_present": true,
+    "preexisting_virtio_input_test_present": true,
+    "preexisting_virtio_input_survey_present": true,
     "preexisting_virtio_mmio_zig_present": false
   },
   "gaps": [
