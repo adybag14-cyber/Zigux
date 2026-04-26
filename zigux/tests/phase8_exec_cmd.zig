@@ -64,3 +64,40 @@ test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" 
     try std.testing.expectEqualStrings("perf", prepared[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
 }
+
+test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PATH updates" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings("/usr/libexec/perf-core", env.get("PREFIX").?);
+    try std.testing.expectEqualStrings("tools/bin", env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+}
