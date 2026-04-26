@@ -9,6 +9,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_lookup_policy);
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
+    try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -172,4 +173,33 @@ test "phase13 libfs offset seek planning stays bounded by vfs-style max position
 
     try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.offsetDirSeekPlan(3, 20, .set, 16));
     try std.testing.expectError(error.UnsupportedWhence, libfs.LibFsHelperLab.offsetDirSeekPlan(3, 0, .hole, 16));
+}
+
+test "phase13 libfs directory emit planning stops cleanly before positive scan starts" {
+    const blocked = try libfs.LibFsHelperLab.dcacheReaddirEmitPlan(0, false, 0);
+    try std.testing.expectEqualStrings("fs/libfs.c", blocked.anchor);
+    try std.testing.expectEqual(@as(i64, 0), blocked.new_pos);
+    try std.testing.expect(!blocked.entered_positive_scan);
+    try std.testing.expect(!blocked.emitted_any_entries);
+    try std.testing.expect(blocked.stays_in_dots_window);
+    try std.testing.expect(blocked.should_stop);
+}
+
+test "phase13 libfs directory emit planning advances after dots and tracks empty scans" {
+    const emitted = try libfs.LibFsHelperLab.dcacheReaddirEmitPlan(0, true, 3);
+    try std.testing.expectEqual(@as(i64, 5), emitted.new_pos);
+    try std.testing.expect(emitted.entered_positive_scan);
+    try std.testing.expect(emitted.emitted_any_entries);
+    try std.testing.expect(!emitted.stays_in_dots_window);
+    try std.testing.expect(!emitted.should_stop);
+
+    const empty_scan = try libfs.LibFsHelperLab.dcacheReaddirEmitPlan(4, true, 0);
+    try std.testing.expectEqual(@as(i64, 4), empty_scan.new_pos);
+    try std.testing.expect(empty_scan.entered_positive_scan);
+    try std.testing.expect(!empty_scan.emitted_any_entries);
+    try std.testing.expect(!empty_scan.stays_in_dots_window);
+    try std.testing.expect(empty_scan.should_stop);
+
+    try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(-1, true, 0));
+    try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(std.math.maxInt(i64), true, 1));
 }
