@@ -32,8 +32,9 @@ The highest-value honest step in this lane is therefore a survey checkpoint that
   - `pin_path.zig` for bounded bpffs path joining and dot-sanitization without directory or syscall parity
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
 - the current Phase 12 build now re-checks the landed helper-first foundations directly by compiling `type_names.zig`, `cpu_mask.zig`, `logging.zig`, and `pin_path.zig` through a reviewability gate and by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory.
-- the repo still has no `object_loader.zig` or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
-- with the bounded helper-first utility slices now landed, the next honest libbpf-facing step is to keep reviewability aligned and only reopen the lane for another helper if fresh repo reality shows something materially smaller than the still-blocked object-model work.
+- the repo still has no `skeleton.zig`, `object_loader.zig`, or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
+- the current risk split is now explicit again: `skeleton.zig` remains the nearest post-helper cluster but is still blocked on the missing object model, while loader and program-load work stay deferred as the heavier follow-on after that boundary.
+- with the bounded helper-first utility slices now landed, the next honest libbpf-facing step is to keep reviewability aligned and avoid collapsing the nearer skeleton-population blocker into the broader loader risk unless fresh repo reality changes the actual segment boundaries.
 
 ## Recorded gaps
 
@@ -49,9 +50,10 @@ The survey manifest now records:
 - the landed `phase12-libbpf-survey-gate`
 - the landed `phase12-libbpf-reviewability-gate`
 - the landed `phase12-libbpf-survey-note`
+- the still-blocked `phase12-libbpf-skeleton-population`
 - the still-blocked `phase12-libbpf-object-loader-and-program-load`
 
-This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path plus bounded logging and pin-path helpers, but the heavy helper consumer still stops well short of object-model, loader, relocation, or syscall-backed surfaces.
+This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path plus bounded logging and pin-path helpers, but the heavy helper consumer still stops first at the missing skeleton or object-model boundary and then well short of loader, relocation, or syscall-backed surfaces.
 
 ## Non-goals
 
@@ -74,4 +76,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 12 libbpf survey and reviewability lane aligned with the live helper set, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded utility slice if fresh repo reality shows something materially smaller than the still-blocked object-model, loader, and relocation work.
+Keep the Phase 12 libbpf survey and reviewability lane aligned with the live helper set and the current blocked-risk split, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded utility slice if fresh repo reality shows something materially smaller than the still-blocked skeleton, loader, and relocation work.
