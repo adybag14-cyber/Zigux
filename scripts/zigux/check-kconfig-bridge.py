@@ -39,6 +39,15 @@ def compile_tool(zig: str, source: Path, output: Path) -> None:
     run([zig, 'build-exe', str(source), '-femit-bin=' + str(output)], cwd=str(ROOT))
 
 
+def fail_check(block: str, values: list[str]) -> None:
+    print('KCONFIG_BRIDGE_DIFF=fail')
+    print(f'{block}_START')
+    for value in values:
+        print(value)
+    print(f'{block}_END')
+    raise SystemExit(1)
+
+
 def supported_conf_modes() -> set[str]:
     source = CONF_BRIDGE.read_text(encoding='utf-8')
     match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
@@ -64,12 +73,31 @@ def ensure_manifest_matches_bridge_modes() -> None:
     bridge_modes = supported_conf_modes()
     missing = sorted(manifest_modes - bridge_modes)
     if missing:
-        print('KCONFIG_BRIDGE_DIFF=fail')
-        print('UNSUPPORTED_CONF_CASE_MODES_START')
-        for mode in missing:
-            print(mode)
-        print('UNSUPPORTED_CONF_CASE_MODES_END')
-        raise SystemExit(1)
+        fail_check('UNSUPPORTED_CONF_CASE_MODES', missing)
+
+
+def ensure_manifest_is_deterministic() -> None:
+    seen_names: dict[str, str] = {}
+    duplicate_names: list[str] = []
+    for group_name in ('conf_cases', 'confdata_cases'):
+        for case in CASES[group_name]:
+            name = case['name']
+            previous_group = seen_names.get(name)
+            if previous_group is not None:
+                duplicate_names.append(f'{name}:{previous_group},{group_name}')
+                continue
+            seen_names[name] = group_name
+    if duplicate_names:
+        fail_check('DUPLICATE_KCONFIG_CASE_NAMES', sorted(duplicate_names))
+
+    missing_paths: list[str] = []
+    for case in CASES['confdata_cases']:
+        for field_name in ('input', 'expected'):
+            rel_path = case[field_name]
+            if not (FIXTURE_DIR / rel_path).exists():
+                missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
+    if missing_paths:
+        fail_check('MISSING_CONFDATA_CASE_PATHS', sorted(missing_paths))
 
 
 def main() -> int:
@@ -78,6 +106,7 @@ def main() -> int:
     args = parser.parse_args()
 
     ensure_manifest_matches_bridge_modes()
+    ensure_manifest_is_deterministic()
     zig = find_zig(args.zig)
 
     with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_') as tmp_dir_str:
