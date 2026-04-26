@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L05",
   "phase": "Phase 12",
-  "surveyed_commit": "500886d4894d9165c303df700920cd01c247b9eb",
+  "surveyed_commit": "99fee8fa2380ab06f7dd90a232c81f4169237634",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
     "drivers/nvme/host/pci.zig",
@@ -15,7 +15,11 @@
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_phase12_build_present": true,
+    "preexisting_phase12_make_target_present": true,
     "preexisting_phase12_virtio_net_survey_present": true,
+    "preexisting_phase12_virtio_net_starter_present": true,
+    "preexisting_phase12_virtio_scsi_survey_present": true,
+    "preexisting_phase12_virtio_scsi_starter_present": true,
     "nvme_pci_zig_present": true,
     "nvme_pci_test_present": true,
     "nvme_pci_slice_note_present": true,
@@ -29,6 +33,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
       "why_now": "The shared Phase 12 build gate now runs the landed nvme PCI starter beside the phase12 surveys so the complex-driver lane stays reviewable in one bounded path."
+    },
+    {
+      "id": "phase12-make-target",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "The shared Phase 12 make target now runs the nvme PCI starter beside the survey gates for the tranche's other complex-driver lanes, which keeps this survey checkpoint reviewable through one bounded entry point."
     },
     {
       "id": "phase12-nvme-pci-driver-starter",
@@ -52,11 +63,18 @@
       "why_now": "The slice note records what the landed queue planner covers so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
     },
     {
-      "id": "phase12-virtio-net-survey-gate",
+      "id": "phase12-virtio-net-driver-starter",
       "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "The existing virtio_net survey keeps the broader Phase 12 checkpoint visible, which helps compare the nvme PCI lane against the tranche's other complex-driver work."
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The landed virtio_net probe snapshot starter now gives the broader Phase 12 tranche a second real complex-driver foothold, which helps compare the nvme PCI lane against another bounded driver starter instead of only against survey scaffolding."
+    },
+    {
+      "id": "phase12-virtio-scsi-driver-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The landed virtio_scsi queue-layout starter gives the Phase 12 tranche a third real complex-driver foothold, which makes the nvme PCI survey more honest about current peer progress and keeps future runs from treating nvme as the only driver with a starter."
     },
     {
       "id": "phase12-nvme-pci-survey-gate",
