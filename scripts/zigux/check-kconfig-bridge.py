@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -38,11 +39,45 @@ def compile_tool(zig: str, source: Path, output: Path) -> None:
     run([zig, 'build-exe', str(source), '-femit-bin=' + str(output)], cwd=str(ROOT))
 
 
+def supported_conf_modes() -> set[str]:
+    source = CONF_BRIDGE.read_text(encoding='utf-8')
+    match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
+    if not match:
+        raise SystemExit('failed to parse conf bridge Mode enum')
+
+    modes: set[str] = set()
+    for raw_line in match.group(1).splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('pub ') or line.startswith('//'):
+            continue
+        if line.endswith(','):
+            candidate = line[:-1].strip()
+            if candidate and candidate.isidentifier():
+                modes.add(candidate)
+    if not modes:
+        raise SystemExit('failed to discover conf bridge modes')
+    return modes
+
+
+def ensure_manifest_matches_bridge_modes() -> None:
+    manifest_modes = {case['mode'] for case in CASES['conf_cases']}
+    bridge_modes = supported_conf_modes()
+    missing = sorted(manifest_modes - bridge_modes)
+    if missing:
+        print('KCONFIG_BRIDGE_DIFF=fail')
+        print('UNSUPPORTED_CONF_CASE_MODES_START')
+        for mode in missing:
+            print(mode)
+        print('UNSUPPORTED_CONF_CASE_MODES_END')
+        raise SystemExit(1)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded kconfig bridge fixture parity.')
     parser.add_argument('--zig', help='Explicit zig executable path')
     args = parser.parse_args()
 
+    ensure_manifest_matches_bridge_modes()
     zig = find_zig(args.zig)
 
     with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_') as tmp_dir_str:
