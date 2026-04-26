@@ -54,8 +54,8 @@
       "id": "runtime-atomic64-substrate-handoff",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
-      "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A loadable module entry point and lifecycle parity still depend on runtime substrate pieces that the repo has not started yet."
+      "zigux_destination": "samples/zigux/runtime_*",
+      "why_now": "A future loadable handoff inside the runtime sample family still depends on runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
