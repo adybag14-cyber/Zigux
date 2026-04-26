@@ -86,45 +86,64 @@ fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
 }
 
-test "argvSplit collapses repeated whitespace into single separators" {
-    var split = try argvSplit(std.testing.allocator, " alpha  beta\tgamma\n");
+const ArgvFixture = struct {
+    input: []const u8,
+    expected: []const []const u8,
+};
+
+const whitespace_expected = [_][]const u8{
+    "alpha",
+    "beta",
+    "gamma",
+};
+
+const blank_expected = [_][]const u8{};
+
+const nul_expected = [_][]const u8{
+    "alpha",
+    "beta",
+};
+
+const quote_expected = [_][]const u8{
+    "alpha",
+    "\"beta",
+    "gamma\"",
+    "delta",
+};
+
+fn expectFixture(fixture: ArgvFixture) !void {
+    var split = try argvSplit(std.testing.allocator, fixture.input);
     defer split.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(usize, 3), split.argv.len);
-    try std.testing.expectEqualStrings("alpha", split.argv[0]);
-    try std.testing.expectEqualStrings("beta", split.argv[1]);
-    try std.testing.expectEqualStrings("gamma", split.argv[2]);
-    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.argv_null_terminated[3]);
+    try std.testing.expectEqual(fixture.expected.len, countArgc(fixture.input));
+    try std.testing.expectEqual(fixture.expected.len, split.argv.len);
+
+    const c_argv = split.cArgv();
+    for (fixture.expected, 0..) |expected, index| {
+        try std.testing.expectEqualStrings(expected, split.argv[index]);
+        try std.testing.expectEqualStrings(expected, std.mem.span(c_argv[index].?));
+    }
+
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), c_argv[fixture.expected.len]);
 }
 
-test "argvSplit returns an empty argv for blank input" {
-    var split = try argvSplit(std.testing.allocator, "  \t\n");
-    defer split.deinit(std.testing.allocator);
-
-    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
-    try std.testing.expectEqual(@as(usize, 0), countArgc("  \t\n"));
-    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.argv_null_terminated[0]);
-}
-
-test "countArgc and argvSplit stop at the first NUL like the C helper" {
-    var split = try argvSplit(std.testing.allocator, "alpha beta\x00ignored tail");
-    defer split.deinit(std.testing.allocator);
-
-    try std.testing.expectEqual(@as(usize, 2), countArgc("alpha beta\x00ignored tail"));
-    try std.testing.expectEqual(@as(usize, 2), split.argv.len);
-    try std.testing.expectEqualStrings("alpha", split.argv[0]);
-    try std.testing.expectEqualStrings("beta", split.argv[1]);
-}
-
-test "argvSplit keeps quote characters because Linux argv_split does not parse quotes" {
-    var split = try argvSplit(std.testing.allocator, "alpha \"beta gamma\" delta");
-    defer split.deinit(std.testing.allocator);
-
-    try std.testing.expectEqual(@as(usize, 4), split.argv.len);
-    try std.testing.expectEqualStrings("alpha", split.argv[0]);
-    try std.testing.expectEqualStrings("\"beta", split.argv[1]);
-    try std.testing.expectEqualStrings("gamma\"", split.argv[2]);
-    try std.testing.expectEqualStrings("delta", split.argv[3]);
+test "argvSplit matches focused parity fixtures" {
+    try expectFixture(.{
+        .input = " alpha  beta\tgamma\n",
+        .expected = &whitespace_expected,
+    });
+    try expectFixture(.{
+        .input = "  \t\n",
+        .expected = &blank_expected,
+    });
+    try expectFixture(.{
+        .input = "alpha beta\x00ignored tail",
+        .expected = &nul_expected,
+    });
+    try expectFixture(.{
+        .input = "alpha \"beta gamma\" delta",
+        .expected = &quote_expected,
+    });
 }
 
 test "argvSplit duplicates the input before tokenizing" {
