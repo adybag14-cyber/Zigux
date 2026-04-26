@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lane while recording the landed diff gate and blocker" {
+test "phase 9 runtime kretprobe survey manifest records the landed loader plan and the remaining substrate blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -57,7 +57,7 @@ test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lan
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 5);
+    try std.testing.expect(manifest.gaps.len >= 6);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -65,6 +65,7 @@ test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lan
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
+    var saw_loader_plan = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -75,7 +76,10 @@ test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lan
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
         } else {
-            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/"));
+            try std.testing.expect(
+                std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/") or
+                    std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"),
+            );
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -96,6 +100,11 @@ test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lan
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_kretprobe_diff.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-loader-plan")) {
+            saw_loader_plan = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", gap.zigux_destination);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -104,9 +113,10 @@ test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lan
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 5);
+    try std.testing.expect(starter_landed_count >= 6);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
+    try std.testing.expect(saw_loader_plan);
 }
