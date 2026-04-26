@@ -26,6 +26,7 @@ Phase 5 notes
 - the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
 - `Documentation/zigux/phase5-kobject-sample-survey.md` now records the landed `samples/zigux/kobject_example.zig` reference sample, its exact registration and attribute-roundtrip checks, and the remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration.
 - the same kobject survey note now doubles as the sample-backed contributor guide for the landed kobject slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync.
+- the Phase 5 notes now also keep the remaining sample gaps explicit: the non-runtime reference readings for the `kretprobe` and `trace-events` anchors still remain open even though later Phase 9 runtime starters exist for both families.
 
 Phase 4 notes
 - `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
