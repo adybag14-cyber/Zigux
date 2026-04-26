@@ -121,7 +121,7 @@ pub const RuntimeBitmapSample = struct {
     pub fn copyFrom(self: *Self, other: *const Self) !void {
         try self.ensureMutable();
         switch (other.stage()) {
-            .initialized, .selftest_complete, .exited => {},
+            .initialized, .selftest_complete => {},
             else => return error.InvalidSourceLifecycle,
         }
 
