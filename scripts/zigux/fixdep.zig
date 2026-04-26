@@ -228,7 +228,10 @@ pub fn main(init: std.process.Init) !void {
     const stdout = &stdout_writer.interface;
 
     runFixdep(arena, io, stdout, args[1], args[2], args[3]) catch |err| switch (err) {
-        error.NoTargets => try emitNoTargetsParseError(io),
+        error.NoTargets => {
+            try stdout.flush();
+            try emitNoTargetsParseError(io);
+        },
         else => return err,
     };
     try stdout.flush();
