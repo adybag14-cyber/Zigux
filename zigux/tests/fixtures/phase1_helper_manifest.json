@@ -39,7 +39,9 @@
         "find_bit.tail_and_clamped_first",
         "find_bit.tail_and_clamped_next"
       ],
-      "summary": "Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond nbits."
+      "summary": "Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond nbits.",
+      "unit_test_anchor": "tools/lib/find_bit.zig:test \"empty and boundary scans return nbits\"",
+      "unit_test_contract": "Direct Zig unit coverage keeps empty scans at 0 and boundary-start scans at nbits for set, zero, and AND entry points."
     }
   }
 }
