@@ -127,3 +127,31 @@ test "phase10 virtio ring polls newly used buffers without transport callbacks" 
     try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
     try std.testing.expect(poll_summary.has_newly_used_chains);
 }
+
+test "phase10 virtio ring re-enables callbacks and reports whether polling is still needed" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .split, true, false);
+
+    try ring.disableCallback(6);
+    try ring.publishDescriptorChain(6);
+    try ring.recordUsedChains(6, 1);
+
+    var enable_summary = try ring.enableCallback(6);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", enable_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), enable_summary.queue_index);
+    try std.testing.expect(enable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), enable_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), enable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), enable_summary.pending_used_chain_count);
+    try std.testing.expect(enable_summary.should_poll);
+
+    _ = try ring.pollUsedBuffers(6);
+    try ring.disableCallback(6);
+
+    enable_summary = try ring.enableCallback(6);
+    try std.testing.expect(enable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), enable_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), enable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), enable_summary.pending_used_chain_count);
+    try std.testing.expect(!enable_summary.should_poll);
+}

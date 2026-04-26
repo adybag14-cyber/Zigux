@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L06",
   "phase": "Phase 10",
-  "surveyed_commit": "8afc115368aa23155133197a30c83093aa15f477",
+  "surveyed_commit": "62207c4108fc2658728a26341e2b533bde0c97d3",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -61,17 +61,24 @@
     },
     {
       "id": "phase10-callback-enable-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice now adds a tiny callback re-enable helper that flips queue-local callback state back on and reports whether already-consumed chains still need a follow-up poll before any interrupt-facing work is claimed."
+    },
+    {
+      "id": "phase10-callback-delay-helper",
       "status": "ready_next",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "With queue shape, notify bookkeeping, and used-buffer polling now landed, the next honest virtio_ring step is one small callback-enable helper that stays queue-local before any MMIO or DMA-facing work."
+      "why_now": "With queue shape, used-buffer polling, and callback re-enable now landed, the next honest virtio_ring step is one tiny delayed-callback helper that still stays queue-local before any MMIO or DMA-facing work."
     },
     {
       "id": "phase10-mmio-wrapper-lane",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap still keeps MMIO behind virtqueue wrappers, and MMIO plus DMA-facing behavior remains too risky to start honestly until the in-memory ring lane closes one more small callback-enable step after the newly landed used-buffer polling helper."
+      "why_now": "The roadmap still keeps MMIO behind virtqueue wrappers, and MMIO plus DMA-facing behavior remains too risky to start honestly until the in-memory ring lane closes one more small callback-delay step after the newly landed callback re-enable helper."
     },
     {
       "id": "phase10-virtio-ring-slice-note",

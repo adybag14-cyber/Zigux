@@ -46,6 +46,16 @@ pub const UsedBufferPollSummary = struct {
     has_newly_used_chains: bool,
 };
 
+pub const CallbackEnableSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    callback_enabled: bool,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    pending_used_chain_count: u16,
+    should_poll: bool,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -57,6 +67,7 @@ pub const VirtioRingLab = struct {
         avail_idx_shadow: u16 = 0,
         last_used_idx: u16 = 0,
         last_polled_used_idx: u16 = 0,
+        callback_enabled: bool = true,
         outstanding_chain_count: u16 = 0,
         num_added: u16 = 0,
         notification_count: usize = 0,
@@ -159,6 +170,27 @@ pub const VirtioRingLab = struct {
         };
         slot.last_polled_used_idx = slot.last_used_idx;
         return summary;
+    }
+
+    pub fn disableCallback(self: *Self, queue_index: u16) !void {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.callback_enabled = false;
+    }
+
+    pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.callback_enabled = true;
+
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .callback_enabled = slot.callback_enabled,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = slot.last_polled_used_idx,
+            .pending_used_chain_count = pending_used_chain_count,
+            .should_poll = pending_used_chain_count != 0,
+        };
     }
 
     pub fn queueShapeSummary(self: *const Self, queue_index: u16) !QueueShapeSummary {
