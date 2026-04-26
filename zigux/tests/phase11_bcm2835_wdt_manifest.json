@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L05",
+  "lane_key": "P11-L06",
   "phase": "Phase 11",
   "surveyed_commit": "911ed30d6f76ddacb634887d1d740afc2145b729",
   "anchor": "drivers/watchdog/bcm2835_wdt.c",
@@ -38,28 +38,28 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
-      "why_now": "The survey note now records the current master head where the bcm2835_wdt starter and its probe-time bookkeeping helper are already landed while platform registration, PM base wiring, and poweroff-handler coordination remain out of scope."
+      "why_now": "The survey note now records the current master head where the bcm2835_wdt starter, probe-time bookkeeping helper, and registration summary are already landed while platform registration, PM base wiring, and poweroff-handler coordination remain out of scope."
     },
     {
       "id": "phase11-bcm2835-wdt-driver-starter",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The bounded starter now covers timeout tick encoding, running-bit detection, start and stop register transitions, restart intent, halt-partition bookkeeping, and a tiny probe summary for bootloader-carried running state, timeout and nowayout init, restart priority, and parent linkage without claiming platform-backed behavior."
+      "why_now": "The bounded starter now covers timeout tick encoding, running-bit detection, start and stop register transitions, restart intent, halt-partition bookkeeping, a tiny probe summary, and a registration-facing handoff or poweroff ownership summary without claiming platform-backed behavior."
     },
     {
       "id": "phase11-bcm2835-wdt-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests now keep timeout conversion, restart intent, halt-partition bookkeeping, and the bounded probe-time watchdog-core bookkeeping reviewable without pretending hardware-backed execution exists."
+      "why_now": "Dedicated Phase 11 tests now keep timeout conversion, restart intent, halt-partition bookkeeping, probe-time watchdog-core bookkeeping, and registration or poweroff ownership outcomes reviewable without pretending hardware-backed execution exists."
     },
     {
       "id": "phase11-bcm2835-wdt-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
-      "why_now": "A dedicated slice note now documents exactly what the starter and probe-summary helper cover and what remains out of scope so the repo does not conflate the starter with full platform or poweroff integration."
+      "why_now": "A dedicated slice note now documents exactly what the starter, probe summary, and registration summary cover and what remains out of scope so the repo does not conflate the starter with full platform or poweroff integration."
     },
     {
       "id": "phase11-bcm2835-wdt-probe-summary",
@@ -70,17 +70,24 @@
     },
     {
       "id": "phase11-bcm2835-wdt-registration-and-poweroff",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "The lane now also records registration-facing handoff and poweroff ownership outcomes so an already-running watchdog, watchdog registration intent, and poweroff claim-vs-conflict behavior remain reviewable before any live PM base wiring or watchdog-core registration."
+    },
+    {
+      "id": "phase11-bcm2835-wdt-remove-summary",
       "status": "ready_next",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "The next honest bcm2835_wdt step is a tiny registration-facing handoff and poweroff-handler summary so the starter can record already-running registration state and poweroff claim-vs-conflict outcomes without pretending PM base wiring or live watchdog registration exists."
+      "why_now": "The next honest bounded step is a tiny remove-time summary for clearing the shared poweroff handler only when the bcm2835 driver currently owns it, before any actual platform remove or poweroff plumbing."
     },
     {
       "id": "phase11-bcm2835-wdt-platform-registration",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
-      "why_now": "Platform registration, PM base acquisition, the system power controller path, and live poweroff-handler coordination remain blocked until the lane has the landed probe summary plus a slightly richer registration-facing bookkeeping helper and a hardware-validation matrix that can describe those side effects honestly."
+      "why_now": "Platform registration, PM base acquisition, live watchdog registration, and live poweroff-handler coordination remain blocked until the lane has the landed probe and registration summaries plus a slightly richer remove summary and a hardware-validation matrix that can describe those side effects honestly."
     }
   ]
 }
