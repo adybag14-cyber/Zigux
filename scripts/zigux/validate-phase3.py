@@ -23,6 +23,17 @@ def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
     return rel.startswith("scripts/zigux/check-phase3-") and rel.endswith(".py")
 
 
+def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
+    slices = list(entries)
+    selected = set(selected_slugs)
+    if selected:
+        slices = [entry for entry in slices if entry.slug in selected]
+        missing = sorted(selected.difference({entry.slug for entry in slices}))
+        if missing:
+            raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
+    return slices
+
+
 def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
     if path is None:
         issues.append(f"{slug}:missing_manifest")
@@ -87,7 +98,9 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
 
 
-def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str]) -> None:
+def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
+    if not check_all_wrappers:
+        return
     expected_paths = {entry.check_script.resolve() for entry in slices}
     scripts_dir = root / "scripts" / "zigux"
     for path in sorted(scripts_dir.glob("check-phase3-*.py")):
@@ -131,6 +144,7 @@ def validate_slices(
     *,
     check_artifact_diff: bool = False,
     check_slug_sanity: bool = False,
+    check_all_wrappers: bool = True,
 ) -> list[str]:
     issues: list[str] = []
 
@@ -149,7 +163,7 @@ def validate_slices(
         validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
-    validate_obsolete_wrappers(root, slices, issues)
+    validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
     if check_slug_sanity:
@@ -225,6 +239,14 @@ def run_self_test() -> int:
         )
 
         slices = discover_phase3_slices(paths)
+        assert [entry.slug for entry in select_slices(slices, [])] == ["alpha"]
+        assert [entry.slug for entry in select_slices(slices, ["alpha"])] == ["alpha"]
+        try:
+            select_slices(slices, ["missing"])
+        except SystemExit as exc:
+            assert str(exc) == "unknown Phase 3 slugs: missing"
+        else:
+            raise AssertionError("expected missing slug to fail")
         assert validate_slices(root, slices, check_artifact_diff=True) == []
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
@@ -443,6 +465,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate discovered Phase 3 slice assets and documentation markers.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validation coverage in a temporary workspace.")
     parser.add_argument(
+        "--slug",
+        action="append",
+        default=[],
+        help="Only validate the named Phase 3 slug. Repeat to validate more than one bounded slice.",
+    )
+    parser.add_argument(
         "--check-artifact-diff-phase3-section",
         action="store_true",
         help="Also require Documentation/zigux/artifact-diff.md to match the generated Phase 3 section from the catalog.",
@@ -457,12 +485,15 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    slices = discover_phase3_slices()
+    slices = select_slices(discover_phase3_slices(), args.slug)
+    if not slices:
+        raise SystemExit("no Phase 3 slices discovered")
     issues = validate_slices(
         ROOT,
         slices,
         check_artifact_diff=args.check_artifact_diff_phase3_section,
         check_slug_sanity=args.check_slug_sanity,
+        check_all_wrappers=not bool(args.slug),
     )
     if issues:
         print("PHASE3_VALIDATION=fail")
