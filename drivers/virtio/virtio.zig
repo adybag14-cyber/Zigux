@@ -46,6 +46,14 @@ pub const QueueDescriptorShapeSummary = struct {
     uses_indirect_descriptors: bool,
 };
 
+pub const ConfigChangeSummary = struct {
+    anchor: []const u8,
+    core_enabled: bool,
+    driver_disabled: bool,
+    change_pending: bool,
+    delivery_count: usize,
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
@@ -66,6 +74,10 @@ pub const VirtioCoreLabDevice = struct {
     driver_features: FeatureSet = FeatureSet.initEmpty(),
     negotiated_features: FeatureSet = FeatureSet.initEmpty(),
     queues: [queue_capacity]QueueSlot = [_]QueueSlot{QueueSlot{}} ** queue_capacity,
+    config_core_enabled: bool = true,
+    config_driver_disabled: bool = false,
+    config_change_pending: bool = false,
+    config_change_delivery_count: usize = 0,
     transport_accepts_features: bool = true,
     registered_queue_count: usize = 0,
     reset_count: usize = 0,
@@ -94,6 +106,10 @@ pub const VirtioCoreLabDevice = struct {
         self.driver_features = FeatureSet.initEmpty();
         self.negotiated_features = FeatureSet.initEmpty();
         self.queues = [_]QueueSlot{QueueSlot{}} ** queue_capacity;
+        self.config_core_enabled = true;
+        self.config_driver_disabled = false;
+        self.config_change_pending = false;
+        self.config_change_delivery_count = 0;
         self.registered_queue_count = 0;
         self.reset_count += 1;
     }
@@ -280,8 +296,55 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn disableConfigDriver(self: *Self) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_driver_disabled = true;
+    }
+
+    pub fn enableConfigDriver(self: *Self) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_driver_disabled = false;
+        self.handleConfigChanged();
+    }
+
+    pub fn disableConfigCore(self: *Self) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_core_enabled = false;
+    }
+
+    pub fn enableConfigCore(self: *Self) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_core_enabled = true;
+        self.handleConfigChanged();
+    }
+
+    pub fn noteConfigChanged(self: *Self) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.handleConfigChanged();
+    }
+
+    pub fn configChangeSummary(self: *const Self) ConfigChangeSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .core_enabled = self.config_core_enabled,
+            .driver_disabled = self.config_driver_disabled,
+            .change_pending = self.config_change_pending,
+            .delivery_count = self.config_change_delivery_count,
+        };
+    }
+
     pub fn registeredQueueCount(self: *const Self) usize {
         return self.registered_queue_count;
+    }
+
+    fn handleConfigChanged(self: *Self) void {
+        if (!self.config_core_enabled or self.config_driver_disabled) {
+            self.config_change_pending = true;
+            return;
+        }
+
+        self.config_change_pending = false;
+        self.config_change_delivery_count += 1;
     }
 
     fn checkedFeatureIndex(feature_bit: u16) !usize {
