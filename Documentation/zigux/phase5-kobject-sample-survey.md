@@ -9,6 +9,8 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the first `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
+  - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/kobject_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kobject_example.zig`
@@ -56,8 +58,28 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
 - if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
+
+## Recorded gap vs roadmap
+
+The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
+
+- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, dispatch, parse failures, and teardown
+- contributor guidance still needs to keep the in-memory directory and unnamed-group shape visibly separate from real sysfs or module substrate claims
+- the broader roadmap still expects the other Phase 5 reference-sample anchors too, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
+
+This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
+
+## Review gates for this survey
+
+1. confirm the Phase 5 anchor is still the Linux kobject example
+   - `rg -n "samples/kobject/kobject-example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
+2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
+   - `find samples/zigux -maxdepth 1 -type f | sort`
+3. run the exact bounded Phase 5 sample checks
+   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals
 
