@@ -257,6 +257,16 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+
+    try device.disableConfigDriver();
+    try device.noteConfigChanged();
+    device.reset();
+
+    summary = device.configChangeSummary();
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 }
 
 test "phase10 virtio core keeps config changes pending while the core path is disabled and clears them on reset" {
