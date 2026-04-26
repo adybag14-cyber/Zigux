@@ -76,7 +76,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -91,6 +91,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     var saw_survey_gate = false;
     var saw_reviewability_gate = false;
     var saw_survey_note = false;
+    var saw_skeleton_blocker = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -162,6 +163,15 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "object-loader") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
+            saw_skeleton_blocker = true;
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/skeleton.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("blocked_on_object_model", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared segment catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bpf_object") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bpf_program") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_libbpf_segments.zig", gap.zigux_destination);
@@ -186,8 +196,9 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             saw_blocker = true;
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/object_loader.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_object_model", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bpf_object") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "verifier interactions") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "loader setup") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skeleton-population") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "object-model progress") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -197,7 +208,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
 
     try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_manifest_foundation);
@@ -208,5 +219,6 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_skeleton_blocker);
     try std.testing.expect(saw_blocker);
 }
