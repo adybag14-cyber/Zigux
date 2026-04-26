@@ -244,3 +244,20 @@ test "confdata bridge decodes escaped quoted strings" {
     try std.testing.expectEqualStrings("zigux \"bridge\"", summary.entries[0].value);
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
 }
+
+test "confdata bridge accepts CRLF config lines" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_ALPHA=y\r\n" ++
+            "CONFIG_NAME=\"zigux\"\r\n" ++
+            "# CONFIG_DEBUG is not set\r\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
+}

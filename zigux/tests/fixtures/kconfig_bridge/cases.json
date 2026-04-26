@@ -60,6 +60,11 @@
       "name": "escaped_strings",
       "input": "escaped_strings.config",
       "expected": "escaped_strings_expected.json"
+    },
+    {
+      "name": "sample_crlf",
+      "input": "sample_crlf.config",
+      "expected": "sample_crlf_expected.json"
     }
   ]
 }
