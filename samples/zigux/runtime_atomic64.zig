@@ -35,6 +35,11 @@ pub const CompareExchangeResult = struct {
     stored: bool,
 };
 
+pub const AddUnlessResult = struct {
+    previous: i64,
+    changed: bool,
+};
+
 pub const RuntimeAtomic64Sample = struct {
     const Self = @This();
 
@@ -95,6 +100,36 @@ pub const RuntimeAtomic64Sample = struct {
                     .{ .previous = previous, .stored = false }
                 else
                     .{ .previous = expected, .stored = true };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn addUnlessCounter(self: *Self, addend: i64, unless_value: i64) !AddUnlessResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                var current = atomic.load(i64, &self.counter, .seq_cst);
+                while (true) {
+                    if (current == unless_value) {
+                        break :blk .{ .previous = current, .changed = false };
+                    }
+
+                    const next = current + addend;
+                    const mismatch = atomic.compareExchange(
+                        i64,
+                        &self.counter,
+                        current,
+                        next,
+                        .seq_cst,
+                        .seq_cst,
+                    );
+                    if (mismatch) |previous| {
+                        current = previous;
+                        continue;
+                    }
+
+                    break :blk .{ .previous = current, .changed = true };
+                }
             },
             else => error.InvalidLifecycleTransition,
         };
