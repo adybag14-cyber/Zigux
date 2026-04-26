@@ -1,7 +1,7 @@
 const std = @import("std");
 const sample = @import("runtime_trace_events_sample");
 
-test "runtime trace-events diff gate replays the Linux sample's main-thread payload families" {
+test "runtime trace-events diff gate replays the Linux sample's concrete main-thread payload literals" {
     var module = sample.RuntimeTraceEventsSample{};
     try module.init();
 
@@ -13,9 +13,18 @@ test "runtime trace-events diff gate replays the Linux sample's main-thread payl
     try std.testing.expect(module.saw_vararg_payload);
     try std.testing.expect(module.saw_rel_loc_payload);
     try std.testing.expect(module.saw_conditional_path);
+
+    const payload = module.last_main_payload orelse return error.ExpectedMainPayload;
+    try std.testing.expectEqualStrings("hello", payload.foo_bar_message);
+    try std.testing.expectEqualStrings("HELLO", payload.template_message);
+    try std.testing.expectEqualStrings("Some times print", payload.conditional_message);
+    try std.testing.expectEqualStrings("prints other times", payload.template_cond_message);
+    try std.testing.expectEqualStrings("I have to be different", payload.template_print_message);
+    try std.testing.expectEqualStrings("Hello __rel_loc", payload.relative_location_message);
+    try std.testing.expectEqualStrings("iter=%d", payload.format_template);
 }
 
-test "runtime trace-events diff gate keeps function-callback registration balance explicit" {
+test "runtime trace-events diff gate keeps function-callback registration balance and payload labels explicit" {
     var module = sample.RuntimeTraceEventsSample{};
     try module.init();
 
@@ -30,6 +39,10 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqual(@as(usize, 1), module.fn_iterations);
     try std.testing.expectEqual(@as(usize, 2), module.total_events);
     try std.testing.expectEqual(@as(i32, 9), module.last_fn_count);
+
+    const payload = module.last_function_payload orelse return error.ExpectedFunctionPayload;
+    try std.testing.expectEqualStrings("Look at me", payload.foo_bar_message);
+    try std.testing.expectEqualStrings("Look at me too", payload.template_message);
 
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
