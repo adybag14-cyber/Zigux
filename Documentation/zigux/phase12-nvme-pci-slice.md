@@ -11,4 +11,4 @@ The starter stays intentionally narrow:
 
 This slice does not claim PCI probe or remove wiring, interrupt registration, controller enable or shutdown sequences, live MMIO, PRP list construction, blk-mq integration, tagset setup, or hardware-backed recovery.
 
-The next honest bounded step inside the same Phase 12 lane is to add one tiny PRP-or-SGL-facing buffer-shape helper or a narrow admin-timeout recovery summary before any live DMA or blk-mq behavior is attempted.
+The next honest bounded step inside the same Phase 12 lane is to add one tiny PRP buffer-shape helper, limited to first-page offset, rounded span, and page-list bound checks before any live DMA or blk-mq behavior is attempted.
