@@ -65,7 +65,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -77,6 +77,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_survey_note = false;
     var saw_add_rule = false;
     var saw_fd_followup = false;
+    var saw_path_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -130,10 +131,17 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-fd-mode-followup")) {
             saw_fd_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_ruleset_from_fd()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "FMODE_CAN_WRITE") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-path-fd-followup")) {
+            saw_path_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_path_from_fd()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ruleset FDs") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -141,7 +149,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -151,6 +159,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_add_rule);
     try std.testing.expect(saw_fd_followup);
+    try std.testing.expect(saw_path_followup);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -162,6 +171,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_create_ruleset_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(!descriptor.touches_live_fd_table);
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
@@ -340,5 +350,47 @@ test "phase13 landlock syscalls add_rule planning rejects invalid flags and boun
     }));
     try std.testing.expectError(error.InvalidRuleType, syscalls.SyscallsHelperLab.planAddRule(.{
         .rule_type = 99,
+    }));
+}
+
+test "phase13 landlock syscalls get_ruleset_from_fd planning models mode checks and retained references" {
+    const write_plan = try syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_mode = syscalls.fmode_can_read | syscalls.fmode_can_write,
+        .required_mode = syscalls.fmode_can_write,
+    });
+    try std.testing.expectEqual(@as(u32, syscalls.fmode_can_write), write_plan.required_mode);
+    try std.testing.expect(write_plan.validates_fd_type);
+    try std.testing.expect(write_plan.validates_mode);
+    try std.testing.expect(write_plan.acquires_ruleset_reference);
+    try std.testing.expectEqual(@as(usize, 1), write_plan.expected_layer_count);
+
+    const read_plan = try syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_mode = syscalls.fmode_can_read,
+        .required_mode = syscalls.fmode_can_read,
+    });
+    try std.testing.expectEqual(@as(u32, syscalls.fmode_can_read), read_plan.required_mode);
+}
+
+test "phase13 landlock syscalls get_ruleset_from_fd planning rejects bad fd, type, mode, and layer drift" {
+    try std.testing.expectError(error.InvalidRequestedMode, syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .required_mode = 0,
+    }));
+    try std.testing.expectError(error.BadFileDescriptor, syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .fd_present = false,
+        .required_mode = syscalls.fmode_can_write,
+    }));
+    try std.testing.expectError(error.InvalidRulesetFdType, syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_kind = .other,
+        .file_mode = syscalls.fmode_can_write,
+        .required_mode = syscalls.fmode_can_write,
+    }));
+    try std.testing.expectError(error.InsufficientMode, syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_mode = syscalls.fmode_can_read,
+        .required_mode = syscalls.fmode_can_write,
+    }));
+    try std.testing.expectError(error.InvalidLayerCount, syscalls.SyscallsHelperLab.planGetRulesetFromFd(.{
+        .file_mode = syscalls.fmode_can_read,
+        .required_mode = syscalls.fmode_can_read,
+        .layer_count = 2,
     }));
 }
