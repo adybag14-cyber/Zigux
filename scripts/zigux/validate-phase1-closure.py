@@ -40,6 +40,8 @@ required_closure_markers = [
     'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
     'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot',
+    'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
+    'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -85,6 +87,7 @@ if 'mlugg/setup-zig@' in workflow:
 manifest_helpers = manifest.get('helpers', [])
 manifest_count = manifest.get('helper_count')
 bitmap_review = manifest.get('helper_review_notes', {}).get('tools/lib/bitmap.zig', {})
+find_bit_review = manifest.get('helper_review_notes', {}).get('tools/lib/find_bit.zig', {})
 if manifest.get('phase') != 'Phase 1':
     missing_markers.append('manifest:phase=Phase 1')
 if manifest.get('status') != 'closed':
@@ -106,6 +109,21 @@ if bitmap_review.get('evidence_keys') != [
     missing_markers.append('manifest:bitmap.evidence_keys')
 if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot.':
     missing_markers.append('manifest:bitmap.summary')
+if find_bit_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
+    missing_markers.append('manifest:find_bit.fixture=zigux/tests/fixtures/phase1_helpers.json')
+if find_bit_review.get('evidence_keys') != [
+    'find_bit.first_and',
+    'find_bit.next_and',
+    'find_bit.tail_clamped_first',
+    'find_bit.tail_clamped_next',
+    'find_bit.tail_zero_clamped_first',
+    'find_bit.tail_zero_clamped_next',
+    'find_bit.tail_and_clamped_first',
+    'find_bit.tail_and_clamped_next',
+]:
+    missing_markers.append('manifest:find_bit.evidence_keys')
+if find_bit_review.get('summary') != 'Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond nbits.':
+    missing_markers.append('manifest:find_bit.summary')
 
 if missing_markers:
     print('PHASE1_CLOSURE_VALIDATION=fail')
