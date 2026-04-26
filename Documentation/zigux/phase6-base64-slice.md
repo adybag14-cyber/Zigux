@@ -50,8 +50,9 @@ The current tests check:
 - variant alphabet parity for URL-safe and IMAP output
 - output-length accounting through `chars`
 - destination-bounds failures before partial writes
-- shared encode fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
+- extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 
 ## Non-goals
 
@@ -63,4 +64,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper needs a small external C-vs-Zig fixture layer for decode vectors derived from `lib/tests/base64_kunit.c`, or whether the current encode-plus-decode parity gate is already strong enough to pause this Phase 6 leaf port and move to the next helper lane.
+Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-shared KUnit-derived fixture module, or whether the current encode-plus-decode parity gate is already sufficient for a bounded Phase 6 leaf port.
