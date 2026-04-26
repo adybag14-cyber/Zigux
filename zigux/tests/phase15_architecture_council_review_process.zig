@@ -46,7 +46,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("feb7b44c67afb49298f417705def5b0fabc3c963", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("3eac40e856ac7673f705447a1d6025f3d0193b5e", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);

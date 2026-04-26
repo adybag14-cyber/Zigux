@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against verified `master` head `feb7b44c67afb49298f417705def5b0fabc3c963`
+- survey provenance refreshed against verified `master` head `3eac40e856ac7673f705447a1d6025f3d0193b5e`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
