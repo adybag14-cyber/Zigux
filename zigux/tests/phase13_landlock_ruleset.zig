@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_live_lsm_state");
 }
 
-test "phase13 landlock ruleset manifest records the starter and remaining gap" {
+test "phase13 landlock ruleset manifest records the tree-search followup and remaining gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -55,7 +55,7 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
     try std.testing.expectEqualStrings("P13-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", manifest.anchor);
-    try std.testing.expectEqualStrings("bfd60deac35454b9f28ef8ad0b435d41f44f4108", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("a957197f5bc4f965fa792b64a090a5330f45b770", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ruleset_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -65,7 +65,7 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -75,8 +75,9 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
     var saw_test_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
-    var saw_followup = false;
-    var saw_tree_followup = false;
+    var saw_merge_followup = false;
+    var saw_search_followup = false;
+    var saw_tree_link_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -121,18 +122,25 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-ruleset-survey.md", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-layer-merge-followup")) {
-            saw_followup = true;
+            saw_merge_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "insert_rule()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "access extension") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-tree-search-followup")) {
-            saw_tree_followup = true;
+            saw_search_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_root()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "walker_node") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-tree-link-followup")) {
+            saw_tree_link_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "walker_node") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_root()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_link_node()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_insert_color()") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -140,7 +148,7 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -148,8 +156,9 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_followup);
-    try std.testing.expect(saw_tree_followup);
+    try std.testing.expect(saw_merge_followup);
+    try std.testing.expect(saw_search_followup);
+    try std.testing.expect(saw_tree_link_followup);
 }
 
 test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
@@ -162,6 +171,46 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(descriptor.provides_layer_mask_init);
     try std.testing.expect(descriptor.provides_rule_unmasking);
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
+}
+
+test "phase13 landlock ruleset tree-search planner inserts at root when tree is empty" {
+    const plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, false, 42, &.{}, 3);
+
+    try std.testing.expectEqual(ruleset.TreeRoot.inode, plan.root);
+    try std.testing.expectEqual(@as(usize, 0), plan.search_depth);
+    try std.testing.expect(!plan.matched_existing_rule);
+    try std.testing.expectEqual(@as(?u64, null), plan.parent_key_data);
+    try std.testing.expectEqual(ruleset.InsertionSite.root, plan.insertion_site.?);
+    try std.testing.expectEqual(@as(u32, 4), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset tree-search planner records walker descent for no match" {
+    const plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.net_port, true, 25, &.{ 10, 40, 30 }, 7);
+
+    try std.testing.expectEqual(ruleset.TreeRoot.net_port, plan.root);
+    try std.testing.expectEqual(@as(usize, 3), plan.search_depth);
+    try std.testing.expectEqual(@as(u64, 10), plan.search_steps[0].node_key_data);
+    try std.testing.expectEqual(ruleset.SearchDirection.right, plan.search_steps[0].direction);
+    try std.testing.expectEqual(@as(u64, 40), plan.search_steps[1].node_key_data);
+    try std.testing.expectEqual(ruleset.SearchDirection.left, plan.search_steps[1].direction);
+    try std.testing.expectEqual(@as(u64, 30), plan.search_steps[2].node_key_data);
+    try std.testing.expectEqual(ruleset.SearchDirection.left, plan.search_steps[2].direction);
+    try std.testing.expect(!plan.matched_existing_rule);
+    try std.testing.expectEqual(@as(?u64, 30), plan.parent_key_data);
+    try std.testing.expectEqual(ruleset.InsertionSite.left, plan.insertion_site.?);
+    try std.testing.expectEqual(@as(u32, 8), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset tree-search planner keeps count on match" {
+    const plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 40, &.{ 10, 40, 80 }, 9);
+
+    try std.testing.expect(plan.matched_existing_rule);
+    try std.testing.expectEqual(@as(usize, 2), plan.search_depth);
+    try std.testing.expectEqual(ruleset.SearchDirection.match, plan.search_steps[1].direction);
+    try std.testing.expectEqual(@as(?u64, 40), plan.parent_key_data);
+    try std.testing.expectEqual(@as(?ruleset.InsertionSite, null), plan.insertion_site);
+    try std.testing.expectEqual(@as(u32, 9), plan.resulting_num_rules);
 }
