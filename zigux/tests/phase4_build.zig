@@ -4,11 +4,26 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const atomic64_diff_module = b.createModule(.{
-        .root_source_file = b.path("atomic64_diff.zig"),
+    const atomic_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
         .optimize = optimize,
     });
+    const runtime_atomic64_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_atomic64.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_atomic64_sample_module.addImport("atomic", atomic_module);
+    // The live repo currently carries the bounded atomic64 replay gate under the
+    // runtime_* name, so Phase 4 wires that shipped file rather than inventing
+    // a second parallel broad gate.
+    const atomic64_diff_module = b.createModule(.{
+        .root_source_file = b.path("runtime_atomic64_diff.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    atomic64_diff_module.addImport("runtime_atomic64_sample", runtime_atomic64_sample_module);
     const bitmap_diff_module = b.createModule(.{
         .root_source_file = b.path("bitmap_diff.zig"),
         .target = target,
@@ -16,7 +31,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const atomic64_diff_tests = b.addTest(.{
-        .name = "phase4-atomic64-diff-tests",
+        .name = "phase4-runtime-atomic64-diff-tests",
         .root_module = atomic64_diff_module,
     });
     const run_atomic64_diff_tests = b.addRunArtifact(atomic64_diff_tests);
