@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L13",
   "phase": "Phase 13",
-  "surveyed_commit": "794c2a589bfb17a9e2b40eadcfc368472eb31b29",
+  "surveyed_commit": "02f3325b2e289b7d492e022db0dbe7b61f2e22c3",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -77,10 +77,17 @@
     },
     {
       "id": "phase13-landlock-path-fd-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one small in-memory planner around `get_path_from_fd()` rejecting ruleset FDs, internal mounts, and private or non-user-visible inodes while still modeling the owned path reference handoff before any path-backed rule import, credential updates, or live domain state."
+    },
+    {
+      "id": "phase13-landlock-path-beneath-handoff-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The next honest syscall step is one small in-memory planner around `get_path_from_fd()` rejecting ruleset FDs, internal mounts, and private or non-user-visible inodes before widening into path-backed rule import, credential updates, or live domain state."
+      "why_now": "The next honest syscall step is one tiny in-memory planner around `add_rule_path_beneath()` that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` responsibility before any live rule insertion or inode ownership changes are attempted."
     }
   ]
 }

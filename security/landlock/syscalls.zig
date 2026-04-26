@@ -8,6 +8,7 @@ pub const create_ruleset_errata_flag: u32 = 1 << 1;
 
 pub const restrict_self_log_same_exec_off: u32 = 1 << 0;
 pub const restrict_self_log_new_exec_on: u32 = 1 << 1;
+
 pub const restrict_self_log_subdomains_off: u32 = 1 << 2;
 pub const restrict_self_tsync: u32 = 1 << 3;
 
@@ -25,6 +26,7 @@ pub const ModuleDescriptor = struct {
     provides_restrict_self_flag_planning: bool,
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
+    provides_path_fd_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -115,25 +117,43 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
-pub const RulesetFdAccess = enum {
-    read,
-    write,
+pub const RulesetFdKind = enum {
+    ruleset,
+    other,
 };
 
 pub const RulesetFdRequest = struct {
     fd_present: bool = true,
-    file_is_ruleset: bool = true,
-    file_mode: u32 = fmode_can_read | fmode_can_write,
-    required_access: RulesetFdAccess,
-    num_layers: u32 = 1,
+    file_kind: RulesetFdKind = .ruleset,
+    file_mode: u32 = 0,
+    required_mode: u32,
+    layer_count: usize = 1,
 };
 
 pub const RulesetFdPlan = struct {
     anchor: []const u8,
-    required_access: RulesetFdAccess,
-    validates_ruleset_type: bool,
-    validates_single_layer_ruleset: bool,
-    requires_owned_ruleset_ref: bool,
+    required_mode: u32,
+    validates_fd_type: bool,
+    validates_mode: bool,
+    acquires_ruleset_reference: bool,
+    expected_layer_count: usize,
+};
+
+pub const PathFdRequest = struct {
+    fd_present: bool = true,
+    is_ruleset_fd: bool = false,
+    mount_is_internal: bool = false,
+    superblock_is_nouser: bool = false,
+    inode_is_private: bool = false,
+};
+
+pub const PathFdPlan = struct {
+    anchor: []const u8,
+    rejects_ruleset_fd: bool,
+    rejects_internal_mount: bool,
+    rejects_nouser_superblock: bool,
+    rejects_private_inode: bool,
+    acquires_path_reference: bool,
 };
 
 pub const SyscallsHelperLab = struct {
@@ -146,6 +166,7 @@ pub const SyscallsHelperLab = struct {
             .provides_restrict_self_flag_planning = true,
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
+            .provides_path_fd_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -305,30 +326,58 @@ pub const SyscallsHelperLab = struct {
     }
 
     pub fn planGetRulesetFromFd(request: RulesetFdRequest) !RulesetFdPlan {
-        const required_mode = switch (request.required_access) {
-            .read => fmode_can_read,
-            .write => fmode_can_write,
-        };
+        switch (request.required_mode) {
+            fmode_can_read, fmode_can_write => {},
+            else => return error.InvalidRequestedMode,
+        }
 
         if (!request.fd_present) {
-            return error.MissingFd;
+            return error.BadFileDescriptor;
         }
-        if (!request.file_is_ruleset) {
-            return error.InvalidRulesetFd;
+        if (request.file_kind != .ruleset) {
+            return error.InvalidRulesetFdType;
         }
-        if ((request.file_mode & required_mode) == 0) {
-            return error.InsufficientAccessMode;
+        if ((request.file_mode & request.required_mode) == 0) {
+            return error.InsufficientMode;
         }
-        if (request.num_layers != 1) {
-            return error.InvalidRulesetLayers;
+        if (request.layer_count != 1) {
+            return error.InvalidLayerCount;
         }
 
         return .{
             .anchor = descriptor().anchor,
-            .required_access = request.required_access,
-            .validates_ruleset_type = true,
-            .validates_single_layer_ruleset = true,
-            .requires_owned_ruleset_ref = true,
+            .required_mode = request.required_mode,
+            .validates_fd_type = true,
+            .validates_mode = true,
+            .acquires_ruleset_reference = true,
+            .expected_layer_count = 1,
+        };
+    }
+
+    pub fn planGetPathFromFd(request: PathFdRequest) !PathFdPlan {
+        if (!request.fd_present) {
+            return error.BadFileDescriptor;
+        }
+        if (request.is_ruleset_fd) {
+            return error.InvalidPathFdType;
+        }
+        if (request.mount_is_internal) {
+            return error.InternalMount;
+        }
+        if (request.superblock_is_nouser) {
+            return error.NonUserVisiblePath;
+        }
+        if (request.inode_is_private) {
+            return error.PrivateInode;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .rejects_ruleset_fd = true,
+            .rejects_internal_mount = true,
+            .rejects_nouser_superblock = true,
+            .rejects_private_inode = true,
+            .acquires_path_reference = true,
         };
     }
 };

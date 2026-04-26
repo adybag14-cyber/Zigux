@@ -55,7 +55,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("794c2a589bfb17a9e2b40eadcfc368472eb31b29", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("02f3325b2e289b7d492e022db0dbe7b61f2e22c3", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -65,7 +65,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -78,6 +78,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_add_rule = false;
     var saw_fd_followup = false;
     var saw_path_followup = false;
+    var saw_path_beneath_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -138,10 +139,17 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-path-fd-followup")) {
             saw_path_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_path_from_fd()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ruleset FDs") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "private or non-user-visible inodes") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-path-beneath-handoff-followup")) {
+            saw_path_beneath_handoff = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "add_rule_path_beneath()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "put_path()") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -149,7 +157,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -160,6 +168,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_add_rule);
     try std.testing.expect(saw_fd_followup);
     try std.testing.expect(saw_path_followup);
+    try std.testing.expect(saw_path_beneath_handoff);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -172,6 +181,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
+    try std.testing.expect(descriptor.provides_path_fd_planning);
     try std.testing.expect(!descriptor.touches_live_fd_table);
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
@@ -392,5 +402,33 @@ test "phase13 landlock syscalls get_ruleset_from_fd planning rejects bad fd, typ
         .file_mode = syscalls.fmode_can_read,
         .required_mode = syscalls.fmode_can_read,
         .layer_count = 2,
+    }));
+}
+
+test "phase13 landlock syscalls get_path_from_fd planning models bounded path acquisition" {
+    const plan = try syscalls.SyscallsHelperLab.planGetPathFromFd(.{});
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expect(plan.rejects_ruleset_fd);
+    try std.testing.expect(plan.rejects_internal_mount);
+    try std.testing.expect(plan.rejects_nouser_superblock);
+    try std.testing.expect(plan.rejects_private_inode);
+    try std.testing.expect(plan.acquires_path_reference);
+}
+
+test "phase13 landlock syscalls get_path_from_fd planning rejects invalid path sources" {
+    try std.testing.expectError(error.BadFileDescriptor, syscalls.SyscallsHelperLab.planGetPathFromFd(.{
+        .fd_present = false,
+    }));
+    try std.testing.expectError(error.InvalidPathFdType, syscalls.SyscallsHelperLab.planGetPathFromFd(.{
+        .is_ruleset_fd = true,
+    }));
+    try std.testing.expectError(error.InternalMount, syscalls.SyscallsHelperLab.planGetPathFromFd(.{
+        .mount_is_internal = true,
+    }));
+    try std.testing.expectError(error.NonUserVisiblePath, syscalls.SyscallsHelperLab.planGetPathFromFd(.{
+        .superblock_is_nouser = true,
+    }));
+    try std.testing.expectError(error.PrivateInode, syscalls.SyscallsHelperLab.planGetPathFromFd(.{
+        .inode_is_private = true,
     }));
 }
