@@ -1,6 +1,6 @@
 # Phase 6 Base64 Slice
 
-This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
+This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
@@ -38,6 +38,7 @@ The current base64 helper surface exercised by this slice covers:
 
 - `chars`
 - `encode`
+- `decode`
 - `Variant.std`
 - `Variant.urlsafe`
 - `Variant.imap`
@@ -45,20 +46,21 @@ The current base64 helper surface exercised by this slice covers:
 The current tests check:
 
 - standard RFC 4648 encode vectors with and without padding
+- standard RFC 4648 decode vectors with and without padding
 - variant alphabet parity for URL-safe and IMAP output
 - output-length accounting through `chars`
 - destination-bounds failures before partial writes
 - shared encode fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- invalid-input rejection for malformed and variant-mismatched decode inputs
 
 ## Non-goals
 
 This slice does not yet claim:
 
-- decode parity
 - KUnit integration
 - performance benchmarking
 - a C-emitted parity harness beyond the current Zig fixture module
 
 ## Next bounded step
 
-Add `decode` with focused valid-and-invalid parity vectors lifted from `lib/tests/base64_kunit.c`, then decide whether the helper needs a small external C-vs-Zig fixture layer or is ready to be left as a bounded Phase 6 leaf port.
+Decide whether the helper needs a small external C-vs-Zig fixture layer for decode vectors derived from `lib/tests/base64_kunit.c`, or whether the current encode-plus-decode parity gate is already sufficient for a bounded Phase 6 leaf port.
