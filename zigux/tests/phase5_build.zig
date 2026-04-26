@@ -21,6 +21,23 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const kobject_example_sample_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/kobject_example.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const phase5_kobject_example_module = b.createModule(.{
+        .root_source_file = b.path("phase5_kobject_example.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase5_kobject_example_module.addImport("kobject_example_sample", kobject_example_sample_module);
+    const phase5_kobject_example_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase5_kobject_example_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase5_bytestream_fifo_tests = b.addTest(.{
         .name = "phase5-bytestream-fifo-tests",
         .root_module = phase5_bytestream_fifo_module,
@@ -32,7 +49,20 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase5_bytestream_fifo_survey_tests = b.addRunArtifact(phase5_bytestream_fifo_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 5 bytestream fifo sample checks");
+    const phase5_kobject_example_tests = b.addTest(.{
+        .name = "phase5-kobject-example-tests",
+        .root_module = phase5_kobject_example_module,
+    });
+    const run_phase5_kobject_example_tests = b.addRunArtifact(phase5_kobject_example_tests);
+    const phase5_kobject_example_survey_tests = b.addTest(.{
+        .name = "phase5-kobject-example-survey-tests",
+        .root_module = phase5_kobject_example_survey_module,
+    });
+    const run_phase5_kobject_example_survey_tests = b.addRunArtifact(phase5_kobject_example_survey_tests);
+
+    const test_step = b.step("test", "Run Phase 5 reference sample checks");
     test_step.dependOn(&run_phase5_bytestream_fifo_tests.step);
     test_step.dependOn(&run_phase5_bytestream_fifo_survey_tests.step);
+    test_step.dependOn(&run_phase5_kobject_example_tests.step);
+    test_step.dependOn(&run_phase5_kobject_example_survey_tests.step);
 }
