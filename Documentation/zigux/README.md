@@ -39,6 +39,7 @@ Phase 4 notes
 Phase 6 notes
 - `Documentation/zigux/phase6-base64-slice.md`
 - `Documentation/zigux/phase6-checksum-slice.md`
+- `Documentation/zigux/phase6-hexdump-slice.md`
 
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
