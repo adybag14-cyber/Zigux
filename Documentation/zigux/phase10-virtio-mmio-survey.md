@@ -17,14 +17,14 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, and a `drivers/virtio/virtio_ring.zig` lab helper that now reaches used-buffer polling. This survey makes the remaining MMIO transport gap explicit without pretending `drivers/virtio/virtio_mmio.zig` exists yet.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, and a `drivers/virtio/virtio_ring.zig` lab helper that now reaches used-buffer polling plus callback re-enable. This survey makes the remaining MMIO transport gap explicit without pretending `drivers/virtio/virtio_mmio.zig` exists yet.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_mmio.c` is present on `master` at 829 lines and mixes feature negotiation, config-space reads and writes, status handling, generation checks, interrupt acknowledgement, queue selection, queue sizing, ready-state toggles, virtqueue discovery, reset paths, and probe or remove lifecycle work.
 - the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, and `Documentation/zigux/phase10-virtio-ring-slice.md`.
 - the live repo still does not ship `drivers/virtio/virtio_mmio.zig`.
-- this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule now points to one more tiny ring-local callback-enable helper next, not transport register helpers, IRQ glue, or queue setup code.
+- this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule now points to one more tiny ring-local delayed-callback helper next, not transport register helpers, IRQ glue, or queue setup code.
 
 ## Recorded gaps
 
@@ -37,7 +37,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-ring-slice-note`
 - the landed `phase10-virtio-mmio-survey-gate`
 - the landed `phase10-virtio-mmio-survey-note`
-- the ready-next `phase10-virtio-ring-callback-enable-helper`
+- the ready-next `phase10-callback-delay-helper`
 - the still-blocked `phase10-mmio-register-window-helper`
 
 This keeps the lane concrete and reviewable without overstating MMIO progress: the queue-facing footholds are real, but the risky transport-facing work is still intentionally blocked.
@@ -62,4 +62,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the broader Phase 10 virtqueue lane and add one small ring-local callback-enable helper next before starting any `virtio_mmio` register-window wrapper work.
+Stay in the broader Phase 10 virtqueue lane and add one small ring-local delayed-callback helper next before starting any `virtio_mmio` register-window wrapper work.
