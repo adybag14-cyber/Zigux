@@ -27,7 +27,8 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next");
+        std.mem.eql(u8, status, "ready_next") or
+        std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
 test "phase 15 freeze-map governance manifest records the bounded governance slice" {
@@ -46,14 +47,14 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("d418cc803bd7012f0892286f12cacb9b97d1a43e", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("946d5c73fdb763ba860a20879b05da54e1896e8c", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
-    try std.testing.expectEqual(@as(usize, 4), manifest.governance_requirements.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.governance_requirements.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.freeze_in_c_targets[1]);
@@ -64,11 +65,13 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
     var saw_freeze_doc = false;
     var saw_note = false;
     var saw_build = false;
     var saw_make = false;
-    var saw_scorecard_followup = false;
+    var saw_closeout_sync = false;
+    var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -80,6 +83,8 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_stay_in_c_evidence")) {
+            blocked_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-doc")) {
@@ -90,7 +95,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-note")) {
             saw_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 15") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity-scorecard") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-build-gate")) {
             saw_build = true;
@@ -100,11 +105,16 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             saw_make = true;
             try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "phase15-parity-scorecard-followup")) {
-            saw_scorecard_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/parity-scorecard.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity scorecard") != null);
+        if (std.mem.eql(u8, gap.id, "phase15-stay-in-c-closeout-sync")) {
+            saw_closeout_sync = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no-silent-exception wording") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
+            saw_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -112,13 +122,15 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 4), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 5), landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_doc);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_make);
-    try std.testing.expect(saw_scorecard_followup);
+    try std.testing.expect(saw_closeout_sync);
+    try std.testing.expect(saw_blocker);
 }
 
 test "phase 15 freeze-map governance doc records the required gating language" {
@@ -139,6 +151,9 @@ test "phase 15 freeze-map governance doc records the required gating language" {
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "parity scorecard") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Stay-In-C Policy") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "keep the code in C and record the blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "retired_from_active_discussion") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "reopen triggers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
 }
 
 test "phase 15 governance manifest required terms stay aligned with the freeze map" {
