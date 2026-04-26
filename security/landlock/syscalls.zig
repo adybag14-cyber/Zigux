@@ -14,6 +14,9 @@ pub const restrict_self_tsync: u32 = 1 << 3;
 pub const rule_type_path_beneath: u32 = 1;
 pub const rule_type_net_port: u32 = 2;
 
+pub const fmode_can_read: u32 = 1 << 0;
+pub const fmode_can_write: u32 = 1 << 1;
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -21,6 +24,7 @@ pub const ModuleDescriptor = struct {
     provides_create_ruleset_query_planning: bool,
     provides_restrict_self_flag_planning: bool,
     provides_add_rule_planning: bool,
+    provides_ruleset_fd_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -111,6 +115,28 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
+pub const RulesetFdKind = enum {
+    ruleset,
+    other,
+};
+
+pub const RulesetFdRequest = struct {
+    fd_present: bool = true,
+    file_kind: RulesetFdKind = .ruleset,
+    file_mode: u32 = 0,
+    required_mode: u32,
+    layer_count: usize = 1,
+};
+
+pub const RulesetFdPlan = struct {
+    anchor: []const u8,
+    required_mode: u32,
+    validates_fd_type: bool,
+    validates_mode: bool,
+    acquires_ruleset_reference: bool,
+    expected_layer_count: usize,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -120,6 +146,7 @@ pub const SyscallsHelperLab = struct {
             .provides_create_ruleset_query_planning = true,
             .provides_restrict_self_flag_planning = true,
             .provides_add_rule_planning = true,
+            .provides_ruleset_fd_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -276,5 +303,34 @@ pub const SyscallsHelperLab = struct {
             },
             else => return error.InvalidRuleType,
         }
+    }
+
+    pub fn planGetRulesetFromFd(request: RulesetFdRequest) !RulesetFdPlan {
+        switch (request.required_mode) {
+            fmode_can_read, fmode_can_write => {},
+            else => return error.InvalidRequestedMode,
+        }
+
+        if (!request.fd_present) {
+            return error.BadFileDescriptor;
+        }
+        if (request.file_kind != .ruleset) {
+            return error.InvalidRulesetFdType;
+        }
+        if ((request.file_mode & request.required_mode) == 0) {
+            return error.InsufficientMode;
+        }
+        if (request.layer_count != 1) {
+            return error.InvalidLayerCount;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .required_mode = request.required_mode,
+            .validates_fd_type = true,
+            .validates_mode = true,
+            .acquires_ruleset_reference = true,
+            .expected_layer_count = 1,
+        };
     }
 };
