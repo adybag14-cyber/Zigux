@@ -457,6 +457,8 @@ test "rbtree inserts and traverses in sorted order" {
     };
     var root = Root.init();
 
+    try std.testing.expect(emptyRoot(&root));
+
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
@@ -472,6 +474,18 @@ test "rbtree inserts and traverses in sorted order" {
 
     try std.testing.expectEqual(@as(usize, 5), count);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20, 25 }, order[0..count]);
+
+    var reverse_order: [5]i32 = undefined;
+    var reverse_count: usize = 0;
+    current = last(&root);
+    while (current) |node| : (current = prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        reverse_order[reverse_count] = entry.key;
+        reverse_count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 5), reverse_count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 25, 20, 15, 10, 5 }, reverse_order[0..reverse_count]);
 }
 
 test "rbtree erase and replace keep traversal consistent" {
