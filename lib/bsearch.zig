@@ -87,6 +87,18 @@ test "search returns a pointer to the matching element" {
     try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
 }
 
+test "search accepts duplicate keys without claiming stable selection" {
+    const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const index = searchIndex(i32, i32, &@as(i32, 4), values[0..], compareInt) orelse return error.TestUnexpectedResult;
+    const found = search(i32, i32, &@as(i32, 4), values[0..], compareInt) orelse return error.TestUnexpectedResult;
+    const found_index = (@intFromPtr(found) - @intFromPtr(&values[0])) / @sizeOf(i32);
+
+    try std.testing.expect(index >= 1 and index <= 3);
+    try std.testing.expectEqual(@as(i32, 4), values[index]);
+    try std.testing.expect(found_index >= 1 and found_index <= 3);
+    try std.testing.expectEqual(@as(i32, 4), found.*);
+}
+
 test "search supports heterogeneous keys through the comparator" {
     const entries = [_]Entry{
         .{ .name = "alpha", .value = 1 },
