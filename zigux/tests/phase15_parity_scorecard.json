@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L09",
   "phase": "Phase 15",
-  "surveyed_commit": "feb7b44c67afb49298f417705def5b0fabc3c963",
+  "surveyed_commit": "39cdd038909f9834a8702070a697a0bf2111cb66",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
