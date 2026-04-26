@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
 - scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
 - product boundary:
