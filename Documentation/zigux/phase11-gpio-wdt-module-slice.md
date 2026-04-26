@@ -1,0 +1,14 @@
+# Phase 11 GPIO Watchdog Module Slice
+
+This bounded Phase 11 module slice records the current Zigux `gpio_wdt` lab starter anchored to `drivers/watchdog/gpio_wdt.c`.
+
+The module-facing surface stays intentionally narrow:
+
+- exposes a `gpio_wdt_lab` descriptor that keeps the lane scoped to a simple driver starter rather than live platform registration
+- snapshots the bounded `hw_algo`, heartbeat-margin, `always-running`, `nowayout`, timeout-init, parent-linkage, and stop-on-reboot bookkeeping surfaced during probe
+- models the in-memory start, ping, stop, disable, and nowayout-aware stop-request paths without claiming GPIO descriptor ownership or watchdog-core registration
+- stays under the shared `zigux/tests/phase11_build.zig` review gate so the starter and survey lane remain aligned
+
+This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, or hardware validation coverage yet.
+
+The next honest bounded step inside the same Phase 11 lane is still the tiny registration-facing handoff follow-up so the starter records whether an always-running watchdog reaches `devm_watchdog_register_device()` already active before any live GPIO or broader platform glue lands.
