@@ -13,6 +13,13 @@ pub const CompositionCase = struct {
     expected_fold: u16,
 };
 
+pub const SeededCase = struct {
+    name: []const u8,
+    bytes: []const u8,
+    seed: u32,
+    expected_partial: u32,
+};
+
 pub const PseudoHeaderCase = struct {
     name: []const u8,
     payload: []const u8,
@@ -79,6 +86,27 @@ pub const composition_cases = [_]CompositionCase{
         .split = 21,
         .expected_partial = 0x0e7b,
         .expected_fold = 0xf184,
+    },
+};
+
+pub const seeded_cases = [_]SeededCase{
+    .{
+        .name = "odd payload with saturated seed",
+        .bytes = "abcde",
+        .seed = 0xffff,
+        .expected_partial = 0x29c7,
+    },
+    .{
+        .name = "carry-heavy payload with unfolded seed",
+        .bytes = &carry_payload,
+        .seed = 0x1fffe,
+        .expected_partial = 0x7f00,
+    },
+    .{
+        .name = "ipv4 fragment with arbitrary seed",
+        .bytes = ipv4_header[0..7],
+        .seed = 0xabcd,
+        .expected_partial = 0x4d50,
     },
 };
 
