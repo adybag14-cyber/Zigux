@@ -19,6 +19,32 @@
       "name": "quiet_overrides_warning",
       "argv": ["-w", "-q"],
       "expected": "quiet_overrides_warning_expected.json"
+    },
+    {
+      "name": "help",
+      "argv": ["--help"],
+      "mode": "process_json",
+      "expected": "help_expected.json"
+    },
+    {
+      "name": "version",
+      "argv": ["--version"],
+      "mode": "process_json",
+      "expected": "version_expected.json"
+    },
+    {
+      "name": "invalid_option",
+      "argv": ["-x"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "invalid_option_expected.json"
+    },
+    {
+      "name": "missing_reference_argument",
+      "argv": ["-r"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "missing_reference_argument_expected.json"
     }
   ]
 }
