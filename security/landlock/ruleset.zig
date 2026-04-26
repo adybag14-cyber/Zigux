@@ -105,17 +105,18 @@ pub const RuleTreeSearchPlan = struct {
 };
 
 pub const TreeLinkMode = enum {
-    install_root_node,
-    link_left_child,
-    link_right_child,
+    initialize_root,
+    attach_left,
+    attach_right,
 };
 
 pub const RuleTreeLinkPlan = struct {
     anchor: []const u8,
+    root: TreeRoot,
     mode: TreeLinkMode,
     parent_key_data: ?u64,
-    should_link_node: bool,
-    should_insert_color: bool,
+    performs_rb_link_node: bool,
+    performs_rb_insert_color: bool,
     resulting_num_rules: u32,
 };
 
@@ -364,22 +365,34 @@ pub const RulesetHelperLab = struct {
         if (search_plan.matched_existing_rule) {
             return error.RuleAlreadyExists;
         }
+        if (search_plan.insertion_site == null) {
+            return error.MissingInsertionSite;
+        }
+        if (search_plan.resulting_num_rules == 0) {
+            return error.InvalidResultingCount;
+        }
 
-        const insertion_site = search_plan.insertion_site orelse return error.MissingInsertionSite;
+        const insertion_site = search_plan.insertion_site.?;
+        const mode: TreeLinkMode = switch (insertion_site) {
+            .root => .initialize_root,
+            .left => .attach_left,
+            .right => .attach_right,
+        };
+
+        if (insertion_site == .root and search_plan.parent_key_data != null) {
+            return error.UnexpectedParentNode;
+        }
         if (insertion_site != .root and search_plan.parent_key_data == null) {
             return error.MissingParentNode;
         }
 
         return .{
             .anchor = descriptor().anchor,
-            .mode = switch (insertion_site) {
-                .root => .install_root_node,
-                .left => .link_left_child,
-                .right => .link_right_child,
-            },
+            .root = search_plan.root,
+            .mode = mode,
             .parent_key_data = search_plan.parent_key_data,
-            .should_link_node = true,
-            .should_insert_color = true,
+            .performs_rb_link_node = true,
+            .performs_rb_insert_color = true,
             .resulting_num_rules = search_plan.resulting_num_rules,
         };
     }
