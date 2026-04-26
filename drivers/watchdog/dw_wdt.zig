@@ -11,11 +11,22 @@ pub const counter_restart_kick_value: u32 = 0x76;
 pub const interrupt_status_reg_offset: u32 = 0x10;
 pub const interrupt_clear_reg_offset: u32 = 0x14;
 pub const default_timeout_sec: u32 = 30;
+pub const default_restart_priority: i32 = 128;
 pub const num_tops: usize = 16;
 
 pub const ResponseMode = enum(u2) {
     reset = 1,
     irq = 2,
+};
+
+pub const TopSource = enum {
+    fixed,
+    custom,
+};
+
+pub const ProbeTimeoutOrigin = enum {
+    default_selection,
+    imported_running_state,
 };
 
 pub const ModuleDescriptor = struct {
@@ -52,6 +63,29 @@ pub const ConfigSnapshot = struct {
     can_stop: bool,
 };
 
+pub const ProbeOptions = struct {
+    nowayout: bool = true,
+    restart_priority: i32 = default_restart_priority,
+    requested_timeout_sec: ?u32 = null,
+    stop_on_reboot: bool = true,
+};
+
+pub const ProbeSummary = struct {
+    anchor: []const u8,
+    top_source: TopSource,
+    timeout_origin: ProbeTimeoutOrigin,
+    rate_hz: u32,
+    response_mode: ResponseMode,
+    timeout_sec: u32,
+    pretimeout_sec: u32,
+    nowayout: bool,
+    restart_priority: i32,
+    stop_on_reboot: bool,
+    can_stop: bool,
+    already_running: bool,
+    hardware_running: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -70,6 +104,7 @@ pub const DwWdtLab = struct {
 
     rate_hz: u32,
     has_reset_control: bool,
+    top_source: TopSource = .fixed,
     response_mode: ResponseMode = .reset,
     requested_timeout_sec: u32 = default_timeout_sec,
     actual_timeout_sec: u32 = default_timeout_sec,
@@ -95,7 +130,25 @@ pub const DwWdtLab = struct {
         var self = Self{
             .rate_hz = rate_hz,
             .has_reset_control = has_reset_control,
-            .timeouts = try calculateFixedTimeouts(rate_hz),
+            .top_source = .fixed,
+            .timeouts = calculateFixedTimeouts(rate_hz),
+        };
+        if (self.timeouts[num_tops - 1].sec == 0 and self.timeouts[num_tops - 1].msec == 0) {
+            return error.NoValidTop;
+        }
+
+        _ = try self.setTimeout(default_timeout_sec);
+        return self;
+    }
+
+    pub fn initCustomTops(rate_hz: u32, has_reset_control: bool, tops: [num_tops]u32) !Self {
+        if (rate_hz == 0) return error.InvalidClockRate;
+
+        var self = Self{
+            .rate_hz = rate_hz,
+            .has_reset_control = has_reset_control,
+            .top_source = .custom,
+            .timeouts = calculateCustomTimeouts(rate_hz, tops),
         };
         if (self.timeouts[num_tops - 1].sec == 0 and self.timeouts[num_tops - 1].msec == 0) {
             return error.NoValidTop;
@@ -115,6 +168,33 @@ pub const DwWdtLab = struct {
             .min_timeout_sec = self.getMinTimeout(),
             .max_hw_heartbeat_ms = self.getMaxTimeoutMs(),
             .can_stop = self.has_reset_control,
+        };
+    }
+
+    pub fn probeSummary(self: *Self, options: ProbeOptions) !ProbeSummary {
+        const already_running = self.isEnabled();
+        const timeout_origin: ProbeTimeoutOrigin = if (already_running) blk: {
+            self.syncStateFromRegisters();
+            break :blk .imported_running_state;
+        } else blk: {
+            _ = try self.setTimeout(options.requested_timeout_sec orelse self.requested_timeout_sec);
+            break :blk .default_selection;
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .top_source = self.top_source,
+            .timeout_origin = timeout_origin,
+            .rate_hz = self.rate_hz,
+            .response_mode = self.response_mode,
+            .timeout_sec = self.actual_timeout_sec,
+            .pretimeout_sec = self.pretimeout_sec,
+            .nowayout = options.nowayout,
+            .restart_priority = options.restart_priority,
+            .stop_on_reboot = options.stop_on_reboot,
+            .can_stop = self.has_reset_control,
+            .already_running = already_running,
+            .hardware_running = self.hardware_running,
         };
     }
 
@@ -271,18 +351,44 @@ pub const DwWdtLab = struct {
     }
 };
 
-fn calculateFixedTimeouts(rate_hz: u32) ![num_tops]TimeoutWindow {
+fn calculateFixedTimeouts(rate_hz: u32) [num_tops]TimeoutWindow {
     var timeouts: [num_tops]TimeoutWindow = undefined;
     for (0..num_tops) |index| {
-        const cycles = fixedTopCycles(index);
-        const total_msec = (cycles * std.time.ms_per_s) / rate_hz;
-        timeouts[index] = .{
-            .top_val = @intCast(index),
-            .sec = @intCast(total_msec / std.time.ms_per_s),
-            .msec = @intCast(total_msec % std.time.ms_per_s),
-        };
+        timeouts[index] = timeoutWindowFromCycles(index, fixedTopCycles(index), rate_hz);
     }
     return timeouts;
+}
+
+fn calculateCustomTimeouts(rate_hz: u32, tops: [num_tops]u32) [num_tops]TimeoutWindow {
+    var timeouts: [num_tops]TimeoutWindow = undefined;
+    var inserted: usize = 0;
+
+    for (tops, 0..) |cycles, index| {
+        const next = timeoutWindowFromCycles(index, cycles, rate_hz);
+        var insert_at = inserted;
+        while (insert_at > 0) : (insert_at -= 1) {
+            const previous = timeouts[insert_at - 1];
+            if (previous.sec < next.sec or
+                (previous.sec == next.sec and previous.msec <= next.msec))
+            {
+                break;
+            }
+            timeouts[insert_at] = previous;
+        }
+        timeouts[insert_at] = next;
+        inserted += 1;
+    }
+
+    return timeouts;
+}
+
+fn timeoutWindowFromCycles(index: usize, cycles: u64, rate_hz: u32) TimeoutWindow {
+    const total_msec = (cycles * std.time.ms_per_s) / rate_hz;
+    return .{
+        .top_val = @intCast(index),
+        .sec = @intCast(total_msec / std.time.ms_per_s),
+        .msec = @intCast(total_msec % std.time.ms_per_s),
+    };
 }
 
 fn fixedTopCycles(index: usize) u64 {
