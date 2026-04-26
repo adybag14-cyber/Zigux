@@ -32,6 +32,15 @@ The bounded Phase 1 helper set is:
 
 No additional helper should be called Phase 1 work unless this document and the bootstrap validators are deliberately reopened.
 
+## Helper Review Notes
+
+- `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for both contiguous-range rendering and the truncation path that must preserve a trailing terminator slot.
+- bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
+- bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
+
+- `PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
+- `PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot`
+
 ## Closure Gates
 
 Phase 1 is only considered closed when all of the following are green:
