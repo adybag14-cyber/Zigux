@@ -37,6 +37,7 @@ Phase 4 notes
 - `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, and lab or CI replay matrix.
 
 Phase 6 notes
+- `Documentation/zigux/phase6-base64-slice.md`
 - `Documentation/zigux/phase6-checksum-slice.md`
 
 Phase 3 notes
