@@ -30,6 +30,14 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expect(module.saw_vararg_payload);
     try std.testing.expect(module.saw_rel_loc_payload);
     try std.testing.expect(module.saw_conditional_path);
+    const main_payload = module.last_main_payload orelse return error.ExpectedMainPayload;
+    try std.testing.expectEqualStrings("hello", main_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("HELLO", main_payload.template_message);
+    try std.testing.expectEqualStrings("Some times print", main_payload.conditional_message);
+    try std.testing.expectEqualStrings("prints other times", main_payload.template_cond_message);
+    try std.testing.expectEqualStrings("I have to be different", main_payload.template_print_message);
+    try std.testing.expectEqualStrings("Hello __rel_loc", main_payload.relative_location_message);
+    try std.testing.expectEqualStrings("iter=%d", main_payload.format_template);
 
     try module.registerFunctionThread();
     const fn_events = try module.emitFunctionIteration(9);
@@ -37,6 +45,9 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqual(@as(usize, 1), module.fn_iterations);
     try std.testing.expectEqual(@as(i32, 9), module.last_fn_count);
     try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
+    const fn_payload = module.last_function_payload orelse return error.ExpectedFunctionPayload;
+    try std.testing.expectEqualStrings("Look at me", fn_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("Look at me too", fn_payload.template_message);
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
 
