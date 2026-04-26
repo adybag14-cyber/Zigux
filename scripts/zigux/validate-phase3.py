@@ -18,10 +18,26 @@ from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, 
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
+ABI_REQUIRED_MANIFEST_FILES = (
+    "include/zigux/abi.h",
+    "include/linux/zigux.h",
+    "zigux/kernel/export_shim.zig",
+    "zigux/uapi/version.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/mmio.zig",
+    "zigux/unsafe/narrow.zig",
+)
 
 
 def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
     return rel.startswith("scripts/zigux/check-phase3-") and rel.endswith(".py")
+
+
+def _required_manifest_files_for_slug(slug: str) -> tuple[str, ...]:
+    if slug == "abi":
+        return ABI_REQUIRED_MANIFEST_FILES
+    return ()
 
 
 def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
@@ -61,6 +77,9 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
     file_count = data.get("file_count")
     if file_count != len(files):
         issues.append(f"{slug}:manifest_file_count={file_count}")
+    for rel in _required_manifest_files_for_slug(slug):
+        if rel not in files:
+            issues.append(f"{slug}:manifest_missing_required_file={rel}")
     for rel in files:
         if _is_legacy_wrapper_manifest_file(rel):
             issues.append(f"{slug}:manifest_legacy_wrapper_file={rel}")
@@ -210,6 +229,11 @@ def run_self_test() -> int:
         for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, fixture_dir):
             path.mkdir(parents=True, exist_ok=True)
 
+        for rel in ABI_REQUIRED_MANIFEST_FILES:
+            target = root / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("// abi boundary\n", encoding="utf-8", newline="\n")
+
         (paths.tests_dir / "build.zig").write_text(
             "\n".join(
                 [
@@ -235,6 +259,42 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        abi_manifest_path = root / "tmp" / "abi_manifest.json"
+        abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        abi_manifest_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "abi-slice",
+                    "files": [ABI_REQUIRED_MANIFEST_FILES[0]],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues: list[str] = []
+        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
+        for rel in ABI_REQUIRED_MANIFEST_FILES[1:]:
+            assert f"abi:manifest_missing_required_file={rel}" in abi_issues
+
+        abi_manifest_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "abi-slice",
+                    "files": list(ABI_REQUIRED_MANIFEST_FILES),
+                    "file_count": len(ABI_REQUIRED_MANIFEST_FILES),
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues = []
+        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
+        assert abi_issues == []
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
                 [
@@ -250,6 +310,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").writeText = None
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
