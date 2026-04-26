@@ -36,6 +36,14 @@ pub fn fill(dst: []Word, nbits: usize) void {
     dst[nwords - 1] = lastWordMask(nbits);
 }
 
+pub fn copy(dst: []Word, src: []const Word, nbits: usize) void {
+    const nwords = bitsToWords(nbits);
+    std.debug.assert(dst.len >= nwords);
+    std.debug.assert(src.len >= nwords);
+
+    @memcpy(dst[0..nwords], src[0..nwords]);
+}
+
 pub fn empty(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
     return find_bit.findFirstBit(src, nbits) == nbits;
@@ -314,6 +322,21 @@ test "bitmap set clear weight and empty full helpers" {
 
     fill(&map, bits_per_long * 2);
     try std.testing.expect(full(&map, bits_per_long * 2));
+}
+
+test "bitmap copy preserves source words and clears copied tail through source state" {
+    var src = [_]Word{ 0, 0, 0 };
+    var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+
+    setRange(&src, 0, bits_per_long + 45);
+    copy(&dst, &src, bits_per_long + 45);
+    try std.testing.expectEqualSlices(Word, src[0..2], dst[0..2]);
+    try std.testing.expectEqual(~@as(Word, 0), dst[2]);
+
+    fill(&dst, bits_per_long * 3);
+    copy(&dst, &src, bits_per_long + 33);
+    try std.testing.expectEqualSlices(Word, src[0..2], dst[0..2]);
+    try std.testing.expectEqual(~@as(Word, 0), dst[2]);
 }
 
 test "bitmap and andnot equal intersects subset" {
