@@ -33,6 +33,14 @@
       "expected": "allmodconfig_expected.json"
     },
     {
+      "name": "yes2modconfig",
+      "mode": "yes2modconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "yes2modconfig_expected.json"
+    },
+    {
       "name": "defconfig",
       "mode": "defconfig",
       "kconfig": "Kconfig",
