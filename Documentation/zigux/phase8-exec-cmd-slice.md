@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, and null-terminated command-vector preparation only
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -40,6 +40,7 @@ The current starter slice covers:
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
 - a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
+- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
 
 The current tests check:
 
@@ -49,6 +50,7 @@ The current tests check:
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
+- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
 
 ## Non-goals
 
@@ -61,4 +63,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/subcmd/exec-cmd.zig` only if repo review still needs one more bounded parity step such as a pure `execl_cmd()`-style argv collector with the C helper's argument-count guard; otherwise keep the lane parked and continue Phase 8 work in sibling files.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review specifically wants one more bounded parity step for direct `get_pwd_cwd()` stat-based same-location proof or another tiny helper-only guard inside this file family; otherwise continue Phase 8 work in sibling files.
