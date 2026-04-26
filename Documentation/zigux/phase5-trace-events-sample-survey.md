@@ -40,7 +40,7 @@ The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
 - it models only the bounded array payload, selected string, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one balanced register-or-unregister callback idiom in memory
-- it now makes the replay summary itself carry explicit `relative_location_path_checked` and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
+- it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready trace-events module
 
@@ -50,6 +50,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - `runAnchorReplay()` formats `iter=7` and selects `Gandalf` from the Linux `random_strings` table for `len = 2`
 - the replay keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
 - the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
+- the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
 - the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
 - after `exit()` the sample rejects later payload replay or callback-registration calls
@@ -59,7 +60,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 When a contributor updates `samples/zigux/trace_events_sample.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact payload, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does the in-memory replay still keep the array payload, selected string, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a balanced register-then-unregister idiom rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
@@ -69,7 +70,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 The current gap is no longer "Zigux has no trace-events sample guidance." The more precise state is:
 
-- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, relative-location coverage, callback-path coverage, and teardown
+- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
@@ -93,4 +94,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the same Phase 5 samples-and-reference-patterns family and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real trace-events sample drift on current `master`.
+Stay in the same Phase 5 samples-and-reference-patterns family and tighten one more directly coupled replay-summary or contributor-guidance edge only if fresh repo inspection shows real drift in the landed `trace_events_sample` contract on current `master`.
