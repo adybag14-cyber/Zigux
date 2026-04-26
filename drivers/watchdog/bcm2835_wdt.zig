@@ -49,6 +49,19 @@ pub const ProbeSummary = struct {
     system_power_controller: bool,
 };
 
+pub const RegistrationSummary = struct {
+    anchor: []const u8,
+    bootloader_running: bool,
+    framework_marks_hw_running: bool,
+    register_device_requested: bool,
+    stop_on_reboot: bool,
+    restart_priority: u32,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_conflict: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -110,6 +123,27 @@ pub const Bcm2835WatchdogLab = struct {
             .stop_on_reboot = true,
             .restart_priority = restart_priority,
             .system_power_controller = system_power_controller,
+        };
+    }
+
+    pub fn registrationSummary(
+        self: *const Self,
+        bootloader_running: bool,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+    ) RegistrationSummary {
+        _ = self;
+        return .{
+            .anchor = descriptor().anchor,
+            .bootloader_running = bootloader_running,
+            .framework_marks_hw_running = bootloader_running,
+            .register_device_requested = true,
+            .stop_on_reboot = true,
+            .restart_priority = restart_priority,
+            .system_power_controller = system_power_controller,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
+            .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
         };
     }
 
