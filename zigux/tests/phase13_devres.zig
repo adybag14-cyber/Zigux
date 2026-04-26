@@ -11,8 +11,10 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
+    try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
+    try std.testing.expect(!descriptor.touches_live_arch_memtype);
 }
 
 test "phase13 devres retains the release record when managed ioremap succeeds" {
@@ -323,4 +325,58 @@ test "phase13 devres preserves translated size when devm_of_iomap hits downstrea
             try std.testing.expectEqual(@as(?devres.ErrorStage, .remap), failure.resource_stage);
         },
     }
+}
+
+test "phase13 devres retains memtype release records on successful WC reservation" {
+    const outcome = try devres.DevresHelperLab.planArchIoReserveMemtypeWc(.{
+        .start = 0x7000,
+        .size = 0x80,
+        .release_record_allocated = true,
+        .reserve_result = 0,
+    });
+
+    switch (outcome) {
+        .reserved => |plan| {
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqual(@as(u64, 0x7000), plan.start);
+            try std.testing.expectEqual(@as(u64, 0x80), plan.size);
+            try std.testing.expect(plan.added_to_devres);
+            try std.testing.expect(plan.release_record_retained);
+            try std.testing.expect(!plan.release_record_freed);
+            try std.testing.expectEqual(devres.MemtypeReleaseAction.free_wc_memtype, plan.release_action);
+            try std.testing.expect(plan.should_release_on_detach);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres frees memtype release records when WC reservation fails" {
+    const outcome = try devres.DevresHelperLab.planArchIoReserveMemtypeWc(.{
+        .start = 0x7100,
+        .size = 0x40,
+        .release_record_allocated = true,
+        .reserve_result = -16,
+    });
+
+    switch (outcome) {
+        .reserved => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(@as(i32, -16), failure.error_code);
+            try std.testing.expect(!failure.added_to_devres);
+            try std.testing.expect(!failure.release_record_retained);
+            try std.testing.expect(failure.release_record_freed);
+            try std.testing.expectEqual(@as(?devres.MemtypeReleaseAction, null), failure.release_action);
+            try std.testing.expect(!failure.should_release_on_detach);
+        },
+    }
+}
+
+test "phase13 devres rejects memtype planning when the release record cannot be allocated" {
+    try std.testing.expectError(error.OutOfMemory, devres.DevresHelperLab.planArchIoReserveMemtypeWc(.{
+        .start = 0x7200,
+        .size = 0x20,
+        .release_record_allocated = false,
+        .reserve_result = 0,
+    }));
 }
