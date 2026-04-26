@@ -55,7 +55,7 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expect(manifest.surveyed_commit.len > 0);
+    try std.testing.expectEqualStrings("0ddb982b08ffa3f1a34bddc0520f50af0b3e346f", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.dw_wdt_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
