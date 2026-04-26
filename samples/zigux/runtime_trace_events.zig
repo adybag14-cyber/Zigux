@@ -22,6 +22,21 @@ pub const ModuleDescriptor = struct {
     provides_selftest_hook: bool,
 };
 
+pub const MainThreadPayload = struct {
+    foo_bar_message: []const u8,
+    template_message: []const u8,
+    conditional_message: []const u8,
+    template_cond_message: []const u8,
+    template_print_message: []const u8,
+    relative_location_message: []const u8,
+    format_template: []const u8,
+};
+
+pub const FunctionThreadPayload = struct {
+    foo_bar_message: []const u8,
+    template_message: []const u8,
+};
+
 pub const EmissionSummary = struct {
     anchor: []const u8,
     event_families: []const EventFamily,
@@ -48,6 +63,8 @@ pub const RuntimeTraceEventsSample = struct {
     saw_vararg_payload: bool = false,
     saw_rel_loc_payload: bool = false,
     saw_conditional_path: bool = false,
+    last_main_payload: ?MainThreadPayload = null,
+    last_function_payload: ?FunctionThreadPayload = null,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -81,6 +98,8 @@ pub const RuntimeTraceEventsSample = struct {
         self.saw_vararg_payload = false;
         self.saw_rel_loc_payload = false;
         self.saw_conditional_path = false;
+        self.last_main_payload = null;
+        self.last_function_payload = null;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
@@ -104,6 +123,15 @@ pub const RuntimeTraceEventsSample = struct {
         self.saw_vararg_payload = true;
         self.saw_rel_loc_payload = true;
         self.saw_conditional_path = true;
+        self.last_main_payload = .{
+            .foo_bar_message = "hello",
+            .template_message = "HELLO",
+            .conditional_message = "Some times print",
+            .template_cond_message = "prints other times",
+            .template_print_message = "I have to be different",
+            .relative_location_message = "Hello __rel_loc",
+            .format_template = "iter=%d",
+        };
         self.total_events += 6;
         return 6;
     }
@@ -114,6 +142,10 @@ pub const RuntimeTraceEventsSample = struct {
 
         self.fn_iterations += 1;
         self.last_fn_count = count;
+        self.last_function_payload = .{
+            .foo_bar_message = "Look at me",
+            .template_message = "Look at me too",
+        };
         self.total_events += 2;
         return 2;
     }
