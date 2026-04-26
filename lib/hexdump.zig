@@ -84,6 +84,23 @@ pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
     return dst[0 .. src.len * 2];
 }
 
+pub fn hexDumpLineLength(
+    len_input: usize,
+    rowsize_input: usize,
+    groupsize_input: usize,
+    ascii: bool,
+) usize {
+    const rowsize = normalizedRowsize(rowsize_input);
+    const len = @min(len_input, rowsize);
+    const groupsize = normalizedGroupsize(len, groupsize_input);
+    const ngroups = len / groupsize;
+
+    if (ascii) {
+        return rowsize * 2 + rowsize / groupsize + 1 + len;
+    }
+    return if (ngroups == 0) 0 else (groupsize * 2 + 1) * ngroups - 1;
+}
+
 pub fn hexDumpToBuffer(
     buf: []const u8,
     rowsize_input: usize,
@@ -91,19 +108,12 @@ pub fn hexDumpToBuffer(
     linebuf: []u8,
     ascii: bool,
 ) usize {
-    const rowsize = if (rowsize_input == 16 or rowsize_input == 32) rowsize_input else 16;
+    const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(buf.len, rowsize);
-
-    var groupsize = groupsize_input;
-    if (!std.math.isPowerOfTwo(groupsize) or groupsize > 8 or groupsize == 0) {
-        groupsize = 1;
-    }
-    if (len % groupsize != 0) {
-        groupsize = 1;
-    }
+    const groupsize = normalizedGroupsize(len, groupsize_input);
 
     if (linebuf.len == 0) {
-        return requiredLength(rowsize, len, groupsize, ascii);
+        return hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
     }
 
     if (len == 0) {
@@ -162,12 +172,19 @@ pub fn hexDumpToBuffer(
     return writer.required;
 }
 
-fn requiredLength(rowsize: usize, len: usize, groupsize: usize, ascii: bool) usize {
-    const ngroups = len / groupsize;
-    if (ascii) {
-        return rowsize * 2 + rowsize / groupsize + 1 + len;
+fn normalizedRowsize(rowsize_input: usize) usize {
+    return if (rowsize_input == 16 or rowsize_input == 32) rowsize_input else 16;
+}
+
+fn normalizedGroupsize(len: usize, groupsize_input: usize) usize {
+    var groupsize = groupsize_input;
+    if (!std.math.isPowerOfTwo(groupsize) or groupsize > 8 or groupsize == 0) {
+        groupsize = 1;
     }
-    return if (ngroups == 0) 0 else (groupsize * 2 + 1) * ngroups - 1;
+    if (len % groupsize != 0) {
+        groupsize = 1;
+    }
+    return groupsize;
 }
 
 fn decodeRange(ch: u8, first: u8, last: u8, bias: i8) i8 {
@@ -290,21 +307,6 @@ const test_data_8_be = [_][]const u8{
     "a69c31ad9c0face9", "4cd1199943b1af0c",
 };
 
-fn normalizedRowsize(rowsize_input: usize) usize {
-    return if (rowsize_input == 16 or rowsize_input == 32) rowsize_input else 16;
-}
-
-fn normalizedGroupsize(len: usize, groupsize_input: usize) usize {
-    var groupsize = groupsize_input;
-    if (!std.math.isPowerOfTwo(groupsize) or groupsize > 8 or groupsize == 0) {
-        groupsize = 1;
-    }
-    if (len % groupsize != 0) {
-        groupsize = 1;
-    }
-    return groupsize;
-}
-
 fn fixtureChunks(groupsize: usize) []const []const u8 {
     return switch (groupsize) {
         8 => if (builtin.cpu.arch.endian() == .big) test_data_8_be[0..] else test_data_8_le[0..],
@@ -378,6 +380,32 @@ test "hex2bin rejects invalid length and bad digits" {
     var decoded: [2]u8 = undefined;
     try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "abc"));
     try std.testing.expectError(HexError.InvalidHexDigit, hex2bin(decoded[0..], "zz00"));
+}
+
+test "hexDumpLineLength mirrors formatter normalization" {
+    const cases = [_]struct {
+        len: usize,
+        rowsize: usize,
+        groupsize: usize,
+        ascii: bool,
+        want: usize,
+    }{
+        .{ .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .want = 0 },
+        .{ .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .want = 47 },
+        .{ .len = 16, .rowsize = 7, .groupsize = 3, .ascii = false, .want = 47 },
+        .{ .len = 16, .rowsize = 7, .groupsize = 3, .ascii = true, .want = 65 },
+        .{ .len = 32, .rowsize = 32, .groupsize = 1, .ascii = true, .want = 129 },
+        .{ .len = 20, .rowsize = 16, .groupsize = 8, .ascii = false, .want = 33 },
+        .{ .len = 15, .rowsize = 16, .groupsize = 8, .ascii = true, .want = 64 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.want, hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii));
+        try std.testing.expectEqual(
+            case.want,
+            hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, &[_]u8{}, case.ascii),
+        );
+    }
 }
 
 test "hexDumpToBuffer matches the kernel-style 16-byte line output" {
