@@ -100,7 +100,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
         if (std.mem.eql(u8, gap.id, "runtime-atomic64-substrate-handoff")) {
             saw_substrate_handoff = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
-            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_*", gap.zigux_destination);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
