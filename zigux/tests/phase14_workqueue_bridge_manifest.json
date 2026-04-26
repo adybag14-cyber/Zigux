@@ -79,6 +79,13 @@
       "why_now": "The bridge now carries a small concurrency audit outline around `manage_workers()`, `struct worker_pool`, `wq_worker_running()` or `wq_worker_sleeping()`, and `rescuer_thread()` so Zigux can name `pool->manager`, forward-progress fields, scheduler-visible running state, and `pwq->mayday_cursor` without claiming live execution ownership."
     },
     {
+      "id": "phase14-workqueue-max-active-audit",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records the `__queue_work()` gate that chooses between `pool->worklist` and `pwq->inactive_works` while `max_active` and ordered-workqueue sequencing are still enforced under `pool->lock`, which is a reviewable field-level audit step before any wrapper claims live enqueue ownership. The same boundary keeps later `workqueue_set_max_active()` tuning honest by naming the inactive-list seam without moving it out of C."
+    },
+    {
       "id": "phase14-workqueue-lock-handoff-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
