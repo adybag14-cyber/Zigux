@@ -34,18 +34,20 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
+    var saw_private_data_prompt = false;
     var saw_symbol_prompt = false;
     var saw_non_goal_prompt = false;
+    var saw_private_data_check = false;
     var saw_symbol_check = false;
     var saw_duration_check = false;
     var saw_exit_check = false;
@@ -54,6 +56,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "private entry timestamp") != null and
+            std.mem.indexOf(u8, prompt, "my_data") != null)
+        {
+            saw_private_data_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "pre-init") != null and
             std.mem.indexOf(u8, prompt, "module_param") != null)
@@ -76,6 +83,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_symbol_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_clone") != null);
         }
+        if (std.mem.eql(u8, check.id, "private-data-shape")) {
+            saw_private_data_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "my_data") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "i64-sized word") != null);
+        }
         if (std.mem.eql(u8, check.id, "return-duration")) {
             saw_duration_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retval 42") != null);
@@ -92,8 +104,10 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     }
 
     try std.testing.expect(saw_descriptor_prompt);
+    try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_symbol_prompt);
     try std.testing.expect(saw_non_goal_prompt);
+    try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_symbol_check);
     try std.testing.expect(saw_duration_check);
     try std.testing.expect(saw_exit_check);
