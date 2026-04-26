@@ -13,6 +13,8 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
   - `zigux/tests/phase7_rbtree_survey.zig`
   - `zigux/tests/phase7_rbtree_manifest.json`
   - `zigux/tests/phase7_build.zig`
+  - `zigux/tests/fixtures/phase7_rbtree.json`
+  - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 
 ## Why this slice exists
 
@@ -39,7 +41,10 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 3. keep the survey record machine-checked
 - `zig test zigux/tests/phase7_rbtree_survey.zig`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, and the survey record now captures what is landed versus still ready next without reopening implementation work.
+4. check the committed C parity fixture
+- `python3 scripts/zigux/check-phase7-rbtree-parity.py`
+
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the survey record captures what is landed versus still ready next, and the committed parity fixture now locks ordered insert, duplicate-range lookup, replace, reverse traversal, and postorder behavior against the C helper surface.
 
 ## Current parity surface
 
@@ -65,6 +70,7 @@ The current starter slice covers:
 
 The current tests check:
 
+- committed C-vs-Zig parity for ordered insert, reverse traversal, replace, duplicate-range lookup order, and postorder traversal
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
@@ -80,8 +86,7 @@ This slice still does not claim:
 - cached-tree helpers
 - augmented-rbtree support
 - lockless-iteration or memory-ordering guarantees beyond the local helper semantics
-- generated C fixture parity artifacts
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny serialized or harness-backed C-vs-Zig parity proof over the existing insert, duplicate-key lookup, erase, and traversal surface.
+Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, duplicate-key lookup, erase, replace, reverse traversal, or postorder surface.
