@@ -16,5 +16,16 @@
     "tools/lib/string.zig",
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig"
-  ]
+  ],
+  "helper_review_notes": {
+    "tools/lib/bitmap.zig": {
+      "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+      "evidence_keys": [
+        "bitmap.scnprintf",
+        "bitmap.scnprintf_trunc_len",
+        "bitmap.scnprintf_trunc"
+      ],
+      "summary": "Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot."
+    }
+  }
 }
