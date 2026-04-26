@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const KSYM_NAME_LEN: usize = 512;
+pub const default_reader_chunk_len: usize = 4096;
 
 pub const elf_stb_local: u8 = 0;
 pub const elf_stb_global: u8 = 1;
@@ -151,18 +152,12 @@ pub fn forEachParsedReader(
     defer pending.deinit(allocator);
 
     while (true) {
-        const read_len = try reader.read(scratch_buffer);
-        if (read_len == 0) {
+        const bytes_read = try reader.read(scratch_buffer);
+        if (bytes_read == 0) {
             break;
         }
 
-        try processParsedChunk(
-            &pending,
-            allocator,
-            scratch_buffer[0..read_len],
-            process_context,
-            process_symbol,
-        );
+        try processParsedChunk(&pending, allocator, scratch_buffer[0..bytes_read], process_context, process_symbol);
     }
 
     if (pending.items.len != 0) {
@@ -170,26 +165,46 @@ pub fn forEachParsedReader(
     }
 }
 
+pub fn forEachParsedFile(
+    allocator: std.mem.Allocator,
+    io: std.Io,
+    file: std.Io.File,
+    scratch_buffer: []u8,
+    process_context: anytype,
+    comptime process_symbol: fn (@TypeOf(process_context), ParsedSymbol) anyerror!void,
+) !void {
+    const ReaderAdapter = struct {
+        reader: *std.Io.File.Reader,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            return self.reader.interface.readSliceShort(dest);
+        }
+    };
+
+    var reader_buffer: [default_reader_chunk_len]u8 = undefined;
+    var file_reader = file.reader(io, &reader_buffer);
+    var adapter = ReaderAdapter{ .reader = &file_reader };
+    try forEachParsedReader(allocator, &adapter, scratch_buffer, process_context, process_symbol);
+}
+
+pub fn forEachParsedPath(
+    allocator: std.mem.Allocator,
+    io: std.Io,
+    dir: std.Io.Dir,
+    sub_path: []const u8,
+    scratch_buffer: []u8,
+    process_context: anytype,
+    comptime process_symbol: fn (@TypeOf(process_context), ParsedSymbol) anyerror!void,
+) !void {
+    const file = try dir.openFile(io, sub_path, .{});
+    defer file.close(io);
+
+    try forEachParsedFile(allocator, io, file, scratch_buffer, process_context, process_symbol);
+}
+
 const ChunkFixtureState = struct {
     chunks: []const []const u8,
     index: usize = 0,
-};
-
-const SliceReader = struct {
-    bytes: []const u8,
-    index: usize = 0,
-
-    pub fn read(self: *SliceReader, buffer: []u8) !usize {
-        const remaining = self.bytes.len - self.index;
-        if (remaining == 0) {
-            return 0;
-        }
-
-        const read_len = @min(buffer.len, remaining);
-        @memcpy(buffer[0..read_len], self.bytes[self.index .. self.index + read_len]);
-        self.index += read_len;
-        return read_len;
-    }
 };
 
 fn nextFixtureChunk(state: *ChunkFixtureState) anyerror!?[]const u8 {
@@ -276,7 +291,7 @@ test "forEachParsedLine processes valid lines in order and propagates parse and 
     parsed.clearRetainingCapacity();
     try std.testing.expectError(error.StopOnWeakSymbol, forEachParsedLine(
         "ffffffff81000000 T startup_64\n" ++
-            "fffffff81000200 W weak_handler\n" ++
+            "ffffffff81000200 W weak_handler\n" ++
             "ffffffff81000300 t ignored_after_callback_error\n",
         &parsed,
         Fixture.failOnWeakSymbol,
@@ -337,6 +352,120 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
     try std.testing.expectEqual(@as(u8, 'd'), parsed.items[1].symbol_type);
 }
 
+test "forEachParsedReader and path reuse the same malformed-line skipping semantics" {
+    const SliceReader = struct {
+        bytes: []const u8,
+        index: usize = 0,
+
+        pub fn read(self: *@This(), dest: []u8) !usize {
+            if (self.index >= self.bytes.len) {
+                return 0;
+            }
+
+            const amt = @min(dest.len, self.bytes.len - self.index);
+            @memcpy(dest[0..amt], self.bytes[self.index .. self.index + amt]);
+            self.index += amt;
+            return amt;
+        }
+    };
+
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Fixture = struct {
+        fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    const contents =
+        "ffffffff81000000 T startup_64\r\n" ++
+        "bad line\n" ++
+        "ffffffff81000400 w weak_tail\n";
+
+    var stream = SliceReader{ .bytes = contents };
+    var scratch_buffer: [11]u8 = undefined;
+    var parsed_from_reader = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed_from_reader.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        parsed_from_reader.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedReader(
+        std.testing.allocator,
+        &stream,
+        &scratch_buffer,
+        &parsed_from_reader,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), parsed_from_reader.items.len);
+    try std.testing.expectEqualStrings("startup_64", parsed_from_reader.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", parsed_from_reader.items[1].name);
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    var parsed_from_path = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed_from_path.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        parsed_from_path.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedPath(
+        std.testing.allocator,
+        io,
+        temp_dir.dir,
+        "kallsyms.map",
+        &scratch_buffer,
+        &parsed_from_path,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), parsed_from_path.items.len);
+    try std.testing.expectEqualStrings("startup_64", parsed_from_path.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", parsed_from_path.items[1].name);
+    try std.testing.expectEqual(@as(u8, 'w'), parsed_from_path.items[1].symbol_type);
+
+    var empty_stream = SliceReader{
+        .bytes = "ffffffff81000000 T startup_64\n",
+    };
+    var empty_scratch_buffer: [0]u8 = .{};
+    try std.testing.expectError(error.EmptyScratchBuffer, forEachParsedReader(
+        std.testing.allocator,
+        &empty_stream,
+        &empty_scratch_buffer,
+        &parsed_from_reader,
+        Fixture.collect,
+    ));
+}
+
 test "forEachParsedChunked propagates oversized-symbol errors from buffered lines" {
     const OwnedParsedSymbol = struct {
         name: []u8,
@@ -359,96 +488,37 @@ test "forEachParsedChunked propagates oversized-symbol errors from buffered line
         }
     };
 
-    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 1);
+    const too_long_name = "a" ** (KSYM_NAME_LEN + 1);
     const first_chunk = try std.fmt.allocPrint(
         std.testing.allocator,
         "1 T {s}",
-        .{too_long_name[0..20}},
+        .{too_long_name[0..40]},
     );
     defer std.testing.allocator.free(first_chunk);
     const second_chunk = try std.fmt.allocPrint(
         std.testing.allocator,
         "{s}\n",
-        .{too_long_name[20..]},
+        .{too_long_name[40..]},
     );
     defer std.testing.allocator.free(second_chunk);
 
-    var error_state = ChunkFixtureState{
+    var state = ChunkFixtureState{
         .chunks = &.{ first_chunk, second_chunk },
     };
 
-    try std.testing.expectError(
-        error.SymbolNameTooLong,
-        kallsyms.forEachParsedChunked(
-            std.testing.allocator,
-            &error_state,
-            nextFixtureChunk,
-            &symbols,
-            Collector.append,
-        ),
-    );
-}
-test "phase 8 kallsyms reader adapter reuses the chunk parser with short reads" {
-    const OwnedParsedSymbol = struct {
-        name: []u8,
-        symbol_type: u8,
-        start: u64,
-
-        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-            allocator.free(self.name);
-            self.* = undefined;
-        }
-    };
-
-    const Collector = struct {
-        fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
-            try list.append(std.testing.allocator, .{
-                .name = try std.testing.allocator.dupe(u8, symbol.name),
-                .symbol_type = symbol.symbol_type,
-                .start = symbol.start,
-            });
-        }
-    };
-
-    var stream = SliceReader{
-        .bytes = "ffffffff81000000 T startup_64\r\ninvalid\nffffffff81000300 w weak_tail",
-    };
-    var scratch_buffer: [11]u8 = undefined;
-
-    var symbols = std.ArrayList(OwnedParsedSymbol).empty;
+    var parsed = std.ArrayList(OwnedParsedSymbol).empty;
     defer {
-        for (symbols.items) |*symbol| {
+        for (parsed.items) |*symbol| {
             symbol.deinit(std.testing.allocator);
         }
-        symbols.deinit(std.testing.allocator);
+        parsed.deinit(std.testing.allocator);
     }
 
-    try kallsyms.forEachParsedReader(
+    try std.testing.expectError(error.SymbolNameTooLong, forEachParsedChunked(
         std.testing.allocator,
-        &stream,
-        &scratch_buffer,
-        &symbols,
-        Collector.append,
-    );
-
-    try std.testing.expectEqual(@as(usize, 2), symbols.items.len);
-    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
-    try std.testing.expectEqualStrings("weak_tail", symbols.items[1].name);
-    try std.testing.expectEqual(@as(u8, 'w'), symbols.items[1].symbol_type);
-
-    var empty_stream = SliceReader{
-        .bytes = "ffffffff81000000 T startup_64\n",
-    };
-    var empty_scratch_buffer: [0]u8 = .{};
-
-    try std.testing.expectError(
-        error.EmptyScratchBuffer,
-        kallsyms.forEachParsedReader(
-            std.testing.allocator,
-            &empty_stream,
-            &empty_scratch_buffer,
-            &symbols,
-            Collector.append,
-        ),
-    );
+        &state,
+        nextFixtureChunk,
+        &parsed,
+        Fixture.collect,
+    ));
 }
