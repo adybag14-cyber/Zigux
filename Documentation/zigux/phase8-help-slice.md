@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=help-command-source-and-terminal-starter`
 - scope: owned command-list handling, injected command-source filtering, injected raw-`PATH` splitting, injected terminal-dimensions resolution, and pure pretty-print emission planning
 - product boundary:
