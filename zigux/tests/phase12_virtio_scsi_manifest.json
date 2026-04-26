@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L09",
   "phase": "Phase 12",
-  "surveyed_commit": "ee64eec272a352da1d967999c99bb3c3560c9b97",
+  "surveyed_commit": "f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "roadmap_destinations": [
     "drivers/scsi/virtio_scsi.zig",
@@ -89,10 +89,17 @@
     },
     {
       "id": "phase12-virtio-scsi-probe-config-snapshot-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The bounded virtio_scsi starter now includes one small probe snapshot helper that records `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, and `max_sectors`, then derives the request-versus-poll queue topology after the Linux-style CPU-count and blk-mq queue caps are applied, without claiming blk-mq submission, TMF flow, or DMA-backed queue work."
+    },
+    {
+      "id": "phase12-virtio-scsi-host-limit-handoff-starter",
       "status": "ready_next",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "The next honest virtio_scsi step is one small probe snapshot helper that records `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, and `max_sectors`, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
+      "why_now": "The next honest virtio_scsi step is one small host-limit handoff helper that records how the probe snapshot would feed `sg_tablesize`, `can_queue`, `cmd_per_lun`, `max_sectors`, `max_lun`, `max_id`, and `nr_maps` before any `scsi_add_host()`, `scsi_scan_host()`, blk-mq request flow, or DMA-backed queue ownership is attempted."
     },
     {
       "id": "phase12-virtio-scsi-runtime-queues-and-scan",
