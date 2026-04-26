@@ -200,6 +200,15 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     try processor.parseDepFile(writer, dep_text, target);
 }
 
+fn emitNoTargetsParseError(io: std.Io) !noreturn {
+    var stderr_buffer: [128]u8 = undefined;
+    var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try stderr.writeAll("fixdep: parse error; no targets found\n");
+    try stderr.flush();
+    std.process.exit(1);
+}
+
 pub fn main(init: std.process.Init) !void {
     const arena = init.arena.allocator();
     const io = init.io;
@@ -218,7 +227,10 @@ pub fn main(init: std.process.Init) !void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     const stdout = &stdout_writer.interface;
 
-    try runFixdep(arena, io, stdout, args[1], args[2], args[3]);
+    runFixdep(arena, io, stdout, args[1], args[2], args[3]) catch |err| switch (err) {
+        error.NoTargets => try emitNoTargetsParseError(io),
+        else => return err,
+    };
     try stdout.flush();
 }
 
@@ -260,6 +272,42 @@ test "config parsing trims _MODULE and deduplicates symbols" {
         "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
         capture.list.items,
     );
+}
+
+test "dep parsing returns NoTargets for comment-only depfiles" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 8),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try std.testing.expectError(
+        error.NoTargets,
+        processor.parseDepFile(&capture, "# comment only\n# still no targets\n", "sample.o"),
+    );
+    try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
 }
 
 test "ignored and no-parse file classification matches fixdep rules" {
