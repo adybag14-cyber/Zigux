@@ -45,6 +45,7 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expect(mirror.isSet(second_word_base + 6));
     try std.testing.expect(mirror.isSet(12));
 
+    const summary_before_selftest = module.summary();
     const selftest = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/test_bitmap.c", selftest.anchor);
@@ -52,12 +53,20 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expect(selftest.checked_range_mutations);
     try std.testing.expect(selftest.checked_iteration_paths);
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    const summary_after_selftest = module.summary();
+    try std.testing.expectEqual(summary_before_selftest.first_set, summary_after_selftest.first_set);
+    try std.testing.expectEqual(summary_before_selftest.first_zero, summary_after_selftest.first_zero);
+    try std.testing.expectEqual(summary_before_selftest.weight, summary_after_selftest.weight);
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(1, 1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));
 }
 
 test "runtime bitmap sample keeps bounded errors explicit" {
