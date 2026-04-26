@@ -56,74 +56,31 @@ test "phase 6 base64 variant alphabets match the kernel mappings" {
 }
 
 test "phase 6 base64 standard decode parity matches kernel vectors" {
-    const cases = [_]DecodeCase{
-        .{ .input = "", .expected = "", .padding = true, .variant = .std },
-        .{ .input = "Zg==", .expected = "f", .padding = true, .variant = .std },
-        .{ .input = "Zm8=", .expected = "fo", .padding = true, .variant = .std },
-        .{ .input = "Zm9v", .expected = "foo", .padding = true, .variant = .std },
-        .{ .input = "Zm9vYg==", .expected = "foob", .padding = true, .variant = .std },
-        .{ .input = "Zm9vYmE=", .expected = "fooba", .padding = true, .variant = .std },
-        .{ .input = "Zm9vYmFy", .expected = "foobar", .padding = true, .variant = .std },
-        .{ .input = "SGVsbG8sIHdvcmxkIQ==", .expected = "Hello, world!", .padding = true, .variant = .std },
-        .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=", .expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", .padding = true, .variant = .std },
-        .{ .input = "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=", .expected = "abcdefghijklmnopqrstuvwxyz", .padding = true, .variant = .std },
-        .{ .input = "", .expected = "", .padding = false, .variant = .std },
-        .{ .input = "Zg", .expected = "f", .padding = false, .variant = .std },
-        .{ .input = "Zm8", .expected = "fo", .padding = false, .variant = .std },
-        .{ .input = "Zm9v", .expected = "foo", .padding = false, .variant = .std },
-        .{ .input = "Zm9vYg", .expected = "foob", .padding = false, .variant = .std },
-        .{ .input = "Zm9vYmE", .expected = "fooba", .padding = false, .variant = .std },
-        .{ .input = "Zm9vYmFy", .expected = "foobar", .padding = false, .variant = .std },
-        .{ .input = "SGVsbG8sIHdvcmxkIQ", .expected = "Hello, world!", .padding = false, .variant = .std },
-        .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", .expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", .padding = false, .variant = .std },
-        .{ .input = "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo", .expected = "abcdefghijklmnopqrstuvwxyz", .padding = false, .variant = .std },
-        .{ .input = "MDEyMzQ1Njc4OSsv", .expected = "0123456789+/", .padding = false, .variant = .std },
-    };
-
-    for (cases) |case| {
-        try expectDecode(case);
+    for (fixtures.standard_decode_cases) |case| {
+        try expectDecode(.{
+            .input = case.input,
+            .expected = case.expected,
+            .padding = case.padding,
+            .variant = fixtureVariant(case.variant_name),
+        });
     }
 }
 
 test "phase 6 base64 decode rejects invalid kernel-style vectors" {
     var buf: [128]u8 = undefined;
-    const with_nul = [_]u8{ 'Z', 'g', 0, '=' };
-    const invalid_cases = [_]struct {
-        input: []const u8,
-        padding: bool,
-        variant: base64.Variant,
-    }{
-        .{ .input = "Zg=!", .padding = true, .variant = .std },
-        .{ .input = "Zm$=", .padding = true, .variant = .std },
-        .{ .input = "Z===", .padding = true, .variant = .std },
-        .{ .input = "Zg", .padding = true, .variant = .std },
-        .{ .input = "Zm9v====", .padding = true, .variant = .std },
-        .{ .input = "Zm==A", .padding = true, .variant = .std },
-        .{ .input = &with_nul, .padding = true, .variant = .std },
-        .{ .input = "Zg=!", .padding = false, .variant = .std },
-        .{ .input = "Zm$=", .padding = false, .variant = .std },
-        .{ .input = "Z===", .padding = false, .variant = .std },
-        .{ .input = "Zg=", .padding = false, .variant = .std },
-        .{ .input = "Zm9v====", .padding = false, .variant = .std },
-        .{ .input = "Zm==v", .padding = false, .variant = .std },
-        .{ .input = &with_nul, .padding = false, .variant = .std },
-        .{ .input = "Zg==", .padding = false, .variant = .urlsafe },
-        .{ .input = "Zg==", .padding = false, .variant = .imap },
-    };
-
-    for (invalid_cases) |case| {
-        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, case.variant));
+    for (fixtures.invalid_decode_cases) |case| {
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, fixtureVariant(case.variant_name)));
     }
 }
 
 test "phase 6 base64 variant decode parity matches the kernel mappings" {
-    const cases = [_]DecodeCase{
-        .{ .input = "APv_f4A", .expected = &fixtures.variant_sample, .padding = false, .variant = .urlsafe },
-        .{ .input = "APv,f4A", .expected = &fixtures.variant_sample, .padding = false, .variant = .imap },
-    };
-
-    for (cases) |case| {
-        try expectDecode(case);
+    for (fixtures.variant_decode_cases) |case| {
+        try expectDecode(.{
+            .input = case.input,
+            .expected = case.expected,
+            .padding = case.padding,
+            .variant = fixtureVariant(case.variant_name),
+        });
     }
 }
 
