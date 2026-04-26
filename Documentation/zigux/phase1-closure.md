@@ -41,15 +41,15 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot`
 
-- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond `nbits`.
-- `tools/lib/find_bit.zig` direct Zig unit coverage also keeps empty scans at `0` and boundary-start scans at `nbits` for set, zero, and AND entry points.
+- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit stays in range while another lives past `nbits`.
+- `tools/lib/find_bit.zig` direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while later out-of-range tail matches still clamp to `nbits`.
 - find_bit fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - find_bit manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`
+- find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`
 
 - `PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits`
-- `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit empty scans stay at 0 and boundary-start scans return nbits`
+- `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits`
 
 ## Closure Gates
 
