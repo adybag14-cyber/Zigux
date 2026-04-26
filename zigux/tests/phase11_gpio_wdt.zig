@@ -110,3 +110,36 @@ test "phase11 gpio_wdt level mode records pulses and keeps always-running hardwa
     try std.testing.expectEqual(@as(usize, 2), runtime.ping_count);
     try std.testing.expectEqual(@as(usize, 2), runtime.pulse_count);
 }
+
+test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-running hardware" {
+    var blocked_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    _ = try blocked_watchdog.start();
+    const blocked = blocked_watchdog.requestStop(true);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, blocked.disposition);
+    try std.testing.expect(!blocked.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!blocked.driver_stop_invoked);
+    try std.testing.expect(blocked.running);
+    try std.testing.expect(blocked.line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
+
+    var stoppable_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    _ = try stoppable_watchdog.start();
+    const stopped = stoppable_watchdog.requestStop(false);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, stopped.disposition);
+    try std.testing.expect(stopped.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stopped.driver_stop_invoked);
+    try std.testing.expect(!stopped.running);
+    try std.testing.expect(!stopped.line_is_output);
+    try std.testing.expect(stopped.line_state);
+    try std.testing.expectEqual(@as(usize, 1), stopped.disable_count);
+
+    var always_running_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 50, true);
+    _ = try always_running_watchdog.start();
+    const kept_running = always_running_watchdog.requestStop(false);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.kept_running, kept_running.disposition);
+    try std.testing.expect(kept_running.stop_allowed_by_watchdog_core);
+    try std.testing.expect(kept_running.driver_stop_invoked);
+    try std.testing.expect(kept_running.running);
+    try std.testing.expect(kept_running.line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), kept_running.disable_count);
+}
