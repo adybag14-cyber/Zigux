@@ -11,6 +11,7 @@ pub const event_queue_index: u16 = 0;
 pub const status_queue_index: u16 = 1;
 
 pub const bus_virtual: u16 = 0x06;
+pub const ev_abs: u8 = 0x03;
 pub const ev_msc: u16 = 0x04;
 pub const msc_timestamp: u16 = 0x05;
 
@@ -94,6 +95,15 @@ pub const AbsInfoSummary = struct {
     fuzz: i32,
     flat: i32,
     resolution: i32,
+};
+
+pub const CapabilitySetupSummary = struct {
+    anchor: []const u8,
+    property_bit_count: usize,
+    staged_event_type_count: usize,
+    staged_capability_count: usize,
+    staged_abs_param_count: usize,
+    stages_abs_params: bool,
 };
 
 pub const VirtioInputLab = struct {
@@ -292,6 +302,47 @@ pub const VirtioInputLab = struct {
             .fuzz = record.metadata.fuzz,
             .flat = record.metadata.flat,
             .resolution = record.metadata.resolution,
+        };
+    }
+
+    pub fn capabilitySetupSummary(self: *const Self) !CapabilitySetupSummary {
+        var property_bit_count: usize = 0;
+        var staged_event_type_count: usize = 0;
+        var staged_capability_count: usize = 0;
+
+        for (self.config_bitmaps) |record| {
+            if (!record.active) continue;
+            switch (record.select) {
+                .prop_bits => {
+                    property_bit_count += record.supported_bits.count();
+                },
+                .ev_bits => {
+                    staged_event_type_count += 1;
+                    staged_capability_count += record.supported_bits.count();
+                },
+                else => {},
+            }
+        }
+
+        if (staged_event_type_count == 0) return error.CapabilityConfigNotConfigured;
+
+        if (self.abs_info_count != 0) {
+            const abs_index = self.findConfigBitmapIndex(.ev_bits, ev_abs) orelse return error.AbsCapabilitiesNotConfigured;
+            const abs_bitmap = self.config_bitmaps[abs_index].supported_bits;
+            for (self.abs_info_records) |record| {
+                if (!record.active) continue;
+                if (record.abs_code >= config_bitmap_bit_capacity) return error.AbsCodeOutOfRange;
+                if (!abs_bitmap.isSet(record.abs_code)) return error.AbsAxisMissingCapabilityBit;
+            }
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .property_bit_count = property_bit_count,
+            .staged_event_type_count = staged_event_type_count,
+            .staged_capability_count = staged_capability_count,
+            .staged_abs_param_count = self.abs_info_count,
+            .stages_abs_params = self.abs_info_count != 0,
         };
     }
 
