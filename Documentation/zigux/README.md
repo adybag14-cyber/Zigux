@@ -41,6 +41,8 @@ Phase 6 notes
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - `Documentation/zigux/phase6-checksum-slice.md`
 - `Documentation/zigux/phase6-hexdump-slice.md`
+- `zigux/tests/phase6_build.zig` and `make -C zigux phase6` now gate the current base64, bsearch, checksum, and hexdump helper bundle together, so new helper slices should only land when that shared lane stays green as one unit.
+- the current bounded Phase 6 decision is no longer whether the hexdump fixture wiring works in CI; it is whether the current bsearch, checksum, and hexdump parity evidence is sufficient to park the leaf-helper lane or whether one more tiny external fixture is still worth carrying.
 
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
