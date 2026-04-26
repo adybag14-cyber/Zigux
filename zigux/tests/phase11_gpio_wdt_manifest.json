@@ -68,10 +68,17 @@
     },
     {
       "id": "phase11-gpio-wdt-nowayout-followup",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "The starter now lands a tiny nowayout-aware stop helper so review can distinguish watchdog-core stop blocking from hardware always-running behavior before any live GPIO or platform glue."
+    },
+    {
+      "id": "phase11-gpio-wdt-registration-handoff-followup",
       "status": "ready_next",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The next honest gpio_wdt step is a tiny nowayout-aware follow-up so the starter can distinguish watchdog-core stop gating from hardware always-running semantics before any live GPIO or platform glue."
+      "why_now": "The next honest gpio_wdt step is a tiny registration-facing handoff summary so the starter records whether an always-running watchdog reaches registration already active and what bookkeeping remains before live platform glue."
     },
     {
       "id": "phase11-gpio-wdt-platform-registration",
