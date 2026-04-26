@@ -92,61 +92,110 @@ fn referencePartial(bytes: []const u8, seed: u32) u32 {
     return @intCast(sum);
 }
 
-test "compute matches the reference checksum across even and odd sizes" {
-    const cases = [_][]const u8{
-        "",
-        "\x00",
-        "\x00\x01",
-        "\x00\x01\xf2\x03\xf4\xf5\xf6\xf7",
-        "\xff\xff",
-        "\x12\x34\x56",
+fn appendBigEndianU16(buffer: []u8, value: u16) void {
+    const pair: *[2]u8 = @ptrCast(buffer[0..2]);
+    std.mem.writeInt(u16, pair, value, .big);
+}
+
+fn appendBigEndianU32(buffer: []u8, value: u32) void {
+    const pair: *[4]u8 = @ptrCast(buffer[0..4]);
+    std.mem.writeInt(u32, pair, value, .big);
+}
+
+const ComputeCase = struct {
+    bytes: []const u8,
+    expected_partial: u32,
+    expected_compute: u16,
+};
+
+const CompositionCase = struct {
+    payload: []const u8,
+    split: usize,
+    expected_partial: u32,
+    expected_fold: u16,
+};
+
+const PseudoHeaderCase = struct {
+    payload: []const u8,
+    saddr: u32,
+    daddr: u32,
+    proto: u8,
+    expected_compute: u16,
+};
+
+test "compute matches the current checksum edge-case matrix" {
+    const carry_payload = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x7f };
+    const cases = [_]ComputeCase{
+        .{ .bytes = "", .expected_partial = 0x0000, .expected_compute = 0xffff },
+        .{ .bytes = "\x00\x01", .expected_partial = 0x0001, .expected_compute = 0xfffe },
+        .{
+            .bytes = &[_]u8{
+                0x45, 0x00, 0x00, 0x3c,
+                0x1c, 0x46, 0x40, 0x00,
+                0x40, 0x06, 0x00, 0x00,
+                0xc0, 0xa8, 0x00, 0x01,
+                0xc0, 0xa8, 0x00, 0xc7,
+            },
+            .expected_partial = 0x63a2,
+            .expected_compute = 0x9c5d,
+        },
+        .{ .bytes = "abcde", .expected_partial = 0x29c7, .expected_compute = 0xd638 },
+        .{ .bytes = &carry_payload, .expected_partial = 0x7f00, .expected_compute = 0x80ff },
     };
 
-    for (cases) |bytes| {
-        try std.testing.expectEqual(referencePartial(bytes, 0), partial(bytes, 0));
-        try std.testing.expectEqual(~@as(u16, @intCast(referencePartial(bytes, 0))), compute(bytes));
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, 0));
+        try std.testing.expectEqual(case.expected_partial, partial(case.bytes, 0));
+        try std.testing.expectEqual(case.expected_compute, compute(case.bytes));
     }
 }
 
-test "partial checksums compose across split buffers" {
-    const bytes = "split checksum composition still needs parity";
-    const prefix = bytes[0..17];
-    const suffix = bytes[17..];
+test "partial checksums compose across the even and odd split matrix" {
+    const cases = [_]CompositionCase{
+        .{ .payload = "checksum fragments keep their carry", .split = 20, .expected_partial = 0x0e7b, .expected_fold = 0xf184 },
+        .{ .payload = "checksum fragments keep their carry", .split = 21, .expected_partial = 0x0e7b, .expected_fold = 0xf184 },
+    };
 
-    const whole = partial(bytes, 0);
-    const left = partial(prefix, 0);
-    const right = partial(suffix, 0);
-    const combined = blockAdd(left, right, prefix.len);
+    for (cases) |case| {
+        const whole = partial(case.payload, 0);
+        const left = partial(case.payload[0..case.split], 0);
+        const right = partial(case.payload[case.split..], 0);
+        const combined = blockAdd(left, right, case.split);
 
-    try std.testing.expectEqual(whole, normalize(combined));
-    try std.testing.expectEqual(fold(whole), compute(bytes));
+        try std.testing.expectEqual(case.expected_partial, whole);
+        try std.testing.expectEqual(case.expected_partial, normalize(combined));
+        try std.testing.expectEqual(case.expected_fold, fold(whole));
+        try std.testing.expectEqual(case.expected_fold, compute(case.payload));
+    }
 }
 
-test "tcpUdpNofold matches pseudo header accumulation" {
-    const payload = "zigux checksum";
-    const payload_partial = partial(payload, 0);
-    const saddr: u32 = 0xc0a8_0001;
-    const daddr: u32 = 0xc0a8_00c7;
-    const proto: u8 = 17;
+test "tcpUdpNofold matches the pseudo-header fixture parity" {
+    const cases = [_]PseudoHeaderCase{
+        .{
+            .payload = "zigux checksum",
+            .saddr = 0xc0a8_0001,
+            .daddr = 0xc0a8_00c7,
+            .proto = 17,
+            .expected_compute = 0x7a1b,
+        },
+    };
 
-    var pseudo_header: [12]u8 = undefined;
-    pseudo_header[0] = 0xc0;
-    pseudo_header[1] = 0xa8;
-    pseudo_header[2] = 0x00;
-    pseudo_header[3] = 0x01;
-    pseudo_header[4] = 0xc0;
-    pseudo_header[5] = 0xa8;
-    pseudo_header[6] = 0x00;
-    pseudo_header[7] = 0xc7;
-    pseudo_header[8] = 0;
-    pseudo_header[9] = proto;
-    pseudo_header[10] = 0;
-    pseudo_header[11] = payload.len;
+    for (cases) |case| {
+        const payload_partial = partial(case.payload, 0);
 
-    const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
-    const actual = tcpUdpNofold(payload_partial, saddr, daddr, payload.len, proto);
+        var pseudo_header: [12]u8 = undefined;
+        appendBigEndianU32(pseudo_header[0..4], case.saddr);
+        appendBigEndianU32(pseudo_header[4..8], case.daddr);
+        pseudo_header[8] = 0;
+        pseudo_header[9] = case.proto;
+        appendBigEndianU16(pseudo_header[10..12], @intCast(case.payload.len));
 
-    try std.testing.expectEqual(normalize(expected), actual);
+        const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
+        const actual = tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
+
+        try std.testing.expectEqual(normalize(expected), actual);
+        try std.testing.expectEqual(case.expected_compute, fold(actual));
+    }
 }
 
 test "add, sub, and offset shifting preserve checksum arithmetic" {
