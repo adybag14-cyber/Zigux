@@ -46,7 +46,7 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The first virtio_input-specific helper is already landed and models identity snapshots, queue planning, ready-state gating, and multitouch timestamp suppression without claiming transport parity."
+      "why_now": "The first virtio_input-specific helper is already landed and now models identity snapshots, bounded property-bit and event-bit config bitmap summaries, queue planning, ready-state gating, and multitouch timestamp suppression without claiming transport parity."
     },
     {
       "id": "phase10-virtio-input-lab-gate",
@@ -77,18 +77,18 @@
       "why_now": "The lane needs a Phase 10 note that compares the live starter against the roadmap and prevents the repo from overstating input-driver progress."
     },
     {
-      "id": "phase10-virtio-input-config-bitmap-helper",
+      "id": "phase10-virtio-input-abs-info-helper",
       "status": "ready_next",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The next honest virtio_input step is one small in-memory helper for config bitmap or ABS-info decoding so the lab model can describe `virtinput_cfg_bits()` and `virtinput_cfg_abs()` behavior before any transport or input-core registration work."
+      "why_now": "With bounded property-bit and event-bit config bitmap summaries now landed from `virtinput_cfg_bits()`, the next honest virtio_input step is one small in-memory ABS-info helper so the lab model can describe `virtinput_cfg_abs()` before any transport or input-core registration work."
     },
     {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until config bitmap or ABS-info helpers and broader queue callback plumbing are in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until the ABS-info helper and broader queue callback plumbing are in place."
     }
   ]
 }
