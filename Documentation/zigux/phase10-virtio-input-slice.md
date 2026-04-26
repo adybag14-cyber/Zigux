@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, dedicated Phase 10 input tests, and a slice note only
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, dedicated Phase 10 input tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `zigux/tests/phase10_virtio_input.zig`
@@ -24,6 +24,7 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - module descriptor metadata anchored to `drivers/virtio/virtio_input.c`
 - bounded config identity snapshots for name, serial, phys path, device IDs, and the small set of config selects already modeled by the helper
 - in-memory property-bit and event-bit config bitmap summaries keyed by selector and subselector, including the event-type surfacing rule from `virtinput_cfg_bits()`
+- in-memory ABS metadata summaries for min, max, fuzz, flat, and resolution keyed by ABS code, mirroring the bounded `virtinput_cfg_abs()` readout without claiming real `input_dev` mutation
 - event and status queue descriptor-count validation with power-of-two bounds
 - static event-buffer fill accounting capped to the helper's in-memory event-buffer capacity
 - ready-state gating so status sends stay blocked until both queues are configured
@@ -34,7 +35,7 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 
 This slice does not yet claim:
 
-- real config-space bitmap reads from transport-backed config space or any absolute-axis metadata helper
+- real config-space bitmap or ABS metadata reads from transport-backed config space
 - `input_dev` registration or capability setup
 - real virtqueue buffers, interrupts, or DMA-facing queue behavior
 - transport-backed probe, remove, freeze, restore, or reset paths
@@ -49,4 +50,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio_input lane and add one small in-memory absolute-axis metadata helper next so the lab slice can describe more of the `virtio_input_config` flow before any transport, interrupt, or input-device registration work.
+Stay in the Phase 10 virtio_input lane and add one small in-memory capability-setup staging helper next so the lab slice can connect config bitmaps and ABS metadata to bounded `input_set_capability()` and `input_set_abs_params()` intent before any transport, interrupt, or input-device registration work.
