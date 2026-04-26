@@ -115,6 +115,12 @@ const CompositionCase = struct {
     expected_fold: u16,
 };
 
+const SeededCase = struct {
+    bytes: []const u8,
+    seed: u32,
+    expected_partial: u32,
+};
+
 const PseudoHeaderCase = struct {
     payload: []const u8,
     saddr: u32,
@@ -166,6 +172,20 @@ test "partial checksums compose across the even and odd split matrix" {
         try std.testing.expectEqual(case.expected_partial, normalize(combined));
         try std.testing.expectEqual(case.expected_fold, fold(whole));
         try std.testing.expectEqual(case.expected_fold, compute(case.payload));
+    }
+}
+
+test "partial honors non-zero seeds across carry-heavy inputs" {
+    const carry_payload = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x7f };
+    const seeded_cases = [_]SeededCase{
+        .{ .bytes = "abcde", .seed = 0xffff, .expected_partial = 0x29c7 },
+        .{ .bytes = &carry_payload, .seed = 0x1fffe, .expected_partial = 0x7f00 },
+        .{ .bytes = "\x45\x00\x00\x3c\x1c\x46\x40", .seed = 0xabcd, .expected_partial = 0x4d50 },
+    };
+
+    for (seeded_cases) |case| {
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
+        try std.testing.expectEqual(case.expected_partial, partial(case.bytes, case.seed));
     }
 }
 
