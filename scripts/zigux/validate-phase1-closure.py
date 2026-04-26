@@ -38,6 +38,8 @@ required_closure_markers = [
     'PHASE1_STATUS=closed',
     'PHASE1_HELPER_COUNT=13',
     'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
+    'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
+    'PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -82,6 +84,7 @@ if 'mlugg/setup-zig@' in workflow:
 
 manifest_helpers = manifest.get('helpers', [])
 manifest_count = manifest.get('helper_count')
+bitmap_review = manifest.get('helper_review_notes', {}).get('tools/lib/bitmap.zig', {})
 if manifest.get('phase') != 'Phase 1':
     missing_markers.append('manifest:phase=Phase 1')
 if manifest.get('status') != 'closed':
@@ -93,6 +96,16 @@ if len(manifest_helpers) != 13:
 for rel in manifest_helpers:
     if not (ROOT / rel).exists():
         missing_markers.append(f'manifest_file:{rel}')
+if bitmap_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
+    missing_markers.append('manifest:bitmap.fixture=zigux/tests/fixtures/phase1_helpers.json')
+if bitmap_review.get('evidence_keys') != [
+    'bitmap.scnprintf',
+    'bitmap.scnprintf_trunc_len',
+    'bitmap.scnprintf_trunc',
+]:
+    missing_markers.append('manifest:bitmap.evidence_keys')
+if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot.':
+    missing_markers.append('manifest:bitmap.summary')
 
 if missing_markers:
     print('PHASE1_CLOSURE_VALIDATION=fail')
