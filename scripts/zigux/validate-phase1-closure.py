@@ -33,6 +33,7 @@ workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(en
 tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8'))
+bench_expectations = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json').read_text(encoding='utf-8'))
 
 required_closure_markers = [
     'PHASE1_STATUS=closed',
@@ -130,6 +131,13 @@ if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "empt
     missing_markers.append('manifest:find_bit.unit_test_anchor')
 if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps empty scans at 0 and boundary-start scans at nbits for set, zero, and AND entry points.':
     missing_markers.append('manifest:find_bit.unit_test_contract')
+
+exact_checksums = bench_expectations.get('exact_checksums', {})
+loose_checksums = bench_expectations.get('checksums', [])
+if exact_checksums.get('PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM') != 15621472:
+    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472')
+if 'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM' in loose_checksums:
+    missing_markers.append('bench:remove_loose_find_bit_checksum')
 
 if missing_markers:
     print('PHASE1_CLOSURE_VALIDATION=fail')
