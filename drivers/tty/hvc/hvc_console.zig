@@ -4,6 +4,7 @@ pub const max_nr_hvc_consoles: usize = 16;
 pub const outbuf_capacity: usize = 16;
 pub const removed_vtermno: u32 = std.math.maxInt(u32);
 pub const eagain: isize = -11;
+pub const close_wait_hz_divisor: usize = 100;
 
 pub const FlushIntent = enum {
     none,
@@ -26,6 +27,30 @@ pub const SlotSnapshot = struct {
     vtermno: u32,
     adapter_present: bool,
     usable_for_console: bool,
+};
+
+pub const CloseRequest = struct {
+    hung_up: bool = false,
+    port_initialized: bool = false,
+    open_count_before_close: usize = 1,
+};
+
+pub const CloseBoundarySnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    hung_up: bool,
+    close_skipped: bool,
+    port_initialized: bool,
+    open_count_before_close: usize,
+    open_count_after_close: usize,
+    final_close: bool,
+    close_wait_required: bool,
+    close_wait_hz_divisor: usize,
+    clears_port_initialized: bool,
+    keeps_console_binding: bool,
+    tty_registration_pending: bool,
 };
 
 pub const WriteSnapshot = struct {
@@ -83,6 +108,38 @@ pub const HvcConsoleLab = struct {
             .vtermno = self.vtermno,
             .adapter_present = self.adapter_present,
             .usable_for_console = self.adapter_present and self.vtermno != removed_vtermno,
+        };
+    }
+
+    pub fn summarizeCloseBoundary(self: *const Self, request: CloseRequest) !CloseBoundarySnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+        if (request.open_count_before_close == 0) return error.InvalidOpenCount;
+
+        const close_skipped = request.hung_up;
+        const open_count_after_close = if (close_skipped)
+            request.open_count_before_close
+        else
+            request.open_count_before_close - 1;
+        const final_close = !close_skipped and open_count_after_close == 0;
+        const close_wait_required = final_close and request.port_initialized;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = self.slot_index,
+            .vtermno = self.vtermno,
+            .adapter_present = self.adapter_present,
+            .hung_up = request.hung_up,
+            .close_skipped = close_skipped,
+            .port_initialized = request.port_initialized,
+            .open_count_before_close = request.open_count_before_close,
+            .open_count_after_close = open_count_after_close,
+            .final_close = final_close,
+            .close_wait_required = close_wait_required,
+            .close_wait_hz_divisor = close_wait_hz_divisor,
+            .clears_port_initialized = close_wait_required,
+            .keeps_console_binding = true,
+            .tty_registration_pending = true,
         };
     }
 

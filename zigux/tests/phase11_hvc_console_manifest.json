@@ -30,35 +30,35 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
-      "why_now": "The archival survey gate now verifies that the first bounded hvc_console starter has landed while keeping the remaining tty-registration and host-backed behavior gaps reviewable."
+      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state and close-boundary helper while keeping the remaining tty-registration and host-backed behavior gaps reviewable."
     },
     {
       "id": "phase11-hvc-console-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
-      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter while preserving an explicit checkpoint for the remaining tty and teardown parity work."
+      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter and the first setup-versus-close boundary helper while preserving an explicit checkpoint for the remaining tty and teardown parity work."
     },
     {
       "id": "phase11-hvc-console-driver-starter",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, and adapter-presence gating without claiming tty registration, khvcd polling, or live hypervisor I/O."
+      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, and final-close wait-boundary summaries without claiming tty registration, khvcd polling, or live hypervisor I/O."
     },
     {
       "id": "phase11-hvc-console-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, fatal-write drop behavior, and teardown gating without touching tty core integration."
+      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, hung-up close short-circuiting, and teardown gating without touching tty core integration."
     },
     {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
       "status": "blocked_on_kernel_integration",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "TTY driver registration, setup_hvc_console() close-wait boundaries, khvcd polling behavior, sysrq integration, and host-backed teardown parity should stay blocked until the lane adds one more probe-facing note and a kernel-integration validation matrix for those side effects."
+      "why_now": "TTY driver registration, setup_hvc_console() teardown parity, khvcd polling behavior, sysrq integration, and host-backed teardown checks should stay blocked until the lane adds a first kernel-integration validation matrix for those side effects."
     }
   ]
 }

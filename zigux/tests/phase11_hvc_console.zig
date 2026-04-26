@@ -21,6 +21,57 @@ test "phase11 hvc_console exposes the bounded descriptor and slot validation" {
     try std.testing.expectError(error.ConsoleUnavailable, console.stageWrite("boot\n", 5));
 }
 
+test "phase11 hvc_console summarizes final-close wait boundaries without claiming tty registration" {
+    var console = try hvc_console.HvcConsoleLab.init(2);
+    _ = console.instantiate(0x41);
+
+    const final_close = try console.summarizeCloseBoundary(.{
+        .port_initialized = true,
+        .open_count_before_close = 1,
+    });
+    try std.testing.expectEqual(@as(usize, 2), final_close.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x41), final_close.vtermno);
+    try std.testing.expect(final_close.final_close);
+    try std.testing.expect(final_close.close_wait_required);
+    try std.testing.expect(final_close.clears_port_initialized);
+    try std.testing.expect(final_close.keeps_console_binding);
+    try std.testing.expect(final_close.tty_registration_pending);
+    try std.testing.expectEqual(@as(usize, 0), final_close.open_count_after_close);
+    try std.testing.expectEqual(@as(usize, 100), final_close.close_wait_hz_divisor);
+
+    const non_final_close = try console.summarizeCloseBoundary(.{
+        .port_initialized = true,
+        .open_count_before_close = 2,
+    });
+    try std.testing.expect(!non_final_close.close_skipped);
+    try std.testing.expect(!non_final_close.final_close);
+    try std.testing.expect(!non_final_close.close_wait_required);
+    try std.testing.expect(!non_final_close.clears_port_initialized);
+    try std.testing.expectEqual(@as(usize, 1), non_final_close.open_count_after_close);
+
+    const uninitialized_close = try console.summarizeCloseBoundary(.{
+        .port_initialized = false,
+        .open_count_before_close = 1,
+    });
+    try std.testing.expect(uninitialized_close.final_close);
+    try std.testing.expect(!uninitialized_close.close_wait_required);
+    try std.testing.expect(!uninitialized_close.clears_port_initialized);
+
+    const hung_up_close = try console.summarizeCloseBoundary(.{
+        .hung_up = true,
+        .port_initialized = true,
+        .open_count_before_close = 1,
+    });
+    try std.testing.expect(hung_up_close.close_skipped);
+    try std.testing.expect(!hung_up_close.final_close);
+    try std.testing.expect(!hung_up_close.close_wait_required);
+    try std.testing.expectEqual(@as(usize, 1), hung_up_close.open_count_after_close);
+
+    try std.testing.expectError(error.InvalidOpenCount, console.summarizeCloseBoundary(.{
+        .open_count_before_close = 0,
+    }));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
