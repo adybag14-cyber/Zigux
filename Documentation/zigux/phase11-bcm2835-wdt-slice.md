@@ -9,8 +9,9 @@ The starter stays intentionally narrow:
 - mirrors the bounded `is_running`, `start`, `stop`, `get_timeleft`, and restart behavior through register-image transitions only
 - adds a tiny probe-time summary for bootloader-carried running status, watchdog-core timeout and nowayout initialization, restart priority, stop-on-reboot setup, watchdog parent linkage, and system-power-controller eligibility
 - adds a tiny registration-facing handoff summary for watchdog registration intent plus poweroff-handler claim-vs-conflict outcomes
+- adds a tiny remove-time ownership summary for clearing the shared poweroff handler only when the bcm2835 lane currently owns it
 - preserves the Raspberry Pi halt-partition state in the lab snapshot without claiming full poweroff plumbing
 
-This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, remove-time poweroff-handler release logic, or live poweroff integration yet.
+This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.
 
-The next honest bounded step inside the same Phase 11 lane is to add a tiny remove-time summary before any platform registration or poweroff-handler work.
+The next honest bounded step inside the same Phase 11 lane is to add a tiny hardware-validation matrix before any platform registration or poweroff-handler work.

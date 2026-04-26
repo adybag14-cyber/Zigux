@@ -62,6 +62,15 @@ pub const RegistrationSummary = struct {
     poweroff_handler_conflict: bool,
 };
 
+pub const RemoveSummary = struct {
+    anchor: []const u8,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_owned_by_driver: bool,
+    clear_poweroff_handler_requested: bool,
+    poweroff_handler_left_in_place: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -144,6 +153,25 @@ pub const Bcm2835WatchdogLab = struct {
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
             .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
+        };
+    }
+
+    pub fn removeSummary(
+        self: *const Self,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+        poweroff_handler_owned_by_driver: bool,
+    ) RemoveSummary {
+        _ = self;
+        const clear_poweroff_handler_requested =
+            system_power_controller and poweroff_handler_present and poweroff_handler_owned_by_driver;
+        return .{
+            .anchor = descriptor().anchor,
+            .system_power_controller = system_power_controller,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_owned_by_driver = poweroff_handler_owned_by_driver,
+            .clear_poweroff_handler_requested = clear_poweroff_handler_requested,
+            .poweroff_handler_left_in_place = poweroff_handler_present and !clear_poweroff_handler_requested,
         };
     }
 

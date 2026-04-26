@@ -35,7 +35,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest records the landed registration summary and remaining remove gap" {
+test "phase11 bcm2835_wdt survey manifest records the landed remove summary and remaining platform gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -54,7 +54,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed registration summar
     try std.testing.expectEqualStrings("P11-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("911ed30d6f76ddacb634887d1d740afc2145b729", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("994722771929e467dc5da31c0820cf26dfbb7c66", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -111,18 +111,21 @@ test "phase11 bcm2835_wdt survey manifest records the landed registration summar
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership outcomes") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-probe-summary")) {
@@ -144,8 +147,9 @@ test "phase11 bcm2835_wdt survey manifest records the landed registration summar
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-remove-summary")) {
             saw_remove_followup = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time summary") != null);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "currently owns it") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-platform-registration")) {
@@ -161,8 +165,8 @@ test "phase11 bcm2835_wdt survey manifest records the landed registration summar
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);

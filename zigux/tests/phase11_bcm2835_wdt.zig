@@ -143,3 +143,36 @@ test "phase11 bcm2835_wdt registration summary records watchdog registration and
     try std.testing.expect(!not_controller.poweroff_handler_claimed);
     try std.testing.expect(!not_controller.poweroff_handler_conflict);
 }
+
+test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const owned = watchdog.removeSummary(true, true, true);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", owned.anchor);
+    try std.testing.expect(owned.system_power_controller);
+    try std.testing.expect(owned.poweroff_handler_present);
+    try std.testing.expect(owned.poweroff_handler_owned_by_driver);
+    try std.testing.expect(owned.clear_poweroff_handler_requested);
+    try std.testing.expect(!owned.poweroff_handler_left_in_place);
+
+    const conflict = watchdog.removeSummary(true, true, false);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!conflict.clear_poweroff_handler_requested);
+    try std.testing.expect(conflict.poweroff_handler_left_in_place);
+
+    const not_controller = watchdog.removeSummary(false, true, true);
+    try std.testing.expect(!not_controller.system_power_controller);
+    try std.testing.expect(not_controller.poweroff_handler_present);
+    try std.testing.expect(not_controller.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!not_controller.clear_poweroff_handler_requested);
+    try std.testing.expect(not_controller.poweroff_handler_left_in_place);
+
+    const absent = watchdog.removeSummary(true, false, false);
+    try std.testing.expect(absent.system_power_controller);
+    try std.testing.expect(!absent.poweroff_handler_present);
+    try std.testing.expect(!absent.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!absent.clear_poweroff_handler_requested);
+    try std.testing.expect(!absent.poweroff_handler_left_in_place);
+}
