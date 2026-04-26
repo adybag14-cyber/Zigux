@@ -10,6 +10,7 @@ pub const ModuleDescriptor = struct {
     provides_lookup_policy: bool,
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
+    provides_directory_emit_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -78,6 +79,15 @@ pub const DirectorySeekPlan = struct {
     stays_in_dots_window: bool,
 };
 
+pub const DirectoryEmitPlan = struct {
+    anchor: []const u8,
+    new_pos: i64,
+    entered_positive_scan: bool,
+    emitted_any_entries: bool,
+    stays_in_dots_window: bool,
+    should_stop: bool,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -87,6 +97,7 @@ pub const LibFsHelperLab = struct {
             .provides_lookup_policy = true,
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
+            .provides_directory_emit_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -250,6 +261,36 @@ pub const LibFsHelperLab = struct {
             .changed = target != current_pos,
             .requires_positive_scan = false,
             .stays_in_dots_window = target <= 2,
+        };
+    }
+
+    pub fn dcacheReaddirEmitPlan(current_pos: i64, emit_dots_result: bool, emitted_entries: usize) !DirectoryEmitPlan {
+        if (current_pos < 0) {
+            return error.InvalidOffset;
+        }
+
+        if (current_pos < 2 and !emit_dots_result) {
+            return .{
+                .anchor = descriptor().anchor,
+                .new_pos = current_pos,
+                .entered_positive_scan = false,
+                .emitted_any_entries = false,
+                .stays_in_dots_window = true,
+                .should_stop = true,
+            };
+        }
+
+        const base_pos: i64 = if (current_pos < 2) 2 else current_pos;
+        const entry_advance: i64 = std.math.cast(i64, emitted_entries) orelse return error.PositionOutOfRange;
+        const new_pos = std.math.add(i64, base_pos, entry_advance) catch return error.PositionOutOfRange;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .new_pos = new_pos,
+            .entered_positive_scan = true,
+            .emitted_any_entries = emitted_entries != 0,
+            .stays_in_dots_window = new_pos <= 2,
+            .should_stop = emitted_entries == 0,
         };
     }
 };
