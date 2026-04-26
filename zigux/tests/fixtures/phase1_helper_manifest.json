@@ -26,6 +26,20 @@
         "bitmap.scnprintf_trunc"
       ],
       "summary": "Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot."
+    },
+    "tools/lib/find_bit.zig": {
+      "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+      "evidence_keys": [
+        "find_bit.first_and",
+        "find_bit.next_and",
+        "find_bit.tail_clamped_first",
+        "find_bit.tail_clamped_next",
+        "find_bit.tail_zero_clamped_first",
+        "find_bit.tail_zero_clamped_next",
+        "find_bit.tail_and_clamped_first",
+        "find_bit.tail_and_clamped_next"
+      ],
+      "summary": "Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond nbits."
     }
   }
 }
