@@ -93,6 +93,23 @@ pub const StopSummary = struct {
     disable_count: usize,
 };
 
+pub const RegistrationHandoffSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    start_mode: ProbeStartMode,
+    reaches_registration_running: bool,
+    reaches_registration_line_state: bool,
+    reaches_registration_line_is_output: bool,
+    stop_allowed_by_watchdog_core: bool,
+    pre_registration_stop_disposition: StopDisposition,
+    timeout_init_requested: bool,
+    stop_on_reboot: bool,
+    parent_attached: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -278,6 +295,31 @@ pub const GpioWatchdogLab = struct {
             .line_state = runtime.line_state,
             .line_is_output = runtime.line_is_output,
             .disable_count = runtime.disable_count,
+        };
+    }
+
+    pub fn registrationHandoffSummary(self: *const Self, nowayout: bool) RegistrationHandoffSummary {
+        const probe = self.probeSummary(nowayout);
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .requested_line = probe.requested_line,
+            .start_mode = probe.start_mode,
+            .reaches_registration_running = probe.pre_registration_running,
+            .reaches_registration_line_state = probe.pre_registration_line_state,
+            .reaches_registration_line_is_output = probe.pre_registration_line_is_output,
+            .stop_allowed_by_watchdog_core = !nowayout,
+            .pre_registration_stop_disposition = if (nowayout)
+                .blocked_by_nowayout
+            else if (self.always_running)
+                .kept_running
+            else
+                .stopped,
+            .timeout_init_requested = probe.timeout_init_requested,
+            .stop_on_reboot = probe.stop_on_reboot,
+            .parent_attached = probe.parent_attached,
         };
     }
 
