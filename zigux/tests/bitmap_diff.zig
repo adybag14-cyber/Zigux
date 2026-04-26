@@ -21,6 +21,15 @@ const DiffCase = struct {
     must_be_clear: []const u32,
 };
 
+const CopyCase = struct {
+    name: []const u8,
+    source_set_len: u32,
+    copy_nbits: u32,
+    expected_summary: SummaryExpectation,
+    must_be_set: []const u32,
+    must_be_clear: []const u32,
+};
+
 const BitmapHarness = struct {
     const Self = @This();
     const Word = usize;
@@ -152,6 +161,12 @@ const BitmapHarness = struct {
     }
 };
 
+fn expectSummary(summary: SummaryExpectation, expected: SummaryExpectation) !void {
+    try std.testing.expectEqual(expected.first_set, summary.first_set);
+    try std.testing.expectEqual(expected.first_zero, summary.first_zero);
+    try std.testing.expectEqual(expected.weight, summary.weight);
+}
+
 fn expectCase(case: DiffCase) !void {
     var bitmap = BitmapHarness{};
     try bitmap.initWithSetBits(case.init_bits);
@@ -164,16 +179,33 @@ fn expectCase(case: DiffCase) !void {
         try bitmap.clearRange(op.start, op.len);
     }
 
-    const summary = bitmap.summary();
-    try std.testing.expectEqual(case.expected_summary.first_set, summary.first_set);
-    try std.testing.expectEqual(case.expected_summary.first_zero, summary.first_zero);
-    try std.testing.expectEqual(case.expected_summary.weight, summary.weight);
+    try expectSummary(bitmap.summary(), case.expected_summary);
 
     for (case.must_be_set) |bit| {
         try std.testing.expect(bitmap.isSet(bit));
     }
     for (case.must_be_clear) |bit| {
         try std.testing.expect(!bitmap.isSet(bit));
+    }
+}
+
+fn expectCopyCase(case: CopyCase) !void {
+    var source = BitmapHarness{};
+    try source.initWithSetBits(&.{});
+    try source.setRange(0, case.source_set_len);
+
+    var destination = BitmapHarness{};
+    destination.fill();
+    try destination.copyFrom(&source, case.copy_nbits);
+    try std.testing.expect(case.name.len != 0);
+
+    try expectSummary(destination.summary(), case.expected_summary);
+
+    for (case.must_be_set) |bit| {
+        try std.testing.expect(destination.isSet(bit));
+    }
+    for (case.must_be_clear) |bit| {
+        try std.testing.expect(!destination.isSet(bit));
     }
 }
 
@@ -217,20 +249,39 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     }
 }
 
-test "bitmap diff gate keeps copy tail clearing explicit" {
-    var source = BitmapHarness{};
-    try source.initWithSetBits(&.{});
-    try source.setRange(0, 109);
+test "bitmap diff gate records exact bounded copy checks" {
+    const cases = [_]CopyCase{
+        .{
+            .name = "test_copy partial-word tail clearing at 109 bits",
+            .source_set_len = 109,
+            .copy_nbits = 109,
+            .expected_summary = .{ .first_set = 0, .first_zero = 109, .weight = 109 },
+            .must_be_set = &.{108},
+            .must_be_clear = &.{ 109, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
+            .name = "test_copy aligned tail clearing at 97 bits",
+            .source_set_len = 109,
+            .copy_nbits = 97,
+            .expected_summary = .{ .first_set = 0, .first_zero = 97, .weight = 97 },
+            .must_be_set = &.{96},
+            .must_be_clear = &.{ 97, 108, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
+            .name = "test_zero_nbits zero-length copy clears destination",
+            .source_set_len = 109,
+            .copy_nbits = 0,
+            .expected_summary = .{
+                .first_set = BitmapHarness.bitmap_nbits,
+                .first_zero = 0,
+                .weight = 0,
+            },
+            .must_be_set = &.{},
+            .must_be_clear = &.{ 0, 96, BitmapHarness.bitmap_nbits - 1 },
+        },
+    };
 
-    var destination = BitmapHarness{};
-    destination.fill();
-    try destination.copyFrom(&source, 109);
-
-    const summary = destination.summary();
-    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
-    try std.testing.expectEqual(@as(u32, 109), summary.first_zero);
-    try std.testing.expectEqual(@as(u32, 109), summary.weight);
-    try std.testing.expect(destination.isSet(108));
-    try std.testing.expect(!destination.isSet(109));
-    try std.testing.expect(!destination.isSet(BitmapHarness.bitmap_nbits - 1));
+    for (cases) |case| {
+        try expectCopyCase(case);
+    }
 }
