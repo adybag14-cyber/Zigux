@@ -9,6 +9,9 @@ const SurveySummary = struct {
     preexisting_virtio_ring_zig_present: bool,
     preexisting_virtio_ring_doc_present: bool,
     preexisting_virtio_ring_survey_present: bool,
+    preexisting_virtio_input_zig_present: bool,
+    preexisting_virtio_input_test_present: bool,
+    preexisting_virtio_input_survey_present: bool,
     preexisting_virtio_mmio_zig_present: bool,
 };
 
@@ -55,16 +58,19 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expectEqualStrings("P10-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("88c47b03d3052a84e5b6b895832a807a369c04c9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("05650d80892a38d40ecb19c733816e3b674f6f5f", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.gaps.len >= 9);
 
