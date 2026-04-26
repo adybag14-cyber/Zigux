@@ -52,5 +52,6 @@ test "phase 6 bsearch supports string keys against sorted records" {
 
     const found = bsearch.search([]const u8, Symbol, &@as([]const u8, "kmalloc"), symbols[0..], compareSymbolName) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(usize, 0x1400), found.address);
+    try std.testing.expectEqual(@intFromPtr(&symbols[2]), @intFromPtr(found));
     try std.testing.expect(bsearch.search([]const u8, Symbol, &@as([]const u8, "vfree"), symbols[0..], compareSymbolName) == null);
 }
