@@ -62,3 +62,7 @@ This slice does not yet claim:
 - arch-specific assembly fast paths
 - kbuild integration into the kernel proper
 - performance equivalence across all architectures
+
+## Next bounded step
+
+Decide whether the checksum helper now needs a tiny external parity fixture sourced from `lib/tests/checksum_kunit.c`, or whether the current fixture-backed compute, composition, and pseudo-header coverage is already sufficient to park this Phase 6 leaf-helper lane.
