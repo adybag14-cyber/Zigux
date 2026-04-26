@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L09",
   "phase": "Phase 13",
-  "surveyed_commit": "bfd60deac35454b9f28ef8ad0b435d41f44f4108",
+  "surveyed_commit": "a957197f5bc4f965fa792b64a090a5330f45b770",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
@@ -70,10 +70,17 @@
     },
     {
       "id": "phase13-landlock-tree-search-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now adds a small planner for `insert_rule()` tree-search outcomes around `get_root()`, `walker_node`, and the no-match insertion-count branch, keeping the root choice and descent decisions explicit without mutating rb-trees."
+    },
+    {
+      "id": "phase13-landlock-tree-link-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next honest ruleset step is a small planner for `insert_rule()` tree-search outcomes around `get_root()`, `walker_node`, and the no-match insertion-count branch before any rb-tree storage, hierarchy lifetime, or live LSM state is attempted."
+      "why_now": "The next honest ruleset step is a tiny in-memory planner for the no-match insertion branch around `rb_link_node()` and `rb_insert_color()` after the tree-search outcome is known, still before object ownership, hierarchy lifetime, or live LSM state is attempted."
     }
   ]
 }
