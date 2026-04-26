@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/rcu/tree.c
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
-- survey provenance captured against verified `master` head `f05e02445443e7743c3675a6f8ca4f70f6e736fb`
+- survey provenance captured against verified `master` head `938667204613903ee75fa1e9e3575c0a0948275f`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_rcu_tree_manifest.json`
@@ -30,7 +30,7 @@ The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.
 - `kernel/rcu/update.c` remains a nearby consumer of the same RCU state machine, which makes a one-file bridge story misleading.
 - `Documentation/RCU/Design/Requirements/Requirements.rst` and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` reinforce that Tree RCU correctness depends on ordering and quiescent-state guarantees, not only on symbol cataloging.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, the workqueue bridge lane, the ring-buffer survey lane, and the skbuff bridge lane, so the highest-value non-overlapping RCU step is a survey package that records why the roadmap destination remains blocked.
-- the survey manifest now records a landed freeze-boundary checklist around grace-period sequence publication, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, and the quiescent-state propagation path that climbs the `rcu_node` hierarchy while also accelerating callbacks.
+- the survey manifest now records a landed freeze-boundary checklist around grace-period sequence publication, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, the quiescent-state propagation path that climbs the `rcu_node` hierarchy while also accelerating callbacks, and the callback enqueue-plus-batch path that routes through per-CPU callback lists before invocation.
 
 ## Decision checklist
 
@@ -39,6 +39,7 @@ The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.
 - `expedited-funnel-and-stall-path`: keep `sync_rcu_exp_select_cpus()`, `synchronize_rcu_expedited_wait_once()`, and `rcu_exp_gp_seq_end()` in C because CPU selection, IPI forcing, timeout handling, and sequence serialization still move together.
 - `nocb-offload-wakeup-handoff`: keep `rcu_nocb_bypass_lock()`, `wake_nocb_gp_defer()`, and `do_nocb_deferred_wakeup()` in C because bypass pressure, kthread wakeups, and deferred GP signaling are still part of the same offload state machine.
 - `quiescent-state-propagation-and-callback-acceleration`: keep `rcu_report_qs_rnp()`, `note_gp_changes()`, and `rcu_accelerate_cbs()` in C because quiescent-state reporting still walks the locked `rcu_node` tree, `note_gp_changes()` still folds GP transitions into per-CPU callback state, and callback acceleration still depends on segmented callback lists plus offload state.
+- `callback-enqueue-and-batch-invocation`: keep `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` in C because callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded callback invocation.
 
 ## Quiescent-state follow-up
 
@@ -49,6 +50,16 @@ This run closes the previously recorded quiescent-state follow-up without changi
 - `rcu_accelerate_cbs()` sits directly on the callback segmentation path, so even this seemingly smaller helper seam still depends on the active grace-period sequence, segmented callback lists, and offload behavior rather than a narrow data-only contract.
 
 The net result is still survey-only: quiescent-state propagation and callback acceleration are now explicitly documented as stay-in-C behavior, not as a new opening for `kernel/rcu/tree_bridge.zig`.
+
+## Callback enqueue and batch follow-up
+
+This run closes the previously recorded callback enqueue follow-up without changing the underlying freeze decision.
+
+- `__call_rcu_common()` is not just a thin callback wrapper. It validates the callback head, records debug state, chooses lazy versus hurry behavior, checks per-CPU overload, and then routes either into `call_rcu_nocb()` for offloaded CPUs or into the regular per-CPU path.
+- `call_rcu_core()` is where enqueue pressure starts influencing grace-period behavior. After `rcutree_enqueue()` it can force the core awake from an extended quiescent state, fold in fresh grace-period state with `note_gp_changes()`, accelerate callbacks for a new grace period, or kick force-quiescent-state processing when queue depth crosses the live threshold.
+- `rcu_do_batch()` is also still deeply coupled. It extracts ready callbacks under the NOCB lock, relies on the ordering established by prior grace-period publication, enforces batch and time limits, invokes callbacks directly, and then requeues leftovers while updating overload and force-QS bookkeeping.
+
+The net result is still survey-only: callback enqueue, grace-period kick decisions, and callback invocation remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
 ## Recorded gaps
 
@@ -61,7 +72,8 @@ The current lane state is:
 - landed `phase14-rcu-tree-survey-note`
 - landed `phase14-rcu-tree-boundary-decision-checklist`
 - landed `phase14-rcu-tree-quiescent-state-followup`
-- ready-next `phase14-rcu-tree-callback-enqueue-followup`
+- landed `phase14-rcu-tree-callback-enqueue-followup`
+- ready-next `phase14-rcu-tree-callback-offload-followup`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/rcu/tree.c` remains in the freeze set for now, and that the repo still does not ship `kernel/rcu/tree_bridge.zig`.
@@ -75,7 +87,7 @@ This survey slice does not claim:
 - expedited-GP CPU selection, IPI, or stall handling parity
 - NOCB bypass, wakeup, or callback-offload ownership
 - quiescent-state propagation parity
-- callback acceleration or callback invocation ownership
+- callback acceleration, callback invocation, or callback offload ownership
 
 ## Gates
 
@@ -87,4 +99,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 RCU tree lane and add one small survey-only audit next, limited to `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` so callback enqueue and batch invocation stay explicitly in C without turning the roadmap's `kernel/rcu/tree_bridge.zig` destination into implied active delivery.
+Stay in the Phase 14 RCU tree lane and add one small survey-only audit next, limited to `call_rcu_nocb()`, `nocb_gp_wait()`, and `rcu_nocb_flush_deferred_wakeup()` so offloaded callback enqueue and wakeup behavior stay explicitly in C without turning the roadmap's `kernel/rcu/tree_bridge.zig` destination into implied active delivery.
