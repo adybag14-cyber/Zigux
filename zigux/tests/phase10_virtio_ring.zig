@@ -155,3 +155,41 @@ test "phase10 virtio ring re-enables callbacks and reports whether polling is st
     try std.testing.expectEqual(@as(u16, 0), enable_summary.pending_used_chain_count);
     try std.testing.expect(!enable_summary.should_poll);
 }
+
+test "phase10 virtio ring delays callbacks until most outstanding buffers are consumed" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(7, 8, .split, true, false);
+
+    try ring.disableCallback(7);
+    try ring.publishDescriptorChain(7);
+    try ring.publishDescriptorChain(7);
+    try ring.publishDescriptorChain(7);
+    try ring.publishDescriptorChain(7);
+    try ring.recordUsedChains(7, 1);
+
+    var delayed_summary = try ring.enableCallbackDelayed(7);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", delayed_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 7), delayed_summary.queue_index);
+    try std.testing.expect(delayed_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), delayed_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 3), delayed_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), delayed_summary.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 3), delayed_summary.delayed_event_target_idx);
+    try std.testing.expectEqual(@as(u16, 1), delayed_summary.pending_used_chain_count);
+    try std.testing.expect(!delayed_summary.should_poll);
+
+    _ = try ring.pollUsedBuffers(7);
+    try ring.disableCallback(7);
+    try ring.recordUsedChains(7, 3);
+
+    delayed_summary = try ring.enableCallbackDelayed(7);
+    try std.testing.expect(delayed_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 4), delayed_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), delayed_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), delayed_summary.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 4), delayed_summary.delayed_event_target_idx);
+    try std.testing.expectEqual(@as(u16, 3), delayed_summary.pending_used_chain_count);
+    try std.testing.expect(delayed_summary.should_poll);
+}
