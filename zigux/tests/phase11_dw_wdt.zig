@@ -42,6 +42,36 @@ test "phase11 dw_wdt exposes the fixed-top timeout matrix in ascending order" {
     }
 }
 
+test "phase11 dw_wdt probe summary reports fixed versus custom top sourcing" {
+    const custom_tops = [_]u32{
+        20_000, 4_000,  8_000,  12_000,
+        16_000, 24_000, 28_000, 32_000,
+        36_000, 40_000, 44_000, 48_000,
+        52_000, 56_000, 60_000, 64_000,
+    };
+
+    var watchdog = try dw_wdt.DwWdtLab.initCustomTops(1_000, true, custom_tops);
+    const windows = watchdog.timeoutWindows();
+    try std.testing.expectEqual(@as(u32, 1), windows[0].top_val);
+    try std.testing.expectEqual(@as(u32, 4), windows[0].sec);
+    try std.testing.expectEqual(@as(u32, 15), windows[15].top_val);
+    try std.testing.expectEqual(@as(u32, 64), windows[15].sec);
+
+    const probe = try watchdog.probeSummary(.{
+        .nowayout = true,
+        .requested_timeout_sec = 11,
+    });
+    try std.testing.expectEqual(dw_wdt.TopSource.custom, probe.top_source);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.default_selection, probe.timeout_origin);
+    try std.testing.expect(!probe.already_running);
+    try std.testing.expect(!probe.hardware_running);
+    try std.testing.expect(probe.nowayout);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, probe.restart_priority);
+    try std.testing.expect(probe.stop_on_reboot);
+    try std.testing.expect(probe.can_stop);
+    try std.testing.expectEqual(@as(u32, 12), probe.timeout_sec);
+}
+
 test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" {
     var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     const config = try watchdog.setTimeout(9);
@@ -96,6 +126,31 @@ test "phase11 dw_wdt loadRegisters re-derives imported running state from hardwa
     try std.testing.expectEqual(@as(u32, 16), runtime.timeout_sec);
     try std.testing.expectEqual(@as(u32, 8), runtime.pretimeout_sec);
     try std.testing.expectEqual(@as(u32, 10), runtime.time_left_sec);
+}
+
+test "phase11 dw_wdt probe summary records imported running state and restart bookkeeping" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+
+    const probe = try watchdog.probeSummary(.{
+        .nowayout = false,
+        .restart_priority = dw_wdt.default_restart_priority,
+    });
+    try std.testing.expectEqual(dw_wdt.TopSource.fixed, probe.top_source);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.imported_running_state, probe.timeout_origin);
+    try std.testing.expect(probe.already_running);
+    try std.testing.expect(probe.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, probe.response_mode);
+    try std.testing.expectEqual(@as(u32, 16), probe.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), probe.pretimeout_sec);
+    try std.testing.expect(!probe.nowayout);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, probe.restart_priority);
+    try std.testing.expect(probe.stop_on_reboot);
+    try std.testing.expect(!probe.can_stop);
 }
 
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
