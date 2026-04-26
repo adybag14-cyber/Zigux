@@ -7,6 +7,7 @@ pub const pm_rstc_wrcfg_clr: u32 = 0xffff_ffcf;
 pub const pm_rstc_wrcfg_full_reset: u32 = 0x0000_0020;
 pub const pm_rstc_reset: u32 = 0x0000_0102;
 pub const restart_ticks: u32 = 10;
+pub const restart_priority: u32 = 128;
 pub const min_timeout_sec: u32 = 1;
 pub const max_timeout_sec: u32 = pm_wdog_time_set >> 16;
 pub const max_hw_heartbeat_ms: u32 = ticksToMilliseconds(pm_wdog_time_set);
@@ -30,6 +31,22 @@ pub const ConfigSnapshot = struct {
     timeout_sec: u32,
     max_timeout_sec: u32,
     max_hw_heartbeat_ms: u32,
+};
+
+pub const ProbeSummary = struct {
+    anchor: []const u8,
+    timeout_sec: u32,
+    max_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+    nowayout: bool,
+    bootloader_running: bool,
+    framework_marks_hw_running: bool,
+    framework_ping_expected: bool,
+    heartbeat_init_requested: bool,
+    parent_attached: bool,
+    stop_on_reboot: bool,
+    restart_priority: u32,
+    system_power_controller: bool,
 };
 
 pub const RuntimeSnapshot = struct {
@@ -70,6 +87,29 @@ pub const Bcm2835WatchdogLab = struct {
             .timeout_sec = self.timeout_sec,
             .max_timeout_sec = max_timeout_sec,
             .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
+        };
+    }
+
+    pub fn probeSummary(
+        self: *const Self,
+        bootloader_running: bool,
+        nowayout: bool,
+        system_power_controller: bool,
+    ) ProbeSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .timeout_sec = self.timeout_sec,
+            .max_timeout_sec = max_timeout_sec,
+            .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
+            .nowayout = nowayout,
+            .bootloader_running = bootloader_running,
+            .framework_marks_hw_running = bootloader_running,
+            .framework_ping_expected = bootloader_running,
+            .heartbeat_init_requested = true,
+            .parent_attached = true,
+            .stop_on_reboot = true,
+            .restart_priority = restart_priority,
+            .system_power_controller = system_power_controller,
         };
     }
 
