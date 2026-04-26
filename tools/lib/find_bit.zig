@@ -47,108 +47,82 @@ fn bitIndex(idx: usize, value: Word, nbits: usize) usize {
     return if (bit < nbits) bit else nbits;
 }
 
-pub fn findFirstBit(addr: []const Word, nbits: usize) usize {
-    assertBitmapLen(addr, nbits);
+const ScanKind = enum {
+    set,
+    and_bits,
+    zero,
+};
+
+fn scanWord(comptime kind: ScanKind, idx: usize, addr1: []const Word, addr2: ?[]const Word) Word {
+    return switch (kind) {
+        .set => addr1[idx],
+        .and_bits => addr1[idx] & addr2.?[idx],
+        .zero => ~addr1[idx],
+    };
+}
+
+fn findFirstImpl(comptime kind: ScanKind, addr1: []const Word, addr2: ?[]const Word, nbits: usize) usize {
+    assertBitmapLen(addr1, nbits);
+    if (kind == .and_bits) {
+        assertBitmapLen(addr2.?, nbits);
+    }
 
     var idx: usize = 0;
     while (idx * bits_per_long < nbits) : (idx += 1) {
-        const value = maskWordInRange(idx, addr[idx], nbits);
+        const value = maskWordInRange(idx, scanWord(kind, idx, addr1, addr2), nbits);
         if (value != 0) {
             return bitIndex(idx, value, nbits);
         }
     }
 
     return nbits;
+}
+
+fn findNextImpl(comptime kind: ScanKind, addr1: []const Word, addr2: ?[]const Word, nbits: usize, start: usize) usize {
+    assertBitmapLen(addr1, nbits);
+    if (kind == .and_bits) {
+        assertBitmapLen(addr2.?, nbits);
+    }
+    if (start >= nbits) {
+        return nbits;
+    }
+
+    var idx = start / bits_per_long;
+    var value = maskWordInRange(idx, scanWord(kind, idx, addr1, addr2), nbits) & firstWordMask(start);
+
+    while (value == 0) {
+        idx += 1;
+        if (idx * bits_per_long >= nbits) {
+            return nbits;
+        }
+        value = maskWordInRange(idx, scanWord(kind, idx, addr1, addr2), nbits);
+    }
+
+    return bitIndex(idx, value, nbits);
+}
+
+pub fn findFirstBit(addr: []const Word, nbits: usize) usize {
+    return findFirstImpl(.set, addr, null, nbits);
 }
 
 pub fn findFirstAndBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
-    assertBitmapLen(addr1, nbits);
-    assertBitmapLen(addr2, nbits);
-
-    var idx: usize = 0;
-    while (idx * bits_per_long < nbits) : (idx += 1) {
-        const value = maskWordInRange(idx, addr1[idx] & addr2[idx], nbits);
-        if (value != 0) {
-            return bitIndex(idx, value, nbits);
-        }
-    }
-
-    return nbits;
+    return findFirstImpl(.and_bits, addr1, addr2, nbits);
 }
 
 pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {
-    assertBitmapLen(addr, nbits);
-
-    var idx: usize = 0;
-    while (idx * bits_per_long < nbits) : (idx += 1) {
-        const value = maskWordInRange(idx, ~addr[idx], nbits);
-        if (value != 0) {
-            return bitIndex(idx, value, nbits);
-        }
-    }
-
-    return nbits;
+    return findFirstImpl(.zero, addr, null, nbits);
 }
 
 pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
-    assertBitmapLen(addr, nbits);
-    if (start >= nbits) {
-        return nbits;
-    }
-
-    var idx = start / bits_per_long;
-    var value = maskWordInRange(idx, addr[idx], nbits) & firstWordMask(start);
-
-    while (value == 0) {
-        idx += 1;
-        if (idx * bits_per_long >= nbits) {
-            return nbits;
-        }
-        value = maskWordInRange(idx, addr[idx], nbits);
-    }
-
-    return bitIndex(idx, value, nbits);
+    return findNextImpl(.set, addr, null, nbits, start);
 }
 
 pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
-    assertBitmapLen(addr1, nbits);
-    assertBitmapLen(addr2, nbits);
-    if (start >= nbits) {
-        return nbits;
-    }
-
-    var idx = start / bits_per_long;
-    var value = maskWordInRange(idx, addr1[idx] & addr2[idx], nbits) & firstWordMask(start);
-
-    while (value == 0) {
-        idx += 1;
-        if (idx * bits_per_long >= nbits) {
-            return nbits;
-        }
-        value = maskWordInRange(idx, addr1[idx] & addr2[idx], nbits);
-    }
-
-    return bitIndex(idx, value, nbits);
+    return findNextImpl(.and_bits, addr1, addr2, nbits, start);
 }
 
 pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
-    assertBitmapLen(addr, nbits);
-    if (start >= nbits) {
-        return nbits;
-    }
-
-    var idx = start / bits_per_long;
-    var value = maskWordInRange(idx, ~addr[idx], nbits) & firstWordMask(start);
-
-    while (value == 0) {
-        idx += 1;
-        if (idx * bits_per_long >= nbits) {
-            return nbits;
-        }
-        value = maskWordInRange(idx, ~addr[idx], nbits);
-    }
-
-    return bitIndex(idx, value, nbits);
+    return findNextImpl(.zero, addr, null, nbits, start);
 }
 
 test "find first and next set bits across words" {
@@ -210,4 +184,21 @@ test "tail mask keeps the in-range shared bit for and scans" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 3), findFirstAndBit(&lhs, &rhs, nbits));
     try std.testing.expectEqual(@as(usize, bits_per_long + 3), findNextAndBit(&lhs, &rhs, nbits, bits_per_long));
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4));
+}
+
+test "empty and boundary scans return nbits" {
+    const empty = [_]Word{};
+    try std.testing.expectEqual(@as(usize, 0), findFirstBit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstAndBit(&empty, &empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstZeroBit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), findNextBit(&empty, 0, 0));
+    try std.testing.expectEqual(@as(usize, 0), findNextAndBit(&empty, &empty, 0, 0));
+    try std.testing.expectEqual(@as(usize, 0), findNextZeroBit(&empty, 0, 0));
+
+    const bitmap = [_]Word{ (@as(Word, 1) << 5) | (@as(Word, 1) << 9), @as(Word, 1) << 2 };
+    try std.testing.expectEqual(@as(usize, 5), findNextBit(&bitmap, bits_per_long * 2, 5));
+    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&bitmap, &bitmap, bits_per_long * 2, 9));
+    try std.testing.expectEqual(@as(usize, bits_per_long * 2), findNextBit(&bitmap, bits_per_long * 2, bits_per_long * 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long * 2), findNextAndBit(&bitmap, &bitmap, bits_per_long * 2, bits_per_long * 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long * 2), findNextZeroBit(&[_]Word{ ~@as(Word, 0), ~@as(Word, 0) }, bits_per_long * 2, bits_per_long * 2));
 }
