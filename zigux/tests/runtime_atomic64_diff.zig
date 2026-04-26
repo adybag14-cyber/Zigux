@@ -17,6 +17,16 @@ const CompareSwapCase = struct {
     stored: bool,
 };
 
+const AddUnlessCase = struct {
+    name: []const u8,
+    seed: i64,
+    addend: i64,
+    unless_value: i64,
+    previous: i64,
+    final: i64,
+    changed: bool,
+};
+
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -40,7 +50,17 @@ fn expectCompareSwapCase(case: CompareSwapCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange and cmpxchg expectations" {
+fn expectAddUnlessCase(case: AddUnlessCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.addUnlessCounter(case.addend, case.unless_value);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.changed, result.changed);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, and add_unless expectations" {
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
@@ -86,6 +106,31 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange and cm
 
     for (compare_swap_cases) |case| {
         try expectCompareSwapCase(case);
+    }
+
+    const add_unless_cases = [_]AddUnlessCase{
+        .{
+            .name = "add_unless leaves the counter untouched when it already matches the blocked value",
+            .seed = 0x2aaa_3137_4001_500d,
+            .addend = 1,
+            .unless_value = 0x2aaa_3137_4001_500d,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = 0x2aaa_3137_4001_500d,
+            .changed = false,
+        },
+        .{
+            .name = "add_unless applies the addend when the current value differs from the blocked value",
+            .seed = 0x2aaa_3137_4001_500d,
+            .addend = 1,
+            .unless_value = -0x2152_4110_2150_3502,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = 0x2aaa_3137_4001_500e,
+            .changed = true,
+        },
+    };
+
+    for (add_unless_cases) |case| {
+        try expectAddUnlessCase(case);
     }
 }
 
