@@ -9,6 +9,7 @@ on:
       - 'Documentation/zigux/**'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
+      - 'tools/lib/**/*.zig'
       - 'zigux/**'
       - 'include/linux/zigux.h'
       - 'include/zigux/**'
@@ -20,6 +21,7 @@ on:
       - 'Documentation/zigux/**'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
+      - 'tools/lib/**/*.zig'
       - 'zigux/**'
       - 'include/linux/zigux.h'
       - 'include/zigux/**'
@@ -154,6 +156,9 @@ jobs:
 
       - name: Run Phase 7 runtime helper tests
         run: zig build test --build-file zigux/tests/phase7_build.zig --summary all
+
+      - name: Run Phase 8 tooling tests
+        run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
   phase2-cross:
     runs-on: ubuntu-latest
