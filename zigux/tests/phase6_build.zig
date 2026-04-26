@@ -63,12 +63,18 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const hexdump_vectors_module = b.createModule(.{
+        .root_source_file = b.path("fixtures/phase6_hexdump_vectors.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const hexdump_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_hexdump.zig"),
         .target = target,
         .optimize = optimize,
     });
     hexdump_root_module.addImport("hexdump", hexdump_module);
+    hexdump_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
 
     const hexdump_tests = b.addTest(.{
         .name = "phase6-hexdump-tests",
