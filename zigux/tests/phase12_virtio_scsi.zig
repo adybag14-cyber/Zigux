@@ -128,3 +128,44 @@ test "phase12 virtio scsi keeps one default queue and rejects missing layouts" {
 
     try std.testing.expectError(error.RequestQueueIndexOutOfRange, lab.requestQueue(1));
 }
+
+test "phase12 virtio scsi probe snapshot refreshes queue layout for later queue lookups" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.captureProbeSnapshot(.{
+        .config_num_queues = 6,
+        .config_seg_max = 32,
+        .config_cmd_per_lun = 8,
+        .config_max_target = 3,
+        .config_max_lun = 7,
+        .config_max_sectors = 256,
+        .cpu_queue_limit = 6,
+        .blk_mq_queue_limit = 6,
+        .requested_poll_queues = 2,
+    });
+
+    const first_layout_queue = try lab.requestQueue(4);
+    try std.testing.expectEqual(@as(u16, 6), first_layout_queue.global_index);
+    try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, first_layout_queue.kind);
+
+    const refreshed = try lab.captureProbeSnapshot(.{
+        .config_num_queues = 2,
+        .config_seg_max = 64,
+        .config_cmd_per_lun = 16,
+        .config_max_target = 1,
+        .config_max_lun = 3,
+        .config_max_sectors = 128,
+        .cpu_queue_limit = 2,
+        .blk_mq_queue_limit = 4,
+        .requested_poll_queues = 1,
+    });
+
+    try std.testing.expectEqual(@as(u16, 2), refreshed.request_queues);
+    try std.testing.expectEqual(@as(u16, 1), refreshed.layout.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), refreshed.layout.poll_queues);
+    try std.testing.expectEqual(@as(?u16, 3), refreshed.layout.first_poll_queue_index);
+
+    const refreshed_queue = try lab.requestQueue(1);
+    try std.testing.expectEqual(@as(u16, 3), refreshed_queue.global_index);
+    try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, refreshed_queue.kind);
+    try std.testing.expectError(error.RequestQueueIndexOutOfRange, lab.requestQueue(2));
+}
