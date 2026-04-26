@@ -5,7 +5,7 @@ test "phase 8 help module imports cleanly" {
     _ = help;
 }
 
-test "phase 8 help starter slice covers command-list ownership, filtering, exclusion, and layout planning" {
+test "phase 8 help starter slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning" {
     var main_cmds = help.CmdNames.init(std.testing.allocator);
     defer main_cmds.deinit();
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
@@ -38,13 +38,35 @@ test "phase 8 help starter slice covers command-list ownership, filtering, exclu
     try std.testing.expectEqual(@as(usize, 3), narrow_layout.rows);
     try std.testing.expectEqual(@as(usize, 9), narrow_layout.spacing);
 
+    const terminal = help.resolveTerminalDimensions("31", "37", .{
+        .rows = 20,
+        .cols = 60,
+    });
+    try std.testing.expectEqual(@as(usize, 31), terminal.rows);
+    try std.testing.expectEqual(@as(usize, 37), terminal.cols);
+
+    const fallback_terminal = help.resolveTerminalDimensions("31", null, .{
+        .rows = 20,
+        .cols = 60,
+    });
+    try std.testing.expectEqual(@as(usize, 20), fallback_terminal.rows);
+    try std.testing.expectEqual(@as(usize, 60), fallback_terminal.cols);
+
+    const env_layout = help.planPrettyPrintForTerminal(7, 8, "31", "37", .{
+        .rows = 24,
+        .cols = 80,
+    });
+    try std.testing.expectEqual(@as(usize, 4), env_layout.cols);
+    try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
+    try std.testing.expectEqual(@as(usize, 9), env_layout.spacing);
+
     const empty_layout = help.planPrettyPrint(0, 8, 41);
     try std.testing.expectEqual(@as(usize, 1), empty_layout.cols);
     try std.testing.expectEqual(@as(usize, 0), empty_layout.rows);
     try std.testing.expectEqual(@as(usize, 9), empty_layout.spacing);
 }
 
-test "phase 8 help command-source layer models load_command_list without directory I/O" {
+test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice" {
     const FixtureDir = struct {
         path: []const u8,
         entries: []const help.DirectoryEntry,
@@ -102,4 +124,11 @@ test "phase 8 help command-source layer models load_command_list without directo
     try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+
+    const fallback_terminal = help.resolveTerminalDimensions("0", "120", .{
+        .rows = 22,
+        .cols = 66,
+    });
+    try std.testing.expectEqual(@as(usize, 22), fallback_terminal.rows);
+    try std.testing.expectEqual(@as(usize, 66), fallback_terminal.cols);
 }
