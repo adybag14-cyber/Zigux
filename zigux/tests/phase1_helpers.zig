@@ -44,6 +44,8 @@ const Fixture = struct {
         andnot_values: []const u64,
         or_values: []const u64,
         xor_values: []const u64,
+        partial_xor_nbits: usize,
+        partial_xor_masked_values: []const u64,
         equal: bool,
         intersects: bool,
         subset: bool,
@@ -141,7 +143,9 @@ const Fixture = struct {
 };
 
 fn loadFixture(allocator: std.mem.Allocator) !std.json.Parsed(Fixture) {
-    return std.json.parseFromSlice(Fixture, allocator, @embedFile("fixtures/phase1_helpers.json"), .{});
+    return std.json.parseFromSlice(Fixture, allocator, @embedFile("fixtures/phase1_helpers.json"), .{
+        .ignore_unknown_fields = true,
+    });
 }
 
 fn expectWordSlice(actual: []const bitmap.Word, expected: []const u64) !void {
@@ -199,6 +203,17 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.find_bit.tail_and_clamped_first, find_bit.findFirstAndBit(&find_tail, &find_tail, find_tail_nbits));
     try std.testing.expectEqual(fixture.find_bit.tail_and_clamped_next, find_bit.findNextAndBit(&find_tail, &find_tail, find_tail_nbits, fixture.find_bit.bits_per_long));
 
+    var find_tail_window = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9) };
+    try std.testing.expectEqual(fixture.find_bit.bits_per_long + 3, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
+    try std.testing.expectEqual(find_tail_nbits, find_bit.findNextBit(&find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4));
+    find_tail_window[1] &= ~(@as(find_bit.Word, 1) << 3);
+    try std.testing.expectEqual(find_tail_nbits, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
+
+    var find_tail_zero_window = find_tail_full;
+    find_tail_zero_window[1] &= ~(@as(find_bit.Word, 1) << 2);
+    try std.testing.expectEqual(fixture.find_bit.bits_per_long + 2, find_bit.findFirstZeroBit(&find_tail_zero_window, find_tail_nbits));
+    try std.testing.expectEqual(fixture.find_bit.bits_per_long + 2, find_bit.findNextZeroBit(&find_tail_zero_window, find_tail_nbits, fixture.find_bit.bits_per_long));
+
     const bitmap_lhs = [_]bitmap.Word{ 0x0e, 0 };
     const bitmap_rhs = [_]bitmap.Word{ 0x0a, 0 };
     var bitmap_dst = [_]bitmap.Word{ 0, 0 };
@@ -211,6 +226,14 @@ test "phase 1 helper ports match committed parity fixture" {
     try expectWordSlice(&bitmap_dst, fixture.bitmap.or_values);
     bitmap.xorBits(&bitmap_dst, &bitmap_lhs, &bitmap_rhs, 8);
     try expectWordSlice(&bitmap_dst, fixture.bitmap.xor_values);
+    const partial_bitmap_lhs = [_]bitmap.Word{0x1f};
+    const partial_bitmap_rhs = [_]bitmap.Word{0x11};
+    var partial_bitmap_dst = [_]bitmap.Word{0};
+    bitmap.xorBits(&partial_bitmap_dst, &partial_bitmap_lhs, &partial_bitmap_rhs, fixture.bitmap.partial_xor_nbits);
+    try expectWordSlice(
+        &[_]bitmap.Word{partial_bitmap_dst[0] & bitmap.lastWordMask(fixture.bitmap.partial_xor_nbits)},
+        fixture.bitmap.partial_xor_masked_values,
+    );
     try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&bitmap_lhs, &[_]bitmap.Word{ 0x0e, 0 }, 8));
     try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&bitmap_lhs, &bitmap_rhs, 8));
     try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&bitmap_rhs, &bitmap_lhs, 8));
