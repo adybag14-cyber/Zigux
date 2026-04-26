@@ -1,7 +1,7 @@
 {
-  "lane_key": "P14-L10",
+  "lane_key": "P14-L11",
   "phase": "Phase 14",
-  "surveyed_commit": "51caa0c7d495360d2ad6524ca64bd99958caa902",
+  "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
   "anchor": "net/core/skbuff.c",
   "roadmap_destinations": [
     "net/core/skbuff_bridge.zig",
@@ -89,10 +89,17 @@
     },
     {
       "id": "phase14-skbuff-segmentation-tail-owner-followup",
+      "status": "starter_landed",
+      "kind": "lifetime_audit",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The bridge now records the smaller skb_segment() partial-seg metadata rewrite and tail-owner transfer around SKB_GSO_PARTIAL, SKB_GSO_DODGY, SKB_GSO_CB(iter)->data_offset, and sock_wfree so the lane names the remaining backpressure handoff without widening into live packet lifetime control."
+    },
+    {
+      "id": "phase14-skbuff-segmentation-csum-data-offset-followup",
       "status": "ready_next",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff step is a smaller follow-up on skb_segment() partial-seg metadata and tail-owner transfer around SKB_GSO_PARTIAL, SKB_GSO_DODGY, SKB_GSO_CB(iter)->data_offset, and sock_wfree so the lane can name the remaining tail-ownership handoff without widening into live packet lifetime control."
+      "why_now": "The next honest skbuff step is a smaller checksum crossover follow-up on skb_segment(), limited to SKB_GSO_CB(nskb)->csum, SKB_GSO_CB(nskb)->csum_start, SKB_GSO_CB(iter)->data_offset, and remcsum_offload so the lane can name the remaining checksum-to-data-offset coupling without widening into live packet lifetime control."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
