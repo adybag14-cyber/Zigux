@@ -27,9 +27,9 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 
 - `security/landlock/syscalls.c` is present on `master` and spans multiple user-facing and kernel-facing boundaries at once: ABI structure sizing, query-only create-ruleset calls, ruleset file-descriptor creation, rule import, and restrict-self credential updates.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local syscall helper without widening into kernel build integration.
-- the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation, and the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation.
-- the helper still does not claim anonymous inode creation, FD ownership, path-backed rule import, `get_ruleset_from_fd()`, `prepare_creds()`, thread synchronization, or live domain merges.
-- the next honest syscall-facing step is one small planner around `get_ruleset_from_fd()` type and access-mode checks, still in-memory and still outside real path or credential handling.
+- the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation, the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation, and a new in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard.
+- the helper still does not claim anonymous inode creation, live FD ownership, path-backed rule import, `get_path_from_fd()`, `prepare_creds()`, thread synchronization, or live domain merges.
+- the next honest syscall-facing step is one small planner around `get_path_from_fd()` rejection rules, still in-memory and still outside real path or credential handling.
 
 ## Recorded gaps
 
@@ -42,16 +42,17 @@ The current lane state is:
 - landed `phase13-landlock-syscalls-slice-note`
 - landed `phase13-landlock-syscalls-survey-note`
 - landed `phase13-landlock-add-rule-followup`
-- ready-next `phase13-landlock-ruleset-fd-mode-followup`
+- landed `phase13-landlock-ruleset-fd-mode-followup`
+- ready-next `phase13-landlock-path-fd-followup`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `syscalls.zig` helper foothold for ABI, create-ruleset, restrict-self, and add-rule planning, but it still does not claim live Landlock FD plumbing, path import, or task enforcement.
+This keeps the lane explicit without overstating progress: Zigux now has a real `syscalls.zig` helper foothold for ABI, create-ruleset, restrict-self, add-rule, and ruleset-FD planning, but it still does not claim anonymous inode creation, path import, or task enforcement.
 
 ## Non-goals
 
 This survey slice does not claim:
 
 - anonymous inode creation or file operations wiring
-- ruleset FD lookup or access-mode validation
+- live FD ownership or reference lifecycle
 - path-backed or port-backed rule import
 - credential allocation, replacement, or rollback
 - sibling thread synchronization
@@ -68,4 +69,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 Landlock syscalls lane and add one tiny `security/landlock/syscalls.zig` ruleset-FD planner next, limited to `get_ruleset_from_fd()` type and `FMODE_CAN_WRITE` or `FMODE_CAN_READ` checks before any path resolution, credential updates, or live domain state are attempted.
+Stay in the Phase 13 Landlock syscalls lane and add one tiny `security/landlock/syscalls.zig` path-FD planner next, limited to `get_path_from_fd()` rejection rules for ruleset FDs, internal mounts, and private or non-user-visible inodes before any path import, credential updates, or live domain state are attempted.
