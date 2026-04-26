@@ -5,21 +5,23 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
+KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 
 
-def expected_files_from_cases(case_manifest: Path) -> list[Path]:
+def expected_files_from_case_groups(case_manifest: Path, *group_names: str) -> list[Path]:
     cases = json.loads(case_manifest.read_text(encoding='utf-8'))
     expected_files: list[Path] = []
     seen: set[Path] = set()
-    for case in cases.get('cases', []):
-        expected_name = case.get('expected')
-        if not expected_name:
-            continue
-        expected_path = case_manifest.parent / expected_name
-        if expected_path in seen:
-            continue
-        seen.add(expected_path)
-        expected_files.append(expected_path)
+    for group_name in group_names:
+        for case in cases.get(group_name, []):
+            expected_name = case.get('expected')
+            if not expected_name:
+                continue
+            expected_path = case_manifest.parent / expected_name
+            if expected_path in seen:
+                continue
+            seen.add(expected_path)
+            expected_files.append(expected_path)
     return expected_files
 
 required_files = [
@@ -57,12 +59,8 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc' / 'expected.json',
     GENKSYMS_BRIDGE_DIR / 'genksyms_bridge_c_harness.c',
     GENKSYMS_BRIDGE_DIR / 'cases.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample.config',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample_expected.json',
+    KCONFIG_BRIDGE_DIR / 'cases.json',
+    KCONFIG_BRIDGE_DIR / 'sample.config',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'elf32.hex',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'elf64.hex',
@@ -75,7 +73,8 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'not_elf_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'truncated_expected.json',
 ]
-required_files.extend(expected_files_from_cases(GENKSYMS_BRIDGE_DIR / 'cases.json'))
+required_files.extend(expected_files_from_case_groups(GENKSYMS_BRIDGE_DIR / 'cases.json', 'cases'))
+required_files.extend(expected_files_from_case_groups(KCONFIG_BRIDGE_DIR / 'cases.json', 'conf_cases', 'confdata_cases'))
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
