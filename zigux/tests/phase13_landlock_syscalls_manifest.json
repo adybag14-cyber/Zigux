@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L13",
   "phase": "Phase 13",
-  "surveyed_commit": "4587e1015c53641c115200b5611083b5964cd5d3",
+  "surveyed_commit": "794c2a589bfb17a9e2b40eadcfc368472eb31b29",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -73,14 +73,14 @@
       "status": "starter_landed",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The syscall helper now includes one small in-memory planner around `get_ruleset_from_fd()` ruleset-file type, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the existing single-layer guard before any path-backed rule import, credential updates, or live domain state is attempted."
+      "why_now": "The syscall helper now includes one small in-memory planner around `get_ruleset_from_fd()` bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard so Zigux can model the shared read-versus-write gate before any path-backed rule import, credential updates, or live domain state."
     },
     {
-      "id": "phase13-landlock-parent-path-fd-followup",
+      "id": "phase13-landlock-path-fd-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The next honest syscall step is one small in-memory planner around `get_path_from_fd()` parent-FD rejection for ruleset files, `MNT_INTERNAL`, and `SB_NOUSER` checks before widening into path import, rule append, or live mount and inode state."
+      "why_now": "The next honest syscall step is one small in-memory planner around `get_path_from_fd()` rejecting ruleset FDs, internal mounts, and private or non-user-visible inodes before widening into path-backed rule import, credential updates, or live domain state."
     }
   ]
 }
