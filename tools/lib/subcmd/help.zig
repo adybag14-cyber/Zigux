@@ -134,6 +134,30 @@ fn lessThan(_: void, lhs: CmdName, rhs: CmdName) bool {
     return std.mem.order(u8, lhs.name, rhs.name) == .lt;
 }
 
+pub const PathEntries = struct {
+    allocator: std.mem.Allocator,
+    entries: std.ArrayList([]u8),
+
+    pub fn init(allocator: std.mem.Allocator) PathEntries {
+        return .{
+            .allocator = allocator,
+            .entries = .empty,
+        };
+    }
+
+    pub fn deinit(self: *PathEntries) void {
+        for (self.entries.items) |entry| {
+            self.allocator.free(entry);
+        }
+        self.entries.deinit(self.allocator);
+        self.* = undefined;
+    }
+
+    pub fn count(self: PathEntries) usize {
+        return self.entries.items.len;
+    }
+};
+
 pub const PrettyPrintLayout = struct {
     cols: usize,
     rows: usize,
@@ -151,6 +175,24 @@ pub fn hasExtension(filename: []const u8, ext: []const u8) bool {
 
 fn parseDimension(value: []const u8) usize {
     return std.fmt.parseInt(usize, value, 10) catch 0;
+}
+
+pub fn splitPathEntries(allocator: std.mem.Allocator, raw_path: []const u8) !PathEntries {
+    var entries = PathEntries.init(allocator);
+    errdefer entries.deinit();
+
+    var start: usize = 0;
+    while (true) {
+        const maybe_colon = std.mem.indexOfScalarPos(u8, raw_path, start, ':');
+        const end = maybe_colon orelse raw_path.len;
+        try entries.entries.append(allocator, try allocator.dupe(u8, raw_path[start..end]));
+        if (maybe_colon == null) {
+            break;
+        }
+        start = end + 1;
+    }
+
+    return entries;
 }
 
 pub fn commandNameFromEntry(filename: []const u8, prefix: []const u8) ?[]const u8 {
@@ -218,6 +260,46 @@ pub fn loadCommandListsFromSource(
     }
 
     for (path_entries) |path| {
+        if (exec_path) |main_path| {
+            if (std.mem.eql(u8, path, main_path)) {
+                continue;
+            }
+        }
+
+        try populate_dir(source_context, other_cmds, path, actual_prefix);
+    }
+
+    other_cmds.sort();
+    other_cmds.uniq();
+    other_cmds.excludeCmds(main_cmds.*);
+}
+
+pub fn loadCommandListsFromEnvPath(
+    allocator: std.mem.Allocator,
+    prefix: ?[]const u8,
+    exec_path: ?[]const u8,
+    env_path: ?[]const u8,
+    main_cmds: *CmdNames,
+    other_cmds: *CmdNames,
+    source_context: anytype,
+    comptime populate_dir: fn (@TypeOf(source_context), *CmdNames, []const u8, []const u8) anyerror!void,
+) !void {
+    var split_entries = PathEntries.init(allocator);
+    defer split_entries.deinit();
+
+    if (env_path) |raw_path| {
+        split_entries = try splitPathEntries(allocator, raw_path);
+    }
+
+    const actual_prefix = prefix orelse "perf-";
+
+    if (exec_path) |path| {
+        try populate_dir(source_context, main_cmds, path, actual_prefix);
+        main_cmds.sort();
+        main_cmds.uniq();
+    }
+
+    for (split_entries.entries.items) |path| {
         if (exec_path) |main_path| {
             if (std.mem.eql(u8, path, main_path)) {
                 continue;
@@ -362,6 +444,20 @@ test "membership and longest-name helpers stay aligned with the stored list" {
     try std.testing.expectEqual(@as(usize, 6), cmds.longestNameLen());
 }
 
+test "splitPathEntries preserves empty PATH segments and owns copied slices" {
+    var backing = [_]u8{ ':', '/', 'u', 's', 'r', '/', 'b', 'i', 'n', ':', ':', '/', 'b', 'i', 'n', ':' };
+    var entries = try splitPathEntries(std.testing.allocator, &backing);
+    defer entries.deinit();
+    backing[1] = 'x';
+
+    try std.testing.expectEqual(@as(usize, 5), entries.count());
+    try std.testing.expectEqualStrings("", entries.entries.items[0]);
+    try std.testing.expectEqualStrings("/usr/bin", entries.entries.items[1]);
+    try std.testing.expectEqualStrings("", entries.entries.items[2]);
+    try std.testing.expectEqualStrings("/bin", entries.entries.items[3]);
+    try std.testing.expectEqualStrings("", entries.entries.items[4]);
+}
+
 test "command entry helpers filter prefixes and strip windows executable suffixes" {
     try std.testing.expectEqualStrings("trace", commandNameFromEntry("perf-trace", "perf-").?);
     try std.testing.expectEqualStrings("report", commandNameFromEntry("perf-report.exe", "perf-").?);
@@ -446,6 +542,65 @@ test "loadCommandListsFromSource keeps exec-path priority and filters duplicates
     try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
     try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
 
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path filtering" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "perf-trace", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &.{} },
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        "/opt/perf/bin",
+        ":/opt/perf/bin:/usr/bin:",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
