@@ -113,12 +113,12 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
         if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-rulet-slice.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-ruleset-slice.md", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-landlock-rulet-survey-note")) {
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-survey-note")) {
             saw_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-rulet-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-ruleset-survey.md", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-layer-merge-followup")) {
             saw_followup = true;
@@ -130,7 +130,7 @@ test "phase13 landlock ruleset manifest records the starter and remaining gap" {
         if (std.mem.eql(u8, gap.id, "phase13-landlock-tree-search-followup")) {
             saw_tree_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("security/landlock/rulet.survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "walker_node") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "get_root()") != null);
         }

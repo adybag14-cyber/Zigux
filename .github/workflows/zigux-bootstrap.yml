@@ -160,6 +160,21 @@ jobs:
       - name: Run Phase 8 tooling tests
         run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
+      - name: Run Phase 9 runtime helper tests
+        run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
+
+      - name: Run Phase 10 virtio helper tests
+        run: zig build test --build-file zigux/tests/phase10_build.zig --summary all
+
+      - name: Run Phase 11 watchdog and console tests
+        run: zig build test --build-file zigux/tests/phase11_build.zig --summary all
+
+      - name: Run Phase 12 complex driver tests
+        run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
+
+      - name: Run Phase 13 shared helper tests
+        run: zig build test --build-file zigux/tests/phase13_build.zig --summary all
+
   phase2-cross:
     runs-on: ubuntu-latest
     strategy:

@@ -48,17 +48,17 @@
       "why_now": "A dedicated Phase 13 test gate now checks both the helper behavior and the survey manifest so future runs can see the narrow ruleset starter and the still-missing deeper kernel state in one place."
     },
     {
-      "id": "phase13-landlock-rulet-slice-note",
+      "id": "phase13-landlock-ruleset-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-slice.md",
       "why_now": "The slice note records the exact helper-first boundary of the new ruleset lab so the lane does not overstate access-mask bookkeeping as full Landlock policy enforcement."
     },
     {
-      "id": "phase13-landlock-rulet-survey-note",
+      "id": "phase13-landlock-ruleset-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase13-landlock-rulet-survey.md",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-survey.md",
       "why_now": "The survey note compares the 719-line `ruleset.c` anchor against the new starter and keeps the remaining gap around rule insertion, merge, and hierarchy lifetime explicit."
     },
     {
