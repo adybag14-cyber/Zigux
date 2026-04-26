@@ -530,3 +530,16 @@ test "phase 1 helper ports match committed parity fixture" {
     rbtree.clearNode(&replacement.node);
     try std.testing.expectEqual(fixture.rbtree.cleared_node_empty, rbtree.emptyNode(&replacement.node));
 }
+
+test "phase 1 string replaceChar stops at embedded NUL" {
+    var replace_buffer = [_]u8{ 'a', '-', 0, '-', 'z' };
+    try std.testing.expectEqual(
+        @as(usize, 2),
+        string.replaceChar(&replace_buffer, '-', '_'),
+    );
+    try std.testing.expectEqualSlices(
+        u8,
+        &[_]u8{ 'a', '_', 0, '-', 'z' },
+        &replace_buffer,
+    );
+}
