@@ -43,8 +43,8 @@ required_closure_markers = [
     'PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot',
     'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
-    'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`',
-    'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit empty scans stay at 0 and boundary-start scans return nbits',
+    'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`',
+    'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -123,13 +123,15 @@ if find_bit_review.get('evidence_keys') != [
     'find_bit.tail_zero_clamped_next',
     'find_bit.tail_and_clamped_first',
     'find_bit.tail_and_clamped_next',
+    'find_bit.tail_and_mixed_first',
+    'find_bit.tail_and_mixed_next',
 ]:
     missing_markers.append('manifest:find_bit.evidence_keys')
-if find_bit_review.get('summary') != 'Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches that ignore bits beyond nbits.':
+if find_bit_review.get('summary') != 'Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past nbits.':
     missing_markers.append('manifest:find_bit.summary')
-if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"':
+if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"':
     missing_markers.append('manifest:find_bit.unit_test_anchor')
-if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps empty scans at 0 and boundary-start scans at nbits for set, zero, and AND entry points.':
+if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits.':
     missing_markers.append('manifest:find_bit.unit_test_contract')
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
