@@ -25,12 +25,13 @@ Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference s
 ## Survey findings
 
 - `samples/kprobes/kretprobe_example.c` is present on `master` and stays small enough to function as a reference-pattern anchor rather than a substrate slice.
-- the Linux sample mixes four concerns:
+- the Linux sample mixes five concerns:
   - symbol selection through a module parameter
   - entry skipping for kernel threads with no `current->mm`
+  - per-instance private data that stores one entry timestamp for the later return-side duration report
   - return-value and duration reporting from the stored entry timestamp
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
-- the honest Phase 5 move is to make symbol choice, skip behavior, duration bookkeeping, and the `nmissed` summary reviewable in memory while leaving probe registration and module plumbing out of scope.
+- the honest Phase 5 move is to make symbol choice, skip behavior, the one-word private timestamp record, duration bookkeeping, and the `nmissed` summary reviewable in memory while leaving probe registration and module plumbing out of scope.
 
 ## Landed sample and exact checks
 
@@ -39,7 +40,7 @@ The repo now carries that bounded sample in `samples/zigux/kretprobe_example.zig
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `KretprobeExampleSample.descriptor()`
-- it models only the default symbol name, a pre-init retarget hook, kernel-thread skip behavior, entry-timestamp bookkeeping, return-duration replay, and a bounded `nmissed` summary in memory
+- it models only the default symbol name, a pre-init retarget hook, kernel-thread skip behavior, a single per-instance timestamp record, return-duration replay, and a bounded `nmissed` summary in memory
 - it uses a tiny `init()` -> `entryHandler()` -> `retHandler()` -> `recordMissedInstance()` -> `exit()` lifecycle so ownership and teardown stay explicit
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready kretprobe implementation
 
@@ -47,6 +48,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 
 - the in-memory sample keeps `kernel_clone` as the default symbol name while allowing pre-init retargeting
 - `runAnchorReplay()` checks that an entry with no `current->mm` is skipped instead of arming a tracked instance
+- the in-memory sample keeps a single private entry-timestamp record so the Linux `struct my_data` anchor shape stays explicit as one `i64`-sized word
 - the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
@@ -57,7 +59,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
@@ -66,7 +68,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise remaining job is:
 
-- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, return timing, summary recording, and teardown
+- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
 - the broader Phase 5 roadmap still expects the trace-events reference anchor, so this slice should stay explicit about its own boundary rather than implying the whole tranche is done
 
