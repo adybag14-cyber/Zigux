@@ -57,3 +57,30 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
     string_helpers.stringLower(&lower, "Zz9!");
     try std.testing.expectEqualSlices(u8, "zz9!", &lower);
 }
+
+test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
+    var out = [_]u8{0} ** 32;
+
+    const space_len = string_helpers.stringUnescape("\\f\\ \\n\\r\\t\\v", &out, out.len, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 7), space_len);
+    try std.testing.expectEqualSlices(u8, "\x0c\\ \n\r\t\x0b", out[0..space_len]);
+
+    const any_len = string_helpers.stringUnescape("\\n\\x41\\040\\e", &out, out.len, string_helpers.UNESCAPE_ANY);
+    try std.testing.expectEqual(@as(usize, 4), any_len);
+    try std.testing.expectEqualSlices(u8, "\nA \x1b", out[0..any_len]);
+}
+
+test "phase 7 stringUnescape supports in-place and bounded destination behavior" {
+    var inplace = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', 0, '?', '?' };
+    const inplace_len = string_helpers.stringUnescape(inplace[0..], inplace[0..], 0, string_helpers.UNESCAPE_ANY);
+    try std.testing.expectEqual(@as(usize, 2), inplace_len);
+    try std.testing.expectEqualSlices(u8, "\nA", inplace[0..2]);
+    try std.testing.expectEqual(@as(u8, 0), inplace[2]);
+
+    var bounded = [_]u8{ '!', '!', '!', '!' };
+    const bounded_len = string_helpers.stringUnescape("\\n\\r", &bounded, bounded.len, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 2), bounded_len);
+    try std.testing.expectEqualSlices(u8, "\n\r", bounded[0..2]);
+    try std.testing.expectEqual(@as(u8, 0), bounded[2]);
+    try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
+}
