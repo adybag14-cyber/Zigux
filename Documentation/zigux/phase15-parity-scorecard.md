@@ -24,6 +24,14 @@ The roadmap says Phase 15 is about honest long-term governance for the final mix
 
 That gap matters because the current anchors are still large and deeply coupled: `kernel/sched/core.c` is 11,235 lines, `mm/page_alloc.c` is 7,795 lines, `kernel/rcu/tree.c` is 4,931 lines, `kernel/rcu/tree_plugin.h` is 1,369 lines, `kernel/rcu/tree_exp.h` is 1,118 lines, `kernel/rcu/tree_nocb.h` is 1,702 lines, `net/core/skbuff.c` is 7,476 lines, and `include/linux/skbuff.h` adds another 5,467 lines of shared metadata and inline rules. The repo also already carries Phase 14 blocker evidence for `kernel/rcu/tree.c` and `net/core/skbuff.c`, which makes reserved decision-record templates the next honest step instead of another implementation starter.
 
+## Roadmap Handoff Evidence
+
+- roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
+- roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
+- bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, and `make -C zigux phase15` convenience target
+- maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
+
 ## Scorecard Entries
 
 ### `kernel/sched/core.c`
