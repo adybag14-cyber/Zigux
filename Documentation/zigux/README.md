@@ -29,7 +29,7 @@ Phase 5 notes
 - `Documentation/zigux/phase5-kretprobe-sample-survey.md` now records the landed `samples/zigux/kretprobe_example.zig` reference sample, its exact skip, private-data-shape, return-value, duration, and `nmissed` replay checks, and the remaining non-goals around probe registration, `pt_regs`, and module wiring.
 - the same kretprobe survey note now doubles as the sample-backed contributor guide for the landed non-runtime `kretprobe` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime starter.
 - `Documentation/zigux/phase5-trace-events-sample-survey.md` now records the landed `samples/zigux/trace_events_sample.zig` reference sample, its exact payload, string-selection, formatted-message, event-family-count, vararg-payload, relative-location, callback-path, and callback-registration replay checks, and the remaining non-goals around tracepoint macros, kernel scheduling, and module wiring.
-- the same trace-events survey note now doubles as the sample-backed contributor guide for the landed non-runtime `trace-events` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime starter.
+- the same trace-events survey note now doubles as the sample-backed contributor guide for the landed non-runtime `trace-events` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime pilot tranche.
 - the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
 
 Phase 4 notes
@@ -73,6 +73,17 @@ Phase 9 notes
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 - `zigux/tests/phase9_build.zig` and `make -C zigux phase9` now gate the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together, so new Phase 9 runtime work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 9 decision is no longer whether the kretprobe lane still needs a starter, a survey gate, or shared build wiring; those pieces and the newer loader-handoff scaffold are now landed, so the next follow-up should be whichever small shared runtime loader substrate step can honestly consume the existing bitmap or kretprobe loader plans without widening into a larger runtime-module implementation.
+
+Phase 10 notes
+- `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
+- `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, virtio ring, virtio input, and virtio mmio survey bundle together, so new Phase 10 virtio work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- the current bounded Phase 10 decision is no longer whether the virtio core lane still needs config-change bookkeeping or reset-proof coverage; those pieces are now landed, so the next follow-up should stay in the smallest core-only or survey-backed virtio step that sharpens queue or device bookkeeping without widening into transport implementation churn.
 
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
