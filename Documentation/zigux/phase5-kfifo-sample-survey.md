@@ -21,15 +21,17 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kfifo/bytestream-example.c` as one of the four Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that `samples/zigux/` carries both one bounded Phase 5 reference sample and several later runtime-oriented starters:
+Fresh repo inspection now shows that `samples/zigux/` carries three bounded Phase 5 reference samples plus several later runtime-oriented starters:
 
 - `bytestream_fifo.zig`
+- `kobject_example.zig`
+- `kretprobe_example.zig`
 - `runtime_atomic64.zig`
 - `runtime_bitmap.zig`
 - `runtime_kretprobe.zig`
 - `runtime_trace_events.zig`
 
-The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the other Phase 5 anchors still lack side-by-side starters, even where later Phase 9 runtime pilots now exist under the same Linux sample families.
+The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the last Phase 5 anchor still lacks a side-by-side starter, even where a later Phase 9 runtime pilot now exists under the same Linux sample family.
 
 ## Survey findings
 
@@ -38,7 +40,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
   - bounded in-memory FIFO behavior such as `kfifo_in`, `kfifo_out`, `kfifo_put`, `kfifo_get`, `kfifo_skip`, and `kfifo_peek`
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
-- the live Zigux repo now ships a bounded Phase 5 side-by-side sample under `samples/zigux/` for the `kfifo` anchor, but the `kobject` anchor plus the non-runtime Phase 5 readings of `kretprobe_example.c` and `trace-events-sample.c` still remain open.
+- the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, and `kretprobe` anchors, while the non-runtime Phase 5 reading of `trace-events-sample.c` still remains open.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for a future kfifo-style sample
@@ -91,10 +93,8 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 
 The current gap is not "Zigux lacks every sample." The more precise gap is:
 
-- the repo now has one reviewable Phase 5 sample plus later runtime-oriented starters in `samples/zigux/`
-- the roadmap still expects the other three Phase 5 reference-sample anchors too:
-  - `samples/zigux/kobject_example.zig`
-  - a non-runtime reference reading of `samples/kprobes/kretprobe_example.c`
+- the repo now has three reviewable Phase 5 samples plus later runtime-oriented starters in `samples/zigux/`
+- the roadmap still expects one last Phase 5 reference-sample anchor:
   - a non-runtime reference reading of `samples/trace_events/trace-events-sample.c`
 - the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
@@ -122,4 +122,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and add the next missing reference-sample anchor, with `samples/zigux/kobject_example.zig` still the cleanest next bounded step because the `kretprobe` and `trace-events` anchors already have separate Phase 9 runtime interpretations that should not be mistaken for Phase 5 reference-sample closure.
+Stay in the Phase 5 samples-and-reference-patterns lane and add the last missing reference-sample anchor for `samples/trace_events/trace-events-sample.c`, while keeping the same exact-check and non-goal pattern and leaving the later Phase 9 runtime trace-events starter distinct from Phase 5 closure.
