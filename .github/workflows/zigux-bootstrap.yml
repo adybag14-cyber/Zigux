@@ -87,6 +87,9 @@ jobs:
       - name: Check Zig toolchain policy
         run: python3 scripts/zigux/check-zig-toolchain.py
 
+      - name: Self-test artifact diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
 
