@@ -40,7 +40,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
   - bounded in-memory FIFO behavior such as `kfifo_in`, `kfifo_out`, `kfifo_put`, `kfifo_get`, `kfifo_skip`, and `kfifo_peek`
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
-- the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, and `kretprobe` anchors, while the non-runtime Phase 5 reading of `trace-events-sample.c` still remains open.
+- the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters separate from these non-runtime reference readings.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for a future kfifo-style sample
@@ -93,9 +93,8 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 
 The current gap is not "Zigux lacks every sample." The more precise gap is:
 
-- the repo now has three reviewable Phase 5 samples plus later runtime-oriented starters in `samples/zigux/`
-- the roadmap still expects one last Phase 5 reference-sample anchor:
-  - a non-runtime reference reading of `samples/trace_events/trace-events-sample.c`
+- the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters in `samples/zigux/`
+- the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters for `trace-events` and `kretprobe`
 - the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
@@ -122,4 +121,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and add the last missing reference-sample anchor for `samples/trace_events/trace-events-sample.c`, while keeping the same exact-check and non-goal pattern and leaving the later Phase 9 runtime trace-events starter distinct from Phase 5 closure.
+Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping the landed Phase 5 sample set distinct from the later Phase 9 runtime starters.
