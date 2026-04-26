@@ -60,6 +60,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     logging_root_module.addImport("logging", logging_module);
+    const pin_path_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/pin_path.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const pin_path_root_module = b.createModule(.{
+        .root_source_file = b.path("phase8_pin_path.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    pin_path_root_module.addImport("pin_path", pin_path_module);
     const libbpf_segments_root_module = b.createModule(.{
         .root_source_file = b.path("phase8_libbpf_segments.zig"),
         .target = target,
@@ -97,6 +108,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase8-logging-tests",
         .root_module = logging_root_module,
     });
+    const pin_path_tests = b.addTest(.{
+        .name = "phase8-pin-path-tests",
+        .root_module = pin_path_root_module,
+    });
     const libbpf_segments_tests = b.addTest(.{
         .name = "phase8-libbpf-segment-tests",
         .root_module = libbpf_segments_root_module,
@@ -111,6 +126,7 @@ pub fn build(b: *std.Build) void {
     const run_kallsyms_tests = b.addRunArtifact(kallsyms_tests);
     const run_cpu_mask_tests = b.addRunArtifact(cpu_mask_tests);
     const run_logging_tests = b.addRunArtifact(logging_tests);
+    const run_pin_path_tests = b.addRunArtifact(pin_path_tests);
     const run_libbpf_segments_tests = b.addRunArtifact(libbpf_segments_tests);
     const run_bpf_type_names_tests = b.addRunArtifact(bpf_type_names_tests);
 
@@ -120,6 +136,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_kallsyms_tests.step);
     test_step.dependOn(&run_cpu_mask_tests.step);
     test_step.dependOn(&run_logging_tests.step);
+    test_step.dependOn(&run_pin_path_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
     test_step.dependOn(&run_bpf_type_names_tests.step);
 }
