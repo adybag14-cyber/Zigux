@@ -116,3 +116,29 @@ test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" 
     try std.testing.expectEqualStrings("perf", prepared[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
 }
+
+test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
+    const collected = try exec_cmd.collectExeclArgs(
+        std.testing.allocator,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer std.testing.allocator.free(collected);
+
+    try std.testing.expectEqual(@as(usize, 4), collected.len);
+    try std.testing.expectEqualStrings("record", collected[0].?);
+    try std.testing.expectEqualStrings("-a", collected[1].?);
+    try std.testing.expectEqualStrings("--stdio", collected[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
+
+    var overflowing_tail: [31]?[]const u8 = undefined;
+    for (overflowing_tail[0..30]) |*slot| {
+        slot.* = "x";
+    }
+    overflowing_tail[30] = null;
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        exec_cmd.collectExeclArgs(std.testing.allocator, "record", &overflowing_tail),
+    );
+}
