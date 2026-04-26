@@ -44,9 +44,10 @@ The current tests check:
 - blank-input handling
 - first-NUL stop behavior for both `count_argc()` and `argv_split()`
 - strict non-goal behavior where quote characters stay inside the returned tokens
+- null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 
-The dedicated Phase 7 review gate now keeps those argv expectations in one focused fixture-style table instead of scattering them across separate ad hoc token assertions.
+The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
 
 ## Non-goals
 
@@ -59,4 +60,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Either externalize the current focused parity fixtures into generated C-backed artifacts from `lib/argv_split.c`, or close this lane and move on now that the starter helper surface and dedicated review gate are aligned.
+Either replace the current shared Zig review fixtures with generated C-backed artifacts from `lib/argv_split.c`, or close this lane and move on now that the starter helper surface, self-tests, and dedicated review gate are aligned.
