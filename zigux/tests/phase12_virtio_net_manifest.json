@@ -25,7 +25,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "The first honest Phase 12 landing is a shared build gate that keeps the virtio_net survey reviewable without pretending a complex net-driver starter already exists."
+      "why_now": "The shared Phase 12 build gate should exercise both the survey lane and the direct probe-starter gate so stale build wiring does not leave `drivers/net/virtio_net.zig` untested on current master."
     },
     {
       "id": "phase12-make-target",
@@ -53,21 +53,21 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "A dedicated survey test is the smallest truthful way to record that `virtio_net.c` is present, Phase 10 virtio groundwork exists, and the repo still has no `drivers/net/virtio_net.zig` starter."
+      "why_now": "A dedicated survey test is still the smallest truthful way to record that `virtio_net.c` is present, Phase 10 virtio groundwork exists, the probe starter is landed, and the Phase 12 build wiring still exercises that direct gate."
     },
     {
       "id": "phase12-virtio-net-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The lane needs a note that spells out the real scope of `virtio_net.c` so future runs do not confuse a very large production driver with a ready-to-port helper slice."
+      "why_now": "The lane needs a note that spells out the real scope of `virtio_net.c` and the narrow probe-only starter so future runs do not confuse a very large production driver with a ready-to-port runtime slice."
     },
     {
       "id": "phase12-virtio-net-probe-snapshot-starter",
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The next honest virtio_net step is one tiny probe-time snapshot helper around negotiated feature bits, queue-pair counts, ctrl-vq presence, mergeable-buffer mode, and RSS or hash-report capability so the lane can describe `virtnet_probe()` before any NAPI, XDP, DMA, or netdev registration work."
+      "why_now": "The landed virtio_net starter stays probe-time only around negotiated feature bits, queue-pair counts, ctrl-vq presence, mergeable-buffer mode, and RSS or hash-report capability so the lane can describe `virtnet_probe()` before any NAPI, XDP, DMA, or netdev registration work."
     },
     {
       "id": "phase12-virtio-net-queue-recovery-followup",
