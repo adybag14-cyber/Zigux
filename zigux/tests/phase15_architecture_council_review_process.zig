@@ -211,7 +211,7 @@ test "phase 15 review checklist stays aligned with the council review-process ho
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Architecture Council decision") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "parity scorecard evidence or blocker state explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Architecture Council review record linked") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "requested decision bucket explicit") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current status bucket plus requested decision bucket explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "retained discussion state and reopen triggers explicit") != null);
 }
