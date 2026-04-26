@@ -103,6 +103,7 @@ static void run_bitmap_section(void)
 	unsigned long partial_rhs[1] = {0x11UL};
 	unsigned long partial_dst[1] = {0};
 	char buffer[64] = {0};
+	char trunc_buffer[4] = {0};
 	bool and_result;
 	bool andnot_result;
 	bool equal_result;
@@ -136,6 +137,7 @@ static void run_bitmap_section(void)
 	bitmap_zero(dst, BITS_PER_LONG * 2);
 	bool empty_result = bitmap_empty(dst, BITS_PER_LONG * 2);
 	bitmap_scnprintf(map, 32, buffer, sizeof(buffer));
+	size_t trunc_len = bitmap_scnprintf(map, 8, trunc_buffer, sizeof(trunc_buffer));
 	bitmap_clear(map, 1, 3);
 	bitmap_clear(map, 7, 1);
 	bitmap_clear(map, 10, 2);
@@ -160,7 +162,9 @@ static void run_bitmap_section(void)
 	printf("\"range_after_set\":"); emit_word_array(range_after_set, 3); printf(",");
 	printf("\"range_after_clear\":"); emit_word_array(range_after_clear, 3); printf(",");
 	printf("\"full_after_fill\":%s,", full_result ? "true" : "false");
-	printf("\"empty_after_zero\":%s", empty_result ? "true" : "false");
+	printf("\"empty_after_zero\":%s,", empty_result ? "true" : "false");
+	printf("\"scnprintf_trunc_len\":%zu,", trunc_len);
+	printf("\"scnprintf_trunc\":\"%s\"", trunc_buffer);
 	printf("}");
 }
 
