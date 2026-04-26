@@ -1,0 +1,73 @@
+# Phase 5 Kobject Sample Survey
+
+This document tracks the bounded Phase 5 reference-sample survey for the roadmap's `samples/kobject/kobject-example.c` anchor.
+
+## Status
+
+- `PHASE5_STATUS=active`
+- `PHASE5_SLICE=kobject-reference-sample-starter`
+- scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the first `samples/zigux/` kobject-style replay
+- product boundary:
+  - `Documentation/zigux/phase5-kobject-sample-survey.md`
+  - `samples/zigux/kobject_example.zig`
+  - `zigux/tests/phase5_build.zig`
+  - `zigux/tests/phase5_kobject_example.zig`
+  - `zigux/tests/phase5_kobject_example_manifest.json`
+  - `zigux/tests/phase5_kobject_example_survey.zig`
+
+## Why this slice exists
+
+The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kobject/kobject-example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
+
+Fresh repo inspection already showed one landed Phase 5 FIFO reference sample plus several later runtime-oriented starters under `samples/zigux/`. The next missing bounded anchor was the kobject sample, especially because it gives Phase 5 a small ownership-and-lifetime example without claiming a real sysfs substrate.
+
+## Survey findings
+
+- `samples/kobject/kobject-example.c` is present on `master` and stays small enough to function as a reference-pattern anchor rather than a subsystem slice.
+- the Linux sample mixes three concerns:
+  - a named directory under `/sys/kernel/`
+  - three integer-backed attributes, with `baz` and `bar` sharing the same show and store path
+  - real sysfs and module-lifecycle substrate through `kobject_create_and_add`, `sysfs_create_group`, `kernel_kobj`, and module init or exit hooks
+- the honest Phase 5 move is to make the directory name, attribute dispatch, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
+
+## Landed sample and exact checks
+
+The repo now carries that bounded sample in `samples/zigux/kobject_example.zig`.
+
+The sample intentionally stays small:
+
+- it keeps the Linux anchor path explicit in `KobjectExampleSample.descriptor()`
+- it models only the directory name, the unnamed attribute group shape, integer roundtrips, and the shared `baz` or `bar` dispatch path in memory
+- it uses a tiny `init()` -> `registerAttributes()` -> `showValue()` or `storeValue()` -> `exit()` lifecycle so ownership and teardown remain explicit
+- it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready sysfs or module implementation
+
+The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
+
+- the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
+- `runAnchorReplay()` requires `init()` first, registers exactly three attributes, and leaves the sample in the `registered` stage
+- storing `42` into `foo` renders back as `42\n`
+- `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
+- non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
+- `exit()` clears the tracked values, removes the active attribute count, and rejects later show or store calls
+
+## Contributor refresh prompts for the landed sample
+
+When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
+
+- does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
+- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
+- do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
+
+## Non-goals
+
+This survey does not yet claim:
+
+- sysfs file creation parity
+- `kernel_kobj` integration
+- uevent delivery
+- loadable module registration
+
+## Next bounded step
+
+Stay in the Phase 5 samples-and-reference-patterns lane and add the next missing reference-sample anchor, most likely a bounded non-runtime reading of `samples/kprobes/kretprobe_example.c`, while keeping the same pattern of exact checks and explicit non-goals.
