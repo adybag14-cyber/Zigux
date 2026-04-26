@@ -51,11 +51,18 @@
       "why_now": "A narrow differential gate now captures a few lib/test_bitmap.c expectations for first-set, first-zero, weight, range mutation, and copy behavior before any broader runtime substrate work."
     },
     {
-      "id": "runtime-bitmap-substrate-handoff",
+      "id": "runtime-bitmap-loader-scaffold",
+      "status": "starter_landed",
+      "kind": "runtime_substrate_scaffold",
+      "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
+      "why_now": "A tiny sample-side loader scaffold makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, handoff-stage checks, and a no-substrate release path without pretending a real module loader already exists."
+    },
+    {
+      "id": "runtime-bitmap-live-loader-binding",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
-      "zigux_destination": "samples/zigux/runtime_bitmap_loader.zig",
-      "why_now": "A loadable module entry point and lifecycle parity still depend on runtime substrate pieces that the repo has not started yet."
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "A real loadable module entry point and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
