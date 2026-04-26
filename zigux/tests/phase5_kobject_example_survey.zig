@@ -39,12 +39,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_dispatch_prompt = false;
+    var saw_group_boundary_prompt = false;
     var saw_directory = false;
     var saw_dispatch = false;
     var saw_exit = false;
@@ -56,6 +57,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "shared baz/bar dispatch") != null) {
             saw_dispatch_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "unnamed attribute group") != null and
+            std.mem.indexOf(u8, prompt, "post-exit") != null)
+        {
+            saw_group_boundary_prompt = true;
         }
     }
 
@@ -84,6 +90,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
 
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_dispatch_prompt);
+    try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_dispatch);
     try std.testing.expect(saw_exit);
