@@ -16,6 +16,7 @@ Use this checklist before opening or merging Zigux product work.
 - are parity tests or fixture checks included?
 - is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
 - is there a stated rollback owner and fallback path?
+- if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
 - if the change asks for a freeze-map status change, is the Architecture Council review record linked and is the requested decision bucket explicit?
 - if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
@@ -32,3 +33,4 @@ Use this checklist before opening or merging Zigux product work.
 - if it came from ZAR research, is the transfer rationale explicit?
 - if the target stays in C, does the change record that ongoing policy honestly instead of implying a premature port commitment?
 - does the change strengthen the product repo instead of just extending experimental scope?
+- if the change is a Phase 5 sample, does it separate reviewable idiom guidance from later runtime-substrate claims such as procfs, user-copy, or module registration parity?
