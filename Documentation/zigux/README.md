@@ -38,6 +38,7 @@ Phase 4 notes
 
 Phase 6 notes
 - `Documentation/zigux/phase6-base64-slice.md`
+- `Documentation/zigux/phase6-bsearch-slice.md`
 - `Documentation/zigux/phase6-checksum-slice.md`
 - `Documentation/zigux/phase6-hexdump-slice.md`
 
