@@ -201,3 +201,13 @@ test "tail mask ignores zero bits beyond nbits" {
     with_clear[1] &= ~(@as(Word, 1) << 2);
     try std.testing.expectEqual(@as(usize, bits_per_long + 2), findFirstZeroBit(&with_clear, nbits));
 }
+
+test "tail mask keeps the in-range shared bit for and scans" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 12) };
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 3), findFirstAndBit(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 3), findNextAndBit(&lhs, &rhs, nbits, bits_per_long));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4));
+}
