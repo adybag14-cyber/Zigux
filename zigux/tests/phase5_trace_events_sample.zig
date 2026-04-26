@@ -26,6 +26,8 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expectEqual(@as(usize, sample.TraceEventsReferenceSample.function_callback_family_count), replay.function_callback_event_calls);
     try std.testing.expectEqual(@as(usize, 8), replay.total_event_calls);
     try std.testing.expect(replay.conditional_paths_checked);
+    try std.testing.expect(replay.relative_location_path_checked);
+    try std.testing.expect(replay.function_callback_path_checked);
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
