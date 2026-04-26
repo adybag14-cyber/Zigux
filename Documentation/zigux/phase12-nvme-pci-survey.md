@@ -31,7 +31,7 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 - the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, and freezes queue planning across reset generations.
 - that footing is useful, but it still does not cover PRP or SGL descriptor shaping, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
-- the next honest driver-facing step is one tiny PRP-or-SGL-facing buffer-shape helper or an equally small recovery-summary helper before any live DMA, blk-mq, or PCI lifecycle work.
+- the next honest driver-facing step is one tiny PRP buffer-shape helper, limited to first-page offset, rounded span, and page-list bound checks before any live DMA, blk-mq, or PCI lifecycle work.
 
 ## Recorded gaps
 
@@ -46,7 +46,7 @@ The survey manifest now records:
 - the landed `phase12-virtio-scsi-driver-starter`
 - the landed `phase12-nvme-pci-survey-gate`
 - the landed `phase12-nvme-pci-survey-note`
-- the ready-next `phase12-nvme-pci-prp-or-sgl-shape-helper`
+- the ready-next `phase12-nvme-pci-prp-shape-helper`
 - the still-blocked `phase12-nvme-pci-live-queue-and-dma`
 
 This keeps the lane concrete and reviewable without overstating progress: the queue-planner starter is real, but the transport-heavy roadmap work is still intentionally blocked.
@@ -72,4 +72,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 12 nvme PCI lane and add one tiny PRP-or-SGL-facing buffer-shape helper next so the lane can describe descriptor fanout and page-shape limits before any live DMA, blk-mq, or PCI queue lifecycle work.
+Stay in the Phase 12 nvme PCI lane and add one tiny PRP buffer-shape helper next, limited to first-page offset, rounded span, and page-list bound checks before any live DMA, blk-mq, or PCI queue lifecycle work.
