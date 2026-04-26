@@ -149,13 +149,15 @@ pub fn nextArg(args: []u8) NextArgResult {
     }
 
     const current = args[start..];
-    var equals_index: ?usize = null;
+    // Mirror Linux's sentinel behavior: '=' at offset 0 does not split
+    // the token into param/value parts.
+    var equals_index: usize = 0;
     var index: usize = 0;
     while (index < current.len and current[index] != 0) : (index += 1) {
         if (!in_quote and std.ascii.isWhitespace(current[index])) {
             break;
         }
-        if (equals_index == null and current[index] == '=') {
+        if (equals_index == 0 and current[index] == '=') {
             equals_index = index;
         }
         if (current[index] == '"') {
@@ -164,9 +166,9 @@ pub fn nextArg(args: []u8) NextArgResult {
     }
 
     var value_start: ?usize = null;
-    if (equals_index) |equals| {
-        current[equals] = 0;
-        var value_index = equals + 1;
+    if (equals_index != 0) {
+        current[equals_index] = 0;
+        var value_index = equals_index + 1;
         if (value_index < current.len and current[value_index] == '"') {
             value_index += 1;
             if (index > 0 and current[index - 1] == '"') {
@@ -395,4 +397,13 @@ test "nextArg keeps unquoted values and empty quoted values bounded to the curre
     try std.testing.expectEqualStrings("rdinit", parsed_empty.param);
     try std.testing.expectEqualStrings("", parsed_empty.value.?);
     try std.testing.expectEqualStrings("quiet", cStringPrefix(parsed_empty.rest));
+}
+
+test "nextArg does not treat a leading equals sign as a value separator" {
+    var buffer = [_]u8{ '=', 'b', 'a', 'd', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("=bad", parsed.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
