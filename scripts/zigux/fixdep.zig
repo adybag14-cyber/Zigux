@@ -3,7 +3,10 @@ const Io = std.Io;
 
 const max_file_bytes: usize = 1024 * 1024;
 
-const FixdepError = error{NoTargets};
+const FixdepError = error{
+    NoTargets,
+    ReadDependencyFile,
+};
 
 fn isIdentByte(ch: u8) bool {
     return std.ascii.isAlphanumeric(ch) or ch == '_';
@@ -19,11 +22,44 @@ fn isNoParseFile(path: []const u8) bool {
         std.mem.endsWith(u8, path, ".so");
 }
 
+fn describeFileReadError(err: anyerror) []const u8 {
+    return switch (err) {
+        error.FileNotFound => "No such file or directory",
+        error.AccessDenied => "Permission denied",
+        error.IsDir => "Is a directory",
+        error.NotDir => "Not a directory",
+        error.NameTooLong => "File name too long",
+        error.BadPathName => "Bad path name",
+        error.SymLinkLoop => "Too many levels of symbolic links",
+        error.ProcessFdQuotaExceeded, error.SystemFdQuotaExceeded => "Too many open files",
+        error.DeviceBusy => "Device or resource busy",
+        error.NoDevice => "No such device",
+        error.FileTooBig => "File too large",
+        error.InputOutput => "Input/output error",
+        else => @errorName(err),
+    };
+}
+
+fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
+    var stderr_buffer: [512]u8 = undefined;
+    var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try stderr.writeAll("fixdep: error opening file: ");
+    try stderr.writeAll(path);
+    try stderr.writeAll(": ");
+    try stderr.writeAll(describeFileReadError(err));
+    try stderr.writeAll("\n");
+    try stderr.flush();
+    std.process.exit(2);
+}
+
 const Processor = struct {
     io: std.Io,
     arena: std.heap.ArenaAllocator,
     config_seen: std.ArrayListUnmanaged([]const u8),
     file_seen: std.ArrayListUnmanaged([]const u8),
+    last_file_error_path: []const u8,
+    last_file_error: ?anyerror,
 
     pub fn init(backing_allocator: std.mem.Allocator, io: std.Io) Processor {
         var self: Processor = undefined;
@@ -31,6 +67,8 @@ const Processor = struct {
         self.arena = std.heap.ArenaAllocator.init(backing_allocator);
         self.config_seen = .empty;
         self.file_seen = .empty;
+        self.last_file_error_path = "";
+        self.last_file_error = null;
         return self;
     }
 
@@ -84,7 +122,27 @@ const Processor = struct {
     }
 
     fn readDependencyFile(self: *Processor, path: []const u8) ![]const u8 {
-        return Io.Dir.cwd().readFileAlloc(self.io, path, self.arena.allocator(), .limited(max_file_bytes));
+        return Io.Dir.cwd().readFileAlloc(self.io, path, self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
+            error.FileNotFound,
+            error.AccessDenied,
+            error.IsDir,
+            error.NotDir,
+            error.NameTooLong,
+            error.BadPathName,
+            error.SymLinkLoop,
+            error.ProcessFdQuotaExceeded,
+            error.SystemFdQuotaExceeded,
+            error.DeviceBusy,
+            error.NoDevice,
+            error.FileTooBig,
+            error.InputOutput,
+            => {
+                self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
+                self.last_file_error = err;
+                return error.ReadDependencyFile;
+            },
+            else => return err,
+        };
     }
 
     fn parseDepFile(self: *Processor, writer: anytype, dep_text: []const u8, target: []const u8) !void {
@@ -196,8 +254,20 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     defer processor.deinit();
 
     try writer.print("savedcmd_{s} := {s}\n\n", .{ target, cmdline });
-    const dep_text = try Io.Dir.cwd().readFileAlloc(io, depfile, processor.arena.allocator(), .limited(max_file_bytes));
-    try processor.parseDepFile(writer, dep_text, target);
+    const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
+        error.ReadDependencyFile => {
+            try writer.flush();
+            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+        },
+        else => return err,
+    };
+    processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
+        error.ReadDependencyFile => {
+            try writer.flush();
+            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+        },
+        else => return err,
+    };
 }
 
 fn emitNoTargetsParseError(io: std.Io) !noreturn {
@@ -319,4 +389,9 @@ test "ignored and no-parse file classification matches fixdep rules" {
     try std.testing.expect(isNoParseFile("foo.rlib"));
     try std.testing.expect(isNoParseFile("foo.so"));
     try std.testing.expect(!isIgnoredFile("include/generated/autoconf.hpp"));
+}
+
+test "file read errors map to C-style messages" {
+    try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
+    try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
 }

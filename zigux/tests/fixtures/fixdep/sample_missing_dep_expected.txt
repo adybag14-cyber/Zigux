@@ -1,0 +1,7 @@
+savedcmd_sample_missing_dep.o := clang -c zigux/tests/fixtures/fixdep/sample_missing_dep_source.c -o sample_missing_dep.o
+
+source_sample_missing_dep.o := zigux/tests/fixtures/fixdep/sample_missing_dep_source.c
+
+deps_sample_missing_dep.o := \
+    $(wildcard include/config/MISSING_SOURCE) \
+  zigux/tests/fixtures/fixdep/sample_missing_dep.h \
