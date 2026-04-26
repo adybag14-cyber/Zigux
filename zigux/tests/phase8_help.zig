@@ -132,3 +132,71 @@ test "phase 8 help command-source and terminal layers stay aligned with the curr
     try std.testing.expectEqual(@as(usize, 22), fallback_terminal.rows);
     try std.testing.expectEqual(@as(usize, 66), fallback_terminal.cols);
 }
+
+test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusion aligned with help.c" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const help.DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try help.addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    var split_entries = try help.splitPathEntries(std.testing.allocator, ":/opt/perf/bin::/usr/bin:");
+    defer split_entries.deinit();
+    try std.testing.expectEqual(@as(usize, 5), split_entries.count());
+    try std.testing.expectEqualStrings("", split_entries.entries.items[0]);
+    try std.testing.expectEqualStrings("/opt/perf/bin", split_entries.entries.items[1]);
+    try std.testing.expectEqualStrings("", split_entries.entries.items[2]);
+    try std.testing.expectEqualStrings("/usr/bin", split_entries.entries.items[3]);
+    try std.testing.expectEqualStrings("", split_entries.entries.items[4]);
+
+    const exec_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+    };
+    const other_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-trace", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &.{} },
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try help.loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        "/opt/perf/bin",
+        ":/opt/perf/bin::/usr/bin:",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
