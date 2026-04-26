@@ -139,7 +139,15 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     );
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/demo_map",
-        try pin_path.buildSanitizedMapPinPath(&path_buffer, null, "demo.map"),
+        try pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, null, "demo.map"),
+    );
+    try std.testing.expectError(
+        error.InvalidName,
+        pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, null, "demo/map"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
+        pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, "tmp/bpf", "demo.map"),
     );
 }
 
