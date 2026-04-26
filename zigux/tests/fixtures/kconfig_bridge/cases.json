@@ -15,6 +15,14 @@
       "config": "out/.config",
       "arch": "riscv64",
       "expected": "syncconfig_expected.json"
+    },
+    {
+      "name": "alldefconfig",
+      "mode": "alldefconfig",
+      "kconfig": "Kconfig",
+      "config": "build/.config",
+      "arch": "arm64",
+      "expected": "alldefconfig_expected.json"
     }
   ],
   "confdata_cases": [
