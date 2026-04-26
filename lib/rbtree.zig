@@ -27,6 +27,14 @@ pub const Root = struct {
 
 pub const LessFn = *const fn (*const Node, *const Node) bool;
 
+fn orderToInt(order: std.math.Order) i32 {
+    return switch (order) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 pub fn emptyRoot(root: *const Root) bool {
     return root.node == null;
 }
@@ -190,6 +198,50 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColor(node, root);
+}
+
+pub fn find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    var node = root.node;
+
+    while (node) |current| {
+        const order = cmp(key, current);
+        if (order < 0) {
+            node = current.left;
+        } else if (order > 0) {
+            node = current.right;
+        } else {
+            return current;
+        }
+    }
+
+    return null;
+}
+
+pub fn findFirst(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    var node = root.node;
+    var match: ?*Node = null;
+
+    while (node) |current| {
+        const order = cmp(key, current);
+        if (order <= 0) {
+            if (order == 0) {
+                match = current;
+            }
+            node = current.left;
+        } else {
+            node = current.right;
+        }
+    }
+
+    return match;
+}
+
+pub fn nextMatch(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
+    const candidate = next(node) orelse return null;
+    if (cmp(key, candidate) != 0) {
+        return null;
+    }
+    return candidate;
 }
 
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
@@ -516,6 +568,69 @@ test "rbtree erase and replace keep traversal consistent" {
     }
 
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
+}
+
+test "rbtree find helpers return duplicate-key ranges" {
+    const Entry = struct {
+        key: i32,
+        serial: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const found = find(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
+    const found_entry: *const Entry = @fieldParentPtr("node", found);
+    try std.testing.expectEqual(@as(i32, 10), found_entry.key);
+
+    const first_match = findFirst(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
+    const first_entry: *const Entry = @fieldParentPtr("node", first_match);
+    try std.testing.expectEqual(@as(i32, 10), first_entry.key);
+    try std.testing.expectEqual(@as(i32, 0), first_entry.serial);
+
+    const second_match = nextMatch(@as(i32, 10), first_match, cmp) orelse return error.TestUnexpectedResult;
+    const second_entry: *const Entry = @fieldParentPtr("node", second_match);
+    try std.testing.expectEqual(@as(i32, 10), second_entry.key);
+    try std.testing.expectEqual(@as(i32, 1), second_entry.serial);
+
+    const third_match = nextMatch(@as(i32, 10), second_match, cmp) orelse return error.TestUnexpectedResult;
+    const third_entry: *const Entry = @fieldParentPtr("node", third_match);
+    try std.testing.expectEqual(@as(i32, 10), third_entry.key);
+    try std.testing.expectEqual(@as(i32, 2), third_entry.serial);
+
+    try std.testing.expectEqual(@as(?*Node, null), nextMatch(@as(i32, 10), third_match, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), find(@as(i32, 99), &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findFirst(@as(i32, 99), &root, cmp));
 }
 
 test "rbtree postorder and empty node helpers behave" {
