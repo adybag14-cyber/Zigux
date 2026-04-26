@@ -77,7 +77,7 @@ pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize
     var remaining = limit;
 
     while (src_index < src.len and src[src_index] != 0 and remaining > 1) {
-        if (src[src_index] == '\\' and src_index + 1 < src.len and src[src_index + 1] != 0 and remaining > 2) {
+        if (src[src_index] == '\\' and src_index + 1 < src.len and src[src_index + 1] != 0 and remaining > 1) {
             src_index += 1;
 
             if ((flags & UNESCAPE_SPACE) != 0) {
@@ -325,4 +325,12 @@ test "stringUnescape supports combined flags, in-place use, and bounded output" 
     try std.testing.expectEqualSlices(u8, "\n\r", bounded[0..2]);
     try std.testing.expectEqual(@as(u8, 0), bounded[2]);
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
+}
+
+test "stringUnescape exact-fit destination still decodes an escape" {
+    var out = [_]u8{ '!', '!' };
+    const len = stringUnescape("\\n", &out, out.len, UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 1), len);
+    try std.testing.expectEqual(@as(u8, '\n'), out[0]);
+    try std.testing.expectEqual(@as(u8, 0), out[1]);
 }
