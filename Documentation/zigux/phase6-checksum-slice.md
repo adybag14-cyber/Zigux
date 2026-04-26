@@ -52,9 +52,10 @@ The current tests check:
 - fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs
 - incremental partial-sum chaining across even and odd fragment boundaries
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
+- a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
 
-The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and borrows its edge-case shape from the existing `lib/tests/checksum_kunit.c` coverage without claiming a full KUnit surface port.
+The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and now borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
 
 ## Non-goals
 
@@ -66,4 +67,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the checksum helper now needs a tiny external parity fixture sourced from `lib/tests/checksum_kunit.c`, or whether the current fixture-backed compute, composition, pseudo-header, and seeded-partial coverage is already sufficient to park this Phase 6 leaf-helper lane.
+Checksum now has a small KUnit-inspired carry-discipline foothold alongside the existing compute, composition, seeded-partial, and pseudo-header fixtures. The next honest decision is whether that is enough to park this Phase 6 leaf-helper lane, or whether one more equally small external parity nibble belongs here before moving to the next unfinished Phase 6 helper.
