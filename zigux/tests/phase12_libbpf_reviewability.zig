@@ -19,6 +19,22 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const LegacySegment = struct {
+    id: []const u8,
+    slug: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
+const LegacyManifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    segments: []const LegacySegment,
+};
+
 fn pathExists(io: std.Io, path: []const u8) !bool {
     std.Io.Dir.cwd().access(io, path, .{}) catch |err| switch (err) {
         error.FileNotFound => return false,
@@ -119,4 +135,75 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         "/sys/fs/bpf/demo_map",
         try pin_path.buildSanitizedMapPinPath(&path_buffer, null, "demo.map"),
     );
+}
+
+test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(LegacyManifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+
+    var saw_logging = false;
+    var saw_pin_path = false;
+    var saw_cpu_mask = false;
+    var saw_skeleton = false;
+    var saw_object_loader = false;
+    var saw_relocation = false;
+
+    for (manifest.segments) |segment| {
+        const exists = try pathExists(io_instance.io(), segment.zigux_destination);
+
+        if (std.mem.eql(u8, segment.slug, "logging-version-and-errno")) {
+            saw_logging = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "pin-path-helpers")) {
+            saw_pin_path = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
+            saw_cpu_mask = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "skeleton-population")) {
+            saw_skeleton = true;
+            try std.testing.expectEqualStrings("blocked_on_object_model", segment.status);
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "object-and-elf-loader")) {
+            saw_object_loader = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "btf-relocation-and-program-load")) {
+            saw_relocation = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expect(!exists);
+        }
+    }
+
+    try std.testing.expect(saw_logging);
+    try std.testing.expect(saw_pin_path);
+    try std.testing.expect(saw_cpu_mask);
+    try std.testing.expect(saw_skeleton);
+    try std.testing.expect(saw_object_loader);
+    try std.testing.expect(saw_relocation);
 }
