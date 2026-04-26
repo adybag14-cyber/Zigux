@@ -22,34 +22,6 @@ test "phase11 bcm2835_wdt reports bounded timeout limits and descriptor state" {
     try std.testing.expectEqual(@as(u32, 15_999), config.max_hw_heartbeat_ms);
 }
 
-test "phase11 bcm2835_wdt probe summary keeps probe-time watchdog-core bookkeeping reviewable" {
-    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
-
-    const running_probe = watchdog.probeSummary(true, true, true);
-    try std.testing.expectEqual(@as(u32, 9), running_probe.timeout_sec);
-    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_timeout_sec), running_probe.max_timeout_sec);
-    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_hw_heartbeat_ms), running_probe.max_hw_heartbeat_ms);
-    try std.testing.expect(running_probe.nowayout);
-    try std.testing.expect(running_probe.bootloader_running);
-    try std.testing.expect(running_probe.framework_marks_hw_running);
-    try std.testing.expect(running_probe.framework_ping_expected);
-    try std.testing.expect(running_probe.heartbeat_init_requested);
-    try std.testing.expect(running_probe.parent_attached);
-    try std.testing.expect(running_probe.stop_on_reboot);
-    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), running_probe.restart_priority);
-    try std.testing.expect(running_probe.system_power_controller);
-
-    const stopped_probe = watchdog.probeSummary(false, false, false);
-    try std.testing.expect(!stopped_probe.nowayout);
-    try std.testing.expect(!stopped_probe.bootloader_running);
-    try std.testing.expect(!stopped_probe.framework_marks_hw_running);
-    try std.testing.expect(!stopped_probe.framework_ping_expected);
-    try std.testing.expect(stopped_probe.heartbeat_init_requested);
-    try std.testing.expect(stopped_probe.parent_attached);
-    try std.testing.expect(stopped_probe.stop_on_reboot);
-    try std.testing.expect(!stopped_probe.system_power_controller);
-}
-
 test "phase11 bcm2835_wdt mirrors running-state detection and start or stop register writes" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
@@ -112,4 +84,62 @@ test "phase11 bcm2835_wdt restart path uses the short reset timeout and preserve
         runtime.registers.rstc,
     );
     try std.testing.expectEqual(@as(u32, 0), runtime.time_left_sec);
+}
+
+test "phase11 bcm2835_wdt probe summary keeps probe-time watchdog-core bookkeeping reviewable" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const running_probe = watchdog.probeSummary(true, true, true);
+    try std.testing.expectEqual(@as(u32, 9), running_probe.timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_timeout_sec), running_probe.max_timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_hw_heartbeat_ms), running_probe.max_hw_heartbeat_ms);
+    try std.testing.expect(running_probe.nowayout);
+    try std.testing.expect(running_probe.bootloader_running);
+    try std.testing.expect(running_probe.framework_marks_hw_running);
+    try std.testing.expect(running_probe.framework_ping_expected);
+    try std.testing.expect(running_probe.heartbeat_init_requested);
+    try std.testing.expect(running_probe.parent_attached);
+    try std.testing.expect(running_probe.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), running_probe.restart_priority);
+    try std.testing.expect(running_probe.system_power_controller);
+
+    const stopped_probe = watchdog.probeSummary(false, false, false);
+    try std.testing.expect(!stopped_probe.nowayout);
+    try std.testing.expect(!stopped_probe.bootloader_running);
+    try std.testing.expect(!stopped_probe.framework_marks_hw_running);
+    try std.testing.expect(!stopped_probe.framework_ping_expected);
+    try std.testing.expect(stopped_probe.heartbeat_init_requested);
+    try std.testing.expect(stopped_probe.parent_attached);
+    try std.testing.expect(stopped_probe.stop_on_reboot);
+    try std.testing.expect(!stopped_probe.system_power_controller);
+}
+
+test "phase11 bcm2835_wdt registration summary records watchdog registration and poweroff ownership outcomes" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const claimed = watchdog.registrationSummary(true, true, false);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", claimed.anchor);
+    try std.testing.expect(claimed.bootloader_running);
+    try std.testing.expect(claimed.framework_marks_hw_running);
+    try std.testing.expect(claimed.register_device_requested);
+    try std.testing.expect(claimed.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), claimed.restart_priority);
+    try std.testing.expect(claimed.system_power_controller);
+    try std.testing.expect(!claimed.poweroff_handler_present);
+    try std.testing.expect(claimed.poweroff_handler_claimed);
+    try std.testing.expect(!claimed.poweroff_handler_conflict);
+
+    const conflict = watchdog.registrationSummary(true, true, true);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(conflict.poweroff_handler_conflict);
+
+    const not_controller = watchdog.registrationSummary(false, false, false);
+    try std.testing.expect(!not_controller.bootloader_running);
+    try std.testing.expect(!not_controller.framework_marks_hw_running);
+    try std.testing.expect(not_controller.register_device_requested);
+    try std.testing.expect(!not_controller.system_power_controller);
+    try std.testing.expect(!not_controller.poweroff_handler_present);
+    try std.testing.expect(!not_controller.poweroff_handler_claimed);
+    try std.testing.expect(!not_controller.poweroff_handler_conflict);
 }
