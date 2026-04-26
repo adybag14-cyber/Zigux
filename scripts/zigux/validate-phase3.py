@@ -25,6 +25,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/uapi/version.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/atomic.zig",
+    "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
 )
