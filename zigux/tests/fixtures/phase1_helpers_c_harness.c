@@ -221,6 +221,7 @@ static void run_rbtree_section(void)
 	int order[5] = {0};
 	int reverse[5] = {0};
 	int replaced[4] = {0};
+	int erase_init_order[3] = {0};
 	size_t count = 0;
 	struct rb_node *node;
 	bool empty_root = RB_EMPTY_ROOT(&root);
@@ -242,6 +243,12 @@ static void run_rbtree_section(void)
 	for (node = rb_first(&root); node; node = rb_next(node))
 		replaced[count++] = rb_entry(node, struct rb_entry_fixture, node)->key;
 
+	rb_erase_init(&replacement.node, &root);
+
+	count = 0;
+	for (node = rb_first(&root); node; node = rb_next(node))
+		erase_init_order[count++] = rb_entry(node, struct rb_entry_fixture, node)->key;
+
 	for (size_t i = 0; i < sizeof(postorder_entries) / sizeof(postorder_entries[0]); i++)
 		rb_add(&postorder_entries[i].node, &postorder_root, rb_less);
 
@@ -256,7 +263,9 @@ static void run_rbtree_section(void)
 	printf("\"insert_order\":"); emit_int_array(order, 5); printf(",");
 	printf("\"reverse_order\":"); emit_int_array(reverse, 5); printf(",");
 	printf("\"replace_order\":"); emit_int_array(replaced, 4); printf(",");
+	printf("\"erase_init_order\":"); emit_int_array(erase_init_order, 3); printf(",");
 	printf("\"postorder_count\":%d,", postorder_count);
+	printf("\"erase_init_node_empty\":%s,", RB_EMPTY_NODE(&replacement.node) ? "true" : "false");
 	printf("\"cleared_node_empty\":%s", RB_EMPTY_NODE(&replacement.node) ? "true" : "false");
 	printf("}");
 }
