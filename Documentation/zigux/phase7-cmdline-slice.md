@@ -4,9 +4,10 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 ## Status
 
-- `PHASE7_STATUS=active`
+- `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - scope: first low-risk parsing helpers only
+- lane state: helper and fixture slice landed; parked unless a new `cmdline.c` parity issue appears
 - product boundary:
   - `lib/cmdline.zig`
   - `zigux/tests/phase7_cmdline.zig`
@@ -32,7 +33,7 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 
 ## Current parity surface
 
-The current starter slice covers:
+The current landed slice covers:
 
 - `get_option()`
 - `get_options()`
@@ -59,4 +60,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Leave this cmdline helper lane parked unless fresh repo inspection shows one more real `cmdline.c` parity gap inside the existing helper surface; otherwise move the next Phase 7 schedule to the next unfinished leaf helper family.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, or dedicated-gate surface.
