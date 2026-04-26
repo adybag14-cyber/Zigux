@@ -39,7 +39,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
 - the live Zigux repo now ships a bounded Phase 5 side-by-side sample under `samples/zigux/` for the `kfifo` anchor, but `kobject` and the non-runtime reading of `kretprobe_example.c` still remain open.
-- the generic review checklist already covers scope, safety, validation, ABI, and product discipline, but it does not yet say how a reference sample should distinguish "reviewable idiom" from "runtime-ready module."
+- the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for a future kfifo-style sample
 
@@ -73,6 +73,17 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - empty-queue peek and skip return `null`, pushing past capacity returns `false`, and `reset()` restores an empty queue
+
+## Contributor refresh prompts for the landed sample
+
+When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
+
+- does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
+- do `zigux/tests/phase5_bytestream_fifo_manifest.json` and `zigux/tests/phase5_bytestream_fifo_survey.zig` still record the exact queue-order replay and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
+- if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
+- do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
+
+These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete descriptor, manifest, and build entrypoint that current `master` already ships.
 
 ## Recorded gap vs roadmap
 
