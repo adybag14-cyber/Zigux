@@ -4,12 +4,14 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 ## Status
 
-- `PHASE7_STATUS=active`
+- `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=argv-split-runtime-leaf`
 - scope: first low-risk argv tokenization helpers only
+- lane state: helper and fixture slice landed; parked unless a new `argv_split.c` parity issue appears
 - product boundary:
   - `lib/argv_split.zig`
   - `zigux/tests/phase7_argv_split.zig`
+  - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
   - `zigux/tests/phase7_build.zig`
 
 ## Why this slice exists
@@ -33,7 +35,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 ## Current parity surface
 
-The current starter slice covers:
+The current landed slice covers:
 
 - `count_argc()`
 - `argv_split()`
@@ -51,7 +53,7 @@ The dedicated Phase 7 review gate now imports a focused fixture module under `zi
 
 ## Non-goals
 
-This slice does not yet claim:
+This slice still does not yet claim:
 
 - shell-style quote parsing
 - escape-sequence processing
@@ -60,4 +62,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Either replace the current shared Zig review fixtures with generated C-backed artifacts from `lib/argv_split.c`, or close this lane and move on now that the starter helper surface, self-tests, and dedicated review gate are aligned.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, or dedicated-gate surface.
