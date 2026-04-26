@@ -39,6 +39,10 @@ fn referencePartial(bytes: []const u8, seed: u32) u32 {
     return @intCast(acc);
 }
 
+fn referenceFoldedChecksum(bytes: []const u8, seed: u32) u16 {
+    return ~@as(u16, @truncate(referencePartial(bytes, seed)));
+}
+
 fn appendBigEndianU16(buffer: []u8, value: u16) void {
     const pair: *[2]u8 = @ptrCast(buffer[0..2]);
     std.mem.writeInt(u16, pair, value, .big);
@@ -78,6 +82,16 @@ test "seeded partial accumulation matches the fixture-backed reference" {
     for (fixtures.seeded_cases) |case| {
         try std.testing.expectEqual(case.expected_partial, checksum.partial(case.bytes, case.seed));
         try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
+    }
+}
+
+test "kunit-inspired carry discipline stays stable on the helper surface" {
+    for (fixtures.carry_discipline_cases) |case| {
+        const partial = checksum.partial(case.bytes, case.seed);
+
+        try std.testing.expectEqual(case.expected_partial, partial);
+        try std.testing.expectEqual(case.expected_compute, checksum.fold(partial));
+        try std.testing.expectEqual(case.expected_compute, referenceFoldedChecksum(case.bytes, case.seed));
     }
 }
 
