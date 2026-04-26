@@ -18,20 +18,22 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 
 The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other high-risk production-facing consumers, because the file is both large and semantically dense even though it lives under `tools/`.
 
-That matters because the live repo already has real helper-first progress under `tools/lib/bpf/zigux_segments/`: a segment catalog, type-name helpers, and a CPU-mask helper that now covers both bounded parsing and the deferred chunk-reader path for sysfs-style buffered input. Those are useful footholds, but they do not yet replace the need for a current Phase 12 survey checkpoint that explains how the earlier helper work fits the modern roadmap instead of leaving libbpf stranded in Phase 8 wording.
+That matters because the live repo already has real helper-first progress under `tools/lib/bpf/zigux_segments/`: a segment catalog, dense type-name tables, a CPU-mask helper with the deferred chunk-reader path for sysfs-style buffered input, a bounded logging helper, and bounded bpffs pin-path helpers. Those are useful footholds, but they still need a current Phase 12 survey checkpoint that explains how the earlier helper work fits the modern roadmap instead of leaving libbpf stranded in older Phase 8 wording or stale Phase 12 reviewability assumptions.
 
 The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
 
 ## Survey findings
 
 - `tools/lib/bpf/libbpf.c` is present on `master` at 14,771 lines, which is large enough to cross helper, loader, object-model, relocation, and verifier-facing concerns in one file.
-- the live repo already ships the earlier `tools/lib/bpf/zigux_segments/manifest.json` survey plus two landed helper slices:
+- the live repo already ships the earlier `tools/lib/bpf/zigux_segments/manifest.json` survey plus four landed helper slices:
   - `type_names.zig` for exported attach, link, map, and program type string tables
   - `cpu_mask.zig` for bounded CPU-mask parsing, set-bit counting, and a deferred reader interface that still stops short of direct file I/O
+  - `logging.zig` for bounded print-level parsing, version reporting, and libbpf-specific error text formatting
+  - `pin_path.zig` for bounded bpffs path joining and dot-sanitization without directory or syscall parity
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
-- the current Phase 12 build now re-checks the landed helper-first foundations directly by compiling `type_names.zig` and `cpu_mask.zig` through a reviewability gate and by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory.
-- the repo still has no `logging.zig`, `pin_path.zig`, `object_loader.zig`, or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
-- the next honest libbpf-facing step is one more helper-first segment, with `logging.zig` currently the smallest roadmap-aligned follow-up.
+- the current Phase 12 build now re-checks the landed helper-first foundations directly by compiling `type_names.zig`, `cpu_mask.zig`, `logging.zig`, and `pin_path.zig` through a reviewability gate and by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory.
+- the repo still has no `object_loader.zig` or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
+- with the bounded helper-first utility slices now landed, the next honest libbpf-facing step is to keep reviewability aligned and only reopen the lane for another helper if fresh repo reality shows something materially smaller than the still-blocked object-model work.
 
 ## Recorded gaps
 
@@ -42,20 +44,20 @@ The survey manifest now records:
 - the landed `phase12-libbpf-segment-manifest-foundation`
 - the landed `phase12-libbpf-type-name-helper-foundation`
 - the landed `phase12-libbpf-cpu-mask-helper-foundation`
+- the landed `phase12-libbpf-logging-helper-foundation`
+- the landed `phase12-libbpf-pin-path-helper-foundation`
 - the landed `phase12-libbpf-survey-gate`
 - the landed `phase12-libbpf-reviewability-gate`
 - the landed `phase12-libbpf-survey-note`
-- the ready-next `phase12-libbpf-logging-helper`
 - the still-blocked `phase12-libbpf-object-loader-and-program-load`
 
-This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path, but the heavy helper consumer still needs more bounded utility slices before any object-model, loader, relocation, or syscall-backed surface should move.
+This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path plus bounded logging and pin-path helpers, but the heavy helper consumer still stops well short of object-model, loader, relocation, or syscall-backed surfaces.
 
 ## Non-goals
 
 This survey slice does not claim:
 
 - direct Zig parity for `tools/lib/bpf/libbpf.c`
-- `logging.zig` or `pin_path.zig` implementation
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 - ELF collection or object loading
 - BTF relocation recording
@@ -72,4 +74,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and add `logging.zig` next so the libbpf lane can widen through one more table-driven helper slice before any pin-path, object-loader, relocation, or syscall-backed work.
+Keep the Phase 12 libbpf survey and reviewability lane aligned with the live helper set, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded utility slice if fresh repo reality shows something materially smaller than the still-blocked object-model, loader, and relocation work.
