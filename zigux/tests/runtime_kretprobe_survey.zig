@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime kretprobe survey manifest records the landed diff gate and remaining blocker" {
+test "phase 9 runtime kretprobe survey manifest stays anchored to the survey lane while recording the landed diff gate and blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -48,7 +48,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed diff gate and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
