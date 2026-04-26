@@ -1,0 +1,52 @@
+{
+  "lane_key": "P5-L08",
+  "phase": "Phase 5",
+  "surveyed_commit": "4beebebb1fcbe047fd5abe0a15b6b1bd272a5976",
+  "anchor": "samples/kobject/kobject-example.c",
+  "sample_path": "samples/zigux/kobject_example.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the manifest and survey test still describe the exact registration, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
+    "sample-behavior changes update the manifest-backed registration and lifecycle contract instead of leaving reviewers to infer it from code alone",
+    "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
+  ],
+  "exact_checks": [
+    {
+      "id": "directory-name",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample keeps the Linux directory name kobject_example and an unnamed attribute group"
+    },
+    {
+      "id": "registration-step",
+      "kind": "ownership_lifetime",
+      "expected": "runAnchorReplay requires init first, registers exactly three attributes, and leaves the sample in the registered stage"
+    },
+    {
+      "id": "foo-roundtrip",
+      "kind": "attribute_roundtrip",
+      "expected": "storing 42 into foo renders back as the string 42 followed by a newline"
+    },
+    {
+      "id": "shared-b-dispatch",
+      "kind": "attribute_roundtrip",
+      "expected": "baz and bar share the same show and store path while still rendering 7 and -5 through their own attribute names"
+    },
+    {
+      "id": "parse-failure",
+      "kind": "input_validation",
+      "expected": "non-integer writes return InvalidInteger and unknown attribute names stay explicit errors"
+    },
+    {
+      "id": "exit-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "exit clears the tracked values, removes the active attribute count, and rejects later show or store calls"
+    }
+  ],
+  "non_goals": [
+    "sysfs file creation parity",
+    "kernel_kobj integration",
+    "uevent delivery",
+    "loadable module registration"
+  ]
+}
