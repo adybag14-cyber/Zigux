@@ -3,11 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -69,6 +67,18 @@ def main() -> int:
         if int(actual) != int(value):
             print('PHASE1_BENCH_CHECK=fail')
             print(f'ITERATION_MISMATCH={key}')
+            print(f'EXPECTED={value}')
+            print(f'ACTUAL={actual}')
+            return 1
+
+    for key, value in expectations.get('exact_checksums', {}).items():
+        actual = parsed.get(key)
+        if actual is None:
+            missing.append(key)
+            continue
+        if int(actual) != int(value):
+            print('PHASE1_BENCH_CHECK=fail')
+            print(f'CHECKSUM_MISMATCH={key}')
             print(f'EXPECTED={value}')
             print(f'ACTUAL={actual}')
             return 1
