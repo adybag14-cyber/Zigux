@@ -7,6 +7,8 @@ on:
       - 'lib/**'
       - 'zigux-alpha/**'
       - 'Documentation/zigux/**'
+      - 'kernel/**/*.zig'
+      - 'net/**/*.zig'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
       - 'tools/lib/**/*.zig'
@@ -19,6 +21,8 @@ on:
       - 'lib/**'
       - 'zigux-alpha/**'
       - 'Documentation/zigux/**'
+      - 'kernel/**/*.zig'
+      - 'net/**/*.zig'
       - 'scripts/zigux/**'
       - 'tools/lib/*.zig'
       - 'tools/lib/**/*.zig'
@@ -174,6 +178,9 @@ jobs:
 
       - name: Run Phase 13 shared helper tests
         run: zig build test --build-file zigux/tests/phase13_build.zig --summary all
+
+      - name: Run Phase 14 internal bridge tests
+        run: zig build test --build-file zigux/tests/phase14_build.zig --summary all
 
   phase2-cross:
     runs-on: ubuntu-latest
