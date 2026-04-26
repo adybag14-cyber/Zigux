@@ -65,10 +65,11 @@ test "phase13 landlock ruleset manifest records the tree-search followup and rem
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_make_target = false;
     var saw_starter = false;
@@ -78,6 +79,7 @@ test "phase13 landlock ruleset manifest records the tree-search followup and rem
     var saw_merge_followup = false;
     var saw_search_followup = false;
     var saw_tree_link_followup = false;
+    var saw_live_state_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -89,6 +91,8 @@ test "phase13 landlock ruleset manifest records the tree-search followup and rem
             starter_landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_live_lsm_state")) {
+            blocked_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
@@ -137,10 +141,17 @@ test "phase13 landlock ruleset manifest records the tree-search followup and rem
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-tree-link-followup")) {
             saw_tree_link_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_link_node()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_insert_color()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-live-tree-state-blocker")) {
+            saw_live_state_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_live_lsm_state", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_replace_node()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "object ownership") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -148,8 +159,9 @@ test "phase13 landlock ruleset manifest records the tree-search followup and rem
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
@@ -159,6 +171,7 @@ test "phase13 landlock ruleset manifest records the tree-search followup and rem
     try std.testing.expect(saw_merge_followup);
     try std.testing.expect(saw_search_followup);
     try std.testing.expect(saw_tree_link_followup);
+    try std.testing.expect(saw_live_state_blocker);
 }
 
 test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
@@ -172,6 +185,7 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(descriptor.provides_rule_unmasking);
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_link_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
 }
@@ -213,4 +227,35 @@ test "phase13 landlock ruleset tree-search planner keeps count on match" {
     try std.testing.expectEqual(@as(?u64, 40), plan.parent_key_data);
     try std.testing.expectEqual(@as(?ruleset.InsertionSite, null), plan.insertion_site);
     try std.testing.expectEqual(@as(u32, 9), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset tree-link planner initializes root after empty search" {
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, false, 42, &.{}, 3);
+    const link_plan = try ruleset.RulesetHelperLab.planRuleTreeLink(search_plan);
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", link_plan.anchor);
+    try std.testing.expectEqual(ruleset.TreeRoot.inode, link_plan.root);
+    try std.testing.expectEqual(ruleset.TreeLinkMode.initialize_root, link_plan.mode);
+    try std.testing.expectEqual(@as(?u64, null), link_plan.parent_key_data);
+    try std.testing.expect(link_plan.performs_rb_link_node);
+    try std.testing.expect(link_plan.performs_rb_insert_color);
+    try std.testing.expectEqual(@as(u32, 4), link_plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset tree-link planner attaches on the chosen side" {
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.net_port, true, 25, &.{ 10, 40, 30 }, 7);
+    const link_plan = try ruleset.RulesetHelperLab.planRuleTreeLink(search_plan);
+
+    try std.testing.expectEqual(ruleset.TreeRoot.net_port, link_plan.root);
+    try std.testing.expectEqual(ruleset.TreeLinkMode.attach_left, link_plan.mode);
+    try std.testing.expectEqual(@as(?u64, 30), link_plan.parent_key_data);
+    try std.testing.expect(link_plan.performs_rb_link_node);
+    try std.testing.expect(link_plan.performs_rb_insert_color);
+    try std.testing.expectEqual(@as(u32, 8), link_plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset tree-link planner rejects matching-rule search results" {
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 40, &.{ 10, 40, 80 }, 9);
+
+    try std.testing.expectError(error.RuleAlreadyExists, ruleset.RulesetHelperLab.planRuleTreeLink(search_plan));
 }
