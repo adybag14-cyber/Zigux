@@ -1,10 +1,10 @@
 # Phase 7 Rbtree Slice
 
-This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/rbtree.c`.
+This document records the bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/rbtree.c`.
 
 ## Status
 
-- `PHASE7_STATUS=active`
+- `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=rbtree-runtime-leaf`
 - scope: first bounded balancing and traversal helpers
 - product boundary:
@@ -33,6 +33,8 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
+
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, and the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice without reopening implementation work.
 
 ## Current parity surface
 
@@ -76,4 +78,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Either add a tiny serialized fixture or harness layer that cross-checks the plain-tree insert and duplicate-key lookup surface against `lib/rbtree.c`, or park the lane now that the runtime-family starter helper includes balancing, updates, lookups, and dedicated review coverage.
+Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny serialized or harness-backed C-vs-Zig parity proof over the existing insert, duplicate-key lookup, erase, and traversal surface.
