@@ -21,7 +21,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
-- can be validated with a focused Zig gate before deeper string escaping or allocation-backed helpers are attempted
+- can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
 ## Gates
 
@@ -54,9 +54,8 @@ The current tests check:
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
-- deterministic space, octal, hex, and special unescape cases derived from `lib/tests/string_helpers_kunit.c`
+- deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination
-- exact-fit unescape output that still decodes one escaped byte and appends the trailing NUL
 
 ## Non-goals
 
