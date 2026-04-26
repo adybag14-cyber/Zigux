@@ -79,7 +79,11 @@ test "pseudo header accumulation matches the reference checksum" {
     appendBigEndianU16(pseudo_header[10..12], payload.len);
 
     const pseudo_partial = checksum.partial(&pseudo_header, 0);
-    const actual = checksum.fold(checksum.blockAdd(pseudo_partial, payload_partial, pseudo_header.len));
+    const combined_partial = checksum.blockAdd(pseudo_partial, payload_partial, pseudo_header.len);
+    const helper_partial = checksum.tcpUdpNofold(payload_partial, saddr, daddr, payload.len, proto);
+    try std.testing.expectEqual(combined_partial, helper_partial);
+
+    const actual = checksum.fold(helper_partial);
 
     var pseudo_and_payload: [12 + payload.len]u8 = undefined;
     @memcpy(pseudo_and_payload[0..12], &pseudo_header);
