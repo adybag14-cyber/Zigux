@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime kretprobe survey manifest records the landed starter slice and remaining gap" {
+test "phase 9 runtime kretprobe survey manifest records the landed diff gate and remaining blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -64,6 +64,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed starter slice
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_sample_module = false;
+    var saw_diff_gate = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -90,6 +91,11 @@ test "phase 9 runtime kretprobe survey manifest records the landed starter slice
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-diff-gate")) {
+            saw_diff_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_kretprobe_diff.zig", gap.zigux_destination);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -97,9 +103,10 @@ test "phase 9 runtime kretprobe survey manifest records the landed starter slice
         }
     }
 
-    try std.testing.expect(runtime_test_destination_count >= 2);
-    try std.testing.expect(starter_landed_count >= 4);
-    try std.testing.expect(ready_next_count >= 1);
+    try std.testing.expect(runtime_test_destination_count >= 4);
+    try std.testing.expect(starter_landed_count >= 5);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
+    try std.testing.expect(saw_diff_gate);
 }

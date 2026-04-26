@@ -45,7 +45,7 @@
     },
     {
       "id": "runtime-kretprobe-diff-gate",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_diff.zig",
       "why_now": "The next meaningful step is a tiny table-driven gate that replays a few entry-skip, duration, and nmissed expectations from the Linux sample before widening the starter."
