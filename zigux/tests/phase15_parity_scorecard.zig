@@ -114,7 +114,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("feb7b44c67afb49298f417705def5b0fabc3c963", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("39cdd038909f9834a8702070a697a0bf2111cb66", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
