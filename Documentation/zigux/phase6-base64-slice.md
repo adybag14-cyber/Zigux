@@ -10,6 +10,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 - product boundary:
   - `lib/base64.zig`
   - `zigux/tests/phase6_base64.zig`
+  - `zigux/tests/fixtures/phase6_base64_vectors.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -47,6 +48,7 @@ The current tests check:
 - variant alphabet parity for URL-safe and IMAP output
 - output-length accounting through `chars`
 - destination-bounds failures before partial writes
+- shared encode fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 ## Non-goals
 
@@ -55,7 +57,8 @@ This slice does not yet claim:
 - decode parity
 - KUnit integration
 - performance benchmarking
+- a C-emitted parity harness beyond the current Zig fixture module
 
 ## Next bounded step
 
-Add `decode` with focused valid-and-invalid parity vectors lifted from `lib/tests/base64_kunit.c`, then decide whether the helper needs a small external fixture layer or is ready to be left as a bounded Phase 6 leaf port.
+Add `decode` with focused valid-and-invalid parity vectors lifted from `lib/tests/base64_kunit.c`, then decide whether the helper needs a small external C-vs-Zig fixture layer or is ready to be left as a bounded Phase 6 leaf port.
