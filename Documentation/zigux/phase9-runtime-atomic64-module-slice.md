@@ -24,6 +24,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a 64-bit counter path using `zigux/helpers/atomic.zig`
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
+- a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange and cmpxchg expectations
 - dedicated Phase 9 tests and a `make -C zigux phase9` entry
 
 ## Non-goals
@@ -33,7 +34,6 @@ This slice does not yet claim:
 - a kernel-loadable Zigux module
 - runtime module init and exit macro parity
 - boot-time or module-load execution
-- a C-vs-Zig differential gate for specific atomic64 operations
 
 ## Gates
 
@@ -45,4 +45,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and add a small differential gate under `zigux/tests/runtime_atomic64_diff.zig` that turns a few `lib/atomic64_test.c` expectations into serialized or table-driven checks before attempting any broader runtime substrate work.
+Stay in the Phase 9 runtime atomic64 lane and expose one honest guard-path expectation next, most likely `add_unless` or `inc_not_zero`, through the existing starter sample before attempting any broader runtime substrate work.
