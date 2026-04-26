@@ -43,6 +43,7 @@ The current starter slice covers:
 - `string_is_terminated()`
 - `string_upper()`
 - `string_lower()`
+- `string_unescape()`
 
 The current tests check:
 
@@ -53,6 +54,8 @@ The current tests check:
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
+- deterministic space, octal, hex, and special unescape cases derived from `lib/tests/string_helpers_kunit.c`
+- in-place unescape behavior and bounded destination termination
 
 ## Non-goals
 
@@ -60,9 +63,9 @@ This slice does not yet claim:
 
 - parity for `string_get_size()`
 - integer parsing helpers
-- escape or unescape helpers
+- `string_escape_mem()`
 - allocation-backed duplication helpers
 
 ## Next bounded step
 
-Port either `string_unescape()` or `string_escape_mem()` with a deterministic fixture set derived from `lib/string_helpers.c`, now that the smaller header-adjacent termination and case-conversion helpers are aligned with the dedicated Phase 7 gate.
+Port a narrow `string_escape_mem()` subset with deterministic fixtures derived from `lib/string_helpers.c`, now that `string_unescape()` and the smaller header-adjacent helpers are aligned with the dedicated Phase 7 gate.
