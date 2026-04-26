@@ -198,6 +198,58 @@ test "phase10 virtio input records bounded ABS metadata for configured axes" {
     );
 }
 
+test "phase10 virtio input stages capability setup from config bitmaps and ABS metadata" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-6", 6, null);
+
+    try std.testing.expectError(
+        error.CapabilityConfigNotConfigured,
+        device.capabilitySetupSummary(),
+    );
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_msc, &[_]u16{ virtio_input.msc_timestamp, 0x06 });
+    try device.configureAbsInfo(0x00, .{
+        .minimum = 0,
+        .maximum = 1024,
+        .resolution = 8,
+    });
+    try std.testing.expectError(
+        error.AbsCapabilitiesNotConfigured,
+        device.capabilitySetupSummary(),
+    );
+
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{1});
+    try std.testing.expectError(
+        error.AbsAxisMissingCapabilityBit,
+        device.capabilitySetupSummary(),
+    );
+
+    var ready_device = try virtio_input.VirtioInputLab.init("tablet", "serial-7", 7, null);
+    try ready_device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
+    try ready_device.configureConfigBitmap(.ev_bits, virtio_input.ev_msc, &[_]u16{ virtio_input.msc_timestamp, 0x06 });
+    try ready_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ 0, 1 });
+    try ready_device.configureAbsInfo(0x00, .{
+        .minimum = -2048,
+        .maximum = 2047,
+        .fuzz = 4,
+        .flat = 8,
+        .resolution = 32,
+    });
+    try ready_device.configureAbsInfo(0x01, .{
+        .minimum = 0,
+        .maximum = 4095,
+        .resolution = 48,
+    });
+
+    const summary = try ready_device.capabilitySetupSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 2), summary.property_bit_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.staged_event_type_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.staged_capability_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.staged_abs_param_count);
+    try std.testing.expect(summary.stages_abs_params);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
@@ -209,6 +261,7 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try device.markReady();
     _ = try device.sendStatus(0x11, 0x01, 1);
     try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{0});
     try device.configureAbsInfo(0x00, .{
         .minimum = 0,
         .maximum = 1024,
@@ -222,4 +275,5 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try std.testing.expectError(error.StatusQueueNotConfigured, device.sendStatus(0x11, 0x01, 1));
     try std.testing.expectError(error.ConfigBitmapNotConfigured, device.configBitmapSummary(.prop_bits, 0));
     try std.testing.expectError(error.AbsInfoNotConfigured, device.absInfoSummary(0x00));
+    try std.testing.expectError(error.CapabilityConfigNotConfigured, device.capabilitySetupSummary());
 }
