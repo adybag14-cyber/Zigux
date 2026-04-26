@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=help-command-list-starter`
-- scope: owned command-list handling, injected executable-entry filtering, and print-layout planning only
+- scope: owned command-list handling, injected command-source filtering, and print-layout planning only
 - product boundary:
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
@@ -39,6 +39,7 @@ The current starter slice covers:
 - `exclude_cmds()` behavior for sorted exclusion lists
 - `is_in_cmdlist()` membership checks
 - injected command-entry filtering that strips the `perf-` prefix and optional `.exe` suffix before storage
+- injected command-source loading that models `load_command_list()` exec-path priority, PATH de-duplication, and cross-list exclusion without direct `readdir()` or `stat()` calls
 - `pretty_print_string_list()`-adjacent column and row planning without direct terminal I/O
 
 The current tests check:
@@ -47,6 +48,7 @@ The current tests check:
 - sorted duplicate removal keeps one stable owned copy
 - sorted exclusions remove matching entries without disturbing survivors
 - executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
+- command-source loading keeps the exec-path list stable, skips the exec-path directory when it also appears on PATH, removes commands already present in the exec-path list, and preserves the `perf-` default prefix behavior
 - membership and longest-name tracking stay aligned with stored entries
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals and the empty-list row contract
 
@@ -60,4 +62,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/subcmd/help.zig` and add an injected command-source layer that batches directory-entry iteration for `load_command_list()` parity, or add an injected terminal-size surface before attempting any direct output-emission parity.
+Stay in `tools/lib/subcmd/help.zig` and add an injected terminal-size surface before attempting any direct output-emission parity, or narrow further into PATH-string splitting if repo review still shows that helper gap inside the same command-discovery slice.
