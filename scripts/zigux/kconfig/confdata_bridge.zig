@@ -47,6 +47,27 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     return text;
 }
 
+fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
+    const inner = raw_value[1 .. raw_value.len - 1];
+    var decoded = std.ArrayList(u8).empty;
+    errdefer decoded.deinit(allocator);
+
+    var index: usize = 0;
+    while (index < inner.len) : (index += 1) {
+        const byte = inner[index];
+        if (byte == '\\') {
+            if (index + 1 < inner.len) {
+                index += 1;
+                try decoded.append(allocator, inner[index]);
+            }
+            continue;
+        }
+        try decoded.append(allocator, byte);
+    }
+
+    return decoded.toOwnedSlice(allocator);
+}
+
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
     errdefer entries.deinit(allocator);
@@ -81,12 +102,15 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         else
             .value;
 
-        const cooked_value = if (kind == .string) raw_value[1 .. raw_value.len - 1] else raw_value;
+        const cooked_value = if (kind == .string)
+            try decodeQuotedString(allocator, raw_value)
+        else
+            try allocator.dupe(u8, raw_value);
 
         try entries.append(allocator, .{
             .name = try allocator.dupe(u8, name),
             .kind = kind,
-            .value = try allocator.dupe(u8, cooked_value),
+            .value = cooked_value,
         });
         set_count += 1;
     }
@@ -204,4 +228,19 @@ test "confdata bridge emits bounded json output" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"set\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"unset\":1") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_DEBUG\"") != null);
+}
+
+test "confdata bridge decodes escaped quoted strings" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_BANNER="zigux \"bridge\""
+        \\CONFIG_PATH="drivers\\zigux"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("zigux \"bridge\"", summary.entries[0].value);
+    try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
 }

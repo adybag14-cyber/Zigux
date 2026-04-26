@@ -55,6 +55,11 @@
       "name": "sample",
       "input": "sample.config",
       "expected": "sample_expected.json"
+    },
+    {
+      "name": "escaped_strings",
+      "input": "escaped_strings.config",
+      "expected": "escaped_strings_expected.json"
     }
   ]
 }
