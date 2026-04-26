@@ -50,7 +50,7 @@ Phase 7 notes
 - `Documentation/zigux/phase7-argv-split-slice.md`
 - `Documentation/zigux/phase7-rbtree-slice.md`
 - `zigux/tests/phase7_build.zig` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
-- the current bounded Phase 7 decision is no longer whether the parked cmdline slice still needs one more fixture; it is whether the remaining active string-helpers, argv-split, and rbtree slices need one last tiny serialized or external parity nibble before they can join cmdline in a parked helper bundle.
+- the current bounded Phase 7 decision is no longer whether the parked cmdline or argv-split slices still need one more fixture; it is whether the remaining active string-helpers and rbtree slices need one last tiny serialized or external parity nibble before they can join that parked helper bundle.
 
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
