@@ -9,6 +9,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 test wiring, and lane-local manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
+  - `samples/zigux/runtime_bitmap_loader.zig`
   - `zigux/tests/runtime_bitmap_module.zig`
   - `zigux/tests/runtime_bitmap_diff.zig`
   - `zigux/tests/runtime_bitmap_manifest.json`
@@ -28,6 +29,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, and `copyFrom` behavior
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
+- a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, captures the handoff bitmap summary, and keeps no-substrate release behavior explicit without claiming a real module loader
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
@@ -49,4 +51,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining runtime-substrate blocker, most likely a tiny loader or lifecycle handoff scaffold that makes the sample's `requires_runtime_substrate` contract reviewable without pretending full kernel module parity exists.
+Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining shared runtime-substrate blocker, most likely a future `zigux/kernel/runtime_loader.zig` or equivalent binding surface that can consume the new handoff plan without pretending full kernel module parity already exists.
