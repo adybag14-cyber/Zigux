@@ -140,8 +140,17 @@ pub const PrettyPrintLayout = struct {
     spacing: usize,
 };
 
+pub const TerminalDimensions = struct {
+    rows: usize,
+    cols: usize,
+};
+
 pub fn hasExtension(filename: []const u8, ext: []const u8) bool {
     return filename.len > ext.len and std.mem.eql(u8, filename[filename.len - ext.len ..], ext);
+}
+
+fn parseDimension(value: []const u8) usize {
+    return std.fmt.parseInt(usize, value, 10) catch 0;
 }
 
 pub fn commandNameFromEntry(filename: []const u8, prefix: []const u8) ?[]const u8 {
@@ -221,6 +230,47 @@ pub fn loadCommandListsFromSource(
     other_cmds.sort();
     other_cmds.uniq();
     other_cmds.excludeCmds(main_cmds.*);
+}
+
+pub fn resolveTerminalDimensions(
+    env_lines: ?[]const u8,
+    env_columns: ?[]const u8,
+    fallback: ?TerminalDimensions,
+) TerminalDimensions {
+    if (env_lines) |lines| {
+        const rows = parseDimension(lines);
+        if (env_columns) |columns| {
+            const cols = parseDimension(columns);
+            if (rows != 0 and cols != 0) {
+                return .{
+                    .rows = rows,
+                    .cols = cols,
+                };
+            }
+        }
+    }
+
+    if (fallback) |terminal| {
+        if (terminal.rows != 0 and terminal.cols != 0) {
+            return terminal;
+        }
+    }
+
+    return .{
+        .rows = 25,
+        .cols = 80,
+    };
+}
+
+pub fn planPrettyPrintForTerminal(
+    count: usize,
+    longest: usize,
+    env_lines: ?[]const u8,
+    env_columns: ?[]const u8,
+    fallback: ?TerminalDimensions,
+) PrettyPrintLayout {
+    const terminal = resolveTerminalDimensions(env_lines, env_columns, fallback);
+    return planPrettyPrint(count, longest, terminal.cols);
 }
 
 pub fn planPrettyPrint(count: usize, longest: usize, terminal_cols: usize) PrettyPrintLayout {
@@ -400,6 +450,26 @@ test "loadCommandListsFromSource keeps exec-path priority and filters duplicates
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
+test "resolveTerminalDimensions prefers explicit environment dimensions before fallback defaults" {
+    const from_env = resolveTerminalDimensions("40", "120", .{
+        .rows = 30,
+        .cols = 90,
+    });
+    try std.testing.expectEqual(@as(usize, 40), from_env.rows);
+    try std.testing.expectEqual(@as(usize, 120), from_env.cols);
+
+    const from_fallback = resolveTerminalDimensions("40", null, .{
+        .rows = 33,
+        .cols = 99,
+    });
+    try std.testing.expectEqual(@as(usize, 33), from_fallback.rows);
+    try std.testing.expectEqual(@as(usize, 99), from_fallback.cols);
+
+    const invalid_env = resolveTerminalDimensions("abc", "70", null);
+    try std.testing.expectEqual(@as(usize, 25), invalid_env.rows);
+    try std.testing.expectEqual(@as(usize, 80), invalid_env.cols);
+}
+
 test "pretty-print layout follows the same column math as help.c" {
     const layout = planPrettyPrint(5, 7, 33);
     try std.testing.expectEqual(@as(usize, 4), layout.cols);
@@ -410,4 +480,12 @@ test "pretty-print layout follows the same column math as help.c" {
     try std.testing.expectEqual(@as(usize, 1), empty.cols);
     try std.testing.expectEqual(@as(usize, 0), empty.rows);
     try std.testing.expectEqual(@as(usize, 6), empty.spacing);
+
+    const env_layout = planPrettyPrintForTerminal(6, 7, "41", "33", .{
+        .rows = 25,
+        .cols = 80,
+    });
+    try std.testing.expectEqual(@as(usize, 4), env_layout.cols);
+    try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
+    try std.testing.expectEqual(@as(usize, 8), env_layout.spacing);
 }
