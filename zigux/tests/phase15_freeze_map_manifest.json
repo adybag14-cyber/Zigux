@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L04",
+  "lane_key": "P15-L02",
   "phase": "Phase 15",
-  "surveyed_commit": "d418cc803bd7012f0892286f12cacb9b97d1a43e",
+  "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -44,6 +44,15 @@
         "## Stay-In-C Policy",
         "keep the code in C and record the blocker"
       ]
+    },
+    {
+      "id": "freeze-map-stay-in-c-closeout",
+      "summary": "Freeze-map stay-in-C closeouts must keep the retained discussion state, reopen triggers, and no-silent-exception rule explicit at the root policy layer.",
+      "required_terms": [
+        "retired_from_active_discussion",
+        "reopen triggers",
+        "no silent exception path"
+      ]
     }
   ],
   "gaps": [
@@ -59,28 +68,35 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "Phase 15 needed a lane-local note that records the bounded governance slice and its remaining scorecard follow-up."
+      "why_now": "The freeze-map-specific lane note now needs to reflect current Phase 15 repo reality instead of still pointing at the already-landed parity-scorecard starter."
     },
     {
       "id": "phase15-build-gate",
       "status": "starter_landed",
       "kind": "test_gate",
       "zigux_destination": "zigux/tests/phase15_build.zig",
-      "why_now": "The governance slice needed a dedicated Phase 15 build gate so freeze-map policy drift stays reviewable."
+      "why_now": "The governance slice needs to remain replayable through the shared Phase 15 build gate."
     },
     {
       "id": "phase15-make-target",
       "status": "starter_landed",
       "kind": "build_entrypoint",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "A convenience make target keeps the bounded parity scorecard and freeze-map governance checks easy to replay."
+      "why_now": "The convenience make target still keeps the bounded freeze-map governance checks easy to replay."
     },
     {
-      "id": "phase15-parity-scorecard-followup",
-      "status": "ready_next",
-      "kind": "followup",
-      "zigux_destination": "Documentation/zigux/parity-scorecard.md",
-      "why_now": "The parity scorecard follow-up is still the next bounded governance step before any freeze-in-C anchor can change status."
+      "id": "phase15-stay-in-c-closeout-sync",
+      "status": "starter_landed",
+      "kind": "policy_sync",
+      "zigux_destination": "Documentation/zigux/freeze-map.md",
+      "why_now": "The root freeze map now needs the retained stay-in-C closeout and no-silent-exception wording that the parity scorecard, review-process note, and indefinite-C policy already depend on."
+    },
+    {
+      "id": "phase15-deep-core-status-change-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "freeze_map",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The live repo still lacks evidence strong enough to move any freeze-in-C anchor out of the current long-term C-owned posture."
     }
   ]
 }
