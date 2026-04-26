@@ -8,8 +8,10 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_resource_planning: bool,
     provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
+    provides_arch_io_wc_memtype_planning: bool,
     touches_live_device_lists: bool,
     touches_live_mmio: bool,
+    touches_live_arch_memtype: bool,
 };
 
 pub const ManagedIoremapKind = enum {
@@ -139,6 +141,43 @@ pub const IoremapResourceInput = struct {
     remap_succeeds: bool = true,
 };
 
+pub const MemtypeReleaseAction = enum {
+    free_wc_memtype,
+};
+
+pub const ManagedMemtypeReserveInput = struct {
+    start: u64,
+    size: u64,
+    release_record_allocated: bool,
+    reserve_result: i32,
+};
+
+pub const ManagedMemtypeReservePlan = struct {
+    anchor: []const u8,
+    start: u64,
+    size: u64,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    release_action: ?MemtypeReleaseAction,
+    should_release_on_detach: bool,
+};
+
+pub const ManagedMemtypeReserveFailure = struct {
+    anchor: []const u8,
+    error_code: i32,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    release_action: ?MemtypeReleaseAction,
+    should_release_on_detach: bool,
+};
+
+pub const ManagedMemtypeReserveOutcome = union(enum) {
+    reserved: ManagedMemtypeReservePlan,
+    err: ManagedMemtypeReserveFailure,
+};
+
 pub const DevresHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -149,8 +188,10 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_resource_planning = true,
             .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
+            .provides_arch_io_wc_memtype_planning = true,
             .touches_live_device_lists = false,
             .touches_live_mmio = false,
+            .touches_live_arch_memtype = false,
         };
     }
 
@@ -343,6 +384,39 @@ pub const DevresHelperLab = struct {
                     .releases_region_on_remap_failure = failure.releases_region_on_remap_failure,
                     .resource_stage = failure.stage,
                 },
+            },
+        };
+    }
+
+    pub fn planArchIoReserveMemtypeWc(input: ManagedMemtypeReserveInput) !ManagedMemtypeReserveOutcome {
+        if (!input.release_record_allocated) {
+            return error.OutOfMemory;
+        }
+
+        if (input.reserve_result < 0) {
+            return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .error_code = input.reserve_result,
+                    .added_to_devres = false,
+                    .release_record_retained = false,
+                    .release_record_freed = true,
+                    .release_action = null,
+                    .should_release_on_detach = false,
+                },
+            };
+        }
+
+        return .{
+            .reserved = .{
+                .anchor = descriptor().anchor,
+                .start = input.start,
+                .size = input.size,
+                .added_to_devres = true,
+                .release_record_retained = true,
+                .release_record_freed = false,
+                .release_action = .free_wc_memtype,
+                .should_release_on_detach = true,
             },
         };
     }
