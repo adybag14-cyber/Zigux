@@ -6,10 +6,11 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
-- scope: lifecycle starter, bounded event-emission and registration behavior, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
+- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `zigux/tests/runtime_trace_events_module.zig`
+  - `zigux/tests/runtime_trace_events_diff.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
   - `zigux/tests/phase9_build.zig`
@@ -26,6 +27,7 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
 - explicit registration-balance checks for the function-callback path
+- a dedicated `runtime_trace_events_diff` gate that replays a few `foo_bar`, template, and function-callback expectations from `samples/trace_events/trace-events-sample.c`
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
@@ -47,4 +49,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and add a tiny payload-oriented diff gate that replays a few `foo_bar`, template, and function-callback expectations from the Linux sample before attempting any broader runtime substrate work.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, thread creation, and tracepoint-registration lifecycle wiring.

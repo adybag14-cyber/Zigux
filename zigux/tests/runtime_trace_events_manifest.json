@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L10",
   "phase": "Phase 9",
-  "surveyed_commit": "56c8eb10632f09035907f566973f5c15dd02207f",
+  "surveyed_commit": "a0cd4feb7daa74f84db639fd3f73f491df786a0f",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -45,7 +45,7 @@
     },
     {
       "id": "runtime-trace-events-diff-gate",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_trace_events_diff.zig",
       "why_now": "The next meaningful step is a tiny table-driven payload gate that replays a few foo_bar, template, and function-callback expectations from the Linux sample before widening the starter."
