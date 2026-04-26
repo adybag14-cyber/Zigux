@@ -457,4 +457,243 @@ test "uniq removes adjacent duplicates after sorting" {
     try cmds.addCmdName("bench", 5);
 
     cmds.sort();
-    cmds.
+    cmds.uniq();
+
+    try std.testing.expectEqual(@as(usize, 3), cmds.count());
+    try std.testing.expectEqualStrings("annotate", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("bench", cmds.names.items[1].name);
+    try std.testing.expectEqualStrings("test", cmds.names.items[2].name);
+}
+
+test "excludeCmds removes matches from a sorted command list" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("annotate", 8);
+    try cmds.addCmdName("bench", 5);
+    try cmds.addCmdName("test", 4);
+    cmds.sort();
+
+    var excludes = CmdNames.init(std.testing.allocator);
+    defer excludes.deinit();
+    try excludes.addCmdName("bench", 5);
+    try excludes.addCmdName("trace", 5);
+    excludes.sort();
+
+    cmds.excludeCmds(excludes);
+
+    try std.testing.expectEqual(@as(usize, 2), cmds.count());
+    try std.testing.expectEqualStrings("annotate", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("test", cmds.names.items[1].name);
+}
+
+test "membership and longest-name helpers stay aligned with the stored list" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("report", 6);
+    try cmds.addCmdName("sched", 5);
+
+    try std.testing.expect(cmds.isInCmdList("report"));
+    try std.testing.expect(!cmds.isInCmdList("record"));
+    try std.testing.expectEqual(@as(usize, 6), cmds.longestNameLen());
+}
+
+test "splitPathEntries preserves empty PATH segments and owns copied slices" {
+    var backing = [_]u8{ ':', '/', 'u', 's', 'r', '/', 'b', 'i', 'n', ':', ':', '/', 'b', 'i', 'n', ':' };
+    var entries = try splitPathEntries(std.testing.allocator, &backing);
+    defer entries.deinit();
+    backing[1] = 'x';
+
+    try std.testing.expectEqual(@as(usize, 5), entries.count());
+    try std.testing.expectEqualStrings("", entries.entries.items[0]);
+    try std.testing.expectEqualStrings("/usr/bin", entries.entries.items[1]);
+    try std.testing.expectEqualStrings("", entries.entries.items[2]);
+    try std.testing.expectEqualStrings("/bin", entries.entries.items[3]);
+    try std.testing.expectEqualStrings("", entries.entries.items[4]);
+}
+
+test "command entry helpers filter prefixes and strip windows executable suffixes" {
+    try std.testing.expectEqualStrings("trace", commandNameFromEntry("perf-trace", "perf-").?);
+    try std.testing.expectEqualStrings("report", commandNameFromEntry("perf-report.exe", "perf-").?);
+    try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("trace", "perf-"));
+    try std.testing.expectEqual(@as(?[]const u8, null), commandNameFromEntry("perf-.exe", "perf-"));
+    try std.testing.expect(hasExtension("perf-report.exe", ".exe"));
+    try std.testing.expect(!hasExtension("perf-report", ".exe"));
+}
+
+test "addExecutableEntry models load_command_list filtering without directory I/O" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+
+    try std.testing.expect(try addExecutableEntry(&cmds, "perf-report", "perf-", true));
+    try std.testing.expect(try addExecutableEntry(&cmds, "perf-stat.exe", "perf-", true));
+    try std.testing.expect(!(try addExecutableEntry(&cmds, "README.txt", "perf-", true)));
+    try std.testing.expect(!(try addExecutableEntry(&cmds, "perf-script", "perf-", false)));
+
+    cmds.sort();
+
+    try std.testing.expectEqual(@as(usize, 2), cmds.count());
+    try std.testing.expectEqualStrings("report", cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", cmds.names.items[1].name);
+}
+
+test "loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "README.md", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+        .{ .name = "perf-diff", .is_executable = false },
+        .{ .name = "trace", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromSource(
+        null,
+        "/opt/perf/bin",
+        &.{ "/opt/perf/bin", "/usr/bin" },
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path filtering" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "perf-trace", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &.{} },
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        "/opt/perf/bin",
+        ":/opt/perf/bin:/usr/bin:",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "resolveTerminalDimensions prefers explicit environment dimensions before fallback defaults" {
+    const from_env = resolveTerminalDimensions("40", "120", .{
+        .rows = 30,
+        .cols = 90,
+    });
+    try std.testing.expectEqual(@as(usize, 40), from_env.rows);
+    try std.testing.expectEqual(@as(usize, 120), from_env.cols);
+
+    const from_fallback = resolveTerminalDimensions("40", null, .{
+        .rows = 33,
+        .cols = 99,
+    });
+    try std.testing.expectEqual(@as(usize, 33), from_fallback.rows);
+    try std.testing.expectEqual(@as(usize, 99), from_fallback.cols);
+
+    const invalid_env = resolveTerminalDimensions("abc", "70", null);
+    try std.testing.expectEqual(@as(usize, 25), invalid_env.rows);
+    try std.testing.expectEqual(@as(usize, 80), invalid_env.cols);
+}
+
+test "pretty-print layout follows the same column math as help.c" {
+    const layout = planPrettyPrint(5, 7, 33);
+    try std.testing.expectEqual(@as(usize, 4), layout.cols);
+    try std.testing.expectEqual(@as(usize, 2), layout.rows);
+    try std.testing.expectEqual(@as(usize, 8), layout.spacing);
+
+    const empty = planPrettyPrint(0, 5, 20);
+    try std.testing.expectEqual(@as(usize, 1), empty.cols);
+    try std.testing.expectEqual(@as(usize, 0), empty.rows);
+    try std.testing.expectEqual(@as(usize, 6), empty.spacing);
+
+    const env_layout = planPrettyPrintForTerminal(6, 7, "41", "33", .{
+        .rows = 25,
+        .cols = 80,
+    });
+    try std.testing.expectEqual(@as(usize, 4), env_layout.cols);
+    try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
+    try std.testing.expectEqual(@as(usize, 8), env_layout.spacing);
+}
