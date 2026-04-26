@@ -1,6 +1,14 @@
 const std = @import("std");
 const rbtree = @import("rbtree");
 
+fn orderToInt(order: std.math.Order) i32 {
+    return switch (order) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 const Entry = struct {
     key: i32,
     node: rbtree.Node = rbtree.Node.init(),
@@ -168,4 +176,51 @@ test "phase 7 rbtree clearNode marks detached nodes as empty" {
     try std.testing.expect(rbtree.emptyNode(&node));
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.next(&node));
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&node));
+}
+
+test "phase 7 rbtree find helpers walk duplicate-key ranges" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return @intFromPtr(lhs) < @intFromPtr(rhs);
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const rbtree.Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 10 },
+        .{ .key = 15 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    const first_match = rbtree.findFirst(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
+    const found = rbtree.find(@as(i32, 10), &root, cmp) orelse return error.TestUnexpectedResult;
+    const second_match = rbtree.nextMatch(@as(i32, 10), first_match, cmp) orelse return error.TestUnexpectedResult;
+    const third_match = rbtree.nextMatch(@as(i32, 10), second_match, cmp) orelse return error.TestUnexpectedResult;
+
+    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", found))).key);
+    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", first_match))).key);
+    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", second_match))).key);
+    try std.testing.expectEqual(@as(i32, 10), (@as(*const Entry, @fieldParentPtr("node", third_match))).key);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.nextMatch(@as(i32, 10), third_match, cmp));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.find(@as(i32, 99), &root, cmp));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findFirst(@as(i32, 99), &root, cmp));
 }
