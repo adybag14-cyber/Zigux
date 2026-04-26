@@ -167,7 +167,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed registration summar
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
-    try std.testing.expect(saw_driverTests);
+    try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_summary);
     try std.testing.expect(saw_registration_summary);
