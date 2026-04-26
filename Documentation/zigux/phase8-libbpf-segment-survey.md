@@ -6,13 +6,15 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus two landed helper-first starter slices
+- scope: segment manifest plus three landed helper-first starter slices
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `tools/lib/bpf/zigux_segments/logging.zig`
+  - `tools/lib/bpf/zigux_segments/pin_path.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_logging.zig`
+  - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_build.zig`
 
@@ -40,7 +42,7 @@ The manifest currently records six bounded segments:
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-`cpu-mask-parsing` and `logging-version-and-errno` have now moved from `ready_next` to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`. `pin-path-helpers` remains the next low-risk `ready_next` segment, and the last two stay explicitly deferred as high-risk surfaces until more helper-first segments have landed and been validated.
+`cpu-mask-parsing`, `logging-version-and-errno`, and `pin-path-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
 
 ## Current landed segment progress
 
@@ -54,6 +56,9 @@ The current starter implementation stays deliberately bounded:
 - `logging.zig` ports libbpf's bounded print-level parsing, verbosity gating, major or minor version reporting, and the libbpf-specific strerror table without claiming environment reads, stderr output, or full errno-name coverage
 - the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
 - custom libbpf error text is exposed through a compact helper and unknown or unmapped codes fall back to a stable `"Unknown libbpf error N"` formatter
+- `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
+- the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
+- pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
 
 The current tests check:
 
@@ -67,6 +72,9 @@ The current tests check:
 - invalid log-level text stays explicit while callers still receive the default `info` minimum level
 - the bounded major, minor, and version-string helpers match the current `tools/lib/bpf/libbpf_version.h` tuple
 - libbpf-specific custom error text stays stable and unmapped custom codes fall back cleanly
+- default and caller-provided pin roots join cleanly with map names
+- `.` characters inside pin roots and map names sanitize to `_` the same way bpffs pin-name helpers do in libbpf
+- buffer exhaustion during pin-path assembly stays explicit
 
 ## Gates
 
@@ -82,6 +90,7 @@ This survey slice does not yet claim:
 
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
 - `parse_cpu_mask_file()` parity or direct file reads
+- direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
 - BTF relocation parity
 - ELF loader parity
 - perf-buffer runtime behavior
@@ -89,4 +98,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and start the next `ready_next` helper-first segment in `pin_path.zig` now that the cpu-mask reader interface and logging slice are both in place.
+Treat the Phase 8 helper-first entry as substantively landed for now: keep the shared Phase 8 gate honest, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded helper if fresh repo reality exposes one that is smaller and lower risk than the currently blocked object-model and loader-facing work.
