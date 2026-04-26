@@ -42,6 +42,7 @@ The current checksum helper surface exercised by this slice covers:
 - `blockSub`
 - `from32to16`
 - `fold`
+- `tcpUdpNofold`
 - `partial`
 - `compute`
 
@@ -49,7 +50,7 @@ The current tests check:
 
 - IPv4-header checksum parity through the committed helper API
 - incremental partial-sum chaining across even and odd fragment boundaries
-- pseudo-header accumulation using `partial` plus `blockAdd`
+- pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
 
 ## Non-goals
 
