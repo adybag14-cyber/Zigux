@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "1bf6d0b80e010b1922c5f0f17793e47d813a12ef",
+  "surveyed_commit": "80d9c2e8e72aafdaea9aac36b5b0b2bb31f98dfa",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -9,9 +9,9 @@
   ],
   "survey_summary": {
     "atomic64_test_c_lines": 277,
-    "preexisting_runtime_test_files": 0,
-    "preexisting_samples_zigux_present": false,
-    "preexisting_phase9_build_present": false,
+    "preexisting_runtime_test_files": 3,
+    "preexisting_samples_zigux_present": true,
+    "preexisting_phase9_build_present": true,
     "preexisting_phase9_doc_present": false
   },
   "gaps": [
@@ -45,10 +45,10 @@
     },
     {
       "id": "runtime-atomic64-diff-gate",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
-      "why_now": "The next meaningful step is to turn selected atomic64_test.c expectations into a differential gate before widening the runtime starter."
+      "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for wide-value exchange behavior and selftest-family coverage before any broader runtime substrate work."
     },
     {
       "id": "runtime-atomic64-substrate-handoff",
