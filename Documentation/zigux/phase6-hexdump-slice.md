@@ -47,6 +47,7 @@ The current tests check:
 - encode/decode round-trips on bounded fixtures
 - malformed source and destination handling
 - serialized fixture vectors derived from `lib/test_hexdump.c`
+- serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`
 - kernel-style one-line hex and ASCII formatting
 - native-endian grouped output for 2, 4, and 8 byte cases
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
