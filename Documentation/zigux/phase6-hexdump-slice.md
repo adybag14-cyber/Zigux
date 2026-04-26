@@ -8,10 +8,11 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_SLICE=hexdump-leaf-helper`
 - scope: first low-risk hexdump helper coverage only
 - product boundary:
-  - `lib/hexdump.zig`
-  - `zigux/tests/phase6_hexdump.zig`
-  - `zigux/tests/phase6_build.zig`
-  - `zigux/Makefile`
+- `lib/hexdump.zig`
+- `zigux/tests/phase6_hexdump.zig`
+- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- `zigux/tests/phase6_build.zig`
+- `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -45,6 +46,7 @@ The current tests check:
 - mixed-case hex digit decoding
 - encode/decode round-trips on bounded fixtures
 - malformed source and destination handling
+- serialized fixture vectors derived from `lib/test_hexdump.c`
 - kernel-style one-line hex and ASCII formatting
 - native-endian grouped output for 2, 4, and 8 byte cases
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
@@ -61,4 +63,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether to add a fixture-producing C parity harness under `zigux/tests/fixtures/` for `lib/test_hexdump.c`-style vectors, or close this helper lane and move to the next unfinished Phase 6 leaf helper.
+Decide whether the current serialized fixture layer is enough to close the hexdump helper lane, or whether one more tiny C-emitted parity harness is still worth the added maintenance cost before moving to the next unfinished Phase 6 leaf helper.
