@@ -1,0 +1,93 @@
+# Phase 5 Kretprobe Sample Survey
+
+This document tracks the bounded Phase 5 reference-sample survey for the roadmap's `samples/kprobes/kretprobe_example.c` anchor.
+
+## Status
+
+- `PHASE5_STATUS=active`
+- `PHASE5_SLICE=kretprobe-reference-sample-starter`
+- scope: roadmap-vs-repo sample delivery, approved probe-lifecycle guidance, and exact bounded checks for the first `samples/zigux/` kretprobe-style replay
+- product boundary:
+  - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+  - `Documentation/zigux/README.md`
+  - `samples/zigux/kretprobe_example.zig`
+  - `zigux/tests/phase5_build.zig`
+  - `zigux/tests/phase5_kretprobe_example.zig`
+  - `zigux/tests/phase5_kretprobe_example_manifest.json`
+  - `zigux/tests/phase5_kretprobe_example_survey.zig`
+
+## Why this slice exists
+
+The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kprobes/kretprobe_example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
+
+Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference samples plus a later Phase 9 runtime `kretprobe` starter. The missing Phase 5 job was still the earlier non-runtime reading of the same Linux anchor so reviewers can see the anchor behavior without confusing it with runtime substrate work.
+
+## Survey findings
+
+- `samples/kprobes/kretprobe_example.c` is present on `master` and stays small enough to function as a reference-pattern anchor rather than a substrate slice.
+- the Linux sample mixes four concerns:
+  - symbol selection through a module parameter
+  - entry skipping for kernel threads with no `current->mm`
+  - return-value and duration reporting from the stored entry timestamp
+  - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
+- the honest Phase 5 move is to make symbol choice, skip behavior, duration bookkeeping, and the `nmissed` summary reviewable in memory while leaving probe registration and module plumbing out of scope.
+
+## Landed sample and exact checks
+
+The repo now carries that bounded sample in `samples/zigux/kretprobe_example.zig`.
+
+The sample intentionally stays small:
+
+- it keeps the Linux anchor path explicit in `KretprobeExampleSample.descriptor()`
+- it models only the default symbol name, a pre-init retarget hook, kernel-thread skip behavior, entry-timestamp bookkeeping, return-duration replay, and a bounded `nmissed` summary in memory
+- it uses a tiny `init()` -> `entryHandler()` -> `retHandler()` -> `recordMissedInstance()` -> `exit()` lifecycle so ownership and teardown stay explicit
+- it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready kretprobe implementation
+
+The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
+
+- the in-memory sample keeps `kernel_clone` as the default symbol name while allowing pre-init retargeting
+- `runAnchorReplay()` checks that an entry with no `current->mm` is skipped instead of arming a tracked instance
+- the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
+- the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
+- `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
+- after `exit()` the sample rejects later summary or handler calls
+
+## Contributor refresh prompts for the landed sample
+
+When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
+
+- does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
+- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
+- does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
+- if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
+- do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
+
+## Recorded gap vs roadmap
+
+The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise remaining job is:
+
+- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, return timing, summary recording, and teardown
+- this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
+- the broader Phase 5 roadmap still expects the trace-events reference anchor, so this slice should stay explicit about its own boundary rather than implying the whole tranche is done
+
+## Review gates for this survey
+
+1. confirm the Phase 5 anchor is still the Linux kretprobe example
+   - `rg -n "samples/kprobes/kretprobe_example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
+2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 kretprobe lanes distinct
+   - `find samples/zigux -maxdepth 1 -type f | sort | rg "kretprobe|runtime_kretprobe"`
+3. run the exact bounded Phase 5 sample checks
+   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+
+## Non-goals
+
+This survey does not yet claim:
+
+- `register_kretprobe()` parity
+- `unregister_kretprobe()` parity
+- `pt_regs` or `regs_return_value()` parity
+- loadable module wiring
+
+## Next bounded step
+
+Stay in the Phase 5 samples-and-reference-patterns lane and add the last missing reference-sample anchor for `samples/trace_events/trace-events-sample.c` while keeping the same pattern of exact checks and explicit non-goals.
