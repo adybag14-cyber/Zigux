@@ -31,6 +31,20 @@ test "phase 8 pin-path segment sanitizes dots the same way bpffs pin names do" {
     );
 }
 
+test "phase 8 pin-path segment keeps validation and path-shape checks bounded" {
+    var buffer: [96]u8 = undefined;
+
+    try pin_path.validatePinName("cache.map");
+    try pin_path.validatePinRootPath("/sys/fs/bpf");
+
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/cache_map",
+        try pin_path.buildValidatedSanitizedMapPinPath(&buffer, null, "cache.map"),
+    );
+    try std.testing.expectError(error.InvalidName, pin_path.validatePinName("cache/map"));
+    try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("tmp/bpf"));
+}
+
 test "phase 8 pin-path segment keeps overflow failures explicit" {
     var buffer: [16]u8 = undefined;
 
