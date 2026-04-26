@@ -26,6 +26,18 @@
       "replay commands"
     ]
   },
+  "handoff_evidence": {
+    "roadmap_source": "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md#phase-15-full-parity-blockers-and-long-term-governance",
+    "roadmap_requirements": [
+      "freeze map",
+      "Architecture Council review process",
+      "parity scorecard",
+      "policy for code that remains in C indefinitely"
+    ],
+    "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
+    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared phase15_build.zig gate, and make -C zigux phase15 target.",
+    "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
+  },
   "anchors": [
     {
       "path": "kernel/sched/core.c",
@@ -273,6 +285,13 @@
       "kind": "policy",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The scorecard now names the bounded reopen-trigger catalog so its retained stay-in-C closeout language stays aligned with the review-process note and evidence-archive packets."
+    },
+    {
+      "id": "phase15-roadmap-handoff-evidence-followup",
+      "status": "starter_landed",
+      "kind": "handoff",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The maintenance-mode handoff now keeps the roadmap source, the bootstrap ledger anchor, and the parked next step visible together so later runs can see why the Phase 15 governance bundle stays landed without reopening deep-core scope."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
