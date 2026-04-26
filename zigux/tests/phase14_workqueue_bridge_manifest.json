@@ -86,11 +86,18 @@
       "why_now": "The bridge now records the `__queue_work()` gate that chooses between `pool->worklist` and `pwq->inactive_works` while `max_active` and ordered-workqueue sequencing are still enforced under `pool->lock`, which is a reviewable field-level audit step before any wrapper claims live enqueue ownership. The same boundary keeps later `workqueue_set_max_active()` tuning honest by naming the inactive-list seam without moving it out of C."
     },
     {
-      "id": "phase14-workqueue-lock-handoff-followup",
+      "id": "phase14-workqueue-lock-handoff-audit",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records the `__queue_work()` last-pool reentrancy handoff, the `process_one_work()` unlock and relock execution window, and the `worker_thread()` idle sleep transition so Zigux can name where `last_pool->lock`, `pool->lock`, and TASK_IDLE handoffs stay under C-owned concurrency control."
+    },
+    {
+      "id": "phase14-workqueue-pending-bit-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is a tighter lock-handoff audit around `__queue_work()`, `process_one_work()`, and `worker_thread()` so Zigux can describe where `last_pool->lock`, `pool->lock`, and sleep or wake transitions are released and reacquired before any wrapper claims leave the boundary-map-only posture."
+      "why_now": "The next honest Phase 14 step is to audit `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so Zigux can describe pending-bit ownership and refcount retry rules before any wrapper claims live submission control."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
