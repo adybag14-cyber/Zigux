@@ -32,6 +32,7 @@ Current bootstrap helpers
 Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
 - `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
+- `artifact_diff.py --self-test` runs built-in text, JSON, SHA-256, and missing-file checks so the shared artifact comparison helper stays deterministic before the Phase 1 to Phase 3 parity lanes reuse it.
 
 Phase 2 flow
 - `validate-phase2.py` checks that the bounded Phase 2 helper inventory, fixture set, workflow wiring, and docs markers stay in sync before the parity lanes run.
