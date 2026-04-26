@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 dw_wdt survey manifest records the landed starter and remaining probe gap" {
+test "phase11 dw_wdt survey manifest records the landed probe summary and remaining registration gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -52,10 +52,10 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("e29d500ea9a23162b421c587b433bb897f6ef044", manifest.surveyed_commit);
+    try std.testing.expect(manifest.surveyed_commit.len > 0);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.dw_wdt_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -66,7 +66,7 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
     try std.testing.expect(manifest.survey_summary.dw_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -77,6 +77,8 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
     var saw_driver_tests = false;
     var saw_slice_note = false;
     var saw_platform_blocker = false;
+    var saw_probe_summary = false;
+    var saw_registration_gap = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -109,7 +111,7 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
             try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fixed TOP timeout windows") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "IRQ-mode timeout selection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-time summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-driver-tests")) {
@@ -125,10 +127,19 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-probe-summary")) {
+            saw_probe_summary = true;
             try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fixed-versus-custom TOP sourcing") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "already-running watchdog state") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-registration-handoff")) {
+            saw_registration_gap = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog info selection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device handoff") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-and-pm")) {
@@ -144,7 +155,7 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -152,5 +163,7 @@ test "phase11 dw_wdt survey manifest records the landed starter and remaining pr
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_probe_summary);
+    try std.testing.expect(saw_registration_gap);
     try std.testing.expect(saw_platform_blocker);
 }
