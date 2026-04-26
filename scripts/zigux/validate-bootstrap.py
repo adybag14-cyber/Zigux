@@ -54,6 +54,8 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'Run Phase 7 runtime helper tests',
+    'zigux/tests/phase7_build.zig',
 ]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
 if missing_workflow_markers:

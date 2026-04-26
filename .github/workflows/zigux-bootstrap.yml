@@ -152,6 +152,9 @@ jobs:
       - name: Run Phase 6 leaf helper tests
         run: zig build test --build-file zigux/tests/phase6_build.zig --summary all
 
+      - name: Run Phase 7 runtime helper tests
+        run: zig build test --build-file zigux/tests/phase7_build.zig --summary all
+
   phase2-cross:
     runs-on: ubuntu-latest
     strategy:

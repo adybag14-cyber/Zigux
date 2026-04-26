@@ -44,6 +44,14 @@ Phase 6 notes
 - `zigux/tests/phase6_build.zig` and `make -C zigux phase6` now gate the current base64, bsearch, checksum, and hexdump helper bundle together, so new helper slices should only land when that shared lane stays green as one unit.
 - the current bounded Phase 6 decision is no longer whether the hexdump fixture wiring works in CI; it is whether the current bsearch, checksum, and hexdump parity evidence is sufficient to park the leaf-helper lane or whether one more tiny external fixture is still worth carrying.
 
+Phase 7 notes
+- `Documentation/zigux/phase7-string-helpers-slice.md`
+- `Documentation/zigux/phase7-cmdline-slice.md`
+- `Documentation/zigux/phase7-argv-split-slice.md`
+- `Documentation/zigux/phase7-rbtree-slice.md`
+- `zigux/tests/phase7_build.zig` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
+- the current bounded Phase 7 decision is no longer whether the parked cmdline slice still needs one more fixture; it is whether the remaining active string-helpers, argv-split, and rbtree slices need one last tiny serialized or external parity nibble before they can join cmdline in a parked helper bundle.
+
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
 - `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest, accepts either the shared runner gate (`python3 scripts/zigux/run-phase3-checks.py --slug <slug>`) or a legacy per-slice wrapper gate in each slice record, reports obsolete `check-phase3-*.py` wrapper files that no longer belong to a discovered slice, and rejects legacy wrapper script paths inside Phase 3 manifests so those manifests remain a record of slice artifacts rather than compatibility entrypoints.
