@@ -236,10 +236,10 @@ test "phase13 landlock ruleset tree-link planner initializes root after empty se
     const link_plan = try ruleset.RulesetHelperLab.planRuleTreeLink(search_plan);
 
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", link_plan.anchor);
-    try std.testing.expectEqual(ruleset.TreeLinkMode.install_root_node, link_plan.mode);
+    try std.testing.expectEqual(ruleset.TreeLinkMode.initialize_root, link_plan.mode);
     try std.testing.expectEqual(@as(?u64, null), link_plan.parent_key_data);
-    try std.testing.expect(link_plan.should_link_node);
-    try std.testing.expect(link_plan.should_insert_color);
+    try std.testing.expect(link_plan.performs_rb_link_node);
+    try std.testing.expect(link_plan.performs_rb_insert_color);
     try std.testing.expectEqual(@as(u32, 4), link_plan.resulting_num_rules);
 }
 
@@ -247,10 +247,10 @@ test "phase13 landlock ruleset tree-link planner attaches on the chosen side" {
     const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.net_port, true, 25, &.{ 10, 40, 30 }, 7);
     const link_plan = try ruleset.RulesetHelperLab.planRuleTreeLink(search_plan);
 
-    try std.testing.expectEqual(ruleset.TreeLinkMode.link_left_child, link_plan.mode);
+    try std.testing.expectEqual(ruleset.TreeLinkMode.attach_left, link_plan.mode);
     try std.testing.expectEqual(@as(?u64, 30), link_plan.parent_key_data);
-    try std.testing.expect(link_plan.should_link_node);
-    try std.testing.expect(link_plan.should_insert_color);
+    try std.testing.expect(link_plan.performs_rb_link_node);
+    try std.testing.expect(link_plan.performs_rb_insert_color);
     try std.testing.expectEqual(@as(u32, 8), link_plan.resulting_num_rules);
 }
 
