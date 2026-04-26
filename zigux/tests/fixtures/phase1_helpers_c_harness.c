@@ -68,6 +68,7 @@ static void run_find_bit_section(void)
 	unsigned long nbits = BITS_PER_LONG * 3;
 	unsigned long tail_nbits = BITS_PER_LONG + 5;
 	unsigned long tail_bitmap[2] = {0, 1UL << 9};
+	unsigned long tail_mixed_bitmap[2] = {0, (1UL << 3) | (1UL << 9)};
 	unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};
 
 	bitmap[0] |= 1UL << 5;
@@ -88,7 +89,9 @@ static void run_find_bit_section(void)
 	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_zero_bitmap, tail_nbits));
 	printf("\"tail_zero_clamped_next\":%lu,", find_next_zero_bit(tail_zero_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_and_clamped_first\":%lu,", find_first_and_bit(tail_bitmap, tail_bitmap, tail_nbits));
-	printf("\"tail_and_clamped_next\":%lu", find_next_and_bit(tail_bitmap, tail_bitmap, tail_nbits, BITS_PER_LONG));
+	printf("\"tail_and_clamped_next\":%lu,", find_next_and_bit(tail_bitmap, tail_bitmap, tail_nbits, BITS_PER_LONG));
+	printf("\"tail_and_mixed_first\":%lu,", find_first_and_bit(tail_mixed_bitmap, tail_mixed_bitmap, tail_nbits));
+	printf("\"tail_and_mixed_next\":%lu", find_next_and_bit(tail_mixed_bitmap, tail_mixed_bitmap, tail_nbits, BITS_PER_LONG + 4));
 	printf("}");
 }
 
@@ -179,16 +182,12 @@ static void run_string_section(void)
 	void *memchr_none = memchr_inv("bbbb", 'b', 4);
  
 	printf("\"string\":{");
-	strtobool("y", &value);
-	printf("\"strtobool_y\":%s,", value ? "true" : "false");
-	strtobool("On", &value);
-	printf("\"strtobool_on\":%s,", value ? "true" : "false");
-	strtobool("0", &value);
-	printf("\"strtobool_zero\":%s,", value ? "true" : "false");
-	strtobool("of", &value);
-	printf("\"strtobool_off\":%s,", value ? "true" : "false");
+	printf("\"strtobool_y\":%s,", (strtobool("y", &value) == 0 && value) ? "true" : "false");
+	printf("\"strtobool_on\":%s,", (strtobool("On", &value) == 0 && value) ? "true" : "false");
+	printf("\"strtobool_zero\":%s,", (strtobool("0", &value) == 0 && !value) ? "true" : "false");
+	printf("\"strtobool_off\":%s,", (strtobool("of", &value) == 0 && !value) ? "true" : "false");
 	printf("\"strtobool_invalid\":%d,", strtobool("maybe", &value));
-	printf("\"strlcpy_len\":%zu,", strlcpy(dst, "hello", sizeof(dst)));
+	printf("\"strlcpy_len\":%zu,", strscpy(dst, "hello", sizeof(dst)));
 	printf("\"strlcpy_buffer\":\"%s\",", dst);
 	printf("\"skip_spaces\":\"%s\",", skip);
 	printf("\"trim_spaces\":\"%s\",", trimmed);

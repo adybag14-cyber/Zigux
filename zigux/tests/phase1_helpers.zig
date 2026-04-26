@@ -34,6 +34,8 @@ const Fixture = struct {
         tail_zero_clamped_next: usize,
         tail_and_clamped_first: usize,
         tail_and_clamped_next: usize,
+        tail_and_mixed_first: usize,
+        tail_and_mixed_next: usize,
     },
     bitmap: struct {
         weight: usize,
@@ -206,6 +208,8 @@ test "phase 1 helper ports match committed parity fixture" {
     var find_tail_window = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9) };
     try std.testing.expectEqual(fixture.find_bit.bits_per_long + 3, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
     try std.testing.expectEqual(find_tail_nbits, find_bit.findNextBit(&find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4));
+    try std.testing.expectEqual(fixture.find_bit.tail_and_mixed_first, find_bit.findFirstAndBit(&find_tail_window, &find_tail_window, find_tail_nbits));
+    try std.testing.expectEqual(fixture.find_bit.tail_and_mixed_next, find_bit.findNextAndBit(&find_tail_window, &find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4));
     find_tail_window[1] &= ~(@as(find_bit.Word, 1) << 3);
     try std.testing.expectEqual(find_tail_nbits, find_bit.findFirstBit(&find_tail_window, find_tail_nbits));
 
