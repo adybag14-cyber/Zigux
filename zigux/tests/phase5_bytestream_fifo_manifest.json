@@ -1,0 +1,51 @@
+{
+  "lane_key": "P5-L03",
+  "phase": "Phase 5",
+  "surveyed_commit": "8e71e0348451cd0690124cb8436e292eaf52c068",
+  "anchor": "samples/kfifo/bytestream-example.c",
+  "sample_path": "samples/zigux/bytestream_fifo.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "exact_checks": [
+    {
+      "id": "initial-fill-len",
+      "kind": "queue_state",
+      "expected": "fifo length is 15 after enqueueing \"hello\" and bytes 0 through 9"
+    },
+    {
+      "id": "first-drain",
+      "kind": "drain_replay",
+      "expected": "first five bytes drained are the string \"hello\""
+    },
+    {
+      "id": "second-drain-and-requeue",
+      "kind": "wraparound_replay",
+      "expected": "next two bytes drained are 0 and 1, and those same bytes are re-enqueued at the tail"
+    },
+    {
+      "id": "skip-and-peek",
+      "kind": "queue_state",
+      "expected": "skipping the next byte removes 2 and peeking afterward observes 3 without draining it"
+    },
+    {
+      "id": "fill-to-capacity",
+      "kind": "bounded_capacity",
+      "expected": "tail fill succeeds for bytes 20 through 42 inclusive and then stops at the 32-byte capacity"
+    },
+    {
+      "id": "final-drain-sequence",
+      "kind": "exact_sequence",
+      "expected": "final drain yields [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]"
+    },
+    {
+      "id": "bounded-helper-behavior",
+      "kind": "helper_contract",
+      "expected": "peek and skip return null when empty, pushing past capacity returns false, and reset restores an empty queue"
+    }
+  ],
+  "non_goals": [
+    "procfs parity",
+    "kfifo_from_user or kfifo_to_user parity",
+    "loadable module registration",
+    "locking or blocking semantics"
+  ]
+}
