@@ -56,6 +56,7 @@ The current tests check:
 - bounded ASCII case conversion that stops at the first NUL
 - deterministic space, octal, hex, and special unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination
+- exact-fit unescape output that still decodes one escaped byte and appends the trailing NUL
 
 ## Non-goals
 
