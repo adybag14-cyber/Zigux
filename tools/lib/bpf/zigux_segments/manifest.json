@@ -46,7 +46,7 @@
     {
       "id": "P8-L13-S01",
       "slug": "logging-version-and-errno",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c:233-364",

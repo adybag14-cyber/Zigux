@@ -6,11 +6,13 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus one landed helper-first starter slice
+- scope: segment manifest plus two landed helper-first starter slices
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
+  - `tools/lib/bpf/zigux_segments/logging.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
+  - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_build.zig`
 
@@ -38,7 +40,7 @@ The manifest currently records six bounded segments:
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-`cpu-mask-parsing` has now moved from `ready_next` to a landed starter slice under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, while `logging-version-and-errno` and `pin-path-helpers` remain the next two low-risk `ready_next` segments. The last two stay explicitly deferred as high-risk surfaces until more helper-first segments have landed and been validated.
+`cpu-mask-parsing` and `logging-version-and-errno` have now moved from `ready_next` to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/logging.zig`. `pin-path-helpers` remains the next low-risk `ready_next` segment, and the last two stay explicitly deferred as high-risk surfaces until more helper-first segments have landed and been validated.
 
 ## Current landed segment progress
 
@@ -49,6 +51,9 @@ The current starter implementation stays deliberately bounded:
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
 - delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
+- `logging.zig` ports libbpf's bounded print-level parsing, verbosity gating, major or minor version reporting, and the libbpf-specific strerror table without claiming environment reads, stderr output, or full errno-name coverage
+- the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
+- custom libbpf error text is exposed through a compact helper and unknown or unmapped codes fall back to a stable `"Unknown libbpf error N"` formatter
 
 The current tests check:
 
@@ -58,6 +63,10 @@ The current tests check:
 - the bounded set-bit counter matches the parsed mask contents
 - empty and malformed ranges report explicit errors
 - reader contract failures stay explicit instead of silently truncating input
+- warn, info, and debug verbosity resolution stays case-insensitive and preserves libbpf's gating order
+- invalid log-level text stays explicit while callers still receive the default `info` minimum level
+- the bounded major, minor, and version-string helpers match the current `tools/lib/bpf/libbpf_version.h` tuple
+- libbpf-specific custom error text stays stable and unmapped custom codes fall back cleanly
 
 ## Gates
 
@@ -80,4 +89,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and start the next `ready_next` helper-first segment in `logging.zig` or `pin_path.zig` now that the cpu-mask reader interface is in place.
+Stay in `tools/lib/bpf/zigux_segments/` and start the next `ready_next` helper-first segment in `pin_path.zig` now that the cpu-mask reader interface and logging slice are both in place.
