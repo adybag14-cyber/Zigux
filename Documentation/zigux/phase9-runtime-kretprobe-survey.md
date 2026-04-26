@@ -18,6 +18,8 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The roadmap names `samples/kprobes/kretprobe_example.c` twice: first as a Phase 5 sample-reference anchor and later as a Phase 9 runtime pilot anchor. This lane stays strictly inside the Phase 9 reading of that roadmap entry.
 
+The survey artifacts stay anchored to the original `P9-L13` survey lane even though a later neighboring run landed the `runtime_kretprobe` starter, dedicated module tests, and diff gate. That keeps the survey history honest while still recording the full live review surface.
+
 The live repo now has a bounded `runtime_kretprobe` starter, dedicated module tests, a dedicated diff gate, and shared Phase 9 build coverage, so this survey note should reflect the landed pilot review surface instead of still reading like the lane is waiting on sample-level differential checks.
 
 ## Survey findings
