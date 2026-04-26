@@ -25,6 +25,76 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), layout.event_buffer_count);
 }
 
+test "phase12 virtio scsi probe snapshot records config defaults and queue topology" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .config_num_queues = 8,
+        .config_seg_max = 128,
+        .config_cmd_per_lun = 64,
+        .config_max_target = 31,
+        .config_max_lun = 255,
+        .config_max_sectors = 2048,
+        .cpu_queue_limit = 6,
+        .blk_mq_queue_limit = 5,
+        .requested_poll_queues = 2,
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", snapshot.anchor);
+    try std.testing.expectEqual(@as(u16, 8), snapshot.configured_request_queues);
+    try std.testing.expectEqual(@as(u16, 6), snapshot.cpu_queue_limit);
+    try std.testing.expectEqual(@as(u16, 5), snapshot.blk_mq_queue_limit);
+    try std.testing.expectEqual(@as(u16, 5), snapshot.request_queues);
+    try std.testing.expectEqual(@as(u32, 128), snapshot.seg_max);
+    try std.testing.expectEqual(@as(u32, 64), snapshot.cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 31), snapshot.max_target);
+    try std.testing.expectEqual(@as(u32, 32), snapshot.num_targets);
+    try std.testing.expectEqual(@as(u32, 255), snapshot.max_lun);
+    try std.testing.expectEqual(@as(u32, 2048), snapshot.max_sectors);
+    try std.testing.expectEqual(@as(u16, 5), snapshot.layout.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), snapshot.layout.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), snapshot.layout.poll_queues);
+    try std.testing.expectEqual(@as(u16, 7), snapshot.layout.total_queues);
+    try std.testing.expectEqual(@as(?u16, 5), snapshot.layout.first_poll_queue_index);
+}
+
+test "phase12 virtio scsi probe snapshot defaults zeros and rejects invalid queue caps" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .config_num_queues = 0,
+        .config_seg_max = 0,
+        .config_cmd_per_lun = 0,
+        .config_max_target = 0,
+        .config_max_lun = 0,
+        .config_max_sectors = 0,
+        .cpu_queue_limit = 4,
+        .blk_mq_queue_limit = 8,
+        .requested_poll_queues = 3,
+    });
+
+    try std.testing.expectEqual(@as(u16, 1), snapshot.configured_request_queues);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.request_queues);
+    try std.testing.expectEqual(@as(u32, 1), snapshot.seg_max);
+    try std.testing.expectEqual(@as(u32, 1), snapshot.cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 1), snapshot.num_targets);
+    try std.testing.expectEqual(@as(u32, 0), snapshot.max_lun);
+    try std.testing.expectEqual(@as(u32, 0xFFFF), snapshot.max_sectors);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.layout.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), snapshot.layout.poll_queues);
+    try std.testing.expectEqual(@as(?u16, null), snapshot.layout.first_poll_queue_index);
+
+    try std.testing.expectError(error.InvalidQueueLimit, lab.captureProbeSnapshot(.{
+        .config_num_queues = 2,
+        .config_seg_max = 1,
+        .config_cmd_per_lun = 1,
+        .config_max_target = 0,
+        .config_max_lun = 0,
+        .config_max_sectors = 1,
+        .cpu_queue_limit = 0,
+        .blk_mq_queue_limit = 2,
+        .requested_poll_queues = 0,
+    }));
+}
+
 test "phase12 virtio scsi clamps poll queues and classifies request families" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     const layout = try lab.planQueueLayout(4, 9);
