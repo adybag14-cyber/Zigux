@@ -36,6 +36,8 @@ pub const ReplaySummary = struct {
     function_callback_event_calls: usize,
     total_event_calls: usize,
     conditional_paths_checked: bool,
+    relative_location_path_checked: bool,
+    function_callback_path_checked: bool,
     registration_balance_restored: bool,
     checked_focus: []const SampleFocus,
 };
@@ -180,6 +182,8 @@ pub const TraceEventsReferenceSample = struct {
             .function_callback_event_calls = function_callback_family_count,
             .total_event_calls = self.total_event_calls,
             .conditional_paths_checked = self.saw_conditional_path,
+            .relative_location_path_checked = self.saw_rel_loc_payload,
+            .function_callback_path_checked = self.saw_function_callback_path,
             .registration_balance_restored = self.registration_depth == 0,
             .checked_focus = &.{
                 .payload_shape,
@@ -221,6 +225,8 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 2), replay.function_callback_event_calls);
     try std.testing.expectEqual(@as(usize, 8), replay.total_event_calls);
     try std.testing.expect(replay.conditional_paths_checked);
+    try std.testing.expect(replay.relative_location_path_checked);
+    try std.testing.expect(replay.function_callback_path_checked);
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
 }
