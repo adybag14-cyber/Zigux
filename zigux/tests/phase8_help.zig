@@ -43,3 +43,63 @@ test "phase 8 help starter slice covers command-list ownership, filtering, exclu
     try std.testing.expectEqual(@as(usize, 0), empty_layout.rows);
     try std.testing.expectEqual(@as(usize, 9), empty_layout.spacing);
 }
+
+test "phase 8 help command-source layer models load_command_list without directory I/O" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const help.DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try help.addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+    };
+    const path_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-trace", .is_executable = true },
+        .{ .name = "perf-diff", .is_executable = false },
+        .{ .name = "trace", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/perf/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &path_entries },
+        },
+    };
+
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try help.loadCommandListsFromSource(
+        null,
+        "/opt/perf/bin",
+        &.{ "/opt/perf/bin", "/usr/bin" },
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
+    try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
