@@ -24,6 +24,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'long_options_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'quiet_overrides_warning_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample.config',
