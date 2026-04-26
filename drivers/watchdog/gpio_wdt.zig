@@ -11,6 +11,16 @@ pub const HardwareAlgorithm = enum {
     level,
 };
 
+pub const ProbeLineRequest = enum {
+    input,
+    output_low,
+};
+
+pub const ProbeStartMode = enum {
+    register_only,
+    start_before_register,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -24,6 +34,26 @@ pub const ConfigSnapshot = struct {
     hw_algo: HardwareAlgorithm,
     hw_margin_ms: u32,
     always_running: bool,
+    min_timeout_sec: u32,
+    default_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+};
+
+pub const ProbeSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    start_mode: ProbeStartMode,
+    starts_during_probe: bool,
+    pre_registration_running: bool,
+    pre_registration_line_state: bool,
+    pre_registration_line_is_output: bool,
+    parent_attached: bool,
+    stop_on_reboot: bool,
+    timeout_init_requested: bool,
     min_timeout_sec: u32,
     default_timeout_sec: u32,
     max_hw_heartbeat_ms: u32,
@@ -102,6 +132,40 @@ pub const GpioWatchdogLab = struct {
             .hw_algo = self.hw_algo,
             .hw_margin_ms = self.hw_margin_ms,
             .always_running = self.always_running,
+            .min_timeout_sec = soft_timeout_min,
+            .default_timeout_sec = soft_timeout_default,
+            .max_hw_heartbeat_ms = self.hw_margin_ms,
+        };
+    }
+
+    pub fn probeSummary(self: *const Self, nowayout: bool) ProbeSummary {
+        const requested_line: ProbeLineRequest = switch (self.hw_algo) {
+            .toggle => .input,
+            .level => .output_low,
+        };
+        const starts_during_probe = self.always_running;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .requested_line = requested_line,
+            .start_mode = if (starts_during_probe) .start_before_register else .register_only,
+            .starts_during_probe = starts_during_probe,
+            .pre_registration_running = starts_during_probe,
+            .pre_registration_line_state = switch (self.hw_algo) {
+                .toggle => starts_during_probe,
+                .level => false,
+            },
+            .pre_registration_line_is_output = switch (self.hw_algo) {
+                .toggle => starts_during_probe,
+                .level => true,
+            },
+            .parent_attached = true,
+            .stop_on_reboot = true,
+            .timeout_init_requested = true,
             .min_timeout_sec = soft_timeout_min,
             .default_timeout_sec = soft_timeout_default,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
