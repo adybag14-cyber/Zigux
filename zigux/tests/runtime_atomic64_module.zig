@@ -25,6 +25,16 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), previous);
     try std.testing.expectEqual(@as(i64, -9), module.snapshotCounter());
 
+    const compare_success = try module.compareSwapCounter(-9, 17);
+    try std.testing.expect(compare_success.stored);
+    try std.testing.expectEqual(@as(i64, -9), compare_success.previous);
+    try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
+
+    const compare_mismatch = try module.compareSwapCounter(-9, 33);
+    try std.testing.expect(!compare_mismatch.stored);
+    try std.testing.expectEqual(@as(i64, 17), compare_mismatch.previous);
+    try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
+
     const summary = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
@@ -38,4 +48,5 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
 }
