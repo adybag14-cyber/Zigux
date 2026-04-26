@@ -2,16 +2,23 @@
 const std = @import("std");
 
 pub const ArgvSplitResult = struct {
-    storage: []u8,
-    argv: [][]u8,
+    storage: [:0]u8,
+    argv: [][:0]u8,
+    argv_null_terminated: []const ?[*:0]const u8,
 
     pub fn deinit(self: *ArgvSplitResult, allocator: std.mem.Allocator) void {
+        allocator.free(self.argv_null_terminated);
         allocator.free(self.argv);
         allocator.free(self.storage);
         self.* = .{
-            .storage = &.{},
+            .storage = undefined,
             .argv = &.{},
+            .argv_null_terminated = &.{},
         };
+    }
+
+    pub fn cArgv(self: *const ArgvSplitResult) [*]const ?[*:0]const u8 {
+        return self.argv_null_terminated.ptr;
     }
 };
 
@@ -33,38 +40,45 @@ pub fn countArgc(text: []const u8) usize {
 }
 
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
-    var storage = try allocator.dupe(u8, cStringPrefix(text));
+    var storage = try allocator.dupeZ(u8, cStringPrefix(text));
     errdefer allocator.free(storage);
 
     const argc = countArgc(storage);
-    var argv = try allocator.alloc([]u8, argc);
+    var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
+
+    var argv_null_terminated = try allocator.alloc(?[*:0]const u8, argc + 1);
+    errdefer allocator.free(argv_null_terminated);
 
     var arg_index: usize = 0;
     var arg_start: ?usize = null;
 
     for (storage, 0..) |*ch, index| {
         if (std.ascii.isWhitespace(ch.*)) {
+            ch.* = 0;
             if (arg_start) |start| {
-                argv[arg_index] = storage[start..index];
+                argv[arg_index] = storage[start..index :0];
+                argv_null_terminated[arg_index] = argv[arg_index].ptr;
                 arg_index += 1;
                 arg_start = null;
             }
-            ch.* = 0;
         } else if (arg_start == null) {
             arg_start = index;
         }
     }
 
     if (arg_start) |start| {
-        argv[arg_index] = storage[start..];
+        argv[arg_index] = storage[start..storage.len :0];
+        argv_null_terminated[arg_index] = argv[arg_index].ptr;
         arg_index += 1;
     }
 
+    argv_null_terminated[arg_index] = null;
     std.debug.assert(arg_index == argc);
     return .{
         .storage = storage,
         .argv = argv,
+        .argv_null_terminated = argv_null_terminated,
     };
 }
 
@@ -80,6 +94,7 @@ test "argvSplit collapses repeated whitespace into single separators" {
     try std.testing.expectEqualStrings("alpha", split.argv[0]);
     try std.testing.expectEqualStrings("beta", split.argv[1]);
     try std.testing.expectEqualStrings("gamma", split.argv[2]);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.argv_null_terminated[3]);
 }
 
 test "argvSplit returns an empty argv for blank input" {
@@ -88,6 +103,7 @@ test "argvSplit returns an empty argv for blank input" {
 
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 0), countArgc("  \t\n"));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.argv_null_terminated[0]);
 }
 
 test "countArgc and argvSplit stop at the first NUL like the C helper" {
@@ -121,4 +137,13 @@ test "argvSplit duplicates the input before tokenizing" {
 
     try std.testing.expectEqualStrings("one", split.argv[0]);
     try std.testing.expectEqualStrings("two", split.argv[1]);
+}
+
+test "argvSplit preserves C-string termination for the final token and argv vector" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(split.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
 }
