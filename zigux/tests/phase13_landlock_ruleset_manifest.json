@@ -77,10 +77,17 @@
     },
     {
       "id": "phase13-landlock-tree-link-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next honest ruleset step is a tiny in-memory planner for the no-match insertion branch around `rb_link_node()` and `rb_insert_color()` after the tree-search outcome is known, still before object ownership, hierarchy lifetime, or live LSM state is attempted."
+      "why_now": "The ruleset helper now includes one tiny in-memory planner for the no-match insertion branch around `rb_link_node()` and `rb_insert_color()` after the tree-search outcome is known, keeping the parent or root link mode explicit without mutating live rb-trees."
+    },
+    {
+      "id": "phase13-landlock-live-tree-state-blocker",
+      "status": "blocked_on_live_lsm_state",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The next remaining ruleset gap crosses into `rb_replace_node()`, object ownership, hierarchy lifetime, and other live state that would overstate this helper lab if it were modeled as a pure in-memory followup."
     }
   ]
 }
