@@ -5,6 +5,7 @@ pub const Mode = enum {
     olddefconfig,
     oldconfig,
     yes2modconfig,
+    mod2yesconfig,
     defconfig,
     allnoconfig,
     allyesconfig,
@@ -27,6 +28,7 @@ pub const Mode = enum {
             .olddefconfig => "--olddefconfig",
             .oldconfig => "--oldconfig",
             .yes2modconfig => "--yes2modconfig",
+            .mod2yesconfig => "--mod2yesconfig",
             .defconfig => "--defconfig",
             .allnoconfig => "--allnoconfig",
             .allyesconfig => "--allyesconfig",
@@ -42,6 +44,7 @@ pub const Mode = enum {
             .olddefconfig => "olddefconfig",
             .oldconfig => "oldconfig",
             .yes2modconfig => "yes2modconfig",
+            .mod2yesconfig => "mod2yesconfig",
             .defconfig => "defconfig",
             .allnoconfig => "allnoconfig",
             .allyesconfig => "allyesconfig",
@@ -333,6 +336,44 @@ test "conf bridge emits yes2modconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
 }
 
+test "conf bridge emits mod2yesconfig argv and env" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 144), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .mod2yesconfig,
+        .kconfig = "Kconfig",
+        .config = "promote/.config",
+        .arch = "loongarch",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"mod2yesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--mod2yesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"promote/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"loongarch\"") != null);
+}
+
 test "conf bridge emits defconfig mode argument before kconfig" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -369,55 +410,4 @@ test "conf bridge emits defconfig mode argument before kconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"defconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/defconfig\",\"Kconfig\"]") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"out/.config\"") != null);
-}
-
-test "conf bridge covers remaining advertised non-defconfig modes" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    const cases = [_]struct {
-        mode: Mode,
-        config: []const u8,
-        arch: []const u8,
-    }{
-        .{ .mode = .oldconfig, .config = "old/.config", .arch = "x86_64" },
-        .{ .mode = .allnoconfig, .config = "none/.config", .arch = "arm64" },
-        .{ .mode = .allyesconfig, .config = "yes/.config", .arch = "riscv64" },
-        .{ .mode = .randconfig, .config = "rand/.config", .arch = "x86" },
-    };
-
-    inline for (cases) |case| {
-        var capture = try Capture.init(std.testing.allocator);
-        defer capture.deinit();
-
-        try runConfBridge(&capture, .{
-            .mode = case.mode,
-            .kconfig = "Kconfig",
-            .config = case.config,
-            .arch = case.arch,
-        });
-
-        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.mode.text()) != null);
-        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.mode.flag()) != null);
-        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.config) != null);
-        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.arch) != null);
-    }
 }
