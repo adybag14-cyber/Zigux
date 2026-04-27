@@ -110,6 +110,13 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-survey-gate")) {
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_ring_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MMIO follow-up boundary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-wrapper roadmap gap") == null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-callback-delay-helper")) {
             saw_ring_callback_delay = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
