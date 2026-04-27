@@ -39,11 +39,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
+    var saw_docs_prompt = false;
     var saw_private_data_prompt = false;
     var saw_symbol_prompt = false;
     var saw_non_goal_prompt = false;
@@ -56,6 +57,13 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
+            std.mem.indexOf(u8, prompt, "Documentation/zigux/README.md") != null and
+            std.mem.indexOf(u8, prompt, "Documentation/zigux/review-checklist.md") != null and
+            std.mem.indexOf(u8, prompt, "Phase 9 runtime starter") != null)
+        {
+            saw_docs_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "private entry timestamp") != null and
             std.mem.indexOf(u8, prompt, "my_data") != null)
@@ -104,6 +112,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     }
 
     try std.testing.expect(saw_descriptor_prompt);
+    try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_symbol_prompt);
     try std.testing.expect(saw_non_goal_prompt);
@@ -113,4 +122,52 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
+}
+
+test "phase 5 kretprobe contributor docs stay aligned with the shipped review surface" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(readme);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kretprobe-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "separate Phase 9 runtime starter") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "in-memory-only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "runtime parity is still out of scope") != null);
 }
