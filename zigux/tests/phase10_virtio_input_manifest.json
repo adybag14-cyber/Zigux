@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L13",
   "phase": "Phase 10",
-  "surveyed_commit": "7293b7774152d8e4d0d402a18b95e70aa428cbbc",
+  "surveyed_commit": "21bc181a973412d186e4230be5ba466d783d40e8",
   "anchor": "drivers/virtio/virtio_input.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -46,7 +46,7 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The first virtio_input-specific helper is already landed and now models identity snapshots, config bitmaps, ABS metadata, queue planning, ready-state gating, and multitouch timestamp suppression without claiming transport parity."
+      "why_now": "The first virtio_input-specific helper is already landed and now models identity snapshots, config bitmaps, ABS metadata, queue planning, ready-state gating, multitouch slot planning, and multitouch timestamp suppression without claiming transport parity."
     },
     {
       "id": "phase10-virtio-input-lab-gate",
@@ -85,17 +85,24 @@
     },
     {
       "id": "phase10-virtio-input-multitouch-slot-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT`, deriving `input_mt_init_slots()`-style slot-count intent from the staged ABS metadata without claiming input-core registration or transport-backed queue callbacks."
+    },
+    {
+      "id": "phase10-virtio-input-registration-preflight-helper",
       "status": "ready_next",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "Now that config bitmaps, ABS metadata, and capability staging are all modeled in memory, the next honest virtio_input follow-up is one tiny multitouch slot-planning helper keyed off `ABS_MT_SLOT` before any `input_register_device()` or transport-backed queue work."
+      "why_now": "With `ABS_MT_SLOT` planning now modeled in memory, the next honest virtio_input follow-up is one tiny registration-preflight summary that records when identity, capability, and slot-init intent are all present before any `input_register_device()` or transport-backed queue work."
     },
     {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until the multitouch slot helper and broader queue callback plumbing are in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until the registration-preflight helper and broader queue callback plumbing are in place."
     }
   ]
 }
