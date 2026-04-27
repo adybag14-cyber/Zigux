@@ -12,6 +12,14 @@ test "phase 5 trace-events sample stays in the reference-sample lane" {
 
 test "phase 5 trace-events sample replays the bounded payload and callback idioms" {
     var module = sample.TraceEventsReferenceSample{};
+    const expected_focus = [_]sample.SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
     try module.init();
     const replay = try module.runAnchorReplay();
 
@@ -32,6 +40,7 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expect(replay.function_callback_path_checked);
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(sample.SampleFocus, &expected_focus, replay.checked_focus);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }

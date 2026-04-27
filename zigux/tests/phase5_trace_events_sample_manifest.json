@@ -45,6 +45,11 @@
       "expected": "the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls"
     },
     {
+      "id": "checked-focus-order",
+      "kind": "review_surface",
+      "expected": "the replay summary keeps the exact checked_focus order payload_shape,string_selection,formatted_message,conditional_event_families,function_callback_registration,ownership_and_lifetime so reviewers can see the approved trace-events reading contract directly"
+    },
+    {
       "id": "callback-registration-balance",
       "kind": "ownership_lifetime",
       "expected": "the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes"

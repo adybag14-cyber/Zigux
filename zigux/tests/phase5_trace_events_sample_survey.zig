@@ -44,7 +44,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -55,6 +55,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_rel_loc_check = false;
     var saw_vararg_check = false;
     var saw_counts_check = false;
+    var saw_focus_check = false;
     var saw_callback_balance_check = false;
     var saw_exit_check = false;
 
@@ -106,6 +107,13 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "six") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "eight") != null);
         }
+        if (std.mem.eql(u8, check.id, "checked-focus-order")) {
+            saw_focus_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "string_selection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "formatted_message") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
+        }
         if (std.mem.eql(u8, check.id, "callback-registration-balance")) {
             saw_callback_balance_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "callback path") != null);
@@ -129,6 +137,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
+    try std.testing.expect(saw_focus_check);
     try std.testing.expect(saw_callback_balance_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "CREATE_TRACE_POINTS parity"));
