@@ -51,6 +51,16 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits`
 - `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits`
 
+- `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.
+- `tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.
+- rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
+- rbtree manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
+- rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`
+
+- `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
+- `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state`
+- `PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree`
+
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
 - `tools/lib/string.zig` direct Zig unit coverage also exercises `strim` and `strreplace` wrapper aliases alongside `trimSpaces`, `skipSpaces`, `removeSpaces`, and `replaceChar`, including the embedded-NUL stop behavior that keeps `strreplace` from mutating trailing bytes past the first terminator.
