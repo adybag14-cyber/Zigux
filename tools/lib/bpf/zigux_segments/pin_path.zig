@@ -7,6 +7,24 @@ pub const PinPathError = error{
     EmptyName,
     InvalidName,
     InvalidRootPath,
+    MissingPath,
+    PathMismatch,
+    AlreadyPinned,
+};
+
+pub const PinPathSource = enum {
+    requested,
+    stored,
+};
+
+pub const ResolvedPinPath = struct {
+    path: []const u8,
+    source: PinPathSource,
+};
+
+pub const PinRequestResolution = union(enum) {
+    proceed: ResolvedPinPath,
+    already_pinned: []const u8,
 };
 
 fn noSpaceToNameTooLong(err: anyerror) PinPathError {
@@ -67,6 +85,67 @@ pub fn buildValidatedSanitizedMapPinPath(buffer: []u8, root_path: ?[]const u8, m
     const full_path = try buildValidatedMapPinPath(buffer, root_path, map_name);
     sanitizePinPath(full_path);
     return full_path;
+}
+
+pub fn resolveMapPinRequest(
+    requested_path: ?[]const u8,
+    stored_path: ?[]const u8,
+    is_pinned: bool,
+) PinPathError!PinRequestResolution {
+    if (stored_path) |path| {
+        if (requested_path) |requested| {
+            if (!std.mem.eql(u8, requested, path)) {
+                return error.PathMismatch;
+            }
+        }
+
+        if (is_pinned) {
+            return .{ .already_pinned = path };
+        }
+
+        return .{
+            .proceed = .{
+                .path = path,
+                .source = .stored,
+            },
+        };
+    }
+
+    const path = requested_path orelse return error.MissingPath;
+    if (is_pinned) {
+        return error.AlreadyPinned;
+    }
+
+    return .{
+        .proceed = .{
+            .path = path,
+            .source = .requested,
+        },
+    };
+}
+
+pub fn resolveMapUnpinRequest(
+    requested_path: ?[]const u8,
+    stored_path: ?[]const u8,
+) PinPathError!ResolvedPinPath {
+    if (stored_path) |path| {
+        if (requested_path) |requested| {
+            if (!std.mem.eql(u8, requested, path)) {
+                return error.PathMismatch;
+            }
+        }
+
+        return .{
+            .path = path,
+            .source = .stored,
+        };
+    }
+
+    const path = requested_path orelse return error.MissingPath;
+    return .{
+        .path = path,
+        .source = .requested,
+    };
 }
 
 test "pathnameConcat keeps the bounded libbpf path-join behavior" {
@@ -145,4 +224,72 @@ test "pin-path helpers keep length failures explicit" {
         error.NameTooLong,
         buildMapPinPath(&buffer, "/custom/root", "very_long_map_name"),
     );
+}
+
+test "pin-path helpers resolve stored and requested map pin paths without widening into syscalls" {
+    const requested = try resolveMapPinRequest("/sys/fs/bpf/stats_map", null, false);
+    switch (requested) {
+        .proceed => |resolution| {
+            try std.testing.expectEqualStrings("/sys/fs/bpf/stats_map", resolution.path);
+            try std.testing.expectEqual(.requested, resolution.source);
+        },
+        .already_pinned => unreachable,
+    }
+
+    const stored = try resolveMapPinRequest(
+        null,
+        "/sys/fs/bpf/stats_map",
+        false,
+    );
+    switch (stored) {
+        .proceed => |resolution| {
+            try std.testing.expectEqualStrings("/sys/fs/bpf/stats_map", resolution.path);
+            try std.testing.expectEqual(.stored, resolution.source);
+        },
+        .already_pinned => unreachable,
+    }
+
+    const already_pinned = try resolveMapPinRequest(
+        "/sys/fs/bpf/stats_map",
+        "/sys/fs/bpf/stats_map",
+        true,
+    );
+    switch (already_pinned) {
+        .proceed => unreachable,
+        .already_pinned => |path| try std.testing.expectEqualStrings("/sys/fs/bpf/stats_map", path),
+    }
+
+    try std.testing.expectError(error.PathMismatch, resolveMapPinRequest(
+        "/sys/fs/bpf/other_map",
+        "/sys/fs/bpf/stats_map",
+        false,
+    ));
+    try std.testing.expectError(error.MissingPath, resolveMapPinRequest(null, null, false));
+    try std.testing.expectError(error.AlreadyPinned, resolveMapPinRequest(
+        "/sys/fs/bpf/stats_map",
+        null,
+        true,
+    ));
+}
+
+test "pin-path helpers resolve stored and requested unpin paths explicitly" {
+    const stored = try resolveMapUnpinRequest(
+        null,
+        "/sys/fs/bpf/stats_map",
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/stats_map", stored.path);
+    try std.testing.expectEqual(.stored, stored.source);
+
+    const requested = try resolveMapUnpinRequest(
+        "/sys/fs/bpf/stats_map",
+        null,
+    );
+    try std.testing.expectEqualStrings("/sys/fs/bpf/stats_map", requested.path);
+    try std.testing.expectEqual(.requested, requested.source);
+
+    try std.testing.expectError(error.PathMismatch, resolveMapUnpinRequest(
+        "/sys/fs/bpf/other_map",
+        "/sys/fs/bpf/stats_map",
+    ));
+    try std.testing.expectError(error.MissingPath, resolveMapUnpinRequest(null, null));
 }
