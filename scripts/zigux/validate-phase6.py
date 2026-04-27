@@ -17,6 +17,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'phase6_base64.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig',
+    ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
@@ -48,11 +49,13 @@ slice_docs = {
 }
 
 required_make_markers = [
-    'PHONY += phase6-validate phase6-test phase6',
+    'PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6',
     'phase6-validate:',
     'scripts/zigux/validate-phase6.py',
     'phase6-test:',
     'zigux/tests/phase6_build.zig',
+    'phase6-bsearch-perf:',
+    'bsearch-perf --build-file zigux/tests/phase6_build.zig',
 ]
 
 required_workflow_markers = [
@@ -98,9 +101,11 @@ required_phase6_build_markers = [
     '../../lib/hexdump.zig',
     'phase6_base64.zig',
     'phase6_bsearch.zig',
+    'phase6_bsearch_perf.zig',
     'phase6_checksum.zig',
     'phase6_hexdump.zig',
     'Run Phase 6 leaf helper tests',
+    'Run the Phase 6 bsearch performance sanity harness',
 ]
 
 required_hexdump_markers = [
@@ -118,6 +123,7 @@ required_slice_markers = {
         'PHASE6_STATUS=active',
         'lib/bsearch.zig',
         'zigux/tests/phase6_build.zig',
+        'make -C zigux phase6-bsearch-perf',
     ],
     'phase6-checksum-slice.md': [
         'PHASE6_STATUS=active',
