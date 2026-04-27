@@ -95,6 +95,40 @@ test "phase11 hvc_console summarizes final-close wait boundaries without claimin
     }));
 }
 
+test "phase11 hvc_console keeps tty-registration handoff and khvcd boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(4);
+    _ = console.instantiate(0x77);
+
+    const final_handoff = try console.summarizeTtyRegistrationHandoff(.{
+        .port_initialized = true,
+        .open_count_before_close = 1,
+    });
+    try std.testing.expectEqual(@as(usize, 4), final_handoff.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x77), final_handoff.vtermno);
+    try std.testing.expect(final_handoff.adapter_present);
+    try std.testing.expect(final_handoff.setup_hvc_console_pending);
+    try std.testing.expect(final_handoff.tty_registration_pending);
+    try std.testing.expect(final_handoff.final_close_wait_required);
+    try std.testing.expect(final_handoff.clears_port_initialized_on_final_close);
+    try std.testing.expect(final_handoff.keeps_console_binding);
+    try std.testing.expect(final_handoff.khvcd_kick_on_open);
+    try std.testing.expect(final_handoff.khvcd_kick_on_unthrottle);
+    try std.testing.expect(final_handoff.khvcd_polling_pending);
+    try std.testing.expect(final_handoff.notifier_callbacks_pending);
+    try std.testing.expect(final_handoff.host_io_pending);
+
+    const non_final_handoff = try console.summarizeTtyRegistrationHandoff(.{
+        .port_initialized = true,
+        .open_count_before_close = 2,
+    });
+    try std.testing.expect(!non_final_handoff.final_close_wait_required);
+    try std.testing.expect(!non_final_handoff.clears_port_initialized_on_final_close);
+
+    try std.testing.expectError(error.InvalidOpenCount, console.summarizeTtyRegistrationHandoff(.{
+        .open_count_before_close = 0,
+    }));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);

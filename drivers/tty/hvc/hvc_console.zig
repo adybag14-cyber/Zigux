@@ -87,6 +87,23 @@ pub const CloseBoundarySnapshot = struct {
     tty_registration_pending: bool,
 };
 
+pub const TtyRegistrationHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    setup_hvc_console_pending: bool,
+    tty_registration_pending: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    khvcd_kick_on_open: bool,
+    khvcd_kick_on_unthrottle: bool,
+    khvcd_polling_pending: bool,
+    notifier_callbacks_pending: bool,
+    host_io_pending: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -175,6 +192,27 @@ pub const HvcConsoleLab = struct {
             .clears_port_initialized = close_wait_required,
             .keeps_console_binding = true,
             .tty_registration_pending = true,
+        };
+    }
+
+    pub fn summarizeTtyRegistrationHandoff(self: *const Self, request: CloseRequest) !TtyRegistrationHandoffSnapshot {
+        const close = try self.summarizeCloseBoundary(request);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = close.slot_index,
+            .vtermno = close.vtermno,
+            .adapter_present = close.adapter_present,
+            .setup_hvc_console_pending = true,
+            .tty_registration_pending = true,
+            .final_close_wait_required = close.close_wait_required,
+            .clears_port_initialized_on_final_close = close.clears_port_initialized,
+            .keeps_console_binding = close.keeps_console_binding,
+            .khvcd_kick_on_open = true,
+            .khvcd_kick_on_unthrottle = true,
+            .khvcd_polling_pending = true,
+            .notifier_callbacks_pending = true,
+            .host_io_pending = true,
         };
     }
 
