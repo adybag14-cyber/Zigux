@@ -8,6 +8,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_resource_planning: bool,
     provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
+    provides_arch_phys_wc_token_planning: bool,
     provides_arch_io_wc_memtype_planning: bool,
     touches_live_device_lists: bool,
     touches_live_mmio: bool,
@@ -136,6 +137,38 @@ pub const IoremapResourceInput = struct {
     remap_succeeds: bool = true,
 };
 
+pub const ManagedPhysWcAddInput = struct {
+    base: u64,
+    size: u64,
+    release_record_allocated: bool,
+    token_result: i32,
+};
+
+pub const ManagedPhysWcAddPlan = struct {
+    anchor: []const u8,
+    base: u64,
+    size: u64,
+    token: i32,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    should_remove_on_detach: bool,
+};
+
+pub const ManagedPhysWcAddFailure = struct {
+    anchor: []const u8,
+    error_code: i32,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    should_remove_on_detach: bool,
+};
+
+pub const ManagedPhysWcAddOutcome = union(enum) {
+    added: ManagedPhysWcAddPlan,
+    err: ManagedPhysWcAddFailure,
+};
+
 pub const ManagedMemtypeReserveInput = struct {
     start: u64,
     size: u64,
@@ -177,6 +210,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_resource_planning = true,
             .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
+            .provides_arch_phys_wc_token_planning = true,
             .provides_arch_io_wc_memtype_planning = true,
             .touches_live_device_lists = false,
             .touches_live_mmio = false,
@@ -371,6 +405,38 @@ pub const DevresHelperLab = struct {
                     .releases_region_on_remap_failure = failure.releases_region_on_remap_failure,
                     .resource_stage = failure.stage,
                 },
+            },
+        };
+    }
+
+    pub fn planArchPhysWcAdd(input: ManagedPhysWcAddInput) !ManagedPhysWcAddOutcome {
+        if (!input.release_record_allocated) {
+            return error.OutOfMemory;
+        }
+
+        if (input.token_result < 0) {
+            return .{
+                .err = .{
+                    .anchor = descriptor().anchor,
+                    .error_code = input.token_result,
+                    .added_to_devres = false,
+                    .release_record_retained = false,
+                    .release_record_freed = true,
+                    .should_remove_on_detach = false,
+                },
+            };
+        }
+
+        return .{
+            .added = .{
+                .anchor = descriptor().anchor,
+                .base = input.base,
+                .size = input.size,
+                .token = input.token_result,
+                .added_to_devres = true,
+                .release_record_retained = true,
+                .release_record_freed = false,
+                .should_remove_on_detach = true,
             },
         };
     }
