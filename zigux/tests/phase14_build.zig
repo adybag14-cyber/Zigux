@@ -78,6 +78,9 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase14_end_to_end_smoke_tests = b.addRunArtifact(phase14_end_to_end_smoke_tests);
 
+    const phase14_smoke_step = b.step("phase14-smoke", "Run Phase 14 shared smoke survey only");
+    phase14_smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
+
     const test_step = b.step("test", "Run Phase 14 bounded internal bridge tests");
     test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);
     test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);
