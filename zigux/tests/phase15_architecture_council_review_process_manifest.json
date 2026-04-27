@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L08",
+  "lane_key": "P15-L11",
   "phase": "Phase 15",
-  "surveyed_commit": "6550b8dd67aac841c8a35e3eb84a73a7d233f087",
+  "surveyed_commit": "65cb45dda5ca7fc760207a4ca711397bc7894e9e",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -14,6 +14,7 @@
     "benchmark notes",
     "replay command",
     "retained discussion state",
+    "indefinite-C policy link or applicability note",
     "reopen triggers",
     "parity scorecard link or blocker record"
   ],
@@ -37,6 +38,7 @@
     "benchmark notes",
     "replay command",
     "retained discussion state",
+    "indefinite-C policy link or applicability note",
     "reopen triggers",
     "parity scorecard link or blocker record",
     "explicit non-goals",
@@ -137,6 +139,13 @@
       "kind": "ownership_gate",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "If a retained stay-in-C packet reopens because ownership or validation changed, the review record now has to refresh both the current lane owner and the rollback owner before active review resumes."
+    },
+    {
+      "id": "phase15-indefinite-c-policy-review-gate",
+      "status": "starter_landed",
+      "kind": "policy_gate",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "A freeze-map anchor that stays in C now has to link the dedicated indefinite-C policy note or say plainly why the packet is not yet entering that policy posture, so the review-process packet cannot drift away from the roadmap's long-term in-C policy surface."
     }
   ]
 }
