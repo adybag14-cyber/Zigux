@@ -138,7 +138,7 @@ phase13-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py
 
 phase13-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig --summary all
 
 phase13: phase13-validate phase13-test
 
