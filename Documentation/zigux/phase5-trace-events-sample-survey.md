@@ -82,7 +82,11 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
    - `rg -n "samples/trace_events/trace-events-sample.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 trace-events lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "trace_events_sample|runtime_trace_events"`
-3. run the exact bounded Phase 5 sample checks
+3. run the focused self-check that keeps the in-memory replay behavior explicit
+   - `zig test samples/zigux/trace_events_sample.zig`
+4. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
+   - `zig test zigux/tests/phase5_trace_events_sample_survey.zig`
+5. run the shared Phase 5 entrypoint for the full reference-sample lane
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals
