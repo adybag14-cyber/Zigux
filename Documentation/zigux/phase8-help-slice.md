@@ -41,7 +41,7 @@ The current starter slice covers:
 - `is_in_cmdlist()` membership checks
 - injected command-entry filtering that strips the `perf-` prefix and optional `.exe` suffix before storage
 - injected command-source loading that models `load_command_list()` exec-path priority, PATH de-duplication, and cross-list exclusion without direct `readdir()` or `stat()` calls
-- raw `PATH` string splitting that preserves empty colon-delimited segments before injected directory population, matching the current `help.c` control flow
+- raw `PATH` string splitting that preserves empty colon-delimited segments before reusing the same prefix-aware command-source loader, keeping the env-`PATH` helper on the exact same sort, uniq, and exclusion path as the shared source helper
 - injected `get_term_dimensions()`-adjacent resolution that prefers explicit `LINES` and `COLUMNS` values before fallback terminal dimensions or the default `25x80`
 - `pretty_print_string_list()`-adjacent column and row planning without direct terminal I/O
 - `pretty_print_string_list()`-adjacent pure output emission through an injected writer, including the same column-major traversal, two-space indent, and ragged-last-column padding rules as the C helper
@@ -54,7 +54,7 @@ The current tests check:
 - sorted exclusions remove matching entries without disturbing survivors
 - executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
 - command-source loading keeps the exec-path list stable, skips the exec-path directory when it also appears on PATH, removes commands already present in the exec-path list, and preserves the `perf-` default prefix behavior
-- raw `PATH` splitting keeps leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`
+- raw `PATH` splitting keeps leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`, and the env-`PATH` wrapper keeps custom-prefix filtering on the same shared helper path as the direct source loader
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
