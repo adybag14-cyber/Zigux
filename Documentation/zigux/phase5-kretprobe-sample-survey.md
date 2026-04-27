@@ -67,11 +67,11 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 ## Recorded gap vs roadmap
 
-The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise remaining job is:
+The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise state is:
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
-- the broader Phase 5 roadmap still expects the trace-events reference anchor, so this slice should stay explicit about its own boundary rather than implying the whole tranche is done
+- the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
 ## Review gates for this survey
 
