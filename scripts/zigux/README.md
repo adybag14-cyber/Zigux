@@ -26,6 +26,7 @@ Current bootstrap helpers
 - `validate-phase9.py`
 - `validate-phase10-closure.py`
 - `validate-phase11.py`
+- `check-phase12-build-inventory.py`
 - `validate-phase12.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
@@ -99,6 +100,7 @@ Phase 11 flow
 - the same Phase 11 gate now also proves that the hvc validation matrix still records the exact shared-versus-dedicated replay commands and observed outcome lines for the current starter tranche, including the shared `Build Summary: 17/17 steps succeeded; 37/37 tests passed`, the included `phase11-hvc-console-tests` artifact line, and the separate dedicated survey `2/2 ... OK` result.
 
 Phase 12 flow
+- `check-phase12-build-inventory.py` regenerates the committed `zigux/tests/fixtures/phase12_build_inventory.json` build-derived fields from `zigux/tests/phase12_build.zig` and compares the result through `artifact_diff.py` so the shared replay inventory stays reproducible instead of living only in manually edited fixture text.
 - `validate-phase12.py` checks that the bounded Phase 12 degraded-workflow bundle still keeps `make -C zigux phase12-validate`, the shared workflow path, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_libbpf_manifest.json` aligned around the same complex-driver and heavy-helper tranche.
 - the same Phase 12 gate also checks that each dedicated Phase 12 survey test stays pinned to its manifest's exact `surveyed_commit` and the same starter, DMA-blocked, and object-model-blocked status totals before the slower Zig replay path runs.
 - the same fast validator now also keeps the four Phase 12 survey notes pinned to each manifest's exact `surveyed_commit`, Linux anchor, and shared `make -C zigux phase12` replay contract instead of leaving that survey-evidence packet solely to the slower Zig test pass.
