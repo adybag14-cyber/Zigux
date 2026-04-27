@@ -26,6 +26,7 @@ Current bootstrap helpers
 - `validate-phase9.py`
 - `validate-phase10-closure.py`
 - `validate-phase11.py`
+- `validate-phase12.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -94,3 +95,8 @@ Phase 11 flow
 - `validate-phase11.py` checks that the bounded Phase 11 simple-driver bundle still keeps `make -C zigux phase11-validate`, the shared workflow path, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_hvc_console_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` aligned around the same watchdog plus hvc starter tranche.
 - the same Phase 11 gate now also checks that each dedicated Phase 11 survey test stays pinned to its manifest's exact `surveyed_commit` and the same starter, ready-next, and blocked status totals before the slower Zig replay path runs.
 - the same Phase 11 gate keeps the manifest bundle honest about its current follow-up posture by requiring the shared replay to keep `zigux/tests/phase11_hvc_console_survey.zig` as a dedicated survey replay while the shared `phase11_build.zig` path continues to cover the landed starter tests plus the watchdog and shared-header survey gates.
+
+Phase 12 flow
+- `validate-phase12.py` checks that the bounded Phase 12 degraded-workflow bundle still keeps `make -C zigux phase12-validate`, the shared workflow path, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_libbpf_manifest.json` aligned around the same complex-driver and heavy-helper tranche.
+- the same Phase 12 gate also checks that each dedicated Phase 12 survey test stays pinned to its manifest's exact `surveyed_commit` and the same starter, DMA-blocked, and object-model-blocked status totals before the slower Zig replay path runs.
+- the same validator keeps the degraded fallback contract explicit by requiring the workflow, README notes, review checklist, `zigux/Makefile`, and `zigux/tests/phase12_virtio_scsi_survey.zig` to agree that `make -C zigux phase12` runs the validator before the shared `phase12_build.zig` replay.
