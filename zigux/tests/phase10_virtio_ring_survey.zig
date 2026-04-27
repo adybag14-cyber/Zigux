@@ -71,6 +71,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
     var saw_used_buffer_polling = false;
     var saw_callback_enable_helper = false;
     var saw_callback_delay_helper = false;
+    var saw_notify_prepare_helper = false;
     var saw_mmio_register_window = false;
     var saw_mmio_blocker = false;
     var saw_ring_slice_note = false;
@@ -117,6 +118,15 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed-callback pacing") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-notify-prepare-helper")) {
+            saw_notify_prepare_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notify-prepare helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_kick_prepare()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "num_added") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
             saw_core_progress_note = true;
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "descriptor-shape metadata") != null);
@@ -148,7 +158,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 4);
+    try std.testing.expect(starter_landed_count >= 5);
     try std.testing.expect(ready_next_count >= 1);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_core_progress_note);
@@ -156,6 +166,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
     try std.testing.expect(saw_used_buffer_polling);
     try std.testing.expect(saw_callback_enable_helper);
     try std.testing.expect(saw_callback_delay_helper);
+    try std.testing.expect(saw_notify_prepare_helper);
     try std.testing.expect(saw_mmio_register_window);
     try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_mmio_blocker);
