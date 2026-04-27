@@ -67,7 +67,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expectEqualStrings("P14-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0a66b6c6e651e39ca2ce56cb6776fbde352dc213", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("99cd3249c4bab05b74227ed7ca3869284e818588", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
