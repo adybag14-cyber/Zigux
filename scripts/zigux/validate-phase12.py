@@ -152,11 +152,11 @@ def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
     roadmap_destinations = tuple(str(item) for item in spec["roadmap_destinations"])
     if destination.startswith(roadmap_destinations):
         return True
-    shared_allowed_destinations = spec.get("shared_allowed_destinations", set())
-    if destination in shared_allowed_destinations:
-        return True
-    if destination.endswith("/") and destination in shared_allowed_destinations:
-        return True
+    for allowed in spec.get("shared_allowed_destinations", set()):
+        if allowed.endswith("/") and destination.startswith(allowed):
+            return True
+        if destination == allowed:
+            return True
     return False
 
 
