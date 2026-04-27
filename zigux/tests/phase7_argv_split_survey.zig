@@ -33,7 +33,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked");
 }
 
-test "phase 7 argv_split survey manifest records the landed runtime leaf surface and next parity step" {
+test "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -65,6 +65,7 @@ test "phase 7 argv_split survey manifest records the landed runtime leaf surface
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
     var saw_helper = false;
     var saw_survey_gate = false;
     var saw_generated_parity = false;
@@ -79,6 +80,8 @@ test "phase 7 argv_split survey manifest records the landed runtime leaf surface
             starter_landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked")) {
+            blocked_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-helper")) {
@@ -95,7 +98,7 @@ test "phase 7 argv_split survey manifest records the landed runtime leaf surface
 
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-generated-parity-artifacts")) {
             saw_generated_parity = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("blocked", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_argv_split_parity.json", gap.zigux_destination);
         }
 
@@ -106,7 +109,8 @@ test "phase 7 argv_split survey manifest records the landed runtime leaf surface
     }
 
     try std.testing.expect(starter_landed_count >= 6);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_generated_parity);
