@@ -56,7 +56,7 @@ test "phase 15 handoff manifest records the parked governance contract" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("621356c2c80367701a16a5845f186163207b9a65", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("e25bb70f4208335f510cbf160c10f2bc218b14ee", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -76,29 +76,20 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
-    try std.testing.expectEqual(@as(usize, 2), manifest.open_handoff_gaps.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_steps.len);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "scorecard handoff wording") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "deep-core evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "reopen trigger") != null);
+    try std.testing.expectEqual(@as(usize, 1), manifest.open_handoff_gaps.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.pending_next_steps.len);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "deep-core evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "reopen trigger") != null);
 
-    var saw_scorecard_sync_gap = false;
     var saw_deep_core_blocker = false;
     for (manifest.open_handoff_gaps) |gap| {
         try std.testing.expect(isAllowedStatus(gap.status));
-        if (std.mem.eql(u8, gap.id, "phase15-scorecard-handoff-sync-gap")) {
-            saw_scorecard_sync_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared bootstrap workflow already runs") != null);
-        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_deep_core_blocker = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
         }
     }
-    try std.testing.expect(saw_scorecard_sync_gap);
     try std.testing.expect(saw_deep_core_blocker);
 }
 
@@ -137,10 +128,11 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Maintenance Handoff Contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared bootstrap workflow replay step") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Phase 15 tranche is governance-landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-scorecard-handoff-sync-gap") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scorecard-side maintenance wording was refreshed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-scorecard-handoff-sync-gap") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "parked-next-step synthesis") != null);
