@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, stat-backed same-location proof, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus stat-identity proof, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -38,8 +38,8 @@ The current starter slice covers:
 - `extract_argv0_path()` splitting for directory-prefixed tool invocations
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
-- a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller already knows whether `PWD` and `cwd` resolve to the same location
-- a pure `sameFileLocation()` plus `choosePwdCwdFromFileIdentity()` pair that models the C helper's `stat()`-backed device-and-inode proof for preferring logical `PWD` over physical `cwd` without claiming direct filesystem side effects
+- a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
+- a tiny `PathIdentity` plus `samePathIdentity()` and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
 
@@ -50,7 +50,7 @@ The current tests check:
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
-- the stat-backed identity helper only treats matching device-and-inode pairs as the same location, and `choosePwdCwdFromFileIdentity()` prefers logical `PWD` only for that proven same-location case
+- the stat-identity helper prefers `PWD` only when both injected identities match and falls back cleanly when the `PWD` stat shape is missing
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
 
@@ -60,10 +60,9 @@ This slice still does not claim:
 
 - direct `execvp()` parity or process-launch behavior
 - direct OS environment reads or writes
-- direct `getcwd()`, `getenv("PWD")`, or `stat()` system-call parity
 - the terminal/help listing surface from `tools/lib/subcmd/help.c`
 - the larger Phase 8 anchors in `tools/lib/symbol/` or `tools/lib/bpf/`
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review specifically wants one more tiny helper-only step inside this file family, such as threading the stat-backed `PWD` proof into a future injected cwd reader wrapper without widening into real process-launch or filesystem side effects; otherwise continue Phase 8 work in sibling files.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof is now covered through the injected identity helper layer, so future Phase 8 work should usually continue in sibling files instead.

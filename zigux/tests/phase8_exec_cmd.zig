@@ -99,33 +99,29 @@ test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it ma
         "/repo",
         exec_cmd.choosePwdCwd("/repo", "/other", false),
     );
-}
 
-test "phase 8 exec-cmd models stat-backed cwd and PWD identity proof" {
-    try std.testing.expect(exec_cmd.sameFileLocation(
-        .{ .device = 3, .inode = 44 },
-        .{ .device = 3, .inode = 44 },
-    ));
-    try std.testing.expect(!exec_cmd.sameFileLocation(
-        .{ .device = 3, .inode = 44 },
-        .{ .device = 3, .inode = 45 },
-    ));
+    const cwd_identity = exec_cmd.PathIdentity{ .device = 11, .inode = 7 };
+    const pwd_identity = exec_cmd.PathIdentity{ .device = 11, .inode = 7 };
+    const missing_pwd_identity: ?exec_cmd.PathIdentity = null;
+
+    try std.testing.expect(exec_cmd.samePathIdentity(cwd_identity, pwd_identity));
+    try std.testing.expect(!exec_cmd.samePathIdentity(cwd_identity, missing_pwd_identity));
     try std.testing.expectEqualStrings(
         "/logical/repo",
-        exec_cmd.choosePwdCwdFromFileIdentity(
+        exec_cmd.choosePwdCwdFromIdentities(
             "/repo",
             "/logical/repo",
-            .{ .device = 3, .inode = 44 },
-            .{ .device = 3, .inode = 44 },
+            cwd_identity,
+            pwd_identity,
         ),
     );
     try std.testing.expectEqualStrings(
         "/repo",
-        exec_cmd.choosePwdCwdFromFileIdentity(
+        exec_cmd.choosePwdCwdFromIdentities(
             "/repo",
             "/logical/repo",
-            .{ .device = 3, .inode = 44 },
-            .{ .device = 7, .inode = 44 },
+            cwd_identity,
+            missing_pwd_identity,
         ),
     );
 }

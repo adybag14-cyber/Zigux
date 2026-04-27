@@ -70,7 +70,7 @@ pub const ExtractArgv0Result = struct {
     }
 };
 
-pub const FileIdentity = struct {
+pub const PathIdentity = struct {
     device: u64,
     inode: u64,
 };
@@ -124,12 +124,6 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
-pub fn sameFileLocation(cwd_identity: ?FileIdentity, pwd_identity: ?FileIdentity) bool {
-    const cwd_value = cwd_identity orelse return false;
-    const pwd_value = pwd_identity orelse return false;
-    return cwd_value.device == pwd_value.device and cwd_value.inode == pwd_value.inode;
-}
-
 pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []const u8 {
     const pwd_value = pwd orelse return cwd;
     if (pwd_value.len == 0) {
@@ -144,13 +138,19 @@ pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []co
     return cwd;
 }
 
-pub fn choosePwdCwdFromFileIdentity(
+pub fn samePathIdentity(cwd_identity: ?PathIdentity, pwd_identity: ?PathIdentity) bool {
+    const cwd_value = cwd_identity orelse return false;
+    const pwd_value = pwd_identity orelse return false;
+    return cwd_value.device == pwd_value.device and cwd_value.inode == pwd_value.inode;
+}
+
+pub fn choosePwdCwdFromIdentities(
     cwd: []const u8,
     pwd: ?[]const u8,
-    cwd_identity: ?FileIdentity,
-    pwd_identity: ?FileIdentity,
+    cwd_identity: ?PathIdentity,
+    pwd_identity: ?PathIdentity,
 ) []const u8 {
-    return choosePwdCwd(cwd, pwd, sameFileLocation(cwd_identity, pwd_identity));
+    return choosePwdCwd(cwd, pwd, samePathIdentity(cwd_identity, pwd_identity));
 }
 
 pub fn getArgvExecPath(
@@ -390,22 +390,6 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     );
 }
 
-test "sameFileLocation models the stat-backed same-directory proof" {
-    try std.testing.expect(sameFileLocation(
-        .{ .device = 9, .inode = 17 },
-        .{ .device = 9, .inode = 17 },
-    ));
-    try std.testing.expect(!sameFileLocation(
-        .{ .device = 9, .inode = 17 },
-        .{ .device = 11, .inode = 17 },
-    ));
-    try std.testing.expect(!sameFileLocation(
-        .{ .device = 9, .inode = 17 },
-        .{ .device = 9, .inode = 18 },
-    ));
-    try std.testing.expect(!sameFileLocation(null, .{ .device = 9, .inode = 17 }));
-}
-
 test "prepareExecCmd prepends the configured executable name and preserves a trailing null slot" {
     const config = Config{
         .exec_name = "perf",
@@ -571,23 +555,25 @@ test "choosePwdCwd prefers PWD only when it points at the same location" {
     );
 }
 
-test "choosePwdCwdFromFileIdentity models the get_pwd_cwd preference branch" {
+test "choosePwdCwdFromIdentities mirrors the C helper's stat-backed same-location proof" {
+    const cwd_identity = PathIdentity{ .device = 8, .inode = 42 };
+    const pwd_identity = PathIdentity{ .device = 8, .inode = 42 };
+    const other_identity = PathIdentity{ .device = 8, .inode = 99 };
+
+    try std.testing.expect(samePathIdentity(cwd_identity, pwd_identity));
+    try std.testing.expect(!samePathIdentity(cwd_identity, other_identity));
+    try std.testing.expect(!samePathIdentity(cwd_identity, null));
+
     try std.testing.expectEqualStrings(
         "/logical/repo",
-        choosePwdCwdFromFileIdentity(
-            "/repo",
-            "/logical/repo",
-            .{ .device = 7, .inode = 11 },
-            .{ .device = 7, .inode = 11 },
-        ),
+        choosePwdCwdFromIdentities("/repo", "/logical/repo", cwd_identity, pwd_identity),
     );
     try std.testing.expectEqualStrings(
         "/repo",
-        choosePwdCwdFromFileIdentity(
-            "/repo",
-            "/logical/repo",
-            .{ .device = 7, .inode = 11 },
-            .{ .device = 7, .inode = 12 },
-        ),
+        choosePwdCwdFromIdentities("/repo", "/logical/repo", cwd_identity, other_identity),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwdFromIdentities("/repo", "/logical/repo", cwd_identity, null),
     );
 }
