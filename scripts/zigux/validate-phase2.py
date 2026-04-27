@@ -6,6 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
+FIXDEP_CASES = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json'
 
 
 def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -40,6 +41,70 @@ def case_files_from_list(case_manifest: Path, *field_names: str) -> list[Path]:
             seen.add(discovered_path)
             discovered_files.append(discovered_path)
     return discovered_files
+
+
+def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
+    cases = json.loads(case_manifest.read_text(encoding='utf-8'))
+    expected_cases = {
+        'sample': {
+            'depfile': 'sample.d',
+            'expected': 'sample_expected.txt',
+            'expected_exit_code': 0,
+        },
+        'sample_multi_target': {
+            'depfile': 'sample_multi_target.d',
+            'expected': 'sample_multi_target_expected.txt',
+            'expected_exit_code': 0,
+        },
+        'sample_escaped_space': {
+            'depfile': 'sample_escaped_space.d',
+            'expected': 'sample_escaped_space_expected.txt',
+            'expected_exit_code': 0,
+        },
+        'sample_comment_only': {
+            'depfile': 'sample_comment_only.d',
+            'expected': 'sample_comment_only_expected.txt',
+            'expected_stderr': 'sample_comment_only_expected.stderr.txt',
+            'expected_exit_code': 1,
+        },
+        'sample_missing_dep': {
+            'depfile': 'sample_missing_dep.d',
+            'expected': 'sample_missing_dep_expected.txt',
+            'expected_stderr': 'sample_missing_dep_expected.stderr.txt',
+            'expected_exit_code': 2,
+        },
+    }
+
+    issues: list[str] = []
+    seen_names: set[str] = set()
+    for case in cases:
+        name = case.get('name')
+        if not name:
+            issues.append('fixdep_cases:missing_name')
+            continue
+        if name in seen_names:
+            issues.append(f'fixdep_cases:duplicate_name:{name}')
+            continue
+        seen_names.add(name)
+
+        expected_case = expected_cases.get(name)
+        if expected_case is None:
+            issues.append(f'fixdep_cases:unexpected_name:{name}')
+            continue
+
+        for field_name, expected_value in expected_case.items():
+            actual_value = case.get(field_name, 0 if field_name == 'expected_exit_code' else None)
+            if actual_value != expected_value:
+                issues.append(
+                    f'fixdep_cases:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
+                )
+
+    missing_names = sorted(set(expected_cases) - seen_names)
+    for name in missing_names:
+        issues.append(f'fixdep_cases:missing_name:{name}')
+    if len(cases) != len(expected_cases):
+        issues.append(f'fixdep_cases:count={len(cases)},expected={len(expected_cases)}')
+    return issues
 
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
@@ -90,7 +155,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'truncated_expected.json',
 ]
 required_files.extend(case_files_from_list(
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json',
+    FIXDEP_CASES,
     'depfile',
     'expected',
     'expected_stdout',
@@ -111,6 +176,15 @@ if missing:
     for item in missing:
         print(item)
     print('MISSING_PHASE2_FILES_END')
+    sys.exit(1)
+
+fixdep_case_issues = validate_expected_fixdep_cases(FIXDEP_CASES)
+if fixdep_case_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_FIXDEP_CASES_START')
+    for item in fixdep_case_issues:
+        print(item)
+    print('MISSING_PHASE2_FIXDEP_CASES_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
@@ -145,6 +219,7 @@ required_workflow_markers = [
 required_doc_markers = [
     'fixdep',
     'sample_multi_target_expected.txt',
+    'sample_escaped_space_expected.txt',
     'genksyms',
     'zigux/tests/fixtures/genksyms_bridge/minimal_expected.json',
     'genksyms_crc',
@@ -191,4 +266,5 @@ if missing_markers:
 
 print('PHASE2_VALIDATION=pass')
 print(f'PHASE2_REQUIRED_FILE_COUNT={len(required_files)}')
+print('PHASE2_FIXDEP_CASE_COUNT=5')
 print(f'PHASE2_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_script_markers)}')
