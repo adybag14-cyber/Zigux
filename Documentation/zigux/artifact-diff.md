@@ -5,7 +5,7 @@ Zigux uses committed artifacts only when they anchor a bounded parity claim.
 Current Phase 1 use
 - `zigux/tests/fixtures/phase1_helpers.json` is generated from the in-tree C helper implementations.
 - `scripts/zigux/check-phase1-parity.py` rebuilds that artifact and compares it against the committed JSON.
-- `scripts/zigux/artifact_diff.py` is the generic comparison layer already reused by the current Phase 2 tooling lanes and kept available for future host-side diff tooling.
+- `scripts/zigux/artifact_diff.py` is the shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`.
 
 Current Phase 2 use
 - `python3 scripts/zigux/artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths so deterministic comparison drift fails before the bounded Phase 2 parity lanes run.
@@ -73,10 +73,11 @@ Current Phase 3 use
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-DELIVERY-window` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window DELIVERY window dump.
 
 Current Phase 4 use
+- `python3 scripts/zigux/artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths before the bounded Phase 4 rollback-readiness lanes run, which keeps stale expected-output and catalog drift small, auditable, and easy to refresh.
 - `zigux/tests/runtime_atomic64_diff.zig` currently carries the live bounded atomic64 rollback-readiness parity checks.
 - `zigux/tests/bitmap_diff.zig` anchors the bounded bitmap rollback-readiness parity checks.
 - `zigux/tests/phase4_build.zig` keeps the two Phase 4 diff gates on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
-- `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
+- `scripts/zigux/validate-phase4.py` keeps that shared self-test, the Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, and lab/CI replay matrix for the shipped Phase 4 gates.
 
 
@@ -87,5 +88,4 @@ Rules
 - do not use opaque binary blobs for early bootstrap parity when a text or JSON artifact is possible
 
 Near-term target
-- keep the same artifact-diff pattern available for future host-side tools under `scripts/zigux/` when a bounded expected artifact or generated catalog section needs a reviewable drift check.
-- prefer lane-owned expected artifacts or generated catalog rewrites over broad hand-maintained inventories so stale expected-output and catalog drift stays small, auditable, and easy to refresh.
+- keep using the same pattern for the full bounded Phase 3 interop ladder, with `python3 scripts/zigux/run-phase3-checks.py --slug <slice>` as the only documented execution entrypoint for those committed parity fixtures.
