@@ -8,6 +8,7 @@ const SurveySummary = struct {
     preexisting_list_view_present: bool,
     preexisting_hlist_view_present: bool,
     preexisting_chrdev_notify_plan_present: bool,
+    preexisting_phase11_hvc_header_parity_present: bool,
     preexisting_generic_notifier_abi_present: bool,
     preexisting_generic_notifier_helper_present: bool,
 };
@@ -34,6 +35,7 @@ fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "preexisting_phase3_surface") or
         std.mem.eql(u8, status, "preexisting_chrdev_surface") or
+        std.mem.eql(u8, status, "preexisting_phase11_surface") or
         std.mem.eql(u8, status, "ready_next");
 }
 
@@ -59,6 +61,10 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer std.testing.allocator.free(hlist_view_text);
     const chrdev_notify_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/helpers/chrdev_notify_plan.zig");
     defer std.testing.allocator.free(chrdev_notify_text);
+    const hvc_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "drivers/tty/hvc/hvc_console.h");
+    defer std.testing.allocator.free(hvc_header_text);
+    const hvc_console_text = try readRepoFile(io_instance.io(), std.testing.allocator, "drivers/tty/hvc/hvc_console.zig");
+    defer std.testing.allocator.free(hvc_console_text);
     const survey_note = try readRepoFile(io_instance.io(), std.testing.allocator, "Documentation/zigux/phase13-notifier-list-survey.md");
     defer std.testing.allocator.free(survey_note);
 
@@ -66,9 +72,9 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("4dcec04fe763160344ae352d76162962ab823dcf", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("aeb279e35506501ee00fe315b73c2fe5e6720811", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
@@ -81,9 +87,10 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(manifest.survey_summary.preexisting_list_view_present);
     try std.testing.expect(manifest.survey_summary.preexisting_hlist_view_present);
     try std.testing.expect(manifest.survey_summary.preexisting_chrdev_notify_plan_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase11_hvc_header_parity_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_abi_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_helper_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_notifier_list_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/list_view.zig") != null);
@@ -100,12 +107,23 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, chrdev_notify_text, "pub fn viewFromBits") != null);
     try std.testing.expect(std.mem.indexOf(u8, chrdev_notify_text, "abi.ChrdevNotifyView") != null);
     try std.testing.expect(std.mem.indexOf(u8, chrdev_notify_text, "ListHeadRef") == null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header_text, "struct list_head next;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header_text, "int (*notifier_add)(struct hvc_struct *hp, int irq);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header_text, "void (*notifier_del)(struct hvc_struct *hp, int irq);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header_text, "void (*notifier_hangup)(struct hvc_struct *hp, int irq);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_text, "pub fn headerParitySnapshot() HeaderParitySnapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_text, ".has_notifier_add = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_text, ".has_notifier_del = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_text, ".has_notifier_hangup = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_text, ".notifier_callbacks_pending = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier ABI surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "list and hlist view surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "driver-local notifier/list anchor") != null);
 
     var starter_landed_count: usize = 0;
     var preexisting_phase3_count: usize = 0;
     var preexisting_chrdev_count: usize = 0;
+    var preexisting_phase11_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_build_gate = false;
     var saw_reviewability_gate = false;
@@ -113,6 +131,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     var saw_list_abi = false;
     var saw_list_views = false;
     var saw_chrdev_notify = false;
+    var saw_hvc_anchor = false;
     var saw_generic_notifier_abi_gap = false;
     var saw_generic_notifier_helper_gap = false;
 
@@ -125,6 +144,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface")) preexisting_phase3_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
+        if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "ready_next")) ready_next_count += 1;
 
         if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
@@ -157,6 +177,11 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
             try std.testing.expectEqualStrings("preexisting_chrdev_surface", gap.status);
             try std.testing.expectEqualStrings("zigux/helpers/chrdev_notify_plan.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-header-notifier-list-anchor")) {
+            saw_hvc_anchor = true;
+            try std.testing.expectEqualStrings("preexisting_phase11_surface", gap.status);
+            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-generic-notifier-abi-gap")) {
             saw_generic_notifier_abi_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
@@ -176,6 +201,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 3), preexisting_phase3_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_chrdev_count);
+    try std.testing.expectEqual(@as(usize, 1), preexisting_phase11_count);
     try std.testing.expectEqual(@as(usize, 2), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_reviewability_gate);
@@ -183,6 +209,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(saw_list_abi);
     try std.testing.expect(saw_list_views);
     try std.testing.expect(saw_chrdev_notify);
+    try std.testing.expect(saw_hvc_anchor);
     try std.testing.expect(saw_generic_notifier_abi_gap);
     try std.testing.expect(saw_generic_notifier_helper_gap);
 }
