@@ -209,7 +209,7 @@ test "confdata bridge parses bounded config states" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME=\"zigux\"
+        \\CONFIG_NAME="zigux"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -269,8 +269,8 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER=\"zigux \\\"bridge\\\"\"
-        \\CONFIG_PATH=\"drivers\\\\zigux\"
+        \\CONFIG_BANNER="zigux \"bridge\""
+        \\CONFIG_PATH="drivers\\zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -315,13 +315,30 @@ test "confdata bridge keeps explicit n assignments as tristate values" {
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
 }
 
+test "confdata bridge keeps empty quoted strings as string values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_EMPTY=""
+        \\CONFIG_LABEL="zigux"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("", summary.entries[0].value);
+    try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
+}
+
 test "confdata bridge ignores non-CONFIG lines" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
         \\CONFIG_ALPHA=y
         \\BROKEN_ALPHA=y
         \\# BROKEN_BETA is not set
-        \\CONFIG_NAME=\"zigux\"
+        \\CONFIG_NAME="zigux"
         \\# CONFIG_DEBUG is not set
         \\
     );
