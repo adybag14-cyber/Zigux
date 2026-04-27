@@ -216,6 +216,14 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     var sample = TraceEventsReferenceSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
+    const expected_focus = [_]SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
 
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", replay.anchor);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
@@ -234,5 +242,8 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expect(replay.relative_location_path_checked);
     try std.testing.expect(replay.function_callback_path_checked);
     try std.testing.expect(replay.registration_balance_restored);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(expected_focus.len, replay.checked_focus.len);
+    for (expected_focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
 }
