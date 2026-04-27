@@ -66,7 +66,7 @@ fn expectContainsNone(haystack: []const u8, needles: []const []const u8) !void {
     }
 }
 
-test "runtime loader gap survey manifest keeps the roadmap boundary and blocker explicit" {
+test "runtime loader gap survey manifest keeps the roadmap boundary and shared request surface explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -91,9 +91,9 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.phase6_leaf_helper_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.runtime_sample_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.runtime_loader_plan_count);
-    try std.testing.expect(!manifest.survey_summary.shared_runtime_loader_present);
+    try std.testing.expect(manifest.survey_summary.shared_runtime_loader_present);
     try std.testing.expect(manifest.survey_summary.allocator_policy_present);
-    try std.testing.expect(!manifest.survey_summary.shared_init_exit_contract_present);
+    try std.testing.expect(manifest.survey_summary.shared_init_exit_contract_present);
     try std.testing.expect(!manifest.survey_summary.shared_command_environment_control_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
@@ -137,6 +137,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
             saw_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_survey.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 9 roadmap target") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed shared runtime-loader seam") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-gap-note")) {
             saw_note = true;
@@ -158,15 +159,15 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-allocator-handoff")) {
             saw_allocator_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
-            try std.testing.expectEqualStrings("zigux/helpers/allocator_policy.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "allocator policy surface exists") != null);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "consumes the allocator policy contract directly") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-init-exit-consumer")) {
             saw_init_exit_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "entry and exit symbol names") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared runtime-loader request surface now carries staged entry and exit symbol names") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -174,8 +175,8 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 4), landed_count);
-    try std.testing.expectEqual(@as(usize, 3), blocked_count);
+    try std.testing.expectEqual(@as(usize, 6), landed_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_note);
@@ -185,7 +186,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
     try std.testing.expect(saw_init_exit_blocker);
 }
 
-test "runtime loader gap survey doc keeps the mixed roadmap phases and control-surface gap explicit" {
+test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining control-surface gap explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -207,11 +208,12 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and control-s
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "command or environment control surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "argv policy") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "environment-derived activation cues") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "This slice therefore stays survey-only.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded shared runtime-loader request surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
 }
 
-test "runtime loader gap survey proves the existing loader control surfaces directly" {
+test "runtime loader gap survey proves the shared request surface and existing loader controls directly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -231,8 +233,16 @@ test "runtime loader gap survey proves the existing loader control surfaces dire
     );
     defer std.testing.allocator.free(kretprobe_loader);
 
+    const runtime_loader_file = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/kernel/runtime_loader.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_loader_file);
+
     const shared_loader_surface = [_][]const u8{
-        "pub const LoaderStage = enum(u8)",
+        "pub const LoaderStage = runtime_loader.LoaderStage;",
         "idle,",
         "prepared,",
         "waiting_on_runtime_substrate,",
@@ -243,7 +253,9 @@ test "runtime loader gap survey proves the existing loader control surfaces dire
         "provides_selftest_hook",
         "handoff_stage",
         "pub fn requestRuntimeLoad",
+        "pub fn requestSharedRuntimeLoad",
         "pub fn releaseWithoutSubstrate",
+        "@import(\"runtime_loader\")",
     };
     const absent_command_env_surface = [_][]const u8{
         "command_name",
@@ -255,12 +267,25 @@ test "runtime loader gap survey proves the existing loader control surfaces dire
     try expectContainsAll(kretprobe_loader, &shared_loader_surface);
     try expectContainsNone(bitmap_loader, &absent_command_env_surface);
     try expectContainsNone(kretprobe_loader, &absent_command_env_surface);
+    try expectContainsNone(runtime_loader_file, &absent_command_env_surface);
+    try expectContainsAll(runtime_loader_file, &.{
+        "pub const AllocatorHandoff = struct",
+        "pub const RuntimeLoadRequest = struct",
+        "pub const LoaderPayload = union(LoaderLane)",
+        "allocator_handoff",
+        "pub fn allocatorHandoffFor",
+        "pub fn isWaitingOnRuntimeSubstrate",
+    });
 
     try expectContainsAll(bitmap_loader, &.{
         "pub const RuntimeBitmapLoadPlan = struct",
         "summary: runtime_bitmap_sample.RuntimeBitmapSummary",
         "\"zigux_runtime_bitmap_init\"",
         "\"zigux_runtime_bitmap_exit\"",
+        "pub fn toSharedRequest",
+        ".allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap)",
+        ".payload = .{",
+        ".bitmap = .{",
     });
     try expectContainsAll(kretprobe_loader, &.{
         "pub const RuntimeKretprobeLoadPlan = struct",
@@ -273,5 +298,8 @@ test "runtime loader gap survey proves the existing loader control surfaces dire
         "\"zigux_runtime_kretprobe_exit\"",
         "\"register_kretprobe\"",
         "\"unregister_kretprobe\"",
+        "pub fn toSharedRequest",
+        ".allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap)",
+        ".kretprobe = .{",
     });
 }
