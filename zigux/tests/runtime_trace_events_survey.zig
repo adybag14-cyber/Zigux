@@ -34,6 +34,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn isLowerHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
+}
+
 fn readWorkspaceFile(
     io: anytype,
     allocator: std.mem.Allocator,
@@ -61,6 +69,8 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expectEqualStrings("442addb6738c6994a0ade80e09cbedc43b1c9eb9", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
@@ -160,8 +170,11 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "selftest hook") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "provides_selftest_hook = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "lifecycle parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime_trace_events_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling-backed wake or dispatch behavior") != null);
@@ -169,6 +182,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tracepoint-registration lifecycle wiring") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
