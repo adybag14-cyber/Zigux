@@ -5,6 +5,8 @@ const SurveySummary = struct {
     preexisting_phase11_build_present: bool,
     preexisting_phase11_gpio_lane_present: bool,
     preexisting_phase11_bcm2835_lane_present: bool,
+    watchdog_uapi_header_present: bool,
+    watchdog_core_header_present: bool,
     dw_wdt_zig_present: bool,
     dw_wdt_test_present: bool,
     dw_wdt_slice_note_present: bool,
@@ -61,12 +63,14 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_gpio_lane_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_bcm2835_lane_present);
+    try std.testing.expect(manifest.survey_summary.watchdog_uapi_header_present);
+    try std.testing.expect(manifest.survey_summary.watchdog_core_header_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_zig_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -75,6 +79,7 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     var saw_survey_gate = false;
     var saw_driver_gap = false;
     var saw_driver_tests = false;
+    var saw_header_boundary = false;
     var saw_slice_note = false;
     var saw_platform_blocker = false;
     var saw_probe_summary = false;
@@ -120,6 +125,16 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-header-boundary")) {
+            saw_header_boundary = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct watchdog_info") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WDIOC_*") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog_device") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog_ops") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-slice.md", gap.zigux_destination);
@@ -155,15 +170,60 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_driver_tests);
+    try std.testing.expect(saw_header_boundary);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_summary);
     try std.testing.expect(saw_registration_gap);
     try std.testing.expect(saw_platform_blocker);
+}
+
+test "phase11 dw_wdt survey keeps the watchdog header boundary explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const watchdog_uapi_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/uapi/linux/watchdog.h",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(watchdog_uapi_header);
+
+    const watchdog_core_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/linux/watchdog.h",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(watchdog_core_header);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/linux/watchdog.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct watchdog_info") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "WDIOC_*") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "WDIOF_*") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "WDIOS_*") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/linux/watchdog.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOC_GETSUPPORT") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOF_SETTIMEOUT") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOS_DISABLECARD") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
 }
