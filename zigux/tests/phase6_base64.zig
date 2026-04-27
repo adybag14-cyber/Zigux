@@ -20,8 +20,10 @@ fn expectEncode(input: []const u8, expected: []const u8, padding: bool, variant:
 
 fn expectDecode(case: DecodeCase) !void {
     var buf: [128]u8 = undefined;
+    const exact_len = try base64.bytes(case.input, case.padding, case.variant);
     const written = try base64.decode(buf[0..], case.input, case.padding, case.variant);
 
+    try std.testing.expectEqual(case.expected.len, exact_len);
     try std.testing.expectEqual(case.expected.len, written);
     try std.testing.expectEqualSlices(u8, case.expected, buf[0..written]);
 }
@@ -69,6 +71,7 @@ test "phase 6 base64 standard decode parity matches kernel vectors" {
 test "phase 6 base64 decode rejects invalid kernel-style vectors" {
     var buf: [128]u8 = undefined;
     for (fixtures.invalid_decode_cases) |case| {
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(case.input, case.padding, fixtureVariant(case.variant_name)));
         try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, fixtureVariant(case.variant_name)));
     }
 }
