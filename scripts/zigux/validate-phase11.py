@@ -9,6 +9,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase11-[^"]+)"')
+BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 
 FILES = [
     "scripts/zigux/validate-phase11.py",
@@ -33,6 +35,7 @@ FILES = [
     "zigux/tests/phase11_dw_wdt_survey.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
+    "zigux/tests/fixtures/phase11_build_inventory.json",
 ]
 
 MAKE_MARKERS = [
@@ -52,6 +55,7 @@ README_MARKERS = [
     "validate-phase11.py",
     "Phase 11 flow",
     "make -C zigux phase11-validate",
+    "phase11_build_inventory.json",
     "phase11_gpio_wdt_manifest.json",
     "phase11_uapi_header_parity_manifest.json",
     "dedicated hvc_console survey note and validation matrix",
@@ -59,7 +63,7 @@ README_MARKERS = [
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
-    "if the change touches the shared Phase 11 tooling path, does the bundle still keep `zigux/tests/phase11_hvc_console_survey.zig` as a dedicated survey replay instead of silently implying that every Phase 11 survey gate already runs in the shared `phase11_build.zig` path?",
+    "if the change touches the shared Phase 11 tooling path, do `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the exact shared build inventory and the dedicated-survey boundary instead of silently implying that every Phase 11 survey gate already runs in the shared path?",
 ]
 BUILD_MARKERS = [
     "phase11-gpio-wdt-tests",
@@ -77,6 +81,7 @@ FORBIDDEN_BUILD_MARKERS = [
     "phase11_hvc_console_survey_tests",
     "run_phase11_hvc_console_survey_tests.step",
 ]
+BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
 MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 10, [], ["phase11-gpio-wdt-platform-registration"]),
@@ -128,6 +133,10 @@ def load_manifest(name: str) -> dict[str, object]:
     return json.loads(text(f"zigux/tests/{name}"))
 
 
+def load_json(path: str) -> object:
+    return json.loads(text(path))
+
+
 def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | None:
     for gap in manifest.get("gaps", []):
         if gap.get("id") == gap_id:
@@ -173,6 +182,31 @@ build_text = text("zigux/tests/phase11_build.zig")
 for marker in FORBIDDEN_BUILD_MARKERS:
     if marker in build_text:
         missing.append(f"phase11_build:forbidden:{marker}")
+
+build_inventory = load_json(BUILD_INVENTORY_FIXTURE)
+expected_build_test_names = build_inventory.get("build_test_names")
+if not isinstance(expected_build_test_names, list) or not all(isinstance(item, str) for item in expected_build_test_names):
+    missing.append("phase11_build_fixture:build_test_names")
+else:
+    actual_build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
+    if actual_build_test_names != expected_build_test_names:
+        missing.append("phase11_build_fixture:build_test_names_mismatch")
+
+expected_depend_steps = build_inventory.get("shared_test_depend_steps")
+if not isinstance(expected_depend_steps, list) or not all(isinstance(item, str) for item in expected_depend_steps):
+    missing.append("phase11_build_fixture:shared_test_depend_steps")
+else:
+    actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if actual_depend_steps != expected_depend_steps:
+        missing.append("phase11_build_fixture:shared_test_depend_steps_mismatch")
+
+expected_forbidden_markers = build_inventory.get("forbidden_markers")
+if expected_forbidden_markers != FORBIDDEN_BUILD_MARKERS:
+    missing.append("phase11_build_fixture:forbidden_markers")
+
+dedicated_survey_replays = build_inventory.get("dedicated_survey_replays")
+if dedicated_survey_replays != ["zigux/tests/phase11_hvc_console_survey.zig"]:
+    missing.append("phase11_build_fixture:dedicated_survey_replays")
 
 starter_total = 0
 ready_total = 0
@@ -268,6 +302,8 @@ print("PHASE11_VALIDATION=pass")
 print(f"PHASE11_REQUIRED_FILE_COUNT={len(FILES)}")
 print(f"PHASE11_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}")
 print(f"PHASE11_MANIFEST_COUNT={len(MANIFEST_SPECS)}")
+print(f"PHASE11_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
+print(f"PHASE11_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
 print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
 print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
