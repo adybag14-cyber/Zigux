@@ -6,6 +6,7 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expectEqualStrings("virtio_scsi_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_queue_family_planner);
+    try std.testing.expect(descriptor.provides_probe_config_snapshot);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -92,4 +93,60 @@ test "phase12 virtio scsi rejects invalid freeze restore sequencing" {
     _ = try lab.planQueueLayout(2, 0);
     _ = try lab.freezeForTransportReset();
     try std.testing.expectError(error.TransportAlreadyFrozen, lab.freezeForTransportReset());
+}
+
+test "phase12 virtio scsi probe snapshot records config fields and queue layout" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .num_queues = 8,
+        .requested_poll_queues = 3,
+        .seg_max = 128,
+        .cmd_per_lun = 64,
+        .max_target = 31,
+        .max_lun = 7,
+        .max_sectors = 2048,
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", snapshot.anchor);
+    try std.testing.expectEqual(@as(u16, 8), snapshot.config_num_queues);
+    try std.testing.expectEqual(@as(u32, 128), snapshot.config_seg_max);
+    try std.testing.expectEqual(@as(u32, 64), snapshot.config_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 31), snapshot.config_max_target);
+    try std.testing.expectEqual(@as(u32, 7), snapshot.config_max_lun);
+    try std.testing.expectEqual(@as(u32, 2048), snapshot.config_max_sectors);
+    try std.testing.expectEqual(@as(u32, 128), snapshot.effective_seg_max);
+    try std.testing.expectEqual(@as(u32, 64), snapshot.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 32), snapshot.effective_max_target_count);
+    try std.testing.expectEqual(@as(u32, 0x4008), snapshot.effective_max_lun);
+    try std.testing.expectEqual(@as(u32, 2048), snapshot.effective_max_sectors);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.control_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.event_queue_count);
+    try std.testing.expectEqual(@as(u16, 8), snapshot.request_queue_count);
+    try std.testing.expectEqual(@as(u16, 5), snapshot.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), snapshot.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 10), snapshot.total_queue_count);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.request_queue_base), snapshot.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 7), snapshot.first_poll_queue_index);
+}
+
+test "phase12 virtio scsi probe snapshot applies Linux-style fallback defaults" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .num_queues = 2,
+        .requested_poll_queues = 4,
+        .seg_max = 0,
+        .cmd_per_lun = 0,
+        .max_target = 0,
+        .max_lun = 0,
+        .max_sectors = 0,
+    });
+
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_seg_max), snapshot.effective_seg_max);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_cmd_per_lun), snapshot.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 1), snapshot.effective_max_target_count);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.max_lun_format_one_bias), snapshot.effective_max_lun);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_max_sectors), snapshot.effective_max_sectors);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.poll_queue_count);
+    try std.testing.expectEqual(@as(?u16, 3), snapshot.first_poll_queue_index);
 }

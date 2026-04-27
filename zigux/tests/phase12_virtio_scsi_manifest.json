@@ -90,17 +90,24 @@
     },
     {
       "id": "phase12-virtio-scsi-probe-config-snapshot-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The landed probe snapshot helper now records virtscsi_probe() config fields such as num_queues, seg_max, cmd_per_lun, max_target, max_lun, and max_sectors, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
+    },
+    {
+      "id": "phase12-virtio-scsi-host-limit-summary-followup",
       "status": "ready_next",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "The next honest virtio_scsi step is one small probe snapshot helper that records virtscsi_probe() config fields such as num_queues, seg_max, cmd_per_lun, max_target, max_lun, and max_sectors, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
+      "why_now": "Now that the probe snapshot records config fields and queue layout, the next bounded virtio_scsi step is one tiny host-limit summary helper that clamps cmd_per_lun against a synthetic can_queue and reports max_target, max_lun, max_sectors, and nr_hw_queues before any scsi_host_alloc(), scsi_add_host(), scsi_scan_host(), blk-mq mapping, or DMA-backed request flow is attempted."
     },
     {
       "id": "phase12-virtio-scsi-runtime-queues-and-scan",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
-      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), blk-mq queue mapping, PM freeze or restore wiring, and DMA-backed request flow remain blocked until the smaller probe snapshot helper exists and the roadmap-approved queueing and transport substrate is in place."
+      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), blk-mq queue mapping, PM freeze or restore wiring, and DMA-backed request flow remain blocked until the smaller probe snapshot and host-limit summary helpers exist and the roadmap-approved queueing and transport substrate is in place."
     }
   ]
 }

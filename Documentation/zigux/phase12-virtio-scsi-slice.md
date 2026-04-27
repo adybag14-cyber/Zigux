@@ -9,7 +9,8 @@ The starter stays intentionally narrow:
 - classifies each planned request queue as either `request` or `request_poll` with stable global virtqueue indexes starting after the control and event queues
 - records the fixed event-buffer fanout used by the driver without claiming event work handling, request submission, or live transport reset completion
 - freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary, then clears the old queue snapshot so the next step must replan instead of pretending virtqueues stayed live
+- captures one probe snapshot of `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, and `max_sectors`, plus the derived control, event, default-request, and poll-request queue layout
 
 This slice does not claim DMA mapping, scatter-gather command assembly, `Scsi_Host` registration, blk-mq submission, event-work recycling, TMF handling, hotplug, or live transport reset recovery.
 
-The next honest bounded step inside the same Phase 12 lane is still to add one small probe snapshot helper that captures `virtscsi_probe()` config fields and queue-topology intent before any blk-mq submission, TMF, PM recovery, or DMA-backed queue work is attempted.
+The next honest bounded step inside the same Phase 12 lane is now to add one small host-limit summary helper that clamps `cmd_per_lun` against a synthetic `can_queue` and records the derived `max_target`, `max_lun`, `max_sectors`, and `nr_hw_queues` values before any blk-mq submission, TMF, PM recovery, or DMA-backed queue work is attempted.

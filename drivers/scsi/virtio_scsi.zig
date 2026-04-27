@@ -5,6 +5,10 @@ pub const event_queue_index: u16 = 1;
 pub const request_queue_base: u16 = 2;
 pub const event_buffer_count: u16 = 8;
 pub const min_request_queues: u16 = 1;
+pub const default_seg_max: u32 = 1;
+pub const default_cmd_per_lun: u32 = 1;
+pub const default_max_sectors: u32 = 0xFFFF;
+pub const max_lun_format_one_bias: u32 = 0x4001;
 
 pub const RequestQueueKind = enum {
     request,
@@ -20,6 +24,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_queue_family_planner: bool,
+    provides_probe_config_snapshot: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -60,10 +65,44 @@ pub const RecoverySummary = struct {
     recovery_generation: u16,
 };
 
+pub const ProbeRequest = struct {
+    num_queues: u16,
+    requested_poll_queues: u16 = 0,
+    seg_max: u32 = 0,
+    cmd_per_lun: u32 = 0,
+    max_target: u32 = 0,
+    max_lun: u32 = 0,
+    max_sectors: u32 = 0,
+};
+
+pub const ProbeSnapshot = struct {
+    anchor: []const u8,
+    config_num_queues: u16,
+    config_seg_max: u32,
+    config_cmd_per_lun: u32,
+    config_max_target: u32,
+    config_max_lun: u32,
+    config_max_sectors: u32,
+    effective_seg_max: u32,
+    effective_cmd_per_lun: u32,
+    effective_max_target_count: u32,
+    effective_max_lun: u32,
+    effective_max_sectors: u32,
+    control_queue_count: u16,
+    event_queue_count: u16,
+    request_queue_count: u16,
+    default_queue_count: u16,
+    poll_queue_count: u16,
+    total_queue_count: u16,
+    first_request_queue_index: u16,
+    first_poll_queue_index: ?u16,
+};
+
 pub const VirtioScsiQueueLab = struct {
     const Self = @This();
 
     last_layout: ?QueueLayoutSummary = null,
+    last_probe_snapshot: ?ProbeSnapshot = null,
     frozen_layout: ?QueueLayoutSummary = null,
     transport_frozen: bool = false,
     recovery_generation: u16 = 0,
@@ -73,6 +112,7 @@ pub const VirtioScsiQueueLab = struct {
             .name = "virtio_scsi_queue_lab",
             .anchor = "drivers/scsi/virtio_scsi.c",
             .provides_queue_family_planner = true,
+            .provides_probe_config_snapshot = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -140,6 +180,35 @@ pub const VirtioScsiQueueLab = struct {
         };
     }
 
+    pub fn captureProbeSnapshot(self: *Self, request: ProbeRequest) !ProbeSnapshot {
+        const layout = try self.planQueueLayout(request.num_queues, request.requested_poll_queues);
+
+        const snapshot = ProbeSnapshot{
+            .anchor = descriptor().anchor,
+            .config_num_queues = request.num_queues,
+            .config_seg_max = request.seg_max,
+            .config_cmd_per_lun = request.cmd_per_lun,
+            .config_max_target = request.max_target,
+            .config_max_lun = request.max_lun,
+            .config_max_sectors = request.max_sectors,
+            .effective_seg_max = if (request.seg_max == 0) default_seg_max else request.seg_max,
+            .effective_cmd_per_lun = if (request.cmd_per_lun == 0) default_cmd_per_lun else request.cmd_per_lun,
+            .effective_max_target_count = try checkedAddU32(request.max_target, 1),
+            .effective_max_lun = try checkedAddU32(request.max_lun, max_lun_format_one_bias),
+            .effective_max_sectors = if (request.max_sectors == 0) default_max_sectors else request.max_sectors,
+            .control_queue_count = 1,
+            .event_queue_count = 1,
+            .request_queue_count = layout.request_queues,
+            .default_queue_count = layout.default_queues,
+            .poll_queue_count = layout.poll_queues,
+            .total_queue_count = layout.total_queues,
+            .first_request_queue_index = layout.first_request_queue_index,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+        };
+        self.last_probe_snapshot = snapshot;
+        return snapshot;
+    }
+
     pub fn freezeForTransportReset(self: *Self) !RecoverySummary {
         if (self.transport_frozen) {
             return error.TransportAlreadyFrozen;
@@ -191,5 +260,10 @@ pub const VirtioScsiQueueLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
+        const value = @as(u64, lhs) + rhs;
+        return std.math.cast(u32, value) orelse error.QueueCountOverflow;
     }
 };

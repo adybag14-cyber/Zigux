@@ -41,7 +41,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 virtio_scsi survey manifest records the landed queue starter and probe snapshot follow-up" {
+test "phase12 virtio_scsi survey manifest records the landed probe snapshot starter and host-limit follow-up" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -84,7 +84,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-test") != null);
@@ -101,6 +101,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     var saw_driver_starter = false;
     var saw_driver_tests = false;
     var saw_slice_note = false;
+    var saw_probe_snapshot = false;
     var saw_ready_next = false;
     var saw_blocker = false;
 
@@ -186,12 +187,21 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-probe-config-snapshot-starter")) {
+            saw_probe_snapshot = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed probe snapshot helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_probe()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request virtqueue layout") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-host-limit-summary-followup")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_probe()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "num_queues") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "max_target") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cmd_per_lun") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "nr_hw_queues") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-queues-and-scan")) {
@@ -200,6 +210,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scsi_add_host()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helpers") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -207,7 +218,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -219,6 +230,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(saw_driver_starter);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_probe_snapshot);
     try std.testing.expect(saw_ready_next);
     try std.testing.expect(saw_blocker);
 }
