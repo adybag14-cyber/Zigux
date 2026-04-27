@@ -179,6 +179,7 @@
     "review_checklist_present": true,
     "phase14_rcu_survey_present": true,
     "phase14_skbuff_survey_present": true,
+    "phase15_readme_reviewability_present": true,
     "phase15_scorecard_note_present": true,
     "phase15_evidence_archive_templates_present": true,
     "phase15_anchor_owner_tracking_present": true,
@@ -292,6 +293,13 @@
       "kind": "handoff",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The maintenance-mode handoff now keeps the roadmap source, the bootstrap ledger anchor, and the parked next step visible together so later runs can see why the Phase 15 governance bundle stays landed without reopening deep-core scope."
+    },
+    {
+      "id": "phase15-readme-governance-index",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/README.md",
+      "why_now": "The top-level docs index needed an explicit Phase 15 governance pointer so reviewers can open the freeze map, review-process note, parity scorecard, indefinite-C policy, evidence-archive templates, and shared phase15 replay path without hunting across unrelated phase notes."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
