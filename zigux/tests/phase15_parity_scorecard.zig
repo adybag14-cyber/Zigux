@@ -262,7 +262,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     var saw_reopen_trigger_followup = false;
     var saw_roadmap_handoff_followup = false;
     var saw_readme_governance_index = false;
-    var saw_shared_ci_gap = false;
+    var saw_maintenance_mode_handoff = false;
     var saw_blocker = false;
 
     for (gaps, 0..) |gap, i| {
@@ -335,11 +335,11 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "top-level docs index") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase15 replay path") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase15-shared-ci-coverage-gap")) {
-            saw_shared_ci_gap = true;
+        if (std.mem.eql(u8, gap.id, "phase15-maintenance-mode-handoff-sync")) {
+            saw_maintenance_mode_handoff = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make -C zigux phase15") != null);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "maintenance-mode handoff") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
@@ -365,7 +365,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
     try std.testing.expect(saw_readme_governance_index);
-    try std.testing.expect(saw_shared_ci_gap);
+    try std.testing.expect(saw_maintenance_mode_handoff);
     try std.testing.expect(saw_blocker);
 }
 
@@ -412,7 +412,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Current Parity-Tracking Gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Current Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Full-Parity Blockers and Long-Term Governance") != null);
@@ -433,8 +433,8 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-shared-ci-coverage-gap") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "published shared bootstrap workflow now runs the landed Phase 15 governance bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-maintenance-mode-handoff-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
