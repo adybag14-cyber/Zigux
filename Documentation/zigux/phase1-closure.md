@@ -53,13 +53,16 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
+- `tools/lib/string.zig` direct Zig unit coverage also exercises `strim` and `strreplace` wrapper aliases alongside `trimSpaces`, `removeSpaces`, and `replaceChar` so the alias surface cannot silently drift from the underlying helpers.
 - string fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - string manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`
+- string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`
 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection`
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short fixture cases`
+- `PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, removeSpaces, and replaceChar`
 
 ## Closure Gates
 
