@@ -55,30 +55,32 @@ test "phase 15 architecture council review-process manifest records current trig
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("6550b8dd67aac841c8a35e3eb84a73a7d233f087", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("65cb45dda5ca7fc760207a4ca711397bc7894e9e", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
-    try std.testing.expectEqual(@as(usize, 10), manifest.ownership_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.ownership_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
-    try std.testing.expectEqual(@as(usize, 17), manifest.required_review_packet_fields.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
     try std.testing.expectEqualStrings("retained discussion state", manifest.ownership_evidence_fields[7]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.ownership_evidence_fields[8]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
     try std.testing.expectEqualStrings("freeze-map status-bucket change", manifest.trigger_conditions[1]);
     try std.testing.expectEqualStrings("linux anchor path", manifest.required_review_packet_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.required_review_packet_fields[4]);
-    try std.testing.expectEqualStrings("explicit non-goals", manifest.required_review_packet_fields[15]);
-    try std.testing.expectEqualStrings("written rationale", manifest.required_review_packet_fields[16]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.required_review_packet_fields[13]);
+    try std.testing.expectEqualStrings("explicit non-goals", manifest.required_review_packet_fields[16]);
+    try std.testing.expectEqualStrings("written rationale", manifest.required_review_packet_fields[17]);
     try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.reopen_trigger_catalog[0]);
     try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", manifest.reopen_trigger_catalog[1]);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.reopen_trigger_catalog[2]);
@@ -112,7 +114,7 @@ test "phase 15 architecture council review-process manifest records current trig
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), landed_count);
+    try std.testing.expectEqual(@as(usize, 11), landed_count);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -156,10 +158,12 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "refreshes both the current lane owner and the rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "indefinite-C policy link or applicability note") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet refresh both the current lane owner and the rollback owner before active review resumes?") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state and reopen triggers explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state, the indefinite-C policy link or explicit non-applicability note, and the reopen triggers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
