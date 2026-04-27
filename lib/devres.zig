@@ -6,6 +6,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_lifetime_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioremap_resource_planning: bool,
+    provides_ioremap_resource_uc_planning: bool,
     provides_ioremap_resource_wc_planning: bool,
     provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
@@ -237,6 +238,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_lifetime_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioremap_resource_planning = true,
+            .provides_ioremap_resource_uc_planning = true,
             .provides_ioremap_resource_wc_planning = true,
             .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
@@ -424,6 +426,17 @@ pub const DevresHelperLab = struct {
                 },
             },
         };
+    }
+
+    pub fn planManagedIoremapResourceUc(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
+        return planManagedIoremapResource(allocator, .{
+            .device_name = input.device_name,
+            .resource = input.resource,
+            .requested_type = .uc,
+            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
+            .request_region_granted = input.request_region_granted,
+            .remap_succeeds = input.remap_succeeds,
+        });
     }
 
     pub fn planManagedIoremapResourceWc(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
