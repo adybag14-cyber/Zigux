@@ -35,6 +35,14 @@ const IncNotZeroCase = struct {
     changed: bool,
 };
 
+const DecIfPositiveCase = struct {
+    name: []const u8,
+    seed: i64,
+    result: i64,
+    final: i64,
+    changed: bool,
+};
+
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -78,7 +86,17 @@ fn expectIncNotZeroCase(case: IncNotZeroCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, and inc_not_zero expectations" {
+fn expectDecIfPositiveCase(case: DecIfPositiveCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.decIfPositiveCounter();
+    try std.testing.expectEqual(case.result, result.result);
+    try std.testing.expectEqual(case.changed, result.changed);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
@@ -178,6 +196,34 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
     for (inc_not_zero_cases) |case| {
         try expectIncNotZeroCase(case);
     }
+
+    const dec_if_positive_cases = [_]DecIfPositiveCase{
+        .{
+            .name = "dec_if_positive decrements a positive counter and returns the decremented value",
+            .seed = 0x1111_1111_2222_2222,
+            .result = 0x1111_1111_2222_2221,
+            .final = 0x1111_1111_2222_2221,
+            .changed = true,
+        },
+        .{
+            .name = "dec_if_positive returns -1 for zero without changing storage",
+            .seed = 0,
+            .result = -1,
+            .final = 0,
+            .changed = false,
+        },
+        .{
+            .name = "dec_if_positive returns seed minus one for negative inputs without storing it",
+            .seed = -1,
+            .result = -2,
+            .final = -1,
+            .changed = false,
+        },
+    };
+
+    for (dec_if_positive_cases) |case| {
+        try expectDecIfPositiveCase(case);
+    }
 }
 
 test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
@@ -208,4 +254,5 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
         std.math.minInt(i64),
     ));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
 }
