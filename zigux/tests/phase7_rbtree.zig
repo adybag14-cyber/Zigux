@@ -264,6 +264,47 @@ test "phase 7 rbtree find helpers walk duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findFirst(@as(i32, 99), &root, cmp));
 }
 
+test "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates" {
+    const cmp = struct {
+        fn compare(new: *rbtree.Node, existing: *const rbtree.Node) i32 {
+            const new_entry: *const Entry = @fieldParentPtr("node", new);
+            const existing_entry: *const Entry = @fieldParentPtr("node", existing);
+            if (new_entry.key != existing_entry.key) {
+                return orderToInt(std.math.order(new_entry.key, existing_entry.key));
+            }
+            return orderToInt(std.math.order(new_entry.serial, existing_entry.serial));
+        }
+    }.compare;
+
+    var root = rbtree.Root.init();
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 15, .serial = 0 },
+    };
+
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findAdd(&entries[0].node, &root, cmp));
+    const duplicate = rbtree.findAdd(&entries[1].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*rbtree.Node, &entries[0].node), duplicate);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findAdd(&entries[2].node, &root, cmp));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findAdd(&entries[3].node, &root, cmp));
+
+    const expected = [_]i32{ 5, 10, 15 };
+    var actual: [expected.len]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        actual[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(expected.len, count);
+    try std.testing.expectEqualSlices(i32, &expected, actual[0..count]);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), entries[1].node.parent);
+}
+
 test "phase 7 rbtree postorder traversal matches committed parity fixture" {
     var parsed = try loadFixture(std.testing.allocator);
     defer parsed.deinit();
