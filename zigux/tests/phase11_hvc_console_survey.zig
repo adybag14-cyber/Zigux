@@ -130,7 +130,8 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             saw_validation_matrix = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-hvc-console-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 starter replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "survey gate still runs separately") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd-facing") != null);
         }
 
@@ -157,4 +158,22 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_driver_test_block);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_block);
+}
+
+test "phase11 hvc_console survey records the current shared-build boundary exactly" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_tests = b.addTest") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11_hvc_console_survey_tests") == null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "run_phase11_hvc_console_survey_tests.step") == null);
 }
