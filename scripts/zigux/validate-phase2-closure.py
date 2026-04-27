@@ -34,6 +34,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'ambiguous_abbreviated_long_option_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'missing_long_reference_argument_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'missing_long_dump_types_argument_expected.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'unexpected_long_option_argument_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
