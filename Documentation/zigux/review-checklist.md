@@ -19,6 +19,8 @@ Use this checklist before opening or merging Zigux product work.
 - if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?
 - if the change updates an existing Phase 5 sample, do the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?
 - if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?
+- if the change is a Phase 9 runtime slice, do the module or sample note, the manifest-backed survey or loader-gap survey, and the shared `phase9_build.zig` entrypoint still agree on the same Linux anchor, bounded blocker posture, and replay scope?
+- if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
 - if the change asks for a freeze-map status change, is the Architecture Council review record linked and are the current status bucket plus requested decision bucket explicit?
 - if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
