@@ -28,6 +28,7 @@ Current bootstrap helpers
 - `validate-phase11.py`
 - `check-phase12-build-inventory.py`
 - `validate-phase12.py`
+- `validate-phase13-release.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -106,3 +107,7 @@ Phase 12 flow
 - the same fast validator now also keeps the four Phase 12 survey notes pinned to each manifest's exact `surveyed_commit`, Linux anchor, and shared `make -C zigux phase12` replay contract instead of leaving that survey-evidence packet solely to the slower Zig test pass.
 - the same validator keeps the degraded fallback contract explicit by requiring the workflow, README notes, review checklist, `zigux/Makefile`, and `zigux/tests/phase12_virtio_scsi_survey.zig` to agree that `make -C zigux phase12` runs the validator before the shared `phase12_build.zig` replay.
 - the same validator now also snapshots the shared build inventory snapshot and expected shared replay summary in `zigux/tests/fixtures/phase12_build_inventory.json` so the exact replay shape and current `Build Summary: 17/17 steps succeeded; 34/34 tests passed` expectation stay committed instead of living only in ad hoc run logs.
+
+Phase 13 flow
+- `validate-phase13-release.py` checks that the bounded Phase 13 release-discipline packet still keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, the shared workflow path, `make -C zigux phase13-validate`, and `zigux/tests/phase13_build.zig` aligned around the same active shared-helper tranche.
+- the same Phase 13 gate keeps the release evidence explicit instead of leaving the validator-helper contract implicit by requiring the docs packet and helper index to say that Phase 13 is still active, `make -C zigux phase13` routes through the validator before the shared replay, and `lib/devres.c` remains the only roadmap anchor without a manifest-backed survey packet.
