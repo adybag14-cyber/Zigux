@@ -95,6 +95,15 @@ The bounded reopen-trigger catalog for a retained stay-in-C packet is:
 
 Every retained stay-in-C closeout must cite at least one of these catalog items in its evidence archive so the policy note, review-process packet, parity scorecard, and per-anchor archive template keep the same reopen vocabulary.
 
+## Maintenance-Mode Handoff
+
+- current lane posture: `maintenance_mode`
+- replay before trusting this parked handoff:
+  - `zig build test --build-file zigux/tests/phase15_build.zig`
+  - `make -C zigux phase15`
+- reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded indefinite-C follow-up
+- next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
+
 ## Recorded gaps
 
 The current lane state is:
