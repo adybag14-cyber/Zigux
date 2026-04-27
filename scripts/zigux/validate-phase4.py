@@ -43,6 +43,7 @@ phase4_gate_expectations = {
         'owner': 'ABI and Runtime Team',
         'rollback_owner': 'ABI and Runtime Team',
         'fallback_path': 'keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses',
+        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
         'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
         'gate_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay',
         'threshold_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
@@ -52,6 +53,7 @@ phase4_gate_expectations = {
         'owner': 'Shared Subsystems Pod',
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
+        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
         'gate_scope': 'bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay',
         'threshold_scope': 'range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
@@ -255,6 +257,10 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
     if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
         missing.append(
             f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}"
+        )
+    if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:threshold_status:{gate_name}:{expectation['threshold_status']}"
         )
     if expectation['threshold_scope'] not in gate_block:
         missing.append(
