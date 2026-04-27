@@ -32,11 +32,11 @@ This catalog records the exact read-only GitHub fallback coverage I verified for
 - `zigux/tests/phase12_virtio_scsi_manifest.json`
   - url: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/zigux/tests/phase12_virtio_scsi_manifest.json`
   - bytes: `7511`
-  - sha256: `cf0e9ee00a048fcbae4fec53bbd3b87981e8a47769c0783cb63598b20b9bc3a4`
+  - sha256: `778ad258a123e6cda87906f0ae93f4afe645e7b4a55747409f65f0dffa4ffeff`
 - `zigux/tests/phase12_virtio_scsi_survey.zig`
   - url: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/zigux/tests/phase12_virtio_scsi_survey.zig`
   - bytes: `19832`
-  - sha256: `53f97d519c0d7b4bb281d061118fcfecfbc168b1b4435f8016978b00f0027739`
+  - sha256: `2f695a6399cf86e3bada4aee0ff9789b84c00c0ce99f72c94e61e1d76859d3e9`
 - `zigux/tests/phase12_build.zig`
   - url: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/zigux/tests/phase12_build.zig`
   - bytes: `6805`
@@ -48,7 +48,7 @@ This catalog records the exact read-only GitHub fallback coverage I verified for
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`
   - url: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/Documentation/zigux/phase12-virtio-scsi-survey.md`
   - bytes: `5946`
-  - sha256: `20e021857c380e0eb379b0b0a4b12211ef72015fa25467cef34684189a857731`
+  - sha256: `c24bb0a2b4c4846e1cc6e31b7fa14da818234a50195c6870f3276b114628f374`
 - `scripts/zigux/validate-phase12.py`
   - url: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/scripts/zigux/validate-phase12.py`
   - bytes: `11786`
