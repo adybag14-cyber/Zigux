@@ -62,10 +62,19 @@ static void run_ordered_section(void)
 		{ .key = 15 },
 		{ .key = 25 },
 	};
+	struct rb_order_entry replace_entries[] = {
+		{ .key = 10 },
+		{ .key = 20 },
+		{ .key = 5 },
+		{ .key = 15 },
+		{ .key = 25 },
+	};
 	struct rb_order_entry replacement = { .key = 10 };
 	struct rb_root root = RB_ROOT;
+	struct rb_root replace_root = RB_ROOT;
 	int insert_order[5] = {0};
 	int reverse_order[5] = {0};
+	int erase_order[4] = {0};
 	int replace_order[4] = {0};
 	size_t count = 0;
 	struct rb_node *node;
@@ -80,11 +89,20 @@ static void run_ordered_section(void)
 	for (node = rb_last(&root); node; node = rb_prev(node))
 		reverse_order[count++] = rb_entry(node, struct rb_order_entry, node)->key;
 
-	rb_erase(&entries[1].node, &root);
-	rb_replace_node(&entries[0].node, &replacement.node, &root);
+	rb_erase(&entries[0].node, &root);
 
 	count = 0;
 	for (node = rb_first(&root); node; node = rb_next(node))
+		erase_order[count++] = rb_entry(node, struct rb_order_entry, node)->key;
+
+	for (size_t i = 0; i < sizeof(replace_entries) / sizeof(replace_entries[0]); i++)
+		rb_add(&replace_entries[i].node, &replace_root, rb_order_less);
+
+	rb_erase(&replace_entries[1].node, &replace_root);
+	rb_replace_node(&replace_entries[0].node, &replacement.node, &replace_root);
+
+	count = 0;
+	for (node = rb_first(&replace_root); node; node = rb_next(node))
 		replace_order[count++] = rb_entry(node, struct rb_order_entry, node)->key;
 
 	printf("\"ordered\":{");
@@ -93,6 +111,9 @@ static void run_ordered_section(void)
 	printf(",");
 	printf("\"reverse_order\":");
 	emit_int_array(reverse_order, 5);
+	printf(",");
+	printf("\"erase_order\":");
+	emit_int_array(erase_order, 4);
 	printf(",");
 	printf("\"replace_order\":");
 	emit_int_array(replace_order, 4);
