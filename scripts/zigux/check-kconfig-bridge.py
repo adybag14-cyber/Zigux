@@ -71,12 +71,13 @@ def supported_conf_modes() -> set[str]:
 def ensure_manifest_matches_bridge_modes() -> None:
     manifest_modes = {case['mode'] for case in CASES['conf_cases']}
     bridge_modes = supported_conf_modes()
-    missing = sorted(manifest_modes - bridge_modes)
+    unsupported = sorted(manifest_modes - bridge_modes)
+    if unsupported:
+        fail_check('UNSUPPORTED_CONF_CASE_MODES', unsupported)
+
+    missing = sorted(bridge_modes - manifest_modes)
     if missing:
-        fail_check('UNSUPPORTED_CONF_CASE_MODES', missing)
-    uncovered = sorted(bridge_modes - manifest_modes)
-    if uncovered:
-        fail_check('UNCOVERED_CONF_BRIDGE_MODES', uncovered)
+        fail_check('MISSING_CONF_CASE_MODES', missing)
 
 
 def ensure_manifest_is_deterministic() -> None:
@@ -95,16 +96,17 @@ def ensure_manifest_is_deterministic() -> None:
 
     missing_paths: list[str] = []
     for case in CASES['conf_cases']:
-        rel_path = case['expected']
-        if not (FIXTURE_DIR / rel_path).exists():
-            missing_paths.append(f"{case['name']}:expected:{rel_path}")
+        for field_name in ('expected',):
+            rel_path = case[field_name]
+            if not (FIXTURE_DIR / rel_path).exists():
+                missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
     for case in CASES['confdata_cases']:
         for field_name in ('input', 'expected'):
             rel_path = case[field_name]
             if not (FIXTURE_DIR / rel_path).exists():
                 missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
     if missing_paths:
-        fail_check('MISSING_KCONFIG_CASE_PATHS', sorted(missing_paths))
+        fail_check('MISSING_CONFDATA_CASE_PATHS', sorted(missing_paths))
 
 
 def main() -> int:

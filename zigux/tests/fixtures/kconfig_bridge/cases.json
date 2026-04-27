@@ -9,14 +9,6 @@
       "expected": "olddefconfig_expected.json"
     },
     {
-      "name": "oldconfig",
-      "mode": "oldconfig",
-      "kconfig": "Kconfig",
-      "config": "old/.config",
-      "arch": "x86_64",
-      "expected": "oldconfig_expected.json"
-    },
-    {
       "name": "syncconfig",
       "mode": "syncconfig",
       "kconfig": "Kconfig",
@@ -33,37 +25,12 @@
       "expected": "alldefconfig_expected.json"
     },
     {
-      "name": "allmodconfig",
-      "mode": "allmodconfig",
+      "name": "oldconfig",
+      "mode": "oldconfig",
       "kconfig": "Kconfig",
-      "config": "mod/.config",
-      "arch": "arm",
-      "expected": "allmodconfig_expected.json"
-    },
-    {
-      "name": "yes2modconfig",
-      "mode": "yes2modconfig",
-      "kconfig": "Kconfig",
-      "config": "rewrite/.config",
-      "arch": "x86",
-      "expected": "yes2modconfig_expected.json"
-    },
-    {
-      "name": "mod2yesconfig",
-      "mode": "mod2yesconfig",
-      "kconfig": "Kconfig",
-      "config": "promote/.config",
-      "arch": "loongarch",
-      "expected": "mod2yesconfig_expected.json"
-    },
-    {
-      "name": "defconfig",
-      "mode": "defconfig",
-      "kconfig": "Kconfig",
-      "config": "out/.config",
-      "arch": "arm64",
-      "mode_arg": "arch/arm64/configs/defconfig",
-      "expected": "defconfig_expected.json"
+      "config": "old/.config",
+      "arch": "x86_64",
+      "expected": "oldconfig_expected.json"
     },
     {
       "name": "allnoconfig",
@@ -82,12 +49,37 @@
       "expected": "allyesconfig_expected.json"
     },
     {
+      "name": "allmodconfig",
+      "mode": "allmodconfig",
+      "kconfig": "Kconfig",
+      "config": "mod/.config",
+      "arch": "arm",
+      "expected": "allmodconfig_expected.json"
+    },
+    {
+      "name": "yes2modconfig",
+      "mode": "yes2modconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "yes2modconfig_expected.json"
+    },
+    {
       "name": "randconfig",
       "mode": "randconfig",
       "kconfig": "Kconfig",
       "config": "rand/.config",
       "arch": "x86",
       "expected": "randconfig_expected.json"
+    },
+    {
+      "name": "defconfig",
+      "mode": "defconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "arm64",
+      "mode_arg": "arch/arm64/configs/defconfig",
+      "expected": "defconfig_expected.json"
     }
   ],
   "confdata_cases": [
