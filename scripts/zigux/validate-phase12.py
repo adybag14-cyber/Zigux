@@ -76,7 +76,7 @@ MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
         "lane_key": "P12-L01",
         "anchor": "drivers/net/virtio_net.c",
-        "gap_count": 9,
+        "gap_count": 11,
         "roadmap_destinations": ["drivers/net/virtio_net.zig", "zigux/tests/"],
         "shared_allowed_destinations": {
             "Documentation/zigux/",
@@ -85,6 +85,7 @@ MANIFEST_SPECS = {
             "drivers/virtio/virtio_ring.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
+        "expected_status_totals": {"starter_landed": 10, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_net_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
@@ -99,6 +100,7 @@ MANIFEST_SPECS = {
             "drivers/scsi/virtio_scsi.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
+        "expected_status_totals": {"starter_landed": 10, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_nvme_pci_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
@@ -113,6 +115,7 @@ MANIFEST_SPECS = {
             "drivers/virtio/virtio_ring.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
+        "expected_status_totals": {"starter_landed": 11, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
@@ -123,6 +126,7 @@ MANIFEST_SPECS = {
         "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {"zigux/Makefile"},
         "allowed_statuses": {"starter_landed", "blocked_on_object_model"},
+        "expected_status_totals": {"starter_landed": 10, "blocked_on_object_model": 2},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model")],
     },
@@ -184,6 +188,9 @@ for name, source, markers in [
 starter_total = 0
 blocked_dma_total = 0
 blocked_object_total = 0
+expected_starter_total = 0
+expected_blocked_dma_total = 0
+expected_blocked_object_total = 0
 for name, spec in MANIFEST_SPECS.items():
     manifest = load_manifest(name)
     if manifest.get("phase") != "Phase 12":
@@ -203,6 +210,7 @@ for name, spec in MANIFEST_SPECS.items():
         continue
 
     seen: set[str] = set()
+    manifest_status_totals: dict[str, int] = {}
     for gap in gaps:
         gap_id = gap.get("id")
         status = gap.get("status")
@@ -217,12 +225,24 @@ for name, spec in MANIFEST_SPECS.items():
         if not isinstance(destination, str) or not destination_allowed(destination, spec):
             missing.append(f"{name}:destination:{gap_id}")
             continue
+        manifest_status_totals[status] = manifest_status_totals.get(status, 0) + 1
         if status == "starter_landed":
             starter_total += 1
         elif status == "blocked_on_dma_transport":
             blocked_dma_total += 1
         elif status == "blocked_on_object_model":
             blocked_object_total += 1
+
+    for status, expected_total in spec["expected_status_totals"].items():
+        actual_total = manifest_status_totals.get(status, 0)
+        if actual_total != expected_total:
+            missing.append(f"{name}:status_total:{status}={actual_total}")
+        if status == "starter_landed":
+            expected_starter_total += expected_total
+        elif status == "blocked_on_dma_transport":
+            expected_blocked_dma_total += expected_total
+        elif status == "blocked_on_object_model":
+            expected_blocked_object_total += expected_total
 
     survey_text = text(spec["survey_path"])
     commit = str(manifest.get("surveyed_commit", ""))
@@ -234,11 +254,11 @@ for name, spec in MANIFEST_SPECS.items():
         if count_marker not in survey_text:
             missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
 
-if starter_total != 39:
+if starter_total != expected_starter_total:
     missing.append(f"starter_total:{starter_total}")
-if blocked_dma_total != 3:
+if blocked_dma_total != expected_blocked_dma_total:
     missing.append(f"blocked_dma_total:{blocked_dma_total}")
-if blocked_object_total != 2:
+if blocked_object_total != expected_blocked_object_total:
     missing.append(f"blocked_object_total:{blocked_object_total}")
 
 if missing:
