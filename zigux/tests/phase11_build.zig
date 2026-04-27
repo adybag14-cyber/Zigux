@@ -52,6 +52,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase11_uapi_header_parity_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase11_uapi_header_parity_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const hvc_console_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),
         .target = target,
@@ -94,6 +99,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase11_dw_wdt_survey_module,
     });
     const run_phase11_dw_wdt_survey_tests = b.addRunArtifact(phase11_dw_wdt_survey_tests);
+    const phase11_uapi_header_parity_survey_tests = b.addTest(.{
+        .name = "phase11-uapi-header-parity-survey-tests",
+        .root_module = phase11_uapi_header_parity_survey_module,
+    });
+    const run_phase11_uapi_header_parity_survey_tests = b.addRunArtifact(phase11_uapi_header_parity_survey_tests);
     const phase11_hvc_console_tests = b.addTest(.{
         .name = "phase11-hvc-console-tests",
         .root_module = phase11_hvc_console_module,
@@ -107,5 +117,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_bcm2835_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);
+    test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_tests.step);
 }
