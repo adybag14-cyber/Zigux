@@ -16,6 +16,10 @@ FILES = [
     "scripts/zigux/validate-phase12.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase12-virtio-net-survey.md",
+    "Documentation/zigux/phase12-nvme-pci-survey.md",
+    "Documentation/zigux/phase12-virtio-scsi-survey.md",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/phase12_build.zig",
@@ -54,9 +58,10 @@ README_MARKERS = [
     "phase12_virtio_scsi_manifest.json",
     "phase12_libbpf_manifest.json",
     "shared build inventory snapshot",
+    "survey notes pinned to each manifest's exact `surveyed_commit`",
 ]
 CHECKLIST_MARKERS = [
-    "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, and the four Phase 12 manifests still agree on the same bounded tranche, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
+    "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
     "if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?",
     "if the change touches the shared Phase 12 tooling path, do `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?",
 ]
@@ -96,6 +101,7 @@ MANIFEST_SPECS = {
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
         "expected_status_totals": {"starter_landed": 10, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_net_survey.zig",
+        "survey_note_path": "Documentation/zigux/phase12-virtio-net-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
     "phase12_nvme_pci_manifest.json": {
@@ -111,6 +117,7 @@ MANIFEST_SPECS = {
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
         "expected_status_totals": {"starter_landed": 11, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_nvme_pci_survey.zig",
+        "survey_note_path": "Documentation/zigux/phase12-nvme-pci-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
     "phase12_virtio_scsi_manifest.json": {
@@ -126,6 +133,7 @@ MANIFEST_SPECS = {
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
         "expected_status_totals": {"starter_landed": 12, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
+        "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
     "phase12_libbpf_manifest.json": {
@@ -137,6 +145,7 @@ MANIFEST_SPECS = {
         "allowed_statuses": {"starter_landed", "blocked_on_object_model"},
         "expected_status_totals": {"starter_landed": 10, "blocked_on_object_model": 2},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
+        "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model")],
     },
 }
@@ -309,6 +318,16 @@ for name, spec in MANIFEST_SPECS.items():
         count_marker = f'expectEqual(@as(usize, {expected_count}), {variable_name});'
         if count_marker not in survey_text:
             missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
+
+    survey_note_text = text(str(spec["survey_note_path"]))
+    if "PHASE12_STATUS=active" not in survey_note_text:
+        missing.append(f"{name}:survey_note_status")
+    if str(manifest.get("anchor")) not in survey_note_text:
+        missing.append(f"{name}:survey_note_anchor")
+    if commit not in survey_note_text:
+        missing.append(f"{name}:survey_note_commit_pin")
+    if "make -C zigux phase12" not in survey_note_text:
+        missing.append(f"{name}:survey_note_make_target")
 
 if starter_total != expected_starter_total:
     missing.append(f"starter_total:{starter_total}")
