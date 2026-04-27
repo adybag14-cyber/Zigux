@@ -18,6 +18,18 @@ const SurveySummary = struct {
     preexisting_phase14_rcu_tree_manifest_present: bool,
     preexisting_phase14_rcu_tree_survey_test_present: bool,
     preexisting_phase14_rcu_tree_survey_note_present: bool,
+    rollback_threshold_note_present: bool,
+    rollback_threshold_checklist_present: bool,
+    rollback_threshold_freeze_map_rule_present: bool,
+};
+
+const RollbackThreshold = struct {
+    status_bucket: []const u8,
+    review_blocker_status: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    required_evidence: []const []const u8,
+    rollback_triggers: []const []const u8,
 };
 
 const Gap = struct {
@@ -51,6 +63,7 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     boundary_map: []const BoundaryMapEntry,
     survey_summary: SurveySummary,
+    rollback_threshold: RollbackThreshold,
     decision_checklist: []const DecisionChecklistEntry,
     gaps: []const Gap,
 };
@@ -100,8 +113,17 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.rollback_threshold_note_present);
+    try std.testing.expect(manifest.survey_summary.rollback_threshold_checklist_present);
+    try std.testing.expect(manifest.survey_summary.rollback_threshold_freeze_map_rule_present);
+    try std.testing.expectEqualStrings("freeze_in_c", manifest.rollback_threshold.status_bucket);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", manifest.rollback_threshold.review_blocker_status);
+    try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.rollback_threshold.owner);
+    try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.rollback_threshold.rollback_owner);
+    try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.required_evidence.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.rollback_triggers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -111,6 +133,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     var saw_followup = false;
     var saw_callback_followup = false;
     var saw_callback_offload_followup = false;
+    var saw_rollback_threshold_guardrail = false;
     var saw_bridge_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -164,6 +187,14 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "nocb_gp_wait()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_nocb_flush_deferred_wakeup()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-rollback-threshold-guardrail")) {
+            saw_rollback_threshold_guardrail = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("rollback_guardrail", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council reopen record") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback owner") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-bridge-blocker")) {
             saw_bridge_blocker = true;
             try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", gap.zigux_destination);
@@ -175,7 +206,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), landed_count);
+    try std.testing.expectEqual(@as(usize, 10), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_note);
     try std.testing.expect(saw_survey_gate);
@@ -183,6 +214,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(saw_followup);
     try std.testing.expect(saw_callback_followup);
     try std.testing.expect(saw_callback_offload_followup);
+    try std.testing.expect(saw_rollback_threshold_guardrail);
     try std.testing.expect(saw_bridge_blocker);
 }
 
@@ -278,4 +310,63 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance captured against verified `master` head `0855a2fc20664cd4a138379d7731edf8183d74e6`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current freeze-in-C blocker") != null);
+}
+
+test "phase 14 rcu tree survey keeps the rollback threshold guardrail explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const allocator = std.testing.allocator;
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_rcu_tree_manifest.json",
+        allocator,
+        .limited(32 * 1024),
+    );
+    defer allocator.free(manifest_json);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-rcu-tree-survey.md",
+        allocator,
+        .limited(24 * 1024),
+    );
+    defer allocator.free(survey_note);
+
+    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        allocator,
+        .limited(32 * 1024),
+    );
+    defer allocator.free(checklist);
+
+    const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/freeze-map.md",
+        allocator,
+        .limited(16 * 1024),
+    );
+    defer allocator.free(freeze_map);
+
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const rollback_threshold = parsed.value.rollback_threshold;
+    try std.testing.expectEqualStrings("freeze_in_c", rollback_threshold.status_bucket);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", rollback_threshold.review_blocker_status);
+    try std.testing.expectEqualStrings("Core-Adjacent Pod", rollback_threshold.owner);
+    try std.testing.expectEqualStrings("Repo Tooling Pod", rollback_threshold.rollback_owner);
+
+    for (rollback_threshold.required_evidence) |required| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, required) != null);
+    }
+    for (rollback_threshold.rollback_triggers) |trigger| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, trigger) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback threshold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "automatic return-to-blocked trigger") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "rollback threshold that forces the anchor back to its blocked freeze posture") != null);
 }
