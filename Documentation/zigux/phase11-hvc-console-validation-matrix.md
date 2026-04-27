@@ -33,6 +33,19 @@ Without this matrix, the slice named the right next step but did not yet preserv
 | console write-path framing | `stageWrite()` covers CRLF framing, retry-after-`-EAGAIN`, partial-write, full-write, and fatal-drop bookkeeping without claiming hypervisor I/O | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the framing and flush-progress checks in `zigux/tests/phase11_hvc_console.zig` | keep the flush-progress surface stable while the lane grows a tty-registration handoff rather than widening straight into backend transport code | host-backed putchars calls, sysrq dispatch, and khvcd polling loops |
 | tty registration and khvcd behavior | no live Zigux implementation yet; the current repo only records these as the next kernel-facing checkpoint in the slice, survey, and manifest | none beyond the survey or manifest guard that keeps the missing work explicit | land one tiny tty-registration handoff summary that names registration intent, close-wait ownership, and khvcd-facing boundaries without claiming worker execution | full tty-driver registration, khvcd thread lifecycle, sysrq, hotplug discovery, and live hypervisor transport |
 
+## Observed Replay Evidence
+
+- shared replay observed on `master` currently runs `phase11-hvc-console-tests` but not `phase11-hvc-console-survey-tests`
+- exact shared command:
+  - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- exact shared outcome:
+  - `Build Summary: 15/15 steps succeeded; 27/27 tests passed`
+  - included hvc artifact: `run test phase11-hvc-console-tests 4 pass (4 total)`
+  - no `phase11-hvc-console-survey-tests` artifact is present in that shared replay
+- dedicated survey replay still passes separately:
+  - `zig test zigux/tests/phase11_hvc_console_survey.zig`
+  - `1/1 ... OK`
+
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until a tty-registration handoff actually lands
