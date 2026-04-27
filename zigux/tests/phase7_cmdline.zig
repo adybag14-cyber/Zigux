@@ -48,12 +48,23 @@ test "phase 7 memparse preserves suffix scaling and stop index semantics" {
 
     try std.testing.expectEqual(@as(u64, 1 << 30), cmdline.memparse("1G", &index));
     try std.testing.expectEqual(@as(usize, 2), index);
+
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("0xK", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
 }
 
 test "phase 7 parseOptionStr matches only exact bare options" {
     try std.testing.expect(cmdline.parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug=1,nohlt", "debug"));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
+}
+
+test "phase 7 getOption keeps bare 0x in octal-style zero parsing" {
+    var rest: []const u8 = "0x,tail";
+    var value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), cmdline.getOption(&rest, &value));
+    try std.testing.expectEqual(@as(i32, 0), value);
+    try std.testing.expectEqualStrings("x,tail", rest);
 }
 
 test "phase 7 nextArg matches serialized edge fixtures" {
