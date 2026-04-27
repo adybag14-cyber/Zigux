@@ -16,6 +16,23 @@ pub fn lastWordMask(nbits: usize) Word {
     return find_bit.lastWordMask(nbits);
 }
 
+pub fn bitmapAlloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    return allocator.alloc(Word, bitsToWords(nbits));
+}
+
+pub fn bitmapZalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    const bitmap = try bitmapAlloc(allocator, nbits);
+    @memset(bitmap, 0);
+    return bitmap;
+}
+
+pub fn bitmapFree(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    if (bitmap.*) |slice| {
+        allocator.free(slice);
+        bitmap.* = null;
+    }
+}
+
 fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
@@ -358,6 +375,26 @@ test "bitmap copyClearTail clears out-of-range bits in the last copied word" {
     try std.testing.expectEqual(~@as(Word, 0), dst[0]);
     try std.testing.expectEqual(lastWordMask(nbits), dst[1]);
     try std.testing.expectEqual(@as(Word, 0), dst[2]);
+}
+
+test "bitmap alloc helpers size, zero, and reset optionals" {
+    const allocator = std.testing.allocator;
+
+    var plain: ?[]Word = try bitmapAlloc(allocator, bits_per_long + 5);
+    defer bitmapFree(allocator, &plain);
+    try std.testing.expectEqual(@as(usize, 2), plain.?.len);
+
+    var zeroed: ?[]Word = try bitmapZalloc(allocator, bits_per_long + 5);
+    defer bitmapFree(allocator, &zeroed);
+    try std.testing.expectEqual(@as(usize, 2), zeroed.?.len);
+    for (zeroed.?) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    bitmapFree(allocator, &plain);
+    try std.testing.expect(plain == null);
+    bitmapFree(allocator, &zeroed);
+    try std.testing.expect(zeroed == null);
 }
 
 test "bitmap and andnot equal intersects subset" {
