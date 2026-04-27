@@ -55,7 +55,7 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
     try std.testing.expectEqualStrings("P13-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
-    try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("54aa513dce9060f4898a34d55065321cecc285f9", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libfs_c_lines >= 2300);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -141,6 +141,9 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
             saw_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-libfs-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transaction-read-release") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset policy") == null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "directory iteration") == null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-offset-seek-helper")) {
             saw_offset_followup = true;
