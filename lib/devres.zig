@@ -6,6 +6,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_lifetime_planning: bool,
     provides_ioremap_uc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
+    provides_ioport_lifetime_planning: bool,
     provides_ioremap_resource_planning: bool,
     provides_ioremap_resource_uc_planning: bool,
     provides_ioremap_resource_wc_planning: bool,
@@ -145,6 +146,24 @@ pub const IoremapResourceInput = struct {
     remap_succeeds: bool = true,
 };
 
+pub const ManagedIoportMapInput = struct {
+    port: u64,
+    count: u64,
+    release_record_allocated: bool,
+    mapped_address: ?usize,
+};
+
+pub const ManagedIoportMapResult = struct {
+    anchor: []const u8,
+    port: u64,
+    count: u64,
+    mapped_address: ?usize,
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+    should_unmap_on_detach: bool,
+};
+
 pub const ManagedPhysWcAddInput = struct {
     base: u64,
     size: u64,
@@ -244,6 +263,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_lifetime_planning = true,
             .provides_ioremap_uc_wrapper_planning = true,
             .provides_release_pointer_match = true,
+            .provides_ioport_lifetime_planning = true,
             .provides_ioremap_resource_planning = true,
             .provides_ioremap_resource_uc_planning = true,
             .provides_ioremap_resource_wc_planning = true,
@@ -281,6 +301,26 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
+        return tracked_address == candidate_address;
+    }
+
+    pub fn planManagedIoportMap(input: ManagedIoportMapInput) !ManagedIoportMapResult {
+        try requireReleaseRecordAllocated(input.release_record_allocated);
+        const lifetime = planReleaseRecordOutcome(input.mapped_address != null);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .port = input.port,
+            .count = input.count,
+            .mapped_address = input.mapped_address,
+            .added_to_devres = lifetime.added_to_devres,
+            .release_record_retained = lifetime.release_record_retained,
+            .release_record_freed = lifetime.release_record_freed,
+            .should_unmap_on_detach = lifetime.added_to_devres,
+        };
+    }
+
+    pub fn ioportReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
         return tracked_address == candidate_address;
     }
 
