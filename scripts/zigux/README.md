@@ -24,6 +24,7 @@ Current bootstrap helpers
 - `validate-phase6.py`
 - `validate-phase8.py`
 - `validate-phase9.py`
+- `validate-phase10-closure.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -83,3 +84,7 @@ Phase 9 flow
 - `validate-phase9.py` checks that the bounded Phase 9 runtime governance bundle still keeps `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, the shared README notes, the bootstrap workflow, `make -C zigux phase9-validate`, and `zigux/tests/phase9_build.zig` aligned.
 - the same Phase 9 gate keeps the current loader-handoff release discipline explicit instead of leaving allocator ownership, `requires_runtime_substrate`, and the still-blocked command or environment control surface implied only by the survey note or checklist.
 - the same validator now also keeps the manifest-backed catalog and ownership map explicit, so the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` replay path stay assigned to one reviewable evidence packet.
+
+Phase 10 flow
+- `validate-phase10-closure.py` checks that the bounded Phase 10 virtio lab bundle still keeps `Documentation/zigux/phase10-closure-evidence.md`, the three manifest-backed survey records, the shared bootstrap workflow, `make -C zigux phase10-validate`, and `zigux/tests/phase10_build.zig` aligned.
+- the same Phase 10 gate keeps the current virtio tranche honest about its blocker posture by requiring the published evidence bundle to say explicitly that `drivers/virtio/virtio_mmio.zig` remains intentionally absent while the MMIO work stays survey-backed.
