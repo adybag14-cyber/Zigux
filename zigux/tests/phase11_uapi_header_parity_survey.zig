@@ -5,6 +5,7 @@ const SurveySummary = struct {
     preexisting_phase11_build_present: bool,
     watchdog_uapi_header_present: bool,
     watchdog_core_header_present: bool,
+    termios_uapi_header_present: bool,
     hvc_console_header_present: bool,
     dw_wdt_survey_note_present: bool,
     dw_wdt_manifest_present: bool,
@@ -36,12 +37,19 @@ const WatchdogInfoLayout = extern struct {
     identity: [32]u8,
 };
 
+const WinsizeLayout = extern struct {
+    ws_row: u16,
+    ws_col: u16,
+    ws_xpixel: u16,
+    ws_ypixel: u16,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next");
 }
 
-test "phase11 shared header parity manifest records the bounded layout checkpoint" {
+test "phase11 shared header parity manifest records the bounded layout checkpoints" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -57,20 +65,21 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
-    try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h", manifest.anchor);
-    try std.testing.expectEqualStrings("71c0ed93260f46dd1058e043c0bb111270628ca1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
+    try std.testing.expectEqualStrings("06318487f68090588ddfebf85f87b4c0bc61f46e", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.watchdog_uapi_header_present);
     try std.testing.expect(manifest.survey_summary.watchdog_core_header_present);
+    try std.testing.expect(manifest.survey_summary.termios_uapi_header_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_header_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_manifest_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_manifest_present);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -78,7 +87,8 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     var saw_gate = false;
     var saw_dw_boundary = false;
     var saw_hvc_boundary = false;
-    var saw_layout_checkpoint = false;
+    var saw_watchdog_layout_checkpoint = false;
+    var saw_winsize_layout_checkpoint = false;
     var saw_phase3_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -122,11 +132,19 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-info-layout-assert")) {
-            saw_layout_checkpoint = true;
+            saw_watchdog_layout_checkpoint = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "layout_assert") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "size, alignment, and field offsets") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
+            saw_winsize_layout_checkpoint = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct winsize") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ws_row/ws_col/ws_xpixel/ws_ypixel offsets") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-phase3-interop-followup")) {
@@ -142,13 +160,14 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_dw_boundary);
     try std.testing.expect(saw_hvc_boundary);
-    try std.testing.expect(saw_layout_checkpoint);
+    try std.testing.expect(saw_watchdog_layout_checkpoint);
+    try std.testing.expect(saw_winsize_layout_checkpoint);
     try std.testing.expect(saw_phase3_followup);
 }
 
@@ -180,6 +199,14 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     );
     defer std.testing.allocator.free(watchdog_core_header);
 
+    const termios_uapi_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/uapi/asm-generic/termios.h",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(termios_uapi_header);
+
     const hvc_header = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "drivers/tty/hvc/hvc_console.h",
@@ -196,6 +223,12 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "offsets 0, 4, and 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/asm-generic/termios.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct winsize") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "size 8") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "alignment 2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "offsets 0, 2, 4, and 6") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct hvc_struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 interop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared struct layouts") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
@@ -206,9 +239,16 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOS_DISABLECARD") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_ops") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, termios_uapi_header, "struct winsize") != null);
+    try std.testing.expect(std.mem.indexOf(u8, termios_uapi_header, "unsigned short ws_row") != null);
+    try std.testing.expect(std.mem.indexOf(u8, termios_uapi_header, "unsigned short ws_col") != null);
+    try std.testing.expect(std.mem.indexOf(u8, termios_uapi_header, "unsigned short ws_xpixel") != null);
+    try std.testing.expect(std.mem.indexOf(u8, termios_uapi_header, "unsigned short ws_ypixel") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "MAX_NR_HVC_CONSOLES") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "HVC_ALLOC_TTY_ADAPTERS") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "struct hv_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "struct winsize ws;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_header, "__hvc_resize(struct hvc_struct *hp, struct winsize ws)") != null);
 }
 
 test "phase11 shared header parity survey keeps a bounded watchdog_info layout proof" {
@@ -218,5 +258,16 @@ test "phase11 shared header parity survey keeps a bounded watchdog_info layout p
         layout_assert.assertOffset(WatchdogInfoLayout, "options", 0);
         layout_assert.assertOffset(WatchdogInfoLayout, "firmware_version", 4);
         layout_assert.assertOffset(WatchdogInfoLayout, "identity", 8);
+    }
+}
+
+test "phase11 shared header parity survey keeps a bounded winsize layout proof" {
+    comptime {
+        layout_assert.assertSize(WinsizeLayout, 8);
+        layout_assert.assertAlign(WinsizeLayout, 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
+        layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
+        layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
     }
 }
