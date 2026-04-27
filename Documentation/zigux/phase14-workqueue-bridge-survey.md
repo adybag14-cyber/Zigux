@@ -5,8 +5,8 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 ## Status
 
 - `PHASE14_STATUS=active`
-- `PHASE14_SLICE=workqueue-lock-handoff-audit`
-- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new lock-handoff checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
+- `PHASE14_SLICE=workqueue-pending-bit-audit`
+- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new pending-bit or retry checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
   - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -30,8 +30,8 @@ The highest-value honest step in this lane is therefore not to sketch a fake asy
 - `lib/test_workqueue.c` shows there is already a kernel-side test surface around real execution behavior, which reinforces that the first Zigux artifact should be descriptive and reviewable rather than another runtime.
 - the live repo already had `zigux/kernel/export_shim.zig`, which made a kernel-adjacent Phase 14 boundary-map file a natural next step without inventing a new namespace.
 - the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, flush or cancel coordination, worker-pool concurrency ownership, and rescuer or scheduler hooks.
-- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the `__queue_work()` `last_pool->lock` handoff, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
-- the next honest workqueue-facing step is a pending-bit and retry audit around `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so the lane names those submission ownership rules before any wrapper claims live enqueue control.
+- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the irq-disabled `try_to_grab_pending()` or `queue_work_on()` PENDING-bit claim window, the unbound `__queue_work()` `pwq->refcnt` retry loop, the `__queue_work()` `last_pool->lock` handoff, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
+- the next honest workqueue-facing step is a flush and active-color audit around `__flush_workqueue()`, `start_flush_work()`, and `pwq_dec_nr_in_flight()` so the lane names drain progression and in-flight release rules before any wrapper claims flush or cancellation completion.
 
 ## Recorded gaps
 
@@ -47,7 +47,8 @@ The current lane state is:
 - landed `phase14-workqueue-concurrency-audit-outline`
 - landed `phase14-workqueue-max-active-audit`
 - landed `phase14-workqueue-lock-handoff-audit`
-- ready-next `phase14-workqueue-pending-bit-followup`
+- landed `phase14-workqueue-pending-bit-audit`
+- ready-next `phase14-workqueue-flush-color-followup`
 - blocked `phase14-workqueue-live-execution-blocker`
 
 This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 boundary map for workqueue ownership and non-goals, but it still does not claim live worker-pool execution, scheduler-hook parity, or a direct `kernel/workqueue.c` rewrite.
@@ -74,4 +75,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` pending-bit and retry audit next, limited to `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so the bridge records pending ownership and retry rules before any wrapper leaves the current boundary-map-only posture.
+Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` flush and active-color audit next, limited to `__flush_workqueue()`, `start_flush_work()`, and `pwq_dec_nr_in_flight()` so the bridge records drain progression and in-flight release rules before any wrapper leaves the current boundary-map-only posture.
