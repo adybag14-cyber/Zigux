@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane around `Documentation
 ## Status
 
 - `PHASE15_STATUS=governance_slice_landed`
-- `PHASE15_SLICE=freeze-map-governance-blocker-verification`
-- scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and current blocker posture
-- survey provenance refreshed against verified `master` head `0aedabd88664ce71bb1ccf5c8591db50b858950e`
+- `PHASE15_SLICE=freeze-map-governance-enforcement-refresh`
+- scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, and the real current enforcement state on `master`
+- survey provenance refreshed against verified `master` head `2521496aeecede51ed8d7d81820b9cf70a527ceb`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -23,7 +23,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 The roadmap's Phase 15 work is about governance, not another burst of deep-core implementation. The live repo now carries much more than the original freeze-map starter: the parity scorecard, Architecture Council review-process note, retained stay-in-C closeout rule, reopen-trigger catalog, and indefinite-C policy note are all already landed.
 
-That makes the original freeze-map governance slice slightly stale. Its focused note, manifest, and test still read like the parity scorecard is merely the next step, and they still understate the current blocker posture even after the root freeze map gained the retained stay-in-C closeout and no-silent-exception wording that the newer Phase 15 policy family already depends on.
+That makes the freeze-map governance slice slightly stale again. Its focused note and manifest still describe an older maintenance snapshot where the dedicated Phase 15 build was blocked by truncated governance tests, even though current `master` now ships a working local Phase 15 governance bundle and the remaining gap is narrower: the shared bootstrap workflow still does not run that bundle.
 
 The honest bounded step is therefore maintenance, not expansion: refresh the freeze-map-specific lane record so it matches current repo reality, and keep the current blocker posture explicit while the central policy note carries the same retained stay-in-C closeout and reopen posture as the later governance artifacts.
 
@@ -76,18 +76,16 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- verified remote `master` head for this check: `0aedabd88664ce71bb1ccf5c8591db50b858950e`
+- verified remote `master` head for this check: `2521496aeecede51ed8d7d81820b9cf70a527ceb`
 - the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the dedicated local replay surface is present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run can still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
 - the shared bootstrap workflow does not currently invoke the Phase 15 gate: `.github/workflows/zigux-bootstrap.yml` runs through Phase 14 and contains no `Validate Phase 15` or `Run Phase 15` step, so freeze-map governance is not enforced by the published shared CI path today
-- focused replay against current `master` shows the local enforcement bundle is clean even though shared CI still does not invoke it:
+- focused replay against current `master` shows the local governance bundle is runnable:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
-  - `zigux/tests/phase15_parity_scorecard.zig` compiled and its `3/3` tests passed
-  - `zigux/tests/phase15_architecture_council_review_process.zig` compiled and its `2/2` tests passed
-  - `zigux/tests/phase15_indefinite_c_policy.zig` compiled and its `2/2` tests passed
-  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` passed cleanly with `9/9` steps succeeded and `11/11` tests passed
-- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, and dedicated replay entrypoints, and the local Phase 15 governance bundle is fully runnable, but the published shared CI path still does not enforce it
+  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` succeeded with `9/9` steps and `11/11` tests passed
+  - `make -C zigux phase15` succeeded with the attached Zig toolchain
+- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, and a clean local Phase 15 governance build, but that enforcement is still maintainer-run rather than covered by the published shared CI path
 
 ## Exact blocker record
 
@@ -96,8 +94,8 @@ This slice does not claim:
 - `phase15-local-entrypoint-present`: yes
 - `phase15-shared-ci-enforcement-present`: no
 - `phase15-build-clean-on-current-master`: yes
-- `phase15-build-failure-cause`: none in the focused local replay; the remaining enforcement gap is that shared CI still does not invoke the Phase 15 gate
-- next repair step inside this lane family: decide separately whether `.github/workflows/zigux-bootstrap.yml` should begin running the already-green Phase 15 governance bundle on qualifying changes
+- `phase15-build-failure-cause`: none observed in the local replay against current `master`
+- next repair step inside this lane family: decide separately whether the shared bootstrap workflow should begin running Phase 15 on every qualifying change, because the remaining freeze-map governance gap is shared CI coverage rather than local bundle breakage
 
 ## Next bounded step
 
