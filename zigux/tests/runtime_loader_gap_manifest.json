@@ -2,6 +2,7 @@
   "lane_key": "P6-L01",
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
+  "roadmap_command_environment_phase": "Phase 8",
   "surveyed_commit": "1416d3b1ba442ede4ea26112f964157da0b7c3ba",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
@@ -10,7 +11,8 @@
     "runtime_loader_plan_count": 2,
     "shared_runtime_loader_present": false,
     "allocator_policy_present": true,
-    "shared_init_exit_contract_present": false
+    "shared_init_exit_contract_present": false,
+    "shared_command_environment_control_present": false
   },
   "phase6_leaf_helpers": [
     "lib/base64.zig",
@@ -56,6 +58,13 @@
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
       "why_now": "The bitmap and kretprobe starter lanes already publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+    },
+    {
+      "id": "runtime-loader-command-environment-controls",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_control_surface",
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The roadmap's first command and environment plumbing surfaces live in Phase 8 tooling, but the current runtime starter family still has no shared runtime control surface that records command-name, argv-policy, or environment-derived activation handling."
     },
     {
       "id": "runtime-loader-allocator-handoff",
