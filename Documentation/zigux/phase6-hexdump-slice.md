@@ -33,6 +33,9 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
+3. replay the hexdump perf sanity harness when reviewing formatter-cost drift
+- `make -C zigux phase6-hexdump-perf`
+
 ## Current parity surface
 
 The current hexdump helper surface exercised by this slice covers:
@@ -54,6 +57,7 @@ The current tests check:
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
+- a replayable perf-sanity harness reports representative dump cost per call and per byte for plain and ASCII formatter paths
 
 This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity gap appears in the live repo.
 
@@ -67,4 +71,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the hexdump helper lane parked and move future Phase 6 work to another unfinished helper family unless fresh repo inspection finds a concrete new parity or ABI gap in this exact slice.
+Leave the hexdump helper lane parked and move future Phase 6 work to another unfinished helper family unless fresh repo inspection finds a concrete new parity, perf, or ABI gap in this exact slice.
