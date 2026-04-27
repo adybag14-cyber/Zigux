@@ -37,6 +37,9 @@ pub const AuditGuard = enum {
     pending_bit_with_irqs_disabled,
     pwq_refcnt_retry_loop,
     last_pool_lock_handoff,
+    flush_color_cascade_under_wq_mutex,
+    flush_barrier_insert_under_pool_lock,
+    in_flight_color_release_completion,
     callback_execution_outside_pool_lock,
     idle_sleep_transition,
     mayday_lock_then_pool_lock,
@@ -155,6 +158,33 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .ownership = .stay_in_c,
     },
     .{
+        .id = "flush-workqueue-color-cascade",
+        .anchor_symbol = "__flush_workqueue",
+        .summary = "Keep flush-color rotation, first-flusher ownership, and overflow cascading under the existing workqueue mutex and color-discipline rules.",
+        .guard = .flush_color_cascade_under_wq_mutex,
+        .observed_fields = &[_][]const u8{ "wq->work_color", "wq->flush_color", "wq->first_flusher", "wq->flusher_overflow" },
+        .blocked_by = "__flush_workqueue() advances work_color with work_next_color(), installs or clears first_flusher, and cascades overflowed flushers back into flusher_queue under wq->mutex, so Zigux should audit the color handoff instead of claiming live flush completion ownership.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "flush-work-barrier-insertion",
+        .anchor_symbol = "start_flush_work",
+        .summary = "Keep barrier insertion and the executing-worker handoff under the existing pool-lock and RCU lookup rules.",
+        .guard = .flush_barrier_insert_under_pool_lock,
+        .observed_fields = &[_][]const u8{ "pool->lock", "worker->current_pwq", "work->data", "wq->saved_max_active" },
+        .blocked_by = "start_flush_work() resolves the live pwq or executing worker under RCU, validates flush dependency state, and inserts a barrier while pool->lock is still held, so Phase 14 should name the barrier handoff instead of claiming live flush or cancel ownership in Zig.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "pwq-in-flight-color-release",
+        .anchor_symbol = "pwq_dec_nr_in_flight",
+        .summary = "Keep flush-color completion and in-flight release under the existing color accounting, atomic countdown, and pwq lifetime rules.",
+        .guard = .in_flight_color_release_completion,
+        .observed_fields = &[_][]const u8{ "pwq->nr_in_flight", "pwq->flush_color", "wq->nr_pwqs_to_flush", "wq->first_flusher" },
+        .blocked_by = "pwq_dec_nr_in_flight() decrements the color bucket, may clear pwq->flush_color only at the flushing tip, may drop the unbound pool lock later in the path, and completes wq->first_flusher only when nr_pwqs_to_flush reaches zero, so Zigux should audit the release and completion seam rather than claim live drain progression.",
+        .ownership = .stay_in_c,
+    },
+    .{
         .id = "process-one-work-execution-window",
         .anchor_symbol = "process_one_work",
         .summary = "Keep the callback execution window under the existing unlock, relock, and in-flight accounting discipline.",
@@ -248,7 +278,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit __flush_workqueue(), start_flush_work(), and pwq_dec_nr_in_flight() before any wrapper leaves the boundary-map-only posture.";
+        return "Audit drain_workqueue(), __flush_work(), and __cancel_work_sync() before any wrapper claims draining or cancellation completion.";
     }
 };
 
@@ -273,8 +303,8 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "__flush_workqueue()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "start_flush_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "drain_workqueue()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "__cancel_work_sync()") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -296,11 +326,11 @@ test "workqueue bridge concurrency audit stays review-only" {
 
     try std.testing.expectEqualStrings("kernel/workqueue.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 10), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 13), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 10), WorkqueueBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__flush_workqueue()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "start_flush_work()") != null);
+    try std.testing.expectEqual(@as(usize, 13), WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "drain_workqueue()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__cancel_work_sync()") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
@@ -331,20 +361,36 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expect(audit.checkpoints[5].guard == .last_pool_lock_handoff);
     try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[5].observed_fields[2]);
 
-    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[6].id);
-    try std.testing.expect(audit.checkpoints[6].guard == .callback_execution_outside_pool_lock);
-    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[6].observed_fields[3]);
+    try std.testing.expectEqualStrings("flush-workqueue-color-cascade", audit.checkpoints[6].id);
+    try std.testing.expect(audit.checkpoints[6].guard == .flush_color_cascade_under_wq_mutex);
+    try std.testing.expectEqualStrings("wq->first_flusher", audit.checkpoints[6].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[6].blocked_by, "flusher_queue") != null);
 
-    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[7].id);
-    try std.testing.expect(audit.checkpoints[7].guard == .idle_sleep_transition);
-    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[7].observed_fields[2]);
+    try std.testing.expectEqualStrings("flush-work-barrier-insertion", audit.checkpoints[7].id);
+    try std.testing.expect(audit.checkpoints[7].guard == .flush_barrier_insert_under_pool_lock);
+    try std.testing.expectEqualStrings("worker->current_pwq", audit.checkpoints[7].observed_fields[1]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "inserted a barrier") == null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "inserts a barrier") != null);
 
-    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[8].id);
-    try std.testing.expect(audit.checkpoints[8].guard == .scheduler_callback_under_pool_lock);
-    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[8].observed_fields[1]);
+    try std.testing.expectEqualStrings("pwq-in-flight-color-release", audit.checkpoints[8].id);
+    try std.testing.expect(audit.checkpoints[8].guard == .in_flight_color_release_completion);
+    try std.testing.expectEqualStrings("wq->nr_pwqs_to_flush", audit.checkpoints[8].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "nr_pwqs_to_flush") != null);
 
-    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[9].id);
-    try std.testing.expect(audit.checkpoints[9].guard == .mayday_lock_then_pool_lock);
-    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[9].observed_fields[2]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "kicks regular workers") != null);
+    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[9].id);
+    try std.testing.expect(audit.checkpoints[9].guard == .callback_execution_outside_pool_lock);
+    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[9].observed_fields[3]);
+
+    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[10].id);
+    try std.testing.expect(audit.checkpoints[10].guard == .idle_sleep_transition);
+    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[10].observed_fields[2]);
+
+    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[11].id);
+    try std.testing.expect(audit.checkpoints[11].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[11].observed_fields[1]);
+
+    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[12].id);
+    try std.testing.expect(audit.checkpoints[12].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[12].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[12].blocked_by, "kicks regular workers") != null);
 }
