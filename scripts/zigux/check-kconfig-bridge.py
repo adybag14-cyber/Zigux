@@ -71,42 +71,139 @@ def supported_conf_modes() -> set[str]:
 def ensure_manifest_matches_bridge_modes() -> None:
     manifest_modes = {case['mode'] for case in CASES['conf_cases']}
     bridge_modes = supported_conf_modes()
-    unsupported = sorted(manifest_modes - bridge_modes)
-    if unsupported:
-        fail_check('UNSUPPORTED_CONF_CASE_MODES', unsupported)
-
-    missing = sorted(bridge_modes - manifest_modes)
+    missing = sorted(manifest_modes - bridge_modes)
     if missing:
-        fail_check('MISSING_CONF_CASE_MODES', missing)
+        fail_check('UNSUPPORTED_CONF_CASE_MODES', missing)
+    uncovered = sorted(bridge_modes - manifest_modes)
+    if uncovered:
+        fail_check('UNCOVERED_CONF_BRIDGE_MODES', uncovered)
+
+
+def read_nonempty_string(case: dict[str, object], field_name: str, issues: list[str], *, prefix: str) -> str | None:
+    value = case.get(field_name)
+    if not isinstance(value, str):
+        issues.append(f'{prefix}:{field_name}:expected_nonempty_string')
+        return None
+    if not value:
+        issues.append(f'{prefix}:{field_name}:expected_nonempty_string')
+        return None
+    return value
+
+
+def ensure_manifest_shape() -> None:
+    if not isinstance(CASES, dict):
+        raise SystemExit('kconfig bridge cases manifest must be a JSON object')
+
+    issues: list[str] = []
+    expected_top_level = {'conf_cases', 'confdata_cases'}
+    actual_top_level = set(CASES)
+    unexpected_top_level = sorted(actual_top_level - expected_top_level)
+    if unexpected_top_level:
+        issues.extend(f'top_level:unexpected_key:{name}' for name in unexpected_top_level)
+
+    for group_name in ('conf_cases', 'confdata_cases'):
+        group = CASES.get(group_name)
+        if not isinstance(group, list):
+            issues.append(f'{group_name}:expected_list')
+        elif not group:
+            issues.append(f'{group_name}:empty')
+
+    if issues:
+        fail_check('INVALID_KCONFIG_MANIFEST', sorted(issues))
 
 
 def ensure_manifest_is_deterministic() -> None:
+    issues: list[str] = []
     seen_names: dict[str, str] = {}
     duplicate_names: list[str] = []
+    seen_expected_paths: dict[str, str] = {}
+    seen_config_inputs: dict[str, str] = {}
+    referenced_files: set[str] = {'cases.json'}
+
     for group_name in ('conf_cases', 'confdata_cases'):
         for case in CASES[group_name]:
-            name = case['name']
+            if not isinstance(case, dict):
+                issues.append(f'{group_name}:non_object_case')
+                continue
+
+            name = read_nonempty_string(case, 'name', issues, prefix=group_name)
+            if name is None:
+                continue
+
             previous_group = seen_names.get(name)
             if previous_group is not None:
                 duplicate_names.append(f'{name}:{previous_group},{group_name}')
                 continue
             seen_names[name] = group_name
+            case_prefix = f'{group_name}:{name}'
+
+            expected_path = read_nonempty_string(case, 'expected', issues, prefix=case_prefix)
+            if expected_path is not None:
+                if not expected_path.endswith('_expected.json'):
+                    issues.append(f'{case_prefix}:expected:expected_suffix')
+                previous_case = seen_expected_paths.get(expected_path)
+                if previous_case is not None:
+                    issues.append(f'{case_prefix}:expected:duplicate_with:{previous_case}')
+                else:
+                    seen_expected_paths[expected_path] = f'{group_name}:{name}'
+                referenced_files.add(expected_path)
+
+            if group_name == 'conf_cases':
+                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'expected'}
+                mode = read_nonempty_string(case, 'mode', issues, prefix=case_prefix)
+                read_nonempty_string(case, 'kconfig', issues, prefix=case_prefix)
+                read_nonempty_string(case, 'config', issues, prefix=case_prefix)
+                read_nonempty_string(case, 'arch', issues, prefix=case_prefix)
+
+                mode_arg = case.get('mode_arg')
+                if mode == 'defconfig':
+                    if not isinstance(mode_arg, str) or not mode_arg:
+                        issues.append(f'{case_prefix}:mode_arg:required_for_defconfig')
+                elif mode_arg is not None:
+                    issues.append(f'{case_prefix}:mode_arg:unexpected_for_mode:{mode}')
+            else:
+                allowed_keys = {'name', 'input', 'expected'}
+                input_path = read_nonempty_string(case, 'input', issues, prefix=case_prefix)
+                if input_path is not None:
+                    if not input_path.endswith('.config'):
+                        issues.append(f'{case_prefix}:input:expected_config_suffix')
+                    previous_case = seen_config_inputs.get(input_path)
+                    if previous_case is not None:
+                        issues.append(f'{case_prefix}:input:duplicate_with:{previous_case}')
+                    else:
+                        seen_config_inputs[input_path] = f'{group_name}:{name}'
+                    referenced_files.add(input_path)
+
+            unexpected_case_keys = sorted(set(case) - allowed_keys)
+            if unexpected_case_keys:
+                issues.extend(f'{case_prefix}:unexpected_key:{field}' for field in unexpected_case_keys)
+
     if duplicate_names:
-        fail_check('DUPLICATE_KCONFIG_CASE_NAMES', sorted(duplicate_names))
+        issues.extend(f'duplicate_case_name:{value}' for value in sorted(duplicate_names))
 
     missing_paths: list[str] = []
     for case in CASES['conf_cases']:
-        for field_name in ('expected',):
-            rel_path = case[field_name]
-            if not (FIXTURE_DIR / rel_path).exists():
-                missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
+        rel_path = case['expected']
+        if not (FIXTURE_DIR / rel_path).exists():
+            missing_paths.append(f"{case['name']}:expected:{rel_path}")
     for case in CASES['confdata_cases']:
         for field_name in ('input', 'expected'):
             rel_path = case[field_name]
             if not (FIXTURE_DIR / rel_path).exists():
                 missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
     if missing_paths:
-        fail_check('MISSING_CONFDATA_CASE_PATHS', sorted(missing_paths))
+        issues.extend(f'missing_path:{value}' for value in sorted(missing_paths))
+
+    orphaned_files = sorted(
+        path.name
+        for path in FIXTURE_DIR.iterdir()
+        if path.is_file() and path.name not in referenced_files
+    )
+    if orphaned_files:
+        issues.extend(f'orphaned_fixture:{name}' for name in orphaned_files)
+
+    if issues:
+        fail_check('INVALID_KCONFIG_MANIFEST', sorted(issues))
 
 
 def main() -> int:
@@ -114,6 +211,7 @@ def main() -> int:
     parser.add_argument('--zig', help='Explicit zig executable path')
     args = parser.parse_args()
 
+    ensure_manifest_shape()
     ensure_manifest_matches_bridge_modes()
     ensure_manifest_is_deterministic()
     zig = find_zig(args.zig)
