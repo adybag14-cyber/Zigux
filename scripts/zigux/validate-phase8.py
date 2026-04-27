@@ -78,6 +78,8 @@ required_script_readme_markers = [
     "make -C zigux phase8-validate",
     "phase8_build.zig",
     "phase8-libbpf-segment-survey.md",
+    "cpu_mask.zig",
+    "type_names.zig",
 ]
 
 required_tests_readme_markers = [
@@ -101,8 +103,10 @@ required_doc_readme_markers = [
     "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
     "Documentation/zigux/phase8-bpf-type-names-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/logging.zig",
     "tools/lib/bpf/zigux_segments/pin_path.zig",
+    "tools/lib/bpf/zigux_segments/type_names.zig",
     "python3 scripts/zigux/validate-phase8.py",
     "make -C zigux phase8-validate",
     "make -C zigux phase8",
@@ -127,10 +131,14 @@ required_phase8_build_markers = [
 ]
 
 required_survey_markers = [
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/logging.zig",
     "tools/lib/bpf/zigux_segments/pin_path.zig",
+    "tools/lib/bpf/zigux_segments/type_names.zig",
+    "zigux/tests/phase8_cpu_mask.zig",
     "zigux/tests/phase8_logging.zig",
     "zigux/tests/phase8_pin_path.zig",
+    "zigux/tests/phase8_bpf_type_names.zig",
     "make -C zigux phase8",
 ]
 
@@ -142,6 +150,8 @@ required_type_name_markers = [
 ]
 
 required_manifest_markers = [
+    '"slug": "cpu-mask-parsing"',
+    '"zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig"',
     '"slug": "logging-version-and-errno"',
     '"status": "starter_landed"',
     '"zigux_destination": "tools/lib/bpf/zigux_segments/logging.zig"',
