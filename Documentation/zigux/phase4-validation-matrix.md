@@ -52,6 +52,14 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 | `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` in `.github/workflows/zigux-bootstrap.yml` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` | `threshold_pending_until_runtime_atomic64_scope_widens` |
 | `zigux/tests/bitmap_diff.zig` | bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` in `.github/workflows/zigux-bootstrap.yml` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
 
+## Remaining Measurability Gaps Vs Roadmap
+
+| roadmap item | current repo state | measurability gap | next bounded step |
+| --- | --- | --- | --- |
+| `samples/zigux/kprobe_example.zig` from the `samples/kprobes/kprobe_example.c` anchor | not present on `master` | rollback owner and lab matrix stay unassigned until a bounded Zig surface lands | add a survey or starter gate that names one owner, one rollback owner, and one replay command before claiming this anchor as active Phase 4 work |
+| `samples/zigux/test_fsmount.zig` from the `samples/vfs/test-fsmount.c` anchor | not present on `master` | rollback owner and lab matrix stay unassigned until a bounded Zig surface lands | add a survey or starter gate that names one owner, one rollback owner, and one replay command before claiming this anchor as active Phase 4 work |
+| perf baselines and thresholds for the two shipped rollback gates | `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still correctness-only gates today | benchmark command and acceptable limit are still unapproved for both landed gates | land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage |
+
 ## Review Rules
 
 - Phase 4 remains a rollback-readiness lane first, not a performance-claim lane
