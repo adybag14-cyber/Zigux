@@ -36,6 +36,7 @@ Against the Phase 9 roadmap requirements, the current runtime atomic64 lane now 
 - a landed sample-backed runtime starter with selftest-hook metadata under `samples/zigux/runtime_atomic64.zig`
 - a landed dedicated module gate in `zigux/tests/runtime_atomic64_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_atomic64_diff.zig`
+- the differential gate now includes the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`
 - a remaining blocked handoff for a future loadable entry point somewhere under `samples/zigux/runtime_*`, because true runtime-module loading and full lifecycle parity still depend on substrate pieces that the repo has not started yet
 
 This keeps the survey honest about the difference between the shipped in-memory pilot and the still-missing loadable runtime substrate.
