@@ -50,6 +50,7 @@ For the already-landed Phase 5 `samples/zigux/bytestream_fifo.zig` slice, the ap
 
 - model FIFO state and ordered operations entirely in memory
 - keep the Linux anchor path explicit in a descriptor or note
+- make the storage choice explicit as a fixed embedded ring buffer so reviewers do not read dynamic or runtime-owned backing into this bounded sample
 - include a tiny self-check or fixture-backed replay for the queue-order expectations that make the sample useful to reviewers
 - show ownership and lifetime boundaries clearly, especially initialization, reset, and teardown
 - keep procfs, user-copy, blocking lock behavior, and module-registration claims out of scope unless a later lane lands the required substrate first
@@ -66,6 +67,7 @@ The sample intentionally stays small:
 - it replays the Linux anchor's queue-order behavior without any procfs or user-copy substrate
 - it now makes ownership and lifetime explicit through a tiny `init()` -> `runAnchorReplay()` -> `exit()` flow instead of implying a runtime-ready module lifecycle
 - it now exposes a non-destructive `snapshotInto()` helper so reviewers can inspect queue order without consuming the sample state
+- it now exposes the fixed embedded backing choice directly in the sample contract so the Phase 5 reading stays visibly separate from any later dynamic or runtime-owned storage lane
 - it exposes a single bounded self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
 
 The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
@@ -78,6 +80,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - a non-destructive snapshot before the final drain preserves the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
+- the descriptor and replay keep the sample on a fixed embedded 32-byte ring buffer rather than dynamic or runtime-backed storage
 - empty-queue peek and skip return `null`, `snapshotInto()` leaves queue order intact, pushing past capacity returns `false`, and `reset()` restores an empty queue
 - the replay advertises exactly six review-focus areas: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `reset_and_replay`, and `ownership_and_lifetime`
 - the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
@@ -87,8 +90,8 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
-- does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the sample-backed survey note still record the exact queue-order replay, non-destructive snapshot, and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
+- does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c`, keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`, and state that the sample uses fixed embedded storage?
+- do `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the sample-backed survey note still record the exact queue-order replay, non-destructive snapshot, fixed embedded backing, and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
 - does `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact Phase 5 replay contract?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
@@ -103,7 +106,7 @@ The current gap is not missing Phase 5 sample delivery for `kfifo`. The more pre
 - this survey now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
 - the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
 
-This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, so future work can leave this lane parked unless a real same-family drift appears.
+This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, including its explicit fixed-storage contract, so future work can leave this lane parked unless a real same-family drift appears.
 
 ## Review gates for this survey
 
