@@ -185,6 +185,9 @@ jobs:
       - name: Validate Phase 12 degraded-workflow bundle
         run: make -C zigux phase12-validate
 
+      - name: Validate Phase 13 release-discipline packet
+        run: make -C zigux phase13-validate
+
       - name: Run Phase 9 runtime helper tests
         run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
 
