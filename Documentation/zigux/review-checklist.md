@@ -41,6 +41,7 @@ Use this checklist before opening or merging Zigux product work.
 - if a freeze-map anchor reopens because `ownership_or_validation_changed`, does the packet refresh both the current lane owner and the rollback owner before active review resumes?
 - if a freeze-map anchor is entering Architecture Council status review, is the rollback threshold explicit and does the packet name the automatic return-to-blocked trigger if the decision record, scorecard evidence, benchmark notes, replay command, blocker disposition, or rollback owner drops out?
 - if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state and reopen triggers explicit?
+- if a freeze-map anchor is closing review with a stay-in-C outcome, does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?
 - if a freeze-map anchor remains blocked, does the scorecard still name the current lane owner responsible for keeping that blocked evidence packet up to date?
 - if the change touches the freeze-map governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and `Documentation/zigux/phase15-parity-scorecard.md` still agree on the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff?
 
