@@ -113,6 +113,11 @@ required_phase4_matrix_markers = [
     'perf threshold status',
     'make -C zigux phase4-validate',
     'make -C zigux phase4-test',
+    'Remaining Measurability Gaps Vs Roadmap',
+    'samples/zigux/kprobe_example.zig',
+    'samples/zigux/test_fsmount.zig',
+    'rollback owner and lab matrix stay unassigned until a bounded Zig surface lands',
+    'benchmark command and acceptable limit are still unapproved for both landed gates',
 ]
 required_artifact_diff_markers = [
     'def emit_result(matched: bool, details: dict[str, object]) -> int:',
