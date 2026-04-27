@@ -9,6 +9,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase12-[^"]+)"')
+BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 
 FILES = [
     "scripts/zigux/validate-phase12.py",
@@ -17,6 +19,7 @@ FILES = [
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "zigux/tests/phase12_build.zig",
+    "zigux/tests/fixtures/phase12_build_inventory.json",
     "zigux/tests/phase12_virtio_net_manifest.json",
     "zigux/tests/phase12_nvme_pci_manifest.json",
     "zigux/tests/phase12_virtio_scsi_manifest.json",
@@ -45,14 +48,17 @@ README_MARKERS = [
     "validate-phase12.py",
     "Phase 12 flow",
     "make -C zigux phase12-validate",
+    "phase12_build_inventory.json",
     "phase12_virtio_net_manifest.json",
     "phase12_nvme_pci_manifest.json",
     "phase12_virtio_scsi_manifest.json",
     "phase12_libbpf_manifest.json",
+    "shared build inventory snapshot",
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, and the four Phase 12 manifests still agree on the same bounded tranche, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
     "if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?",
+    "if the change touches the shared Phase 12 tooling path, do `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?",
 ]
 BUILD_MARKERS = [
     "phase12-nvme-pci-tests",
@@ -72,6 +78,8 @@ BUILD_MARKERS = [
     "test_step.dependOn(&run_phase12_libbpf_segments_tests.step);",
     "test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);",
 ]
+FORBIDDEN_BUILD_MARKERS: list[str] = []
+BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase12_build_inventory.json"
 
 MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
@@ -186,6 +194,36 @@ for name, source, markers in [
         if marker not in source:
             missing.append(f"{name}:{marker}")
 
+build_text = text("zigux/tests/phase12_build.zig")
+for marker in FORBIDDEN_BUILD_MARKERS:
+    if marker in build_text:
+        missing.append(f"phase12_build:forbidden:{marker}")
+
+build_inventory = json.loads(text(BUILD_INVENTORY_FIXTURE))
+expected_build_test_names = build_inventory.get("build_test_names")
+if not isinstance(expected_build_test_names, list) or not all(isinstance(item, str) for item in expected_build_test_names):
+    missing.append("phase12_build_fixture:build_test_names")
+else:
+    actual_build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
+    if actual_build_test_names != expected_build_test_names:
+        missing.append("phase12_build_fixture:build_test_names_mismatch")
+
+expected_depend_steps = build_inventory.get("shared_test_depend_steps")
+if not isinstance(expected_depend_steps, list) or not all(isinstance(item, str) for item in expected_depend_steps):
+    missing.append("phase12_build_fixture:shared_test_depend_steps")
+else:
+    actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if actual_depend_steps != expected_depend_steps:
+        missing.append("phase12_build_fixture:shared_test_depend_steps_mismatch")
+
+expected_forbidden_markers = build_inventory.get("forbidden_markers")
+if expected_forbidden_markers != FORBIDDEN_BUILD_MARKERS:
+    missing.append("phase12_build_fixture:forbidden_markers")
+
+dedicated_survey_replays = build_inventory.get("dedicated_survey_replays")
+if dedicated_survey_replays != []:
+    missing.append("phase12_build_fixture:dedicated_survey_replays")
+
 starter_total = 0
 blocked_dma_total = 0
 blocked_object_total = 0
@@ -272,6 +310,8 @@ if missing:
 
 print("PHASE12_VALIDATION=pass")
 print("PHASE12_MANIFEST_COUNT=4")
+print(f"PHASE12_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
+print(f"PHASE12_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
 print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE12_BLOCKED_DMA_STATUS_COUNT={blocked_dma_total}")
 print(f"PHASE12_BLOCKED_OBJECT_STATUS_COUNT={blocked_object_total}")
