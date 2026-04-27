@@ -76,7 +76,7 @@ Unsafe policy:
 ## Boundary
 
 Current repo-backed boundary survey:
-- export shim reality today: `zigux/kernel/export_shim.zig` is still a narrow status/header helper, which matches the roadmap's explicit export-shim requirement but does not yet claim a broader exported runtime surface
+- export shim reality today: `zigux/kernel/export_shim.zig` is still a narrow explicit-status helper, and its boundary-header construction stays local to the shim's own tests instead of widening the public export surface
 - UAPI reality today: `zigux/uapi/` currently exposes only `version.zig`, which is enough for the bounded ABI substrate but is intentionally short of the roadmap's eventual broader UAPI shim destination
 
 This slice does not claim:
