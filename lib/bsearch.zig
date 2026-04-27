@@ -40,6 +40,17 @@ pub fn search(
     return &items[index];
 }
 
+pub fn searchMutable(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []T,
+    comptime compare: fn (*const Key, *const T) i32,
+) ?*T {
+    const index = searchIndex(Key, T, key, items, compare) orelse return null;
+    return &items[index];
+}
+
 fn compareInt(key: *const i32, item: *const i32) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
@@ -85,6 +96,15 @@ test "search returns a pointer to the matching element" {
 
     try std.testing.expectEqual(@as(i32, 18), found.*);
     try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
+}
+
+test "searchMutable returns a writable pointer to the matching element" {
+    var values = [_]i32{ 5, 9, 12, 18, 27 };
+    const found = searchMutable(i32, i32, &@as(i32, 18), values[0..], compareInt) orelse return error.TestUnexpectedResult;
+
+    try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
+    found.* = 19;
+    try std.testing.expectEqual(@as(i32, 19), values[3]);
 }
 
 test "search accepts duplicate keys without claiming stable selection" {
