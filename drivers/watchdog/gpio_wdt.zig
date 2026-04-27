@@ -21,6 +21,16 @@ pub const ProbeStartMode = enum {
     start_before_register,
 };
 
+pub const RegistrationSurface = enum {
+    watchdog_device_metadata,
+    register_device_call,
+};
+
+pub const ValidationFocus = enum {
+    pre_registration_metadata,
+    platform_registration,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -108,6 +118,30 @@ pub const RegistrationHandoffSummary = struct {
     timeout_init_requested: bool,
     stop_on_reboot: bool,
     parent_attached: bool,
+};
+
+pub const RegistrationPlanSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    selected_surface: RegistrationSurface,
+    validation_focus: ValidationFocus,
+    requested_line: ProbeLineRequest,
+    start_mode: ProbeStartMode,
+    always_running: bool,
+    nowayout: bool,
+    watchdog_info_ready: bool,
+    watchdog_ops_ready: bool,
+    watchdog_device_ready: bool,
+    timeout_init_requested: bool,
+    parent_attached: bool,
+    stop_on_reboot: bool,
+    reaches_registration_running: bool,
+    reaches_registration_line_state: bool,
+    reaches_registration_line_is_output: bool,
+    register_device_requested: bool,
+    blocked_on_gpio_descriptor: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_reboot_glue: bool,
 };
 
 pub const GpioWatchdogLab = struct {
@@ -320,6 +354,33 @@ pub const GpioWatchdogLab = struct {
             .timeout_init_requested = probe.timeout_init_requested,
             .stop_on_reboot = probe.stop_on_reboot,
             .parent_attached = probe.parent_attached,
+        };
+    }
+
+    pub fn registrationPlanSummary(self: *const Self, nowayout: bool) RegistrationPlanSummary {
+        const handoff = self.registrationHandoffSummary(nowayout);
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .selected_surface = .watchdog_device_metadata,
+            .validation_focus = .pre_registration_metadata,
+            .requested_line = handoff.requested_line,
+            .start_mode = handoff.start_mode,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .watchdog_info_ready = true,
+            .watchdog_ops_ready = true,
+            .watchdog_device_ready = true,
+            .timeout_init_requested = handoff.timeout_init_requested,
+            .parent_attached = handoff.parent_attached,
+            .stop_on_reboot = handoff.stop_on_reboot,
+            .reaches_registration_running = handoff.reaches_registration_running,
+            .reaches_registration_line_state = handoff.reaches_registration_line_state,
+            .reaches_registration_line_is_output = handoff.reaches_registration_line_is_output,
+            .register_device_requested = false,
+            .blocked_on_gpio_descriptor = true,
+            .blocked_on_platform_registration = true,
+            .blocked_on_reboot_glue = true,
         };
     }
 
