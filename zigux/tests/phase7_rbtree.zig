@@ -13,6 +13,7 @@ const Fixture = struct {
     ordered: struct {
         insert_order: []const i32,
         reverse_order: []const i32,
+        erase_order: []const i32,
         replace_order: []const i32,
     },
     duplicates: struct {
@@ -143,7 +144,6 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
         .{ .key = 15 },
         .{ .key = 25 },
     };
-    var replacement = Entry{ .key = 10 };
     var root = rbtree.Root.init();
 
     for (&entries) |*entry| {
@@ -177,13 +177,41 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     try std.testing.expectEqualSlices(i32, fixture.ordered.reverse_order, reverse_actual[0..reverse_index]);
     try expectStarterBalanceInvariants(&root);
 
-    rbtree.erase(&entries[1].node, &root);
-    rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
+    rbtree.erase(&entries[0].node, &root);
+
+    const erased_expected = [_]i32{ 5, 15, 20, 25 };
+    var erased_actual: [erased_expected.len]i32 = undefined;
+    var erased_index: usize = 0;
+    current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        erased_actual[erased_index] = entry.key;
+        erased_index += 1;
+    }
+    try std.testing.expectEqual(erased_expected.len, fixture.ordered.erase_order.len);
+    try std.testing.expectEqual(erased_expected.len, erased_index);
+    try std.testing.expectEqualSlices(i32, fixture.ordered.erase_order, erased_actual[0..erased_index]);
+    try expectStarterBalanceInvariants(&root);
+
+    var replace_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var replace_root = rbtree.Root.init();
+    for (&replace_entries) |*entry| {
+        rbtree.add(&entry.node, &replace_root, less);
+    }
+    rbtree.erase(&replace_entries[1].node, &replace_root);
+    rbtree.replaceNode(&replace_entries[0].node, &replacement.node, &replace_root);
 
     const replaced_expected = [_]i32{ 5, 10, 15, 25 };
     var replaced_actual: [replaced_expected.len]i32 = undefined;
     var replaced_index: usize = 0;
-    current = rbtree.first(&root);
+    current = rbtree.first(&replace_root);
     while (current) |node| : (current = rbtree.next(node)) {
         const entry: *const Entry = @fieldParentPtr("node", node);
         replaced_actual[replaced_index] = entry.key;
