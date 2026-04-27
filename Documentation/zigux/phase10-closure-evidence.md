@@ -80,7 +80,7 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 - `PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
-- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,irq_parity,dma_paths,input_registration_lifecycle`
+- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
 
 The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/*.zig`, and the freeze map keeps the current deep-core anchors out of active Zigux delivery:
 
@@ -114,9 +114,10 @@ This means the current evidence bundle is reviewable, but Phase 10 is not global
 
 - `drivers/virtio/virtio_mmio.zig` is still intentionally absent
 - transport-backed queue setup, interrupt handling, DMA-facing paths, and broader lifecycle parity remain out of scope
+- the blocked transport claim set stays explicit: `virtio_mmio.zig`, `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
 - the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
-- the current manifest-backed blockers that keep this boundary honest are `phase10-mmio-wrapper-lane`, `phase10-virtio-input-registration-lifecycle`, and `phase10-mmio-lifecycle-and-irq-paths`, each of which must stay `blocked_on_risky_transport` until a smaller bounded helper lands first
+- the current manifest-backed transport boundary stays explicit because the ring survey advances only to the ready-next `phase10-mmio-register-window-helper`, while `phase10-virtio-input-registration-lifecycle` and `phase10-mmio-lifecycle-and-irq-paths` must stay `blocked_on_risky_transport` until that smaller helper lands first
 
 ## Boundary
 
