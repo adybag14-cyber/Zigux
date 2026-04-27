@@ -24,6 +24,23 @@ def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -
             discovered_files.append(discovered_path)
     return discovered_files
 
+
+def case_files_from_list(case_manifest: Path, *field_names: str) -> list[Path]:
+    cases = json.loads(case_manifest.read_text(encoding='utf-8'))
+    discovered_files: list[Path] = []
+    seen: set[Path] = set()
+    for case in cases:
+        for field_name in field_names:
+            file_name = case.get(field_name)
+            if not file_name:
+                continue
+            discovered_path = case_manifest.parent / file_name
+            if discovered_path in seen:
+                continue
+            seen.add(discovered_path)
+            discovered_files.append(discovered_path)
+    return discovered_files
+
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
@@ -50,10 +67,6 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample2.so',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'shared#config.h',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_multi_target_expected.txt',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_escaped_space.d',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_escaped_space_source.c',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'escaped\\ space-config.h',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_escaped_space_expected.txt',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_missing_dep.d',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_missing_dep_source.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample_missing_dep_expected.txt',
@@ -76,6 +89,13 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'not_elf_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig' / 'truncated_expected.json',
 ]
+required_files.extend(case_files_from_list(
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json',
+    'depfile',
+    'expected',
+    'expected_stdout',
+    'expected_stderr',
+))
 required_files.extend(case_files_from_groups(GENKSYMS_BRIDGE_DIR / 'cases.json', ('cases', 'expected')))
 required_files.extend(case_files_from_groups(
     KCONFIG_BRIDGE_DIR / 'cases.json',
