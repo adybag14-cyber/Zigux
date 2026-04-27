@@ -82,6 +82,8 @@
       "evidence": [
         "samples/zigux",
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        "zigux/tests/runtime_loader_gap_survey.zig",
         "zigux/tests/phase9_build.zig"
       ]
     }
