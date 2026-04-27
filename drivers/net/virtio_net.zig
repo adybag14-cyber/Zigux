@@ -10,6 +10,11 @@ pub const feature_rss: u16 = 60;
 pub const feature_guest_udp_tunnel_gso: u16 = 65;
 pub const feature_host_udp_tunnel_gso: u16 = 67;
 
+pub const RecoveryAction = enum {
+    freeze,
+    restore,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -87,11 +92,29 @@ pub const ProbeSnapshot = struct {
     queue_recovery_action: QueueRecoveryAction,
 };
 
+pub const QueueRecoverySummary = struct {
+    anchor: []const u8,
+    action: RecoveryAction,
+    was_frozen: bool,
+    is_frozen: bool,
+    planned_queue_pairs_available: bool,
+    remembered_planned_queue_pairs: u16,
+    remembered_total_queue_count: u16,
+    remembered_control_queue_index: ?u16,
+    remembered_rss_summary: RssSummary,
+    remembered_recovery_state: RecoveryState,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    recovery_generation: u16,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
     core: virtio.VirtioCoreLabDevice,
     last_snapshot: ?ProbeSnapshot = null,
+    frozen_snapshot: ?ProbeSnapshot = null,
+    transport_recovery_frozen: bool = false,
+    recovery_generation: u16 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -101,7 +124,7 @@ pub const VirtioNetProbeLab = struct {
             .touches_live_dma = false,
             .touches_napi_poll = false,
             .touches_netdev_lifecycle = false,
-            .touches_transport_recovery = false,
+            .touches_transport_recovery = true,
         };
     }
 
@@ -112,6 +135,7 @@ pub const VirtioNetProbeLab = struct {
     }
 
     pub fn captureProbeSnapshot(self: *Self, request: ProbeRequest) !ProbeSnapshot {
+        if (self.transport_recovery_frozen) return error.TransportRecoveryFrozen;
         if (request.requested_queue_pairs == 0) return error.InvalidRequestedQueuePairs;
 
         self.core.reset();
@@ -214,6 +238,28 @@ pub const VirtioNetProbeLab = struct {
         return snapshot;
     }
 
+    pub fn freezeForRecovery(self: *Self) !QueueRecoverySummary {
+        if (self.transport_recovery_frozen) return error.TransportRecoveryAlreadyFrozen;
+
+        const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
+        self.transport_recovery_frozen = true;
+        self.frozen_snapshot = snapshot;
+
+        return summarizeRecovery(.freeze, false, true, false, snapshot, self.recovery_generation);
+    }
+
+    pub fn restoreAfterRecovery(self: *Self) !QueueRecoverySummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        self.transport_recovery_frozen = false;
+        self.frozen_snapshot = null;
+        self.last_snapshot = null;
+        self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
+
+        return summarizeRecovery(.restore, true, false, true, snapshot, self.recovery_generation);
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -258,6 +304,30 @@ pub const VirtioNetProbeLab = struct {
                 .degrade_to_single_queue
             else
                 .none,
+        };
+    }
+
+    fn summarizeRecovery(
+        action: RecoveryAction,
+        was_frozen: bool,
+        is_frozen: bool,
+        planned_queue_pairs_available: bool,
+        snapshot: ProbeSnapshot,
+        recovery_generation: u16,
+    ) QueueRecoverySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .action = action,
+            .was_frozen = was_frozen,
+            .is_frozen = is_frozen,
+            .planned_queue_pairs_available = planned_queue_pairs_available,
+            .remembered_planned_queue_pairs = snapshot.planned_queue_pairs,
+            .remembered_total_queue_count = snapshot.total_queue_count,
+            .remembered_control_queue_index = snapshot.control_queue_index,
+            .remembered_rss_summary = snapshot.rss_summary,
+            .remembered_recovery_state = snapshot.recovery_state,
+            .remembered_queue_recovery_action = snapshot.queue_recovery_action,
+            .recovery_generation = recovery_generation,
         };
     }
 
