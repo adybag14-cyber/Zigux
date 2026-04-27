@@ -289,17 +289,26 @@ test "bytes reports decoded output sizes and rejects malformed input" {
 
 test "encode covers standard and variant alphabets" {
     var std_buf: [16]u8 = undefined;
+    var std_padded_buf: [16]u8 = undefined;
     var url_buf: [16]u8 = undefined;
+    var url_padded_buf: [16]u8 = undefined;
     var imap_buf: [16]u8 = undefined;
+    var imap_padded_buf: [16]u8 = undefined;
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
 
     const std_len = try encode(std_buf[0..], &sample, false, .std);
+    const std_padded_len = try encode(std_padded_buf[0..], &sample, true, .std);
     const url_len = try encode(url_buf[0..], &sample, false, .urlsafe);
+    const url_padded_len = try encode(url_padded_buf[0..], &sample, true, .urlsafe);
     const imap_len = try encode(imap_buf[0..], &sample, false, .imap);
+    const imap_padded_len = try encode(imap_padded_buf[0..], &sample, true, .imap);
 
     try std.testing.expectEqualStrings("APv/f4A", std_buf[0..std_len]);
+    try std.testing.expectEqualStrings("APv/f4A=", std_padded_buf[0..std_padded_len]);
     try std.testing.expectEqualStrings("APv_f4A", url_buf[0..url_len]);
+    try std.testing.expectEqualStrings("APv_f4A=", url_padded_buf[0..url_padded_len]);
     try std.testing.expectEqualStrings("APv,f4A", imap_buf[0..imap_len]);
+    try std.testing.expectEqualStrings("APv,f4A=", imap_padded_buf[0..imap_padded_len]);
 }
 
 test "decode covers padded, unpadded, and variant inputs" {
@@ -316,8 +325,14 @@ test "decode covers padded, unpadded, and variant inputs" {
     const url_len = try decode(variant_out[0..], "APv_f4A", false, .urlsafe);
     try std.testing.expectEqualSlices(u8, &sample, variant_out[0..url_len]);
 
+    const url_padded_len = try decode(variant_out[0..], "APv_f4A=", true, .urlsafe);
+    try std.testing.expectEqualSlices(u8, &sample, variant_out[0..url_padded_len]);
+
     const imap_len = try decode(variant_out[0..], "APv,f4A", false, .imap);
     try std.testing.expectEqualSlices(u8, &sample, variant_out[0..imap_len]);
+
+    const imap_padded_len = try decode(variant_out[0..], "APv,f4A=", true, .imap);
+    try std.testing.expectEqualSlices(u8, &sample, variant_out[0..imap_padded_len]);
 }
 
 test "decode rejects malformed input and reports destination bounds" {
