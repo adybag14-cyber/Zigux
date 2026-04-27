@@ -102,8 +102,8 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     }
 
     try std.testing.expect(saw_status_change_blocker);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core evidence") != null);
 }
 
 test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" {
@@ -132,9 +132,8 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared bootstrap workflow now runs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared bootstrap workflow now runs the Phase 15 governance bundle") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "status-change-ready") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-shared-ci-coverage") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
