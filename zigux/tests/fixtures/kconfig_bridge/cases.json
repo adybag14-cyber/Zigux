@@ -65,6 +65,14 @@
       "expected": "yes2modconfig_expected.json"
     },
     {
+      "name": "mod2yesconfig",
+      "mode": "mod2yesconfig",
+      "kconfig": "Kconfig",
+      "config": "promote/.config",
+      "arch": "loongarch",
+      "expected": "mod2yesconfig_expected.json"
+    },
+    {
       "name": "randconfig",
       "mode": "randconfig",
       "kconfig": "Kconfig",

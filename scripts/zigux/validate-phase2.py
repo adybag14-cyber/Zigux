@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_CASES = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json'
+CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
 
 
 def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -201,6 +203,45 @@ def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
         issues.append(f'fixdep_cases:count={len(cases)},minimum_expected={len(expected_cases)}')
     return issues
 
+
+def supported_conf_modes(conf_bridge: Path) -> set[str]:
+    source = conf_bridge.read_text(encoding='utf-8')
+    match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
+    if not match:
+        return set()
+
+    modes: set[str] = set()
+    for raw_line in match.group(1).splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('pub ') or line.startswith('//'):
+            continue
+        if line.endswith(','):
+            candidate = line[:-1].strip()
+            if candidate and candidate.isidentifier():
+                modes.add(candidate)
+    return modes
+
+
+def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> list[str]:
+    cases = json.loads(case_manifest.read_text(encoding='utf-8'))
+    manifest_modes = {case.get('mode') for case in cases.get('conf_cases', []) if case.get('mode')}
+    bridge_modes = supported_conf_modes(conf_bridge)
+    issues: list[str] = []
+
+    if not bridge_modes:
+        issues.append('kconfig_bridge:failed_to_parse_conf_bridge_modes')
+        return issues
+
+    missing = sorted(bridge_modes - manifest_modes)
+    for mode in missing:
+        issues.append(f'kconfig_bridge:missing_conf_case_mode:{mode}')
+
+    unsupported = sorted(manifest_modes - bridge_modes)
+    for mode in unsupported:
+        issues.append(f'kconfig_bridge:unsupported_conf_case_mode:{mode}')
+
+    return issues
+
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
@@ -283,6 +324,15 @@ if fixdep_case_issues:
     for item in fixdep_case_issues:
         print(item)
     print('MISSING_PHASE2_FIXDEP_CASES_END')
+    sys.exit(1)
+
+kconfig_bridge_issues = validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json', CONF_BRIDGE)
+if kconfig_bridge_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_KCONFIG_BRIDGE_CASES_START')
+    for item in kconfig_bridge_issues:
+        print(item)
+    print('MISSING_PHASE2_KCONFIG_BRIDGE_CASES_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
