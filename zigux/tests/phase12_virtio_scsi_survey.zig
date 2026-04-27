@@ -163,7 +163,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/drivers/scsi/virtio_scsi.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "b5c783aa262dea9a3eb235ed41b026ad96e12a58eafeee833aaa86daae4bf688") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/zigux/tests/phase12_virtio_scsi_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "cf0e9ee00a048fcbae4fec53bbd3b87981e8a47769c0783cb63598b20b9bc3a4") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "778ad258a123e6cda87906f0ae93f4afe645e7b4a55747409f65f0dffa4ffeff") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/scripts/zigux/validate-phase12.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "6813189c32aae8c7c7bb14799d8eff22fe36c842cf2134e3125fc8463c5f2a24") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/5fbde08521966dd60c0e0591fea0cbc7c9a3cd62/zigux/Makefile") != null);
