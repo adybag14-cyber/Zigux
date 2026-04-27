@@ -71,6 +71,10 @@ pub fn trimSpaces(buf: []u8) []u8 {
     return buf[start..end];
 }
 
+pub fn strim(buf: []u8) []u8 {
+    return trimSpaces(buf);
+}
+
 pub fn removeSpaces(buf: []u8) []u8 {
     var write_idx: usize = 0;
     for (buf, 0..) |ch, read_idx| {
@@ -97,6 +101,11 @@ pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
         }
     }
     return buf.len;
+}
+
+pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {
+    const end = replaceChar(buf, old, new);
+    return buf[0..end];
 }
 
 fn repeatedByteWord(value: u8) u64 {
@@ -169,6 +178,9 @@ test "skip trim remove and replace spaces work in place" {
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
 
+    var strim_buf = [_]u8{ ' ', 'o', 'k', ' ', '\n', 0 };
+    try std.testing.expectEqualStrings("ok", strim(strim_buf[0 .. strim_buf.len - 1]));
+
     var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
 
@@ -179,6 +191,10 @@ test "skip trim remove and replace spaces work in place" {
     var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-' };
     try std.testing.expectEqual(@as(usize, 2), replaceChar(&replace_cstr_buf, '-', '_'));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-' }, &replace_cstr_buf);
+
+    var strreplace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
+    try std.testing.expectEqualStrings("a_b", strreplace(strreplace_buf[0 .. strreplace_buf.len - 1], '-', '_'));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, &strreplace_buf);
 }
 
 test "memdup and memchrInv preserve byte content" {
