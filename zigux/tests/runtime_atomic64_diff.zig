@@ -27,6 +27,14 @@ const AddUnlessCase = struct {
     changed: bool,
 };
 
+const IncNotZeroCase = struct {
+    name: []const u8,
+    seed: i64,
+    previous: i64,
+    final: i64,
+    changed: bool,
+};
+
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -60,7 +68,17 @@ fn expectAddUnlessCase(case: AddUnlessCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, and add_unless expectations" {
+fn expectIncNotZeroCase(case: IncNotZeroCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.incNotZeroCounter();
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.changed, result.changed);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, and inc_not_zero expectations" {
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
@@ -132,6 +150,34 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
     for (add_unless_cases) |case| {
         try expectAddUnlessCase(case);
     }
+
+    const inc_not_zero_cases = [_]IncNotZeroCase{
+        .{
+            .name = "inc_not_zero increments a positive non-zero counter",
+            .seed = 0x1111_2222_3333_4444,
+            .previous = 0x1111_2222_3333_4444,
+            .final = 0x1111_2222_3333_4445,
+            .changed = true,
+        },
+        .{
+            .name = "inc_not_zero leaves zero unchanged",
+            .seed = 0,
+            .previous = 0,
+            .final = 0,
+            .changed = false,
+        },
+        .{
+            .name = "inc_not_zero still increments -1 back to zero",
+            .seed = -1,
+            .previous = -1,
+            .final = 0,
+            .changed = true,
+        },
+    };
+
+    for (inc_not_zero_cases) |case| {
+        try expectIncNotZeroCase(case);
+    }
 }
 
 test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
@@ -161,4 +207,5 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
         1,
         std.math.minInt(i64),
     ));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
 }
