@@ -79,5 +79,7 @@ Phase 9 notes
 - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/review-checklist.md` now carry the shared loader-handoff release-discipline evidence for the current runtime bundle, so the bounded Phase 9 lane stays explicit about allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command or environment control surface.
+- `python3 scripts/zigux/validate-phase9.py` and `make -C zigux phase9-validate` now fail fast if the shared Phase 9 checklist, loader-gap survey, README notes, workflow wiring, and `zigux/tests/phase9_build.zig` entrypoint drift apart.
 - `zigux/tests/phase9_build.zig` and `make -C zigux phase9` now gate the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together, so new Phase 9 runtime work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 9 decision is no longer whether the kretprobe lane still needs a starter, a survey gate, or shared build wiring; those pieces and the newer loader-handoff scaffold are now landed, so the next follow-up should be whichever small shared runtime loader substrate step can honestly consume the existing bitmap or kretprobe loader plans without widening into a larger runtime-module implementation.
