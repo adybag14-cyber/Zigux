@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L13",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
-  "surveyed_commit": "4dcec04fe763160344ae352d76162962ab823dcf",
+  "surveyed_commit": "aeb279e35506501ee00fe315b73c2fe5e6720811",
   "anchors": [
     "include/linux/list.h",
     "include/linux/notifier.h"
@@ -15,6 +15,7 @@
     "preexisting_list_view_present": true,
     "preexisting_hlist_view_present": true,
     "preexisting_chrdev_notify_plan_present": true,
+    "preexisting_phase11_hvc_header_parity_present": true,
     "preexisting_generic_notifier_abi_present": false,
     "preexisting_generic_notifier_helper_present": false
   },
@@ -67,6 +68,13 @@
       "kind": "chrdev_local_notify_planner",
       "zigux_destination": "zigux/helpers/chrdev_notify_plan.zig",
       "why_now": "Notifier-like behavior in the current repo is still chrdev-local: the notify planner maps chrdev completion state into notify outcomes, but it does not expose a generic notifier_block or notifier_head ABI for shared helper consumers."
+    },
+    {
+      "id": "phase11-hvc-header-notifier-list-anchor",
+      "status": "preexisting_phase11_surface",
+      "kind": "driver_local_notifier_list_anchor",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "The landed Phase 11 hvc_console header-parity surface already mirrors a driver-local anchor where struct hvc_struct carries a list_head next link while hv_ops carries notifier callbacks, which makes the current notifier-plus-list linkage reviewable without overstating it as a generic shared helper."
     },
     {
       "id": "phase13-generic-notifier-abi-gap",
