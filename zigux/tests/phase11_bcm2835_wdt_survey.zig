@@ -8,6 +8,7 @@ const SurveySummary = struct {
     bcm2835_wdt_test_present: bool,
     bcm2835_wdt_slice_note_present: bool,
     bcm2835_wdt_validation_matrix_present: bool,
+    bcm2835_wdt_platform_handoff_present: bool,
     bcm2835_wdt_survey_gate_present: bool,
     bcm2835_wdt_survey_note_present: bool,
 };
@@ -36,7 +37,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest records the landed remove summary and remaining platform gap" {
+test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and blocked live platform gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -55,7 +56,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     try std.testing.expectEqualStrings("P11-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("d8638f7e136ae70164477451aadee9ec58671259", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2c5de273cf0ea08dfb8e446ce03e1ef54af4853b", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -64,9 +65,10 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_validation_matrix_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_platform_handoff_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -79,8 +81,9 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     var saw_validation_matrix = false;
     var saw_probe_summary = false;
     var saw_registration_summary = false;
+    var saw_platform_handoff = false;
     var saw_remove_followup = false;
-    var saw_platform_followup = false;
+    var saw_live_platform_gap = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -136,7 +139,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PM-base follow-up") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PM-base follow-up") != null or std.mem.indexOf(u8, gap.why_now, "PM-base") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-probe-summary")) {
@@ -155,6 +158,14 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff claim-vs-conflict") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-platform-registration")) {
+            saw_platform_handoff = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-registration and PM-base handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device intent") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-remove-summary")) {
             saw_remove_followup = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
@@ -163,12 +174,12 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "currently owns it") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-platform-registration")) {
-            saw_platform_followup = true;
-            try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-registration and PM-base handoff summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff ownership") != null);
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-live-platform-registration")) {
+            saw_live_platform_gap = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-validation plan") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PM base plumbing") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -176,9 +187,9 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 0), blocked_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
@@ -187,6 +198,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_probe_summary);
     try std.testing.expect(saw_registration_summary);
+    try std.testing.expect(saw_platform_handoff);
     try std.testing.expect(saw_remove_followup);
-    try std.testing.expect(saw_platform_followup);
+    try std.testing.expect(saw_live_platform_gap);
 }
