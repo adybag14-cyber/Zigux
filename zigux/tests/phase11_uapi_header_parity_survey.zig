@@ -1,0 +1,215 @@
+const std = @import("std");
+
+const SurveySummary = struct {
+    preexisting_phase11_build_present: bool,
+    watchdog_uapi_header_present: bool,
+    watchdog_core_header_present: bool,
+    hvc_console_header_present: bool,
+    dw_wdt_survey_note_present: bool,
+    dw_wdt_manifest_present: bool,
+    hvc_console_survey_note_present: bool,
+    hvc_console_manifest_present: bool,
+};
+
+const Gap = struct {
+    id: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    survey_summary: SurveySummary,
+    gaps: []const Gap,
+};
+
+fn isAllowedStatus(status: []const u8) bool {
+    return std.mem.eql(u8, status, "starter_landed") or
+        std.mem.eql(u8, status, "ready_next");
+}
+
+test "phase11 shared uapi header parity manifest records the bounded boundary" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_uapi_header_parity_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 11", manifest.phase);
+    try std.testing.expectEqualStrings("76a9e0531eacee5f82e3f506489ccb9cf0c7a28b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
+    try std.testing.expect(manifest.survey_summary.watchdog_uapi_header_present);
+    try std.testing.expect(manifest.survey_summary.watchdog_core_header_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_header_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.dw_wdt_manifest_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_manifest_present);
+    try std.testing.expectEqual(@as(usize, 5), manifest.gaps.len);
+
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var saw_shared_note = false;
+    var saw_shared_gate = false;
+    var saw_dw_wdt_boundary = false;
+    var saw_hvc_boundary = false;
+    var saw_phase3_followup = false;
+
+    for (manifest.gaps, 0..) |gap, i| {
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
+        try std.testing.expect(isAllowedStatus(gap.status));
+
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
+            ready_next_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-shared-header-parity-note")) {
+            saw_shared_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-uapi-header-parity-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "public-header boundary") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-shared-header-parity-gate")) {
+            saw_shared_gate = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog headers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc header") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-header-boundary")) {
+            saw_dw_wdt_boundary = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct watchdog_info") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog_device") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-boundary")) {
+            saw_hvc_boundary = true;
+            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MAX_NR_HVC_CONSOLES") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-phase3-interop-followup")) {
+            saw_phase3_followup = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-uapi-header-parity-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 3 interop substrate") != null);
+        }
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+        }
+    }
+
+    try std.testing.expectEqual(@as(usize, 4), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expect(saw_shared_note);
+    try std.testing.expect(saw_shared_gate);
+    try std.testing.expect(saw_dw_wdt_boundary);
+    try std.testing.expect(saw_hvc_boundary);
+    try std.testing.expect(saw_phase3_followup);
+}
+
+test "phase11 shared uapi header parity survey keeps the boundary visible in docs headers and build wiring" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const dw_wdt_survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(dw_wdt_survey_note);
+
+    const hvc_console_survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(hvc_console_survey_note);
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    const watchdog_uapi_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/uapi/linux/watchdog.h",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(watchdog_uapi_header);
+
+    const watchdog_core_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "include/linux/watchdog.h",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(watchdog_core_header);
+
+    const hvc_console_header = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/tty/hvc/hvc_console.h",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(hvc_console_header);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/linux/watchdog.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/linux/watchdog.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/tty/hvc/hvc_console.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 interop substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_survey_note, "struct watchdog_info") != null);
+    try std.testing.expect(std.mem.indexOf(u8, dw_wdt_survey_note, "watchdog_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_survey_note, "drivers/tty/hvc/hvc_console.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_survey_note, "parity snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOC_GETSUPPORT") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOF_SETTIMEOUT") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOS_DISABLECARD") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_header, "MAX_NR_HVC_CONSOLES") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_header, "HVC_ALLOC_TTY_ADAPTERS") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_console_header, "struct hv_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11_uapi_header_parity_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11-uapi-header-parity-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "run_phase11_uapi_header_parity_survey_tests.step") != null);
+}
