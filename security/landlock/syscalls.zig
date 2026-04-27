@@ -17,6 +17,7 @@ pub const rule_type_net_port: u32 = 2;
 
 pub const fmode_can_read: u32 = 1 << 0;
 pub const fmode_can_write: u32 = 1 << 1;
+pub const required_mode: u32 = fmode_can_write;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -28,6 +29,7 @@ pub const ModuleDescriptor = struct {
     provides_ruleset_fd_planning: bool,
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
+    provides_net_port_handoff_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -172,6 +174,20 @@ pub const PathBeneathRulePlan = struct {
     releases_path_after_import: bool,
 };
 
+pub const NetPortRuleRequest = struct {
+    handled_access_net: u64 = 0,
+    net_port_attr: NetPortAttr = .{},
+};
+
+pub const NetPortRulePlan = struct {
+    anchor: []const u8,
+    allowed_access: u64,
+    port: u16,
+    copies_net_port_attr: bool,
+    reuses_add_rule_validation: bool,
+    invokes_append_net_rule: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -184,6 +200,7 @@ pub const SyscallsHelperLab = struct {
             .provides_ruleset_fd_planning = true,
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
+            .provides_net_port_handoff_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -414,6 +431,27 @@ pub const SyscallsHelperLab = struct {
             .path_lookup = path_lookup,
             .imports_path_beneath_rule = true,
             .releases_path_after_import = true,
+        };
+    }
+
+    pub fn planAddRuleNetPort(request: NetPortRuleRequest) !NetPortRulePlan {
+        const add_rule = try planAddRule(.{
+            .rule_type = rule_type_net_port,
+            .handled_access_net = request.handled_access_net,
+            .net_port_attr = request.net_port_attr,
+        });
+
+        if (add_rule.action != .net_port or add_rule.port == null) {
+            return error.InvalidNetPortPlan;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .allowed_access = add_rule.allowed_access,
+            .port = add_rule.port.?,
+            .copies_net_port_attr = true,
+            .reuses_add_rule_validation = true,
+            .invokes_append_net_rule = true,
         };
     }
 };
