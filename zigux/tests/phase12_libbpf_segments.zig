@@ -190,6 +190,9 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             saw_survey_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-libbpf-segment-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback owner") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reversible-delivery drill") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
@@ -221,4 +224,26 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_skeleton_blocker);
     try std.testing.expect(saw_blocker);
+}
+
+test "phase12 libbpf survey note records rollback drill and reversible delivery evidence" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- owner: `BPF Tooling Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- rollback owner: `BPF Tooling Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible delivery evidence: this Phase 12 packet only adds `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and this survey note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`phase12-libbpf-segment-survey-tests` and `phase12-libbpf-reviewability-tests` entries from `zigux/tests/phase12_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`") != null);
 }
