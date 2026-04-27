@@ -82,3 +82,4 @@ Phase 8 flow
 Phase 9 flow
 - `validate-phase9.py` checks that the bounded Phase 9 runtime governance bundle still keeps `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, the shared README notes, the bootstrap workflow, `make -C zigux phase9-validate`, and `zigux/tests/phase9_build.zig` aligned.
 - the same Phase 9 gate keeps the current loader-handoff release discipline explicit instead of leaving allocator ownership, `requires_runtime_substrate`, and the still-blocked command or environment control surface implied only by the survey note or checklist.
+- the same validator now also keeps the manifest-backed catalog and ownership map explicit, so the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` replay path stay assigned to one reviewable evidence packet.
