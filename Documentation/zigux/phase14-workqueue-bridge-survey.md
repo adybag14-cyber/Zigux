@@ -5,8 +5,8 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 ## Status
 
 - `PHASE14_STATUS=active`
-- `PHASE14_SLICE=workqueue-pending-bit-audit`
-- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new pending-bit or retry checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
+- `PHASE14_SLICE=workqueue-flush-color-followup`
+- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline through the max-active, pending-bit, retry, and lock-handoff checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the current foothold against the roadmap while keeping the next flush-color audit explicit
 - product boundary:
   - `kernel/workqueue_bridge.zig`
   - `zigux/tests/phase14_workqueue_bridge.zig`
