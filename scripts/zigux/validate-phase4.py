@@ -48,6 +48,7 @@ phase4_gate_expectations = {
         'gate_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay',
         'threshold_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
         'local_replay_test': 'phase4-runtime-atomic64-diff-tests',
+        'reversible_delivery': '`lib/atomic64_test.c` stays the source of truth, and removing `runtime_atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move while the existing Phase 9 runtime atomic64 starter remains the forward path',
     },
     'bitmap_diff.zig': {
         'owner': 'Shared Subsystems Pod',
@@ -58,6 +59,7 @@ phase4_gate_expectations = {
         'gate_scope': 'bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay',
         'threshold_scope': 'range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
         'local_replay_test': 'phase4-bitmap-diff-tests',
+        'reversible_delivery': '`lib/test_bitmap.c` stays the source of truth, and removing `bitmap_diff.zig` from the shared `phase4_build.zig` entrypoint falls back to the existing broad bitmap parity checks',
     },
 }
 
@@ -103,6 +105,7 @@ required_script_readme_markers = [
     'Phase 4 flow',
     'phase4_build.zig',
     'phase4-validation-matrix.md',
+    'reversible-delivery evidence',
 ]
 required_doc_readme_markers = [
     'Phase 4 notes',
@@ -112,12 +115,14 @@ required_doc_readme_markers = [
     'phase4-validation-matrix.md',
     'Validate Phase 4 diff gates',
     'Run Phase 4 diff tests',
+    'reversible-delivery evidence',
 ]
 required_phase4_matrix_markers = [
     'runtime_atomic64_diff.zig',
     'bitmap_diff.zig',
     'rollback owner',
     'lab and CI matrix',
+    'reversible delivery evidence',
     'perf threshold status',
     'Validate Phase 4 diff gates',
     'Run Phase 4 diff tests',
@@ -281,6 +286,10 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
     if expectation['local_replay_test'] not in row:
         missing.append(
             f"phase4_matrix:local_replay_test:{gate_name}:{expectation['local_replay_test']}"
+        )
+    if expectation['reversible_delivery'] not in row:
+        missing.append(
+            f"phase4_matrix:reversible_delivery:{gate_name}:{expectation['reversible_delivery']}"
         )
     return missing
 
