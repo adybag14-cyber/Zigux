@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "f9fcf27e2eab45ae770e523aa5e2e0b1e9cff2fd",
+  "surveyed_commit": "2dbd78146b65f0e8a0e9c2dcda046d3041780ae8",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -75,6 +75,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
       "why_now": "The landed queue-recovery follow-up now records one explicit queue recovery action alongside the probe snapshot so `virtnet_probe()` planning can distinguish stable single-queue fallback, feature renegotiation, and reset-required handling before any live DMA, NAPI, or netdev lifecycle work."
+    },
+    {
+      "id": "phase12-virtio-net-hdr-len-followup",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The landed `hdr_len` follow-up now mirrors the `virtnet_probe()` header branch so the lab snapshot records legacy, mergeable-or-version1, hash-report, and UDP-tunnel header selection before any live queue activation, DMA, NAPI, XDP, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
