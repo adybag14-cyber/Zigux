@@ -18,6 +18,18 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    role: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    owns: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     schedule_phase: []const u8,
@@ -29,6 +41,8 @@ const Manifest = struct {
     phase6_leaf_helpers: []const []const u8,
     runtime_samples: []const []const u8,
     runtime_loader_plans: []const []const u8,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
 };
 
@@ -98,6 +112,8 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.runtime_loader_plans.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
@@ -106,9 +122,78 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.runtime_samples[3]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", manifest.runtime_loader_plans[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[1]);
+    try std.testing.expectEqualStrings("runtime-loader-gap-note", manifest.delivery_evidence_catalog[0].id);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.delivery_evidence_catalog[0].path);
+    try std.testing.expectEqualStrings("runtime-loader-gap-manifest", manifest.delivery_evidence_catalog[2].id);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.delivery_evidence_catalog[2].path);
+    try std.testing.expectEqualStrings("shared-runtime-loader-contract", manifest.delivery_evidence_catalog[5].id);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.delivery_evidence_catalog[5].path);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.ownership_map[0].surface);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.ownership_map[2].surface);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.ownership_map[5].surface);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.ownership_map[7].surface);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_manifest_catalog = false;
+    var saw_shared_contract = false;
+    var saw_bitmap_loader_plan = false;
+    var saw_kretprobe_loader_plan = false;
+
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.kind.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+
+        if (std.mem.eql(u8, entry.id, "runtime-loader-gap-manifest")) {
+            saw_manifest_catalog = true;
+            try std.testing.expectEqualStrings("manifest", entry.kind);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "manifest-backed catalog and ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "shared-runtime-loader-contract")) {
+            saw_shared_contract = true;
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared request contract") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "bitmap-loader-plan")) {
+            saw_bitmap_loader_plan = true;
+            try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "bitmap loader-plan projection") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "kretprobe-loader-plan")) {
+            saw_kretprobe_loader_plan = true;
+            try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "kretprobe loader-plan projection") != null);
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+        }
+    }
+
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.owns.len > 0);
+
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_loader_gap_manifest.json")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "manifest-backed catalog and ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader.zig")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared request contract") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_bitmap_loader.zig")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "bitmap loader-plan projection") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe_loader.zig")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "kretprobe loader-plan projection") != null);
+        }
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
+        }
+    }
+
     var saw_build = false;
     var saw_gate = false;
     var saw_note = false;
@@ -186,6 +271,10 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
 
     try std.testing.expectEqual(@as(usize, 7), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(saw_manifest_catalog);
+    try std.testing.expect(saw_shared_contract);
+    try std.testing.expect(saw_bitmap_loader_plan);
+    try std.testing.expect(saw_kretprobe_loader_plan);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_note);
@@ -223,6 +312,10 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no hidden runtime services") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no implicit allocation posture beyond the explicit allocator-handoff contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no unclear panic or unsafe ownership story") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Delivery ownership map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "manifest-backed catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bitmap loader-plan projection") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kretprobe loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
 }
@@ -245,6 +338,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         "if unsafe code exists, is it narrow, visible, and review-owned?",
         "are parity tests or fixture checks included?",
         "is there a stated rollback owner and fallback path?",
+        "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
     });
 }
 
