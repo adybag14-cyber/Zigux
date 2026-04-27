@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "80d9c2e8e72aafdaea9aac36b5b0b2bb31f98dfa",
+  "surveyed_commit": "8275d09b3fdb3b8954fb0fe5bada7d247ebfba04",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -12,7 +12,7 @@
     "preexisting_runtime_test_files": 3,
     "preexisting_samples_zigux_present": true,
     "preexisting_phase9_build_present": true,
-    "preexisting_phase9_doc_present": false
+    "preexisting_phase9_doc_present": true
   },
   "gaps": [
     {
