@@ -203,6 +203,9 @@ jobs:
       - name: Run Phase 13 shared helper tests
         run: zig build test --build-file zigux/tests/phase13_build.zig --summary all
 
+      - name: Validate Phase 14 shared smoke packet
+        run: make -C zigux phase14-validate
+
       - name: Run Phase 14 internal bridge tests
         run: zig build test --build-file zigux/tests/phase14_build.zig --summary all
 
