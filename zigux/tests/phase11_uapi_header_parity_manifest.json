@@ -1,0 +1,59 @@
+{
+  "lane_key": "P11-L11",
+  "phase": "Phase 11",
+  "surveyed_commit": "76a9e0531eacee5f82e3f506489ccb9cf0c7a28b",
+  "anchor": "include/uapi/linux/watchdog.h",
+  "roadmap_destinations": [
+    "Documentation/zigux/",
+    "zigux/tests/",
+    "drivers/watchdog/*.zig",
+    "drivers/tty/hvc/*.zig"
+  ],
+  "survey_summary": {
+    "preexisting_phase11_build_present": true,
+    "watchdog_uapi_header_present": true,
+    "watchdog_core_header_present": true,
+    "hvc_console_header_present": true,
+    "dw_wdt_survey_note_present": true,
+    "dw_wdt_manifest_present": true,
+    "hvc_console_survey_note_present": true,
+    "hvc_console_manifest_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase11-shared-header-parity-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+      "why_now": "Phase 11 now has multiple bounded starters that touch watchdog and hvc surfaces, so one shared note keeps the public-header boundary explicit instead of leaving reviewers to infer that UAPI and shared core ownership still remain outside the tranche."
+    },
+    {
+      "id": "phase11-shared-header-parity-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "A dedicated shared survey gate now verifies that the Phase 11 note, the watchdog headers, the hvc header, and the driver-local survey packets all still describe the same bounded public-header posture."
+    },
+    {
+      "id": "phase11-dw-wdt-watchdog-header-boundary",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-dw-wdt-survey.md",
+      "why_now": "The dw_wdt lane now records that include/uapi/linux/watchdog.h still owns struct watchdog_info plus the WDIOC_* and WDIOF_* or WDIOS_* surface, while include/linux/watchdog.h still owns watchdog_device and watchdog_ops so the DesignWare starter does not overclaim watchdog parity."
+    },
+    {
+      "id": "phase11-hvc-console-header-boundary",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "The hvc_console starter already carries a tiny header-parity snapshot for drivers/tty/hvc/hvc_console.h that mirrors MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, and exported hvc helper metadata without widening into tty registration or host-backed I/O."
+    },
+    {
+      "id": "phase11-phase3-interop-followup",
+      "status": "ready_next",
+      "kind": "future_phase_boundary",
+      "zigux_destination": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+      "why_now": "If a later Phase 11 driver begins mirroring public-header constants or shared struct layouts beyond these bounded snapshots, the honest next step is a driver-local checkpoint plus an explicit handoff to the Phase 3 interop substrate rather than a silent simple-driver parity claim."
+    }
+  ]
+}
