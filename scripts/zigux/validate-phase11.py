@@ -55,6 +55,7 @@ README_MARKERS = [
     "phase11_gpio_wdt_manifest.json",
     "phase11_uapi_header_parity_manifest.json",
     "dedicated hvc_console survey note and validation matrix",
+    "exact shared-versus-dedicated replay commands and observed outcome lines",
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
@@ -239,7 +240,10 @@ for marker in [
     "PHASE11_HVC_CONSOLE_STATUS=tty_registration_handoff_landed",
     "shared replay observed on `master` currently runs `phase11-hvc-console-tests` but not `phase11-hvc-console-survey-tests`",
     "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+    "`Build Summary: 17/17 steps succeeded; 37/37 tests passed`",
+    "`run test phase11-hvc-console-tests 6 pass (6 total)`",
     "`zig test zigux/tests/phase11_hvc_console_survey.zig`",
+    "`2/2 ... OK`",
     "deepen the next bounded khvcd polling-contract summary",
 ]:
     if marker not in hvc_matrix_doc:
