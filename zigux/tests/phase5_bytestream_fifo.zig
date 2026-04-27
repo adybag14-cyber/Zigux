@@ -22,10 +22,12 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.snapshot_len);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.final_len);
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.snapshot_before_final_drain[0..]);
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
@@ -42,6 +44,10 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(?u8, null), module.skipByte());
     try std.testing.expectEqual(@as(usize, 0), module.enqueueSlice(&.{}));
 
+    var preview: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(usize, 0), module.snapshotInto(preview[0..]));
+    try std.testing.expectEqual(@as(u8, 0xaa), preview[0]);
+
     var count: u8 = 0;
     while (count < sample.BytestreamFifoSample.capacity) : (count += 1) {
         try std.testing.expect(module.pushByte(count));
@@ -49,6 +55,12 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expect(!module.pushByte(255));
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.count());
     try std.testing.expectEqual(@as(?u8, 0), module.peekByte());
+
+    var snapshot: [8]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, snapshot.len), module.snapshotInto(snapshot[0..]));
+    try std.testing.expectEqualSlices(u8, &.{ 0, 1, 2, 3, 4, 5, 6, 7 }, snapshot[0..]);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.count());
+
     try std.testing.expectEqual(@as(?u8, 0), module.skipByte());
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), module.count());
 
