@@ -70,7 +70,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
-    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "f1ce538166d2bd99c6d723842b2c4bb1b5428cec"));
+    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "246d0135fa18a1af90bf7d6e516ae4a7b2ac262a"));
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
