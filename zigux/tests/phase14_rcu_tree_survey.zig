@@ -80,7 +80,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("P14-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("c6a3bc58efc57f3f276ebe7246d84be5d70200f2", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0855a2fc20664cd4a138379d7731edf8183d74e6", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.boundary_map.len);
     try std.testing.expect(manifest.survey_summary.tree_c_lines >= 4900);
@@ -275,7 +275,7 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "freeze-in-C") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Roadmap boundary map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance captured against verified `master` head `c6a3bc58efc57f3f276ebe7246d84be5d70200f2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance captured against verified `master` head `0855a2fc20664cd4a138379d7731edf8183d74e6`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current freeze-in-C blocker") != null);
 }
