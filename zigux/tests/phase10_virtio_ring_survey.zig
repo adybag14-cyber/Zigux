@@ -34,7 +34,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio ring survey manifest records the live MMIO follow-up boundary" {
+test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -73,6 +73,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
     var saw_callback_delay_helper = false;
     var saw_notify_prepare_helper = false;
     var saw_mmio_register_window = false;
+    var saw_mmio_queue_register = false;
     var saw_mmio_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
@@ -135,9 +136,17 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
             saw_mmio_register_window = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-window helper") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-register-helper")) {
+            saw_mmio_queue_register = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue select") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ready-state bookkeeping") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
@@ -168,6 +177,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up bounda
     try std.testing.expect(saw_callback_delay_helper);
     try std.testing.expect(saw_notify_prepare_helper);
     try std.testing.expect(saw_mmio_register_window);
+    try std.testing.expect(saw_mmio_queue_register);
     try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_mmio_blocker);
 }
