@@ -225,6 +225,7 @@ test "phase 1 helper ports match committed parity fixture" {
     find_tail_zero_window[1] &= ~(@as(find_bit.Word, 1) << 2);
     try std.testing.expectEqual(fixture.find_bit.bits_per_long + 2, find_bit.findFirstZeroBit(&find_tail_zero_window, find_tail_nbits));
     try std.testing.expectEqual(fixture.find_bit.bits_per_long + 2, find_bit.findNextZeroBit(&find_tail_zero_window, find_tail_nbits, fixture.find_bit.bits_per_long));
+
     const bitmap_lhs = [_]bitmap.Word{ 0x0e, 0 };
     const bitmap_rhs = [_]bitmap.Word{ 0x0a, 0 };
     var bitmap_dst = [_]bitmap.Word{ 0, 0 };
@@ -248,6 +249,7 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.bitmap.equal, bitmap.equal(&bitmap_lhs, &[_]bitmap.Word{ 0x0e, 0 }, 8));
     try std.testing.expectEqual(fixture.bitmap.intersects, bitmap.intersects(&bitmap_lhs, &bitmap_rhs, 8));
     try std.testing.expectEqual(fixture.bitmap.subset, bitmap.subset(&bitmap_rhs, &bitmap_lhs, 8));
+
     var bitmap_range = [_]bitmap.Word{ 0, 0, 0 };
     bitmap.setRange(&bitmap_range, 1, 3);
     bitmap.setRange(&bitmap_range, bitmap.bits_per_long + 2, 2);
@@ -255,10 +257,12 @@ test "phase 1 helper ports match committed parity fixture" {
     bitmap.clearRange(&bitmap_range, 1, 3);
     bitmap.clearRange(&bitmap_range, bitmap.bits_per_long + 2, 2);
     try expectWordSlice(&bitmap_range, fixture.bitmap.range_after_clear);
+
     bitmap.fill(&bitmap_dst, find_bit.bits_per_long * 2);
     try std.testing.expectEqual(fixture.bitmap.full_after_fill, bitmap.full(&bitmap_dst, find_bit.bits_per_long * 2));
     bitmap.zero(&bitmap_dst, find_bit.bits_per_long * 2);
     try std.testing.expectEqual(fixture.bitmap.empty_after_zero, bitmap.empty(&bitmap_dst, find_bit.bits_per_long * 2));
+
     var bitmap_render = [_]bitmap.Word{ 0, 0 };
     bitmap.setRange(&bitmap_render, 1, 3);
     bitmap.setRange(&bitmap_render, 7, 1);
@@ -271,7 +275,6 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.bitmap.scnprintf_trunc_len, bitmap_trunc_len);
     try std.testing.expectEqualStrings(fixture.bitmap.scnprintf_trunc, bitmap_trunc_buffer[0..bitmap_trunc_len]);
     try std.testing.expectEqual(@as(u8, 0), bitmap_trunc_buffer[bitmap_trunc_len]);
-
 
     try std.testing.expectEqual(fixture.string.strtobool_y, try string.strtobool("y"));
     try std.testing.expectEqual(fixture.string.strtobool_on, try string.strtobool("On"));
@@ -388,6 +391,7 @@ test "phase 1 helper ports match committed parity fixture" {
     }
     try std.testing.expectEqualSlices(i32, fixture.list_sort.tri_sorted_keys, tri_sorted_keys[0..tri_index]);
     try std.testing.expectEqualSlices(usize, fixture.list_sort.tri_sorted_ordinals, tri_sorted_ordinals[0..tri_index]);
+
     var bool_head: list_sort.ListHead = .{};
     bool_head.init();
     var bool_entries = [_]ListEntry{
@@ -412,6 +416,7 @@ test "phase 1 helper ports match committed parity fixture" {
     }
     try std.testing.expectEqualSlices(i32, fixture.list_sort.bool_sorted_keys, bool_sorted_keys[0..bool_index]);
     try std.testing.expectEqualSlices(usize, fixture.list_sort.bool_sorted_ordinals, bool_sorted_ordinals[0..bool_index]);
+
     var zalloc_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 8);
     defer zalloc.zfreeBytes(allocator, &zalloc_bytes);
     var zalloc_zeroed = true;
@@ -424,6 +429,7 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.zalloc.zeroed, zalloc_zeroed);
     zalloc.zfreeBytes(allocator, &zalloc_bytes);
     try std.testing.expectEqual(fixture.zalloc.freed_is_null, zalloc_bytes == null);
+
     const ZallocValue = struct {
         a: u32,
         b: bool,
@@ -437,7 +443,142 @@ test "phase 1 helper ports match committed parity fixture" {
     var strerror_buffer: [64]u8 = undefined;
     try std.testing.expectEqualStrings(fixture.str_error_r.enoent, str_error_r.strErrorR(2, &strerror_buffer));
     try std.testing.expectEqualStrings(fixture.str_error_r.unknown, str_error_r.strErrorR(4096, &strerror_buffer));
+
     slab.kmalloc_nr_allocated = 0;
     try std.testing.expectEqual(fixture.slab.null_without_reclaim, slab.kmallocBytes(8, 0) == null);
     const slab_plain = slab.kmallocBytes(8, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc, slab.km®éÜj×
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc, slab.kmalloc_nr_allocated);
+    for (slab_plain) |*value| {
+        value.* = 0xaa;
+    }
+    slab.kfree(slab_plain);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_free, slab.kmalloc_nr_allocated);
+
+    var slab_array: ?[]u8 = slab.kmallocArray(4, 2, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer slab.kfree(slab_array);
+    var slab_array_zeroed = true;
+    for (slab_array.?) |value| {
+        if (value != 0) {
+            slab_array_zeroed = false;
+            break;
+        }
+    }
+    try std.testing.expectEqual(fixture.slab.array_zeroed, slab_array_zeroed);
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_array, slab.kmalloc_nr_allocated);
+    try std.testing.expectEqual(fixture.slab.slab_is_available, slab.slabIsAvailable());
+    slab.kfree(slab_array);
+    slab_array = null;
+    try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc_array_free, slab.kmalloc_nr_allocated);
+
+    var vsprintf_buffer: [16]u8 = undefined;
+    const scnprintf_len = vsprintf.scnprintf(&vsprintf_buffer, "{s}:{d}", .{ "zigux", 7 });
+    try std.testing.expectEqual(fixture.vsprintf.scnprintf_len, scnprintf_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.scnprintf_text, vsprintf_buffer[0..scnprintf_len]);
+
+    var vsprintf_pad_buffer: [9]u8 = undefined;
+    const scnprintf_pad_len = vsprintf.scnprintfPad(&vsprintf_pad_buffer, vsprintf_pad_buffer.len - 1, "id={d}", .{7});
+    try std.testing.expectEqual(fixture.vsprintf.pad_len, scnprintf_pad_len);
+    try std.testing.expectEqualStrings(fixture.vsprintf.pad_text, vsprintf_pad_buffer[0 .. vsprintf_pad_buffer.len - 1]);
+
+    const Entry = struct {
+        key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = rbtree.Root.init();
+    try std.testing.expectEqual(fixture.rbtree.empty_root, rbtree.emptyRoot(&root));
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    var insert_order: [5]i32 = undefined;
+    var insert_index: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        insert_order[insert_index] = entry.key;
+        insert_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.insert_order, insert_order[0..insert_index]);
+
+    var reverse_order: [5]i32 = undefined;
+    var reverse_index: usize = 0;
+    current = rbtree.last(&root);
+    while (current) |node| : (current = rbtree.prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        reverse_order[reverse_index] = entry.key;
+        reverse_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.reverse_order, reverse_order[0..reverse_index]);
+
+    rbtree.erase(&entries[1].node, &root);
+    rbtree.replaceNode(&entries[0].node, &replacement.node, &root);
+    var replace_order: [4]i32 = undefined;
+    var replace_index: usize = 0;
+    current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        replace_order[replace_index] = entry.key;
+        replace_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.replace_order, replace_order[0..replace_index]);
+
+    rbtree.eraseInit(&replacement.node, &root);
+    var erase_init_order: [3]i32 = undefined;
+    var erase_init_index: usize = 0;
+    current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        erase_init_order[erase_init_index] = entry.key;
+        erase_init_index += 1;
+    }
+    try std.testing.expectEqualSlices(i32, fixture.rbtree.erase_init_order, erase_init_order[0..erase_init_index]);
+    try std.testing.expectEqual(fixture.rbtree.erase_init_node_empty, rbtree.emptyNode(&replacement.node));
+
+    var postorder_entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var postorder_root = rbtree.Root.init();
+    for (&postorder_entries) |*entry| {
+        rbtree.add(&entry.node, &postorder_root, less);
+    }
+    var postorder_count: usize = 0;
+    current = rbtree.firstPostorder(&postorder_root);
+    while (current) |node| : (current = rbtree.nextPostorder(node)) {
+        postorder_count += 1;
+    }
+    try std.testing.expectEqual(fixture.rbtree.postorder_count, postorder_count);
+    rbtree.clearNode(&replacement.node);
+    try std.testing.expectEqual(fixture.rbtree.cleared_node_empty, rbtree.emptyNode(&replacement.node));
+}
+
+test "phase 1 string replaceChar stops at embedded NUL" {
+    var replace_buffer = [_]u8{ 'a', '-', 0, '-', 'z' };
+    try std.testing.expectEqual(
+        @as(usize, 2),
+        string.replaceChar(&replace_buffer, '-', '_'),
+    );
+    try std.testing.expectEqualSlices(
+        u8,
+        &[_]u8{ 'a', '_', 0, '-', 'z' },
+        &replace_buffer,
+    );
+}
