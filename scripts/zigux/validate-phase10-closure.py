@@ -19,6 +19,7 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "phase10-virtio-input-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-input-module-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-input-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-survey.md",
     ROOT / "scripts" / "zigux" / "validate-phase10-closure.py",
     ROOT / "zigux" / "Makefile",
@@ -27,6 +28,7 @@ required_files = [
     ROOT / "drivers" / "virtio" / "virtio.zig",
     ROOT / "drivers" / "virtio" / "virtio_ring.zig",
     ROOT / "drivers" / "virtio" / "virtio_input.zig",
+    ROOT / "drivers" / "virtio" / "virtio_mmio.zig",
     ROOT / "zigux" / "tests" / "phase10_build.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_core.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_core_manifest.json",
@@ -35,6 +37,7 @@ required_files = [
     ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_input.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_input_survey.zig",
+    ROOT / "zigux" / "tests" / "phase10_virtio_mmio.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_mmio_survey.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_ring_manifest.json",
     ROOT / "zigux" / "tests" / "phase10_virtio_input_manifest.json",
@@ -73,15 +76,15 @@ required_closure_markers = [
     "PHASE10_STATUS=active",
     "PHASE10_TRANCHE=virtio-lab-bundle",
     "PHASE10_CLOSURE_EVIDENCE=verified",
-    "PHASE10_DOC_COUNT=8",
+    "PHASE10_DOC_COUNT=9",
     "PHASE10_MANIFEST_COUNT=4",
-    "PHASE10_DRIVER_COUNT=3",
-    "PHASE10_TEST_COUNT=7",
-    "PHASE10_HAS_VIRTIO_MMIO_ZIG=no",
+    "PHASE10_DRIVER_COUNT=4",
+    "PHASE10_TEST_COUNT=8",
+    "PHASE10_HAS_VIRTIO_MMIO_ZIG=yes",
     "PHASE10_ROADMAP_PARITY_SCOREBOARD=present",
     "PHASE10_ROADMAP_SCOREBOARD_ROW_COUNT=4",
     "PHASE10_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed",
-    "PHASE10_ROADMAP_MMIO_WRAPPERS=survey_backed_ready_next",
+    "PHASE10_ROADMAP_MMIO_WRAPPERS=starter_landed",
     "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
     "PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
@@ -98,12 +101,16 @@ required_closure_markers = [
     "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
-    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_core_survey.zig",
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
     "Documentation/zigux/review-checklist.md",
-    "phase10-mmio-register-window-helper",
+    "phase10-mmio-queue-register-helper",
+    "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
     "blocked_on_risky_transport",
@@ -137,7 +144,6 @@ required_checklist_markers = [
 ]
 required_ring_survey_markers = [
     "remaining MMIO follow-up boundary against the roadmap",
-    "phase10-mmio-register-window-helper",
 ]
 required_ring_survey_test_markers = [
     'test "phase10 virtio ring survey manifest records the live MMIO follow-up boundary" {',
@@ -180,15 +186,15 @@ if manifest.get("status") != "active":
     missing_markers.append("manifest:status=active")
 if manifest.get("tranche") != "virtio-lab-bundle":
     missing_markers.append("manifest:tranche=virtio-lab-bundle")
-if manifest.get("doc_count") != 8:
+if manifest.get("doc_count") != 9:
     missing_markers.append(f'manifest:doc_count={manifest.get("doc_count")}')
 if manifest.get("manifest_count") != 4:
     missing_markers.append(f'manifest:manifest_count={manifest.get("manifest_count")}')
-if manifest.get("driver_count") != 3:
+if manifest.get("driver_count") != 4:
     missing_markers.append(f'manifest:driver_count={manifest.get("driver_count")}')
-if manifest.get("test_count") != 7:
+if manifest.get("test_count") != 8:
     missing_markers.append(f'manifest:test_count={manifest.get("test_count")}')
-if manifest.get("has_virtio_mmio_zig") is not False:
+if manifest.get("has_virtio_mmio_zig") is not True:
     missing_markers.append(f'manifest:has_virtio_mmio_zig={manifest.get("has_virtio_mmio_zig")}')
 if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
     missing_markers.append(f'manifest:freeze_map={manifest.get("freeze_map")}')
@@ -222,7 +228,6 @@ if manifest.get("architecture_council_reopen_required") is not True:
 if manifest.get("architecture_council_reopen_attached") is not False:
     missing_markers.append("manifest:architecture_council_reopen_attached=true")
 expected_forbidden_transport_claims = [
-    "virtio_mmio.zig",
     "queue_setup_reset_paths",
     "irq_parity",
     "dma_paths",
@@ -264,7 +269,7 @@ expected_exact_checks = {
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
-    "make -C zigux phase10",
+    "make -C zigux phase10"
 }
 if set(manifest.get("exact_checks", [])) != expected_exact_checks:
     missing_markers.append("manifest:exact_checks:mismatch")
@@ -276,23 +281,26 @@ expected_roadmap_parity_scoreboard = {
             "drivers/virtio/virtio_ring.zig",
             "zigux/tests/phase10_virtio_ring.zig",
             "zigux/tests/phase10_virtio_ring_manifest.json",
-            "Documentation/zigux/phase10-virtio-ring-survey.md",
-        ],
+            "Documentation/zigux/phase10-virtio-ring-survey.md"
+        ]
     },
     "mmio_wrappers": {
-        "status": "survey_backed_ready_next",
+        "status": "starter_landed",
         "evidence": [
+            "drivers/virtio/virtio_mmio.zig",
+            "zigux/tests/phase10_virtio_mmio.zig",
             "zigux/tests/phase10_virtio_mmio_manifest.json",
-            "Documentation/zigux/phase10-virtio-mmio-survey.md",
-        ],
+            "Documentation/zigux/phase10-virtio-mmio-slice.md",
+            "Documentation/zigux/phase10-virtio-mmio-survey.md"
+        ]
     },
     "lab_only_driver_validation": {
         "status": "starter_landed",
         "evidence": [
             "zigux/tests/phase10_build.zig",
             "scripts/zigux/validate-phase10-closure.py",
-            "Documentation/zigux/phase10-closure-evidence.md",
-        ],
+            "Documentation/zigux/phase10-closure-evidence.md"
+        ]
     },
     "dual_implementations_for_risky_areas": {
         "status": "blocked_on_risky_transport",
@@ -300,9 +308,9 @@ expected_roadmap_parity_scoreboard = {
             "Documentation/zigux/phase10-closure-evidence.md",
             "zigux/tests/phase10_virtio_ring_manifest.json",
             "zigux/tests/phase10_virtio_input_manifest.json",
-            "zigux/tests/phase10_virtio_mmio_manifest.json",
-        ],
-    },
+            "zigux/tests/phase10_virtio_mmio_manifest.json"
+        ]
+    }
 }
 roadmap_parity_scoreboard = manifest.get("roadmap_parity_scoreboard")
 if roadmap_parity_scoreboard != expected_roadmap_parity_scoreboard:
@@ -315,7 +323,7 @@ else:
 
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
-    "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-register-window-helper",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-register-helper"
 }
 if ready_transport_followups != expected_ready_transport_followups:
     missing_markers.append("manifest:ready_transport_followups:mismatch")
@@ -323,7 +331,7 @@ if ready_transport_followups != expected_ready_transport_followups:
 blocked_transport_gaps = manifest.get("blocked_transport_gaps")
 expected_blocked_transport_gaps = {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
-    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
 }
 if blocked_transport_gaps != expected_blocked_transport_gaps:
     missing_markers.append("manifest:blocked_transport_gaps:mismatch")
@@ -371,8 +379,12 @@ if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper",
     missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:ready_next")
 if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "ready_next"):
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:ready_next")
+if not has_gap_status(input_manifest, "phase10-virtio-input-registration-preflight-helper", "ready_next"):
+    missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-preflight-helper:ready_next")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecycle", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
+if not has_gap_status(mmio_manifest, "phase10-mmio-queue-register-helper", "ready_next"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-register-helper:ready_next")
 if not has_gap_status(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
 
