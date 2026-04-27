@@ -129,6 +129,18 @@ required_phase4_matrix_markers = [
     'rollback owner and lab matrix stay unassigned until a bounded Zig surface lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
 ]
+roadmap_gap_expectations = {
+    'samples/zigux/kprobe_example.zig': {
+        'current_repo_state': 'not present on `master`; the current anchor remains `samples/kprobes/kprobe_example.c` through `samples/kprobes/Makefile` and `CONFIG_SAMPLE_KPROBES`',
+        'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`; no hard timing threshold is approved before a bounded Zig sample lands',
+        'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
+    },
+    'samples/zigux/test_fsmount.zig': {
+        'current_repo_state': 'not present on `master`',
+        'measurability_gap': 'rollback owner and lab matrix stay unassigned until a bounded Zig surface lands',
+        'next_bounded_step': 'add a survey or starter gate that names one owner, one rollback owner, and one replay command before claiming this anchor as active Phase 4 work',
+    },
+}
 required_artifact_diff_markers = [
     'def emit_result(matched: bool, details: dict[str, object]) -> int:',
     'def run_self_test() -> int:',
@@ -263,6 +275,26 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
 
 for gate_name, expectation in phase4_gate_expectations.items():
     missing_markers.extend(check_gate_matrix_alignment(gate_name, expectation))
+
+
+def check_roadmap_gap_alignment(item_name: str, expectation: dict[str, str]) -> list[str]:
+    row_prefix = f'| `{item_name}`'
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+    if not row:
+        return [f'phase4_matrix:missing_gap_row:{item_name}']
+
+    missing = []
+    for key, fragment in expectation.items():
+        if fragment not in row:
+            missing.append(f'phase4_matrix:gap_{key}:{item_name}:{fragment}')
+    return missing
+
+
+for item_name, expectation in roadmap_gap_expectations.items():
+    missing_markers.extend(check_roadmap_gap_alignment(item_name, expectation))
 
 if missing_markers:
     print('PHASE4_VALIDATION=fail')
