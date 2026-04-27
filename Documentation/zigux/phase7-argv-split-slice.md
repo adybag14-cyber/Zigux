@@ -56,7 +56,7 @@ The current tests check:
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - optional argc reporting that stays in sync with the returned argv length
-- a machine-checked survey record that keeps the Phase 7 roadmap anchor, landed review surfaces, and the one remaining generated-parity follow-up explicit
+- a machine-checked survey record that keeps the Phase 7 roadmap anchor, landed review surfaces, and the parked generated-parity artifact note explicit without advertising active same-lane work
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
 
@@ -71,4 +71,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, survey, or dedicated-gate surface, with a generated C-backed parity artifact now the one clearly recorded same-lane follow-up.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, survey, or dedicated-gate surface. Keep the generated C-backed parity artifact note as archived review context rather than active same-lane work.
