@@ -47,7 +47,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `007f00d0c6b6b430bfbb2110555544cc5faefe8b`, ready-next `phase14-workqueue-drain-cancel-followup`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-validate-xmit-republish-followup`, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `99cd3249c4bab05b74227ed7ca3869284e818588`, ready-next `phase14-ring-buffer-read-page-extraction-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
-  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L14`, surveyed commit `c6a3bc58efc57f3f276ebe7246d84be5d70200f2`, blocked `phase14-rcu-tree-bridge-blocker`
+  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L13`, surveyed commit `0855a2fc20664cd4a138379d7731edf8183d74e6`, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
 
