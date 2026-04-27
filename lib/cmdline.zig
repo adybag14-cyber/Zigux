@@ -235,7 +235,7 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
     var base: u8 = 10;
     var start: usize = 0;
 
-    if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) {
+    if (s.len >= 3 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X') and isDigitForBase(s[2], 16)) {
         base = 16;
         start = 2;
     } else if (s[0] == '0') {
@@ -355,6 +355,18 @@ test "memparse handles size suffixes and reports where parsing stopped" {
 
     try std.testing.expectEqual(@as(u64, 0), memparse("bad", &index));
     try std.testing.expectEqual(@as(usize, 0), index);
+}
+
+test "numeric parsing only treats 0x as hexadecimal when a hex digit follows" {
+    var rest: []const u8 = "0x,tail";
+    var value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&rest, &value));
+    try std.testing.expectEqual(@as(i32, 0), value);
+    try std.testing.expectEqualStrings("x,tail", rest);
+
+    var mem_index: usize = 999;
+    try std.testing.expectEqual(@as(u64, 0), memparse("0xK", &mem_index));
+    try std.testing.expectEqual(@as(usize, 1), mem_index);
 }
 
 test "parseOptionStr only matches full comma-delimited options" {
