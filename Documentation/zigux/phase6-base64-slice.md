@@ -49,6 +49,7 @@ The current tests check:
 - standard RFC 4648 encode vectors with and without padding
 - standard RFC 4648 decode vectors with and without padding
 - variant alphabet parity for URL-safe and IMAP output
+- variant alphabet parity for URL-safe and IMAP output with and without padding
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
 - destination-bounds failures before partial writes
