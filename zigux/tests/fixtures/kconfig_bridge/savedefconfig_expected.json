@@ -1,0 +1,1 @@
+{"tool":"scripts/kconfig/conf","mode":"savedefconfig","argv":["scripts/kconfig/conf","--savedefconfig","arch/arm64/configs/minimal_defconfig","Kconfig"],"env":{"ARCH":"arm64","KCONFIG_CONFIG":"out/.config"}}
