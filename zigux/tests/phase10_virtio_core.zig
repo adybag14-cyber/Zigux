@@ -227,13 +227,16 @@ test "phase10 virtio core delivers config changes immediately when core and driv
 
     device.acknowledge();
     try device.attachDriver();
+    try device.registerDriverBinding("virtio_test_driver", true);
 
     try device.noteConfigChanged();
     const summary = device.configChangeSummary();
 
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqualStrings("virtio_test_driver", summary.driver_name);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(summary.config_changed_registered);
     try std.testing.expect(!summary.change_pending);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
 }
@@ -243,12 +246,15 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
 
     device.acknowledge();
     try device.attachDriver();
+    try device.registerDriverBinding("virtio_test_driver", true);
     try device.disableConfigDriver();
     try device.noteConfigChanged();
 
     var summary = device.configChangeSummary();
+    try std.testing.expectEqualStrings("virtio_test_driver", summary.driver_name);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(summary.driver_disabled);
+    try std.testing.expect(summary.config_changed_registered);
     try std.testing.expect(summary.change_pending);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 
@@ -274,12 +280,15 @@ test "phase10 virtio core keeps config changes pending while the core path is di
 
     device.acknowledge();
     try device.attachDriver();
+    try device.registerDriverBinding("virtio_test_driver", true);
     try device.disableConfigCore();
     try device.noteConfigChanged();
 
     var summary = device.configChangeSummary();
+    try std.testing.expectEqualStrings("virtio_test_driver", summary.driver_name);
     try std.testing.expect(!summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(summary.config_changed_registered);
     try std.testing.expect(summary.change_pending);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 
@@ -298,4 +307,31 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+}
+
+test "phase10 virtio core records callback registration and suppresses delivery when no handler is bound" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 6, 13 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.registerDriverBinding("virtio_probe_only", false);
+    try device.noteConfigChanged();
+
+    var summary = device.configChangeSummary();
+    try std.testing.expectEqualStrings("virtio_probe_only", summary.driver_name);
+    try std.testing.expect(!summary.config_changed_registered);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+
+    try device.registerDriverBinding("virtio_probe_only", true);
+    try device.noteConfigChanged();
+
+    summary = device.configChangeSummary();
+    try std.testing.expect(summary.config_changed_registered);
+    try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+
+    device.reset();
+    summary = device.configChangeSummary();
+    try std.testing.expectEqualStrings("", summary.driver_name);
+    try std.testing.expect(!summary.config_changed_registered);
 }
