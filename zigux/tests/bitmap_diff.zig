@@ -33,6 +33,13 @@ const CopyCase = struct {
     must_be_clear: []const u32,
 };
 
+const NthCase = struct {
+    name: []const u8,
+    nbits: u32,
+    nth: u32,
+    expected_bit: u32,
+};
+
 const BitmapHarness = struct {
     const Self = @This();
     const Word = usize;
@@ -129,6 +136,20 @@ const BitmapHarness = struct {
         return ((self.words[word_index] >> bit_index) & 1) != 0;
     }
 
+    fn findNthSet(self: *const Self, nbits: u32, nth: u32) !u32 {
+        if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
+
+        var seen: u32 = 0;
+        var bit: u32 = 0;
+        while (bit < nbits) : (bit += 1) {
+            if (!self.isSet(bit)) continue;
+            if (seen == nth) return bit;
+            seen += 1;
+        }
+
+        return nbits;
+    }
+
     fn firstSet(self: *const Self) u32 {
         for (self.words, 0..) |word, index| {
             if (word != 0) {
@@ -223,6 +244,11 @@ fn expectCopyCase(case: CopyCase) !void {
     for (case.must_be_clear) |bit| {
         try std.testing.expect(!destination.isSet(bit));
     }
+}
+
+fn expectNthCase(bitmap: *const BitmapHarness, case: NthCase) !void {
+    try std.testing.expect(case.name.len != 0);
+    try std.testing.expectEqual(case.expected_bit, try bitmap.findNthSet(case.nbits, case.nth));
 }
 
 test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
@@ -458,5 +484,35 @@ test "bitmap diff gate records exact bounded copy checks" {
 
     for (cases) |case| {
         try expectCopyCase(case);
+    }
+}
+
+test "bitmap diff gate records exact bounded find_nth_bit checks" {
+    var bitmap = BitmapHarness{};
+    try bitmap.initWithSetBits(&.{ 10, 20, 30, 40, 50, 60, 80, 123 });
+
+    const cases = [_]NthCase{
+        .{ .name = "test_find_nth_bit full-width nth 0", .nbits = 64 * 3, .nth = 0, .expected_bit = 10 },
+        .{ .name = "test_find_nth_bit full-width nth 1", .nbits = 64 * 3, .nth = 1, .expected_bit = 20 },
+        .{ .name = "test_find_nth_bit full-width nth 2", .nbits = 64 * 3, .nth = 2, .expected_bit = 30 },
+        .{ .name = "test_find_nth_bit full-width nth 3", .nbits = 64 * 3, .nth = 3, .expected_bit = 40 },
+        .{ .name = "test_find_nth_bit full-width nth 4", .nbits = 64 * 3, .nth = 4, .expected_bit = 50 },
+        .{ .name = "test_find_nth_bit full-width nth 5", .nbits = 64 * 3, .nth = 5, .expected_bit = 60 },
+        .{ .name = "test_find_nth_bit full-width nth 6", .nbits = 64 * 3, .nth = 6, .expected_bit = 80 },
+        .{ .name = "test_find_nth_bit full-width nth 7", .nbits = 64 * 3, .nth = 7, .expected_bit = 123 },
+        .{ .name = "test_find_nth_bit full-width nth 8 returns nbits", .nbits = 64 * 3, .nth = 8, .expected_bit = 64 * 3 },
+        .{ .name = "test_find_nth_bit truncated-width nth 0", .nbits = 64 * 3 - 1, .nth = 0, .expected_bit = 10 },
+        .{ .name = "test_find_nth_bit truncated-width nth 1", .nbits = 64 * 3 - 1, .nth = 1, .expected_bit = 20 },
+        .{ .name = "test_find_nth_bit truncated-width nth 2", .nbits = 64 * 3 - 1, .nth = 2, .expected_bit = 30 },
+        .{ .name = "test_find_nth_bit truncated-width nth 3", .nbits = 64 * 3 - 1, .nth = 3, .expected_bit = 40 },
+        .{ .name = "test_find_nth_bit truncated-width nth 4", .nbits = 64 * 3 - 1, .nth = 4, .expected_bit = 50 },
+        .{ .name = "test_find_nth_bit truncated-width nth 5", .nbits = 64 * 3 - 1, .nth = 5, .expected_bit = 60 },
+        .{ .name = "test_find_nth_bit truncated-width nth 6", .nbits = 64 * 3 - 1, .nth = 6, .expected_bit = 80 },
+        .{ .name = "test_find_nth_bit truncated-width nth 7", .nbits = 64 * 3 - 1, .nth = 7, .expected_bit = 123 },
+        .{ .name = "test_find_nth_bit truncated-width nth 8 returns nbits", .nbits = 64 * 3 - 1, .nth = 8, .expected_bit = 64 * 3 - 1 },
+    };
+
+    for (cases) |case| {
+        try expectNthCase(&bitmap, case);
     }
 }
