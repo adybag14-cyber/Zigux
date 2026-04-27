@@ -22,6 +22,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 
 - whitespace-only argv tokenization
 - first-NUL C-string bounds on both counting and splitting
+- optional argc reporting that matches the C helper's out-parameter shape more directly
 - an explicit result object that owns the copied token buffer
 - deterministic Zig-only validation without quote or shell expansion behavior
 
@@ -39,6 +40,7 @@ The current landed slice covers:
 
 - `count_argc()`
 - `argv_split()`
+- optional `argcp` reporting through `argvSplitWithArgc()`
 
 The current tests check:
 
@@ -48,6 +50,7 @@ The current tests check:
 - strict non-goal behavior where quote characters stay inside the returned tokens
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
+- optional argc reporting that stays in sync with the returned argv length
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
 

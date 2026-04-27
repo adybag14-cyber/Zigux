@@ -40,6 +40,14 @@ pub fn countArgc(text: []const u8) usize {
 }
 
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
+    return argvSplitWithArgc(allocator, text, null);
+}
+
+pub fn argvSplitWithArgc(
+    allocator: std.mem.Allocator,
+    text: []const u8,
+    argcp: ?*usize,
+) !ArgvSplitResult {
     var storage = try allocator.dupeZ(u8, cStringPrefix(text));
     errdefer allocator.free(storage);
 
@@ -75,6 +83,9 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
     argv_null_terminated[arg_index] = null;
     std.debug.assert(arg_index == argc);
+    if (argcp) |count_out| {
+        count_out.* = argc;
+    }
     return .{
         .storage = storage,
         .argv = argv,
@@ -112,10 +123,12 @@ const quote_expected = [_][]const u8{
 };
 
 fn expectFixture(fixture: ArgvFixture) !void {
-    var split = try argvSplit(std.testing.allocator, fixture.input);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(std.testing.allocator, fixture.input, &argc);
     defer split.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(fixture.expected.len, countArgc(fixture.input));
+    try std.testing.expectEqual(fixture.expected.len, argc);
     try std.testing.expectEqual(fixture.expected.len, split.argv.len);
 
     const c_argv = split.cArgv();
