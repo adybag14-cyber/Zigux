@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-lab-starter`
-- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, config-change bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
+- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, config-change bookkeeping, tiny driver-binding bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
 - product boundary:
   - `drivers/virtio/virtio.zig`
   - `zigux/tests/phase10_virtio_core.zig`
@@ -17,7 +17,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 The Phase 10 roadmap explicitly names `drivers/virtio/virtio.c` as the first virtio-core anchor and calls for lab-only validation before any deeper queue, transport, or MMIO work.
 
-This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, transport refusal handling, and config-change bookkeeping.
+This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, transport refusal handling, config-change bookkeeping, and one tiny driver-binding marker for whether a bound driver actually exposes `config_changed`.
 
 ## Landed starter surface
 
@@ -31,6 +31,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - queue callback enable, disable, unregister, and notification accounting that remains entirely in-memory for lab validation
 - queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
 - config-change enable, disable, pending, flush, and reset bookkeeping that stays entirely in memory while making the later `virtio_config_enable()` and `virtio_config_disable()` review surface concrete
+- driver-binding bookkeeping that records a non-empty driver name plus whether `drv->config_changed` is present, so config-change delivery now mirrors the `drv && drv->config_changed` branch in `drivers/virtio/virtio.c`
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
@@ -47,7 +48,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
   - dual implementations for risky transport-facing paths
   - probe, remove, and real device lifecycle wiring
 
-This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape and one bounded config-change path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
+This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape, one bounded config-change path, and the tiny driver-callback gate that decides whether a change is actually delivered, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
 
 ## Non-goals
 
@@ -68,4 +69,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio-core lane only for another small core-local bridge that is still missing after the landed config-change bookkeeping, such as a bounded config-generation or driver-name bookkeeping summary, before widening into `virtio_mmio` or `virtio_ring` transport work.
+Stay in the Phase 10 virtio-core lane only for another small core-local bridge that is still missing after the landed config-change and driver-binding bookkeeping, such as a bounded config-generation summary or one tiny probe or remove lifecycle marker, before widening into `virtio_mmio` or `virtio_ring` transport work.
