@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L13",
   "phase": "Phase 13",
-  "surveyed_commit": "6b9fd0d3f6c3ff384984035afedd0aa9cc46c2af",
+  "surveyed_commit": "cebbe0a47869221898b65f3184a0c94b13492dbf",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -84,10 +84,17 @@
     },
     {
       "id": "phase13-landlock-path-beneath-handoff-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The next honest syscall step is one tiny in-memory planner around `add_rule_path_beneath()` that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` responsibility before any live rule insertion or inode ownership changes are attempted."
+      "why_now": "The syscall helper now includes one tiny in-memory planner around `add_rule_path_beneath()` that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` responsibility before any live rule insertion or inode ownership changes are attempted."
+    },
+    {
+      "id": "phase13-landlock-path-rule-import-blocker",
+      "status": "blocked_on_live_lsm_state",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The next remaining gap sits at `landlock_append_fs_rule()`, where live path-backed rule import, hierarchy ownership, and broader Landlock object state are still too coupled for this helper-only lane to claim safely."
     }
   ]
 }

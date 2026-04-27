@@ -55,7 +55,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("6b9fd0d3f6c3ff384984035afedd0aa9cc46c2af", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("cebbe0a47869221898b65f3184a0c94b13492dbf", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -65,10 +65,11 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_make_target = false;
     var saw_starter = false;
@@ -79,6 +80,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_fd_followup = false;
     var saw_path_followup = false;
     var saw_path_beneath_handoff = false;
+    var saw_path_import_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -90,6 +92,8 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             starter_landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_live_lsm_state")) {
+            blocked_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
@@ -146,10 +150,17 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-path-beneath-handoff-followup")) {
             saw_path_beneath_handoff = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "add_rule_path_beneath()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "put_path()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-path-rule-import-blocker")) {
+            saw_path_import_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_live_lsm_state", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_append_fs_rule()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live path-backed rule import") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -157,8 +168,9 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
@@ -169,6 +181,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_fd_followup);
     try std.testing.expect(saw_path_followup);
     try std.testing.expect(saw_path_beneath_handoff);
+    try std.testing.expect(saw_path_import_blocker);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -182,6 +195,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(descriptor.provides_path_fd_planning);
+    try std.testing.expect(descriptor.provides_path_beneath_handoff_planning);
     try std.testing.expect(!descriptor.touches_live_fd_table);
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
@@ -430,5 +444,46 @@ test "phase13 landlock syscalls get_path_from_fd planning rejects invalid path s
     }));
     try std.testing.expectError(error.PrivateInode, syscalls.SyscallsHelperLab.planGetPathFromFd(.{
         .inode_is_private = true,
+    }));
+}
+
+test "phase13 landlock syscalls add_rule_path_beneath handoff models path acquisition and release" {
+    const plan = try syscalls.SyscallsHelperLab.planAddRulePathBeneathHandoff(.{
+        .handled_access_fs = 0b1111,
+        .path_beneath_attr = .{
+            .allowed_access = 0b0101,
+            .parent_fd = 23,
+        },
+    });
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expectEqual(@as(u64, 0b0101), plan.allowed_access);
+    try std.testing.expectEqual(@as(i32, 23), plan.parent_fd);
+    try std.testing.expect(plan.path_fd.rejects_ruleset_fd);
+    try std.testing.expect(plan.path_fd.rejects_internal_mount);
+    try std.testing.expect(plan.path_fd.rejects_nouser_superblock);
+    try std.testing.expect(plan.path_fd.rejects_private_inode);
+    try std.testing.expect(plan.acquires_path_reference);
+    try std.testing.expect(plan.hands_path_to_fs_rule_import);
+    try std.testing.expect(plan.releases_path_reference);
+}
+
+test "phase13 landlock syscalls add_rule_path_beneath handoff rejects invalid access and path sources" {
+    try std.testing.expectError(error.EmptyAccess, syscalls.SyscallsHelperLab.planAddRulePathBeneathHandoff(.{
+        .handled_access_fs = 0b1111,
+    }));
+    try std.testing.expectError(error.InvalidPathAccessMask, syscalls.SyscallsHelperLab.planAddRulePathBeneathHandoff(.{
+        .handled_access_fs = 0b0001,
+        .path_beneath_attr = .{ .allowed_access = 0b0010 },
+    }));
+    try std.testing.expectError(error.BadFileDescriptor, syscalls.SyscallsHelperLab.planAddRulePathBeneathHandoff(.{
+        .handled_access_fs = 0b1111,
+        .path_beneath_attr = .{ .allowed_access = 0b0010 },
+        .path_fd = .{ .fd_present = false },
+    }));
+    try std.testing.expectError(error.InvalidPathFdType, syscalls.SyscallsHelperLab.planAddRulePathBeneathHandoff(.{
+        .handled_access_fs = 0b1111,
+        .path_beneath_attr = .{ .allowed_access = 0b0010 },
+        .path_fd = .{ .is_ruleset_fd = true },
     }));
 }
