@@ -36,12 +36,20 @@ const DecisionChecklistEntry = struct {
     rationale: []const u8,
 };
 
+const BoundaryMapEntry = struct {
+    roadmap_destination: []const u8,
+    current_state: []const u8,
+    reviewable_artifact: []const u8,
+    blocker: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    boundary_map: []const BoundaryMapEntry,
     survey_summary: SurveySummary,
     decision_checklist: []const DecisionChecklistEntry,
     gaps: []const Gap,
@@ -72,8 +80,9 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("P14-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("d839457a2f2dbdc7b53711401741b5e88541c818", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c6a3bc58efc57f3f276ebe7246d84be5d70200f2", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.boundary_map.len);
     try std.testing.expect(manifest.survey_summary.tree_c_lines >= 4900);
     try std.testing.expect(manifest.survey_summary.tree_plugin_h_lines >= 1300);
     try std.testing.expect(manifest.survey_summary.tree_exp_h_lines >= 1100);
@@ -223,4 +232,50 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist" {
     try std.testing.expectEqualStrings("call_rcu_core", checklist[4].anchor_symbols[1]);
     try std.testing.expectEqualStrings("rcu_do_batch", checklist[4].anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, checklist[4].rationale, "NOCB offload") != null);
+}
+
+test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase14_rcu_tree_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-rcu-tree-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const boundary_map = parsed.value.boundary_map;
+    try std.testing.expectEqualStrings("zigux/tests/", boundary_map[0].roadmap_destination);
+    try std.testing.expectEqualStrings("reviewable_survey_landed", boundary_map[0].current_state);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_survey.zig", boundary_map[0].reviewable_artifact);
+    try std.testing.expectEqualStrings("", boundary_map[0].blocker);
+
+    try std.testing.expectEqualStrings("Documentation/zigux/", boundary_map[1].roadmap_destination);
+    try std.testing.expectEqualStrings("reviewable_survey_landed", boundary_map[1].current_state);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", boundary_map[1].reviewable_artifact);
+    try std.testing.expectEqualStrings("", boundary_map[1].blocker);
+
+    try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", boundary_map[2].roadmap_destination);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", boundary_map[2].current_state);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", boundary_map[2].reviewable_artifact);
+    try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "kernel/rcu/tree.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "freeze-in-C") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Roadmap boundary map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance captured against verified `master` head `c6a3bc58efc57f3f276ebe7246d84be5d70200f2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current freeze-in-C blocker") != null);
 }
