@@ -13,6 +13,7 @@ pub const SampleFocus = enum {
     entry_timestamp,
     private_data_shape,
     return_duration,
+    maxactive_budget,
     missed_summary,
     ownership_and_lifetime,
 };
@@ -174,6 +175,7 @@ pub const KretprobeExampleSample = struct {
                 .entry_timestamp,
                 .private_data_shape,
                 .return_duration,
+                .maxactive_budget,
                 .missed_summary,
                 .ownership_and_lifetime,
             },
@@ -211,5 +213,5 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
 }
