@@ -171,8 +171,8 @@ manifest_specs = {
     "phase11_dw_wdt_manifest.json": {
         "lane_key": "P11-L10",
         "anchor": "drivers/watchdog/dw_wdt.c",
-        "gap_count": 10,
-        "ready_next": ["phase11-dw-wdt-registration-handoff"],
+        "gap_count": 11,
+        "ready_next": ["phase11-dw-wdt-platform-resource-preflight"],
         "blocked": ["phase11-dw-wdt-platform-and-pm"],
         "summary_expectations": {
             "preexisting_phase11_build_present": True,
@@ -293,7 +293,7 @@ if ready_next_total != 3:
     missing_markers.append(f"phase11_bundle:ready_next_total={ready_next_total}")
 if blocked_total != 3:
     missing_markers.append(f"phase11_bundle:blocked_total={blocked_total}")
-if starter_total != 40:
+if starter_total != 41:
     missing_markers.append(f"phase11_bundle:starter_total={starter_total}")
 
 if missing_markers:
