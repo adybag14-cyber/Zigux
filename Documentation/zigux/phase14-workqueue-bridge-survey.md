@@ -21,7 +21,7 @@ The Phase 14 roadmap explicitly names `kernel/workqueue.c` as a boundary-study t
 
 That matters because the live `kernel/workqueue.c` anchor is already 8,439 lines, its internal header adds more worker and scheduler coupling, and the nearby `lib/test_workqueue.c` surface still depends on real kernel execution behavior. The file mixes queue submission, pool routing, worker creation and culling, flush and cancel sequencing, delayed work, rescuer handling, CPU hotplug behavior, scheduler callbacks, watchdog-style progress checks, affinity or pod layout choices, and debug or statistics plumbing.
 
-The highest-value honest step in this lane is therefore not to sketch a fake async runtime in Zig. It is to add a reviewable boundary map that names the submission, allocation, flush or cancel, worker-pool, and rescuer or scheduler boundaries while explicitly keeping the coupled concurrency core in C.
+The highest-value honest step in this lane was not to sketch a fake async runtime in Zig. It was to add a reviewable boundary map that names the submission, allocation, flush or cancel, worker-pool, and rescuer or scheduler boundaries while explicitly keeping the coupled concurrency core in C, and the current review task is to keep that study packet aligned as the audit grows.
 
 ## Survey findings
 
