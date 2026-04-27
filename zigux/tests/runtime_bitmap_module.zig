@@ -50,6 +50,10 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/test_bitmap.c", selftest.anchor);
     try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expectEqual(sample.OperationFamily.clear_set, selftest.operation_families[0]);
+    try std.testing.expectEqual(sample.OperationFamily.copy, selftest.operation_families[1]);
+    try std.testing.expectEqual(sample.OperationFamily.parse_and_print, selftest.operation_families[2]);
+    try std.testing.expectEqual(sample.OperationFamily.iteration_and_ranges, selftest.operation_families[3]);
     try std.testing.expect(selftest.checked_range_mutations);
     try std.testing.expect(selftest.checked_iteration_paths);
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
