@@ -21,6 +21,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase6_checksum.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_hexdump_vectors.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
 ]
@@ -86,6 +87,7 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_checksum.zig',
     'zigux/tests/phase6_checksum_perf.zig',
     'zigux/tests/phase6_hexdump.zig',
+    'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
     'scripts/zigux/validate-phase6.py',
 ]
 
