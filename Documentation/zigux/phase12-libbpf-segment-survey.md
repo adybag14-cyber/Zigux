@@ -57,6 +57,14 @@ The survey manifest now records:
 
 This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path plus bounded logging and pin-path validation helpers, but the heavy helper consumer still stops first at the missing skeleton or object-model boundary and then well short of loader, relocation, or syscall-backed surfaces.
 
+## Rollback And Reversible Delivery
+
+- owner: `BPF Tooling Lane`
+- rollback owner: `BPF Tooling Lane`
+- fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth, keep the already-landed `type_names.zig`, `cpu_mask.zig`, `logging.zig`, and `pin_path.zig` helper slices on their bounded helper footing, and drop the Phase 12 libbpf survey packet back out of `zigux/tests/phase12_build.zig` if the shared reviewability packet regresses.
+- reversible delivery evidence: this Phase 12 packet only adds `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and this survey note around preexisting helper foundations, so the survey can be removed without inventing a second libbpf implementation or mutating `tools/lib/bpf/libbpf.c`.
+- rollback drill: run `make -C zigux phase12-validate`; if the libbpf survey packet is the only failing slice, remove the `phase12-libbpf-segment-survey-tests` and `phase12-libbpf-reviewability-tests` entries from `zigux/tests/phase12_build.zig`, keep the C anchor and landed helper files unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 packet stays truthful while the libbpf survey note or gate is repaired.
+
 ## Non-goals
 
 This survey slice does not claim:
