@@ -15,6 +15,7 @@
     "bcm2835_wdt_zig_present": true,
     "bcm2835_wdt_test_present": true,
     "bcm2835_wdt_slice_note_present": true,
+    "bcm2835_wdt_validation_matrix_present": true,
     "bcm2835_wdt_survey_gate_present": true,
     "bcm2835_wdt_survey_note_present": true
   },
@@ -62,6 +63,13 @@
       "why_now": "A dedicated slice note now documents exactly what the starter, probe summary, registration summary, and remove-time ownership summary cover and what remains out of scope so the repo does not conflate the starter with full platform or poweroff integration."
     },
     {
+      "id": "phase11-bcm2835-wdt-validation-matrix",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 test gate, the timeout and register-image evidence, the probe and ownership summaries, and the still-pending platform-registration and PM-base follow-up without claiming live MMIO or poweroff execution."
+    },
+    {
       "id": "phase11-bcm2835-wdt-probe-summary",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
@@ -84,10 +92,10 @@
     },
     {
       "id": "phase11-bcm2835-wdt-platform-registration",
-      "status": "blocked_on_driver_scaffold",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
-      "why_now": "Platform registration, PM base acquisition, live watchdog registration, and live poweroff-handler coordination remain blocked until the lane has the landed probe, registration, and remove summaries plus a hardware-validation matrix that can describe those side effects honestly."
+      "status": "ready_next",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "With the hardware-validation matrix now landed, the next bounded follow-up is a tiny platform-registration and PM-base handoff summary that keeps watchdog registration intent, PM prerequisites, and poweroff ownership reviewable before any live platform registration, MMIO, or poweroff-handler behavior lands."
     }
   ]
 }
