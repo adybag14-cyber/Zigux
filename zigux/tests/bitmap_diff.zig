@@ -349,6 +349,18 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
 test "bitmap diff gate records exact bounded copy checks" {
     const cases = [_]CopyCase{
         .{
+            .name = "test_copy single-word stale bits clear at 23 bits",
+            .source_set_len = 19,
+            .copy_nbits = 23,
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 19,
+                .weight = 19 + (BitmapHarness.bitmap_nbits - 64),
+            },
+            .must_be_set = &.{ 18, 64, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 19, 22, 63 },
+        },
+        .{
             .name = "test_copy partial-word tail clearing at 109 bits",
             .source_set_len = 109,
             .copy_nbits = 109,
