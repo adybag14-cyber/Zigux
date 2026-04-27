@@ -329,6 +329,21 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 0, 127 },
         },
         .{
+            .name = "test_zero_clear bitmap_zero clears the full 1024-bit surface",
+            .init_bits = &.{},
+            .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{BitmapHarness.bitmap_nbits},
+            .expected_summary = .{
+                .first_set = BitmapHarness.bitmap_nbits,
+                .first_zero = 0,
+                .weight = 0,
+            },
+            .must_be_set = &.{},
+            .must_be_clear = &.{ 0, 127, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
             .name = "test_find_nth_bit starter population",
             .init_bits = &.{ 10, 20, 30, 40, 50, 60, 80, 123 },
             .set_ranges = &.{},
