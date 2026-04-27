@@ -80,7 +80,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const line = trimTrailingCarriageReturn(raw_line);
         if (line.len == 0) continue;
 
-        if (std.mem.startsWith(u8, line, "# ") and std.mem.endsWith(u8, line, " is not set")) {
+        if (std.mem.startsWith(u8, line, "# CONFIG_") and std.mem.endsWith(u8, line, " is not set")) {
             const name = line[2 .. line.len - " is not set".len];
             try entries.append(allocator, .{
                 .name = try allocator.dupe(u8, name),
@@ -90,6 +90,8 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             unset_count += 1;
             continue;
         }
+
+        if (!std.mem.startsWith(u8, line, "CONFIG_")) continue;
 
         const eq_index = std.mem.indexOfScalar(u8, line, '=') orelse continue;
         const name = line[0..eq_index];
@@ -277,4 +279,24 @@ test "confdata bridge keeps explicit n assignments as tristate values" {
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
     try std.testing.expectEqualStrings("n", summary.entries[0].value);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+}
+
+test "confdata bridge ignores non-CONFIG lines" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\BROKEN_ALPHA=y
+        \\# BROKEN_BETA is not set
+        \\CONFIG_NAME="zigux"
+        \\# CONFIG_DEBUG is not set
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqualStrings("CONFIG_NAME", summary.entries[1].name);
+    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[2].name);
 }
