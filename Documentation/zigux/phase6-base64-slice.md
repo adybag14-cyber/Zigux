@@ -32,6 +32,10 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
+3. run the narrow performance sanity harness when reviewing math-sensitive helper drift
+- `zig build base64-perf --build-file zigux/tests/phase6_build.zig`
+- or `make -C zigux phase6-base64-perf`
+
 ## Current parity surface
 
 The current base64 helper surface exercised by this slice covers:
@@ -56,15 +60,16 @@ The current tests check:
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
+- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that prints per-operation timings while rechecking round-trip correctness
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - KUnit integration
-- performance benchmarking
+- a hard performance threshold that would be too environment-sensitive for this early leaf-helper lane
 - a C-emitted parity harness beyond the current Zig fixture module
 
 ## Next bounded step
 
-Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-direct shared fixture module, or whether the symmetric `chars` plus `bytes` preflight gate is already sufficient for a bounded Phase 6 leaf port.
+Decide whether the helper now needs a small external C-vs-Zig fixture layer beyond the direct shared fixture module, or whether the current parity surface plus the reviewable performance-sanity step is already sufficient for this bounded Phase 6 leaf port.
