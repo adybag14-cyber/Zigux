@@ -145,6 +145,19 @@ test "find zero bits respects the declared bit count" {
     try std.testing.expectEqual(@as(usize, 3), findFirstZeroBit(&[_]Word{0b1111_0111}, 12));
 }
 
+test "find next zero bit skips earlier matches in the same word" {
+    const nbits = bits_per_long + 6;
+    var bitmap = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    bitmap[0] &= ~(@as(Word, 1) << 1);
+    bitmap[0] &= ~(@as(Word, 1) << 6);
+    bitmap[1] &= ~(@as(Word, 1) << 4);
+
+    try std.testing.expectEqual(@as(usize, 1), findNextZeroBit(&bitmap, nbits, 1));
+    try std.testing.expectEqual(@as(usize, 6), findNextZeroBit(&bitmap, nbits, 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&bitmap, nbits, 7));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&bitmap, nbits, bits_per_long + 5));
+}
+
 test "find and bit returns the first shared set bit" {
     const lhs = [_]Word{ (@as(Word, 1) << 1) | (@as(Word, 1) << 9), @as(Word, 1) << 2 };
     const rhs = [_]Word{ (@as(Word, 1) << 9), @as(Word, 1) << 2 };
