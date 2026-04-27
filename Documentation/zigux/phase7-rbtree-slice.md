@@ -45,7 +45,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 4. check the committed C parity fixture
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the survey record captures what is landed versus still ready next, and the committed parity fixture now locks ordered insert, duplicate-range lookup, replace, reverse traversal, and postorder behavior against the C helper surface.
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the survey record now treats the parity layer as landed instead of still pending, and the committed parity fixture locks ordered insert, duplicate-range lookup, replace, reverse traversal, and postorder behavior against the C helper surface.
 
 ## Current parity surface
 
@@ -80,7 +80,7 @@ The current tests check:
 - erase-and-replace consistency after structural updates
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
-- a machine-checked manifest that records the `lib/rbtree.c` anchor, the landed Phase 7 review surfaces, and the next parity-fixture follow-up
+- a machine-checked manifest that records the `lib/rbtree.c` anchor, the landed Phase 7 review surfaces, and the parked same-lane boundary for any future tiny parity addition
 
 ## Non-goals
 
