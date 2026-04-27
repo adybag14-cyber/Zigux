@@ -569,7 +569,7 @@ def run_self_test() -> int:
         loop_fixture_dir = paths.fixtures_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy"
         loop_fixture_dir.mkdir(parents=True, exist_ok=True)
         loop_manifest_rel = f"{loop_fixture_dir.relative_to(root).as_posix()}/expected.json"
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_POLICY_manifest.json").write_text(
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_manifest.json").write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
