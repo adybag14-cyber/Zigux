@@ -40,7 +40,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -49,7 +49,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_exact_sequence = false;
     var saw_snapshot = false;
     var saw_capacity = false;
+    var saw_focus_list = false;
     var saw_lifecycle = false;
+    var saw_lifecycle_guards = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
@@ -86,6 +88,16 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_lifecycle = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires init before replay") != null);
         }
+        if (std.mem.eql(u8, check.id, "checked-focus-list")) {
+            saw_focus_list = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly six focus areas") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
+        }
+        if (std.mem.eql(u8, check.id, "lifecycle-guards-and-counters")) {
+            saw_lifecycle_guards = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "after exit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "init_runs and exit_runs at 1") != null);
+        }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, check.id, other.id));
@@ -98,7 +110,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
+    try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
+    try std.testing.expect(saw_lifecycle_guards);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
 }
