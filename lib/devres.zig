@@ -4,6 +4,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_ioremap_lifetime_planning: bool,
+    provides_ioremap_uc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioremap_resource_planning: bool,
     provides_ioremap_resource_uc_planning: bool,
@@ -38,6 +39,11 @@ pub const ManagedIoremapAcquireResult = struct {
     release_record_retained: bool,
     release_record_freed: bool,
     should_unmap_on_detach: bool,
+};
+
+pub const ManagedIoremapAcquireWrapperInput = struct {
+    release_record_allocated: bool,
+    mapped_address: ?usize,
 };
 
 pub const IoremapType = enum {
@@ -236,6 +242,7 @@ pub const DevresHelperLab = struct {
             .name = "devres_helper_lab",
             .anchor = "lib/devres.c",
             .provides_ioremap_lifetime_planning = true,
+            .provides_ioremap_uc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioremap_resource_planning = true,
             .provides_ioremap_resource_uc_planning = true,
@@ -263,6 +270,14 @@ pub const DevresHelperLab = struct {
             .release_record_freed = lifetime.release_record_freed,
             .should_unmap_on_detach = lifetime.added_to_devres,
         };
+    }
+
+    pub fn planManagedIoremapAcquireUc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
+        return planManagedIoremapAcquire(.{
+            .kind = .uncached,
+            .release_record_allocated = input.release_record_allocated,
+            .mapped_address = input.mapped_address,
+        });
     }
 
     pub fn ioremapReleaseMatches(tracked_address: usize, candidate_address: usize) bool {
