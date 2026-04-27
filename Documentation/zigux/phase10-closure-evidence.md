@@ -80,7 +80,7 @@ The current Phase 10 parity scoreboard only counts the bounded `drivers/virtio/*
 This means the already-landed `samples/zigux/` reference samples from Phase 5 and the `samples/zigux/runtime_*` starter surfaces from Phase 9 remain separate evidence families:
 
 - `samples/zigux/` and `zigux/tests/phase5_build.zig` stay in the reviewable-sample lane
-- `samples/zigux/`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, and `zigux/tests/phase9_build.zig` stay in the bounded runtime-starter lane
+- `samples/zigux/`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `zigux/tests/phase9_build.zig` stay in the bounded runtime-starter lane
 - neither evidence family advances the Phase 10 virtio driver scoreboard unless a future roadmap-backed lane explicitly republishes the same behavior inside the Phase 10 driver-local evidence set
 
 This keeps the current parity readout honest: the shipped samples and runtime starters still matter for review, but they do not count as Phase 10 virtio driver parity evidence.
