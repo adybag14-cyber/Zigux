@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L03",
   "phase": "Phase 15",
-  "surveyed_commit": "7d902693be04d2f88566befd198ffc6750b275a1",
+  "surveyed_commit": "0aedabd88664ce71bb1ccf5c8591db50b858950e",
   "anchor": "Documentation/zigux/freeze-map.md",
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
