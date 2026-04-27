@@ -8,6 +8,10 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_SLICE=abi-substrate-skeleton`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only`
 - `PHASE3_UAPI_SCOPE=version-only`
+- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
+- `PHASE3_PANIC_POLICY=explicit-modes-only`
+- `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
+- `PHASE3_UNSAFE_SCOPE=narrow-mmio-only`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
@@ -60,6 +64,10 @@ It is a small substrate that makes future ports measurable:
 - future bindings generators are allowed later, but this slice stays curated and reviewable.
 
 ## Policy surfaces
+
+Layout assertion policy:
+- canonical bindings only: `zigux/helpers/layout_assert.zig`
+- boundary layout checks must stay attached to the curated ABI surface
 
 Panic policy:
 - explicit modes only: `abort`, `bug`, `warn`
