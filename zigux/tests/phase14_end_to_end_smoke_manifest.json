@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L03",
   "phase": "Phase 14",
-  "surveyed_commit": "8dcddb52137c4cfbb2f81cdc621c2ba11010db1e",
+  "surveyed_commit": "c6a3bc58efc57f3f276ebe7246d84be5d70200f2",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -10,6 +10,8 @@
     "transfer_rationale": "Absorb ZAR runtime research as product discipline only: keep exported evidence packets, machine-checked surveyed commits, and explicit blocker posture without importing ZAR runtime-core behavior into Zigux."
   },
   "shared_smoke_surfaces": [
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/README.md",
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
     "zigux/tests/phase14_build.zig",
@@ -50,7 +52,7 @@
     {
       "lane_key": "P14-L14",
       "anchor": "kernel/rcu/tree.c",
-      "surveyed_commit": "d839457a2f2dbdc7b53711401741b5e88541c818",
+      "surveyed_commit": "c6a3bc58efc57f3f276ebe7246d84be5d70200f2",
       "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-rcu-tree-survey.md",
       "ready_next_gap": "",
@@ -58,6 +60,7 @@
     }
   ],
   "smoke_commands": [
+    "make -C zigux phase14-validate",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14"
   ],
@@ -66,10 +69,13 @@
     "make -C zigux phase14-smoke"
   ],
   "survey_summary": {
+    "phase14_validate_script_present": true,
+    "phase14_validate_entrypoint_present": true,
     "phase14_build_has_shared_smoke_step": true,
     "phase14_build_has_smoke_shard_step": true,
     "phase14_make_target_present": true,
     "phase14_make_smoke_target_present": true,
+    "workflow_runs_phase14_validate": true,
     "workflow_runs_phase14_build": true,
     "workflow_runs_phase14_smoke_shard": true,
     "review_checklist_has_phase14_smoke_prompt": true,
