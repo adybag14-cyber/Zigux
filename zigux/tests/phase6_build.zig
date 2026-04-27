@@ -53,6 +53,19 @@ pub fn build(b: *std.Build) void {
     });
     const run_bsearch_tests = b.addRunArtifact(bsearch_tests);
 
+    const bsearch_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_bsearch_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bsearch_perf_root_module.addImport("bsearch", bsearch_module);
+
+    const bsearch_perf = b.addExecutable(.{
+        .name = "phase6-bsearch-perf",
+        .root_module = bsearch_perf_root_module,
+    });
+    const run_bsearch_perf = b.addRunArtifact(bsearch_perf);
+
     const checksum_module = b.createModule(.{
         .root_source_file = b.path("../../lib/checksum.zig"),
         .target = target,
@@ -103,4 +116,7 @@ pub fn build(b: *std.Build) void {
 
     const base64_perf_step = b.step("base64-perf", "Run the Phase 6 base64 performance sanity harness");
     base64_perf_step.dependOn(&run_base64_perf.step);
+
+    const bsearch_perf_step = b.step("bsearch-perf", "Run the Phase 6 bsearch performance sanity harness");
+    bsearch_perf_step.dependOn(&run_bsearch_perf.step);
 }
