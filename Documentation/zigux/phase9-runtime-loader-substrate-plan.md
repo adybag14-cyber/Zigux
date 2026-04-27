@@ -1,12 +1,12 @@
 # Phase 9 Shared Runtime Loader Substrate Plan
 
-This document captures the next bounded Phase 9 follow-up after the landed bitmap and kretprobe loader scaffolds.
+This document captures the bounded Phase 9 follow-up after the landed bitmap and kretprobe loader scaffolds and now records the first shared request surface that both loaders can emit.
 
 ## Status
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=shared-runtime-loader-substrate-plan`
-- scope: shared request shape, shared loader-stage vocabulary, bitmap and kretprobe handoff alignment, and an explicit low-risk path toward `zigux/kernel/runtime_loader.zig`
+- scope: shared request shape, shared loader-stage vocabulary, bitmap and kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `zigux/kernel/runtime_loader.zig`
@@ -39,9 +39,9 @@ The main differences are lane-specific payload details:
 - bitmap needs a bounded bitmap summary that can seed first-set, first-zero, weight, and bit-count review
 - kretprobe needs explicit `register_kretprobe` and `unregister_kretprobe` naming plus symbol, `maxactive`, and private-data-size handoff facts
 
-## Recommended first shared substrate
+## Landed first shared substrate
 
-The next code step should stay intentionally small:
+The first shared code step stayed intentionally small:
 
 1. add `zigux/kernel/runtime_loader.zig` as a pure data-and-state surface only
 2. define one shared stage enum for the loader handoff lifecycle
@@ -49,7 +49,7 @@ The next code step should stay intentionally small:
 4. carry lane-specific details in a narrow tagged payload rather than separate unrelated loader state machines
 5. keep every path testable through `zigux/tests/phase9_build.zig` without introducing real kernel loader hooks
 
-The initial shared request should keep these common fields explicit:
+The landed shared request keeps these common fields explicit:
 
 - module name
 - Linux anchor path
@@ -60,14 +60,14 @@ The initial shared request should keep these common fields explicit:
 - sample handoff stage
 - lane kind such as bitmap or kretprobe
 
-The first lane payloads should stay small:
+The first lane payloads stay small:
 
 - bitmap payload: summary snapshot only
 - kretprobe payload: register API, unregister API, symbol name, `maxactive`, private-data bytes, and current bookkeeping summary
 
-## Suggested acceptance boundary
+## Current acceptance boundary
 
-The first shared substrate implementation is ready once:
+The first shared substrate implementation is now ready because:
 
 - bitmap and kretprobe can both export a common request shape without losing their current lane-specific facts
 - the shared Phase 9 build can run focused tests for that common request shape
@@ -87,4 +87,4 @@ This slice should not yet claim:
 
 ## Next bounded step
 
-Implement a pure shared `zigux/kernel/runtime_loader.zig` request surface, adapt the bitmap and kretprobe loader scaffolds to emit that shared shape, and wire focused tests into `zigux/tests/phase9_build.zig` before attempting any real loader behavior.
+If this lane reopens, keep it narrow: either let another runtime starter adopt the same shared request surface, or add one explicitly owned command or environment activation field after the Phase 8 tooling posture provides a truthful control-plane source.
