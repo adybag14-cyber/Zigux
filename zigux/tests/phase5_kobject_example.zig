@@ -14,7 +14,15 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     var module = sample.KobjectExampleSample{};
     try module.init();
     const replay = try module.runAnchorReplay();
+    const expected_focus = [_]sample.SampleFocus{
+        .bounded_attribute_roundtrip,
+        .shared_attribute_dispatch,
+        .ownership_and_lifetime,
+        .parse_error_visibility,
+        .reviewable_non_sysfs_scope,
+    };
 
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
     try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
     try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
     try std.testing.expectEqualStrings("baz", replay.ordered_attr_names[1]);
@@ -30,7 +38,7 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(sample.SampleFocus, &expected_focus, replay.checked_focus);
     try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
 }
 
