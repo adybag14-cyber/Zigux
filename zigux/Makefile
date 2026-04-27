@@ -8,7 +8,7 @@ PHONY += phase9-validate phase9-test phase9
 PHONY += phase10-validate phase10-test phase10
 PHONY += phase11-validate phase11-test phase11
 PHONY += phase12-validate phase12-test phase12
-PHONY += phase13-test phase13
+PHONY += phase13-validate phase13-test phase13
 PHONY += phase14-test phase14
 PHONY += phase15-test phase15
 
@@ -134,10 +134,13 @@ phase12-test:
 
 phase12: phase12-validate phase12-test
 
+phase13-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py
+
 phase13-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig
 
-phase13: phase13-test
+phase13: phase13-validate phase13-test
 
 phase14-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig
