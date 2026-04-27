@@ -1,0 +1,70 @@
+# Phase 14 Core Boundary Traceability
+
+This note records the current roadmap-to-repo traceability for the Phase 14 core-adjacent concurrency anchors that remain explicitly outside active Zig delivery: `kernel/trace/ring_buffer.c`, `net/core/skbuff.c`, and `kernel/rcu/tree.c`.
+
+## Why this note exists
+
+The Phase 14 roadmap already names these anchors as study-only or freeze-in-C work, and the repo already carries anchor-local manifests plus survey notes for each one. What was still missing on `master` was one cross-anchor note that ties those packets back to the roadmap in one place, names the current shared evidence path, and makes the retained-in-C concurrency ownership obvious without forcing readers to hop across three separate lane notes.
+
+This note stays narrow on purpose. It does not add a bridge, reopen a freeze decision, or claim a new status. It only records the current bounded evidence bundle and the explicit reasons these anchors still stay in C.
+
+## Roadmap posture
+
+- `kernel/trace/ring_buffer.c`: `Study / Boundary Only` in the roadmap and freeze map. `kernel/trace/ring_buffer.zig` remains blocked until much stronger long-horizon evidence exists.
+- `net/core/skbuff.c`: `Freeze In C Initially` in the roadmap and freeze map. `net/core/skbuff_bridge.zig` is review-only boundary evidence, not a parity claim or ownership transfer.
+- `kernel/rcu/tree.c`: `Freeze In C Initially` in the roadmap and freeze map. `kernel/rcu/tree_bridge.zig` remains blocked on stay-in-C evidence.
+
+## Current repo evidence
+
+### Ring buffer
+
+- manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
+- survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
+- lane key: `P14-L06`
+- surveyed commit: `99cd3249c4bab05b74227ed7ca3869284e818588`
+- ready-next gap: `phase14-ring-buffer-read-page-extraction-followup`
+- blocked gap: `phase14-ring-buffer-zig-port-blocker`
+- retained-in-C boundary: reserve or commit publication, reader-page handoff, wakeup or watermark publication, mapped-reader limitations, and `ring_buffer_read_page()` extraction behavior still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
+
+### Skbuff
+
+- manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
+- survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
+- lane key: `P14-L11`
+- surveyed commit: `f65e3d897847bf205198e5c47a41782085620579`
+- ready-next gap: `phase14-skbuff-validate-xmit-republish-followup`
+- blocked gap: `phase14-skbuff-live-ownership-blocker`
+- retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a reviewable boundary map around the `validate_xmit_skb_list()` reset or republish seam.
+
+### RCU tree
+
+- manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
+- survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
+- lane key: `P14-L13`
+- surveyed commit: `0855a2fc20664cd4a138379d7731edf8183d74e6`
+- blocked gap: `phase14-rcu-tree-bridge-blocker`
+- retained-in-C boundary: grace-period sequence publication, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, and memory-ordering guarantees.
+
+## Shared replay contract
+
+The three anchor packets above are also carried together by the Phase 14 shared smoke packet:
+
+- manifest: `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- survey note: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+- validator entrypoint: `make -C zigux phase14-validate`
+- shared replay: `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- convenience target: `make -C zigux phase14`
+
+That shared packet matters because it proves the ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, ready-next versus blocked posture, and stay-in-C decisions instead of drifting independently.
+
+## What this lane does not claim
+
+- `kernel/trace/ring_buffer.zig`
+- `net/core/skbuff.c` parity or lifetime ownership
+- `kernel/rcu/tree_bridge.zig`
+- any freeze-map status change
+- any Architecture Council reopen request
+
+## Next bounded step
+
+Keep this cross-anchor traceability note aligned only when one of the three anchor packets or the shared smoke packet changes in a way that would otherwise hide a roadmap or stay-in-C boundary shift. Anchor-local audit work should continue in the existing ring-buffer, skbuff, and RCU lanes rather than here.
