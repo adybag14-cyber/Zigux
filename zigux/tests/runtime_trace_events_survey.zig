@@ -103,6 +103,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_sample_module = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest hook") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-diff-gate")) {
             saw_diff_gate = true;
@@ -111,6 +112,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
         }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-module-tests")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lifecycle parity") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "diagnostics-summary") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-substrate-handoff")) {
@@ -157,6 +159,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     defer std.testing.allocator.free(module_doc);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "selftest hook") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "lifecycle parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling-backed wake or dispatch behavior") != null);
