@@ -59,7 +59,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("a61c5a2e199c76045061acfe6dcf83853ef53071", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
