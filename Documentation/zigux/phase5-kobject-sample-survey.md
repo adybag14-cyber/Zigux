@@ -28,9 +28,9 @@ Fresh repo inspection already showed one landed Phase 5 FIFO reference sample pl
 - `samples/kobject/kobject-example.c` is present on `master` and stays small enough to function as a reference-pattern anchor rather than a subsystem slice.
 - the Linux sample mixes three concerns:
   - a named directory under `/sys/kernel/`
-  - three integer-backed attributes, with `baz` and `bar` sharing the same show and store path
+  - three integer-backed attributes, with `baz` and `bar` sharing the same show and store path and the attribute array ordered as `foo`, `baz`, `bar`
   - real sysfs and module-lifecycle substrate through `kobject_create_and_add`, `sysfs_create_group`, `kernel_kobj`, and module init or exit hooks
-- the honest Phase 5 move is to make the directory name, attribute dispatch, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
+- the honest Phase 5 move is to make the directory name, attribute dispatch, attribute-array order, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
 
 ## Landed sample and exact checks
 
@@ -39,13 +39,14 @@ The repo now carries that bounded sample in `samples/zigux/kobject_example.zig`.
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `KobjectExampleSample.descriptor()`
-- it models only the directory name, the unnamed attribute group shape, integer roundtrips, and the shared `baz` or `bar` dispatch path in memory
+- it models only the directory name, the unnamed attribute group shape, the Linux `foo`/`baz`/`bar` attribute-array order, integer roundtrips, and the shared `baz` or `bar` dispatch path in memory
 - it uses a tiny `init()` -> `registerAttributes()` -> `showValue()` or `storeValue()` -> `exit()` lifecycle so ownership and teardown remain explicit
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready sysfs or module implementation
 
 The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
 - the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
+- the replay summary keeps the Linux attribute array order `foo`, `baz`, `bar` explicit
 - `runAnchorReplay()` requires `init()` first, registers exactly three attributes, and leaves the sample in the `registered` stage
 - storing `42` into `foo` renders back as `42\n`
 - `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
@@ -57,20 +58,20 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, Linux `foo`/`baz`/`bar` attribute order, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
-- if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
+- if the sample behavior changes, is the manifest updated alongside the registration, attribute-order, and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
 
 ## Recorded gap vs roadmap
 
 The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
 
-- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, dispatch, parse failures, and teardown
+- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, attribute order, dispatch, parse failures, and teardown
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
-- contributor guidance still needs to keep the in-memory directory and unnamed-group shape visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
+- contributor guidance still needs to keep the in-memory directory, unnamed-group shape, and attribute-array order visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
-This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
+This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle, attribute-order, and non-goal cues reviewers should check before approving future edits.
 
 ## Review gates for this survey
 
