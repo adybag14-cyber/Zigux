@@ -22,6 +22,7 @@ Current bootstrap helpers
 - `validate-phase3.py`
 - `validate-phase4.py`
 - `validate-phase6.py`
+- `validate-phase8.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -72,3 +73,7 @@ Phase 6 flow
 - `make -C zigux phase6-checksum-perf` replays the checksum-specific perf sanity harness so the current math-sensitive helper lane records representative per-call and per-byte cost without claiming a cross-machine threshold yet.
 - `make -C zigux phase6-hexdump-perf` replays the hexdump-specific perf sanity harness so the current formatter-sensitive helper lane records representative dump cost for both plain and ASCII review paths without claiming a cross-machine threshold.
 - the same Phase 6 gate now machine-checks that the current hexdump lane still carries its truncation and empty-buffer required-length evidence through `zigux/tests/phase6_hexdump.zig` and `Documentation/zigux/phase6-hexdump-slice.md`.
+
+Phase 8 flow
+- `validate-phase8.py` checks that the bounded Phase 8 tooling bundle still keeps `zigux/tests/phase8_build.zig`, `make -C zigux phase8-validate`, the bootstrap workflow, and the published userspace-adjacent slice notes aligned.
+- the same Phase 8 gate now records the already-landed libbpf `logging.zig` and `pin_path.zig` bridge slices directly through `Documentation/zigux/phase8-libbpf-segment-survey.md` and the shared control-plane notes instead of leaving them implicit in `phase8_build.zig` alone.
