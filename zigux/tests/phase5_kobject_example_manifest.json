@@ -1,7 +1,7 @@
 {
-  "lane_key": "P5-L08",
+  "lane_key": "P5-L22",
   "phase": "Phase 5",
-  "surveyed_commit": "4beebebb1fcbe047fd5abe0a15b6b1bd272a5976",
+  "surveyed_commit": "597685ab7f876f827a2bba81468351520a367a68",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
