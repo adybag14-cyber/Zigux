@@ -270,7 +270,7 @@ test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser
     );
 }
 
-test "phase 8 kallsyms direct wrapper preserves the C-shaped callback contract" {
+test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
@@ -327,7 +327,7 @@ test "phase 8 kallsyms direct wrapper preserves the C-shaped callback contract" 
     var callback_state = CallbackState.init();
     defer callback_state.deinit(std.testing.allocator);
 
-    const result = try kallsyms.kallsymsParse(
+    const result = try kallsyms.kallsymsParseInDir(
         std.testing.allocator,
         io,
         temp_dir.dir,
@@ -342,4 +342,28 @@ test "phase 8 kallsyms direct wrapper preserves the C-shaped callback contract" 
     try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), callback_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), callback_state.starts.items[1]);
+
+    const filename = try std.fs.path.join(
+        std.testing.allocator,
+        &.{ ".zig-cache", "tmp", temp_dir.sub_path[0..], "kallsyms.map" },
+    );
+    defer std.testing.allocator.free(filename);
+
+    var filename_state = CallbackState.init();
+    defer filename_state.deinit(std.testing.allocator);
+
+    const filename_result = try kallsyms.kallsymsParse(
+        std.testing.allocator,
+        io,
+        filename,
+        &filename_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), filename_result);
+    try std.testing.expectEqual(@as(usize, 2), filename_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", filename_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", filename_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), filename_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), filename_state.starts.items[1]);
 }
