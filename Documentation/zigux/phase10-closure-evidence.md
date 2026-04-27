@@ -69,6 +69,32 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 - `PHASE10_TEST_ENTRYPOINT=make -C zigux phase10-test`
 - `PHASE10_COMBINED_ENTRYPOINT=make -C zigux phase10`
 
+## Freeze Boundary Reading
+
+- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
+- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_FREEZE_STATUS_CHANGE_CLAIM=no`
+- `PHASE10_FREEZE_IN_C_ANCHOR_COUNT=4`
+- `PHASE10_STUDY_ONLY_ANCHOR_COUNT=2`
+
+The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/*.zig`, and the freeze map keeps the current deep-core anchors out of active Zigux delivery:
+
+- `kernel/sched/core.c`
+- `mm/page_alloc.c`
+- `kernel/rcu/tree.c`
+- `net/core/skbuff.c`
+
+The study-only boundary anchors also remain outside this Phase 10 tranche:
+
+- `kernel/workqueue.c`
+- `kernel/trace/ring_buffer.c`
+
+This closure packet therefore records an aligned freeze-boundary reading rather than a status-change request:
+
+- no Architecture Council status-change request is attached to this Phase 10 tranche
+- no parity scorecard entry is being used to reopen a freeze-in-C anchor
+- the current virtio closure bundle stays limited to driver-local lab slices, survey manifests, and shared validation gates
+
 ## Current Tranche Reading
 
 The exact current reading of the live repo is:
