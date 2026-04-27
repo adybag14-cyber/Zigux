@@ -45,3 +45,17 @@ test "phase3 low-level wrapper ABI range shape stays stable" {
         }
     }
 }
+
+test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {
+    try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.none), @intFromEnum(narrow.UnsafeScopeTag.none));
+    try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.volatile_mmio), @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio));
+    try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge));
+
+    try std.testing.expect(!narrow.permitsVolatileMmio(.none));
+    try std.testing.expect(narrow.permitsVolatileMmio(.volatile_mmio));
+    try std.testing.expect(!narrow.permitsVolatileMmio(.raw_pointer_bridge));
+
+    try std.testing.expect(!narrow.permitsRawPointerBridge(.none));
+    try std.testing.expect(!narrow.permitsRawPointerBridge(.volatile_mmio));
+    try std.testing.expect(narrow.permitsRawPointerBridge(.raw_pointer_bridge));
+}
