@@ -6,6 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
+    ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase4.py',
     ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
     ROOT / 'Documentation' / 'zigux' / 'phase4-validation-matrix.md',
@@ -27,6 +28,7 @@ if missing:
 
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+artifact_diff = (ROOT / 'scripts' / 'zigux' / 'artifact_diff.py').read_text(encoding='utf-8')
 artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
 tests_readme = (ROOT / 'zigux' / 'tests' / 'README.md').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
@@ -58,23 +60,25 @@ phase4_gate_expectations = {
 required_make_markers = [
     'PHONY += phase4-validate phase4-test phase4',
     'phase4-validate:',
+    'scripts/zigux/artifact_diff.py --self-test',
     'scripts/zigux/validate-phase4.py',
     'phase4-test:',
     'zigux/tests/phase4_build.zig',
 ]
 required_workflow_markers = [
-    'python3 scripts/zigux/validate-phase4.py',
-    'zig build test --build-file zigux/tests/phase4_build.zig',
+    'make -C zigux phase4-validate',
+    'make -C zigux phase4-test',
 ]
 required_doc_markers = [
     'Current Phase 4 use',
+    'python3 scripts/zigux/artifact_diff.py --self-test',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/phase4-validation-matrix.md',
-    'future host-side tools under `scripts/zigux/`',
-    'stale expected-output and catalog drift stays small, auditable, and easy to refresh',
+    'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
+    'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
 ]
 forbidden_doc_markers = [
     'future Phase 2 tooling work will reuse',
@@ -87,6 +91,8 @@ required_tests_readme_markers = [
     'scripts/zigux/validate-phase4.py',
 ]
 required_script_readme_markers = [
+    'artifact_diff.py --self-test',
+    'make -C zigux phase4-validate',
     'validate-phase4.py',
     'Phase 4 flow',
     'phase4_build.zig',
@@ -94,6 +100,8 @@ required_script_readme_markers = [
 ]
 required_doc_readme_markers = [
     'Phase 4 notes',
+    'make -C zigux phase4-validate',
+    'python3 scripts/zigux/artifact_diff.py --self-test',
     'validate-phase4.py',
     'phase4-validation-matrix.md',
 ]
@@ -103,7 +111,15 @@ required_phase4_matrix_markers = [
     'rollback owner',
     'lab and CI matrix',
     'perf threshold status',
-    'zig build test --build-file zigux/tests/phase4_build.zig',
+    'make -C zigux phase4-validate',
+    'make -C zigux phase4-test',
+]
+required_artifact_diff_markers = [
+    'def emit_result(matched: bool, details: dict[str, object]) -> int:',
+    'def run_self_test() -> int:',
+    "print('ARTIFACT_DIFF_SELF_TEST=pass')",
+    "details['expected_sha256'] = expected_value",
+    "details['expected_exists'] = expected.exists()",
 ]
 required_phase4_build_markers = [
     'runtime_atomic64_diff.zig',
@@ -163,6 +179,9 @@ for marker in required_doc_readme_markers:
 for marker in required_phase4_matrix_markers:
     if marker not in phase4_matrix:
         missing_markers.append(f'phase4_matrix:{marker}')
+for marker in required_artifact_diff_markers:
+    if marker not in artifact_diff:
+        missing_markers.append(f'artifact_diff:{marker}')
 for marker in required_phase4_build_markers:
     if marker not in phase4_build:
         missing_markers.append(f'phase4_build:{marker}')
@@ -238,5 +257,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
 )
