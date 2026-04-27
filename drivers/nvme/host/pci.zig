@@ -8,6 +8,7 @@ pub const min_sq_entry_bytes: u16 = 16;
 pub const max_sq_entry_bytes: u16 = 128;
 pub const admin_queue_id: u16 = 0;
 pub const max_planned_io_queues: usize = 64;
+pub const prp_list_entry_bytes: u32 = 8;
 
 pub const QueueRole = enum {
     admin,
@@ -23,6 +24,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_lab_queue_planner: bool,
+    provides_prp_shape_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -54,6 +56,22 @@ pub const RecoverySummary = struct {
     last_admin_queue_depth: u16,
 };
 
+pub const PrpBufferShapeSummary = struct {
+    anchor: []const u8,
+    dma_address: u64,
+    transfer_bytes: u32,
+    first_page_offset: u32,
+    spanned_bytes: u32,
+    rounded_span_bytes: u32,
+    spanned_pages: u16,
+    uses_prp_list: bool,
+    prp_list_entries: u16,
+    prp_list_entries_per_page: u16,
+    prp_list_pages: u16,
+    fits_single_prp_list_page: bool,
+    reset_generation: u32,
+};
+
 pub const NvmePciQueueLab = struct {
     const Self = @This();
 
@@ -70,6 +88,7 @@ pub const NvmePciQueueLab = struct {
             .name = "nvme_pci_queue_lab",
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
+            .provides_prp_shape_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -137,6 +156,43 @@ pub const NvmePciQueueLab = struct {
             .planned_io_queues = self.planned_io_queues,
             .reset_generation = self.reset_generation,
             .last_admin_queue_depth = self.last_admin_queue_depth,
+        };
+    }
+
+    pub fn shapePrpBuffer(
+        self: *const Self,
+        dma_address: u64,
+        transfer_bytes: u32,
+    ) !PrpBufferShapeSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (transfer_bytes == 0) return error.InvalidTransferBytes;
+
+        const first_page_offset = @as(u32, @intCast(dma_address & (self.page_size - 1)));
+        const spanned_bytes = try checkedAddU32(first_page_offset, transfer_bytes);
+        const rounded_span_bytes = try checkedRoundUpU32(spanned_bytes, self.page_size);
+        const spanned_pages = try checkedDivCeilU16(spanned_bytes, self.page_size);
+        const uses_prp_list = spanned_pages > 2;
+        const prp_list_entries = if (uses_prp_list) spanned_pages - 1 else 0;
+        const prp_list_entries_per_page = try checkedDivExactU16(self.page_size, prp_list_entry_bytes);
+        const prp_list_pages = if (prp_list_entries == 0)
+            0
+        else
+            try checkedDivCeilU16(prp_list_entries, prp_list_entries_per_page);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .dma_address = dma_address,
+            .transfer_bytes = transfer_bytes,
+            .first_page_offset = first_page_offset,
+            .spanned_bytes = spanned_bytes,
+            .rounded_span_bytes = rounded_span_bytes,
+            .spanned_pages = spanned_pages,
+            .uses_prp_list = uses_prp_list,
+            .prp_list_entries = prp_list_entries,
+            .prp_list_entries_per_page = prp_list_entries_per_page,
+            .prp_list_pages = prp_list_pages,
+            .fits_single_prp_list_page = prp_list_pages <= 1,
+            .reset_generation = self.reset_generation,
         };
     }
 
@@ -209,6 +265,17 @@ pub const NvmePciQueueLab = struct {
     fn checkedMulWideU32(lhs: u32, rhs: u32) !u32 {
         const value = @as(u64, lhs) * rhs;
         return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedRoundUpU32(value: u32, alignment: u32) !u32 {
+        const remainder = value % alignment;
+        if (remainder == 0) return value;
+        return checkedAddU32(value, alignment - remainder);
+    }
+
+    fn checkedDivExactU16(lhs: u32, rhs: u32) !u16 {
+        if (rhs == 0 or (lhs % rhs) != 0) return error.QueueBytesOverflow;
+        return std.math.cast(u16, lhs / rhs) orelse error.QueueBytesOverflow;
     }
 
     fn checkedDivCeilU16(bytes: u32, page_size: u32) !u16 {

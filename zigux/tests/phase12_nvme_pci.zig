@@ -6,6 +6,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqualStrings("nvme_pci_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_lab_queue_planner);
+    try std.testing.expect(descriptor.provides_prp_shape_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
@@ -99,4 +100,39 @@ test "phase12 nvme pci freezes queue planning across reset and restarts io numbe
 
     recovery = lab.recoverySummary();
     try std.testing.expectEqual(@as(u16, 24), recovery.last_admin_queue_depth);
+}
+
+test "phase12 nvme pci prp shape helper records first-page offset and list bounds" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    const shape = try lab.shapePrpBuffer(0x1180, 8192);
+
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", shape.anchor);
+    try std.testing.expectEqual(@as(u64, 0x1180), shape.dma_address);
+    try std.testing.expectEqual(@as(u32, 8192), shape.transfer_bytes);
+    try std.testing.expectEqual(@as(u32, 0x180), shape.first_page_offset);
+    try std.testing.expectEqual(@as(u32, 8576), shape.spanned_bytes);
+    try std.testing.expectEqual(@as(u32, 12288), shape.rounded_span_bytes);
+    try std.testing.expectEqual(@as(u16, 3), shape.spanned_pages);
+    try std.testing.expect(shape.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 2), shape.prp_list_entries);
+    try std.testing.expectEqual(@as(u16, 512), shape.prp_list_entries_per_page);
+    try std.testing.expectEqual(@as(u16, 1), shape.prp_list_pages);
+    try std.testing.expect(shape.fits_single_prp_list_page);
+    try std.testing.expectEqual(@as(u32, 0), shape.reset_generation);
+}
+
+test "phase12 nvme pci prp shape helper handles single-page spans and reset blocking" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    const shape = try lab.shapePrpBuffer(0x2000, 1024);
+    try std.testing.expectEqual(@as(u32, 0), shape.first_page_offset);
+    try std.testing.expectEqual(@as(u16, 1), shape.spanned_pages);
+    try std.testing.expect(!shape.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 0), shape.prp_list_entries);
+    try std.testing.expectEqual(@as(u16, 0), shape.prp_list_pages);
+    try std.testing.expect(shape.fits_single_prp_list_page);
+
+    _ = lab.beginReset();
+    try std.testing.expectError(error.QueuePlanningBlockedByReset, lab.shapePrpBuffer(0x2000, 1024));
+    _ = lab.completeReset();
+    try std.testing.expectError(error.InvalidTransferBytes, lab.shapePrpBuffer(0x2000, 0));
 }

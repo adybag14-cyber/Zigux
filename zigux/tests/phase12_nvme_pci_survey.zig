@@ -39,7 +39,6 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
@@ -62,7 +61,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
-    try std.testing.expectEqualStrings("f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("42f3c25bbbb315d233af46868a47f8f59071846c", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.nvme_pci_c_lines >= 4000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -82,8 +81,30 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
     try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP buffer-shape summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "first-page offset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "page-list bound checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-prp-shape-helper`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape starters are real") != null);
+
     var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_make_target = false;
@@ -94,7 +115,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     var saw_virtio_scsi_starter = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
-    var saw_ready_next = false;
+    var saw_prp_shape = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -105,8 +126,6 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_dma_transport")) {
             blocked_count += 1;
         }
@@ -129,6 +148,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue planner") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "doorbell offsets") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP buffer-shape summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-driver-tests")) {
@@ -137,6 +157,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA page rounding") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP buffer-shape helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-slice-note")) {
@@ -172,10 +193,10 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-prp-shape-helper")) {
-            saw_ready_next = true;
+            saw_prp_shape = true;
             try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP buffer-shape helper") != null);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed PRP buffer-shape helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "first-page offset") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page-list bound checks") != null);
         }
@@ -194,8 +215,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -206,6 +226,6 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(saw_virtio_scsi_starter);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_prp_shape);
     try std.testing.expect(saw_blocker);
 }
