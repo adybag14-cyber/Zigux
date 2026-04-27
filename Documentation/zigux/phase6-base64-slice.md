@@ -57,6 +57,7 @@ The current tests check:
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
 - destination-bounds failures before partial writes
+- exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
