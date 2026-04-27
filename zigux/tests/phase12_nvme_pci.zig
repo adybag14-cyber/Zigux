@@ -136,3 +136,53 @@ test "phase12 nvme pci prp shape helper handles single-page spans and reset bloc
     _ = lab.completeReset();
     try std.testing.expectError(error.InvalidTransferBytes, lab.shapePrpBuffer(0x2000, 0));
 }
+
+test "phase12 nvme pci data pointer strategy blocks forced sgl cases when the queue cannot use sgl" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    const admin_strategy = try lab.planDataPointerStrategy(0, 8192, 2, 0x180, true, false, 0, 32768);
+    try std.testing.expectEqual(nvme_pci.SglSupport.unavailable, admin_strategy.sgl_support);
+    try std.testing.expectEqual(nvme_pci.DataPointerPlan.blocked, admin_strategy.selected_pointer);
+    try std.testing.expectEqual(@as(u32, 4096), admin_strategy.average_segment_bytes);
+    try std.testing.expect(admin_strategy.forced_by_page_gap);
+    try std.testing.expect(!admin_strategy.forced_by_user_command);
+    try std.testing.expect(!admin_strategy.forced_by_integrity_segments);
+    try std.testing.expect(admin_strategy.forced_sgl_unavailable);
+    try std.testing.expect(!admin_strategy.threshold_prefers_sgl);
+
+    const unsupported_io_strategy = try lab.planDataPointerStrategy(1, 32768, 4, 0, false, true, 0, 32768);
+    try std.testing.expectEqual(nvme_pci.SglSupport.unavailable, unsupported_io_strategy.sgl_support);
+    try std.testing.expectEqual(nvme_pci.DataPointerPlan.blocked, unsupported_io_strategy.selected_pointer);
+    try std.testing.expect(unsupported_io_strategy.forced_by_user_command);
+    try std.testing.expect(unsupported_io_strategy.forced_sgl_unavailable);
+}
+
+test "phase12 nvme pci data pointer strategy selects prp, threshold sgl, and forced sgl paths" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    const prp_strategy = try lab.planDataPointerStrategy(1, 16384, 8, 0, true, false, 0, 4096);
+    try std.testing.expectEqual(nvme_pci.SglSupport.optional, prp_strategy.sgl_support);
+    try std.testing.expectEqual(nvme_pci.DataPointerPlan.prp, prp_strategy.selected_pointer);
+    try std.testing.expectEqual(@as(u32, 2048), prp_strategy.average_segment_bytes);
+    try std.testing.expect(!prp_strategy.threshold_prefers_sgl);
+
+    const threshold_strategy = try lab.planDataPointerStrategy(2, 65536, 2, 0, true, false, 0, 32768);
+    try std.testing.expectEqual(nvme_pci.SglSupport.optional, threshold_strategy.sgl_support);
+    try std.testing.expectEqual(nvme_pci.DataPointerPlan.sgl, threshold_strategy.selected_pointer);
+    try std.testing.expectEqual(@as(u32, 32768), threshold_strategy.average_segment_bytes);
+    try std.testing.expect(threshold_strategy.threshold_prefers_sgl);
+
+    const forced_strategy = try lab.planDataPointerStrategy(3, 8192, 2, 0, true, false, 2, 32768);
+    try std.testing.expectEqual(nvme_pci.SglSupport.forced, forced_strategy.sgl_support);
+    try std.testing.expectEqual(nvme_pci.DataPointerPlan.sgl, forced_strategy.selected_pointer);
+    try std.testing.expect(forced_strategy.forced_by_integrity_segments);
+    try std.testing.expect(!forced_strategy.forced_sgl_unavailable);
+}
+
+test "phase12 nvme pci data pointer strategy respects reset freeze and segment validation" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    try std.testing.expectError(error.InvalidSegmentCount, lab.planDataPointerStrategy(1, 4096, 0, 0, true, false, 0, 32768));
+
+    _ = lab.beginReset();
+    try std.testing.expectError(error.QueuePlanningBlockedByReset, lab.planDataPointerStrategy(1, 4096, 1, 0, true, false, 0, 32768));
+}
