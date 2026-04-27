@@ -12,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
+    provides_directory_cursor_preconditions: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
     touches_live_dcache: bool,
@@ -91,6 +92,40 @@ pub const DirectoryEmitPlan = struct {
     should_stop: bool,
 };
 
+pub const CursorOpenMode = enum {
+    ready,
+    out_of_memory,
+};
+
+pub const CursorOpenPlan = struct {
+    anchor: []const u8,
+    mode: CursorOpenMode,
+    allocates_private_cursor: bool,
+    stores_private_data: bool,
+};
+
+pub const CursorResumeSource = enum {
+    none,
+    first_child,
+    stored_cursor_next,
+};
+
+pub const CursorPreconditionMode = enum {
+    ready,
+    blocked_on_emit_dots,
+    missing_private_cursor,
+};
+
+pub const CursorPreconditionsPlan = struct {
+    anchor: []const u8,
+    mode: CursorPreconditionMode,
+    resume_source: CursorResumeSource,
+    requires_dir_emit_dots: bool,
+    can_scan_positives: bool,
+    keeps_private_data: bool,
+    defers_cursor_reposition: bool,
+};
+
 pub const TransactionAcquireMode = enum {
     ready,
     request_too_large,
@@ -143,6 +178,7 @@ pub const LibFsHelperLab = struct {
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
+            .provides_directory_cursor_preconditions = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
             .touches_live_dcache = false,
@@ -338,6 +374,55 @@ pub const LibFsHelperLab = struct {
             .emitted_any_entries = emitted_entries != 0,
             .stays_in_dots_window = new_pos <= 2,
             .should_stop = emitted_entries == 0,
+        };
+    }
+
+    pub fn dcacheDirOpenPlan(allocation_succeeds: bool) CursorOpenPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = if (allocation_succeeds) .ready else .out_of_memory,
+            .allocates_private_cursor = allocation_succeeds,
+            .stores_private_data = allocation_succeeds,
+        };
+    }
+
+    pub fn dcacheReaddirCursorPreconditionsPlan(current_pos: i64, has_private_cursor: bool, emit_dots_result: bool) !CursorPreconditionsPlan {
+        if (current_pos < 0) {
+            return error.InvalidOffset;
+        }
+
+        if (!has_private_cursor) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .missing_private_cursor,
+                .resume_source = .none,
+                .requires_dir_emit_dots = true,
+                .can_scan_positives = false,
+                .keeps_private_data = false,
+                .defers_cursor_reposition = false,
+            };
+        }
+
+        if (current_pos < 2 and !emit_dots_result) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .blocked_on_emit_dots,
+                .resume_source = .none,
+                .requires_dir_emit_dots = true,
+                .can_scan_positives = false,
+                .keeps_private_data = true,
+                .defers_cursor_reposition = false,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = .ready,
+            .resume_source = if (current_pos <= 2) .first_child else .stored_cursor_next,
+            .requires_dir_emit_dots = true,
+            .can_scan_positives = true,
+            .keeps_private_data = true,
+            .defers_cursor_reposition = true,
         };
     }
 
