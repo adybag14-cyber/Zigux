@@ -14,6 +14,7 @@ pub const bus_virtual: u16 = 0x06;
 pub const ev_abs: u8 = 0x03;
 pub const ev_msc: u16 = 0x04;
 pub const msc_timestamp: u16 = 0x05;
+pub const abs_mt_slot: u16 = 0x2f;
 
 pub const ConfigSelect = enum(u8) {
     unset = 0x00,
@@ -104,6 +105,16 @@ pub const CapabilitySetupSummary = struct {
     staged_capability_count: usize,
     staged_abs_param_count: usize,
     stages_abs_params: bool,
+};
+
+pub const MultitouchSlotPlanSummary = struct {
+    anchor: []const u8,
+    abs_code: u16,
+    minimum: i32,
+    maximum: i32,
+    slot_count: usize,
+    staged_abs_param_count: usize,
+    initializes_slots: bool,
 };
 
 pub const VirtioInputLab = struct {
@@ -343,6 +354,27 @@ pub const VirtioInputLab = struct {
             .staged_capability_count = staged_capability_count,
             .staged_abs_param_count = self.abs_info_count,
             .stages_abs_params = self.abs_info_count != 0,
+        };
+    }
+
+    pub fn multitouchSlotPlanSummary(self: *const Self) !MultitouchSlotPlanSummary {
+        const capability_summary = try self.capabilitySetupSummary();
+        const slot_index = self.findAbsInfoIndex(abs_mt_slot) orelse return error.MultitouchSlotAbsInfoNotConfigured;
+        const slot_record = self.abs_info_records[slot_index];
+
+        if (slot_record.metadata.minimum < 0) return error.MultitouchSlotMinimumNegative;
+
+        const slot_count_i64 = @as(i64, slot_record.metadata.maximum) - @as(i64, slot_record.metadata.minimum) + 1;
+        if (slot_count_i64 <= 0) return error.MultitouchSlotCountInvalid;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .abs_code = slot_record.abs_code,
+            .minimum = slot_record.metadata.minimum,
+            .maximum = slot_record.metadata.maximum,
+            .slot_count = @intCast(slot_count_i64),
+            .staged_abs_param_count = capability_summary.staged_abs_param_count,
+            .initializes_slots = true,
         };
     }
 
