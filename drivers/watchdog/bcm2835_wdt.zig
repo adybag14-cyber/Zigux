@@ -62,6 +62,26 @@ pub const RegistrationSummary = struct {
     poweroff_handler_conflict: bool,
 };
 
+pub const PlatformHandoffSummary = struct {
+    anchor: []const u8,
+    bootloader_running: bool,
+    nowayout: bool,
+    parent_attached: bool,
+    parent_supplies_pm_base: bool,
+    pm_base_required: bool,
+    pm_base_handoff_ready: bool,
+    watchdog_drvdata_set: bool,
+    watchdog_parent_set: bool,
+    timeout_init_requested: bool,
+    register_device_requested: bool,
+    stop_on_reboot: bool,
+    restart_priority: u32,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_conflict: bool,
+};
+
 pub const RemoveSummary = struct {
     anchor: []const u8,
     system_power_controller: bool,
@@ -153,6 +173,42 @@ pub const Bcm2835WatchdogLab = struct {
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
             .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
+        };
+    }
+
+    pub fn platformHandoffSummary(
+        self: *const Self,
+        bootloader_running: bool,
+        nowayout: bool,
+        system_power_controller: bool,
+        pm_base_present: bool,
+        poweroff_handler_present: bool,
+    ) PlatformHandoffSummary {
+        const probe = self.probeSummary(bootloader_running, nowayout, system_power_controller);
+        const registration = self.registrationSummary(
+            bootloader_running,
+            system_power_controller,
+            poweroff_handler_present,
+        );
+        const pm_base_handoff_ready = probe.parent_attached and pm_base_present;
+        return .{
+            .anchor = descriptor().anchor,
+            .bootloader_running = probe.bootloader_running,
+            .nowayout = probe.nowayout,
+            .parent_attached = probe.parent_attached,
+            .parent_supplies_pm_base = pm_base_present,
+            .pm_base_required = true,
+            .pm_base_handoff_ready = pm_base_handoff_ready,
+            .watchdog_drvdata_set = pm_base_handoff_ready,
+            .watchdog_parent_set = probe.parent_attached,
+            .timeout_init_requested = probe.heartbeat_init_requested,
+            .register_device_requested = registration.register_device_requested and pm_base_handoff_ready,
+            .stop_on_reboot = registration.stop_on_reboot,
+            .restart_priority = registration.restart_priority,
+            .system_power_controller = system_power_controller,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_claimed = registration.poweroff_handler_claimed and pm_base_handoff_ready,
+            .poweroff_handler_conflict = registration.poweroff_handler_conflict and pm_base_handoff_ready,
         };
     }
 
