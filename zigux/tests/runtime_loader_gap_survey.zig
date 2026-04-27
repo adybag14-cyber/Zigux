@@ -7,6 +7,7 @@ const SurveySummary = struct {
     shared_runtime_loader_present: bool,
     allocator_policy_present: bool,
     shared_init_exit_contract_present: bool,
+    shared_command_environment_control_present: bool,
 };
 
 const Gap = struct {
@@ -21,6 +22,7 @@ const Manifest = struct {
     lane_key: []const u8,
     schedule_phase: []const u8,
     roadmap_runtime_phase: []const u8,
+    roadmap_command_environment_phase: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
     survey_summary: SurveySummary,
@@ -62,6 +64,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
     try std.testing.expectEqualStrings("P6-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 6", manifest.schedule_phase);
     try std.testing.expectEqualStrings("Phase 9", manifest.roadmap_runtime_phase);
+    try std.testing.expectEqualStrings("Phase 8", manifest.roadmap_command_environment_phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expect(std.mem.indexOf(u8, manifest.anchor, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.phase6_leaf_helper_count);
@@ -70,10 +73,11 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
     try std.testing.expect(!manifest.survey_summary.shared_runtime_loader_present);
     try std.testing.expect(manifest.survey_summary.allocator_policy_present);
     try std.testing.expect(!manifest.survey_summary.shared_init_exit_contract_present);
+    try std.testing.expect(!manifest.survey_summary.shared_command_environment_control_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.runtime_loader_plans.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -88,6 +92,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
     var saw_gate = false;
     var saw_note = false;
     var saw_plan_inputs = false;
+    var saw_command_env_blocker = false;
     var saw_allocator_blocker = false;
     var saw_init_exit_blocker = false;
 
@@ -122,6 +127,14 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
             try std.testing.expectEqualStrings("samples/zigux/runtime_*_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "entry and exit symbol names") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-loader-command-environment-controls")) {
+            saw_command_env_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 8 tooling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "argv-policy") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "environment-derived activation handling") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-loader-allocator-handoff")) {
             saw_allocator_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
@@ -141,16 +154,17 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and blocker 
     }
 
     try std.testing.expectEqual(@as(usize, 4), landed_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 3), blocked_count);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_plan_inputs);
+    try std.testing.expect(saw_command_env_blocker);
     try std.testing.expect(saw_allocator_blocker);
     try std.testing.expect(saw_init_exit_blocker);
 }
 
-test "runtime loader gap survey doc keeps the mixed Phase 6 and Phase 9 boundary explicit" {
+test "runtime loader gap survey doc keeps the mixed roadmap phases and control-surface gap explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -163,10 +177,15 @@ test "runtime loader gap survey doc keeps the mixed Phase 6 and Phase 9 boundary
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "command and environment plumbing") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/allocator_policy.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "entry and exit symbol names") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "command or environment control surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "argv policy") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "environment-derived activation cues") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "This slice therefore stays survey-only.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
 }
