@@ -1,12 +1,8 @@
 const std = @import("std");
 const runtime_kretprobe_sample = @import("runtime_kretprobe_sample");
+const runtime_loader = @import("runtime_loader");
 
-pub const LoaderStage = enum(u8) {
-    idle,
-    prepared,
-    waiting_on_runtime_substrate,
-    released_without_substrate,
-};
+pub const LoaderStage = runtime_loader.LoaderStage;
 
 pub const RuntimeKretprobeLoadPlan = struct {
     module_name: []const u8,
@@ -78,11 +74,45 @@ pub const RuntimeKretprobeLoader = struct {
         return self.cached_plan orelse error.MissingLoadPlan;
     }
 
+    pub fn requestSharedRuntimeLoad(self: *Self) !runtime_loader.RuntimeLoadRequest {
+        const plan = try self.requestRuntimeLoad();
+        return toSharedRequest(plan);
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
     }
 };
+
+pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest {
+    return .{
+        .module_name = plan.module_name,
+        .anchor = plan.anchor,
+        .entry_symbol = plan.entry_symbol,
+        .exit_symbol = plan.exit_symbol,
+        .requires_runtime_substrate = plan.requires_runtime_substrate,
+        .provides_selftest_hook = plan.provides_selftest_hook,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .kretprobe = .{
+                .register_api = plan.register_api,
+                .unregister_api = plan.unregister_api,
+                .symbol_name = plan.symbol_name,
+                .maxactive = plan.maxactive,
+                .private_data_bytes = plan.private_data_bytes,
+                .active_instances = plan.summary.active_instances,
+                .skipped_kernel_threads = plan.summary.skipped_kernel_threads,
+                .nmissed = plan.summary.nmissed,
+                .last_retval = plan.summary.last_retval,
+                .last_duration_ns = plan.summary.last_duration_ns,
+                .selftest_runs = plan.summary.selftest_runs,
+                .entry_timestamp_armed = plan.summary.entry_timestamp_armed,
+            },
+        },
+    };
+}
 
 test "runtime kretprobe loader prepares a bounded registration handoff plan" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
@@ -138,4 +168,22 @@ test "runtime kretprobe loader keeps unavailable substrate and lifecycle guards 
 
     try module.exit();
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeKretprobeLoader.planFor(&module));
+}
+
+test "runtime kretprobe loader emits the shared runtime-loader request shape" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeKretprobeLoader{};
+    _ = try loader.prepare(&module);
+
+    const request = try loader.requestSharedRuntimeLoad();
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.LoaderLane.kretprobe, request.lane());
+    try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
+    try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.selftest_runs);
+    try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
 }
