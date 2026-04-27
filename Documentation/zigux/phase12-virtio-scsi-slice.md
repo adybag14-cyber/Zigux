@@ -8,7 +8,7 @@ The starter stays intentionally narrow:
 - preserves the Linux driver rule that poll queues are clamped so at least one default request queue remains
 - classifies each planned request queue as either `request` or `request_poll` with stable global virtqueue indexes starting after the control and event queues
 - records the fixed event-buffer fanout used by the driver without claiming event work handling, request submission, or live transport reset completion
-- freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary, then clears the old queue snapshot so the next step must replan instead of pretending virtqueues stayed live
+- freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary, derives one restore-time queue reinitialization plan from the frozen control, event, default-request, and poll-request topology, then clears the old queue snapshot so the next step must replan instead of pretending virtqueues stayed live
 - captures one probe snapshot of `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, and `max_sectors`, plus the derived control, event, default-request, and poll-request queue layout
 - records one host-limit summary that clamps `cmd_per_lun` against a synthetic `can_queue` and captures the derived `max_target`, `max_lun`, `max_sectors`, and `nr_hw_queues` values before any `Scsi_Host` registration work
 
