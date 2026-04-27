@@ -70,7 +70,7 @@ pub const ExtractArgv0Result = struct {
     }
 };
 
-pub const PathIdentity = struct {
+pub const FileIdentity = struct {
     device: u64,
     inode: u64,
 };
@@ -138,19 +138,18 @@ pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []co
     return cwd;
 }
 
-pub fn samePathIdentity(cwd_identity: ?PathIdentity, pwd_identity: ?PathIdentity) bool {
-    const cwd_value = cwd_identity orelse return false;
-    const pwd_value = pwd_identity orelse return false;
-    return cwd_value.device == pwd_value.device and cwd_value.inode == pwd_value.inode;
+pub fn sameFileLocation(cwd_identity: FileIdentity, pwd_identity: FileIdentity) bool {
+    return cwd_identity.device == pwd_identity.device and
+        cwd_identity.inode == pwd_identity.inode;
 }
 
-pub fn choosePwdCwdFromIdentities(
+pub fn choosePwdCwdFromFileIdentity(
     cwd: []const u8,
     pwd: ?[]const u8,
-    cwd_identity: ?PathIdentity,
-    pwd_identity: ?PathIdentity,
+    cwd_identity: FileIdentity,
+    pwd_identity: FileIdentity,
 ) []const u8 {
-    return choosePwdCwd(cwd, pwd, samePathIdentity(cwd_identity, pwd_identity));
+    return choosePwdCwd(cwd, pwd, sameFileLocation(cwd_identity, pwd_identity));
 }
 
 pub fn getArgvExecPath(
@@ -555,25 +554,31 @@ test "choosePwdCwd prefers PWD only when it points at the same location" {
     );
 }
 
-test "choosePwdCwdFromIdentities mirrors the C helper's stat-backed same-location proof" {
-    const cwd_identity = PathIdentity{ .device = 8, .inode = 42 };
-    const pwd_identity = PathIdentity{ .device = 8, .inode = 42 };
-    const other_identity = PathIdentity{ .device = 8, .inode = 99 };
-
-    try std.testing.expect(samePathIdentity(cwd_identity, pwd_identity));
-    try std.testing.expect(!samePathIdentity(cwd_identity, other_identity));
-    try std.testing.expect(!samePathIdentity(cwd_identity, null));
-
+test "sameFileLocation and choosePwdCwdFromFileIdentity model the stat-backed pwd proof" {
+    try std.testing.expect(sameFileLocation(
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 3, .inode = 44 },
+    ));
+    try std.testing.expect(!sameFileLocation(
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 7, .inode = 44 },
+    ));
     try std.testing.expectEqualStrings(
         "/logical/repo",
-        choosePwdCwdFromIdentities("/repo", "/logical/repo", cwd_identity, pwd_identity),
+        choosePwdCwdFromFileIdentity(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 3, .inode = 44 },
+        ),
     );
     try std.testing.expectEqualStrings(
         "/repo",
-        choosePwdCwdFromIdentities("/repo", "/logical/repo", cwd_identity, other_identity),
-    );
-    try std.testing.expectEqualStrings(
-        "/repo",
-        choosePwdCwdFromIdentities("/repo", "/logical/repo", cwd_identity, null),
+        choosePwdCwdFromFileIdentity(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 7, .inode = 44 },
+        ),
     );
 }
