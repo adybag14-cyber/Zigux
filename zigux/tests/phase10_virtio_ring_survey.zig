@@ -70,7 +70,8 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     var saw_ring_helper = false;
     var saw_used_buffer_polling = false;
     var saw_callback_enable_helper = false;
-    var saw_callback_delay_next = false;
+    var saw_callback_delay_helper = false;
+    var saw_mmio_register_window = false;
     var saw_mmio_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
@@ -110,10 +111,10 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-callback-delay-helper")) {
-            saw_callback_delay_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_callback_delay_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "delayed-callback pacing") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
@@ -122,11 +123,18 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notification accounting") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-wrapper-lane")) {
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
+            saw_mmio_register_window = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-window helper") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-delay") != null or std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null or std.mem.indexOf(u8, gap.why_now, "lifecycle") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-slice-note")) {
@@ -147,7 +155,8 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_used_buffer_polling);
     try std.testing.expect(saw_callback_enable_helper);
-    try std.testing.expect(saw_callback_delay_next);
+    try std.testing.expect(saw_callback_delay_helper);
+    try std.testing.expect(saw_mmio_register_window);
     try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_mmio_blocker);
 }
