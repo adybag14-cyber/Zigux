@@ -61,7 +61,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection`
-- `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short fixture cases`
+- `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
 - `PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, removeSpaces, and replaceChar`
 
 ## Closure Gates
