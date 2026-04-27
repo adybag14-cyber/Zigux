@@ -156,9 +156,9 @@ def ensure_manifest_is_deterministic() -> None:
                 read_nonempty_string(case, 'arch', issues, prefix=case_prefix)
 
                 mode_arg = case.get('mode_arg')
-                if mode == 'defconfig':
+                if mode in {'defconfig', 'savedefconfig'}:
                     if not isinstance(mode_arg, str) or not mode_arg:
-                        issues.append(f'{case_prefix}:mode_arg:required_for_defconfig')
+                        issues.append(f'{case_prefix}:mode_arg:required_for_argument_mode')
                 elif mode_arg is not None:
                     issues.append(f'{case_prefix}:mode_arg:unexpected_for_mode:{mode}')
             else:
