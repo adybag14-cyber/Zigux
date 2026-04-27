@@ -237,7 +237,7 @@ expected_study_only_anchors = [
 ]
 if manifest.get("freeze_in_c_anchors") != expected_freeze_in_c_anchors:
     missing_markers.append("manifest:freeze_in_c_anchors:mismatch")
-if manifest.get("study_only_anchors") != expected_study_ONLY_anchors:
+if manifest.get("study_only_anchors") != expected_study_only_anchors:
     missing_markers.append("manifest:study_only_anchors:mismatch")
 
 for field in ("docs", "manifests", "drivers", "tests", "exact_checks"):
