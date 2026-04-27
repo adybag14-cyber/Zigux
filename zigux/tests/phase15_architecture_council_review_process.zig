@@ -160,6 +160,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet refresh both the current lane owner and the rollback owner before active review resumes?") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state and reopen triggers explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/freeze-map.md") != null);
