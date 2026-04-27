@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
-- scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its machine-checkable diagnostics summary without claiming loadable-module parity
+- scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its shipped selftest hook, lifecycle parity evidence, and machine-checkable diagnostics summary without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `zigux/tests/runtime_trace_events_diff.zig`
@@ -31,7 +31,8 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now records concrete main-thread payload literals for `foo_bar`, template, conditional, template-print, and relative-location replay paths, plus explicit function-callback payload labels and the exported `iter=%d` format template.
 - the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration and event counts, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
-- the focused module gate now proves those bounded literals through the summary surface itself, leaving raw payload-struct inspection to the narrower diff gate.
+- the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
+- the focused module gate now proves both the roadmap's lifecycle-parity slice and those bounded literals through the summary surface itself, leaving raw payload-struct inspection to the narrower diff gate.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
 
 ## Recorded gaps
