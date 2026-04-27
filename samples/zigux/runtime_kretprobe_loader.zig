@@ -79,6 +79,12 @@ pub const RuntimeKretprobeLoader = struct {
         return toSharedRequest(plan);
     }
 
+    pub fn releaseSharedRuntimeLoadWithoutSubstrate(self: *Self) !runtime_loader.RuntimeLoadRequest {
+        const request = try self.requestSharedRuntimeLoad();
+        try self.releaseWithoutSubstrate();
+        return request.releasedWithoutSubstrate();
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
@@ -186,4 +192,33 @@ test "runtime kretprobe loader emits the shared runtime-loader request shape" {
     try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
     try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.selftest_runs);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
+}
+
+test "runtime kretprobe loader can release the shared runtime-loader request without substrate" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeKretprobeLoader{};
+    _ = try loader.prepare(&module);
+
+    const released = try loader.releaseSharedRuntimeLoadWithoutSubstrate();
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.LoaderLane.kretprobe, released.lane());
+    try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+    try std.testing.expectEqualStrings("register_kretprobe", released.payload.kretprobe.register_api);
+    try std.testing.expectEqualStrings("unregister_kretprobe", released.payload.kretprobe.unregister_api);
+    try std.testing.expectEqualStrings("do_sys_openat2", released.payload.kretprobe.symbol_name);
+    try std.testing.expectEqual(@as(usize, 20), released.payload.kretprobe.maxactive);
+    try std.testing.expectEqual(@sizeOf(runtime_kretprobe_sample.InstancePrivateData), released.payload.kretprobe.private_data_bytes);
+    try std.testing.expectEqual(@as(usize, 1), released.payload.kretprobe.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), released.payload.kretprobe.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 42), released.payload.kretprobe.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), released.payload.kretprobe.last_duration_ns);
+    try std.testing.expectEqualStrings("zigux_runtime_kretprobe_init", released.entry_symbol);
+    try std.testing.expectEqualStrings("zigux_runtime_kretprobe_exit", released.exit_symbol);
+    try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
 }
