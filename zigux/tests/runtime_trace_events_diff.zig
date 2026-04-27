@@ -50,3 +50,22 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 }
+
+test "runtime trace-events diff gate keeps the selftest family order and callback balance explicit" {
+    var module = sample.RuntimeTraceEventsSample{};
+    try module.init();
+
+    const summary = try module.runSelftest();
+    try std.testing.expectEqual(@as(usize, 5), summary.event_families.len);
+    try std.testing.expectEqual(sample.EventFamily.foo_bar, summary.event_families[0]);
+    try std.testing.expectEqual(sample.EventFamily.template, summary.event_families[1]);
+    try std.testing.expectEqual(sample.EventFamily.conditional, summary.event_families[2]);
+    try std.testing.expectEqual(sample.EventFamily.relative_location, summary.event_families[3]);
+    try std.testing.expectEqual(sample.EventFamily.function_callback, summary.event_families[4]);
+    try std.testing.expect(summary.registration_paths_checked);
+    try std.testing.expect(summary.conditional_paths_checked);
+    try std.testing.expectEqual(@as(usize, 6), summary.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), summary.total_events);
+    try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
+}
