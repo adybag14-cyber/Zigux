@@ -29,6 +29,11 @@ pub const ProbeTimeoutOrigin = enum {
     imported_running_state,
 };
 
+pub const WatchdogInfoSelection = enum {
+    basic,
+    pretimeout,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -84,6 +89,26 @@ pub const ProbeSummary = struct {
     can_stop: bool,
     already_running: bool,
     hardware_running: bool,
+};
+
+pub const RegistrationHandoffSummary = struct {
+    anchor: []const u8,
+    watchdog_info_selection: WatchdogInfoSelection,
+    watchdog_info_supports_pretimeout: bool,
+    top_source: TopSource,
+    timeout_origin: ProbeTimeoutOrigin,
+    timeout_sec: u32,
+    pretimeout_sec: u32,
+    nowayout: bool,
+    nowayout_applied: bool,
+    parent_attached: bool,
+    watchdog_drvdata_set: bool,
+    timeout_init_requested: bool,
+    marks_hw_running: bool,
+    programs_timeout_before_registration: bool,
+    stop_on_reboot: bool,
+    restart_priority: i32,
+    register_device_requested: bool,
 };
 
 pub const RuntimeSnapshot = struct {
@@ -195,6 +220,33 @@ pub const DwWdtLab = struct {
             .can_stop = self.has_reset_control,
             .already_running = already_running,
             .hardware_running = self.hardware_running,
+        };
+    }
+
+    pub fn registrationHandoffSummary(
+        self: *Self,
+        has_pretimeout_irq: bool,
+        options: ProbeOptions,
+    ) !RegistrationHandoffSummary {
+        const probe = try self.probeSummary(options);
+        return .{
+            .anchor = descriptor().anchor,
+            .watchdog_info_selection = if (has_pretimeout_irq) .pretimeout else .basic,
+            .watchdog_info_supports_pretimeout = has_pretimeout_irq,
+            .top_source = probe.top_source,
+            .timeout_origin = probe.timeout_origin,
+            .timeout_sec = probe.timeout_sec,
+            .pretimeout_sec = probe.pretimeout_sec,
+            .nowayout = probe.nowayout,
+            .nowayout_applied = true,
+            .parent_attached = true,
+            .watchdog_drvdata_set = true,
+            .timeout_init_requested = true,
+            .marks_hw_running = probe.already_running,
+            .programs_timeout_before_registration = probe.timeout_origin == .default_selection,
+            .stop_on_reboot = probe.stop_on_reboot,
+            .restart_priority = probe.restart_priority,
+            .register_device_requested = true,
         };
     }
 
