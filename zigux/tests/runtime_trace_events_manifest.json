@@ -56,7 +56,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "A loadable module entry point, thread creation, and tracepoint registration parity still depend on runtime substrate pieces that the repo has not started yet."
+      "why_now": "A loadable module entry point, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint registration parity still depend on runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
