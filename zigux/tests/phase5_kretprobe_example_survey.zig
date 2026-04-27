@@ -159,6 +159,8 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "private entry timestamp") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "my_data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kretprobe-sample-survey.md") != null);
