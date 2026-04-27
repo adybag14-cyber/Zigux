@@ -40,6 +40,7 @@ pub const AuditGuard = enum {
     segmentation_checksum_metadata_handoff,
     segmentation_partial_tail_owner_transfer,
     segmentation_checksum_data_offset_crossover,
+    segmentation_tail_publication_contract,
 };
 
 pub const AuditCheckpoint = struct {
@@ -192,6 +193,22 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .blocked_by = "skb_segment() carries checksum state forward by seeding SKB_GSO_CB(nskb)->csum and SKB_GSO_CB(nskb)->csum_start, rewrites SKB_GSO_CB(iter)->data_offset as the remaining bytes shrink, and only later publishes the tail chain through segs->prev with remcsum_offload in play, so Zigux should keep this checksum-to-publication crossover in C while only recording the boundary.",
         .ownership = .stay_in_c,
     },
+    .{
+        .id = "segmentation-tail-publication-contract",
+        .anchor_symbol = "skb_segment/segs->prev/validate_xmit_skb_list",
+        .summary = "Record the exported tail-pointer contract between skb_segment() and validate_xmit_skb_list() before any wrapper claims list ownership.",
+        .guard = .segmentation_tail_publication_contract,
+        .observed_fields = &[_][]const u8{
+            "segs->prev",
+            "tail->next",
+            "skb_shinfo(tail)->gso_size",
+            "skb_shinfo(tail)->gso_segs",
+            "skb->prev",
+            "skb->next",
+        },
+        .blocked_by = "skb_segment() publishes the last generated skb through segs->prev, clamps the last segment's gso_size or gso_segs after the partial-seg loop, and then validate_xmit_skb_list() consumes that contract by resetting skb->prev for unsegmented skbs, splicing tail->next, and trusting tail = skb->prev, so Zigux should keep this exported tail-publication path in C while only naming the contract.",
+        .ownership = .stay_in_c,
+    },
 };
 
 const blocked_live_behaviors = [_][]const u8{
@@ -203,6 +220,7 @@ const blocked_live_behaviors = [_][]const u8{
     "segmentation checksum metadata recompute and GSO handoff",
     "segmentation partial-seg metadata and tail-owner transfer",
     "segmentation checksum and data-offset crossover before tail publication",
+    "segmentation exported tail-publication contract",
 };
 
 pub const SkbuffBridgeLab = struct {
@@ -253,7 +271,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit the exported tail-publication path in skb_segment() around segs->prev, the last-segment gso_size/gso_segs clamp, and validate_xmit_skb_list() before any wrapper leaves the boundary-map-only posture.";
+        return "Audit the validate_xmit_skb_list() single-skb fallback around skb_mark_not_on_list(), skb->prev = skb, and tail = skb->prev so the bridge records the consumer-side list reset that still keeps exported tail publication in C.";
     }
 };
 
@@ -278,8 +296,8 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "segs->prev") != null);
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "validate_xmit_skb_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb_mark_not_on_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "tail = skb->prev") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -300,11 +318,11 @@ test "skbuff bridge lifetime audit stays review-only" {
 
     try std.testing.expectEqualStrings("net/core/skbuff.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 8), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 8), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 8), SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "segs->prev") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "validate_xmit_skb_list()") != null);
+    try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 9), SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb_mark_not_on_list()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "tail = skb->prev") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -346,4 +364,11 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqualStrings("segs->prev", audit.checkpoints[7].observed_fields[4]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "SKB_GSO_CB(nskb)->csum") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "tail chain") != null);
+
+    try std.testing.expectEqualStrings("segmentation-tail-publication-contract", audit.checkpoints[8].id);
+    try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_contract);
+    try std.testing.expectEqualStrings("skb_shinfo(tail)->gso_size", audit.checkpoints[8].observed_fields[2]);
+    try std.testing.expectEqualStrings("skb->prev", audit.checkpoints[8].observed_fields[4]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "segs->prev") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "validate_xmit_skb_list()") != null);
 }
