@@ -11,6 +11,7 @@
     "trace_events_sample_c_lines": 153,
     "preexisting_runtime_trace_events_test_files": 3,
     "preexisting_runtime_trace_events_sample_present": true,
+    "runtime_trace_events_loader_present": false,
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_trace_events_doc_present": true,
     "preexisting_runtime_trace_events_summary_surface_present": true
