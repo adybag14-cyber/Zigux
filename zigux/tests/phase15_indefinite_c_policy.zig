@@ -31,20 +31,6 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
-fn expectContains(io: std.Io, path: []const u8, snippets: []const []const u8) !void {
-    const contents = try std.Io.Dir.cwd().readFileAlloc(
-        io,
-        path,
-        std.testing.allocator,
-        .limited(24 * 1024),
-    );
-    defer std.testing.allocator.free(contents);
-
-    for (snippets) |snippet| {
-        try std.testing.expect(std.mem.indexOf(u8, contents, snippet) != null);
-    }
-}
-
 test "phase 15 indefinite-C policy manifest records current policy, exception, and blocker evidence" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -80,7 +66,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     var saw_reopen_gate = false;
     var saw_reopen_trigger_catalog = false;
 
-    for (manifest.indefinite_c_requirements, 0..) |requirement, i| {
+    for (manifest.indefinite_c_requirements) |requirement| {
         try std.testing.expect(requirement.id.len > 0);
         try std.testing.expect(requirement.summary.len > 0);
         try std.testing.expect(requirement.required_terms.len >= 2);
@@ -91,6 +77,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("remains in C indefinitely", requirement.required_terms[1]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-recordkeeping")) {
             saw_recordkeeping = true;
+            try std.testing.expectEqual(@as(usize, 12), requirement.required_terms.len);
             try std.testing.expectEqualStrings("current status bucket", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("requested decision bucket", requirement.required_terms[1]);
             try std.testing.expectEqualStrings("decision record ID", requirement.required_terms[2]);
@@ -105,8 +92,109 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("written rationale", requirement.required_terms[11]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-allowed-work")) {
             saw_allowed_work = true;
+            try std.testing.expectEqualStrings("survey notes, boundary manifests, validation gates, and explicit non-goal records", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("explicit stay-in-C outcome", requirement.required_terms[1]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-exception-path")) {
             saw_exception_path = true;
             try std.testing.expectEqualStrings("no silent exception path", requirement.required_terms[0]);
-            try std.testing.expectEqualStrings("Architecture Council reopen request", requirement.require
+            try std.testing.expectEqualStrings("Architecture Council reopen request", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("existing blocker remains recorded", requirement.required_terms[2]);
+        } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-gate")) {
+            saw_reopen_gate = true;
+            try std.testing.expectEqualStrings("new bounded seam inventory", requirement.required_terms[0]);
+            try std.testing.expectEqualStrings("updated validation plan", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("fresh linked evidence", requirement.required_terms[2]);
+            try std.testing.expectEqualStrings("Architecture Council review request", requirement.required_terms[3]);
+        } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
+            saw_reopen_trigger_catalog = true;
+            try std.testing.expectEqualStrings("narrower_followup_answers_blocker", requirement.required_terms[0]);
+            try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("ownership_or_validation_changed", requirement.required_terms[2]);
+        }
+    }
+
+    try std.testing.expect(saw_source_of_truth);
+    try std.testing.expect(saw_recordkeeping);
+    try std.testing.expect(saw_allowed_work);
+    try std.testing.expect(saw_exception_path);
+    try std.testing.expect(saw_reopen_gate);
+    try std.testing.expect(saw_reopen_trigger_catalog);
+
+    var landed_count: usize = 0;
+    var blocked_count: usize = 0;
+    for (manifest.gaps, 0..) |gap, i| {
+        try std.testing.expect(isAllowedStatus(gap.status));
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.zigux_destination.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
+
+        if (std.mem.eql(u8, gap.status, "starter_landed")) landed_count += 1;
+        if (std.mem.eql(u8, gap.status, "blocked_on_stay_in_c_evidence")) blocked_count += 1;
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+        }
+    }
+
+    try std.testing.expectEqual(@as(usize, 5), landed_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+}
+
+test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const policy_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(policy_note);
+
+    const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/freeze-map.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(freeze_map);
+
+    const review_process = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-architecture-council-review-process.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(review_process);
+
+    const scorecard = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(scorecard);
+
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## When the indefinite-C policy applies") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Required recorded fields") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Allowed work after an indefinite-C outcome") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Exception posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen conditions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen Trigger Catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "retired_from_active_discussion") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "no silent exception path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "Architecture Council reopen request") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "existing blocker remains recorded") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "new bounded seam inventory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "updated validation plan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "fresh linked evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "ownership_or_validation_changed") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "product source of truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "retained discussion state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard, "retired_from_active_discussion") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard, "narrower_followup_answers_blocker") != null);
+}
