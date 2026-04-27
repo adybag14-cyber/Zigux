@@ -27,6 +27,8 @@ pub const ReplaySummary = struct {
     anchor: []const u8,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
+    main_iteration_count: i32,
+    function_callback_iteration_count: i32,
     formatted_message: []const u8,
     selected_string: []const u8,
     array_prefix: [2]i32,
@@ -175,6 +177,8 @@ pub const TraceEventsReferenceSample = struct {
             .anchor = descriptor().anchor,
             .stage_before_replay = .initialized,
             .stage_after_replay = .replay_complete,
+            .main_iteration_count = self.last_main_count,
+            .function_callback_iteration_count = self.last_function_count,
             .formatted_message = self.formattedMessage(),
             .selected_string = self.selected_string,
             .array_prefix = .{ self.array_payload[0], self.array_payload[1] },
@@ -228,6 +232,8 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", replay.anchor);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(i32, 7), replay.main_iteration_count);
+    try std.testing.expectEqual(@as(i32, 9), replay.function_callback_iteration_count);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
     try std.testing.expectEqualSlices(i32, &.{ 1, 2 }, replay.array_prefix[0..]);
