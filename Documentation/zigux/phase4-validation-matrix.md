@@ -21,6 +21,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 - the bounded rollback owner for each live Phase 4 gate
 - the current perf threshold status for those gates
 - the lab and CI matrix that replays the gates today
+- the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned
 
 Without that record, Phase 4 validation existed in code but not yet as a product-facing ownership note.
 
@@ -48,8 +49,8 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 
 | lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | threshold posture |
 | --- | --- | --- | --- | --- | --- | --- |
-| `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |
-| `zigux/tests/bitmap_diff.zig` | bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
+| `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` in `.github/workflows/zigux-bootstrap.yml` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` | `threshold_pending_until_runtime_atomic64_scope_widens` |
+| `zigux/tests/bitmap_diff.zig` | bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` in `.github/workflows/zigux-bootstrap.yml` | `make -C zigux phase4-validate` then `make -C zigux phase4-test` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
 
 ## Review Rules
 
