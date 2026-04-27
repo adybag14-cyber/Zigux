@@ -1,12 +1,13 @@
 # Phase 6 Hexdump Slice
 
-This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
+This document records the bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
 - `PHASE6_STATUS=active`
 - `PHASE6_SLICE=hexdump-leaf-helper`
 - scope: first low-risk hexdump helper coverage only
+- lane posture: parked after the current parity surface cleared the bounded helper goal
 - product boundary:
 - `lib/hexdump.zig`
 - `zigux/tests/phase6_hexdump.zig`
@@ -18,11 +19,11 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without stepping into runtime-core or driver complexity.
 
-`lib/hexdump.c` is a good next slice because it is:
+`lib/hexdump.c` is a good Phase 6 slice because it is:
 
 - leaf-oriented
 - string and formatting sensitive enough to justify a focused gate
-- already partially ported, with the committed Phase 6 harness now covering the formatter path too
+- already ported with the committed Phase 6 harness covering the formatter path too
 
 ## Gates
 
@@ -54,6 +55,8 @@ The current tests check:
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
 
+This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity gap appears in the live repo.
+
 ## Non-goals
 
 This slice does not yet claim:
@@ -64,4 +67,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the current serialized fixture layer is enough to close the hexdump helper lane, or whether one more tiny C-emitted parity harness is still worth the added maintenance cost before moving to the next unfinished Phase 6 leaf helper.
+Leave the hexdump helper lane parked and move future Phase 6 work to another unfinished helper family unless fresh repo inspection finds a concrete new parity or ABI gap in this exact slice.
