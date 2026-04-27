@@ -18,6 +18,8 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_HARNESS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'genksyms.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
+EXPECTED_CASE_KEYS = {'name', 'argv', 'expected', 'mode', 'normalize_stderr'}
+EXPECTED_JSON_SUFFIX = '_expected.json'
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -146,6 +148,75 @@ def capture_run_zig(zig: str, tmp_dir: Path, actual: Path, argv: list[str], *, n
     write_process_json(actual, result, normalize_stderr=normalize_stderr)
 
 
+def validate_cases_manifest(payload: object) -> list[dict[str, object]]:
+    if not isinstance(payload, dict):
+        raise SystemExit('genksyms bridge cases.json must contain a top-level object')
+
+    raw_cases = payload.get('cases')
+    if not isinstance(raw_cases, list):
+        raise SystemExit('genksyms bridge cases.json must expose a list in the "cases" field')
+
+    fixture_names = {
+        path.name
+        for path in FIXTURE_DIR.glob(f'*{EXPECTED_JSON_SUFFIX}')
+        if path.is_file()
+    }
+    referenced_expected: set[str] = set()
+    seen_names: set[str] = set()
+    seen_expected: set[str] = set()
+    validated_cases: list[dict[str, object]] = []
+
+    for index, case in enumerate(raw_cases):
+        case_label = f'cases[{index}]'
+        if not isinstance(case, dict):
+            raise SystemExit(f'{case_label} must be an object')
+
+        unknown_keys = sorted(set(case) - EXPECTED_CASE_KEYS)
+        if unknown_keys:
+            raise SystemExit(f'{case_label} uses unsupported keys: {", ".join(unknown_keys)}')
+
+        name = case.get('name')
+        if not isinstance(name, str) or not name:
+            raise SystemExit(f'{case_label}.name must be a non-empty string')
+        if name in seen_names:
+            raise SystemExit(f'duplicate genksyms bridge case name: {name}')
+        seen_names.add(name)
+
+        argv = case.get('argv')
+        if not isinstance(argv, list) or any(not isinstance(arg, str) for arg in argv):
+            raise SystemExit(f'{case_label}.argv must be a list of strings')
+
+        expected_name = case.get('expected')
+        if not isinstance(expected_name, str) or not expected_name:
+            raise SystemExit(f'{case_label}.expected must be a non-empty string')
+        if expected_name in seen_expected:
+            raise SystemExit(f'duplicate genksyms bridge expected fixture reference: {expected_name}')
+        if expected_name not in fixture_names:
+            raise SystemExit(f'{case_label}.expected points to a missing fixture: {expected_name}')
+        seen_expected.add(expected_name)
+        referenced_expected.add(expected_name)
+
+        mode = case.get('mode', 'stdout_json')
+        if mode not in {'stdout_json', 'process_json'}:
+            raise SystemExit(f'{case_label}.mode must be "stdout_json" or "process_json"')
+
+        normalize_stderr = case.get('normalize_stderr', False)
+        if not isinstance(normalize_stderr, bool):
+            raise SystemExit(f'{case_label}.normalize_stderr must be a boolean when present')
+        if normalize_stderr and mode != 'process_json':
+            raise SystemExit(f'{case_label}.normalize_stderr is only valid for process_json cases')
+
+        validated_cases.append(case)
+
+    orphan_fixtures = sorted(fixture_names - referenced_expected)
+    if orphan_fixtures:
+        raise SystemExit(
+            'unreferenced genksyms bridge expected fixtures: ' + ', '.join(orphan_fixtures)
+        )
+
+    return validated_cases
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded genksyms bridge parity.')
     parser.add_argument('--cc', help='C compiler to use')
@@ -155,11 +226,13 @@ def main() -> int:
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
-    cases = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+    cases = validate_cases_manifest(
+        json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+    )
 
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
-        for case in cases['cases']:
+        for case in cases:
             mode = case.get('mode', 'stdout_json')
             c_actual = tmp_dir / f"{case['name']}.c.actual.json"
             zig_actual = tmp_dir / f"{case['name']}.zig.actual.json"
