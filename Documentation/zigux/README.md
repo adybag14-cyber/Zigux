@@ -66,9 +66,8 @@ Phase 8 notes
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
 - `Documentation/zigux/phase8-libbpf-segment-survey.md`
-- `python3 scripts/zigux/validate-phase8.py` and `make -C zigux phase8-validate` now fail fast if the shared Phase 8 tooling bundle drifts out of sync across `zigux/tests/phase8_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the published userspace-adjacent slice notes.
+- `python3 scripts/zigux/validate-phase8.py` and `make -C zigux phase8-validate` now fail fast if the shared Phase 8 tooling bundle drifts out of sync across `zigux/tests/phase8_build.zig`, `zigux/Makefile`, the bootstrap workflow, the shared README notes, and the current libbpf helper-family survey around `tools/lib/bpf/zigux_segments/logging.zig` plus `tools/lib/bpf/zigux_segments/pin_path.zig`.
 - `zigux/tests/phase8_build.zig` and `make -C zigux phase8` now gate the current exec-cmd, help, kallsyms, libbpf cpu-mask, libbpf logging, libbpf pin-path, libbpf type-name, and segment-survey bundle together, so new Phase 8 tooling work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
-- the shared Phase 8 control-plane notes now record the already-landed `tools/lib/bpf/zigux_segments/logging.zig` and `tools/lib/bpf/zigux_segments/pin_path.zig` bridge slices directly instead of leaving them implicit in the build graph alone.
 - the current bounded Phase 8 decision is no longer whether `exec-cmd` still needs its pure `execl_cmd()` parity helper, whether `kallsyms.zig` still needs a direct parse wrapper, or whether `help.zig` still needs its pure pretty-print emission surface; those slices are now parked, so the next follow-up should come from the next helper-first libbpf segment or another still-active Phase 8 tooling slice.
 
 Phase 9 notes
