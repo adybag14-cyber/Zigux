@@ -1,10 +1,13 @@
 const std = @import("std");
 
 const SurveySummary = struct {
+    phase14_validate_script_present: bool,
+    phase14_validate_entrypoint_present: bool,
     phase14_build_has_shared_smoke_step: bool,
     phase14_build_has_smoke_shard_step: bool,
     phase14_make_target_present: bool,
     phase14_make_smoke_target_present: bool,
+    workflow_runs_phase14_validate: bool,
     workflow_runs_phase14_build: bool,
     workflow_runs_phase14_smoke_shard: bool,
     review_checklist_has_phase14_smoke_prompt: bool,
@@ -86,7 +89,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("8dcddb52137c4cfbb2f81cdc621c2ba11010db1e", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c6a3bc58efc57f3f276ebe7246d84be5d70200f2", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -95,14 +98,17 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
-    try std.testing.expectEqual(@as(usize, 8), manifest.shared_smoke_surfaces.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.shared_smoke_surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.smoke_commands.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
+    try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);
+    try std.testing.expect(manifest.survey_summary.phase14_validate_entrypoint_present);
     try std.testing.expect(manifest.survey_summary.phase14_build_has_shared_smoke_step);
     try std.testing.expect(manifest.survey_summary.phase14_build_has_smoke_shard_step);
     try std.testing.expect(manifest.survey_summary.phase14_make_target_present);
     try std.testing.expect(manifest.survey_summary.phase14_make_smoke_target_present);
+    try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_validate);
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_build);
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_smoke_shard);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_phase14_smoke_prompt);
@@ -119,7 +125,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqualStrings("phase14-workqueue-drain-cancel-followup", manifest.anchor_packets[0].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-workqueue-live-execution-blocker", manifest.anchor_packets[0].blocked_gap);
     try std.testing.expectEqualStrings("P14-L14", manifest.anchor_packets[3].lane_key);
-    try std.testing.expectEqualStrings("d839457a2f2dbdc7b53711401741b5e88541c818", manifest.anchor_packets[3].surveyed_commit);
+    try std.testing.expectEqualStrings("c6a3bc58efc57f3f276ebe7246d84be5d70200f2", manifest.anchor_packets[3].surveyed_commit);
     try std.testing.expectEqualStrings("", manifest.anchor_packets[3].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", manifest.anchor_packets[3].blocked_gap);
 }
@@ -160,7 +166,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     );
     defer allocator.free(makefile);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-test:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14: phase14-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-validate:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14: phase14-validate phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase14-smoke:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all") != null);
 
@@ -189,6 +196,17 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "ZAR-to-product transfer rationale") != null);
 
+    const script_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        allocator,
+        .limited(32 * 1024),
+    );
+    defer allocator.free(script_readme);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "focused smoke-shard replay contract") != null);
+
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/freeze-map.md",
@@ -209,6 +227,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     );
     defer allocator.free(smoke_note);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_SMOKE_VALIDATOR=present") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
