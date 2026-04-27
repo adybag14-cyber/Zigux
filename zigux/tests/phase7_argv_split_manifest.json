@@ -55,14 +55,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split_survey.zig",
-      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the one remaining ready-next parity follow-up explicit without reopening argv parsing behavior."
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the parked generated-parity artifact note explicit without reopening argv parsing behavior."
     },
     {
       "id": "phase7-argv-split-generated-parity-artifacts",
-      "status": "ready_next",
+      "status": "blocked",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_argv_split_parity.json",
-      "why_now": "The only honest same-lane follow-up left is a tiny generated C-backed parity artifact derived from lib/argv_split.c so the parked helper can be reopened later without guessing which whitespace-only cases still need cross-language proof."
+      "why_now": "Keep the parked generated-parity artifact target recorded for future review only. The Phase 7 argv_split slice stays parked unless fresh repo inspection finds a concrete parity gap that justifies reopening this lane."
     }
   ]
 }
