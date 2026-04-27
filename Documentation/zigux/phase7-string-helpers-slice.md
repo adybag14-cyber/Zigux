@@ -7,9 +7,11 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
+- lane state: helper slice plus shared deterministic escape fixtures landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
+  - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
 
@@ -56,6 +58,7 @@ The current tests check:
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
+- shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays those byte-level cases from one reviewable source
 - in-place unescape behavior and bounded destination termination
 - deterministic escape-space, special, null, octal, and hex output cases
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
