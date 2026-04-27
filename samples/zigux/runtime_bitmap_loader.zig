@@ -157,7 +157,10 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, request.lane());
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expectEqual(@as(u32, 0), request.payload.bitmap.first_set);
+    try std.testing.expectEqual(@as(u32, 1), request.payload.bitmap.first_zero);
     try std.testing.expectEqual(@as(u32, 4), request.payload.bitmap.weight);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, request.payload.bitmap.nbits);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, std.meta.activeTag(request.payload));
@@ -177,8 +180,10 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+    try std.testing.expectEqual(@as(u32, 0), released.payload.bitmap.first_set);
+    try std.testing.expectEqual(@as(u32, 1), released.payload.bitmap.first_zero);
     try std.testing.expectEqual(@as(u32, 4), released.payload.bitmap.weight);
-    try std.testing.expectEqual(@as(u32, 128), released.payload.bitmap.nbits);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, released.payload.bitmap.nbits);
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_init", released.entry_symbol);
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_exit", released.exit_symbol);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
