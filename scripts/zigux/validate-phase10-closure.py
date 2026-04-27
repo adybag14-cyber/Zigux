@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
     ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md",
+    ROOT / "Documentation" / "zigux" / "freeze-map.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-core-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md",
@@ -53,6 +54,7 @@ if missing:
     sys.exit(1)
 
 closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").read_text(encoding="utf-8")
+freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
 manifest = load_json(ROOT / "zigux" / "tests" / "phase10_closure_manifest.json")
@@ -71,6 +73,20 @@ required_closure_markers = [
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
     "PHASE10_TEST_ENTRYPOINT=make -C zigux phase10-test",
     "PHASE10_COMBINED_ENTRYPOINT=make -C zigux phase10",
+    "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md",
+    "PHASE10_FREEZE_BOUNDARY_STATUS=aligned",
+    "PHASE10_FREEZE_STATUS_CHANGE_CLAIM=no",
+    "PHASE10_FREEZE_IN_C_ANCHOR_COUNT=4",
+    "PHASE10_STUDY_ONLY_ANCHOR_COUNT=2",
+]
+required_freeze_map_markers = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+    "Architecture Council",
 ]
 required_makefile_markers = [
     "PHONY += phase10-validate phase10-test phase10",
@@ -90,6 +106,9 @@ missing_markers: list[str] = []
 for marker in required_closure_markers:
     if marker not in closure:
         missing_markers.append(f"closure:{marker}")
+for marker in required_freeze_map_markers:
+    if marker not in freeze_map:
+        missing_markers.append(f"freeze_map:{marker}")
 for marker in required_makefile_markers:
     if marker not in makefile:
         missing_markers.append(f"make:{marker}")
@@ -113,6 +132,31 @@ if manifest.get("test_count") != 6:
     missing_markers.append(f'manifest:test_count={manifest.get("test_count")}')
 if manifest.get("has_virtio_mmio_zig") is not False:
     missing_markers.append(f'manifest:has_virtio_mmio_zig={manifest.get("has_virtio_mmio_zig")}')
+if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
+    missing_markers.append(f'manifest:freeze_map={manifest.get("freeze_map")}')
+if manifest.get("freeze_boundary_status") != "aligned":
+    missing_markers.append(
+        f'manifest:freeze_boundary_status={manifest.get("freeze_boundary_status")} '
+    )
+if manifest.get("freeze_status_change_claimed") is not False:
+    missing_markers.append(
+        "manifest:freeze_status_change_claimed=true"
+    )
+
+expected_freeze_in_c_anchors = [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
+expected_study_only_anchors = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+if manifest.get("freeze_in_c_anchors") != expected_freeze_in_c_anchors:
+    missing_markers.append("manifest:freeze_in_c_anchors:mismatch")
+if manifest.get("study_only_anchors") != expected_study_only_anchors:
+    missing_markers.append("manifest:study_only_anchors:mismatch")
 
 for field in ("docs", "manifests", "drivers", "tests", "exact_checks"):
     value = manifest.get(field)
@@ -148,5 +192,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_makefile_markers) + len(required_workflow_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers)}"
 )
