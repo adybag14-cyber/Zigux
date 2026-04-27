@@ -55,9 +55,9 @@ test "phase 15 architecture council review-process manifest records current trig
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("3100cd107fa0dc45ad0b6bb740e60ffa8b94497a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("6550b8dd67aac841c8a35e3eb84a73a7d233f087", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
