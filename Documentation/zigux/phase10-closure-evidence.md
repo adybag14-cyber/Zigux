@@ -108,6 +108,8 @@ This means the current evidence bundle is reviewable, but Phase 10 is not global
 
 - `drivers/virtio/virtio_mmio.zig` is still intentionally absent
 - transport-backed queue setup, interrupt handling, DMA-facing paths, and broader lifecycle parity remain out of scope
+- `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
+- the current manifest-backed blockers that keep this boundary honest are `phase10-mmio-wrapper-lane`, `phase10-virtio-input-registration-lifecycle`, and `phase10-mmio-lifecycle-and-irq-paths`, each of which must stay `blocked_on_risky_transport` until a smaller bounded helper lands first
 
 ## Boundary
 
