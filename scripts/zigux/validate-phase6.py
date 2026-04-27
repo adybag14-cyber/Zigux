@@ -22,6 +22,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase6_checksum_perf.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_checksum_vectors.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig',
+    ROOT / 'zigux' / 'tests' / 'phase6_hexdump_perf.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_hexdump_vectors.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
@@ -54,7 +55,7 @@ slice_docs = {
 }
 
 required_make_markers = [
-    'PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6',
+    'PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-perf phase6',
     'phase6-validate:',
     'scripts/zigux/validate-phase6.py',
     'phase6-test:',
@@ -63,6 +64,8 @@ required_make_markers = [
     'bsearch-perf --build-file zigux/tests/phase6_build.zig',
     'phase6-checksum-perf:',
     'checksum-perf --build-file zigux/tests/phase6_build.zig',
+    'phase6-hexdump-perf:',
+    'hexdump-perf --build-file zigux/tests/phase6_build.zig',
 ]
 
 required_workflow_markers = [
@@ -89,6 +92,7 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_checksum_perf.zig',
     'zigux/tests/fixtures/phase6_checksum_vectors.zig',
     'zigux/tests/phase6_hexdump.zig',
+    'zigux/tests/phase6_hexdump_perf.zig',
     'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
     'scripts/zigux/validate-phase6.py',
 ]
@@ -102,6 +106,7 @@ required_doc_readme_markers = [
     'zigux/tests/phase6_build.zig',
     'make -C zigux phase6',
     'make -C zigux phase6-validate',
+    'make -C zigux phase6-hexdump-perf',
     'python3 scripts/zigux/validate-phase6.py',
 ]
 
@@ -116,9 +121,11 @@ required_phase6_build_markers = [
     'phase6_checksum.zig',
     'phase6_checksum_perf.zig',
     'phase6_hexdump.zig',
+    'phase6_hexdump_perf.zig',
     'Run Phase 6 leaf helper tests',
     'Run the Phase 6 bsearch performance sanity harness',
     'Run the Phase 6 checksum performance sanity harness',
+    'Run the Phase 6 hexdump performance sanity harness',
 ]
 
 required_bsearch_markers = [
@@ -142,6 +149,15 @@ required_checksum_perf_markers = [
     '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0 }',
     '.{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678 }',
     'referencePartial',
+    'ns_per_byte',
+    'try std.testing.expect(elapsed > 0);',
+]
+
+required_hexdump_perf_markers = [
+    'phase6-hexdump-perf',
+    '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000 }',
+    '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000 }',
+    'fixtures.prepareExpectedLine',
     'ns_per_byte',
     'try std.testing.expect(elapsed > 0);',
 ]
@@ -178,6 +194,8 @@ required_slice_markers = {
         'PHASE6_STATUS=active',
         'lib/hexdump.zig',
         'zigux/tests/phase6_build.zig',
+        'make -C zigux phase6-hexdump-perf',
+        'replayable perf-sanity harness reports representative dump cost per call and per byte',
         'truncation behavior while still reporting the full required line length',
         'empty-buffer required-length behavior',
     ],
@@ -213,6 +231,10 @@ phase6_checksum_perf = (ROOT / 'zigux' / 'tests' / 'phase6_checksum_perf.zig').r
 for marker in required_checksum_perf_markers:
     if marker not in phase6_checksum_perf:
         missing_markers.append(f'phase6_checksum_perf:{marker}')
+phase6_hexdump_perf = (ROOT / 'zigux' / 'tests' / 'phase6_hexdump_perf.zig').read_text(encoding='utf-8')
+for marker in required_hexdump_perf_markers:
+    if marker not in phase6_hexdump_perf:
+        missing_markers.append(f'phase6_hexdump_perf:{marker}')
 for marker in required_hexdump_markers:
     if marker not in phase6_hexdump:
         missing_markers.append(f'phase6_hexdump:{marker}')
