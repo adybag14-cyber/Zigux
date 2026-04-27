@@ -36,6 +36,7 @@ Phase 5 notes
 - the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
 
 Phase 4 notes
+- `make -C zigux phase4-validate` now runs `python3 scripts/zigux/artifact_diff.py --self-test` before `python3 scripts/zigux/validate-phase4.py`, which keeps the shared artifact comparator live while the Phase 4 rollback gate wiring is checked.
 - `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, and lab or CI replay matrix.
 
