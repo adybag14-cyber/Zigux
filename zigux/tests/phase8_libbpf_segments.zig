@@ -38,6 +38,18 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "deferred_high_risk");
 }
 
+fn isLowerHexCommit(commit: []const u8) bool {
+    if (commit.len != 40) return false;
+
+    for (commit) |char| {
+        if (!((char >= '0' and char <= '9') or (char >= 'a' and char <= 'f'))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -57,6 +69,8 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
+    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
+    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "f1ce538166d2bd99c6d723842b2c4bb1b5428cec"));
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
