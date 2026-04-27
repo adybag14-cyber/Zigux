@@ -37,11 +37,10 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 virtio_scsi survey manifest records the landed probe snapshot starter and host-limit follow-up" {
+test "phase12 virtio_scsi survey manifest records the landed host-limit summary starter" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -106,18 +105,18 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot of `virtscsi_probe()` config fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-limit summary helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also lands one tiny host-limit summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_host_alloc()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_add_host()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_scan_host()`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, and probe snapshot starter") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper next") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, and host-limit summary starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-scsi-host-limit-summary-followup`") == null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport freeze or restore boundary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "host-limit summary helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "cmd_per_lun") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "nr_hw_queues") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "synthetic `can_queue`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`cmd_per_lun`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`nr_hw_queues`") != null);
 
     var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_make_target = false;
@@ -129,7 +128,7 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
     var saw_driver_tests = false;
     var saw_slice_note = false;
     var saw_probe_snapshot = false;
-    var saw_ready_next = false;
+    var saw_host_limit_summary = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -140,8 +139,6 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_dma_transport")) {
             blocked_count += 1;
         }
@@ -204,7 +201,7 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poll-queue clamping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "global virtqueue indexes") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze or restore contract") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-slice-note")) {
@@ -222,13 +219,13 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "request virtqueue layout") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-host-limit-summary-followup")) {
-            saw_ready_next = true;
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-host-limit-summary-starter")) {
+            saw_host_limit_summary = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cmd_per_lun") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "nr_hw_queues") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "synthetic `can_queue`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`nr_hw_queues`") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-queues-and-scan")) {
@@ -237,7 +234,7 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scsi_add_host()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper is now landed") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -245,8 +242,7 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -258,6 +254,6 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_snapshot);
-    try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_host_limit_summary);
     try std.testing.expect(saw_blocker);
 }
