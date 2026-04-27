@@ -84,6 +84,18 @@ pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
     return dst[0 .. src.len * 2];
 }
 
+pub fn bin2hexUpper(dst: []u8, src: []const u8) HexError![]u8 {
+    if (dst.len < src.len * 2) {
+        return HexError.DestinationTooSmall;
+    }
+
+    var rest = dst;
+    for (src) |byte| {
+        rest = try hexBytePackUpper(rest, byte);
+    }
+    return dst[0 .. src.len * 2];
+}
+
 pub fn hexDumpLineLength(
     len_input: usize,
     rowsize_input: usize,
@@ -374,6 +386,14 @@ test "hex2bin and bin2hex round-trip payloads" {
     var encoded: [16]u8 = undefined;
     const text = try bin2hex(encoded[0..], decoded[0..]);
     try std.testing.expectEqualSlices(u8, source, text);
+}
+
+test "bin2hexUpper emits uppercase hex text" {
+    const source = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
+
+    var encoded: [8]u8 = undefined;
+    const text = try bin2hexUpper(encoded[0..], source[0..]);
+    try std.testing.expectEqualSlices(u8, "BE32DB7B", text);
 }
 
 test "hex2bin rejects invalid length and bad digits" {
