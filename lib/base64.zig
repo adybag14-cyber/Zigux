@@ -36,6 +36,10 @@ pub fn chars(nbytes: usize, padding: bool) usize {
     };
 }
 
+pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    return decodedLength(src, padding, variant);
+}
+
 pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError!usize {
     const needed = chars(src.len, padding);
     if (dst.len < needed) {
@@ -89,7 +93,7 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
 }
 
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
-    const exact_len = try decodedLength(src, padding, variant);
+    const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
         return DecodeError.DestinationTooSmall;
     }
@@ -269,6 +273,18 @@ test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 3), chars(2, false));
     try std.testing.expectEqual(@as(usize, 4), chars(3, false));
     try std.testing.expectEqual(@as(usize, 6), chars(4, false));
+}
+
+test "bytes reports decoded output sizes and rejects malformed input" {
+    try std.testing.expectEqual(@as(usize, 0), try bytes("", true, .std));
+    try std.testing.expectEqual(@as(usize, 1), try bytes("Zg==", true, .std));
+    try std.testing.expectEqual(@as(usize, 2), try bytes("Zm8", false, .std));
+    try std.testing.expectEqual(@as(usize, 5), try bytes("APv_f4A", false, .urlsafe));
+    try std.testing.expectEqual(@as(usize, 5), try bytes("APv,f4A", false, .imap));
+
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zm9v====", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg==", false, .urlsafe));
 }
 
 test "encode covers standard and variant alphabets" {
