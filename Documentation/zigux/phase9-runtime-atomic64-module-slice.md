@@ -46,4 +46,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and expose one more honest guard-path expectation next, most likely `inc_not_zero` or `dec_if_positive`, through the existing starter sample before attempting any broader runtime substrate work.
+Stay in the Phase 9 runtime atomic64 lane and expose one more honest guard-path expectation next, most likely `dec_if_positive`, through the existing starter sample before attempting any broader runtime substrate work.
