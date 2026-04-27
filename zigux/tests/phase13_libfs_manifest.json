@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L03",
+  "lane_key": "P13-L02",
   "phase": "Phase 13",
   "surveyed_commit": "master-reviewability",
   "anchor": "fs/libfs.c",
@@ -83,11 +83,18 @@
       "why_now": "The libfs helper lab now adds one tiny dcache_readdir()-adjacent emit planner that models the dir_emit_dots() handoff, the transition into positive entry scanning, emitted-entry position accounting, and the early stop case before any live cursor dentries or inode-backed state are touched."
     },
     {
-      "id": "phase13-libfs-transaction-buffer-followup",
+      "id": "phase13-libfs-transaction-buffer-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models a bounded simple_transaction_get()/simple_transaction_set() staging-buffer planner around request-size bounds, one-write-per-open reservation, copy-fault retention, and publish-size bookkeeping without claiming live file-private storage or pseudo-filesystem plumbing."
+    },
+    {
+      "id": "phase13-libfs-transaction-read-release-followup",
       "status": "ready_next",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is one bounded simple_transaction-style staging buffer helper, keeping the work in pure in-memory sizing and cursor bookkeeping before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
+      "why_now": "The next honest step is one tiny simple_transaction_read()/simple_transaction_release() follow-up that reuses the existing buffer-copy footing while keeping the work in pure private-data presence checks and release bookkeeping before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
     }
   ]
 }
