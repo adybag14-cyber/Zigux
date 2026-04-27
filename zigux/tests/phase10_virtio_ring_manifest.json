@@ -68,17 +68,24 @@
     },
     {
       "id": "phase10-callback-delay-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "With queue shape, used-buffer polling, and callback re-enable now landed, the next honest virtio_ring step is one tiny delayed-callback helper that still stays queue-local before any MMIO or DMA-facing work."
+      "why_now": "The live ring slice now includes one tiny delayed-callback pacing helper that mirrors the bounded `virtqueue_enable_cb_delayed()` threshold shape in memory, so the queue-local prerequisite for the first MMIO register-window step is now satisfied without claiming interrupt delivery or event-index writes."
     },
     {
-      "id": "phase10-mmio-wrapper-lane",
+      "id": "phase10-mmio-register-window-helper",
+      "status": "ready_next",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "With queue shape, used-buffer polling, callback re-enable, and delayed-callback pacing now landed, the next honest bounded follow-up is one tiny `virtio_mmio` register-window helper rather than more queue-local work."
+    },
+    {
+      "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap still keeps MMIO behind virtqueue wrappers, and MMIO plus DMA-facing behavior remains too risky to start honestly until the in-memory ring lane closes one more small callback-delay step after the newly landed callback re-enable helper."
+      "why_now": "Broader `virtio_mmio.c` parity still mixes interrupt acknowledgement, queue setup, reset, and probe or remove lifecycle paths, which remain too transport-facing to claim before a first register-window helper lands and gets reviewed."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
