@@ -250,6 +250,47 @@ test "phase10 virtio input stages capability setup from config bitmaps and ABS m
     try std.testing.expect(summary.stages_abs_params);
 }
 
+test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-8", 8, null);
+
+    try std.testing.expectError(
+        error.CapabilityConfigNotConfigured,
+        device.multitouchSlotPlanSummary(),
+    );
+
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try std.testing.expectError(
+        error.MultitouchSlotAbsInfoNotConfigured,
+        device.multitouchSlotPlanSummary(),
+    );
+
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = -1,
+        .maximum = 7,
+    });
+    try std.testing.expectError(
+        error.MultitouchSlotMinimumNegative,
+        device.multitouchSlotPlanSummary(),
+    );
+
+    var ready_device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-9", 9, null);
+    try ready_device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try ready_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ virtio_input.abs_mt_slot, 0x30 });
+    try ready_device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 7,
+    });
+
+    const summary = try ready_device.multitouchSlotPlanSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqual(virtio_input.abs_mt_slot, summary.abs_code);
+    try std.testing.expectEqual(@as(i32, 0), summary.minimum);
+    try std.testing.expectEqual(@as(i32, 7), summary.maximum);
+    try std.testing.expectEqual(@as(usize, 8), summary.slot_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.staged_abs_param_count);
+    try std.testing.expect(summary.initializes_slots);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
@@ -276,4 +317,5 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try std.testing.expectError(error.ConfigBitmapNotConfigured, device.configBitmapSummary(.prop_bits, 0));
     try std.testing.expectError(error.AbsInfoNotConfigured, device.absInfoSummary(0x00));
     try std.testing.expectError(error.CapabilityConfigNotConfigured, device.capabilitySetupSummary());
+    try std.testing.expectError(error.CapabilityConfigNotConfigured, device.multitouchSlotPlanSummary());
 }
