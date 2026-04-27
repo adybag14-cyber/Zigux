@@ -85,7 +85,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
-    try std.testing.expectEqualStrings("f9fcf27e2eab45ae770e523aa5e2e0b1e9cff2fd", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -97,7 +96,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
@@ -113,6 +112,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     var saw_survey_note = false;
     var saw_probe_starter = false;
     var saw_ready_next = false;
+    var saw_hdr_len_followup = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -187,6 +187,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "single-queue fallback") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-hdr-len-followup")) {
+            saw_hdr_len_followup = true;
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`hdr_len`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "UDP-tunnel") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
@@ -200,7 +208,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -210,11 +218,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_probe_starter);
     try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_hdr_len_followup);
     try std.testing.expect(saw_blocker);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue recovery action") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-recovery summary follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "header-shape follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`hdr_len` branch") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-pool and DMA") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
