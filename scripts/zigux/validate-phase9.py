@@ -62,6 +62,7 @@ required_script_readme_markers = [
     "phase9_build.zig",
     "phase9-runtime-loader-gap-survey.md",
     "review-checklist.md",
+    "manifest-backed catalog and ownership map",
 ]
 
 required_tests_readme_markers = [
@@ -69,6 +70,7 @@ required_tests_readme_markers = [
     "zigux/tests/runtime_loader_gap_survey.zig",
     "zigux/tests/runtime_loader_gap_manifest.json",
     "scripts/zigux/validate-phase9.py",
+    "manifest-backed catalog and ownership map",
 ]
 
 required_doc_readme_markers = [
@@ -78,10 +80,12 @@ required_doc_readme_markers = [
     "python3 scripts/zigux/validate-phase9.py",
     "make -C zigux phase9-validate",
     "zigux/tests/phase9_build.zig",
+    "manifest-backed catalog and ownership map",
 ]
 
 required_review_checklist_markers = [
     "if the change is a Phase 9 runtime slice, do the module or sample note, the manifest-backed survey or loader-gap survey, and the shared `phase9_build.zig` entrypoint still agree on the same Linux anchor, bounded blocker posture, and replay scope?",
+    "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
     "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
     "if unsafe code exists, is it narrow, visible, and review-owned?",
@@ -93,6 +97,10 @@ required_loader_gap_survey_markers = [
     "zigux/tests/runtime_loader_gap_survey.zig",
     "zigux/tests/phase9_build.zig",
     "zigux/kernel/runtime_loader.zig",
+    "Delivery ownership map",
+    "manifest-backed catalog",
+    "bitmap loader-plan projection",
+    "kretprobe loader-plan projection",
     "Phase 8",
     "Phase 9",
     "command or environment control surface",
@@ -117,6 +125,12 @@ required_loader_gap_survey_test_markers = [
 ]
 
 required_loader_gap_manifest_markers = [
+    '"delivery_evidence_catalog": [',
+    '"id": "runtime-loader-gap-manifest"',
+    '"path": "zigux/kernel/runtime_loader.zig"',
+    '"ownership_map": [',
+    '"surface": "zigux/tests/runtime_loader_gap_manifest.json"',
+    '"surface": "samples/zigux/runtime_bitmap_loader.zig"',
     '"id": "runtime-loader-review-checklist"',
     '"zigux_destination": "Documentation/zigux/review-checklist.md"',
     '"id": "runtime-loader-gap-survey-gate"',
