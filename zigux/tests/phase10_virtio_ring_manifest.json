@@ -82,10 +82,17 @@
     },
     {
       "id": "phase10-mmio-register-window-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "With queue shape, used-buffer polling, callback re-enable, delayed-callback pacing, and notify-prepare bookkeeping landed, the first honest bounded MMIO follow-up is now the landed `virtio_mmio` register-window helper rather than more queue-local work."
+    },
+    {
+      "id": "phase10-mmio-queue-register-helper",
       "status": "ready_next",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With queue shape, used-buffer polling, callback re-enable, and delayed-callback pacing now landed, the next honest bounded follow-up is one tiny `virtio_mmio` register-window helper rather than more queue-local work."
+      "why_now": "Now that the register-window helper is landed, the next honest bounded MMIO follow-up is queue select, queue size bounds, and ready-state bookkeeping rather than IRQ, lifecycle, or DMA-facing transport work."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
