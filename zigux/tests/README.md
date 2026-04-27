@@ -33,6 +33,7 @@ Key entrypoints
 - `zigux/tests/phase8_pin_path.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_bpf_type_names.zig`
+- `zigux/tests/phase9_build.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -42,6 +43,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase4.py`
 - `scripts/zigux/validate-phase6.py`
 - `scripts/zigux/validate-phase8.py`
+- `scripts/zigux/validate-phase9.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
