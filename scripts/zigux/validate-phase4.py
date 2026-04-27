@@ -34,6 +34,7 @@ doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding
 phase4_matrix = (ROOT / 'Documentation' / 'zigux' / 'phase4-validation-matrix.md').read_text(encoding='utf-8')
 phase4_build = (ROOT / 'zigux' / 'tests' / 'phase4_build.zig').read_text(encoding='utf-8')
 runtime_atomic64_diff = (ROOT / 'zigux' / 'tests' / 'runtime_atomic64_diff.zig').read_text(encoding='utf-8')
+bitmap_diff = (ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig').read_text(encoding='utf-8')
 
 phase4_gate_expectations = {
     'runtime_atomic64_diff.zig': {
@@ -49,8 +50,8 @@ phase4_gate_expectations = {
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
-        'gate_scope': 'broad bitmap rollback-readiness replay',
-        'threshold_scope': 'range, prefix, and copy-behavior checkpoints',
+        'gate_scope': 'bounded bitmap range, rounded-prefix, summary, and copy-behavior replay',
+        'threshold_scope': 'range, rounded-prefix, summary, and copy-behavior checkpoints',
     },
 }
 
@@ -111,6 +112,21 @@ required_runtime_atomic64_markers = [
     'checked_guard_paths',
     'error.InvalidLifecycleTransition, module.incNotZeroCounter()',
 ]
+required_bitmap_diff_markers = [
+    'test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations"',
+    'test_fill_set bitmap_fill rounds 35 bits to one full word',
+    'test_zero_clear bitmap_zero rounds 115 bits to two full words',
+    'test_find_nth_bit starter population',
+    'test "bitmap diff gate records exact bounded copy checks"',
+    'test_copy partial-word tail clearing at 109 bits',
+    'roundedPrefixLen',
+    'fillPrefix',
+    'zeroPrefix',
+    'copyFrom',
+    'firstSet',
+    'firstZero',
+    'weight',
+]
 
 missing_markers = []
 for marker in required_make_markers:
@@ -140,6 +156,9 @@ for marker in required_phase4_build_markers:
 for marker in required_runtime_atomic64_markers:
     if marker not in runtime_atomic64_diff:
         missing_markers.append(f'runtime_atomic64_diff:{marker}')
+for marker in required_bitmap_diff_markers:
+    if marker not in bitmap_diff:
+        missing_markers.append(f'bitmap_diff:{marker}')
 
 
 def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> list[str]:
@@ -206,5 +225,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
 )
