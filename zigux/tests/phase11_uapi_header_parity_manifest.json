@@ -49,6 +49,13 @@
       "why_now": "The hvc_console starter already carries a tiny header-parity snapshot for drivers/tty/hvc/hvc_console.h that mirrors MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, and exported hvc helper metadata without widening into tty registration or host-backed I/O."
     },
     {
+      "id": "phase11-dw-wdt-watchdog-info-layout-assert",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared Phase 11 header survey now uses layout_assert to keep one bounded ABI proof for struct watchdog_info, pinning the first public watchdog surface by size, alignment, and field offsets without widening the simple-driver tranche into full watchdog-core ownership."
+    },
+    {
       "id": "phase11-phase3-interop-followup",
       "status": "ready_next",
       "kind": "future_phase_boundary",
