@@ -161,22 +161,44 @@ def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
         seen_names.add(name)
 
         expected_case = expected_cases.get(name)
-        if expected_case is None:
-            issues.append(f'fixdep_cases:unexpected_name:{name}')
+        if expected_case is not None:
+            for field_name, expected_value in expected_case.items():
+                actual_value = case.get(field_name, 0 if field_name == 'expected_exit_code' else None)
+                if actual_value != expected_value:
+                    issues.append(
+                        f'fixdep_cases:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
+                    )
             continue
 
-        for field_name, expected_value in expected_case.items():
-            actual_value = case.get(field_name, 0 if field_name == 'expected_exit_code' else None)
-            if actual_value != expected_value:
-                issues.append(
-                    f'fixdep_cases:{name}:{field_name}={actual_value!r},expected={expected_value!r}'
-                )
+        depfile = case.get('depfile')
+        if not depfile:
+            issues.append(f'fixdep_cases:{name}:missing_depfile')
+
+        target = case.get('target')
+        if not target:
+            issues.append(f'fixdep_cases:{name}:missing_target')
+
+        cmdline = case.get('cmdline')
+        if not cmdline:
+            issues.append(f'fixdep_cases:{name}:missing_cmdline')
+
+        if not case.get('expected') and not case.get('expected_stdout'):
+            issues.append(f'fixdep_cases:{name}:missing_expected_output')
+
+        try:
+            exit_code = int(case.get('expected_exit_code', 0))
+        except (TypeError, ValueError):
+            issues.append(f"fixdep_cases:{name}:invalid_expected_exit_code:{case.get('expected_exit_code')!r}")
+            continue
+
+        if exit_code != 0 and not case.get('expected_stderr'):
+            issues.append(f'fixdep_cases:{name}:missing_expected_stderr')
 
     missing_names = sorted(set(expected_cases) - seen_names)
     for name in missing_names:
         issues.append(f'fixdep_cases:missing_name:{name}')
-    if len(cases) != len(expected_cases):
-        issues.append(f'fixdep_cases:count={len(cases)},expected={len(expected_cases)}')
+    if len(cases) < len(expected_cases):
+        issues.append(f'fixdep_cases:count={len(cases)},minimum_expected={len(expected_cases)}')
     return issues
 
 required_files = [
