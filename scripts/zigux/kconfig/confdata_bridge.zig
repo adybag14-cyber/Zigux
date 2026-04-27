@@ -4,6 +4,8 @@ const Io = std.Io;
 const EntryKind = enum {
     tristate,
     string,
+    int,
+    hex,
     value,
     unset,
 
@@ -11,6 +13,8 @@ const EntryKind = enum {
         return switch (self) {
             .tristate => "tristate",
             .string => "string",
+            .int => "int",
+            .hex => "hex",
             .value => "value",
             .unset => "unset",
         };
@@ -68,6 +72,31 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8
     return decoded.toOwnedSlice(allocator);
 }
 
+fn isDecimalValue(raw_value: []const u8) bool {
+    if (raw_value.len == 0) return false;
+
+    const digits = if (raw_value[0] == '-' or raw_value[0] == '+') raw_value[1..] else raw_value;
+    if (digits.len == 0) return false;
+
+    for (digits) |byte| {
+        if (!std.ascii.isDigit(byte)) return false;
+    }
+    return true;
+}
+
+fn isHexValue(raw_value: []const u8) bool {
+    if (raw_value.len < 3) return false;
+
+    const digits = if (raw_value[0] == '-' or raw_value[0] == '+') raw_value[1..] else raw_value;
+    if (digits.len < 3) return false;
+    if (digits[0] != '0' or (digits[1] != 'x' and digits[1] != 'X')) return false;
+
+    for (digits[2..]) |byte| {
+        if (!std.ascii.isHex(byte)) return false;
+    }
+    return true;
+}
+
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
     errdefer entries.deinit(allocator);
@@ -101,6 +130,10 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             .tristate
         else if (raw_value.len >= 2 and raw_value[0] == '"' and raw_value[raw_value.len - 1] == '"')
             .string
+        else if (isHexValue(raw_value))
+            .hex
+        else if (isDecimalValue(raw_value))
+            .int
         else
             .value;
 
@@ -176,7 +209,7 @@ test "confdata bridge parses bounded config states" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME="zigux"
+        \\CONFIG_NAME=\"zigux\"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -185,6 +218,7 @@ test "confdata bridge parses bounded config states" {
     try std.testing.expectEqual(@as(usize, 4), summary.set_count);
     try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
     try std.testing.expectEqual(@as(usize, 5), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[2].kind);
     try std.testing.expectEqualStrings("CONFIG_NAME", summary.entries[3].name);
     try std.testing.expectEqual(EntryKind.string, summary.entries[3].kind);
     try std.testing.expectEqualStrings("zigux", summary.entries[3].value);
@@ -235,8 +269,8 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \"bridge\""
-        \\CONFIG_PATH="drivers\\zigux"
+        \\CONFIG_BANNER=\"zigux \\\"bridge\\\"\"
+        \\CONFIG_PATH=\"drivers\\\\zigux\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -287,7 +321,7 @@ test "confdata bridge ignores non-CONFIG lines" {
         \\CONFIG_ALPHA=y
         \\BROKEN_ALPHA=y
         \\# BROKEN_BETA is not set
-        \\CONFIG_NAME="zigux"
+        \\CONFIG_NAME=\"zigux\"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -299,4 +333,24 @@ test "confdata bridge ignores non-CONFIG lines" {
     try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
     try std.testing.expectEqualStrings("CONFIG_NAME", summary.entries[1].name);
     try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[2].name);
+}
+
+test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_DECIMAL=42
+        \\CONFIG_SIGNED=-7
+        \\CONFIG_HEX=0x2A
+        \\CONFIG_UPPER_HEX=0XFF
+        \\CONFIG_RAW=alpha_beta
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 5), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[0].kind);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[1].kind);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[3].kind);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[4].kind);
 }
