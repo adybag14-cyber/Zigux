@@ -79,7 +79,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try std.testing.expect(manifest.survey_summary.companion_c_files.len >= 5);
-    try std.testing.expect(manifest.segments.len >= 8);
+    try std.testing.expect(manifest.segments.len >= 9);
 
     var ready_next_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -88,6 +88,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     var saw_logging_segment = false;
     var saw_pin_path_segment = false;
     var saw_cpu_mask_segment = false;
+    var saw_fdinfo_helper_segment = false;
     var saw_file_path_handle_segment = false;
     var saw_type_names_segment = false;
 
@@ -132,16 +133,25 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/pin_path.zig", segment.zigux_destination);
         }
+        if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
+            saw_fdinfo_helper_segment = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expectEqualStrings("helper_first", segment.kind);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
+            try std.testing.expectEqual(@as(usize, 1), segment.anchor_ranges.len);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:4956-4987", segment.anchor_ranges[0]);
+            try expectContains(segment.why_now, "fdinfo");
+            try expectContains(segment.why_now, "path construction");
+            try expectContains(segment.why_now, "text parsing");
+        }
         if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
             saw_file_path_handle_segment = true;
             try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
             try std.testing.expectEqualStrings("resource_boundary", segment.kind);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
-            try std.testing.expectEqual(@as(usize, 3), segment.anchor_ranges.len);
-            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:4956-4987", segment.anchor_ranges[0]);
-            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5112-5157", segment.anchor_ranges[1]);
-            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5255-5286", segment.anchor_ranges[2]);
-            try expectContains(segment.why_now, "procfs reads");
+            try std.testing.expectEqual(@as(usize, 2), segment.anchor_ranges.len);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5112-5157", segment.anchor_ranges[0]);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5255-5286", segment.anchor_ranges[1]);
             try expectContains(segment.why_now, "bpffs path opens");
             try expectContains(segment.why_now, "token creation");
             try expectContains(segment.why_now, "pinned-object reopen flows");
@@ -155,12 +165,13 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     }
 
     try std.testing.expect(ready_next_count == 0);
-    try std.testing.expect(starter_landed_count >= 4);
+    try std.testing.expect(starter_landed_count >= 5);
     try std.testing.expect(blocked_on_object_model_count >= 1);
     try std.testing.expect(deferred_high_risk_count >= 3);
     try std.testing.expect(saw_logging_segment);
     try std.testing.expect(saw_pin_path_segment);
     try std.testing.expect(saw_cpu_mask_segment);
+    try std.testing.expect(saw_fdinfo_helper_segment);
     try std.testing.expect(saw_file_path_handle_segment);
     try std.testing.expect(saw_type_names_segment);
 }
