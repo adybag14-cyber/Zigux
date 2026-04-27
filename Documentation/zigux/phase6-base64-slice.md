@@ -52,7 +52,7 @@ The current tests check:
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
 - destination-bounds failures before partial writes
-- shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 
@@ -66,4 +66,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-shared KUnit-derived fixture module, or whether the symmetric `chars` plus `bytes` preflight gate is already sufficient for a bounded Phase 6 leaf port.
+Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-direct shared fixture module, or whether the symmetric `chars` plus `bytes` preflight gate is already sufficient for a bounded Phase 6 leaf port.
