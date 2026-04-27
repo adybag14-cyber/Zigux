@@ -21,6 +21,11 @@ Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
 
+Adjacent Phase 13 reviewability evidence already present on `master`:
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+
 ## Anchor-to-repo map
 
 ### `fs/libfs.c`
@@ -111,6 +116,11 @@ What is fully traceable today:
 - the roadmap-to-repo path for `libfs`, `landlock/ruleset`, and `landlock/syscalls`
 - the shared Phase 13 tranche entrypoints through `zigux/tests/phase13_build.zig` and `make -C zigux phase13`
 - the current ready-next and blocked follow-ups for the three manifest-backed anchors
+
+What is additionally reviewable today without being a new roadmap anchor:
+- the shared `phase13_notifier_list_reviewability` packet records how the existing Phase 3 `list` and `hlist` ABI footholds, the current `list_view` and `hlist_view` helpers, and the chrdev-local notifier planner relate to the still-missing generic notifier ABI and helper surface
+- this packet lives in `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, and `Documentation/zigux/phase13-notifier-list-survey.md`
+- it should be read as Phase 13 reviewability evidence around preexisting shared-helper surfaces, not as a fifth roadmap anchor beside `libfs`, `devres`, or the two Landlock slices
 
 What is still asymmetric today:
 - `lib/devres.c` is represented by real helper code, real tests, and a slice note, but not yet by a committed manifest-backed survey packet like the other active Phase 13 anchors
