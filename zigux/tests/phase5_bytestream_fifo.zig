@@ -8,6 +8,7 @@ test "phase 5 bytestream fifo sample stays in the reference-sample lane" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", descriptor.anchor);
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
 }
 
 test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux anchor" {
@@ -34,6 +35,7 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.final_len);
+    try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, replay.storage_backing);
     try std.testing.expectEqual(expected_focus.len, replay.checked_focus.len);
     for (expected_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
