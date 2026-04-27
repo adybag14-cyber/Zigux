@@ -10,6 +10,13 @@
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
   "freeze_status_change_claimed": false,
+  "review_checklist": "Documentation/zigux/review-checklist.md",
+  "risky_transport_posture": "blocked_on_risky_transport",
+  "blocked_transport_gaps": {
+    "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-wrapper-lane",
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
+  },
   "freeze_in_c_anchors": [
     "kernel/sched/core.c",
     "mm/page_alloc.c",
