@@ -54,6 +54,8 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'Run Phase 6 leaf helper tests',
+    'zigux/tests/phase6_build.zig',
     'Run Phase 7 runtime helper tests',
     'zigux/tests/phase7_build.zig',
     'Run Phase 8 tooling tests',
