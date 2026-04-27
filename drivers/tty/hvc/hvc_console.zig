@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const max_nr_hvc_consoles: usize = 16;
+pub const alloc_tty_adapters: usize = 8;
 pub const outbuf_capacity: usize = 16;
 pub const removed_vtermno: u32 = std.math.maxInt(u32);
 pub const eagain: isize = -11;
@@ -26,6 +27,32 @@ pub const ModuleDescriptor = struct {
     touches_tty_registration: bool,
     touches_polling_kthread: bool,
     touches_live_hypervisor_io: bool,
+};
+
+pub const HvOpsHeaderSurface = struct {
+    has_get_chars: bool,
+    has_put_chars: bool,
+    has_flush: bool,
+    has_notifier_add: bool,
+    has_notifier_del: bool,
+    has_notifier_hangup: bool,
+    has_tiocmget: bool,
+    has_tiocmset: bool,
+    has_dtr_rts: bool,
+};
+
+pub const HeaderParitySnapshot = struct {
+    anchor: []const u8,
+    max_nr_hvc_consoles: usize,
+    alloc_tty_adapters: usize,
+    exports_instantiate: bool,
+    exports_alloc: bool,
+    exports_remove: bool,
+    exports_poll: bool,
+    exports_resize: bool,
+    hv_ops: HvOpsHeaderSurface,
+    keeps_tty_registration_out_of_scope: bool,
+    keeps_live_hypervisor_io_out_of_scope: bool,
 };
 
 pub const SlotSnapshot = struct {
@@ -180,6 +207,32 @@ pub const HvcConsoleLab = struct {
 
 pub fn validateConsoleSlot(slot_index: usize) !void {
     if (slot_index >= max_nr_hvc_consoles) return error.InvalidConsoleSlot;
+}
+
+pub fn headerParitySnapshot() HeaderParitySnapshot {
+    return .{
+        .anchor = "drivers/tty/hvc/hvc_console.h",
+        .max_nr_hvc_consoles = max_nr_hvc_consoles,
+        .alloc_tty_adapters = alloc_tty_adapters,
+        .exports_instantiate = true,
+        .exports_alloc = true,
+        .exports_remove = true,
+        .exports_poll = true,
+        .exports_resize = true,
+        .hv_ops = .{
+            .has_get_chars = true,
+            .has_put_chars = true,
+            .has_flush = true,
+            .has_notifier_add = true,
+            .has_notifier_del = true,
+            .has_notifier_hangup = true,
+            .has_tiocmget = true,
+            .has_tiocmset = true,
+            .has_dtr_rts = true,
+        },
+        .keeps_tty_registration_out_of_scope = true,
+        .keeps_live_hypervisor_io_out_of_scope = true,
+    };
 }
 
 const FlushProgressSummary = struct {
