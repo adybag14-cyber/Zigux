@@ -54,7 +54,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - the in-memory sample keeps the Linux `maxactive` budget explicit at `20` concurrent instances even though this Phase 5 slice does not model registration-pressure handling
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
-- after `exit()` the sample rejects later summary or handler calls
+- after `exit()` the sample rejects later `recordMissedInstance()`, `entryHandler()`, or `retHandler()` calls
 
 ## Contributor refresh prompts for the landed sample
 
