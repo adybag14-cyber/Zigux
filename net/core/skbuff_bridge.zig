@@ -41,6 +41,7 @@ pub const AuditGuard = enum {
     segmentation_partial_tail_owner_transfer,
     segmentation_checksum_data_offset_crossover,
     segmentation_tail_publication_contract,
+    validate_xmit_list_consumer_reset_contract,
 };
 
 pub const AuditCheckpoint = struct {
@@ -209,6 +210,21 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .blocked_by = "skb_segment() publishes the last generated skb through segs->prev, clamps the last segment's gso_size or gso_segs after the partial-seg loop, and then validate_xmit_skb_list() consumes that contract by resetting skb->prev for unsegmented skbs, splicing tail->next, and trusting tail = skb->prev, so Zigux should keep this exported tail-publication path in C while only naming the contract.",
         .ownership = .stay_in_c,
     },
+    .{
+        .id = "validate-xmit-list-consumer-reset",
+        .anchor_symbol = "validate_xmit_skb_list/skb_mark_not_on_list",
+        .summary = "Track the consumer-side list reset that clears incoming linkage, seeds the single-skb tail, and then trusts the validated skb->prev tail contract.",
+        .guard = .validate_xmit_list_consumer_reset_contract,
+        .observed_fields = &[_][]const u8{
+            "skb->next",
+            "skb->prev",
+            "tail->next",
+            "next",
+            "*again",
+        },
+        .blocked_by = "validate_xmit_skb_list() snapshots next = skb->next, calls skb_mark_not_on_list(skb), seeds skb->prev = skb for the unsegmented case, then trusts tail = skb->prev after validate_xmit_skb() may return either the same skb or a segmented list, so Zigux should record that consumer-side reset contract instead of claiming live queue-list ownership.",
+        .ownership = .stay_in_c,
+    },
 };
 
 const blocked_live_behaviors = [_][]const u8{
@@ -221,6 +237,7 @@ const blocked_live_behaviors = [_][]const u8{
     "segmentation partial-seg metadata and tail-owner transfer",
     "segmentation checksum and data-offset crossover before tail publication",
     "segmentation exported tail-publication contract",
+    "validate_xmit_skb_list consumer-side list reset and tail-contract ownership",
 };
 
 pub const SkbuffBridgeLab = struct {
@@ -271,7 +288,7 @@ pub const SkbuffBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit the validate_xmit_skb_list() single-skb fallback around skb_mark_not_on_list(), skb->prev = skb, and tail = skb->prev so the bridge records the consumer-side list reset that still keeps exported tail publication in C.";
+        return "Audit validate_xmit_skb_list() republished head/tail stitching around head = skb, tail->next = skb, and validate_xmit_skb() drop pruning so the bridge records how validated outputs are reattached without claiming live queue ownership.";
     }
 };
 
@@ -296,8 +313,8 @@ test "skbuff bridge boundary map records stay-in-c lifetime decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "skb_mark_not_on_list()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "tail = skb->prev") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "tail->next = skb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, SkbuffBridgeLab.nextAuditFocus(), "validate_xmit_skb()") != null);
 
     try std.testing.expectEqualStrings("allocation-entrypoints", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -318,11 +335,11 @@ test "skbuff bridge lifetime audit stays review-only" {
 
     try std.testing.expectEqualStrings("net/core/skbuff.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 9), SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb_mark_not_on_list()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "tail = skb->prev") != null);
+    try std.testing.expectEqual(@as(usize, 10), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 10), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 10), SkbuffBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "tail->next = skb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "validate_xmit_skb()") != null);
 
     try std.testing.expectEqualStrings("dataref-header-write-split", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -371,4 +388,11 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqualStrings("skb->prev", audit.checkpoints[8].observed_fields[4]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "segs->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "validate_xmit_skb_list()") != null);
+
+    try std.testing.expectEqualStrings("validate-xmit-list-consumer-reset", audit.checkpoints[9].id);
+    try std.testing.expect(audit.checkpoints[9].guard == .validate_xmit_list_consumer_reset_contract);
+    try std.testing.expectEqualStrings("skb->prev", audit.checkpoints[9].observed_fields[1]);
+    try std.testing.expectEqualStrings("tail->next", audit.checkpoints[9].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "skb_mark_not_on_list(skb)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "tail = skb->prev") != null);
 }
