@@ -72,6 +72,12 @@ required_closure_markers = [
     "PHASE10_DRIVER_COUNT=3",
     "PHASE10_TEST_COUNT=6",
     "PHASE10_HAS_VIRTIO_MMIO_ZIG=no",
+    "PHASE10_ROADMAP_PARITY_SCOREBOARD=present",
+    "PHASE10_ROADMAP_SCOREBOARD_ROW_COUNT=4",
+    "PHASE10_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed",
+    "PHASE10_ROADMAP_MMIO_WRAPPERS=survey_backed_ready_next",
+    "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
+    "PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
@@ -117,7 +123,7 @@ required_workflow_markers = [
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
 ]
 required_checklist_markers = [
-    "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, the three Phase 10 survey manifests, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
+    "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, the three Phase 10 survey manifests, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
 ]
 missing_markers: list[str] = []
@@ -232,6 +238,50 @@ expected_exact_checks = {
 if set(manifest.get("exact_checks", [])) != expected_exact_checks:
     missing_markers.append("manifest:exact_checks:mismatch")
 
+expected_roadmap_parity_scoreboard = {
+    "virtqueue_wrappers": {
+        "status": "starter_landed",
+        "evidence": [
+            "drivers/virtio/virtio_ring.zig",
+            "zigux/tests/phase10_virtio_ring.zig",
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+        ],
+    },
+    "mmio_wrappers": {
+        "status": "survey_backed_ready_next",
+        "evidence": [
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
+            "Documentation/zigux/phase10-virtio-mmio-survey.md",
+        ],
+    },
+    "lab_only_driver_validation": {
+        "status": "starter_landed",
+        "evidence": [
+            "zigux/tests/phase10_build.zig",
+            "scripts/zigux/validate-phase10-closure.py",
+            "Documentation/zigux/phase10-closure-evidence.md",
+        ],
+    },
+    "dual_implementations_for_risky_areas": {
+        "status": "blocked_on_risky_transport",
+        "evidence": [
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            "zigux/tests/phase10_virtio_input_manifest.json",
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
+        ],
+    },
+}
+roadmap_parity_scoreboard = manifest.get("roadmap_parity_scoreboard")
+if roadmap_parity_scoreboard != expected_roadmap_parity_scoreboard:
+    missing_markers.append("manifest:roadmap_parity_scoreboard:mismatch")
+else:
+    for item in roadmap_parity_scoreboard.values():
+        for rel in item.get("evidence", []):
+            if not (ROOT / rel).exists():
+                missing_markers.append(f"manifest:roadmap_parity_scoreboard:evidence_missing:{rel}")
+
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
     "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-register-window-helper",
@@ -247,6 +297,7 @@ expected_blocked_transport_gaps = {
 if blocked_transport_gaps != expected_blocked_transport_gaps:
     missing_markers.append("manifest:blocked_transport_gaps:mismatch")
 
+
 def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
     if not isinstance(phase_manifest, dict):
         missing_markers.append(f"{lane_name}:expected_object")
@@ -261,6 +312,7 @@ def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
     if phase_manifest.get("roadmap_destinations") != expected_allowed_roadmap_destinations:
         missing_markers.append(f"{lane_name}:roadmap_destinations:mismatch")
 
+
 def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
     if not isinstance(phase_manifest, dict):
         return False
@@ -273,6 +325,7 @@ def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
         if gap.get("id") == gap_id and gap.get("status") == status:
             return True
     return False
+
 
 if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "ready_next"):
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:ready_next")
