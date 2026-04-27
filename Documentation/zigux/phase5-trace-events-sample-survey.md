@@ -1,15 +1,16 @@
 # Phase 5 Trace-Events Sample Survey
 
-This document tracks the bounded Phase 5 reference-sample survey for the roadmap's `samples/trace_events/trace-events-sample.c` anchor.
+This sample-backed survey note tracks the bounded Phase 5 reference-sample survey for the roadmap's `samples/trace_events/trace-events-sample.c` anchor.
 
 ## Status
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, and exact bounded checks for the first `samples/zigux/` trace-events replay
+- scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
   - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/trace_events_sample.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_trace_events_sample.zig`
@@ -66,6 +67,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - do the sample self-check and `zigux/tests/phase5_trace_events_sample.zig` still assert the exact `checked_focus` list and order instead of only its length?
 - does the in-memory replay still keep the array payload, selected string, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a balanced register-then-unregister idiom rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
+- do the sample-backed survey note and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact replay contract?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
 
