@@ -35,14 +35,15 @@ This keeps the slice reviewable while making future container and scheduler-faci
 - `python3 scripts/zigux/validate-phase3.py`
 
 2. check C-vs-Zig list/hlist parity
-- `python3 scripts/zigux/check-phase3-list-hlist.py`
+- `python3 scripts/zigux/run-phase3-checks.py --slug list-hlist`
 
 3. run the wider Phase 3 substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
-- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-list-hlist.py`
+- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug list-hlist`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+- `PHASE3_LIST_HLIST_BOUNDARY=descriptor-only-no-container-of-no-lockless-no-rcu-no-notifier-chains`
 
 ## Interop rules
 
@@ -61,6 +62,7 @@ This slice does not claim:
 - container-of helpers
 - lockless list semantics
 - RCU list semantics
+- notifier-chain ownership or callback delivery
 - scheduler ownership or queue integration
 
 This slice only closes the first permanent list/hlist interop seam on top of the existing Phase 3 ABI substrate.
