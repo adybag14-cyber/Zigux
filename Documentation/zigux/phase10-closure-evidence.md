@@ -44,6 +44,26 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_TEST_COUNT=6`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=no`
 
+## Roadmap Parity Scoreboard
+
+This scoreboard records the current parity evidence against the Phase 10 roadmap requirements rather than against full driver parity.
+
+- `PHASE10_ROADMAP_PARITY_SCOREBOARD=present`
+- `PHASE10_ROADMAP_SCOREBOARD_ROW_COUNT=4`
+- `PHASE10_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed`
+- `PHASE10_ROADMAP_MMIO_WRAPPERS=survey_backed_ready_next`
+- `PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed`
+- `PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport`
+
+The current roadmap-facing reading is:
+
+- `virtqueue wrappers`: `starter_landed` through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `MMIO wrappers`: `survey_backed_ready_next` because `Documentation/zigux/phase10-virtio-mmio-survey.md` and `zigux/tests/phase10_virtio_mmio_manifest.json` keep the first register-window helper explicit while `drivers/virtio/virtio_mmio.zig` remains intentionally absent
+- `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `scripts/zigux/validate-phase10-closure.py`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
+- `dual implementations for risky areas`: `blocked_on_risky_transport` because the current ring, input, and MMIO manifests still keep MMIO lifecycle paths, queue setup or reset, IRQ parity, DMA-facing paths, input registration lifecycle, and probe or remove work out of scope until smaller helpers land first
+
+This keeps the closure packet aligned with the roadmap's real Phase 10 requirements: queue-facing lab wrappers are partially landed, MMIO is still survey-backed, the lab validation gate is real, and risky transport expansion is still intentionally blocked.
+
 ## Exact Checks
 
 The current Phase 10 tranche is only considered evidence-verified when all of the following stay green:
