@@ -49,6 +49,7 @@ The current tests check:
 - valid symbol lines expose the expected address, type, and name slices
 - malformed lines are skipped without stopping iteration
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
+- split records also preserve callback-stop behavior unchanged when a failing symbol spans buffered chunk boundaries in the dedicated Phase 8 gate
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrappers preserve both the cwd-based filename contract and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
