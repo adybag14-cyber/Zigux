@@ -63,6 +63,15 @@ test "phase 6 bsearch supports string keys against sorted records" {
     try std.testing.expect(bsearch.search([]const u8, Symbol, &@as([]const u8, "vfree"), symbols[0..], compareSymbolName) == null);
 }
 
+test "phase 6 bsearch exposes a mutable pointer when searching mutable storage" {
+    var values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const found = bsearch.searchMutable(u32, u32, &@as(u32, 21), values[0..], compareU32) orelse return error.TestUnexpectedResult;
+
+    try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
+    found.* = 22;
+    try std.testing.expectEqual(@as(u32, 22), values[3]);
+}
+
 test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {
     const values = [_]u32{ 2, 7, 7, 7, 12, 18 };
     const index = bsearch.searchIndex(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
