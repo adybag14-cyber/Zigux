@@ -1,5 +1,12 @@
 const std = @import("std");
-const abi = @import("abi_bindings");
+
+// Mirror the Phase 3 ABI unsafe-scope tags locally so this helper stays
+// self-contained inside the existing narrow unsafe module wiring.
+pub const UnsafeScopeTag = enum(u8) {
+    none = 0,
+    volatile_mmio = 1,
+    raw_pointer_bridge = 2,
+};
 
 pub fn addressOf(ptr: anytype) usize {
     return @intFromPtr(ptr);
@@ -9,11 +16,11 @@ pub fn byteOffset(base: usize, offset: usize) usize {
     return base + offset;
 }
 
-pub fn permitsVolatileMmio(scope: abi.UnsafeScope) bool {
+pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
     return scope == .volatile_mmio;
 }
 
-pub fn permitsRawPointerBridge(scope: abi.UnsafeScope) bool {
+pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {
     return scope == .raw_pointer_bridge;
 }
 
@@ -45,6 +52,10 @@ test "phase3 narrow unsafe wrappers stay bounded" {
 }
 
 test "phase3 narrow unsafe scope stays explicit" {
+    try std.testing.expectEqual(@as(u8, 0), @intFromEnum(UnsafeScopeTag.none));
+    try std.testing.expectEqual(@as(u8, 1), @intFromEnum(UnsafeScopeTag.volatile_mmio));
+    try std.testing.expectEqual(@as(u8, 2), @intFromEnum(UnsafeScopeTag.raw_pointer_bridge));
+
     try std.testing.expect(!permitsVolatileMmio(.none));
     try std.testing.expect(permitsVolatileMmio(.volatile_mmio));
     try std.testing.expect(!permitsVolatileMmio(.raw_pointer_bridge));
