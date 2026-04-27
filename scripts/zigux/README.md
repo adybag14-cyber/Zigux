@@ -22,7 +22,6 @@ Current bootstrap helpers
 - `validate-phase3.py`
 - `validate-phase4.py`
 - `validate-phase6.py`
-- `validate-phase8.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -75,5 +74,6 @@ Phase 6 flow
 - the same Phase 6 gate now machine-checks that the current hexdump lane still carries its truncation and empty-buffer required-length evidence through `zigux/tests/phase6_hexdump.zig` and `Documentation/zigux/phase6-hexdump-slice.md`.
 
 Phase 8 flow
-- `validate-phase8.py` checks that the bounded Phase 8 tooling bundle still keeps `zigux/tests/phase8_build.zig`, `make -C zigux phase8-validate`, the bootstrap workflow, and the published userspace-adjacent slice notes aligned.
-- the same Phase 8 gate now records the already-landed libbpf `logging.zig` and `pin_path.zig` bridge slices directly through `Documentation/zigux/phase8-libbpf-segment-survey.md` and the shared control-plane notes instead of leaving them implicit in `phase8_build.zig` alone.
+- `validate-phase8.py` checks that the bounded Phase 8 tooling bundle still keeps `zigux/tests/phase8_build.zig`, `make -C zigux phase8-validate`, the bootstrap workflow, the shared README notes, and the current exec-cmd, help, kallsyms, libbpf cpu-mask, libbpf logging, libbpf pin-path, libbpf type-name, and `phase8-libbpf-segment-survey.md` markers aligned.
+- `make -C zigux phase8-validate` fails fast if the Phase 8 bundle drifts out of sync before the shared Zig tooling tests run.
+- the same Phase 8 gate treats `tools/lib/bpf/zigux_segments/logging.zig` and `tools/lib/bpf/zigux_segments/pin_path.zig` as first-class landed slices in the shared bundle instead of leaving them implied only by the build graph.
