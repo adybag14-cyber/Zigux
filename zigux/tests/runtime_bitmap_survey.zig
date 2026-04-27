@@ -32,6 +32,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn isLowerHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
+}
+
 test "phase 9 runtime bitmap survey manifest records the landed diff gate and remaining blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -50,6 +58,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.test_bitmap_c_lines >= 1000);
