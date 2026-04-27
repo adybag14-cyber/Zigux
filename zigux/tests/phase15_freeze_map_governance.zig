@@ -47,9 +47,9 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("7d902693be04d2f88566befd198ffc6750b275a1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("db8cb0afb63283cdf74705a8f4f840defc5f67d2", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
@@ -96,7 +96,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-note")) {
             saw_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity-scorecard") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "governance build as broken") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-build-gate")) {
             saw_build = true;
@@ -184,6 +184,8 @@ test "phase 15 freeze-map governance note records the current blocker posture ho
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed RCU seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-clean-on-current-master`: yes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "11/11` tests passed") != null);
 }
 
 test "phase 15 governance manifest required terms stay aligned with the freeze map" {
