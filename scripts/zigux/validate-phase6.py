@@ -20,6 +20,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum_perf.zig',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_checksum_vectors.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_hexdump_vectors.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
@@ -86,6 +87,7 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_bsearch_perf.zig',
     'zigux/tests/phase6_checksum.zig',
     'zigux/tests/phase6_checksum_perf.zig',
+    'zigux/tests/fixtures/phase6_checksum_vectors.zig',
     'zigux/tests/phase6_hexdump.zig',
     'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
     'scripts/zigux/validate-phase6.py',
@@ -167,6 +169,7 @@ required_slice_markers = {
     'phase6-checksum-slice.md': [
         'PHASE6_STATUS=active',
         'lib/checksum.zig',
+        'zigux/tests/fixtures/phase6_checksum_vectors.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-checksum-perf',
         'replayable perf-sanity harness reports representative checksum cost per call and per byte',
