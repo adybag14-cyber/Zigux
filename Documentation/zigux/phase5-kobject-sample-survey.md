@@ -67,8 +67,8 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, dispatch, parse failures, and teardown
-- contributor guidance still needs to keep the in-memory directory and unnamed-group shape visibly separate from real sysfs or module substrate claims
-- the broader roadmap still expects the last Phase 5 reference-sample anchor, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
+- the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
+- contributor guidance still needs to keep the in-memory directory and unnamed-group shape visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
 
