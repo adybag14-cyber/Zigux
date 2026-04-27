@@ -121,6 +121,13 @@ const SeededCase = struct {
     expected_partial: u32,
 };
 
+const CarryDisciplineCase = struct {
+    bytes: []const u8,
+    seed: u32,
+    expected_partial: u32,
+    expected_compute: u16,
+};
+
 const PseudoHeaderCase = struct {
     payload: []const u8,
     saddr: u32,
@@ -186,6 +193,46 @@ test "partial honors non-zero seeds across carry-heavy inputs" {
     for (seeded_cases) |case| {
         try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
         try std.testing.expectEqual(case.expected_partial, partial(case.bytes, case.seed));
+    }
+}
+
+test "carry discipline matches the current helper-local edge matrix" {
+    const all_ones_odd = [_]u8{0xff};
+    const all_ones_even = [_]u8{ 0xff, 0xff };
+    const no_carry_single = [_]u8{0x04};
+    const no_carry_pair = [_]u8{ 0x04, 0x04 };
+    const cases = [_]CarryDisciplineCase{
+        .{
+            .bytes = &all_ones_odd,
+            .seed = 0xffff_ffff,
+            .expected_partial = 0xff00,
+            .expected_compute = 0x00ff,
+        },
+        .{
+            .bytes = &all_ones_even,
+            .seed = 0,
+            .expected_partial = 0xffff,
+            .expected_compute = 0x0000,
+        },
+        .{
+            .bytes = &no_carry_single,
+            .seed = 0xffff_fbfb,
+            .expected_partial = 0xfffb,
+            .expected_compute = 0x0004,
+        },
+        .{
+            .bytes = &no_carry_pair,
+            .seed = 0xffff_f7f7,
+            .expected_partial = 0xfbfb,
+            .expected_compute = 0x0404,
+        },
+    };
+
+    for (cases) |case| {
+        const actual_partial = partial(case.bytes, case.seed);
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
+        try std.testing.expectEqual(case.expected_partial, actual_partial);
+        try std.testing.expectEqual(case.expected_compute, fold(actual_partial));
     }
 }
 
