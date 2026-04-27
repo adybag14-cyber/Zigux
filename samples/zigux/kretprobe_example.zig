@@ -199,6 +199,16 @@ pub const KretprobeExampleSample = struct {
 };
 
 test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
+    const expected_focus = [_]SampleFocus{
+        .symbol_selection,
+        .entry_timestamp,
+        .private_data_shape,
+        .return_duration,
+        .maxactive_budget,
+        .missed_summary,
+        .ownership_and_lifetime,
+    };
+
     var sample = KretprobeExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
@@ -213,5 +223,8 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
+    for (expected_focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
 }
