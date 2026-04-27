@@ -7,7 +7,7 @@ This document records the bounded Phase 15 handoff lane for synthesizing the rem
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
 - scope: one dedicated handoff note, one manifest, one Zig test, one shared `phase15_build.zig` follow-up, and one docs-index refresh that keep the roadmap contract, the bootstrap ledger anchor, the current governance packet, the open handoff gaps, and the parked next steps reviewable in one place
-- survey provenance refreshed against verified `master` head `621356c2c80367701a16a5845f186163207b9a65`
+- survey provenance refreshed against verified `master` head `e25bb70f4208335f510cbf160c10f2bc218b14ee`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
@@ -32,9 +32,9 @@ The roadmap says Phase 15 is the governance tranche for the final mixed-language
 
 Current `master` now carries much more than that starting point. The live repo already has the freeze map, the Architecture Council review-process note, the parity scorecard, the indefinite-C policy note, the dedicated readiness packet, the shared `phase15_build.zig` replay path, the `make -C zigux phase15` target, and the shared bootstrap workflow replay step.
 
-What was still missing was one compact handoff packet that answers the two questions future runs actually need:
+What this packet still needs to answer for future runs is narrower now:
 
-- which handoff gaps are still genuinely open after the governance bundle landed
+- what handoff gap is still genuinely open after the governance bundle landed and the scorecard-side maintenance wording was refreshed
 - what is the next honest bounded step without reopening new policy or deep-core implementation scope
 
 This note exists to answer those questions directly and keep the Phase 15 tranche parked cleanly.
@@ -54,7 +54,7 @@ This note exists to answer those questions directly and keep the Phase 15 tranch
 
 - `Documentation/zigux/phase15-freeze-map-governance.md` now records the current freeze-map governance posture and shared-bootstrap replay coverage
 - `Documentation/zigux/phase15-architecture-council-review-process.md` now records the required review packet, retained stay-in-C closeout state, and reopen-trigger catalog
-- `Documentation/zigux/phase15-parity-scorecard.md` records the four deep-core anchors, their owners, archive paths, and blocker dispositions, but it is still one of the handoff surfaces that may need a maintenance refresh when the broader parked-next-step wording drifts
+- `Documentation/zigux/phase15-parity-scorecard.md` records the four deep-core anchors, their owners, archive paths, blocker dispositions, and the already-aligned maintenance-mode handoff wording for the shared replay-covered governance packet
 - `Documentation/zigux/phase15-indefinite-c-policy.md` now records the explicit long-term stay-in-C posture and exception rules
 - `Documentation/zigux/phase15-readiness-gate-survey.md` now records that the roadmap-required governance bundle is landed, the bootstrap ledger anchor is still visible, the shared bootstrap workflow replays the current Phase 15 gate, and the remaining blocker is deep-core status-change evidence
 - `zigux/tests/phase15_build.zig` now replays the dedicated handoff packet alongside the other Phase 15 governance tests
@@ -62,15 +62,9 @@ This note exists to answer those questions directly and keep the Phase 15 tranch
 
 ## Open Handoff Gaps
 
-### Scorecard Handoff Wording Still Needs a Maintenance Refresh
-
-The Phase 15 governance bundle is already present and the shared bootstrap workflow already runs `Run Phase 15 governance tests`, but the older scorecard packet still talks like shared-CI coverage is the next parked step.
-
-That does not justify a new governance slice by itself. It does justify this dedicated handoff packet, because future runs need one place that says the shared replay gap is already closed and that the remaining product-facing blocker is elsewhere.
-
 ### Deep-Core Status Changes Still Blocked
 
-The remaining open handoff gap is not missing governance scaffolding. It is the same blocker posture already recorded across the freeze map, parity scorecard, and readiness packet:
+The remaining open handoff gap is not missing governance scaffolding and it is no longer stale scorecard handoff wording. It is the same blocker posture already recorded across the freeze map, parity scorecard, and readiness packet:
 
 - `kernel/sched/core.c`: still blocked by the absence of a bounded scheduler seam
 - `mm/page_alloc.c`: still blocked by the absence of a bounded allocator seam
@@ -85,7 +79,7 @@ The next honest bounded step inside this lane is to stay parked until one of the
 
 1. new deep-core evidence changes one of the current blocker dispositions
 2. one of the named reopen triggers now applies to a retained stay-in-C packet
-3. the current Phase 15 governance packet drifts enough that the handoff note, readiness packet, scorecard, and docs index need a synchronized maintenance refresh
+3. the current Phase 15 governance packet drifts enough that the handoff note, readiness packet, and docs index need a synchronized maintenance refresh
 
 If none of those conditions is true, the right action is not another new Phase 15 slice. The right action is to leave the tranche in maintenance mode.
 
@@ -111,10 +105,9 @@ The current lane state is:
 - landed `phase15-handoff-next-steps-test`
 - landed `phase15-build-gate-handoff-next-steps`
 - landed `phase15-docs-index-handoff-pointer`
-- ready-next `phase15-scorecard-handoff-sync-gap`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight. Zigux now has one dedicated handoff packet that says the roadmap bundle is landed, the ledger anchor is still visible, the shared replay path is live, the docs index points to the parked synthesis, and the remaining open Phase 15 handoff gaps are the stale scorecard wording plus the deeper blocker posture that still prevents any status change.
+This keeps the lane tight. Zigux now has one dedicated handoff packet that says the roadmap bundle is landed, the ledger anchor is still visible, the shared replay path is live, the docs index points to the parked synthesis, and the remaining open Phase 15 handoff gap is the deeper blocker posture that still prevents any status change.
 
 ## Non-goals
 
