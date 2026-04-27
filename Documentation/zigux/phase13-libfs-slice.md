@@ -10,7 +10,8 @@ The current helper stays intentionally narrow:
 - adds the first bounded buffer-copy trio around `simple_read_from_buffer()`, `simple_write_to_buffer()`, and `memory_read_from_buffer()` by keeping the work in pure offset, truncation, and short-copy accounting rather than pretending to own user-copy primitives or live file state
 - keeps the landed pure seek-planning wrappers around the early `dcache_dir_lseek()` and `offset_dir_llseek()` policy surface so Zigux can validate `SEEK_SET` and `SEEK_CUR`, negative-offset rejection, max-position checks, and the point where a positive cursor walk would become necessary without modeling live dentries or file structs
 - adds one tiny `dcache_readdir()`-adjacent emit planner that models the `dir_emit_dots()` handoff, the transition into positive entry scanning, emitted-entry position accounting, and the early stop case before any live cursor dentries or inode-backed state are touched
+- adds one bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner that models request-size limits, one-write-per-open reservation, copy-fault retention, and publish-size bookkeeping without claiming live page allocation, file-private storage mutation, or pseudo-filesystem state
 
 This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, simple-transaction state, or any other live VFS plumbing from the wider `fs/libfs.c` body.
 
-The next honest bounded step in this same lane is to stay helper-first and add one small transaction-buffer wrapper that still avoids live dentries, inode-backed state, and pseudo-filesystem lifecycle work.
+The next honest bounded step in this same lane is to stay helper-first and add one tiny `simple_transaction_read()` / `simple_transaction_release()` follow-up that still avoids live dentries, inode-backed state, and pseudo-filesystem lifecycle work.
