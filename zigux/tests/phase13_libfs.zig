@@ -10,6 +10,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
+    try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -202,4 +203,46 @@ test "phase13 libfs directory emit planning advances after dots and tracks empty
 
     try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(-1, true, 0));
     try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(std.math.maxInt(i64), true, 1));
+}
+
+test "phase13 libfs transaction staging planner models one-write reservation and copy-fault retention" {
+    const ready = libfs.LibFsHelperLab.simpleTransactionGetPlan(false, 32, true, 0);
+    try std.testing.expectEqualStrings("fs/libfs.c", ready.anchor);
+    try std.testing.expectEqual(libfs.TransactionAcquireMode.ready, ready.mode);
+    try std.testing.expectEqual(@as(usize, 32), ready.requested_size);
+    try std.testing.expectEqual(@as(usize, 32), ready.copied_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, ready.staging_capacity);
+    try std.testing.expect(ready.reserves_private_data);
+    try std.testing.expect(ready.requires_release);
+    try std.testing.expect(!ready.keeps_private_data_on_failure);
+
+    const copy_fault = libfs.LibFsHelperLab.simpleTransactionGetPlan(false, 32, true, 5);
+    try std.testing.expectEqual(libfs.TransactionAcquireMode.copy_fault, copy_fault.mode);
+    try std.testing.expectEqual(@as(usize, 27), copy_fault.copied_size);
+    try std.testing.expect(copy_fault.reserves_private_data);
+    try std.testing.expect(copy_fault.requires_release);
+    try std.testing.expect(copy_fault.keeps_private_data_on_failure);
+}
+
+test "phase13 libfs transaction staging planner rejects oversize, duplicate writers, oom, and publish overflow" {
+    const too_large = libfs.LibFsHelperLab.simpleTransactionGetPlan(false, libfs.simple_transaction_limit, true, 0);
+    try std.testing.expectEqual(libfs.TransactionAcquireMode.request_too_large, too_large.mode);
+    try std.testing.expect(!too_large.reserves_private_data);
+    try std.testing.expect(!too_large.requires_release);
+
+    const out_of_memory = libfs.LibFsHelperLab.simpleTransactionGetPlan(false, 8, false, 0);
+    try std.testing.expectEqual(libfs.TransactionAcquireMode.out_of_memory, out_of_memory.mode);
+    try std.testing.expect(!out_of_memory.reserves_private_data);
+
+    const already_open = libfs.LibFsHelperLab.simpleTransactionGetPlan(true, 8, true, 0);
+    try std.testing.expectEqual(libfs.TransactionAcquireMode.already_open, already_open.mode);
+    try std.testing.expect(!already_open.reserves_private_data);
+
+    const publish = try libfs.LibFsHelperLab.simpleTransactionSetPlan(17);
+    try std.testing.expectEqualStrings("fs/libfs.c", publish.anchor);
+    try std.testing.expectEqual(@as(usize, 17), publish.published_size);
+    try std.testing.expect(publish.uses_release_barrier);
+    try std.testing.expect(publish.becomes_readable);
+
+    try std.testing.expectError(error.TransactionTooLarge, libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1));
 }
