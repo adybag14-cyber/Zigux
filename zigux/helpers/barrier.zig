@@ -1,19 +1,22 @@
-var fence_word: u8 = 0;
+const std = @import("std");
 
-test "phase3 barrier wrappers compile" {
+var fence_word = std.atomic.Value(u8).init(0);
+
+test "phase3 barrier wrappers stay on an atomic backing word" {
     acquire();
     release();
     full();
+    try std.testing.expectEqual(@as(u8, 0), fence_word.load(.seq_cst));
 }
 
 pub fn acquire() void {
-    _ = @atomicLoad(u8, &fence_word, .acquire);
+    _ = fence_word.load(.acquire);
 }
 
 pub fn release() void {
-    @atomicStore(u8, &fence_word, fence_word, .release);
+    fence_word.store(0, .release);
 }
 
 pub fn full() void {
-    _ = @atomicRmw(u8, &fence_word, .Xchg, fence_word, .seq_cst);
+    _ = fence_word.swap(0, .seq_cst);
 }
