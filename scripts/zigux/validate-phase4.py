@@ -33,6 +33,7 @@ script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='u
 doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 phase4_matrix = (ROOT / 'Documentation' / 'zigux' / 'phase4-validation-matrix.md').read_text(encoding='utf-8')
 phase4_build = (ROOT / 'zigux' / 'tests' / 'phase4_build.zig').read_text(encoding='utf-8')
+runtime_atomic64_diff = (ROOT / 'zigux' / 'tests' / 'runtime_atomic64_diff.zig').read_text(encoding='utf-8')
 
 phase4_gate_expectations = {
     'runtime_atomic64_diff.zig': {
@@ -40,8 +41,8 @@ phase4_gate_expectations = {
         'rollback_owner': 'ABI and Runtime Team',
         'fallback_path': 'keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses',
         'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
-        'gate_scope': 'exchange, cmpxchg, add_unless, and selftest-family replay',
-        'threshold_scope': 'exchange, cmpxchg, add_unless, and selftest-family replay set',
+        'gate_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay',
+        'threshold_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
     },
     'bitmap_diff.zig': {
         'owner': 'Shared Subsystems Pod',
@@ -103,6 +104,13 @@ required_phase4_build_markers = [
     'phase4-runtime-atomic64-diff-tests',
     'phase4-bitmap-diff-tests',
 ]
+required_runtime_atomic64_markers = [
+    'addUnlessCounter',
+    'incNotZeroCounter',
+    'add_unless, and inc_not_zero expectations',
+    'checked_guard_paths',
+    'error.InvalidLifecycleTransition, module.incNotZeroCounter()',
+]
 
 missing_markers = []
 for marker in required_make_markers:
@@ -129,6 +137,9 @@ for marker in required_phase4_matrix_markers:
 for marker in required_phase4_build_markers:
     if marker not in phase4_build:
         missing_markers.append(f'phase4_build:{marker}')
+for marker in required_runtime_atomic64_markers:
+    if marker not in runtime_atomic64_diff:
+        missing_markers.append(f'runtime_atomic64_diff:{marker}')
 
 
 def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> list[str]:
@@ -195,5 +206,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers)}"
 )
