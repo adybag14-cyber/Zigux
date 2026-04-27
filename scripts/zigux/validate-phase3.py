@@ -13,7 +13,13 @@ from phase3_catalog import (
     discover_phase3_slug_rename_candidates,
     discover_phase3_slices,
 )
-from phase3_check_lib import legacy_wrapper_gate_for_slug, render_wrapper_stub, shared_runner_gate_for_slug
+from phase3_check_lib import (
+    build_step_for_slug as runner_build_step_for_slug,
+    description_for_slug as runner_description_for_slug,
+    legacy_wrapper_gate_for_slug,
+    render_wrapper_stub,
+    shared_runner_gate_for_slug,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -139,6 +145,21 @@ def validate_build_steps(root: Path, slices: list[object], issues: list[str]) ->
             issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
 
 
+def validate_runner_metadata(slices: list[object], issues: list[str]) -> None:
+    for entry in slices:
+        runner_build_step = runner_build_step_for_slug(entry.slug)
+        if runner_build_step != entry.build_step:
+            issues.append(
+                f"{entry.slug}:runner_build_step_mismatch:{runner_build_step}!={entry.build_step}"
+            )
+
+        runner_description = runner_description_for_slug(entry.slug)
+        if runner_description != entry.description:
+            issues.append(
+                f"{entry.slug}:runner_description_mismatch:{runner_description}!={entry.description}"
+            )
+
+
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
     if not check_all_wrappers:
         return
@@ -205,6 +226,7 @@ def validate_slices(
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
     validate_build_steps(root, slices, issues)
+    validate_runner_metadata(slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
@@ -343,6 +365,27 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected missing slug to fail")
         assert validate_slices(root, slices, check_artifact_diff=True) == []
+
+        runner_mismatch = type(
+            "Slice",
+            (),
+            {
+                "root": root,
+                "slug": "alpha",
+                "description": "alpha drift",
+                "build_step": "phase3-alpha-other-dump",
+                "doc_path": paths.docs_dir / "phase3-alpha-slice.md",
+                "check_script": paths.scripts_dir / "check-phase3-alpha.py",
+                "dump_path": paths.tests_dir / "phase3_alpha_dump.zig",
+                "fixture_dir": fixture_dir,
+                "expected_path": fixture_dir / "expected.json",
+                "harness_path": fixture_dir / "phase3_alpha_c_harness.c",
+                "manifest_path": fixture_dir / "phase3_alpha_manifest.json",
+            },
+        )()
+        issues = validate_slices(root, [runner_mismatch], check_artifact_diff=True)
+        assert "alpha:runner_build_step_mismatch:phase3-alpha-dump!=phase3-alpha-other-dump" in issues
+        assert "alpha:runner_description_mismatch:alpha!=alpha drift" in issues
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
         assert validate_slices(root, slices, check_artifact_diff=True) == []
