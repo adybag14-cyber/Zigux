@@ -21,6 +21,7 @@ Current bootstrap helpers
 - `validate-phase2-closure.py`
 - `validate-phase3.py`
 - `validate-phase4.py`
+- `validate-phase6.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -65,3 +66,7 @@ Phase 4 flow
 - `validate-phase4.py` checks that the bounded Phase 4 differential gates, that shared artifact-diff self-test, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
 - `zigux/tests/phase4_build.zig` runs the live `runtime_atomic64_diff.zig` and `bitmap_diff.zig` rollback-readiness gates together instead of letting one of them drift out of the regular validation path.
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, exact workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, the shared `phase4-runtime-atomic64-diff-tests` plus `phase4-bitmap-diff-tests` replay anchors, and the reversible-delivery evidence that ties each shipped Phase 4 gate back to its current C anchor if the shared entrypoint has to drop that Zig gate.
+
+Phase 6 flow
+- `validate-phase6.py` checks that the bounded Phase 6 leaf-helper bundle still keeps `zigux/tests/phase6_build.zig`, `make -C zigux phase6-validate`, the bootstrap workflow, and the published base64, bsearch, checksum, and hexdump slice notes aligned.
+- the same Phase 6 gate now machine-checks that the current hexdump lane still carries its truncation and empty-buffer required-length evidence through `zigux/tests/phase6_hexdump.zig` and `Documentation/zigux/phase6-hexdump-slice.md`.
