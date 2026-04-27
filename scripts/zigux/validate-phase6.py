@@ -19,6 +19,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum.zig',
+    ROOT / 'zigux' / 'tests' / 'phase6_checksum_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
@@ -51,13 +52,15 @@ slice_docs = {
 }
 
 required_make_markers = [
-    'PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6',
+    'PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6',
     'phase6-validate:',
     'scripts/zigux/validate-phase6.py',
     'phase6-test:',
     'zigux/tests/phase6_build.zig',
     'phase6-bsearch-perf:',
     'bsearch-perf --build-file zigux/tests/phase6_build.zig',
+    'phase6-checksum-perf:',
+    'checksum-perf --build-file zigux/tests/phase6_build.zig',
 ]
 
 required_workflow_markers = [
@@ -81,6 +84,7 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_bsearch.zig',
     'zigux/tests/phase6_bsearch_perf.zig',
     'zigux/tests/phase6_checksum.zig',
+    'zigux/tests/phase6_checksum_perf.zig',
     'zigux/tests/phase6_hexdump.zig',
     'scripts/zigux/validate-phase6.py',
 ]
@@ -106,9 +110,11 @@ required_phase6_build_markers = [
     'phase6_bsearch.zig',
     'phase6_bsearch_perf.zig',
     'phase6_checksum.zig',
+    'phase6_checksum_perf.zig',
     'phase6_hexdump.zig',
     'Run Phase 6 leaf helper tests',
     'Run the Phase 6 bsearch performance sanity harness',
+    'Run the Phase 6 checksum performance sanity harness',
 ]
 
 required_bsearch_markers = [
@@ -125,6 +131,15 @@ required_bsearch_perf_markers = [
     'avg_compare_calls',
     'std.math.log2_int_ceil',
     'try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));',
+]
+
+required_checksum_perf_markers = [
+    'phase6-checksum-perf',
+    '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0 }',
+    '.{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678 }',
+    'referencePartial',
+    'ns_per_byte',
+    'try std.testing.expect(elapsed > 0);',
 ]
 
 required_hexdump_markers = [
@@ -151,6 +166,8 @@ required_slice_markers = {
         'PHASE6_STATUS=active',
         'lib/checksum.zig',
         'zigux/tests/phase6_build.zig',
+        'make -C zigux phase6-checksum-perf',
+        'replayable perf-sanity harness reports representative checksum cost per call and per byte',
     ],
     'phase6-hexdump-slice.md': [
         'PHASE6_STATUS=active',
@@ -187,6 +204,10 @@ for marker in required_bsearch_markers:
 for marker in required_bsearch_perf_markers:
     if marker not in phase6_bsearch_perf:
         missing_markers.append(f'phase6_bsearch_perf:{marker}')
+phase6_checksum_perf = (ROOT / 'zigux' / 'tests' / 'phase6_checksum_perf.zig').read_text(encoding='utf-8')
+for marker in required_checksum_perf_markers:
+    if marker not in phase6_checksum_perf:
+        missing_markers.append(f'phase6_checksum_perf:{marker}')
 for marker in required_hexdump_markers:
     if marker not in phase6_hexdump:
         missing_markers.append(f'phase6_hexdump:{marker}')
@@ -208,5 +229,5 @@ print('PHASE6_VALIDATION=pass')
 print(f'PHASE6_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE6_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
 )
