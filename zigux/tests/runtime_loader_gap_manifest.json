@@ -30,6 +30,90 @@
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig"
   ],
+  "delivery_evidence_catalog": [
+    {
+      "id": "runtime-loader-gap-note",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "role": "records the mixed Phase 6 or Phase 8 or Phase 9 roadmap boundary, blocker posture, and bounded replay contract"
+    },
+    {
+      "id": "runtime-loader-review-checklist",
+      "kind": "governance",
+      "path": "Documentation/zigux/review-checklist.md",
+      "role": "keeps the runtime review guardrails and the ownership prompts for the shared evidence packet explicit"
+    },
+    {
+      "id": "runtime-loader-gap-manifest",
+      "kind": "manifest",
+      "path": "zigux/tests/runtime_loader_gap_manifest.json",
+      "role": "holds the manifest-backed catalog and ownership map for the current shared runtime-loader delivery packet"
+    },
+    {
+      "id": "runtime-loader-gap-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_loader_gap_survey.zig",
+      "role": "machine-checks the manifest, the blocker note, the shared request contract, and the still-absent command or environment control surface"
+    },
+    {
+      "id": "phase9-build-gate",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "role": "keeps the current runtime bundle replayable as one shared Phase 9 entrypoint"
+    },
+    {
+      "id": "shared-runtime-loader-contract",
+      "kind": "runtime_substrate",
+      "path": "zigux/kernel/runtime_loader.zig",
+      "role": "owns the shared request contract plus allocator and init or exit handoff fields"
+    },
+    {
+      "id": "bitmap-loader-plan",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_bitmap_loader.zig",
+      "role": "owns the bitmap loader-plan projection into the shared runtime request surface"
+    },
+    {
+      "id": "kretprobe-loader-plan",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_kretprobe_loader.zig",
+      "role": "owns the kretprobe loader-plan projection into the shared runtime request surface"
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "owns": "roadmap-boundary note, blocker posture, and bounded replay contract"
+    },
+    {
+      "surface": "Documentation/zigux/review-checklist.md",
+      "owns": "runtime review guardrails and ownership prompts for the shared evidence packet"
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_manifest.json",
+      "owns": "manifest-backed catalog and ownership map for the current delivery packet"
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_gap_survey.zig",
+      "owns": "machine-checkable replay of the manifest, note, and shared request surface"
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "owns": "shared Phase 9 runtime bundle replay entrypoint"
+    },
+    {
+      "surface": "zigux/kernel/runtime_loader.zig",
+      "owns": "shared request contract plus allocator and init or exit handoff fields"
+    },
+    {
+      "surface": "samples/zigux/runtime_bitmap_loader.zig",
+      "owns": "bitmap loader-plan projection into the shared runtime request surface"
+    },
+    {
+      "surface": "samples/zigux/runtime_kretprobe_loader.zig",
+      "owns": "kretprobe loader-plan projection into the shared runtime request surface"
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
