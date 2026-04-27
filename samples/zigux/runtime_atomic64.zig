@@ -40,6 +40,11 @@ pub const AddUnlessResult = struct {
     changed: bool,
 };
 
+pub const IncNotZeroResult = struct {
+    previous: i64,
+    changed: bool,
+};
+
 pub const RuntimeAtomic64Sample = struct {
     const Self = @This();
 
@@ -115,6 +120,36 @@ pub const RuntimeAtomic64Sample = struct {
                     }
 
                     const next = current + addend;
+                    const mismatch = atomic.compareExchange(
+                        i64,
+                        &self.counter,
+                        current,
+                        next,
+                        .seq_cst,
+                        .seq_cst,
+                    );
+                    if (mismatch) |previous| {
+                        current = previous;
+                        continue;
+                    }
+
+                    break :blk .{ .previous = current, .changed = true };
+                }
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn incNotZeroCounter(self: *Self) !IncNotZeroResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                var current = atomic.load(i64, &self.counter, .seq_cst);
+                while (true) {
+                    if (current == 0) {
+                        break :blk .{ .previous = current, .changed = false };
+                    }
+
+                    const next = current + 1;
                     const mismatch = atomic.compareExchange(
                         i64,
                         &self.counter,
