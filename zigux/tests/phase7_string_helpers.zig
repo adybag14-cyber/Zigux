@@ -2,6 +2,10 @@ const std = @import("std");
 const string_helpers = @import("string_helpers");
 const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");
 
+fn cStringPrefix(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 test "phase 7 string helpers module imports cleanly" {
     _ = string_helpers;
 }
@@ -57,6 +61,35 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
     var lower = [_]u8{ '.', '.', '.', '.' };
     string_helpers.stringLower(&lower, "Zz9!");
     try std.testing.expectEqualSlices(u8, "zz9!", &lower);
+}
+
+test "phase 7 stringGetSize covers SI, binary, and formatting flag cases" {
+    var out = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+    const si_len = string_helpers.stringGetSize(1500, 1, string_helpers.STRING_UNITS_10, &out);
+    try std.testing.expectEqual(@as(usize, 7), si_len);
+    try std.testing.expectEqualStrings("1.50 kB", cStringPrefix(&out));
+
+    const binary_len = string_helpers.stringGetSize(1536, 1, string_helpers.STRING_UNITS_2, &out);
+    try std.testing.expectEqual(@as(usize, 8), binary_len);
+    try std.testing.expectEqualStrings("1.50 KiB", cStringPrefix(&out));
+
+    const compact_len = string_helpers.stringGetSize(
+        1536,
+        1,
+        string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,
+        &out,
+    );
+    try std.testing.expectEqual(@as(usize, 6), compact_len);
+    try std.testing.expectEqualStrings("1.50Ki", cStringPrefix(&out));
+}
+
+test "phase 7 stringGetSize returns snprintf-style length on truncation" {
+    var out = [_]u8{ '!', '!', '!', '!', '!' };
+    const len = string_helpers.stringGetSize(1500, 1, string_helpers.STRING_UNITS_10, &out);
+
+    try std.testing.expectEqual(@as(usize, 7), len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &out);
 }
 
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
