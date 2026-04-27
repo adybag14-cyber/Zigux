@@ -53,7 +53,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-      "why_now": "The shared Phase 11 header survey now uses layout_assert to keep one bounded ABI proof for struct watchdog_info, pinning the first public watchdog surface by size, alignment, and field offsets without widening the simple-driver tranche into full watchdog-core ownership."
+      "why_now": "The shared header-parity gate now carries one bounded layout_assert checkpoint for struct watchdog_info so size, alignment, and field offsets stay reviewable without turning this simple-driver slice into a wider watchdog-core ownership claim."
     },
     {
       "id": "phase11-phase3-interop-followup",
