@@ -25,16 +25,16 @@
     {
       "lane_key": "P14-L11",
       "anchor": "net/core/skbuff.c",
-      "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+      "surveyed_commit": "f65e3d897847bf205198e5c47a41782085620579",
       "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
-      "ready_next_gap": "phase14-skbuff-segs-prev-tail-publication-followup",
+      "ready_next_gap": "phase14-skbuff-validate-xmit-list-reset-followup",
       "blocked_gap": "phase14-skbuff-live-ownership-blocker"
     },
     {
       "lane_key": "P14-L06",
       "anchor": "kernel/trace/ring_buffer.c",
-      "surveyed_commit": "0a66b6c6e651e39ca2ce56cb6776fbde352dc213",
+      "surveyed_commit": "99cd3249c4bab05b74227ed7ca3869284e818588",
       "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
       "ready_next_gap": "phase14-ring-buffer-read-page-extraction-followup",
