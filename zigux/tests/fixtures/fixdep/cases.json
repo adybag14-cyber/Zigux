@@ -21,6 +21,13 @@
     "expected": "sample_escaped_space_expected.txt"
   },
   {
+    "name": "sample_concatenated",
+    "depfile": "sample_concatenated.d",
+    "target": "sample_concatenated.o",
+    "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
+    "expected": "sample_concatenated_expected.txt"
+  },
+  {
     "name": "sample_comment_only",
     "depfile": "sample_comment_only.d",
     "target": "sample_comment_only.o",
