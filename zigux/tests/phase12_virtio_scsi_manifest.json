@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L09",
   "phase": "Phase 12",
-  "surveyed_commit": "ee64eec272a352da1d967999c99bb3c3560c9b97",
+  "surveyed_commit": "3920e2311110994e4bd1e5e4dc2210494dab4641",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "roadmap_destinations": [
     "drivers/scsi/virtio_scsi.zig",
@@ -22,7 +22,10 @@
     "preexisting_phase12_survey_note_present": true,
     "preexisting_virtio_scsi_zig_present": true,
     "preexisting_phase12_virtio_scsi_test_present": true,
-    "preexisting_phase12_virtio_scsi_slice_note_present": true
+    "preexisting_phase12_virtio_scsi_slice_note_present": true,
+    "preexisting_phase12_raw_github_fallback_catalog_present": true,
+    "raw_github_tree_fallback_count": 3,
+    "raw_github_file_fallback_count": 10
   },
   "gaps": [
     {
@@ -87,6 +90,13 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-slice.md",
       "why_now": "The slice note records exactly what the queue-layout, probe snapshot, and host-limit summary starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
+    },
+    {
+      "id": "phase12-virtio-scsi-raw-github-fallback-catalog",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+      "why_now": "The lane now needs one exact read-only fallback packet that pins the current inspected head, the three public tree entry points, and the ten commit-pinned raw GitHub artifact URLs with recorded byte counts and sha256 hashes so future scheduled runs can recover the real survey surface when connector-backed reads are flaky."
     },
     {
       "id": "phase12-virtio-scsi-probe-config-snapshot-starter",
