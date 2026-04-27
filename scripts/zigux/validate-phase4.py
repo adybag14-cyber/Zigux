@@ -46,6 +46,7 @@ phase4_gate_expectations = {
         'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
         'gate_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay',
         'threshold_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
+        'local_replay_test': 'phase4-runtime-atomic64-diff-tests',
     },
     'bitmap_diff.zig': {
         'owner': 'Shared Subsystems Pod',
@@ -54,6 +55,7 @@ phase4_gate_expectations = {
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
         'gate_scope': 'bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay',
         'threshold_scope': 'range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
+        'local_replay_test': 'phase4-bitmap-diff-tests',
     },
 }
 
@@ -66,6 +68,8 @@ required_make_markers = [
     'zigux/tests/phase4_build.zig',
 ]
 required_workflow_markers = [
+    'Validate Phase 4 diff gates',
+    'Run Phase 4 diff tests',
     'make -C zigux phase4-validate',
     'make -C zigux phase4-test',
 ]
@@ -104,6 +108,8 @@ required_doc_readme_markers = [
     'python3 scripts/zigux/artifact_diff.py --self-test',
     'validate-phase4.py',
     'phase4-validation-matrix.md',
+    'Validate Phase 4 diff gates',
+    'Run Phase 4 diff tests',
 ]
 required_phase4_matrix_markers = [
     'runtime_atomic64_diff.zig',
@@ -111,8 +117,12 @@ required_phase4_matrix_markers = [
     'rollback owner',
     'lab and CI matrix',
     'perf threshold status',
+    'Validate Phase 4 diff gates',
+    'Run Phase 4 diff tests',
     'make -C zigux phase4-validate',
     'make -C zigux phase4-test',
+    'phase4-runtime-atomic64-diff-tests',
+    'phase4-bitmap-diff-tests',
     'Remaining Measurability Gaps Vs Roadmap',
     'samples/zigux/kprobe_example.zig',
     'samples/zigux/test_fsmount.zig',
@@ -243,6 +253,10 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
     if expectation['rollback_owner'] not in row:
         missing.append(
             f"phase4_matrix:matrix_rollback_owner:{gate_name}:{expectation['rollback_owner']}"
+        )
+    if expectation['local_replay_test'] not in row:
+        missing.append(
+            f"phase4_matrix:local_replay_test:{gate_name}:{expectation['local_replay_test']}"
         )
     return missing
 
