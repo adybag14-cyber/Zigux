@@ -91,10 +91,17 @@
     },
     {
       "id": "phase13-libfs-transaction-read-release-followup",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now adds one tiny simple_transaction_read()/simple_transaction_release() follow-up that keeps the work in pure private-data presence checks, read delegation intent, and release bookkeeping without claiming live dentries, inode state, or pseudo-filesystem plumbing."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-preconditions",
       "status": "ready_next",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is one tiny simple_transaction_read()/simple_transaction_release() follow-up that reuses the existing buffer-copy footing while keeping the work in pure private-data presence checks and release bookkeeping before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
+      "why_now": "The next honest step is to model the smallest non-live dcache_dir_open() / dcache_readdir() cursor preconditions in planning form before any cursor dentries, sibling traversal, or lock ordering behavior is claimed."
     }
   ]
 }
