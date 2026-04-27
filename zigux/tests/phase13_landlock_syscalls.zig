@@ -52,7 +52,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqualStrings("5fe2a1bf39e95be8b8762e54c50168c7c28c9bfb", manifest.surveyed_commit);
