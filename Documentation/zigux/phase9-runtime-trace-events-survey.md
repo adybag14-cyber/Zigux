@@ -25,6 +25,8 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 
 The roadmap and the freeze map also keep an adjacent trace substrate boundary explicit: `kernel/trace/ring_buffer.c` remains `Study / Boundary Only` in `Documentation/zigux/freeze-map.md`. That means this lane may ship a bounded trace-events starter and survey evidence, but it must not imply ring-buffer parity, deep trace transport ownership, or any Architecture Council-approved status change for the frozen trace core.
 
+No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane. The evidence here is limited to keeping the study-only blocker explicit until a separate governance packet reopens that anchor.
+
 ## Survey findings
 
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
@@ -37,7 +39,8 @@ The roadmap and the freeze map also keep an adjacent trace substrate boundary ex
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
 - the focused module gate now proves both the roadmap's lifecycle-parity slice and those bounded literals through the summary surface itself, leaving raw payload-struct inspection to the narrower diff gate.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
-- the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownersip, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
+- the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownership, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
+- no parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane, so the current trace-events packet remains a study-boundary note rather than a freeze-map reopen request.
 
 ## Recorded gaps
 
