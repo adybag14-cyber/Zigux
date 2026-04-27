@@ -14,11 +14,6 @@ FILES = [
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
-    "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
-    "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-    "Documentation/zigux/phase11-dw-wdt-survey.md",
-    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-    "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "drivers/watchdog/gpio_wdt.zig",
@@ -62,61 +57,6 @@ CHECKLIST_MARKERS = [
     "if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
     "if the change touches the shared Phase 11 tooling path, does the bundle still keep `zigux/tests/phase11_hvc_console_survey.zig` as a dedicated survey replay instead of silently implying that every Phase 11 survey gate already runs in the shared `phase11_build.zig` path?",
 ]
-DOC_MARKERS = {
-    "phase11_bcm2835_wdt_survey": (
-        "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
-        [
-            "reviewed against live `master` `27fdd21e0863cf0f8fbca7bb85b51d4dc465cb98`",
-            "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-            "zigux/tests/phase11_bcm2835_wdt_manifest.json",
-            "`zigux/tests/phase11_build.zig` runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together",
-            "live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked",
-        ],
-    ),
-    "phase11_bcm2835_wdt_validation_matrix": (
-        "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-        [
-            "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed",
-            "zigux/tests/phase11_bcm2835_wdt_manifest.json",
-            "zigux/tests/phase11_bcm2835_wdt_survey.zig",
-            "keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps",
-            "update this matrix, the slice note, the survey note, and the survey manifest together",
-        ],
-    ),
-    "phase11_dw_wdt_survey": (
-        "Documentation/zigux/phase11-dw-wdt-survey.md",
-        [
-            "after re-reading `master` `8266af3574ebb9103f60b2d1888a5f1e611f9ab4`",
-            "tiny platform-resource preflight around timer-clock choice",
-            "drivers/watchdog/bcm2835_wdt.zig",
-            "zigux/tests/phase11_dw_wdt.zig",
-        ],
-    ),
-    "phase11_hvc_console_validation_matrix": (
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-        [
-            "PHASE11_HVC_CONSOLE_STATUS=kernel_integration_validation_matrix_landed",
-            "shared replay observed on `master` currently runs `phase11-hvc-console-tests` but not `phase11-hvc-console-survey-tests`",
-            "Build Summary: 17/17 steps succeeded; 36/36 tests passed",
-            "included hvc artifact: `run test phase11-hvc-console-tests 5 pass (5 total)`",
-            "no `phase11-hvc-console-survey-tests` artifact is present in that shared replay",
-            "zig test zigux/tests/phase11_hvc_console_survey.zig",
-            "2/2 ... OK",
-        ],
-    ),
-    "phase11_uapi_header_parity_survey": (
-        "Documentation/zigux/phase11-uapi-header-parity-survey.md",
-        [
-            "after re-reading `master` `06318487f68090588ddfebf85f87b4c0bc61f46e`",
-            "struct watchdog_info",
-            "MAX_NR_HVC_CONSOLES",
-            "include/uapi/asm-generic/termios.h",
-            "struct winsize",
-            "zigux/tests/phase11_build.zig",
-            "route any lasting ownership claim to the Phase 3 interop substrate",
-        ],
-    ),
-}
 BUILD_MARKERS = [
     "phase11-gpio-wdt-tests",
     "phase11-bcm2835-wdt-tests",
@@ -148,6 +88,28 @@ ALLOWED_STATUSES = {
     "blocked_on_kernel_integration",
     "future_phase_boundary",
 }
+SURVEY_SPECS = {
+    "phase11_gpio_wdt_manifest.json": {
+        "path": "zigux/tests/phase11_gpio_wdt_survey.zig",
+        "count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_")],
+    },
+    "phase11_bcm2835_wdt_manifest.json": {
+        "path": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
+        "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_")],
+    },
+    "phase11_dw_wdt_manifest.json": {
+        "path": "zigux/tests/phase11_dw_wdt_survey.zig",
+        "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_")],
+    },
+    "phase11_hvc_console_manifest.json": {
+        "path": "zigux/tests/phase11_hvc_console_survey.zig",
+        "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_")],
+    },
+    "phase11_uapi_header_parity_manifest.json": {
+        "path": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next")],
+    },
+}
 
 
 def text(path: str) -> str:
@@ -163,6 +125,19 @@ def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | No
         if gap.get("id") == gap_id:
             return gap
     return None
+
+
+def count_statuses(manifest: dict[str, object], match: str) -> int:
+    total = 0
+    for gap in manifest.get("gaps", []):
+        status = gap.get("status")
+        if not isinstance(status, str):
+            continue
+        if match.endswith("_") and status.startswith(match):
+            total += 1
+        elif status == match:
+            total += 1
+    return total
 
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
@@ -190,12 +165,6 @@ build_text = text("zigux/tests/phase11_build.zig")
 for marker in FORBIDDEN_BUILD_MARKERS:
     if marker in build_text:
         missing.append(f"phase11_build:forbidden:{marker}")
-
-for name, (path, markers) in DOC_MARKERS.items():
-    source = text(path)
-    for marker in markers:
-        if marker not in source:
-            missing.append(f"{name}:{marker}")
 
 starter_total = 0
 ready_total = 0
@@ -237,6 +206,16 @@ for name, (lane_key, anchor, gap_count, ready_ids, blocked_ids) in MANIFEST_SPEC
         status = (find_gap(manifest, gap_id) or {}).get("status")
         if not isinstance(status, str) or not status.startswith("blocked_on_"):
             missing.append(f"{name}:blocked:{gap_id}")
+    survey_spec = SURVEY_SPECS[name]
+    survey_text = text(survey_spec["path"])
+    commit = str(manifest.get("surveyed_commit", ""))
+    if commit not in survey_text:
+        missing.append(f"{name}:survey_commit_pin")
+    for variable_name, status_match in survey_spec["count_markers"]:
+        expected_count = count_statuses(manifest, status_match)
+        count_marker = f'expectEqual(@as(usize, {expected_count}), {variable_name});'
+        if count_marker not in survey_text:
+            missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
 
 if starter_total != 42:
     missing.append(f"phase11_bundle:starter_total={starter_total}")
@@ -255,10 +234,7 @@ if missing:
 
 print("PHASE11_VALIDATION=pass")
 print(f"PHASE11_REQUIRED_FILE_COUNT={len(FILES)}")
-print(
-    "PHASE11_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS) + sum(len(markers) for _, markers in DOC_MARKERS.values())}"
-)
+print(f"PHASE11_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}")
 print(f"PHASE11_MANIFEST_COUNT={len(MANIFEST_SPECS)}")
 print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
