@@ -7,6 +7,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_uc_planning);
@@ -57,6 +58,35 @@ test "phase13 devres rejects ioremap planning when the release record cannot be 
         .release_record_allocated = false,
         .mapped_address = 0x2000,
     }));
+}
+
+test "phase13 devres uncached ioremap wrapper forces the uncached lifetime path" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireUc(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2400,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.uncached, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2400), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres uncached ioremap wrapper frees the release record on map failure" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireUc(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.uncached, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
 }
 
 test "phase13 devres release matching stays pointer-exact" {
