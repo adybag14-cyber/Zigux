@@ -70,6 +70,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     );
     defer std.testing.allocator.free(build_file);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -207,4 +215,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(saw_probe_starter);
     try std.testing.expect(saw_ready_next);
     try std.testing.expect(saw_blocker);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "control-vq loss fallback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-pool and DMA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
 }
