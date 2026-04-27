@@ -15,6 +15,9 @@ const SurveySummary = struct {
     preexisting_virtio_scsi_zig_present: bool,
     preexisting_phase12_virtio_scsi_test_present: bool,
     preexisting_phase12_virtio_scsi_slice_note_present: bool,
+    preexisting_phase12_raw_github_fallback_catalog_present: bool,
+    raw_github_tree_fallback_count: usize,
+    raw_github_file_fallback_count: usize,
 };
 
 const Gap = struct {
@@ -100,6 +103,14 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     );
     defer std.testing.allocator.free(slice_note);
 
+    const raw_fallback_catalog = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(raw_fallback_catalog);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -107,7 +118,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expectEqualStrings("P12-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
-    try std.testing.expectEqualStrings("ee64eec272a352da1d967999c99bb3c3560c9b97", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("3920e2311110994e4bd1e5e4dc2210494dab4641", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_scsi_c_lines >= 1000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -123,7 +134,10 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_raw_github_fallback_catalog_present);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.raw_github_tree_fallback_count);
+    try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.raw_github_file_fallback_count);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
@@ -135,11 +149,25 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_add_host()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_scan_host()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, and host-limit summary starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "3920e2311110994e4bd1e5e4dc2210494dab4641") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-scsi-host-limit-summary-followup`") == null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport freeze or restore boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "synthetic `can_queue`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`cmd_per_lun`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`nr_hw_queues`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "verified_master_head: `3920e2311110994e4bd1e5e4dc2210494dab4641`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "raw_github_tree_fallback_count: `3`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "raw_github_file_fallback_count: `10`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/scsi") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/3920e2311110994e4bd1e5e4dc2210494dab4641/drivers/scsi/virtio_scsi.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "b5c783aa262dea9a3eb235ed41b026ad96e12a58eafeee833aaa86daae4bf688") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/3920e2311110994e4bd1e5e4dc2210494dab4641/zigux/tests/phase12_virtio_scsi_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "39b8cb2d96d732e7e3eff3373ea7b36ae2a12c799fdde53608f13c3fbefd0a47") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/3920e2311110994e4bd1e5e4dc2210494dab4641/scripts/zigux/validate-phase12.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "7730d2c763e5668280bc9128e6df2cbca5926c971c8345db4831e1c9367fbd4c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "https://raw.githubusercontent.com/adybag14-cyber/Zigux/3920e2311110994e4bd1e5e4dc2210494dab4641/zigux/Makefile") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "761ed2df3cd21b0de60124c3d341dc8bf19dc21f982656005f941222becf8b00") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_module") != null);
@@ -164,6 +192,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     var saw_driver_starter = false;
     var saw_driver_tests = false;
     var saw_slice_note = false;
+    var saw_raw_fallback_catalog = false;
     var saw_probe_snapshot = false;
     var saw_host_limit_summary = false;
     var saw_blocker = false;
@@ -247,6 +276,15 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-raw-github-fallback-catalog")) {
+            saw_raw_fallback_catalog = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "three public tree entry points") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ten commit-pinned raw GitHub artifact URLs") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sha256 hashes") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-probe-config-snapshot-starter")) {
             saw_probe_snapshot = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
@@ -279,7 +317,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -290,6 +328,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(saw_driver_starter);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_raw_fallback_catalog);
     try std.testing.expect(saw_probe_snapshot);
     try std.testing.expect(saw_host_limit_summary);
     try std.testing.expect(saw_blocker);
