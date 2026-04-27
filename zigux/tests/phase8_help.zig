@@ -133,7 +133,7 @@ test "phase 8 help command-source and terminal layers stay aligned with the curr
     try std.testing.expectEqual(@as(usize, 66), fallback_terminal.cols);
 }
 
-test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusion aligned with help.c" {
+test "phase 8 help raw PATH splitting keeps empty segments, custom prefixes, and exec-path exclusion aligned with help.c" {
     const FixtureDir = struct {
         path: []const u8,
         entries: []const help.DirectoryEntry,
@@ -162,12 +162,12 @@ test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusi
     try std.testing.expectEqualStrings("", split_entries.entries.items[4]);
 
     const exec_entries = [_]help.DirectoryEntry{
-        .{ .name = "perf-stat", .is_executable = true },
-        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "zigux-stat", .is_executable = true },
+        .{ .name = "zigux-report.exe", .is_executable = true },
     };
     const other_entries = [_]help.DirectoryEntry{
-        .{ .name = "perf-trace", .is_executable = true },
-        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "zigux-trace", .is_executable = true },
+        .{ .name = "zigux-report.exe", .is_executable = true },
     };
 
     var source = FixtureSource{
@@ -185,7 +185,7 @@ test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusi
 
     try help.loadCommandListsFromEnvPath(
         std.testing.allocator,
-        null,
+        "zigux-",
         "/opt/perf/bin",
         ":/opt/perf/bin::/usr/bin:",
         &main_cmds,
