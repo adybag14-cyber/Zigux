@@ -38,7 +38,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "verify_phase5_kobject_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
