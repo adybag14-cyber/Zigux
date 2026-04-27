@@ -21,6 +21,7 @@ Key entrypoints
 - `zigux/tests/phase6_checksum.zig`
 - `zigux/tests/phase6_checksum_perf.zig`
 - `zigux/tests/phase6_hexdump.zig`
+- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
