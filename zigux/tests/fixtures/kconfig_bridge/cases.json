@@ -132,6 +132,11 @@
       "name": "ignore_non_config_lines",
       "input": "ignore_non_config_lines.config",
       "expected": "ignore_non_config_lines_expected.json"
+    },
+    {
+      "name": "numeric_kinds",
+      "input": "numeric_kinds.config",
+      "expected": "numeric_kinds_expected.json"
     }
   ]
 }
