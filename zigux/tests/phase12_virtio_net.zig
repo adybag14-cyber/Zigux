@@ -9,7 +9,7 @@ test "phase12 virtio net probe starter stays anchored to virtio_net.c" {
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_napi_poll);
     try std.testing.expect(!descriptor.touches_netdev_lifecycle);
-    try std.testing.expect(!descriptor.touches_transport_recovery);
+    try std.testing.expect(descriptor.touches_transport_recovery);
 }
 
 test "phase12 virtio net probe snapshot plans multiqueue control and rss state" {
@@ -132,6 +132,60 @@ test "phase12 virtio net distinguishes renegotiation from reset-required recover
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, reset.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.reset_required, reset.recovery_state);
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.require_reset, reset.queue_recovery_action);
+}
+
+test "phase12 virtio net freeze and restore preserve queue recovery intent" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_rss,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 3,
+        .max_queue_pairs = 4,
+        .transport_accepts_features = false,
+    });
+    try std.testing.expectEqual(virtio_net.RecoveryState.renegotiate_features, snapshot.recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, snapshot.queue_recovery_action);
+
+    const freeze = try lab.freezeForRecovery();
+    try std.testing.expectEqual(virtio_net.RecoveryAction.freeze, freeze.action);
+    try std.testing.expect(!freeze.was_frozen);
+    try std.testing.expect(freeze.is_frozen);
+    try std.testing.expect(!freeze.planned_queue_pairs_available);
+    try std.testing.expectEqual(@as(u16, 1), freeze.remembered_planned_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), freeze.remembered_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), freeze.remembered_control_queue_index);
+    try std.testing.expectEqual(virtio_net.RssSummary.requested_but_unavailable, freeze.remembered_rss_summary);
+    try std.testing.expectEqual(virtio_net.RecoveryState.renegotiate_features, freeze.remembered_recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, freeze.remembered_queue_recovery_action);
+    try std.testing.expectEqual(@as(u16, 0), freeze.recovery_generation);
+
+    try std.testing.expectError(error.TransportRecoveryFrozen, lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{ virtio_net.feature_control_vq, virtio_net.feature_multiqueue },
+        .requested_queue_pairs = 2,
+        .max_queue_pairs = 2,
+    }));
+
+    const restore = try lab.restoreAfterRecovery();
+    try std.testing.expectEqual(virtio_net.RecoveryAction.restore, restore.action);
+    try std.testing.expect(restore.was_frozen);
+    try std.testing.expect(!restore.is_frozen);
+    try std.testing.expect(restore.planned_queue_pairs_available);
+    try std.testing.expectEqual(@as(u16, 1), restore.remembered_planned_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), restore.remembered_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), restore.remembered_control_queue_index);
+    try std.testing.expectEqual(virtio_net.RecoveryState.renegotiate_features, restore.remembered_recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, restore.remembered_queue_recovery_action);
+    try std.testing.expectEqual(@as(u16, 1), restore.recovery_generation);
+
+    try std.testing.expectError(error.ProbeSnapshotUnavailable, lab.freezeForRecovery());
 }
 
 test "phase12 virtio net keeps hash-report-only requests visible" {
