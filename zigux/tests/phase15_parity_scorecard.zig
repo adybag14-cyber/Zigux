@@ -26,6 +26,7 @@ const RepoEvidence = struct {
     review_checklist_present: bool,
     phase14_rcu_survey_present: bool,
     phase14_skbuff_survey_present: bool,
+    phase15_readme_reviewability_present: bool,
     phase15_scorecard_note_present: bool,
     phase15_evidence_archive_templates_present: bool,
     phase15_anchor_owner_tracking_present: bool,
@@ -155,6 +156,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.review_checklist_present);
     try std.testing.expect(manifest.repo_evidence.phase14_rcu_survey_present);
     try std.testing.expect(manifest.repo_evidence.phase14_skbuff_survey_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_note_present);
     try std.testing.expect(manifest.repo_evidence.phase15_evidence_archive_templates_present);
     try std.testing.expect(manifest.repo_evidence.phase15_anchor_owner_tracking_present);
@@ -164,7 +166,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expectEqualStrings("retained discussion state", manifest.review_process.required_record_fields[6]);
     try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[7]);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     var saw_sched = false;
     var saw_page_alloc = false;
@@ -256,6 +258,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     var saw_retirement_rule = false;
     var saw_reopen_trigger_followup = false;
     var saw_roadmap_handoff_followup = false;
+    var saw_readme_governance_index = false;
     var saw_blocker = false;
 
     for (gaps, 0..) |gap, i| {
@@ -321,6 +324,13 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bootstrap ledger anchor") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parked next step") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-readme-governance-index")) {
+            saw_readme_governance_index = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/README.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "top-level docs index") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase15 replay path") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -332,7 +342,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), landed_count);
+    try std.testing.expectEqual(@as(usize, 16), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_scorecard_note);
@@ -340,10 +350,11 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_archive_reporting);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
-    try std.testing.expect(saw_anchor_owner_tracking);
+    try std.testing.expect(saw_anchor_ownerTracking);
     try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
+    try std.testing.expect(saw_readme_governance_index);
     try std.testing.expect(saw_blocker);
 }
 
@@ -374,6 +385,14 @@ test "phase 15 council review gate stays aligned between the scorecard and check
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
+
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(20 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -406,6 +425,15 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Phase 15 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-parity-scorecard.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-evidence-archives/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "named reopen triggers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "deep-core blocker posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current lane owner responsible for keeping that blocked evidence packet up to date") != null);
 
