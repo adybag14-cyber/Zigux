@@ -45,6 +45,22 @@
       "unit_test_anchor": "tools/lib/find_bit.zig:test \"tail mask keeps the in-range shared bit for and scans\"",
       "unit_test_contract": "Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits."
     },
+    "tools/lib/rbtree.zig": {
+      "fixture": "zigux/tests/fixtures/phase1_helpers.json",
+      "evidence_keys": [
+        "rbtree.empty_root",
+        "rbtree.insert_order",
+        "rbtree.reverse_order",
+        "rbtree.replace_order",
+        "rbtree.erase_init_order",
+        "rbtree.postorder_count",
+        "rbtree.erase_init_node_empty",
+        "rbtree.cleared_node_empty"
+      ],
+      "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks.",
+      "unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
+      "unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree."
+    },
     "tools/lib/string.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
       "evidence_keys": [
