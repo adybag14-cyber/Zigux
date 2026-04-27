@@ -250,6 +250,11 @@ pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node
     return match;
 }
 
+pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {
+    const next_node = next(node) orelse return null;
+    return if (cmp(key, next_node) == 0) next_node else null;
+}
+
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
     if (victim.parent == null) {
         root.node = replacement;
@@ -863,4 +868,60 @@ test "rbtree findFirst returns the leftmost duplicate match" {
 
     const missing = @as(i32, 17);
     try std.testing.expectEqual(@as(?*Node, null), findFirst(&missing, &root, cmpKey));
+}
+
+test "rbtree nextMatch walks the duplicate range in order" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    const wanted = @as(i32, 10);
+    var current = findFirst(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    while (true) {
+        const entry: *const Entry = @fieldParentPtr("node", current);
+        serials[count] = entry.serial;
+        count += 1;
+        current = nextMatch(&wanted, current, cmpKey) orelse break;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), nextMatch(&wanted, current, cmpKey));
 }
