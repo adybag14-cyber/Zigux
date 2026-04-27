@@ -67,7 +67,7 @@ pub const RuntimeKretprobeSample = struct {
     active_instances: usize = 0,
     skipped_kernel_threads: usize = 0,
     nmissed: usize = 0,
-    entry_stamp_ns: i64 = -1,
+    instance_private_data: [default_maxactive]InstancePrivateData = [_]InstancePrivateData{.{}} ** default_maxactive,
     last_retval: usize = 0,
     last_duration_ns: i64 = 0,
     init_runs: usize = 0,
@@ -97,7 +97,7 @@ pub const RuntimeKretprobeSample = struct {
             .last_retval = self.last_retval,
             .last_duration_ns = self.last_duration_ns,
             .selftest_runs = self.selftest_runs,
-            .entry_timestamp_armed = self.entry_stamp_ns >= 0,
+            .entry_timestamp_armed = self.active_instances > 0,
         };
     }
 
@@ -106,6 +106,12 @@ pub const RuntimeKretprobeSample = struct {
             .initialized, .selftest_complete => {},
             else => error.InvalidLifecycleTransition,
         };
+    }
+
+    fn resetPrivateData(self: *Self) void {
+        for (&self.instance_private_data) |*slot| {
+            slot.* = .{};
+        }
     }
 
     pub fn retargetSymbol(self: *Self, symbol_name: []const u8) !void {
@@ -118,11 +124,12 @@ pub const RuntimeKretprobeSample = struct {
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         if (self.symbol_name.len == 0) return error.InvalidSymbolName;
+        if (self.maxactive == 0 or self.maxactive > default_maxactive) return error.InvalidMaxactive;
 
         self.active_instances = 0;
         self.skipped_kernel_threads = 0;
         self.nmissed = 0;
-        self.entry_stamp_ns = -1;
+        self.resetPrivateData();
         self.last_retval = 0;
         self.last_duration_ns = 0;
         self.init_runs += 1;
@@ -141,21 +148,25 @@ pub const RuntimeKretprobeSample = struct {
             return error.MaxactiveExceeded;
         }
 
+        self.instance_private_data[self.active_instances] = .{
+            .entry_stamp_ns = stamp_ns,
+        };
         self.active_instances += 1;
-        self.entry_stamp_ns = stamp_ns;
         return true;
     }
 
     pub fn retHandler(self: *Self, retval: usize, now_ns: i64) !ProbeResult {
         try self.ensureMutable();
-        if (self.active_instances == 0 or self.entry_stamp_ns < 0) return error.MissingEntryTimestamp;
-        if (now_ns < self.entry_stamp_ns) return error.InvalidTimestampOrder;
+        if (self.active_instances == 0) return error.MissingEntryTimestamp;
 
-        const duration_ns = now_ns - self.entry_stamp_ns;
+        const slot_index = self.active_instances - 1;
+        const entry_stamp_ns = self.instance_private_data[slot_index].entry_stamp_ns;
+        if (entry_stamp_ns < 0) return error.MissingEntryTimestamp;
+        if (now_ns < entry_stamp_ns) return error.InvalidTimestampOrder;
+
+        const duration_ns = now_ns - entry_stamp_ns;
+        self.instance_private_data[slot_index] = .{};
         self.active_instances -= 1;
-        if (self.active_instances == 0) {
-            self.entry_stamp_ns = -1;
-        }
         self.last_retval = retval;
         self.last_duration_ns = duration_ns;
         return .{
