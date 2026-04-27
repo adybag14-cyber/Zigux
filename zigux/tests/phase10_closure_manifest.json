@@ -1,0 +1,44 @@
+{
+  "phase": "Phase 10",
+  "status": "active",
+  "tranche": "virtio-lab-bundle",
+  "doc_count": 7,
+  "manifest_count": 3,
+  "driver_count": 3,
+  "test_count": 6,
+  "has_virtio_mmio_zig": false,
+  "docs": [
+    "Documentation/zigux/phase10-virtio-core-slice.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-virtio-input-slice.md",
+    "Documentation/zigux/phase10-virtio-input-module-slice.md",
+    "Documentation/zigux/phase10-virtio-input-survey.md",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md"
+  ],
+  "manifests": [
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json"
+  ],
+  "drivers": [
+    "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_input.zig"
+  ],
+  "tests": [
+    "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_ring.zig",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
+    "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_mmio_survey.zig"
+  ],
+  "exact_checks": [
+    "python3 scripts/zigux/validate-phase10-closure.py",
+    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "make -C zigux phase10-validate",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10"
+  ]
+}
