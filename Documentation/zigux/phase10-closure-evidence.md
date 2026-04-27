@@ -28,20 +28,22 @@ This record closes that hygiene gap by naming the exact current evidence set and
 The current bounded Phase 10 evidence set is:
 
 - `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
 - `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `Documentation/zigux/phase10-virtio-input-slice.md`
 - `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 
-- `PHASE10_DOC_COUNT=7`
-- `PHASE10_MANIFEST_COUNT=3`
+- `PHASE10_DOC_COUNT=8`
+- `PHASE10_MANIFEST_COUNT=4`
 - `PHASE10_DRIVER_COUNT=3`
-- `PHASE10_TEST_COUNT=6`
+- `PHASE10_TEST_COUNT=7`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=no`
 
 ## Roadmap Parity Scoreboard
@@ -126,6 +128,7 @@ This closure packet therefore records an aligned freeze-boundary reading rather 
 The exact current reading of the live repo is:
 
 - `drivers/virtio/virtio.zig` is the bounded virtio-core starter
+- `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface and its next bounded helper step
 - `drivers/virtio/virtio_ring.zig` is the bounded virtqueue helper starter
 - `drivers/virtio/virtio_input.zig` is the bounded input-driver starter
 - `Documentation/zigux/phase10-virtio-mmio-survey.md` records that MMIO remains survey-backed and intentionally blocked from pretending to be an implemented Zig transport helper
