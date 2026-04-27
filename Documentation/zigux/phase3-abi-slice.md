@@ -12,7 +12,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-only`
-- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange`
+- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
 - `PHASE3_MMIO_SCOPE=range-read32-write32`
 - scope: first permanent C/Zigux boundary only
@@ -86,7 +86,7 @@ Unsafe policy:
 - new unsafe entry points must be justified and reviewed as boundary expansion
 
 Low-level wrapper survey:
-- atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
+- atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`
 - MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read32`, and `write32`, with pointer formation delegated back through the narrow unsafe layer
 
