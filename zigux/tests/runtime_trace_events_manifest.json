@@ -57,7 +57,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-      "why_now": "The Phase 9 trace-events pilot stays adjacent to the freeze map's study-only `kernel/trace/ring_buffer.c` anchor, so the lane must keep ring-buffer parity and any Architecture Council status change blocked until fresh trace-core evidence exists."
+      "why_now": "The Phase 9 trace-events pilot stays adjacent to the freeze map's study-only `kernel/trace/ring_buffer.c` anchor, so the lane must keep ring-buffer parity blocked, carry no parity scorecard or Architecture Council status-change request, and leave any trace-core status change parked until fresh governance evidence exists."
     },
     {
       "id": "runtime-trace-events-substrate-handoff",
