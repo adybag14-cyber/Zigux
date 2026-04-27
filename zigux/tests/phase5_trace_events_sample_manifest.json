@@ -11,6 +11,7 @@
     "the manifest and survey test still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
     "function-callback replay stays a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
+    "after `exit()` the sample still rejects replayMainIteration, registerFunctionCallback, replayFunctionIteration, and unregisterFunctionCallback so the teardown boundary stays fully explicit",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer the new boundary from code alone",
     "docs and tests still keep CREATE_TRACE_POINTS, tracepoint macros, kernel scheduling, and module registration wiring out of scope for this Phase 5 sample"
   ],
@@ -58,7 +59,7 @@
     {
       "id": "post-exit-rejection",
       "kind": "ownership_lifetime",
-      "expected": "after exit the sample rejects later payload replay or callback-registration calls"
+      "expected": "after exit the sample rejects later replayMainIteration, registerFunctionCallback, replayFunctionIteration, and unregisterFunctionCallback calls"
     }
   ],
   "non_goals": [
