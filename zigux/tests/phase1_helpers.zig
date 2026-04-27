@@ -48,6 +48,8 @@ const Fixture = struct {
         andnot_values: []const u64,
         or_values: []const u64,
         xor_values: []const u64,
+        copy_nbits: usize,
+        copy_values: []const u64,
         partial_xor_nbits: usize,
         partial_xor_masked_values: []const u64,
         equal: bool,
@@ -238,6 +240,16 @@ test "phase 1 helper ports match committed parity fixture" {
     try expectWordSlice(&bitmap_dst, fixture.bitmap.or_values);
     bitmap.xorBits(&bitmap_dst, &bitmap_lhs, &bitmap_rhs, 8);
     try expectWordSlice(&bitmap_dst, fixture.bitmap.xor_values);
+    const bitmap_copy_nbits = fixture.bitmap.copy_nbits;
+    var bitmap_copy_src = [_]bitmap.Word{ 0, 0, 0 };
+    var bitmap_copy_dst = [_]bitmap.Word{
+        ~@as(bitmap.Word, 0),
+        ~@as(bitmap.Word, 0),
+        ~@as(bitmap.Word, 0),
+    };
+    bitmap.setRange(&bitmap_copy_src, 0, bitmap_copy_nbits);
+    bitmap.copy(&bitmap_copy_dst, &bitmap_copy_src, bitmap_copy_nbits);
+    try expectWordSlice(&bitmap_copy_dst, fixture.bitmap.copy_values);
     const partial_bitmap_lhs = [_]bitmap.Word{0x1f};
     const partial_bitmap_rhs = [_]bitmap.Word{0x11};
     var partial_bitmap_dst = [_]bitmap.Word{0};
