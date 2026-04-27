@@ -23,6 +23,8 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 
 This bounded starter also stays underneath the trace-core freeze-map boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so this slice must not imply ring-buffer parity, deep trace transport ownership, or any Architecture Council-approved status change for the frozen trace core.
 
+No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane. This module slice only records the active study boundary and does not reopen the trace-core freeze posture.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `samples/trace_events/trace-events-sample.c` anchor
