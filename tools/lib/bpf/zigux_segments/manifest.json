@@ -90,6 +90,19 @@
       "why_now": "The exported attach, link, map, and program type name tables are a stable userspace-to-kernel bridge surface that extends the helper-first libbpf entry without pulling in object loading, ELF state, or syscall-backed behavior."
     },
     {
+      "id": "P8-L13-S08",
+      "slug": "file-path-and-handle-bridge",
+      "status": "deferred_high_risk",
+      "kind": "resource_boundary",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:4956-4987",
+        "tools/lib/bpf/libbpf.c:5112-5157",
+        "tools/lib/bpf/libbpf.c:5255-5286"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "This is the smallest remaining libbpf surface that still crosses real procfs reads, bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should be recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
+    },
+    {
       "id": "P8-L13-S05",
       "slug": "skeleton-population",
       "status": "blocked_on_object_model",
