@@ -9,6 +9,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_ioremap_resource_wc_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
     try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);
@@ -112,6 +113,57 @@ test "phase13 devres keeps requested mapping types and unnamed pretty names" {
             try std.testing.expectEqual(@as(u64, 0x20), plan.size);
         },
         .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres plans a write-combined managed ioremap resource wrapper" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourceWc(std.testing.allocator, .{
+        .device_name = "fb0",
+        .resource = .{
+            .start = 0x2800,
+            .end = 0x287f,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "bar0",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqualStrings("fb0 bar0", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.wc, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x80), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres propagates write-combined managed resource failures" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourceWc(std.testing.allocator, .{
+        .device_name = "fb1",
+        .resource = .{
+            .start = 0x2900,
+            .end = 0x297f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "bar1",
+        },
+        .remap_succeeds = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.remap, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.wc, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(failure.releases_region_on_remap_failure);
+        },
     }
 }
 
