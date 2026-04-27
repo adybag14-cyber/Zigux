@@ -179,6 +179,9 @@ jobs:
       - name: Validate Phase 10 closure evidence
         run: make -C zigux phase10-validate
 
+      - name: Validate Phase 11 simple-driver bundle
+        run: make -C zigux phase11-validate
+
       - name: Run Phase 9 runtime helper tests
         run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
 
