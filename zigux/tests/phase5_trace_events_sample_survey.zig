@@ -44,7 +44,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -53,6 +53,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_callback_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_message_check = false;
+    var saw_iteration_check = false;
     var saw_rel_loc_check = false;
     var saw_vararg_check = false;
     var saw_counts_check = false;
@@ -74,6 +75,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_docs_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "vararg-payload") != null and
+            std.mem.indexOf(u8, prompt, "main-iteration") != null and
+            std.mem.indexOf(u8, prompt, "callback-iteration") != null and
             std.mem.indexOf(u8, prompt, "relative-location") != null and
             std.mem.indexOf(u8, prompt, "callback-path") != null)
         {
@@ -106,6 +109,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_message_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=7") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Gandalf") != null);
+        }
+        if (std.mem.eql(u8, check.id, "iteration-cues")) {
+            saw_iteration_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "main iteration 7") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "function-callback iteration 9") != null);
         }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
             saw_rel_loc_check = true;
@@ -153,6 +161,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_message_check);
+    try std.testing.expect(saw_iteration_check);
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
