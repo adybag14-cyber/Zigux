@@ -114,9 +114,9 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.runtime_loader_plans.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -126,18 +126,22 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[1]);
     try std.testing.expectEqualStrings("runtime-loader-gap-note", manifest.delivery_evidence_catalog[0].id);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.delivery_evidence_catalog[0].path);
-    try std.testing.expectEqualStrings("runtime-loader-gap-manifest", manifest.delivery_evidence_catalog[2].id);
-    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.delivery_evidence_catalog[2].path);
-    try std.testing.expectEqualStrings("shared-runtime-loader-contract", manifest.delivery_evidence_catalog[5].id);
-    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.delivery_evidence_catalog[5].path);
+    try std.testing.expectEqualStrings("runtime-loader-freeze-map", manifest.delivery_evidence_catalog[2].id);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.delivery_evidence_catalog[2].path);
+    try std.testing.expectEqualStrings("runtime-loader-gap-manifest", manifest.delivery_evidence_catalog[3].id);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.delivery_evidence_catalog[3].path);
+    try std.testing.expectEqualStrings("shared-runtime-loader-contract", manifest.delivery_evidence_catalog[6].id);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.delivery_evidence_catalog[6].path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.ownership_map[0].surface);
-    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.ownership_map[2].surface);
-    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.ownership_map[5].surface);
-    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.ownership_map[7].surface);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.ownership_map[2].surface);
+    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.ownership_map[3].surface);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.ownership_map[6].surface);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.ownership_map[8].surface);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_manifest_catalog = false;
+    var saw_freeze_map_doc = false;
     var saw_shared_contract = false;
     var saw_bitmap_loader_plan = false;
     var saw_kretprobe_loader_plan = false;
@@ -152,6 +156,13 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             saw_manifest_catalog = true;
             try std.testing.expectEqualStrings("manifest", entry.kind);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "manifest-backed catalog and ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-loader-freeze-map")) {
+            saw_freeze_map_doc = true;
+            try std.testing.expectEqualStrings("governance", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "`kernel/workqueue.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "Architecture Council") != null);
         }
         if (std.mem.eql(u8, entry.id, "shared-runtime-loader-contract")) {
             saw_shared_contract = true;
@@ -181,6 +192,10 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_loader_gap_manifest.json")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "manifest-backed catalog and ownership map") != null);
         }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/freeze-map.md")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "`kernel/workqueue.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "Architecture Council") != null);
+        }
         if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared request contract") != null);
         }
@@ -201,6 +216,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     var saw_note = false;
     var saw_review_checklist = false;
     var saw_plan_inputs = false;
+    var saw_workqueue_freeze_blocker = false;
     var saw_command_env_blocker = false;
     var saw_allocator_blocker = false;
     var saw_init_exit_blocker = false;
@@ -245,6 +261,16 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expectEqualStrings("samples/zigux/runtime_*_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "entry and exit symbol names") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-loader-workqueue-freeze-map-boundary")) {
+            saw_workqueue_freeze_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`kernel/workqueue.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "task scheduling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event-loop behavior") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-loader-command-environment-controls")) {
             saw_command_env_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
@@ -272,8 +298,9 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     }
 
     try std.testing.expectEqual(@as(usize, 7), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_manifest_catalog);
+    try std.testing.expect(saw_freeze_map_doc);
     try std.testing.expect(saw_shared_contract);
     try std.testing.expect(saw_bitmap_loader_plan);
     try std.testing.expect(saw_kretprobe_loader_plan);
@@ -282,6 +309,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_review_checklist);
     try std.testing.expect(saw_plan_inputs);
+    try std.testing.expect(saw_workqueue_freeze_blocker);
     try std.testing.expect(saw_command_env_blocker);
     try std.testing.expect(saw_allocator_blocker);
     try std.testing.expect(saw_init_exit_blocker);
@@ -291,6 +319,14 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const freeze_map = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/freeze-map.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(freeze_map);
+
     const survey_note = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -299,10 +335,17 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     );
     defer std.testing.allocator.free(survey_note);
 
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Study / Boundary Only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "command and environment plumbing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/workqueue.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Study / Boundary Only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "workqueue parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/allocator_policy.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "entry and exit symbol names") != null);
