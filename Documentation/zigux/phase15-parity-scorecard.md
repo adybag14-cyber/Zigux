@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-stale-evidence-cleanup`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, and explicit per-anchor owner tracking for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `8243eeb4ce58c747222fe796097643f77d621b41`
+- `PHASE15_SLICE=parity-scorecard-readiness-gap-sync`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and the current shared-CI readiness gap that still separates local governance replay from roadmap-complete tranche enforcement
+- survey provenance refreshed against verified `master` head `43c5bae4821c53b9adac96fcb028b9266325e1ed`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -160,9 +160,29 @@ The current lane state is:
 - landed `phase15-anchor-owner-tracking`
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
+- ready-next `phase15-shared-ci-coverage-gap`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, and one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, and an explicit ready-next record that the shared bootstrap workflow still does not run the landed Phase 15 governance bundle. It still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+
+## Current Parity-Tracking Gap
+
+The current roadmap-vs-repo parity-tracking gap inside this scorecard lane is no longer a missing local governance artifact.
+
+The roadmap-required bundle is already present locally:
+
+- freeze map
+- Architecture Council review process
+- parity scorecard
+- policy for code that remains in C indefinitely
+
+What remains uneven is how that landed bundle is enforced and tracked:
+
+- local replay exists through `zig build test --build-file zigux/tests/phase15_build.zig`
+- local replay exists through `make -C zigux phase15`
+- the published shared bootstrap workflow still stops at Phase 14 and does not run a Phase 15 validation or replay step
+
+That makes `phase15-shared-ci-coverage-gap` the current ready-next parity-tracking gap for this scorecard packet, while the deep-core blocker records remain separately blocked on stronger stay-in-C exception evidence.
 
 ## Architecture Council Review Gate
 
@@ -245,4 +265,4 @@ This scorecard slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The indefinite-C field-sync follow-up is already landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Keep the Phase 15 governance lane in maintenance mode. The next honest action inside this scorecard lane is to wait for either a separate shared-workflow decision to add Phase 15 to the published bootstrap path or new deep-core evidence that changes one of the current blocker dispositions.
