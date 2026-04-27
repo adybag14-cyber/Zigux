@@ -99,6 +99,13 @@
       "why_now": "The freeze-map slice now has to acknowledge that the parity scorecard, Architecture Council review process, and indefinite-C policy family are already landed on current master instead of pointing at a stale follow-up."
     },
     {
+      "id": "phase15-governance-packet-drift-gate",
+      "status": "starter_landed",
+      "kind": "review_gate",
+      "zigux_destination": "Documentation/zigux/review-checklist.md",
+      "why_now": "The live Phase 15 governance packet now spans the root freeze map, freeze-map governance note, review-process note, and parity scorecard, so the shared review checklist needs one explicit drift gate that keeps the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and maintenance-mode handoff aligned during maintenance edits."
+    },
+    {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
