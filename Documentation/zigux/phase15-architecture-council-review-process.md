@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
-- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against verified `master` head `a6dacc6ad67d38e7a2d796e11d0be332450bff60`
+- `PHASE15_SLICE=architecture-council-review-process-ownership-refresh-gate`
+- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also requires refreshed ownership evidence when a retained stay-in-C packet reopens because ownership or validation changed
+- survey provenance refreshed against verified `master` head `3100cd107fa0dc45ad0b6bb740e60ffa8b94497a`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -48,6 +48,7 @@ Every Architecture Council request in this lane family must carry:
 - the replay command reviewers should run before trusting the current packet
 - the retained discussion state that will be recorded if the review closes with a stay-in-C outcome
 - the reopen triggers that cite one or more catalog items naming which evidence changes can reopen the discussion later without implying approval
+- refreshed lane-owner and rollback-owner evidence whenever the reopen trigger is `ownership_or_validation_changed`
 - a parity scorecard link, or an explicit blocker record saying why the scorecard is not ready yet
 - explicit non-goals so the request does not quietly widen into deep-core delivery
 - the written rationale for why the current product state needs council attention now
@@ -65,6 +66,7 @@ The bounded outcomes for this review process are:
 
 - every decision must leave a written rationale in a reviewable artifact
 - the lane note must record the current status bucket, the chosen decision bucket, the decision record ID, the owner, the validation gate, the evidence archive path, the latest blocker disposition, the current benchmark-notes status, the replay command, the retained discussion state, the reopen triggers, and the rollback owner
+- if a packet reopens under `ownership_or_validation_changed`, active review cannot resume until the note refreshes both the current lane owner and the rollback owner in the reopened record
 - if the council keeps the code in C, the blocker must remain explicit rather than disappearing into prose
 - if the council keeps the code in C and closes active discussion, the retained discussion state must be `retired_from_active_discussion` and the reopen triggers must stay attached to the evidence archive using one or more catalog items
 - if the parity scorecard is missing, the record must say that clearly instead of implying silent approval
@@ -108,8 +110,9 @@ The current lane state is:
 - landed `phase15-evidence-archive-followup`
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
+- landed `phase15-ownership-refresh-gate`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
