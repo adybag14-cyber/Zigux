@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L15",
+  "lane_key": "P15-L13",
   "phase": "Phase 15",
-  "surveyed_commit": "cf59271229b54757ec5e60f73b4ea56ac27f5f9c",
+  "surveyed_commit": "1eed1743a2d66f87c07293cbfbfbab0aeddfeb26",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -132,6 +132,13 @@
       "kind": "handoff",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
       "why_now": "The parked indefinite-C policy lane now needs the same machine-checkable maintenance-mode handoff already recorded on the other Phase 15 governance surfaces so future-target wording cannot drift silently."
+    },
+    {
+      "id": "phase15-indefinite-c-current-gap-survey",
+      "status": "starter_landed",
+      "kind": "survey",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The dedicated indefinite-C policy packet now needs one explicit current-gap survey so the roadmap requirement reads as locally satisfied and any remaining work stays scoped to the deep-core blocker posture rather than another missing policy artifact."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
