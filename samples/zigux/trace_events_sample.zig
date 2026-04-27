@@ -29,6 +29,7 @@ pub const ReplaySummary = struct {
     stage_after_replay: SampleStage,
     formatted_message: []const u8,
     selected_string: []const u8,
+    array_prefix: [2]i32,
     array_prefix_len: usize,
     array_sentinel: i32,
     bitmask_word: usize,
@@ -176,6 +177,7 @@ pub const TraceEventsReferenceSample = struct {
             .stage_after_replay = .replay_complete,
             .formatted_message = self.formattedMessage(),
             .selected_string = self.selected_string,
+            .array_prefix = .{ self.array_payload[0], self.array_payload[1] },
             .array_prefix_len = 2,
             .array_sentinel = self.array_payload[2],
             .bitmask_word = self.bitmask_word,
@@ -220,6 +222,7 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
+    try std.testing.expectEqualSlices(i32, &.{ 1, 2 }, replay.array_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 2), replay.array_prefix_len);
     try std.testing.expectEqual(@as(i32, 0), replay.array_sentinel);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), replay.bitmask_word);
