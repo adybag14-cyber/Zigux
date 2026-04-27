@@ -17,12 +17,12 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, a `drivers/virtio/virtio_ring.zig` lab helper that now reaches used-buffer polling, callback re-enable, and delayed-callback pacing, and the newer `virtio_input` starter plus survey paths. This survey makes the remaining MMIO transport gap explicit without pretending `drivers/virtio/virtio_mmio.zig` exists yet.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_core_survey.zig` gate with its paired note, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, a `drivers/virtio/virtio_ring.zig` lab helper that now reaches used-buffer polling, callback re-enable, and delayed-callback pacing, and the newer `virtio_input` starter plus survey paths. This survey makes the remaining MMIO transport gap explicit without pretending `drivers/virtio/virtio_mmio.zig` exists yet.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_mmio.c` is present on `master` at 829 lines and mixes feature negotiation, config-space reads and writes, status handling, generation checks, interrupt acknowledgement, queue selection, queue sizing, ready-state toggles, virtqueue discovery, reset paths, and probe or remove lifecycle work.
-- the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-survey.md`.
+- the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, seven dedicated Phase 10 virtio test or survey files under `zigux/tests/` (`phase10_virtio_core.zig`, `phase10_virtio_core_survey.zig`, `phase10_virtio_ring.zig`, `phase10_virtio_ring_survey.zig`, `phase10_virtio_input.zig`, `phase10_virtio_input_survey.zig`, and `phase10_virtio_mmio_survey.zig`), `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-survey.md`.
 - the live repo still does not ship `drivers/virtio/virtio_mmio.zig`.
 - this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule now points to the first tiny `virtio_mmio` register-window helper next, not another ring-local helper, IRQ glue, or queue setup code.
 
@@ -32,6 +32,8 @@ The survey manifest now records:
 
 - the landed `phase10-build-gate`
 - the landed `phase10-virtio-core-lab-starter`
+- the landed `phase10-virtio-core-survey-gate`
+- the landed `phase10-virtio-core-survey-note`
 - the landed `phase10-virtio-ring-survey-gate`
 - the landed `phase10-virtio-ring-lab-helper`
 - the landed `phase10-virtio-ring-slice-note`
