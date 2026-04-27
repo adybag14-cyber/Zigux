@@ -105,10 +105,12 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-add-rule-followup`
 - landed `phase13-landlock-ruleset-fd-mode-followup`
 - landed `phase13-landlock-path-fd-followup`
-- ready-next `phase13-landlock-path-beneath-handoff-followup`
+- landed `phase13-landlock-path-beneath-handoff-followup`
+- landed `phase13-landlock-net-port-import-followup`
+- landed `phase13-landlock-ruleset-fd-creation-handoff-followup`
 
 Traceability summary:
-- this anchor is also roadmap-aligned and manifest-backed, with the current repo keeping the syscall helper slice explicit about ABI, create-ruleset, add-rule, ruleset-FD, and path-FD planning while still blocking live path import, credential mutation, and enforcement claims.
+- this anchor is also roadmap-aligned and manifest-backed, with the current repo keeping the syscall helper slice explicit about ABI, create-ruleset, add-rule, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still blocking live path import, credential mutation, and enforcement claims.
 
 ## Phase 13 traceability status
 
