@@ -16,6 +16,7 @@ This file records code that should not move into active Zigux delivery without a
 - changes to either list require an explicit Architecture Council decision with written rationale
 - any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate, and rollback owner in the reviewable record for that lane
 - direct Zig port or bridge claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change
+- any freeze-map review packet that reopens a blocked anchor must state the rollback threshold that forces the anchor back to its blocked freeze posture if the decision record, scorecard evidence, benchmark notes, replay command, blocker disposition, or rollback owner stops being explicit
 
 ## Stay-In-C Policy
 - the existing C implementation remains the product source of truth for every freeze-in-C anchor
