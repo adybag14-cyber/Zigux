@@ -6,6 +6,7 @@ const SurveySummary = struct {
     preexisting_runtime_trace_events_sample_present: bool,
     preexisting_phase9_build_present: bool,
     preexisting_runtime_trace_events_doc_present: bool,
+    preexisting_runtime_trace_events_summary_surface_present: bool,
 };
 
 const Gap = struct {
@@ -53,10 +54,11 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
-    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_summary_surface_present);
     try std.testing.expect(manifest.gaps.len >= 5);
 
     var runtime_test_destination_count: usize = 0;
@@ -95,6 +97,10 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_diff_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_diff.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-module-tests")) {
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "diagnostics-summary") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
