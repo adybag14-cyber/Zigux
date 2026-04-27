@@ -2,6 +2,13 @@
   "lane_key": "P14-L03",
   "phase": "Phase 14",
   "surveyed_commit": "8dcddb52137c4cfbb2f81cdc621c2ba11010db1e",
+  "productization": {
+    "owner": "Core-Adjacent Pod",
+    "status_bucket": "study_only",
+    "validation_gate": "zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14",
+    "rollback_owner": "Repo Tooling Pod",
+    "transfer_rationale": "Absorb ZAR runtime research as product discipline only: keep exported evidence packets, machine-checked surveyed commits, and explicit blocker posture without importing ZAR runtime-core behavior into Zigux."
+  },
   "shared_smoke_surfaces": [
     "zigux/tests/phase14_end_to_end_smoke_manifest.json",
     "zigux/tests/phase14_end_to_end_smoke_survey.zig",
@@ -59,6 +66,9 @@
     "phase14_make_target_present": true,
     "workflow_runs_phase14_build": true,
     "review_checklist_has_phase14_smoke_prompt": true,
+    "review_checklist_has_productization_prompt": true,
+    "smoke_note_records_owner_and_rollback": true,
+    "smoke_note_records_transfer_rationale": true,
     "freeze_map_lists_workqueue_c": true,
     "freeze_map_lists_skbuff_c": true,
     "freeze_map_lists_ring_buffer_c": true,
