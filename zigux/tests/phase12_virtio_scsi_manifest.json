@@ -15,6 +15,7 @@
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_ring_zig_present": true,
     "preexisting_phase12_build_present": true,
+    "preexisting_phase12_make_target_present": true,
     "preexisting_phase12_virtio_net_survey_present": true,
     "preexisting_phase12_nvme_pci_starter_present": true,
     "preexisting_phase12_virtio_scsi_survey_present": true,
