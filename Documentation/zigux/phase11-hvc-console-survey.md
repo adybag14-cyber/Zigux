@@ -6,7 +6,7 @@ The live repo state is now:
 
 - reviewed against live `master` `7fd4845c2f4f4f52d2be2080d00e7a56f49275b5`
 - `drivers/tty/hvc/hvc_console.zig` and `zigux/tests/phase11_hvc_console.zig` now land the first bounded starter around setup-state slot validation, CRLF write framing, flush intent, teardown gating, and final-close wait summaries
-- `Documentation/zigux/phase11-hvc-console-slice.md` records the active starter scope, while `Documentation/zigux/phase11-hvc-console-validation-matrix.md` now names the current shared gate, the close-wait teardown evidence, and the still-pending tty-registration follow-up
+- `Documentation/zigux/phase11-hvc-console-slice.md` records the active starter scope, while `Documentation/zigux/phase11-hvc-console-validation-matrix.md` now names the current shared gate, records that the dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`, and keeps the close-wait teardown evidence plus the still-pending tty-registration follow-up explicit
 - this survey note remains as the checkpoint for the original gap that the bounded starter closed
 - the remaining unported work is now tty-driver registration, `setup_hvc_console()` teardown parity, khvcd polling, sysrq integration, and host-backed teardown validation
 
