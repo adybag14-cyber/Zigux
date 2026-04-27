@@ -35,6 +35,7 @@
         "owner",
         "rollback owner",
         "validation gate summary",
+        "benchmark notes",
         "latest blocker disposition",
         "evidence archive path",
         "retained discussion state",
