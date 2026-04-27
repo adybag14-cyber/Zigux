@@ -42,14 +42,14 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 - owner: `Shared Subsystems Pod`
 - rollback owner: `Shared Subsystems Pod`
 - fallback path: keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses
-- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, summary, and copy-behavior checkpoints
+- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, starter-population summary, and copy-behavior checkpoints
 
 ## Lab And CI Matrix
 
 | lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | threshold posture |
 | --- | --- | --- | --- | --- | --- | --- |
 | `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |
-| `zigux/tests/bitmap_diff.zig` | bounded bitmap range, rounded-prefix, summary, and copy-behavior replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
+| `zigux/tests/bitmap_diff.zig` | bounded bitmap range, rounded-prefix, starter-population summary, and copy-behavior replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
 
 ## Review Rules
 
