@@ -16,6 +16,7 @@ const Entry = struct {
 
 const iterations_bitmap = 20_000;
 const iterations_bitmap_window = 20_000;
+const iterations_bitmap_scnprintf = 12_000;
 const iterations_find_bit = 20_000;
 const iterations_string = 40_000;
 const iterations_hweight = 100_000;
@@ -72,6 +73,39 @@ fn bitmapWindowBench() struct { checksum: u64 } {
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
         checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));
         checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn bitmapScnprintfBench() struct { checksum: u64 } {
+    const nbits = 32;
+    var map = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
+    var full_buffer: [32]u8 = undefined;
+    var trunc_buffer: [6]u8 = undefined;
+
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_bitmap_scnprintf) : (idx += 1) {
+        bitmap.zero(&map, nbits);
+        bitmap.setRange(&map, idx & 1, 3);
+        bitmap.setRange(&map, 7, 1);
+        if ((idx & 2) == 0) {
+            bitmap.setRange(&map, 10, 2);
+        } else {
+            bitmap.setRange(&map, 12, 4);
+        }
+
+        const full_len = bitmap.scnprintf(&map, nbits, &full_buffer);
+        checksum +%= full_len;
+        checksum +%= full_buffer[0];
+        checksum +%= full_buffer[full_len - 1];
+        checksum +%= full_buffer[full_len];
+
+        const trunc_len = bitmap.scnprintf(&map, nbits, &trunc_buffer);
+        checksum +%= trunc_len;
+        checksum +%= trunc_buffer[0];
+        checksum +%= trunc_buffer[trunc_len];
     }
 
     return .{ .checksum = checksum };
@@ -213,6 +247,7 @@ pub fn main(init: std.process.Init) !void {
 
     const bitmap_result = bitmapBench();
     const bitmap_window_result = bitmapWindowBench();
+    const bitmap_scnprintf_result = bitmapScnprintfBench();
     const find_bit_result = findBitBench();
     const string_result = try stringBench();
     const hweight_result = hweightBench();
@@ -221,6 +256,7 @@ pub fn main(init: std.process.Init) !void {
 
     std.debug.assert(bitmap_result.checksum != 0);
     std.debug.assert(bitmap_window_result.checksum != 0);
+    std.debug.assert(bitmap_scnprintf_result.checksum != 0);
     std.debug.assert(find_bit_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
     std.debug.assert(hweight_result.checksum != 0);
@@ -232,6 +268,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM={d}\n", .{bitmap_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS={d}\n", .{iterations_bitmap_window});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM={d}\n", .{bitmap_window_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_SCNPRINTF_ITERATIONS={d}\n", .{iterations_bitmap_scnprintf});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_SCNPRINTF_CHECKSUM={d}\n", .{bitmap_scnprintf_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
