@@ -29,6 +29,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "include/linux/zigux.h",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/atomic.zig",
@@ -39,6 +40,10 @@ ABI_REQUIRED_MANIFEST_FILES = (
 ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
     "PHASE3_UAPI_SCOPE=version-only",
+    "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
+    "PHASE3_PANIC_POLICY=explicit-modes-only",
+    "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
+    "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
 )
 
 
@@ -356,6 +361,10 @@ def run_self_test() -> int:
                     "PHASE3_SLICE=abi-slice",
                     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
                     "PHASE3_UAPI_SCOPE=version-only",
+                    "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
+                    "PHASE3_PANIC_POLICY=explicit-modes-only",
+                    "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
+                    "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
                     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
                     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
                     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
