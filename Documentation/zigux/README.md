@@ -84,3 +84,16 @@ Phase 9 notes
 - `python3 scripts/zigux/validate-phase9.py` and `make -C zigux phase9-validate` now fail fast if the shared Phase 9 checklist, loader-gap survey, README notes, workflow wiring, and `zigux/tests/phase9_build.zig` entrypoint drift apart.
 - `zigux/tests/phase9_build.zig` and `make -C zigux phase9` now gate the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together, so new Phase 9 runtime work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 9 decision is no longer whether the kretprobe lane still needs a starter, a survey gate, or shared build wiring; those pieces and the newer loader-handoff scaffold are now landed, so the next follow-up should be whichever small shared runtime loader substrate step can honestly consume the existing bitmap or kretprobe loader plans without widening into a larger runtime-module implementation.
+
+Phase 10 notes
+- `Documentation/zigux/phase10-closure-evidence.md`
+- `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
+- `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig` remains intentionally absent.
+- `python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the three manifest-backed survey records, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.
+- `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, ring, input, and MMIO-survey evidence bundle together, so new Phase 10 work stays reviewable as one bounded lab tranche instead of widening into ad hoc transport claims.
