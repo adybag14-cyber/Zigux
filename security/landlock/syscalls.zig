@@ -157,20 +157,19 @@ pub const PathFdPlan = struct {
     acquires_path_reference: bool,
 };
 
-pub const PathBeneathHandoffRequest = struct {
+pub const PathBeneathRuleRequest = struct {
     handled_access_fs: u64 = 0,
     path_beneath_attr: PathBeneathAttr = .{},
     path_fd: PathFdRequest = .{},
 };
 
-pub const PathBeneathHandoffPlan = struct {
+pub const PathBeneathRulePlan = struct {
     anchor: []const u8,
     allowed_access: u64,
     parent_fd: i32,
-    path_fd: PathFdPlan,
-    acquires_path_reference: bool,
-    hands_path_to_fs_rule_import: bool,
-    releases_path_reference: bool,
+    path_lookup: PathFdPlan,
+    imports_path_beneath_rule: bool,
+    releases_path_after_import: bool,
 };
 
 pub const SyscallsHelperLab = struct {
@@ -399,7 +398,7 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
-    pub fn planAddRulePathBeneathHandoff(request: PathBeneathHandoffRequest) !PathBeneathHandoffPlan {
+    pub fn planAddRulePathBeneath(request: PathBeneathRuleRequest) !PathBeneathRulePlan {
         if (request.path_beneath_attr.allowed_access == 0) {
             return error.EmptyAccess;
         }
@@ -407,15 +406,14 @@ pub const SyscallsHelperLab = struct {
             return error.InvalidPathAccessMask;
         }
 
-        const path_plan = try planGetPathFromFd(request.path_fd);
+        const path_lookup = try planGetPathFromFd(request.path_fd);
         return .{
             .anchor = descriptor().anchor,
             .allowed_access = request.path_beneath_attr.allowed_access,
             .parent_fd = request.path_beneath_attr.parent_fd,
-            .path_fd = path_plan,
-            .acquires_path_reference = path_plan.acquires_path_reference,
-            .hands_path_to_fs_rule_import = true,
-            .releases_path_reference = true,
+            .path_lookup = path_lookup,
+            .imports_path_beneath_rule = true,
+            .releases_path_after_import = true,
         };
     }
 };

@@ -27,10 +27,9 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 
 - `security/landlock/syscalls.c` is present on `master` and spans multiple user-facing and kernel-facing boundaries at once: ABI structure sizing, query-only create-ruleset calls, ruleset file-descriptor creation, rule import, and restrict-self credential updates.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local syscall helper without widening into kernel build integration.
-- the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation, the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation, the in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard, plus a new in-memory `get_path_from_fd()` planner for ruleset-FD rejection, internal-mount filtering, non-user-visible inode rejection, and owned path reference handoff.
-- the next bounded same-lane step is now landed too: `add_rule_path_beneath()` has an in-memory handoff planner that combines copied path-beneath attrs with the existing path-FD checks and the later `put_path()` release responsibility while still stopping short of live rule insertion.
+- the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation, the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation, the in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard, the in-memory `get_path_from_fd()` planner for ruleset-FD rejection, internal-mount filtering, non-user-visible inode rejection, and owned path reference handoff, plus a new in-memory `add_rule_path_beneath()` planner that combines copied attrs with the bounded path-FD handoff and the later `put_path()` release responsibility.
 - the helper still does not claim anonymous inode creation, live FD ownership, path-backed rule import, `prepare_creds()`, thread synchronization, or live domain merges.
-- the remaining syscall-facing gap now starts at `landlock_append_fs_rule()`, where live path-backed rule import and Landlock ownership state remain intentionally blocked for this helper-only lane.
+- the next honest syscall-facing step is one tiny planner around `add_rule_net_port()` import handoff, still in-memory and still outside live TCP/IP, ruleset mutation, or credential handling.
 
 ## Recorded gaps
 
@@ -46,9 +45,9 @@ The current lane state is:
 - landed `phase13-landlock-ruleset-fd-mode-followup`
 - landed `phase13-landlock-path-fd-followup`
 - landed `phase13-landlock-path-beneath-handoff-followup`
-- blocked `phase13-landlock-path-rule-import-blocker`
+- ready-next `phase13-landlock-net-port-import-followup`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `syscalls.zig` helper foothold for ABI, create-ruleset, restrict-self, add-rule, ruleset-FD, path-FD, and path-beneath handoff planning, but it still does not claim anonymous inode creation, live path-backed rule import, or task enforcement.
+This keeps the lane explicit without overstating progress: Zigux now has a real `syscalls.zig` helper foothold for ABI, create-ruleset, restrict-self, add-rule, ruleset-FD, and path-FD planning, but it still does not claim anonymous inode creation, path import, or task enforcement.
 
 ## Non-goals
 
@@ -72,4 +71,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 Landlock syscalls lane only if a later run can study the `landlock_append_fs_rule()` boundary honestly. That follow-up should remain narrowly framed around path-backed rule import and ownership evidence, and it should not claim live path import, credential updates, or live domain state unless the lane grows a materially stronger validation surface first.
+Stay in the Phase 13 Landlock syscalls lane and add one tiny `security/landlock/syscalls.zig` planner around `add_rule_net_port()` import handoff next, limited to keeping copied net-port attrs and the final `landlock_append_net_rule()` call boundary explicit before any live TCP/IP, ruleset mutation, credential updates, or domain state are attempted.
