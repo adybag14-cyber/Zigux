@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L11",
   "phase": "Phase 14",
-  "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+  "surveyed_commit": "f65e3d897847bf205198e5c47a41782085620579",
   "anchor": "net/core/skbuff.c",
   "roadmap_destinations": [
     "net/core/skbuff_bridge.zig",
@@ -103,10 +103,17 @@
     },
     {
       "id": "phase14-skbuff-segs-prev-tail-publication-followup",
+      "status": "starter_landed",
+      "kind": "lifetime_audit",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The bridge now records the exported tail-publication contract on skb_segment(), limited to segs->prev, the last-segment gso_size or gso_segs clamp, and validate_xmit_skb_list() so the lane can name the remaining tail-publication contract without widening into live packet lifetime control."
+    },
+    {
+      "id": "phase14-skbuff-validate-xmit-list-reset-followup",
       "status": "ready_next",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff step is a smaller exported-tail follow-up on skb_segment(), limited to segs->prev, the last-segment gso_size or gso_segs clamp, and validate_xmit_skb_list() so the lane can name the remaining tail-publication contract without widening into live packet lifetime control."
+      "why_now": "The next honest skbuff step is a smaller validate_xmit_skb_list() consumer-side follow-up, limited to skb_mark_not_on_list(), skb->prev = skb, and tail = skb->prev so the lane can name the remaining list-reset contract without widening into live packet lifetime control."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
