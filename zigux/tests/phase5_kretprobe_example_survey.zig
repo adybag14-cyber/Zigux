@@ -115,7 +115,9 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "after exit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "recordMissedInstance") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "entryHandler") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "retHandler") != null);
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
@@ -174,6 +176,9 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recordMissedInstance()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "entryHandler()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "retHandler()") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kretprobe-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/kretprobe_example.zig") != null);
