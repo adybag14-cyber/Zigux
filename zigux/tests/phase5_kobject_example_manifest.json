@@ -4,12 +4,12 @@
   "surveyed_commit": "4beebebb1fcbe047fd5abe0a15b6b1bd272a5976",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
-  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/verify_phase5_kobject_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact registration, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
+    "the manifest and survey test still describe the exact registration, Linux foo/baz/bar attribute order, integer roundtrip, and shared baz/bar dispatch contract run through the focused phase5 kobject build",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
-    "sample-behavior changes update the manifest-backed registration and lifecycle contract instead of leaving reviewers to infer it from code alone",
+    "sample-behavior changes update the manifest-backed registration, attribute-order, and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
@@ -17,6 +17,11 @@
       "id": "directory-name",
       "kind": "anchor_shape",
       "expected": "the in-memory sample keeps the Linux directory name kobject_example and an unnamed attribute group"
+    },
+    {
+      "id": "attribute-order",
+      "kind": "anchor_shape",
+      "expected": "the replay summary keeps the Linux attribute array order foo, baz, bar explicit"
     },
     {
       "id": "registration-step",
