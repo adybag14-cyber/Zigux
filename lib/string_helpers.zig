@@ -18,6 +18,11 @@ pub const ESCAPE_HEX: u32 = 1 << 5;
 pub const ESCAPE_NA: u32 = 1 << 6;
 pub const ESCAPE_NAP: u32 = 1 << 7;
 pub const ESCAPE_APPEND: u32 = 1 << 8;
+pub const STRING_UNITS_10: u32 = 0;
+pub const STRING_UNITS_2: u32 = 1;
+pub const STRING_UNITS_MASK: u32 = 1 << 0;
+pub const STRING_UNITS_NO_SPACE: u32 = 1 << 30;
+pub const STRING_UNITS_NO_BYTES: u32 = 1 << 31;
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
     return std.mem.eql(u8, sysfsComparablePrefix(s1), sysfsComparablePrefix(s2));
@@ -75,6 +80,85 @@ pub fn stringUpper(dest: []u8, src: []const u8) void {
 
 pub fn stringLower(dest: []u8, src: []const u8) void {
     copyCStringMapped(dest, src, std.ascii.toLower);
+}
+
+pub fn stringGetSize(size_in: u64, blk_size_in: u64, units: u32, buf: []u8) usize {
+    const divisor = [_]u64{ 1000, 1024 };
+    const rounding = [_]u32{ 500, 50, 5 };
+    const units_10 = [_][]const u8{ "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
+    const units_2 = [_][]const u8{ "", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi" };
+    const units_base: usize = @intCast(units & STRING_UNITS_MASK);
+
+    var size = size_in;
+    var blk_size = blk_size_in;
+    var order: usize = 0;
+    var remainder: u32 = 0;
+    var fraction_buf: [12]u8 = undefined;
+    var fraction: []const u8 = "";
+
+    if (blk_size == 0) {
+        size = 0;
+    }
+
+    if (size != 0) {
+        while ((blk_size >> 32) != 0) {
+            blk_size = @divFloor(blk_size, divisor[units_base]);
+            order += 1;
+        }
+        while ((size >> 32) != 0) {
+            size = @divFloor(size, divisor[units_base]);
+            order += 1;
+        }
+
+        size *= blk_size;
+        while (size >= divisor[units_base]) {
+            remainder = @intCast(@mod(size, divisor[units_base]));
+            size = @divFloor(size, divisor[units_base]);
+            order += 1;
+        }
+
+        var sf_cap = size;
+        var precision_digits: usize = 0;
+        while (sf_cap * 10 < 1000) : (precision_digits += 1) {
+            sf_cap *= 10;
+        }
+
+        if (units_base == STRING_UNITS_2) {
+            remainder = @intCast((@as(u64, remainder) * 1000) >> 10);
+        }
+
+        remainder += rounding[precision_digits];
+        if (remainder >= 1000) {
+            remainder -= 1000;
+            size += 1;
+        }
+
+        if (precision_digits != 0) {
+            const rendered = std.fmt.bufPrint(&fraction_buf, ".{d:0>3}", .{remainder}) catch unreachable;
+            fraction = rendered[0 .. precision_digits + 1];
+        }
+    }
+
+    const unit = if (order >= units_2.len)
+        "UNK"
+    else if (units_base == STRING_UNITS_2)
+        units_2[order]
+    else
+        units_10[order];
+
+    var rendered: [32]u8 = undefined;
+    const full = std.fmt.bufPrint(
+        &rendered,
+        "{d}{s}{s}{s}{s}",
+        .{
+            size,
+            fraction,
+            if ((units & STRING_UNITS_NO_SPACE) != 0) "" else " ",
+            unit,
+            if ((units & STRING_UNITS_NO_BYTES) != 0) "" else "B",
+        },
+    ) catch unreachable;
+    return copySnprintfStyle(buf, full);
 }
 
 pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize {
@@ -218,6 +302,17 @@ fn copyCStringMapped(dest: []u8, src: []const u8, comptime mapper: fn (u8) u8) v
             break;
         }
     }
+}
+
+fn copySnprintfStyle(dest: []u8, src: []const u8) usize {
+    if (dest.len == 0) {
+        return src.len;
+    }
+
+    const copy_len = @min(src.len, dest.len - 1);
+    @memcpy(dest[0..copy_len], src[0..copy_len]);
+    dest[copy_len] = 0;
+    return src.len;
 }
 
 fn unescapeSpace(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize) bool {
@@ -422,6 +517,37 @@ test "stringUpper and stringLower perform bounded ASCII case conversion" {
     var lower = [_]u8{ '?', '?', '?', '?', '?' };
     stringLower(&lower, "AbCDe");
     try std.testing.expectEqualSlices(u8, "abcde", &lower);
+}
+
+test "stringGetSize formats bounded SI and binary sizes" {
+    var out = [_]u8{0} ** 16;
+
+    try std.testing.expectEqual(@as(usize, 3), stringGetSize(0, 1, STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("0 B", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(1500, 1, STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("1.50 kB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 8), stringGetSize(1536, 1, STRING_UNITS_2, &out));
+    try std.testing.expectEqualStrings("1.50 KiB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(10, 512, STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("5.12 kB", cStringPrefix(&out));
+}
+
+test "stringGetSize honors formatting flags and snprintf-style truncation" {
+    var compact = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0 };
+    try std.testing.expectEqual(
+        @as(usize, 6),
+        stringGetSize(1536, 1, STRING_UNITS_2 | STRING_UNITS_NO_SPACE | STRING_UNITS_NO_BYTES, &compact),
+    );
+    try std.testing.expectEqualStrings("1.50Ki", cStringPrefix(&compact));
+
+    var truncated = [_]u8{ '!', '!', '!', '!', '!' };
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(1500, 1, STRING_UNITS_10, &truncated));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &truncated);
+
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(1500, 1, STRING_UNITS_10, &.{}));
 }
 
 test "stringUnescape applies Linux-style escape classes deterministically" {
