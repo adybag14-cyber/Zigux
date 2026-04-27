@@ -6,16 +6,21 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
+    ROOT / "Documentation" / "zigux" / "freeze-map.md",
     ROOT / "scripts" / "zigux" / "validate-phase9.py",
     ROOT / "scripts" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
     ROOT / "zigux" / "Makefile",
     ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase9_build.zig",
     ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json",
     ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig",
+    ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json",
+    ROOT / "zigux" / "tests" / "runtime_trace_events_survey.zig",
     ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
 ]
 
@@ -30,14 +35,19 @@ if missing:
 
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
+freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 script_readme = (ROOT / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
 tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
+trace_events_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md").read_text(encoding="utf-8")
+trace_events_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md").read_text(encoding="utf-8")
 phase9_build = (ROOT / "zigux" / "tests" / "phase9_build.zig").read_text(encoding="utf-8")
 loader_gap_survey_test = (ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig").read_text(encoding="utf-8")
 loader_gap_manifest = (ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json").read_text(encoding="utf-8")
+trace_events_manifest = (ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json").read_text(encoding="utf-8")
+trace_events_survey_test = (ROOT / "zigux" / "tests" / "runtime_trace_events_survey.zig").read_text(encoding="utf-8")
 
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
@@ -81,6 +91,12 @@ required_doc_readme_markers = [
     "make -C zigux phase9-validate",
     "zigux/tests/phase9_build.zig",
     "manifest-backed catalog and ownership map",
+]
+
+required_freeze_map_markers = [
+    "## Study / Boundary Only",
+    "`kernel/trace/ring_buffer.c`",
+    "Architecture Council decision",
 ]
 
 required_review_checklist_markers = [
@@ -139,6 +155,44 @@ required_loader_gap_manifest_markers = [
     '"zigux_destination": "zigux/tests/phase9_build.zig"',
 ]
 
+required_trace_events_survey_markers = [
+    "Documentation/zigux/freeze-map.md",
+    "`kernel/trace/ring_buffer.c`",
+    "Study / Boundary Only",
+    "runtime task ownership",
+    "polling and event-loop substrate",
+    "ring-buffer parity",
+    "Architecture Council",
+]
+
+required_trace_events_module_slice_markers = [
+    "Documentation/zigux/freeze-map.md",
+    "`kernel/trace/ring_buffer.c`",
+    "Study / Boundary Only",
+    "runtime task ownership or event-loop substrate parity",
+    "polling-backed wake or dispatch behavior",
+    "ring-buffer parity",
+    "Architecture Council",
+]
+
+required_trace_events_manifest_markers = [
+    '"id": "runtime-trace-events-freeze-map-boundary"',
+    '"zigux_destination": "Documentation/zigux/phase9-runtime-trace-events-survey.md"',
+    '"id": "runtime-trace-events-substrate-handoff"',
+    '"zigux_destination": "samples/zigux/runtime_trace_events_loader.zig"',
+    "`kernel/trace/ring_buffer.c`",
+    "Architecture Council",
+]
+
+required_trace_events_survey_test_markers = [
+    'var saw_freeze_map_boundary = false;',
+    'std.mem.eql(u8, gap.id, "runtime-trace-events-freeze-map-boundary")',
+    'std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`")',
+    'std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md")',
+    'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
+    'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
+]
+
 missing_markers = []
 
 for marker in required_make_markers:
@@ -156,6 +210,9 @@ for marker in required_tests_readme_markers:
 for marker in required_doc_readme_markers:
     if marker not in doc_readme:
         missing_markers.append(f"doc_readme:{marker}")
+for marker in required_freeze_map_markers:
+    if marker not in freeze_map:
+        missing_markers.append(f"freeze_map:{marker}")
 for marker in required_review_checklist_markers:
     if marker not in review_checklist:
         missing_markers.append(f"review_checklist:{marker}")
@@ -171,6 +228,18 @@ for marker in required_loader_gap_survey_test_markers:
 for marker in required_loader_gap_manifest_markers:
     if marker not in loader_gap_manifest:
         missing_markers.append(f"loader_gap_manifest:{marker}")
+for marker in required_trace_events_survey_markers:
+    if marker not in trace_events_survey:
+        missing_markers.append(f"trace_events_survey:{marker}")
+for marker in required_trace_events_module_slice_markers:
+    if marker not in trace_events_module_slice:
+        missing_markers.append(f"trace_events_module_slice:{marker}")
+for marker in required_trace_events_manifest_markers:
+    if marker not in trace_events_manifest:
+        missing_markers.append(f"trace_events_manifest:{marker}")
+for marker in required_trace_events_survey_test_markers:
+    if marker not in trace_events_survey_test:
+        missing_markers.append(f"trace_events_survey_test:{marker}")
 
 if missing_markers:
     print("PHASE9_VALIDATION=fail")
@@ -184,5 +253,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
 )
