@@ -245,3 +245,17 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
+
+test "trace-events sample rejects every mutable entry point after exit" {
+    var sample = TraceEventsReferenceSample{};
+
+    try sample.init();
+    _ = try sample.runAnchorReplay();
+    try sample.exit();
+
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayMainIteration(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerFunctionCallback());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayFunctionIteration(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.unregisterFunctionCallback());
+}
