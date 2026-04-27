@@ -216,3 +216,13 @@ test "memchrInv scans aligned and misaligned long buffers" {
     misaligned_storage[18] = 'X';
     try std.testing.expectEqual(@as(?usize, 17), memchrInv(misaligned_storage[1..], 'a'));
 }
+
+test "memchrInv catches prefix and trailing remainder mismatches" {
+    var prefix_storage = [_]u8{'a'} ** 25;
+    prefix_storage[3] = 'X';
+    try std.testing.expectEqual(@as(?usize, 2), memchrInv(prefix_storage[1..], 'a'));
+
+    var trailing_storage = [_]u8{'a'} ** 26;
+    trailing_storage[25] = 'X';
+    try std.testing.expectEqual(@as(?usize, 24), memchrInv(trailing_storage[1..], 'a'));
+}
