@@ -31,8 +31,8 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `make -C zigux phase14`
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `007f00d0c6b6b430bfbb2110555544cc5faefe8b`, ready-next `phase14-workqueue-drain-cancel-followup`, blocked `phase14-workqueue-live-execution-blocker`
-  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f05e02445443e7743c3675a6f8ca4f70f6e736fb`, ready-next `phase14-skbuff-segs-prev-tail-publication-followup`, blocked `phase14-skbuff-live-ownership-blocker`
-  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `0a66b6c6e651e39ca2ce56cb6776fbde352dc213`, ready-next `phase14-ring-buffer-read-page-extraction-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
+  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-validate-xmit-list-reset-followup`, blocked `phase14-skbuff-live-ownership-blocker`
+  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `99cd3249c4bab05b74227ed7ca3869284e818588`, ready-next `phase14-ring-buffer-read-page-extraction-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L14`, surveyed commit `d839457a2f2dbdc7b53711401741b5e88541c818`, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
