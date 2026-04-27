@@ -14,6 +14,13 @@
     "expected": "sample_multi_target_expected.txt"
   },
   {
+    "name": "sample_escaped_space",
+    "depfile": "sample_escaped_space.d",
+    "target": "sample_escaped_space.o",
+    "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o",
+    "expected": "sample_escaped_space_expected.txt"
+  },
+  {
     "name": "sample_comment_only",
     "depfile": "sample_comment_only.d",
     "target": "sample_comment_only.o",
