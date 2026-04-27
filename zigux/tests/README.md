@@ -34,6 +34,8 @@ Key entrypoints
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_bpf_type_names.zig`
 - `zigux/tests/phase9_build.zig`
+- `zigux/tests/runtime_loader_gap_survey.zig`
+- `zigux/tests/runtime_loader_gap_manifest.json`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
