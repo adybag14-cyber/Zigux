@@ -87,6 +87,7 @@ required_doc_readme_markers = [
     "Phase 9 notes",
     "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
     "Documentation/zigux/review-checklist.md",
+    "the `Documentation/zigux/phase9-runtime-trace-events-{survey,module-slice}.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` bundle now keeps the `Documentation/zigux/freeze-map.md` boundary explicit",
     "python3 scripts/zigux/validate-phase9.py",
     "make -C zigux phase9-validate",
     "zigux/tests/phase9_build.zig",
@@ -103,6 +104,7 @@ required_review_checklist_markers = [
     "if the change is a Phase 9 runtime slice, do the module or sample note, the manifest-backed survey or loader-gap survey, and the shared `phase9_build.zig` entrypoint still agree on the same Linux anchor, bounded blocker posture, and replay scope?",
     "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
+    "if a Phase 9 runtime trace-events change touches the frozen trace-core boundary, do `Documentation/zigux/freeze-map.md`, the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `kernel/trace/ring_buffer.c` as `Study / Boundary Only` and require an Architecture Council decision before any status change?",
     "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
     "if unsafe code exists, is it narrow, visible, and review-owned?",
 ]
