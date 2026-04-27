@@ -1,7 +1,7 @@
 PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-abi phase3-interop phase3
 PHONY += phase4-validate phase4-test phase4
-PHONY += phase6-test phase6
+PHONY += phase6-validate phase6-test phase6
 PHONY += phase7-test phase7
 PHONY += phase8-test phase8
 PHONY += phase9-test phase9
@@ -68,10 +68,13 @@ phase4-test:
 
 phase4: phase4-validate phase4-test
 
+phase6-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase6.py
+
 phase6-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig
 
-phase6: phase6-test
+phase6: phase6-validate phase6-test
 
 phase7-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig
