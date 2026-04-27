@@ -84,6 +84,19 @@ pub fn build(b: *std.Build) void {
     });
     const run_checksum_tests = b.addRunArtifact(checksum_tests);
 
+    const checksum_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_checksum_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    checksum_perf_root_module.addImport("checksum", checksum_module);
+
+    const checksum_perf = b.addExecutable(.{
+        .name = "phase6-checksum-perf",
+        .root_module = checksum_perf_root_module,
+    });
+    const run_checksum_perf = b.addRunArtifact(checksum_perf);
+
     const hexdump_module = b.createModule(.{
         .root_source_file = b.path("../../lib/hexdump.zig"),
         .target = target,
@@ -119,4 +132,7 @@ pub fn build(b: *std.Build) void {
 
     const bsearch_perf_step = b.step("bsearch-perf", "Run the Phase 6 bsearch performance sanity harness");
     bsearch_perf_step.dependOn(&run_bsearch_perf.step);
+
+    const checksum_perf_step = b.step("checksum-perf", "Run the Phase 6 checksum performance sanity harness");
+    checksum_perf_step.dependOn(&run_checksum_perf.step);
 }
