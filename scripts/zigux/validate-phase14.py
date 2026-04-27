@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+from pathlib import Path
+import json
+import re
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[2]
+BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase14-[^"]+)"')
+BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+
+FILES = [
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/README.md",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+    "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+    "Documentation/zigux/phase14-ring-buffer-survey.md",
+    "Documentation/zigux/phase14-rcu-tree-survey.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
+    "zigux/tests/phase14_build.zig",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
+    "zigux/tests/phase14_skbuff_bridge_manifest.json",
+    "zigux/tests/phase14_ring_buffer_manifest.json",
+    "zigux/tests/phase14_rcu_tree_manifest.json",
+]
+
+MAKE_MARKERS = [
+    "PHONY += phase14-validate phase14-test phase14",
+    "phase14-validate:",
+    "scripts/zigux/validate-phase14.py",
+    "phase14-test:",
+    "$(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "phase14: phase14-validate phase14-test",
+]
+
+WORKFLOW_MARKERS = [
+    "Validate Phase 14 shared smoke packet",
+    "make -C zigux phase14-validate",
+    "Run Phase 14 internal bridge tests",
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+]
+
+SCRIPT_README_MARKERS = [
+    "Current bootstrap helpers",
+    "`validate-phase14.py`",
+    "Phase 14 flow",
+    "`Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/freeze-map.md`",
+    "`make -C zigux phase14-validate`",
+    "`zigux/tests/phase14_build.zig`",
+    "shared Phase 14 smoke packet",
+    "stay-in-C boundary",
+]
+
+RELEASE_MARKERS = [
+    "PHASE14_STATUS=active",
+    "PHASE14_SLICE=end-to-end-smoke-verification",
+    "PHASE14_SMOKE_VALIDATOR=present",
+    "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
+    "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
+    "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14",
+    "PHASE14_ANCHOR_PACKET_COUNT=4",
+    "PHASE14_STAY_IN_C_BOUNDARY=explicit",
+    "PHASE14_STATUS_CHANGE_CLAIM=no",
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/README.md",
+    "phase14_workqueue_bridge_manifest.json",
+    "phase14_skbuff_bridge_manifest.json",
+    "phase14_ring_buffer_manifest.json",
+    "phase14_rcu_tree_manifest.json",
+]
+
+CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact smoke commands, ready-next versus blocked posture, and stay-in-C boundary?",
+]
+
+BUILD_MARKERS = [
+    "phase14-workqueue-bridge-tests",
+    "phase14-skbuff-bridge-tests",
+    "phase14-ring-buffer-survey-tests",
+    "phase14-rcu-tree-survey-tests",
+    "phase14-end-to-end-smoke-tests",
+    "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
+    "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
+    "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
+    "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
+    "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
+]
+
+EXPECTED_BUILD_TEST_NAMES = [
+    "phase14-workqueue-bridge-tests",
+    "phase14-skbuff-bridge-tests",
+    "phase14-ring-buffer-survey-tests",
+    "phase14-rcu-tree-survey-tests",
+    "phase14-end-to-end-smoke-tests",
+]
+
+EXPECTED_ANCHOR_LANES = [
+    ("P14-L01", "kernel/workqueue.c"),
+    ("P14-L11", "net/core/skbuff.c"),
+    ("P14-L06", "kernel/trace/ring_buffer.c"),
+    ("P14-L14", "kernel/rcu/tree.c"),
+]
+
+
+def text(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+def load_json(path: str) -> dict[str, object]:
+    return json.loads(text(path))
+
+
+missing_files = [path for path in FILES if not (ROOT / path).exists()]
+if missing_files:
+    print("PHASE14_VALIDATION=fail")
+    print("MISSING_PHASE14_FILES_START")
+    for path in missing_files:
+        print(path)
+    print("MISSING_PHASE14_FILES_END")
+    sys.exit(1)
+
+missing: list[str] = []
+for name, source, markers in [
+    ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
+    ("make", text("zigux/Makefile"), MAKE_MARKERS),
+    ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
+    ("survey", text("Documentation/zigux/phase14-end-to-end-smoke-survey.md"), RELEASE_MARKERS),
+    ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
+    ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
+]:
+    for marker in markers:
+        if marker not in source:
+            missing.append(f"{name}:{marker}")
+
+freeze_map_text = text("Documentation/zigux/freeze-map.md")
+for marker in [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+    "net/core/skbuff.c",
+    "kernel/rcu/tree.c",
+    "Architecture Council",
+]:
+    if marker not in freeze_map_text:
+        missing.append(f"freeze_map:{marker}")
+
+manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json")
+if manifest.get("lane_key") != "P14-L03":
+    missing.append(f'manifest:lane_key={manifest.get("lane_key")}')
+if manifest.get("phase") != "Phase 14":
+    missing.append(f'manifest:phase={manifest.get("phase")}')
+
+shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
+if not isinstance(shared_smoke_surfaces, list):
+    missing.append("manifest:shared_smoke_surfaces")
+else:
+    for required_surface in [
+        "scripts/zigux/validate-phase14.py",
+        "scripts/zigux/README.md",
+        "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+        "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+        "zigux/tests/phase14_build.zig",
+        "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        "Documentation/zigux/review-checklist.md",
+        "Documentation/zigux/freeze-map.md",
+    ]:
+        if required_surface not in shared_smoke_surfaces:
+            missing.append(f"manifest:shared_smoke_surface:{required_surface}")
+
+anchor_packets = manifest.get("anchor_packets")
+if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
+    missing.append("manifest:anchor_packets")
+else:
+    for (lane_key, anchor), packet in zip(EXPECTED_ANCHOR_LANES, anchor_packets):
+        if not isinstance(packet, dict):
+            missing.append(f"manifest:anchor_packet:{lane_key}")
+            continue
+        if packet.get("lane_key") != lane_key:
+            missing.append(f'manifest:{lane_key}:lane_key={packet.get("lane_key")}')
+        if packet.get("anchor") != anchor:
+            missing.append(f'manifest:{lane_key}:anchor={packet.get("anchor")}')
+
+smoke_commands = manifest.get("smoke_commands")
+expected_smoke_commands = [
+    "make -C zigux phase14-validate",
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14",
+]
+if smoke_commands != expected_smoke_commands:
+    missing.append("manifest:smoke_commands")
+
+summary = manifest.get("survey_summary")
+if not isinstance(summary, dict):
+    missing.append("manifest:survey_summary")
+else:
+    for key in [
+        "phase14_validate_script_present",
+        "phase14_validate_entrypoint_present",
+        "phase14_build_has_shared_smoke_step",
+        "phase14_make_target_present",
+        "workflow_runs_phase14_validate",
+        "workflow_runs_phase14_build",
+        "review_checklist_has_phase14_smoke_prompt",
+        "freeze_map_lists_workqueue_c",
+        "freeze_map_lists_skbuff_c",
+        "freeze_map_lists_ring_buffer_c",
+        "freeze_map_lists_tree_c",
+    ]:
+        if summary.get(key) is not True:
+            missing.append(f"manifest:survey_summary:{key}={summary.get(key)}")
+
+build_text = text("zigux/tests/phase14_build.zig")
+build_names = BUILD_TEST_NAME_RE.findall(build_text)
+if build_names != EXPECTED_BUILD_TEST_NAMES:
+    missing.append("build:test_names")
+depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+if len(depend_steps) != 5:
+    missing.append(f"build:depend_step_count={len(depend_steps)}")
+
+for manifest_path, lane_key, anchor in [
+    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
+    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "P14-L11", "net/core/skbuff.c"),
+    ("zigux/tests/phase14_ring_buffer_manifest.json", "P14-L06", "kernel/trace/ring_buffer.c"),
+    ("zigux/tests/phase14_rcu_tree_manifest.json", "P14-L14", "kernel/rcu/tree.c"),
+]:
+    anchor_manifest = load_json(manifest_path)
+    if anchor_manifest.get("phase") != "Phase 14":
+        missing.append(f"{manifest_path}:phase")
+    if anchor_manifest.get("lane_key") != lane_key:
+        missing.append(f"{manifest_path}:lane_key")
+    if anchor_manifest.get("anchor") != anchor:
+        missing.append(f"{manifest_path}:anchor")
+
+if missing:
+    print("PHASE14_VALIDATION=fail")
+    print("PHASE14_VALIDATION_MISSING_START")
+    for item in missing:
+        print(item)
+    print("PHASE14_VALIDATION_MISSING_END")
+    sys.exit(1)
+
+print("PHASE14_VALIDATION=pass")
+print(f"PHASE14_REQUIRED_FILE_COUNT={len(FILES)}")
+print(
+    "PHASE14_REQUIRED_MARKER_COUNT="
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(RELEASE_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}"
+)
+print(f"PHASE14_BUILD_TEST_COUNT={len(build_names)}")
+print(f"PHASE14_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
