@@ -27,6 +27,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - explicit node linking
 - balancing and ordered insertion helpers
 - comparison-based plain-tree lookup helpers
+- plain-tree find-or-insert helper
 - ordered erase plus direct node replacement
 - in-order and postorder traversal helpers
 
@@ -59,6 +60,7 @@ The current starter slice covers:
 - `rb_find()` via `find()`
 - `rb_find_first()` via `findFirst()`
 - `rb_next_match()` via `nextMatch()`
+- `rb_find_add()` via `findAdd()`
 - `rb_erase()` via `erase()`
 - `rb_first()`
 - `rb_last()`
@@ -74,6 +76,7 @@ The current tests check:
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
+- duplicate-aware find-or-insert behavior via `findAdd()`
 - erase-and-replace consistency after structural updates
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
@@ -89,4 +92,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, duplicate-key lookup, erase, replace, reverse traversal, or postorder surface.
+Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, find-or-insert, duplicate-key lookup, erase, replace, reverse traversal, or postorder surface.
