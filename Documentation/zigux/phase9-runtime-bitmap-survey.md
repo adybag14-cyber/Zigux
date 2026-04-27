@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-survey`
-- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
+- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -21,7 +21,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, module gate, diff gate, and loader scaffold landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
+The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
 ## Survey findings
 
@@ -38,7 +38,8 @@ Against the Phase 9 roadmap requirements, the current runtime bitmap lane now re
 - a landed sample-side loader scaffold in `samples/zigux/runtime_bitmap_loader.zig`
 - a landed dedicated module gate in `zigux/tests/runtime_bitmap_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_bitmap_diff.zig`
-- a remaining blocked live-loader handoff under `zigux/kernel/runtime_loader.zig`, even though the bitmap loader scaffold now emits both waiting and released shared request shapes, because true runtime-module loading and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet
+- a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that can consume the bitmap loader handoff shape, staged entry and exit symbols, allocator posture, and bitmap payload summary
+- a remaining blocked shared runtime control surface under `zigux/kernel/runtime_loader.zig`, because command-name, argv-policy, and environment-derived activation handling still have no shared owner and true runtime execution or lifecycle parity remains out of scope
 
 This keeps the survey honest about the difference between the shipped in-memory pilot and the still-missing loadable runtime substrate.
 
@@ -52,9 +53,10 @@ The manifest now records:
 - the landed `runtime-bitmap-module-tests`
 - the landed `runtime-bitmap-diff-gate`
 - the landed `runtime-bitmap-loader-scaffold`
-- the still-blocked `runtime-bitmap-live-loader-binding`
+- the landed `runtime-bitmap-live-loader-binding`
+- the still-blocked `runtime-bitmap-shared-loader-controls`
 
-This keeps the survey useful after the first starter, module gate, diff gate, and loader scaffold landed without pretending that Zigux already has a loadable runtime bitmap module or a live runtime loader binding waiting behind the blocker.
+This keeps the survey useful after the first starter, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime bitmap module or the full shared runtime control surface needed for real execution.
 
 ## Gates
 
@@ -75,4 +77,4 @@ This survey slice still does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining runtime loader or lifecycle-parity blocker, rather than reopening already-landed survey, sample, loader-scaffold, module-gate, or diff-gate scaffolding.
+Stay in the Phase 9 runtime bitmap lane and keep future work narrowly aimed at the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding.
