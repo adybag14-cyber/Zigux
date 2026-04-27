@@ -1,13 +1,13 @@
 {
   "lane_key": "P5-L06",
   "phase": "Phase 5",
-  "surveyed_commit": "6b36e877c0a2bda47d70e046116205534259b28c",
+  "surveyed_commit": "fb849dd26b81c5c78510b14c3a50e6278520f9ea",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
-    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
+    "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate false while provides_selfcheck stays true, and names the fixed embedded storage backing used by the sample",
+    "the manifest, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "the review checklist still points reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared phase5_build.zig entrypoint for this exact replay contract",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
@@ -47,6 +47,11 @@
       "id": "final-drain-sequence",
       "kind": "exact_sequence",
       "expected": "final drain yields [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]"
+    },
+    {
+      "id": "storage-backing-contract",
+      "kind": "review_surface",
+      "expected": "descriptor and replay keep the sample on a fixed embedded 32-byte ring buffer rather than dynamic or runtime-backed storage"
     },
     {
       "id": "bounded-helper-behavior",
