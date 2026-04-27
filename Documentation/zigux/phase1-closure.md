@@ -53,16 +53,16 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.
 - `tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.
-- `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `find()`, `findFirst()`, and `nextMatch()` aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.
+- `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `find()` returning a matching node or null while `findFirst()` stays pinned to the leftmost duplicate match for equal keys.
 - rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - rbtree manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`
-- rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`
+- rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findFirst returns the leftmost duplicate match"`
 
 - `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state`
 - `PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree`
-- `PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node`
+- `PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find returns a matching node or null while findFirst stays pinned to the leftmost duplicate match for equal keys`
 
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
