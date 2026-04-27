@@ -76,6 +76,13 @@
       "expected": "ambiguous_abbreviated_long_option_expected.json"
     },
     {
+      "name": "unexpected_long_option_argument",
+      "argv": ["--debug=extra"],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "unexpected_long_option_argument_expected.json"
+    },
+    {
       "name": "missing_long_reference_argument",
       "argv": ["--reference"],
       "mode": "process_json",
