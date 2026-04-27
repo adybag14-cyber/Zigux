@@ -40,6 +40,7 @@ The current bsearch helper surface exercised by this slice covers:
 
 - `searchIndex`
 - `search`
+- `searchMutable`
 
 The current tests check:
 
@@ -47,6 +48,7 @@ The current tests check:
 - misses below, between, and above known values
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful lookups
+- mutable-pointer parity when searching mutable storage
 - duplicate-key found-or-null parity without claiming stable duplicate selection
 - representative lookup work stays inside a bounded binary-search comparison budget
 - a replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices
