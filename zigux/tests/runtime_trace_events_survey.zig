@@ -157,12 +157,16 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     defer std.testing.allocator.free(module_doc);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling-backed wake or dispatch behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tracepoint-registration lifecycle wiring") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
 }
