@@ -99,10 +99,50 @@ pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
     return buf.len;
 }
 
-pub fn memchrInv(buf: []const u8, value: u8) ?usize {
+fn repeatedByteWord(value: u8) u64 {
+    var repeated = @as(u64, value);
+    repeated |= repeated << 8;
+    repeated |= repeated << 16;
+    repeated |= repeated << 32;
+    return repeated;
+}
+
+fn checkBytes8(buf: []const u8, value: u8) ?usize {
     for (buf, 0..) |ch, idx| {
         if (ch != value) {
             return idx;
+        }
+    }
+    return null;
+}
+
+pub fn memchrInv(buf: []const u8, value: u8) ?usize {
+    if (buf.len <= 16) {
+        return checkBytes8(buf, value);
+    }
+
+    const prefix = (@intFromPtr(buf.ptr) & 7);
+    var start: usize = 0;
+    if (prefix != 0) {
+        const prefix_bytes = @min(buf.len, 8 - prefix);
+        if (checkBytes8(buf[0..prefix_bytes], value)) |idx| {
+            return idx;
+        }
+        start = prefix_bytes;
+    }
+
+    const repeated = repeatedByteWord(value);
+    var word_start = start;
+    while (word_start + 8 <= buf.len) : (word_start += 8) {
+        const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], .little);
+        if (word != repeated) {
+            return word_start + checkBytes8(buf[word_start .. word_start + 8], value).?;
+        }
+    }
+
+    if (word_start < buf.len) {
+        if (checkBytes8(buf[word_start..], value)) |idx| {
+            return word_start + idx;
         }
     }
     return null;
@@ -149,4 +189,14 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqualStrings("zigux", duplicated);
     try std.testing.expectEqual(@as(?usize, 4), memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
+}
+
+test "memchrInv scans aligned and misaligned long buffers" {
+    var aligned = [_]u8{'a'} ** 24;
+    aligned[17] = 'X';
+    try std.testing.expectEqual(@as(?usize, 17), memchrInv(&aligned, 'a'));
+
+    var misaligned_storage = [_]u8{'a'} ** 25;
+    misaligned_storage[18] = 'X';
+    try std.testing.expectEqual(@as(?usize, 17), memchrInv(misaligned_storage[1..], 'a'));
 }
