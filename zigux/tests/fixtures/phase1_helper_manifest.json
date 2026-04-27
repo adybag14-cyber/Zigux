@@ -34,6 +34,11 @@
     "tools/lib/find_bit.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
       "evidence_keys": [
+        "find_bit.first",
+        "find_bit.next_after_6",
+        "find_bit.next_after_word",
+        "find_bit.first_zero",
+        "find_bit.next_zero",
         "find_bit.first_and",
         "find_bit.next_and",
         "find_bit.tail_clamped_first",
@@ -45,7 +50,7 @@
         "find_bit.tail_and_mixed_first",
         "find_bit.tail_and_mixed_next"
       ],
-      "summary": "Committed C-backed parity coverage includes shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past nbits.",
+      "summary": "Committed C-backed parity coverage includes baseline set, zero, and shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past nbits.",
       "unit_test_anchor": "tools/lib/find_bit.zig:test \"tail mask keeps the in-range shared bit for and scans\"",
       "unit_test_contract": "Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits."
     },
@@ -63,9 +68,7 @@
       ],
       "summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks.",
       "unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
-      "unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.",
-      "search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree nextMatch walks the duplicate range in order\"",
-      "search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key."
+      "unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree."
     },
     "tools/lib/string.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
