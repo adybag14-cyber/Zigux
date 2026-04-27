@@ -47,6 +47,7 @@ Phase 6 notes
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `python3 scripts/zigux/validate-phase6.py` and `make -C zigux phase6-validate` now fail fast if the shared Phase 6 leaf-helper bundle drifts out of sync across `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the published slice notes.
 - `zigux/tests/phase6_build.zig` and `make -C zigux phase6` now gate the current base64, bsearch, checksum, and hexdump helper bundle together, so new helper slices should only land when that shared lane stays green as one unit.
+- `make -C zigux phase6-checksum-perf` now replays a checksum-specific perf sanity harness so the current math-sensitive helper lane records representative per-call and per-byte cost before Phase 6 claims it is ready to park.
 - the current bounded Phase 6 decision is no longer whether the hexdump fixture wiring works in CI; it is whether the current bsearch, checksum, and hexdump parity evidence is sufficient to park the leaf-helper lane or whether one more tiny external fixture is still worth carrying.
 
 Phase 7 notes
