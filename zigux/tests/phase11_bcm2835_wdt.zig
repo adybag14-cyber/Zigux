@@ -144,6 +144,47 @@ test "phase11 bcm2835_wdt registration summary records watchdog registration and
     try std.testing.expect(!not_controller.poweroff_handler_conflict);
 }
 
+test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const ready = watchdog.platformHandoffSummary(true, true, true, true, false);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", ready.anchor);
+    try std.testing.expect(ready.bootloader_running);
+    try std.testing.expect(ready.nowayout);
+    try std.testing.expect(ready.parent_attached);
+    try std.testing.expect(ready.parent_supplies_pm_base);
+    try std.testing.expect(ready.pm_base_required);
+    try std.testing.expect(ready.pm_base_handoff_ready);
+    try std.testing.expect(ready.watchdog_drvdata_set);
+    try std.testing.expect(ready.watchdog_parent_set);
+    try std.testing.expect(ready.timeout_init_requested);
+    try std.testing.expect(ready.register_device_requested);
+    try std.testing.expect(ready.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), ready.restart_priority);
+    try std.testing.expect(ready.system_power_controller);
+    try std.testing.expect(!ready.poweroff_handler_present);
+    try std.testing.expect(ready.poweroff_handler_claimed);
+    try std.testing.expect(!ready.poweroff_handler_conflict);
+
+    const blocked = watchdog.platformHandoffSummary(false, false, true, false, true);
+    try std.testing.expect(!blocked.bootloader_running);
+    try std.testing.expect(!blocked.nowayout);
+    try std.testing.expect(blocked.parent_attached);
+    try std.testing.expect(!blocked.parent_supplies_pm_base);
+    try std.testing.expect(blocked.pm_base_required);
+    try std.testing.expect(!blocked.pm_base_handoff_ready);
+    try std.testing.expect(!blocked.watchdog_drvdata_set);
+    try std.testing.expect(blocked.watchdog_parent_set);
+    try std.testing.expect(blocked.timeout_init_requested);
+    try std.testing.expect(!blocked.register_device_requested);
+    try std.testing.expect(blocked.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.restart_priority), blocked.restart_priority);
+    try std.testing.expect(blocked.system_power_controller);
+    try std.testing.expect(blocked.poweroff_handler_present);
+    try std.testing.expect(!blocked.poweroff_handler_claimed);
+    try std.testing.expect(!blocked.poweroff_handler_conflict);
+}
+
 test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
