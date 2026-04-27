@@ -21,6 +21,8 @@ The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c
 
 The live repo already had atomic64 and bitmap starters under the same Phase 9 review path, but it still had no trace-events pilot at all. This slice lands the smallest honest trace-events follow-on step: a sample-backed lifecycle scaffold that models bounded event families and callback registration without claiming kernel thread, tracepoint macro, or loadable-module parity.
 
+This bounded starter also stays underneath the trace-core freeze-map boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/trace/ring_buffer.c` in `Study / Boundary Only`, so this slice must not imply ring-buffer parity, deep trace transport ownership, or any Architecture Council-approved status change for the frozen trace core.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `samples/trace_events/trace-events-sample.c` anchor
@@ -42,6 +44,8 @@ This slice does not yet claim:
 - runtime task ownership or event-loop substrate parity
 - polling-backed wake or dispatch behavior
 - real kernel thread scheduling or timeout behavior
+- parity or ownership for `kernel/trace/ring_buffer.c`
+- any freeze-map status change for the trace core without an Architecture Council decision
 - payload-by-payload differential parity for the full Linux sample
 
 ## Gates
@@ -54,4 +58,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.

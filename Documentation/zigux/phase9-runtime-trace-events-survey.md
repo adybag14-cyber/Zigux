@@ -15,12 +15,15 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `zigux/tests/runtime_trace_events_survey.zig`
   - `zigux/tests/phase9_build.zig`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
+  - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
 
 The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
 The live repo originally had no matching trace-events survey artifact, no dedicated `runtime_*` review gate, and no Zigux starter under `samples/zigux/`. That survey note now stays in place as the lane history and review anchor after the bounded starter sample and module tests landed, so Phase 9 can keep recording what is shipped versus what still depends on the runtime substrate.
+
+The roadmap and the freeze map also keep an adjacent trace substrate boundary explicit: `kernel/trace/ring_buffer.c` remains `Study / Boundary Only` in `Documentation/zigux/freeze-map.md`. That means this lane may ship a bounded trace-events starter and survey evidence, but it must not imply ring-buffer parity, deep trace transport ownership, or any Architecture Council-approved status change for the frozen trace core.
 
 ## Survey findings
 
@@ -34,6 +37,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
 - the focused module gate now proves both the roadmap's lifecycle-parity slice and those bounded literals through the summary surface itself, leaving raw payload-struct inspection to the narrower diff gate.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
+- the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownersip, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
 
 ## Recorded gaps
 
@@ -44,6 +48,7 @@ The manifest started as a survey-only inventory and now records:
 - the landed `runtime-trace-events-sample-module` starter
 - the landed `runtime-trace-events-module-tests`
 - the landed `runtime-trace-events-diff-gate`
+- the blocked `runtime-trace-events-freeze-map-boundary`
 - the still-blocked runtime substrate handoff
 
 This keeps the survey useful after the first starter slice lands without pretending that Zigux already has a loadable trace-events runtime module.
@@ -64,9 +69,11 @@ This survey slice still does not claim:
 - runtime task ownership or event-loop substrate parity
 - polling-backed wake or dispatch behavior
 - runtime trace registration or unregister parity with the Linux sample
+- parity or ownership for `kernel/trace/ring_buffer.c`
+- any freeze-map status change for the trace core without an Architecture Council decision
 - generated tracepoint macro parity for `trace-events-sample.h`
 - full ftrace selftest execution inside Zigux
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest runtime-substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest runtime-substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring, while keeping the separate `kernel/trace/ring_buffer.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.

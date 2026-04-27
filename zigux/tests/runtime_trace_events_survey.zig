@@ -88,6 +88,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
+    var saw_freeze_map_boundary = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -97,8 +98,12 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
+            // Sample-side starter surfaces stay under samples.
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {
+            // Governance-only blockers may live in the lane survey note.
         } else {
-            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/"));
+            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -119,6 +124,13 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_diff_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_diff.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-freeze-map-boundary")) {
+            saw_freeze_map_boundary = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-module-tests")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -143,14 +155,23 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(runtime_test_destination_count >= 4);
     try std.testing.expect(starter_landed_count >= 5);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(blocked_count >= 2);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
+    try std.testing.expect(saw_freeze_map_boundary);
 }
 
 test "phase 9 runtime trace-events docs keep the task and event-loop substrate gap explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const freeze_map = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/freeze-map.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(freeze_map);
 
     const survey_doc = try readWorkspaceFile(
         io_instance.io(),
@@ -168,6 +189,9 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     );
     defer std.testing.allocator.free(module_doc);
 
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Study / Boundary Only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/trace/ring_buffer.c`") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "selftest hook") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "provides_selftest_hook = true") != null);
@@ -180,6 +204,11 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling-backed wake or dispatch behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tracepoint-registration lifecycle wiring") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Study / Boundary Only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "ring-buffer parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Architecture Council") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
@@ -189,6 +218,11 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "Study / Boundary Only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "ring-buffer parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "Architecture Council") != null);
 }
 
 test "phase 9 runtime trace-events blocker stays loader-free until the scheduler substrate exists" {
