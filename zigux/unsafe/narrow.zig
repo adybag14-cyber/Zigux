@@ -1,4 +1,5 @@
 const std = @import("std");
+const abi = @import("abi_bindings");
 
 pub fn addressOf(ptr: anytype) usize {
     return @intFromPtr(ptr);
@@ -6,6 +7,14 @@ pub fn addressOf(ptr: anytype) usize {
 
 pub fn byteOffset(base: usize, offset: usize) usize {
     return base + offset;
+}
+
+pub fn permitsVolatileMmio(scope: abi.UnsafeScope) bool {
+    return scope == .volatile_mmio;
+}
+
+pub fn permitsRawPointerBridge(scope: abi.UnsafeScope) bool {
+    return scope == .raw_pointer_bridge;
 }
 
 pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {
@@ -33,4 +42,14 @@ test "phase3 narrow unsafe wrappers stay bounded" {
 
     const const_ptr = constPointerAt(u32, base);
     try std.testing.expectEqual(@as(u32, 11), const_ptr.*);
+}
+
+test "phase3 narrow unsafe scope stays explicit" {
+    try std.testing.expect(!permitsVolatileMmio(.none));
+    try std.testing.expect(permitsVolatileMmio(.volatile_mmio));
+    try std.testing.expect(!permitsVolatileMmio(.raw_pointer_bridge));
+
+    try std.testing.expect(!permitsRawPointerBridge(.none));
+    try std.testing.expect(!permitsRawPointerBridge(.volatile_mmio));
+    try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
 }
