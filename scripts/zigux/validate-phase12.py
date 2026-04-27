@@ -50,7 +50,7 @@ README_MARKERS = [
     "phase12_libbpf_manifest.json",
 ]
 CHECKLIST_MARKERS = [
-    "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, and the four Phase 12 manifests still agree on the same bounded tranche, shared replay contract, and explicit DMA versus object-model blocker posture?",
+    "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, and the four Phase 12 manifests still agree on the same bounded tranche, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
     "if the change touches the shared Phase 12 degraded-workflow packet, do the workflow path, README notes, review checklist, and `zigux/tests/phase12_virtio_scsi_survey.zig` still agree that `make -C zigux phase12` runs the validator before the shared Zig replay?",
 ]
 BUILD_MARKERS = [
@@ -77,6 +77,13 @@ MANIFEST_SPECS = {
         "lane_key": "P12-L01",
         "anchor": "drivers/net/virtio_net.c",
         "gap_count": 9,
+        "roadmap_destinations": ["drivers/net/virtio_net.zig", "zigux/tests/"],
+        "shared_allowed_destinations": {
+            "Documentation/zigux/",
+            "zigux/Makefile",
+            "drivers/virtio/virtio.zig",
+            "drivers/virtio/virtio_ring.zig",
+        },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
         "survey_path": "zigux/tests/phase12_virtio_net_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
@@ -85,6 +92,12 @@ MANIFEST_SPECS = {
         "lane_key": "P12-L05",
         "anchor": "drivers/nvme/host/pci.c",
         "gap_count": 11,
+        "roadmap_destinations": ["drivers/nvme/host/pci.zig", "zigux/tests/", "Documentation/zigux/"],
+        "shared_allowed_destinations": {
+            "zigux/Makefile",
+            "drivers/net/virtio_net.zig",
+            "drivers/scsi/virtio_scsi.zig",
+        },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
         "survey_path": "zigux/tests/phase12_nvme_pci_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
@@ -93,6 +106,12 @@ MANIFEST_SPECS = {
         "lane_key": "P12-L09",
         "anchor": "drivers/scsi/virtio_scsi.c",
         "gap_count": 12,
+        "roadmap_destinations": ["drivers/scsi/virtio_scsi.zig", "zigux/tests/", "Documentation/zigux/"],
+        "shared_allowed_destinations": {
+            "zigux/Makefile",
+            "drivers/virtio/virtio.zig",
+            "drivers/virtio/virtio_ring.zig",
+        },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
         "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
@@ -101,6 +120,8 @@ MANIFEST_SPECS = {
         "lane_key": "P12-L13",
         "anchor": "tools/lib/bpf/libbpf.c",
         "gap_count": 12,
+        "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
+        "shared_allowed_destinations": {"zigux/Makefile"},
         "allowed_statuses": {"starter_landed", "blocked_on_object_model"},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model")],
@@ -125,6 +146,18 @@ def count_statuses(manifest: dict[str, object], match: str) -> int:
         if status == match:
             total += 1
     return total
+
+
+def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
+    roadmap_destinations = tuple(str(item) for item in spec["roadmap_destinations"])
+    if destination.startswith(roadmap_destinations):
+        return True
+    shared_allowed_destinations = spec.get("shared_allowed_destinations", set())
+    if destination in shared_allowed_destinations:
+        return True
+    if destination.endswith("/") and destination in shared_allowed_destinations:
+        return True
+    return False
 
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
@@ -159,6 +192,8 @@ for name, spec in MANIFEST_SPECS.items():
         missing.append(f"{name}:lane_key")
     if manifest.get("anchor") != spec["anchor"]:
         missing.append(f"{name}:anchor")
+    if manifest.get("roadmap_destinations") != spec["roadmap_destinations"]:
+        missing.append(f"{name}:roadmap_destinations")
     if not HEX40.fullmatch(str(manifest.get("surveyed_commit", ""))):
         missing.append(f"{name}:surveyed_commit")
 
@@ -171,12 +206,16 @@ for name, spec in MANIFEST_SPECS.items():
     for gap in gaps:
         gap_id = gap.get("id")
         status = gap.get("status")
+        destination = gap.get("zigux_destination")
         if not isinstance(gap_id, str) or gap_id in seen:
             missing.append(f"{name}:gap_id")
             continue
         seen.add(gap_id)
         if status not in spec["allowed_statuses"]:
             missing.append(f"{name}:status:{gap_id}")
+            continue
+        if not isinstance(destination, str) or not destination_allowed(destination, spec):
+            missing.append(f"{name}:destination:{gap_id}")
             continue
         if status == "starter_landed":
             starter_total += 1
