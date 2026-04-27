@@ -68,6 +68,12 @@ pub const RuntimeBitmapLoader = struct {
         return toSharedRequest(plan);
     }
 
+    pub fn releaseSharedRuntimeLoadWithoutSubstrate(self: *Self) !runtime_loader.RuntimeLoadRequest {
+        const request = try self.requestSharedRuntimeLoad();
+        try self.releaseWithoutSubstrate();
+        return request.releasedWithoutSubstrate();
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
@@ -155,4 +161,25 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, std.meta.activeTag(request.payload));
+}
+
+test "runtime bitmap loader can release the shared runtime-loader request without substrate" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    _ = try loader.prepare(&module);
+
+    const released = try loader.releaseSharedRuntimeLoadWithoutSubstrate();
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, released.lane());
+    try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+    try std.testing.expectEqual(@as(u32, 4), released.payload.bitmap.weight);
+    try std.testing.expectEqual(@as(u32, 128), released.payload.bitmap.nbits);
+    try std.testing.expectEqualStrings("zigux_runtime_bitmap_init", released.entry_symbol);
+    try std.testing.expectEqualStrings("zigux_runtime_bitmap_exit", released.exit_symbol);
+    try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
 }
