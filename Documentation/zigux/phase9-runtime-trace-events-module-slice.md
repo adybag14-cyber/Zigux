@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
+- scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `zigux/tests/runtime_trace_events_module.zig`
@@ -27,9 +27,10 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
 - explicit registration-balance checks for the function-callback path
+- a stable `RuntimeTraceEventsSummary` view exposing lifecycle stage, registration depth, iteration and event counts, payload-presence flags, and the latest template-format literals without requiring direct field-by-field payload inspection
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - concrete function-callback payload labels for the current bounded replay path
-- dedicated Phase 9 module and diff tests that assert those lifecycle, registration, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
+- dedicated Phase 9 module and diff tests that assert those lifecycle, registration, diagnostics-summary, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
