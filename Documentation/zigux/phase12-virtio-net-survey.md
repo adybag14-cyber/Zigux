@@ -29,7 +29,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
 - the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and a focused direct test for the new starter. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice.
 - the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, an explicit RSS outcome summary that distinguishes active, downgraded, hash-report-only, and unavailable states, and whether probe should treat the device as stable, renegotiate features, or reset-required.
-- the next honest driver-facing step is one bounded queue-recovery follow-up around reset-required propagation or control-vq loss fallback before any NAPI, XDP, page-pool and DMA work, control-virtqueue command, or `net_device` lifecycle work.
+- the lane now also lands one small queue-recovery follow-up: the probe snapshot records an explicit queue recovery action that distinguishes staying in bounded single-queue fallback, renegotiating features, and requiring reset when the control-virtqueue path or negotiated feature set cannot support the requested topology.
 
 ## Recorded gaps
 
@@ -42,10 +42,10 @@ The survey manifest now records:
 - the landed `phase12-virtio-net-survey-gate`
 - the landed `phase12-virtio-net-survey-note`
 - the landed `phase12-virtio-net-probe-snapshot-starter`
-- the ready-next `phase12-virtio-net-queue-recovery-followup`
+- the landed `phase12-virtio-net-queue-recovery-followup`
 - the still-blocked `phase12-virtio-net-runtime-data-path`
 
-This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
+This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter plus a bounded queue-recovery summary follow-up, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
 
 ## Non-goals
 
@@ -68,4 +68,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 12 virtio_net lane and add one more bounded queue-recovery follow-up next so the starter can explain reset-required propagation or control-vq loss handling a little more clearly before any NAPI, XDP, DMA, control-virtqueue command, or `net_device` lifecycle work.
+Keep this lane on survey and validation work until the roadmap-approved DMA and queueing substrate exists for a truthful follow-up beyond the current probe snapshot and queue-recovery summary starters.

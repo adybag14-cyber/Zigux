@@ -71,17 +71,17 @@
     },
     {
       "id": "phase12-virtio-net-queue-recovery-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The next honest virtio_net step after the probe snapshot is one bounded queue-recovery follow-up around reset-required propagation or control-vq loss fallback before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "The landed queue-recovery follow-up now records one explicit queue recovery action alongside the probe snapshot so `virtnet_probe()` planning can distinguish stable single-queue fallback, feature renegotiation, and reset-required handling before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "NAPI poll loops, page_pool DMA handling, XDP or XSK paths, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle coverage remain blocked until a much smaller probe snapshot exists and the roadmap-approved DMA and queueing substrate is in place."
+      "why_now": "NAPI poll loops, page_pool DMA handling, XDP or XSK paths, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle coverage remain blocked until the probe snapshot and queue-recovery summary can hand off to a roadmap-approved DMA and queueing substrate."
     }
   ]
 }

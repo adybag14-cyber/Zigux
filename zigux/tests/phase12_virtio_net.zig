@@ -47,6 +47,7 @@ test "phase12 virtio net probe snapshot plans multiqueue control and rss state" 
     try std.testing.expectEqual(virtio_net.RssSummary.active, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, snapshot.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.degrade_to_single_queue, snapshot.queue_recovery_action);
 }
 
 test "phase12 virtio net records rss downgrade when control virtqueue is missing" {
@@ -78,6 +79,7 @@ test "phase12 virtio net records rss downgrade when control virtqueue is missing
     try std.testing.expectEqual(virtio_net.RssSummary.downgraded_single_queue, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.missing_control_vq, snapshot.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.degrade_to_single_queue, snapshot.queue_recovery_action);
 }
 
 test "phase12 virtio net distinguishes renegotiation from reset-required recovery" {
@@ -102,6 +104,7 @@ test "phase12 virtio net distinguishes renegotiation from reset-required recover
     try std.testing.expectEqual(virtio_net.RssSummary.requested_but_unavailable, renegotiate.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.multiqueue_not_negotiated, renegotiate.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.renegotiate_features, renegotiate.recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, renegotiate.queue_recovery_action);
 
     var reset_lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_control_vq,
@@ -120,6 +123,7 @@ test "phase12 virtio net distinguishes renegotiation from reset-required recover
     try std.testing.expectEqual(virtio_net.RssSummary.not_requested, reset.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, reset.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.reset_required, reset.recovery_state);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.require_reset, reset.queue_recovery_action);
 }
 
 test "phase12 virtio net keeps hash-report-only requests visible" {
@@ -141,4 +145,5 @@ test "phase12 virtio net keeps hash-report-only requests visible" {
     try std.testing.expect(snapshot.has_rss_hash_report);
     try std.testing.expectEqual(virtio_net.RssSummary.hash_report_only, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, snapshot.fallback_reason);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.none, snapshot.queue_recovery_action);
 }

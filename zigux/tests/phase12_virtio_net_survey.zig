@@ -33,7 +33,6 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
@@ -104,7 +103,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
 
     var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_make_target = false;
@@ -124,8 +122,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_dma_transport")) {
             blocked_count += 1;
         }
@@ -185,9 +181,9 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-queue-recovery-followup")) {
             saw_ready_next = true;
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset-required") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control-vq") != null);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue recovery action") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "single-queue fallback") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -203,8 +199,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -217,8 +212,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(saw_blocker);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "control-vq loss fallback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue recovery action") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-recovery summary follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-pool and DMA") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-net-queue-recovery-followup`") == null);
 }

@@ -30,6 +30,13 @@ pub const RecoveryState = enum {
     reset_required,
 };
 
+pub const QueueRecoveryAction = enum {
+    none,
+    degrade_to_single_queue,
+    renegotiate_features,
+    require_reset,
+};
+
 pub const RssSummary = enum {
     not_requested,
     requested_but_unavailable,
@@ -63,6 +70,7 @@ pub const ProbeSnapshot = struct {
     rss_summary: RssSummary,
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
+    queue_recovery_action: QueueRecoveryAction,
 };
 
 pub const VirtioNetProbeLab = struct {
@@ -141,6 +149,11 @@ pub const VirtioNetProbeLab = struct {
             .renegotiate_features
         else
             .stable;
+        const queue_recovery_action = summarizeQueueRecoveryAction(
+            recovery_state,
+            request.requested_queue_pairs,
+            planned_queue_pairs,
+        );
         const rss_summary = summarizeRss(
             requested_rss,
             requested_hash_report,
@@ -167,6 +180,7 @@ pub const VirtioNetProbeLab = struct {
             .rss_summary = rss_summary,
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
+            .queue_recovery_action = queue_recovery_action,
         };
         self.last_snapshot = snapshot;
         return snapshot;
@@ -202,5 +216,20 @@ pub const VirtioNetProbeLab = struct {
         if (has_rss and requested_queue_pairs > planned_queue_pairs) return .downgraded_single_queue;
         if (has_hash_report) return .hash_report_only;
         return .requested_but_unavailable;
+    }
+
+    fn summarizeQueueRecoveryAction(
+        recovery_state: RecoveryState,
+        requested_queue_pairs: u16,
+        planned_queue_pairs: u16,
+    ) QueueRecoveryAction {
+        return switch (recovery_state) {
+            .reset_required => .require_reset,
+            .renegotiate_features => .renegotiate_features,
+            .stable => if (planned_queue_pairs < requested_queue_pairs)
+                .degrade_to_single_queue
+            else
+                .none,
+        };
     }
 };
