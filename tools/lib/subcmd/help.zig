@@ -295,27 +295,15 @@ pub fn loadCommandListsFromEnvPath(
         split_entries = try splitPathEntries(allocator, raw_path);
     }
 
-    const actual_prefix = prefix orelse "perf-";
-
-    if (exec_path) |path| {
-        try populate_dir(source_context, main_cmds, path, actual_prefix);
-        main_cmds.sort();
-        main_cmds.uniq();
-    }
-
-    for (split_entries.entries.items) |path| {
-        if (exec_path) |main_path| {
-            if (std.mem.eql(u8, path, main_path)) {
-                continue;
-            }
-        }
-
-        try populate_dir(source_context, other_cmds, path, actual_prefix);
-    }
-
-    other_cmds.sort();
-    other_cmds.uniq();
-    other_cmds.excludeCmds(main_cmds.*);
+    try loadCommandListsFromSource(
+        prefix,
+        exec_path,
+        split_entries.entries.items,
+        main_cmds,
+        other_cmds,
+        source_context,
+        populate_dir,
+    );
 }
 
 pub fn resolveTerminalDimensions(
@@ -699,6 +687,63 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
     try std.testing.expectEqual(@as(usize, 2), main_cmds.count());
     try std.testing.expectEqualStrings("report", main_cmds.names.items[0].name);
     try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
+    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+}
+
+test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const exec_entries = [_]DirectoryEntry{
+        .{ .name = "zigux-run", .is_executable = true },
+        .{ .name = "perf-report", .is_executable = true },
+    };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "zigux-trace.exe", .is_executable = true },
+        .{ .name = "zigux-run", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "/opt/zigux/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        "zigux-",
+        "/opt/zigux/bin",
+        "/usr/bin:/opt/zigux/bin",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
+    try std.testing.expectEqualStrings("run", main_cmds.names.items[0].name);
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
