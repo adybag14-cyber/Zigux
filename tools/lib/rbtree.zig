@@ -231,6 +231,25 @@ pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
     return null;
 }
 
+pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
+    var current = root.node;
+    var match: ?*Node = null;
+
+    while (current) |node| {
+        const order = cmp(key, node);
+        if (order <= 0) {
+            if (order == 0) {
+                match = node;
+            }
+            current = node.left;
+        } else {
+            current = node.right;
+        }
+    }
+
+    return match;
+}
+
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
     if (victim.parent == null) {
         root.node = replacement;
@@ -752,4 +771,52 @@ test "rbtree find returns the matching key or null" {
 
     const missing = @as(i32, 17);
     try std.testing.expectEqual(@as(?*Node, null), find(&missing, &root, cmpKey));
+}
+
+test "rbtree findFirst returns the leftmost duplicate match" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const wanted = @as(i32, 10);
+    const found = findFirst(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    const found_entry: *const Entry = @fieldParentPtr("node", found);
+    try std.testing.expectEqual(@as(i32, 10), found_entry.key);
+    try std.testing.expectEqual(@as(usize, 0), found_entry.serial);
+
+    const missing = @as(i32, 17);
+    try std.testing.expectEqual(@as(?*Node, null), findFirst(&missing, &root, cmpKey));
 }
