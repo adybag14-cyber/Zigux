@@ -45,6 +45,27 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn readWorkspaceFile(
+    io: anytype,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
+fn expectContainsAll(haystack: []const u8, needles: []const []const u8) !void {
+    for (needles) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+    }
+}
+
+fn expectContainsNone(haystack: []const u8, needles: []const []const u8) !void {
+    for (needles) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+    }
+}
+
 test "runtime loader gap survey manifest keeps the roadmap boundary and blocker explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -168,11 +189,11 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and control-s
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+    const survey_note = try readWorkspaceFile(
         io_instance.io(),
-        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
         std.testing.allocator,
-        .limited(16 * 1024),
+        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        16 * 1024,
     );
     defer std.testing.allocator.free(survey_note);
 
@@ -188,4 +209,69 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and control-s
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "environment-derived activation cues") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "This slice therefore stays survey-only.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
+}
+
+test "runtime loader gap survey proves the existing loader control surfaces directly" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const bitmap_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_bitmap_loader.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(bitmap_loader);
+
+    const kretprobe_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(kretprobe_loader);
+
+    const shared_loader_surface = [_][]const u8{
+        "pub const LoaderStage = enum(u8)",
+        "idle,",
+        "prepared,",
+        "waiting_on_runtime_substrate,",
+        "released_without_substrate,",
+        "entry_symbol",
+        "exit_symbol",
+        "requires_runtime_substrate",
+        "provides_selftest_hook",
+        "handoff_stage",
+        "pub fn requestRuntimeLoad",
+        "pub fn releaseWithoutSubstrate",
+    };
+    const absent_command_env_surface = [_][]const u8{
+        "command_name",
+        "argv_policy",
+        "activation_env",
+    };
+
+    try expectContainsAll(bitmap_loader, &shared_loader_surface);
+    try expectContainsAll(kretprobe_loader, &shared_loader_surface);
+    try expectContainsNone(bitmap_loader, &absent_command_env_surface);
+    try expectContainsNone(kretprobe_loader, &absent_command_env_surface);
+
+    try expectContainsAll(bitmap_loader, &.{
+        "pub const RuntimeBitmapLoadPlan = struct",
+        "summary: runtime_bitmap_sample.RuntimeBitmapSummary",
+        "\"zigux_runtime_bitmap_init\"",
+        "\"zigux_runtime_bitmap_exit\"",
+    });
+    try expectContainsAll(kretprobe_loader, &.{
+        "pub const RuntimeKretprobeLoadPlan = struct",
+        "register_api",
+        "unregister_api",
+        "symbol_name",
+        "maxactive",
+        "private_data_bytes",
+        "\"zigux_runtime_kretprobe_init\"",
+        "\"zigux_runtime_kretprobe_exit\"",
+        "\"register_kretprobe\"",
+        "\"unregister_kretprobe\"",
+    });
 }
