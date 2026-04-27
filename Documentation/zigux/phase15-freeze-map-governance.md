@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-blocker-verification`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and current blocker posture
-- survey provenance refreshed against verified `master` head `7d902693be04d2f88566befd198ffc6750b275a1`
+- survey provenance refreshed against verified `master` head `0aedabd88664ce71bb1ccf5c8591db50b858950e`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -76,17 +76,18 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- verified remote `master` head for this check: `8618432bc631a81c38034ce52d9d194dbab4782c`
+- verified remote `master` head for this check: `0aedabd88664ce71bb1ccf5c8591db50b858950e`
 - the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the dedicated local replay surface is present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run can still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
 - the shared bootstrap workflow does not currently invoke the Phase 15 gate: `.github/workflows/zigux-bootstrap.yml` runs through Phase 14 and contains no `Validate Phase 15` or `Run Phase 15` step, so freeze-map governance is not enforced by the published shared CI path today
-- focused replay against current `master` shows the enforcement is partial rather than fully runnable:
+- focused replay against current `master` shows the local enforcement bundle is clean even though shared CI still does not invoke it:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
   - `zigux/tests/phase15_parity_scorecard.zig` compiled and its `3/3` tests passed
-  - `zigux/tests/phase15_architecture_council_review_process.zig` currently ends mid-statement at `try std.testing.expectEqualT`, so the dedicated Phase 15 build fails with a parse error at line `65`
-  - `zigux/tests/phase15_indefinite_c_policy.zig` currently ends mid-expression at `requirement.require`, so the dedicated Phase 15 build fails with a parse error at line `112`
-- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, and dedicated replay entrypoints, but the published enforcement is documentation-backed plus partially runnable local tests rather than a clean shared CI gate
+  - `zigux/tests/phase15_architecture_council_review_process.zig` compiled and its `2/2` tests passed
+  - `zigux/tests/phase15_indefinite_c_policy.zig` compiled and its `2/2` tests passed
+  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` passed cleanly with `9/9` steps succeeded and `11/11` tests passed
+- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, and dedicated replay entrypoints, and the local Phase 15 governance bundle is fully runnable, but the published shared CI path still does not enforce it
 
 ## Exact blocker record
 
@@ -94,9 +95,9 @@ This slice does not claim:
 - `freeze-map-review-hook-present`: yes
 - `phase15-local-entrypoint-present`: yes
 - `phase15-shared-ci-enforcement-present`: no
-- `phase15-build-clean-on-current-master`: no
-- `phase15-build-failure-cause`: two committed Zig test sources are truncated on current `master`, preventing the full Phase 15 governance bundle from compiling cleanly
-- next repair step inside this lane family: restore the truncated `phase15_architecture_council_review_process.zig` and `phase15_indefinite_c_policy.zig` sources, then decide separately whether the shared bootstrap workflow should begin running Phase 15 on every qualifying change
+- `phase15-build-clean-on-current-master`: yes
+- `phase15-build-failure-cause`: none in the focused local replay; the remaining enforcement gap is that shared CI still does not invoke the Phase 15 gate
+- next repair step inside this lane family: decide separately whether `.github/workflows/zigux-bootstrap.yml` should begin running the already-green Phase 15 governance bundle on qualifying changes
 
 ## Next bounded step
 
