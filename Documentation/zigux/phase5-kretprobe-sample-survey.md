@@ -60,6 +60,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
+- does the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate Phase 9 runtime starter while pointing reviewers at the shared `phase5_build.zig` entrypoint?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
