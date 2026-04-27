@@ -23,6 +23,7 @@ Current bootstrap helpers
 - `validate-phase4.py`
 - `validate-phase6.py`
 - `validate-phase8.py`
+- `validate-phase9.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -77,3 +78,7 @@ Phase 6 flow
 Phase 8 flow
 - `validate-phase8.py` checks that the bounded Phase 8 tooling bundle still keeps `zigux/tests/phase8_build.zig`, `make -C zigux phase8-validate`, the bootstrap workflow, and the published userspace-adjacent slice notes aligned.
 - the same Phase 8 gate now records the already-landed libbpf `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, and `type_names.zig` bridge slices directly through `Documentation/zigux/phase8-libbpf-segment-survey.md` and the shared control-plane notes instead of leaving part of that helper bundle implicit in `phase8_build.zig` alone.
+
+Phase 9 flow
+- `validate-phase9.py` checks that the bounded Phase 9 runtime governance bundle still keeps `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, the shared README notes, the bootstrap workflow, `make -C zigux phase9-validate`, and `zigux/tests/phase9_build.zig` aligned.
+- the same Phase 9 gate keeps the current loader-handoff release discipline explicit instead of leaving allocator ownership, `requires_runtime_substrate`, and the still-blocked command or environment control surface implied only by the survey note or checklist.
