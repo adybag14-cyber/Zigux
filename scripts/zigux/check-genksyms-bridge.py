@@ -103,6 +103,7 @@ def normalize_cli_stderr(text: str) -> str:
         re.compile(r"^.+: (invalid option -- '.+')$"),
         re.compile(r"^.+: (option requires an argument -- '.+')$"),
         re.compile(r"^.+: (option '--.+?' requires an argument)$"),
+        re.compile(r"^.+: (option '--.+?' doesn't allow an argument)$"),
         re.compile(r"^.+: (unrecognized option '.+')$"),
         re.compile(r"^.+: (option '--.+?' is ambiguous; possibilities: .+)$"),
     )
