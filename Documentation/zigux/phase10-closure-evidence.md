@@ -76,6 +76,11 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 - `PHASE10_FREEZE_STATUS_CHANGE_CLAIM=no`
 - `PHASE10_FREEZE_IN_C_ANCHOR_COUNT=4`
 - `PHASE10_STUDY_ONLY_ANCHOR_COUNT=2`
+- `PHASE10_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/`
+- `PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
+- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,irq_parity,dma_paths,input_registration_lifecycle`
 
 The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/*.zig`, and the freeze map keeps the current deep-core anchors out of active Zigux delivery:
 
@@ -92,6 +97,7 @@ The study-only boundary anchors also remain outside this Phase 10 tranche:
 This closure packet therefore records an aligned freeze-boundary reading rather than a status-change request:
 
 - no Architecture Council status-change request is attached to this Phase 10 tranche
+- any future freeze-boundary reopen would require an explicit Architecture Council record before this tranche can widen beyond the current lab-only destinations
 - no parity scorecard entry is being used to reopen a freeze-in-C anchor
 - the current virtio closure bundle stays limited to driver-local lab slices, survey manifests, and shared validation gates
 
@@ -108,6 +114,7 @@ This means the current evidence bundle is reviewable, but Phase 10 is not global
 
 - `drivers/virtio/virtio_mmio.zig` is still intentionally absent
 - transport-backed queue setup, interrupt handling, DMA-facing paths, and broader lifecycle parity remain out of scope
+- the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
 - the current manifest-backed blockers that keep this boundary honest are `phase10-mmio-wrapper-lane`, `phase10-virtio-input-registration-lifecycle`, and `phase10-mmio-lifecycle-and-irq-paths`, each of which must stay `blocked_on_risky_transport` until a smaller bounded helper lands first
 
