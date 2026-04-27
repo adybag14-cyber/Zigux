@@ -3,6 +3,17 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const abi_bindings_module = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const layout_assert_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/layout_assert.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    layout_assert_module.addImport("abi_bindings", abi_bindings_module);
 
     const gpio_wdt_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/watchdog/gpio_wdt.zig"),
@@ -57,6 +68,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    phase11_uapi_header_parity_survey_module.addImport("layout_assert", layout_assert_module);
     const hvc_console_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),
         .target = target,
