@@ -7,6 +7,7 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_queue_family_planner);
     try std.testing.expect(descriptor.provides_probe_config_snapshot);
+    try std.testing.expect(descriptor.provides_host_limit_summary);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_scsi_host);
     try std.testing.expect(descriptor.touches_transport_reset);
@@ -149,4 +150,55 @@ test "phase12 virtio scsi probe snapshot applies Linux-style fallback defaults" 
     try std.testing.expectEqual(@as(u16, 1), snapshot.default_queue_count);
     try std.testing.expectEqual(@as(u16, 1), snapshot.poll_queue_count);
     try std.testing.expectEqual(@as(?u16, 3), snapshot.first_poll_queue_index);
+}
+
+test "phase12 virtio scsi host limit summary clamps cmd_per_lun against synthetic can_queue" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureHostLimitSummary(.{
+        .probe = .{
+            .num_queues = 8,
+            .requested_poll_queues = 3,
+            .seg_max = 128,
+            .cmd_per_lun = 64,
+            .max_target = 31,
+            .max_lun = 7,
+            .max_sectors = 2048,
+        },
+        .synthetic_can_queue = 12,
+    });
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 64), summary.config_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 12), summary.config_can_queue);
+    try std.testing.expectEqual(@as(u32, 12), summary.effective_can_queue);
+    try std.testing.expectEqual(@as(u32, 12), summary.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 32), summary.max_target);
+    try std.testing.expectEqual(@as(u32, 0x4008), summary.max_lun);
+    try std.testing.expectEqual(@as(u32, 2048), summary.max_sectors);
+    try std.testing.expectEqual(@as(u16, 8), summary.nr_hw_queues);
+}
+
+test "phase12 virtio scsi host limit summary falls back to request queues and defaults" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureHostLimitSummary(.{
+        .probe = .{
+            .num_queues = 3,
+            .requested_poll_queues = 9,
+            .seg_max = 0,
+            .cmd_per_lun = 0,
+            .max_target = 0,
+            .max_lun = 0,
+            .max_sectors = 0,
+        },
+        .synthetic_can_queue = 0,
+    });
+
+    try std.testing.expectEqual(@as(u32, 0), summary.config_can_queue);
+    try std.testing.expectEqual(@as(u32, 0), summary.config_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 3), summary.effective_can_queue);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_cmd_per_lun), summary.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 1), summary.max_target);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.max_lun_format_one_bias), summary.max_lun);
+    try std.testing.expectEqual(@as(u32, virtio_scsi.default_max_sectors), summary.max_sectors);
+    try std.testing.expectEqual(@as(u16, 3), summary.nr_hw_queues);
 }
