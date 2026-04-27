@@ -2,11 +2,11 @@
   "phase": "Phase 10",
   "status": "active",
   "tranche": "virtio-lab-bundle",
-  "doc_count": 8,
+  "doc_count": 9,
   "manifest_count": 4,
-  "driver_count": 3,
-  "test_count": 7,
-  "has_virtio_mmio_zig": false,
+  "driver_count": 4,
+  "test_count": 8,
+  "has_virtio_mmio_zig": true,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
   "freeze_status_change_claimed": false,
@@ -24,7 +24,6 @@
   "architecture_council_reopen_required": true,
   "architecture_council_reopen_attached": false,
   "forbidden_transport_claims": [
-    "virtio_mmio.zig",
     "queue_setup_reset_paths",
     "irq_parity",
     "dma_paths",
@@ -42,9 +41,12 @@
       ]
     },
     "mmio_wrappers": {
-      "status": "survey_backed_ready_next",
+      "status": "starter_landed",
       "evidence": [
+        "drivers/virtio/virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_mmio.zig",
         "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "Documentation/zigux/phase10-virtio-mmio-slice.md",
         "Documentation/zigux/phase10-virtio-mmio-survey.md"
       ]
     },
@@ -67,7 +69,7 @@
     }
   },
   "ready_transport_followups": {
-    "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-register-window-helper"
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-register-helper"
   },
   "blocked_transport_gaps": {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
@@ -91,6 +93,7 @@
     "Documentation/zigux/phase10-virtio-input-slice.md",
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md"
   ],
   "manifests": [
@@ -102,7 +105,8 @@
   "drivers": [
     "drivers/virtio/virtio.zig",
     "drivers/virtio/virtio_ring.zig",
-    "drivers/virtio/virtio_input.zig"
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_mmio.zig"
   ],
   "tests": [
     "zigux/tests/phase10_virtio_core.zig",
@@ -111,6 +115,7 @@
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig"
   ],
   "exact_checks": [
