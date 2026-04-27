@@ -1,0 +1,63 @@
+{
+  "lane_key": "P14-L03",
+  "phase": "Phase 14",
+  "surveyed_commit": "8dcddb52137c4cfbb2f81cdc621c2ba11010db1e",
+  "shared_smoke_surfaces": [
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "zigux/tests/phase14_build.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md"
+  ],
+  "anchor_packets": [
+    {
+      "lane_key": "P14-L01",
+      "anchor": "kernel/workqueue.c",
+      "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+      "ready_next_gap": "phase14-workqueue-drain-cancel-followup",
+      "blocked_gap": "phase14-workqueue-live-execution-blocker"
+    },
+    {
+      "lane_key": "P14-L11",
+      "anchor": "net/core/skbuff.c",
+      "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+      "ready_next_gap": "phase14-skbuff-segs-prev-tail-publication-followup",
+      "blocked_gap": "phase14-skbuff-live-ownership-blocker"
+    },
+    {
+      "lane_key": "P14-L06",
+      "anchor": "kernel/trace/ring_buffer.c",
+      "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "ready_next_gap": "phase14-ring-buffer-reader-page-consume-followup",
+      "blocked_gap": "phase14-ring-buffer-zig-port-blocker"
+    },
+    {
+      "lane_key": "P14-L14",
+      "anchor": "kernel/rcu/tree.c",
+      "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
+      "survey_note_path": "Documentation/zigux/phase14-rcu-tree-survey.md",
+      "ready_next_gap": "",
+      "blocked_gap": "phase14-rcu-tree-bridge-blocker"
+    }
+  ],
+  "smoke_commands": [
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14"
+  ],
+  "survey_summary": {
+    "phase14_build_has_shared_smoke_step": true,
+    "phase14_make_target_present": true,
+    "workflow_runs_phase14_build": true,
+    "review_checklist_has_phase14_smoke_prompt": true,
+    "freeze_map_lists_workqueue_c": true,
+    "freeze_map_lists_skbuff_c": true,
+    "freeze_map_lists_ring_buffer_c": true,
+    "freeze_map_lists_tree_c": true
+  }
+}
