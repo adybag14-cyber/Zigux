@@ -32,7 +32,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `007f00d0c6b6b430bfbb2110555544cc5faefe8b`, ready-next `phase14-workqueue-drain-cancel-followup`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f05e02445443e7743c3675a6f8ca4f70f6e736fb`, ready-next `phase14-skbuff-segs-prev-tail-publication-followup`, blocked `phase14-skbuff-live-ownership-blocker`
-  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, ready-next `phase14-ring-buffer-reader-page-consume-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
+  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `0a66b6c6e651e39ca2ce56cb6776fbde352dc213`, ready-next `phase14-ring-buffer-read-page-extraction-followup`, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L14`, surveyed commit `d839457a2f2dbdc7b53711401741b5e88541c818`, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
@@ -42,6 +42,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `.github/workflows/zigux-bootstrap.yml` already runs that same Phase 14 build command, so the smoke packet is naturally covered by the existing workflow once it stays wired into `phase14_build.zig`.
 - `Documentation/zigux/freeze-map.md` still names the four Phase 14 anchors, which keeps the smoke packet grounded in the roadmap's study-only and freeze posture rather than implying a bridge-first expansion.
 - `Documentation/zigux/review-checklist.md` now carries a dedicated prompt for the shared Phase 14 smoke packet so later edits have to keep the four anchor-local manifests, survey notes, and shared replay contract aligned.
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted per-anchor surveyed commits as machine-checked evidence, so future anchor-manifest refreshes cannot silently leave the shared smoke note behind.
 
 ## Non-goals
 
