@@ -4,6 +4,7 @@ const SurveySummary = struct {
     hvc_console_c_lines: usize,
     preexisting_phase11_build_present: bool,
     preexisting_phase11_watchdog_lanes: usize,
+    hvc_console_header_present: bool,
     hvc_console_zig_present: bool,
     hvc_console_test_present: bool,
     hvc_console_survey_gate_present: bool,
@@ -54,16 +55,17 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("7fd4845c2f4f4f52d2be2080d00e7a56f49275b5", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("6bc5aab94fd86534959bf9197c904fa5145f23e2", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase11_watchdog_lanes);
+    try std.testing.expect(manifest.survey_summary.hvc_console_header_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_zig_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -72,6 +74,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_survey_gate = false;
     var saw_note = false;
     var saw_starter_gap = false;
+    var saw_header_parity = false;
     var saw_driver_test_block = false;
     var saw_validation_matrix = false;
     var saw_tty_block = false;
@@ -118,6 +121,15 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "flush intent") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-parity")) {
+            saw_header_parity = true;
+            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MAX_NR_HVC_CONSOLES") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "HVC_ALLOC_TTY_ADAPTERS") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-tests")) {
             saw_driver_test_block = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
@@ -148,13 +160,14 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_starter_gap);
+    try std.testing.expect(saw_header_parity);
     try std.testing.expect(saw_driver_test_block);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_block);
