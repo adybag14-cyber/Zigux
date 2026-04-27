@@ -111,20 +111,56 @@ fn bitmapScnprintfBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn findBitBench() struct { checksum: u64 } {
+fn findBitBench() struct { next_checksum: u64, family_checksum: u64 } {
     var map = [_]find_bit.Word{0} ** find_bit.bitsToWords(4096);
     map[0] |= (@as(find_bit.Word, 1) << 3);
     map[7] |= (@as(find_bit.Word, 1) << 9);
     map[15] |= (@as(find_bit.Word, 1) << 17);
     map[31] |= (@as(find_bit.Word, 1) << 1);
 
-    var checksum: u64 = 0;
+    const tail_nbits = find_bit.bits_per_long + 5;
+    const full = ~@as(find_bit.Word, 0);
+    var zero_map = [_]find_bit.Word{ full, full };
+    zero_map[0] &= ~(@as(find_bit.Word, 1) << 6);
+    zero_map[1] &= ~(@as(find_bit.Word, 1) << 4);
+
+    const and_lhs = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 9),
+        (@as(find_bit.Word, 1) << 2),
+    };
+    const and_rhs = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 9),
+        (@as(find_bit.Word, 1) << 2),
+    };
+
+    const tail_and_lhs = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9),
+    };
+    const tail_and_rhs = [_]find_bit.Word{
+        0,
+        (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 12),
+    };
+
+    var next_checksum: u64 = 0;
+    var family_checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_find_bit) : (idx += 1) {
-        checksum +%= @intCast(find_bit.findNextBit(&map, 4096, idx % 1024));
+        const start = idx % 1024;
+        next_checksum +%= @intCast(find_bit.findNextBit(&map, 4096, start));
+
+        family_checksum +%= @intCast(find_bit.findFirstBit(&map, 4096));
+        family_checksum +%= @intCast(find_bit.findNextBit(&map, 4096, start));
+        family_checksum +%= @intCast(find_bit.findFirstZeroBit(&zero_map, find_bit.bits_per_long * zero_map.len));
+        family_checksum +%= @intCast(find_bit.findNextZeroBit(&zero_map, find_bit.bits_per_long * zero_map.len, (idx % 9) + 1));
+        family_checksum +%= @intCast(find_bit.findFirstAndBit(&and_lhs, &and_rhs, find_bit.bits_per_long * and_lhs.len));
+        family_checksum +%= @intCast(find_bit.findNextAndBit(&tail_and_lhs, &tail_and_rhs, tail_nbits, find_bit.bits_per_long + (idx % 5)));
     }
 
-    return .{ .checksum = checksum };
+    return .{
+        .next_checksum = next_checksum,
+        .family_checksum = family_checksum,
+    };
 }
 
 fn stringBench() !struct { checksum: u64 } {
@@ -257,7 +293,8 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(bitmap_result.checksum != 0);
     std.debug.assert(bitmap_window_result.checksum != 0);
     std.debug.assert(bitmap_scnprintf_result.checksum != 0);
-    std.debug.assert(find_bit_result.checksum != 0);
+    std.debug.assert(find_bit_result.next_checksum != 0);
+    std.debug.assert(find_bit_result.family_checksum != 0);
     std.debug.assert(string_result.checksum != 0);
     std.debug.assert(hweight_result.checksum != 0);
     std.debug.assert(list_sort_result.checksum != 0);
@@ -271,7 +308,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_SCNPRINTF_ITERATIONS={d}\n", .{iterations_bitmap_scnprintf});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_SCNPRINTF_CHECKSUM={d}\n", .{bitmap_scnprintf_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
-    try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.next_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM={d}\n", .{find_bit_result.family_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_CHECKSUM={d}\n", .{string_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_HWEIGHT_ITERATIONS={d}\n", .{iterations_hweight});
