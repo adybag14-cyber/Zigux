@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L15",
+  "lane_key": "P15-L13",
   "phase": "Phase 15",
-  "surveyed_commit": "3edd180f497b7ac67b27283717d85325c05868ce",
+  "surveyed_commit": "65cb45dda5ca7fc760207a4ca711397bc7894e9e",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -63,12 +63,13 @@
     },
     {
       "id": "indefinite-c-reopen-gate",
-      "summary": "Status review may reopen only with a narrower seam, updated validation, fresh linked evidence, and Architecture Council review.",
+      "summary": "Status review may reopen only through an Architecture Council request that cites a named reopen trigger and carries the trigger-specific evidence refresh.",
       "required_terms": [
-        "new bounded seam inventory",
-        "updated validation plan",
-        "fresh linked evidence",
-        "Architecture Council review request"
+        "named reopen-trigger catalog item",
+        "narrower_followup_answers_blocker",
+        "evidence_packet_stale_or_contradictory",
+        "ownership_or_validation_changed",
+        "trigger-specific evidence refresh"
       ]
     },
     {
