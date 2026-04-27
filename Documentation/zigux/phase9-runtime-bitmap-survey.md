@@ -38,7 +38,7 @@ Against the Phase 9 roadmap requirements, the current runtime bitmap lane now re
 - a landed sample-side loader scaffold in `samples/zigux/runtime_bitmap_loader.zig`
 - a landed dedicated module gate in `zigux/tests/runtime_bitmap_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_bitmap_diff.zig`
-- a remaining blocked live-loader handoff under `zigux/kernel/runtime_loader.zig`, because true runtime-module loading and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet
+- a remaining blocked live-loader handoff under `zigux/kernel/runtime_loader.zig`, even though the bitmap loader scaffold now emits both waiting and released shared request shapes, because true runtime-module loading and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet
 
 This keeps the survey honest about the difference between the shipped in-memory pilot and the still-missing loadable runtime substrate.
 
