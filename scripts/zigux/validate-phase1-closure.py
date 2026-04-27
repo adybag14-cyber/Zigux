@@ -41,6 +41,8 @@ required_closure_markers = [
     'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
     'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot',
+    'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"`',
+    'PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view',
     'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
     'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`',
@@ -126,6 +128,10 @@ if bitmap_review.get('evidence_keys') != [
     missing_markers.append('manifest:bitmap.evidence_keys')
 if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot.':
     missing_markers.append('manifest:bitmap.summary')
+if bitmap_review.get('unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"':
+    missing_markers.append('manifest:bitmap.unit_test_anchor')
+if bitmap_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps multiword-tail xor behavior aligned so callers can clamp the last word after xorBits without leaking out-of-range bits into the asserted view.':
+    missing_markers.append('manifest:bitmap.unit_test_contract')
 if find_bit_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:find_bit.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if find_bit_review.get('evidence_keys') != [
