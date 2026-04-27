@@ -31,6 +31,7 @@ pub const RenderedAttribute = struct {
 pub const ReplaySummary = struct {
     anchor: []const u8,
     directory_name: []const u8,
+    ordered_attr_names: [3][]const u8,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
     attr_count: usize,
@@ -154,6 +155,7 @@ pub const KobjectExampleSample = struct {
         return .{
             .anchor = descriptor().anchor,
             .directory_name = directoryName(),
+            .ordered_attr_names = attrNames(),
             .stage_before_replay = .initialized,
             .stage_after_replay = self.stage(),
             .attr_count = self.activeAttrCount(),
@@ -193,6 +195,9 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
 
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
     try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
+    try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
+    try std.testing.expectEqualStrings("baz", replay.ordered_attr_names[1]);
+    try std.testing.expectEqualStrings("bar", replay.ordered_attr_names[2]);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.registered, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
