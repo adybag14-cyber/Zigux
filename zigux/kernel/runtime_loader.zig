@@ -68,6 +68,16 @@ pub const RuntimeLoadRequest = struct {
     pub fn isWaitingOnRuntimeSubstrate(self: RuntimeLoadRequest) bool {
         return self.requires_runtime_substrate and self.handoff_stage == .waiting_on_runtime_substrate;
     }
+
+    pub fn isReleasedWithoutSubstrate(self: RuntimeLoadRequest) bool {
+        return self.handoff_stage == .released_without_substrate;
+    }
+
+    pub fn releasedWithoutSubstrate(self: RuntimeLoadRequest) RuntimeLoadRequest {
+        var released = self;
+        released.handoff_stage = .released_without_substrate;
+        return released;
+    }
 };
 
 pub fn allocatorHandoffFor(mode: abi.AllocatorMode) AllocatorHandoff {
@@ -115,6 +125,12 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expectEqual(LoaderLane.bitmap, request.lane());
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
     try std.testing.expectEqual(@as(u32, 4), request.payload.bitmap.weight);
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expectEqual(LoaderLane.bitmap, released.lane());
+    try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expectEqual(@as(u32, 4), released.payload.bitmap.weight);
 }
 
 test "runtime loader request keeps kretprobe handoff state explicit" {
@@ -149,4 +165,10 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
     try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.nmissed);
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expectEqual(LoaderLane.kretprobe, released.lane());
+    try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expectEqualStrings("register_kretprobe", released.payload.kretprobe.register_api);
 }
