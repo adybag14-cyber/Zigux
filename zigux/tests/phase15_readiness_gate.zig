@@ -56,7 +56,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("fdb3e433f2084d18f3756ff24e63a4e5d1894018", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("783e573845f21769925870e53a591e48878bb7f0", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -76,12 +76,11 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
-    try std.testing.expect(!manifest.repo_evidence.shared_ci_phase15_present);
+    try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
-    try std.testing.expectEqual(@as(usize, 2), manifest.remaining_gaps.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.remaining_gaps.len);
 
-    var saw_shared_ci_gap = false;
     var saw_status_change_blocker = false;
     for (manifest.remaining_gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -90,12 +89,6 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
 
-        if (std.mem.eql(u8, gap.id, "phase15-shared-ci-coverage-gap")) {
-            saw_shared_ci_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "stops at Phase 14") != null);
-        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_status_change_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -108,10 +101,9 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
         }
     }
 
-    try std.testing.expect(saw_shared_ci_gap);
     try std.testing.expect(saw_status_change_blocker);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared-workflow decision") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
 }
 
 test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" {
@@ -140,17 +132,16 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Readiness Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintainer-run") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared bootstrap workflow now runs") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "status-change-ready") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-shared-ci-coverage-gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-shared-ci-coverage") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Validate Phase 14 shared smoke packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 14 internal bridge tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workflow, "Validate Phase 15") == null);
-    try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15") == null);
+    try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
 
 test "phase 15 readiness survey stays aligned with the landed governance bundle" {
