@@ -61,12 +61,12 @@ The current tests check:
 - deterministic SI and binary `string_get_size()` formatting with a block-size multiplier
 - `STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
-- shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays those byte-level cases from one reviewable source
+- shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays the landed escape-space, special, null, octal, hex, dictionary-limited, and passthrough-filter cases from one reviewable source
 - in-place unescape behavior and bounded destination termination
-- deterministic escape-space, special, null, octal, and hex output cases
-- dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
-- printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset
-- truncation accounting that returns the full would-be escaped length without promising an appended terminator
+- deterministic escape-space, special, null, octal, and hex output cases through the shared fixture table
+- dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof through the shared fixture table
+- printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset through the shared fixture table
+- truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
 
 ## Non-goals
 

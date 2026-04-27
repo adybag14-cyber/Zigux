@@ -128,3 +128,11 @@ test "phase 7 stringEscapeMem covers the bounded escape subset" {
         try std.testing.expectEqualSlices(u8, case.expected, out[0..actual_len]);
     }
 }
+
+test "phase 7 stringEscapeMem reports truncated output length without forcing a terminator" {
+    var out = [_]u8{ '?', '?', '?', '?', '?' };
+    const len = string_helpers.stringEscapeMem("\n", &out, string_helpers.ESCAPE_HEX, null);
+
+    try std.testing.expectEqual(@as(usize, 4), len);
+    try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
+}
