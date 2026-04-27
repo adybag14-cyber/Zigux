@@ -13,6 +13,7 @@ BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\
 
 FILES = [
     "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/README.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-libfs-survey.md",
@@ -70,6 +71,21 @@ TRACEABILITY_MARKERS = [
     "`lib/devres.c` is represented by real helper code, real tests, and a slice note, but not yet by a committed manifest-backed survey packet",
 ]
 
+SCRIPT_README_MARKERS = [
+    "Current bootstrap helpers",
+    "`validate-phase13-release.py`",
+    "Phase 13 flow",
+    "`Documentation/zigux/phase13-release-notes-survey.md`",
+    "`Documentation/zigux/phase13-roadmap-traceability.md`",
+    "`Documentation/zigux/README.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`scripts/zigux/README.md`",
+    "`make -C zigux phase13-validate`",
+    "`zigux/tests/phase13_build.zig`",
+    "`make -C zigux phase13` routes through the validator before the shared replay",
+    "`lib/devres.c` remains the only roadmap anchor without a manifest-backed survey packet",
+]
+
 BUILD_NAME_MARKERS = [
     "phase13-libfs-tests",
     "phase13-devres-tests",
@@ -99,6 +115,7 @@ if missing_files:
 
 missing: list[str] = []
 for name, source, markers in [
+    ("scripts_readme", text("scripts/zigux/README.md"), SCRIPT_README_MARKERS),
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("release", text("Documentation/zigux/phase13-release-notes-survey.md"), RELEASE_MARKERS),
@@ -111,6 +128,7 @@ for name, source, markers in [
 release_text = text("Documentation/zigux/phase13-release-notes-survey.md")
 for rel in [
     "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/README.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -173,7 +191,7 @@ print("PHASE13_RELEASE_VALIDATION=pass")
 print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(SCRIPT_README_MARKERS)}"
 )
 print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
 print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
