@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L14",
   "phase": "Phase 15",
-  "surveyed_commit": "c509b20927011c6464cf26a9bc3c9b28fa622e43",
+  "surveyed_commit": "a6dacc6ad67d38e7a2d796e11d0be332450bff60",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
