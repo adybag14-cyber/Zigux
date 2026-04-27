@@ -79,7 +79,9 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - empty-queue peek and skip return `null`, `snapshotInto()` leaves queue order intact, pushing past capacity returns `false`, and `reset()` restores an empty queue
+- the replay advertises exactly six review-focus areas: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `reset_and_replay`, and `ownership_and_lifetime`
 - the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
+- `runAnchorReplay()` fails before `init()` and after `exit()`, `init()` fails if repeated outside the cold state, `exit()` fails if repeated after teardown, and one successful pass leaves `init_runs = 1` plus `exit_runs = 1`
 
 ## Contributor refresh prompts for the landed sample
 
