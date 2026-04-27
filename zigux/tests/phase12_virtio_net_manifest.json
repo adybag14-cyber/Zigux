@@ -84,11 +84,18 @@
       "why_now": "The landed `hdr_len` follow-up now mirrors the `virtnet_probe()` header branch so the lab snapshot records legacy, mergeable-or-version1, hash-report, and UDP-tunnel header selection before any live queue activation, DMA, NAPI, XDP, or netdev lifecycle work."
     },
     {
+      "id": "phase12-virtio-net-queue-recovery-summary",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The new queue-recovery summary freezes the last in-memory queue topology and recovery posture, blocks fresh probe snapshots while recovery is in flight, and clears stale planning state after restore so the lane can replay reset or renegotiation intent without claiming DMA-backed queue setup."
+    },
+    {
       "id": "phase12-virtio-net-runtime-data-path",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "NAPI poll loops, page_pool DMA handling, XDP or XSK paths, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle coverage remain blocked until the probe snapshot and queue-recovery summary can hand off to a roadmap-approved DMA and queueing substrate."
+      "why_now": "NAPI poll loops, page_pool DMA handling, XDP or XSK paths, control-virtqueue commands, RSS table programming, ethtool hooks, and net_device lifecycle coverage remain blocked until the probe snapshot and queue-recovery summaries can hand off to a roadmap-approved DMA and queueing substrate."
     }
   ]
 }
