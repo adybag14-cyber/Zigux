@@ -130,6 +130,10 @@ pub const CmdNames = struct {
     }
 };
 
+pub fn longestNameLenAcrossLists(main_cmds: CmdNames, other_cmds: CmdNames) usize {
+    return @max(main_cmds.longestNameLen(), other_cmds.longestNameLen());
+}
+
 fn lessThan(_: void, lhs: CmdName, rhs: CmdName) bool {
     return std.mem.order(u8, lhs.name, rhs.name) == .lt;
 }
@@ -434,6 +438,35 @@ pub fn writePrettyPrintStringListForTerminal(
     try writePrettyPrintWithLayout(writer, cmds, layout);
 }
 
+pub fn writeCommandSectionsForTerminal(
+    writer: anytype,
+    title: []const u8,
+    exec_path: []const u8,
+    main_cmds: CmdNames,
+    other_cmds: CmdNames,
+    env_lines: ?[]const u8,
+    env_columns: ?[]const u8,
+    fallback: ?TerminalDimensions,
+) !void {
+    const longest = longestNameLenAcrossLists(main_cmds, other_cmds);
+
+    if (main_cmds.count() != 0) {
+        try writer.print("available {s} in '{s}'\n", .{ title, exec_path });
+        try writer.splatByteAll('-', 16 + title.len + exec_path.len);
+        try writer.writeByte('\n');
+        try writePrettyPrintStringListForTerminal(writer, main_cmds, longest, env_lines, env_columns, fallback);
+        try writer.writeByte('\n');
+    }
+
+    if (other_cmds.count() != 0) {
+        try writer.print("{s} available from elsewhere on your $PATH\n", .{title});
+        try writer.splatByteAll('-', 39 + title.len);
+        try writer.writeByte('\n');
+        try writePrettyPrintStringListForTerminal(writer, other_cmds, longest, env_lines, env_columns, fallback);
+        try writer.writeByte('\n');
+    }
+}
+
 test "addCmdName owns a copied slice and preserves the requested length" {
     var cmds = CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
@@ -495,6 +528,18 @@ test "membership and longest-name helpers stay aligned with the stored list" {
     try std.testing.expect(cmds.isInCmdList("report"));
     try std.testing.expect(!cmds.isInCmdList("record"));
     try std.testing.expectEqual(@as(usize, 6), cmds.longestNameLen());
+}
+
+test "longestNameLenAcrossLists mirrors list_commands shared column width" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("stat", 4);
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("annotate", 8);
+
+    try std.testing.expectEqual(@as(usize, 8), longestNameLenAcrossLists(main_cmds, other_cmds));
 }
 
 test "splitPathEntries preserves empty PATH segments and owns copied slices" {
@@ -696,4 +741,45 @@ test "pretty-print layout follows the same column math as help.c" {
     try std.testing.expectEqual(@as(usize, 4), env_layout.cols);
     try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
     try std.testing.expectEqual(@as(usize, 8), env_layout.spacing);
+}
+
+test "writeCommandSectionsForTerminal keeps list_commands output pure and section-aware" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("report", 6);
+    try main_cmds.addCmdName("stat", 4);
+    main_cmds.sort();
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("trace", 5);
+    other_cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "/x",
+        main_cmds,
+        other_cmds,
+        null,
+        "24",
+        null,
+    );
+
+    const main_rule = [_]u8{'-'} ** 22;
+    const other_rule = [_]u8{'-'} ** 43;
+    const expected = std.fmt.comptimePrint(
+        "available perf in '/x'\n{s}\n" ++
+            "  report stat\n" ++
+            "\n" ++
+            "perf available from elsewhere on your $PATH\n{s}\n" ++
+            "  trace\n" ++
+            "\n",
+        .{ main_rule[0..], other_rule[0..] },
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
 }
