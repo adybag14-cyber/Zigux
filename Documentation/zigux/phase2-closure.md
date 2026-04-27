@@ -38,25 +38,28 @@ The bounded Phase 2 cross-target compile set is:
 
 Phase 2 is only considered closed when all of the following are green:
 
-1. bounded fixdep artifact parity
+1. shared artifact diff self-test
+- `python3 scripts/zigux/artifact_diff.py --self-test`
+
+2. bounded fixdep artifact parity
 - `python3 scripts/zigux/check-fixdep-diff.py`
 
-2. bounded genksyms CRC artifact parity
+3. bounded genksyms CRC artifact parity
 - `python3 scripts/zigux/check-genksyms-crc-diff.py`
 
-3. bounded genksyms wrapper-first bridge parity
+4. bounded genksyms wrapper-first bridge parity
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
-4. bounded mk_elfconfig artifact parity
+5. bounded mk_elfconfig artifact parity
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 
-5. bounded kconfig bridge parity
+6. bounded kconfig bridge parity
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 
-6. bounded phase2 cross-target compile gate
+7. bounded phase2 cross-target compile gate
 - `python3 scripts/zigux/check-phase2-cross.py`
 
-7. bounded phase2 unit gates
+8. bounded phase2 unit gates
 - `zig test scripts/zigux/fixdep.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `zig test scripts/zigux/genksyms_crc.zig`
@@ -64,9 +67,10 @@ Phase 2 is only considered closed when all of the following are green:
 - `zig test scripts/zigux/kconfig/conf_bridge.zig`
 - `zig test scripts/zigux/kconfig/confdata_bridge.zig`
 
-8. closure validation
+9. closure validation
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
+- `PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
