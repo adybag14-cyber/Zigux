@@ -32,6 +32,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn isLowerHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
+}
+
 test "phase 9 runtime atomic64 survey manifest records the landed diff gate and remaining blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -50,13 +58,14 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 200);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_phase9_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
     try std.testing.expect(manifest.gaps.len >= 5);
 
     var runtime_test_destination_count: usize = 0;
