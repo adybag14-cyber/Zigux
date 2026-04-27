@@ -27,6 +27,7 @@ const CopyCase = struct {
     name: []const u8,
     source_set_len: u32,
     copy_nbits: u32,
+    destination_starts_filled: bool = true,
     expected_summary: SummaryExpectation,
     must_be_set: []const u32,
     must_be_clear: []const u32,
@@ -106,11 +107,17 @@ const BitmapHarness = struct {
         if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
         if (nbits == 0) return;
 
-        const words_to_copy: usize = @intCast((nbits + bits_per_long - 1) / bits_per_long);
+        const full_words: usize = @intCast(nbits / bits_per_long);
+        const tail_bits = nbits % bits_per_long;
 
         var index: usize = 0;
-        while (index < words_to_copy) : (index += 1) {
+        while (index < full_words) : (index += 1) {
             self.words[index] = other.words[index];
+        }
+
+        if (tail_bits != 0) {
+            const mask: Word = (~@as(Word, 0)) >> @intCast(bits_per_long - tail_bits);
+            self.words[full_words] = other.words[full_words] & mask;
         }
     }
 
@@ -202,7 +209,9 @@ fn expectCopyCase(case: CopyCase) !void {
     try source.setRange(0, case.source_set_len);
 
     var destination = BitmapHarness{};
-    destination.fill();
+    if (case.destination_starts_filled) {
+        destination.fill();
+    }
     try destination.copyFrom(&source, case.copy_nbits);
     try std.testing.expect(case.name.len != 0);
 
@@ -385,6 +394,31 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ 19, 22, 63 },
         },
         .{
+            .name = "test_copy full-width copy into cleared destination at 1024 bits",
+            .source_set_len = 109,
+            .copy_nbits = BitmapHarness.bitmap_nbits,
+            .destination_starts_filled = false,
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 109,
+                .weight = 109,
+            },
+            .must_be_set = &.{108},
+            .must_be_clear = &.{ 109, 127, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
+            .name = "test_copy full-width copy into filled destination at 1024 bits",
+            .source_set_len = 109,
+            .copy_nbits = BitmapHarness.bitmap_nbits,
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 109,
+                .weight = 109,
+            },
+            .must_be_set = &.{108},
+            .must_be_clear = &.{ 109, 127, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
             .name = "test_copy partial-word tail clearing at 109 bits",
             .source_set_len = 109,
             .copy_nbits = 109,
@@ -397,16 +431,16 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ 109, 127 },
         },
         .{
-            .name = "test_copy word-rounded copy at 97 bits preserves source span",
+            .name = "test_copy aligned tail clearing at 97 bits",
             .source_set_len = 109,
             .copy_nbits = 97,
             .expected_summary = .{
                 .first_set = 0,
-                .first_zero = 109,
-                .weight = 109 + (BitmapHarness.bitmap_nbits - 128),
+                .first_zero = 97,
+                .weight = 97 + (BitmapHarness.bitmap_nbits - 128),
             },
-            .must_be_set = &.{ 96, 108, 128, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 109, 127 },
+            .must_be_set = &.{ 96, 128, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 97, 127 },
         },
         .{
             .name = "test_zero_nbits zero-length copy leaves destination unchanged",
