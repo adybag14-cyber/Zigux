@@ -55,9 +55,9 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("1eed1743a2d66f87c07293cbfbfbab0aeddfeb26", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("3edd180f497b7ac67b27283717d85325c05868ce", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
