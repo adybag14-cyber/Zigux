@@ -237,7 +237,7 @@ expected_study_only_anchors = [
 ]
 if manifest.get("freeze_in_c_anchors") != expected_freeze_in_c_anchors:
     missing_markers.append("manifest:freeze_in_c_anchors:mismatch")
-if manifest.get("study_only_anchors") != expected_study_only_anchors:
+if manifest.get("study_only_anchors") != expected_study_ONLY_anchors:
     missing_markers.append("manifest:study_only_anchors:mismatch")
 
 for field in ("docs", "manifests", "drivers", "tests", "exact_checks"):
@@ -325,6 +325,11 @@ for gap in ring_manifest.get("gaps", []):
         why_now = gap.get("why_now")
         if isinstance(why_now, str) and "queue-wrapper gap" in why_now:
             missing_markers.append("phase10_virtio_ring_manifest:stale_marker:queue-wrapper gap")
+for gap in mmio_manifest.get("gaps", []):
+    if isinstance(gap, dict):
+        why_now = gap.get("why_now")
+        if isinstance(why_now, str) and "queue-wrapper roadmap gap" in why_now:
+            missing_markers.append("phase10_virtio_mmio_manifest:stale_marker:queue-wrapper roadmap gap")
 
 
 def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
