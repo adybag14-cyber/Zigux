@@ -29,6 +29,7 @@ Current bootstrap helpers
 - `check-phase12-build-inventory.py`
 - `validate-phase12.py`
 - `validate-phase13-release.py`
+- `validate-phase14.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -111,3 +112,7 @@ Phase 12 flow
 Phase 13 flow
 - `validate-phase13-release.py` checks that the bounded Phase 13 release-discipline packet still keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, the shared workflow path, `make -C zigux phase13-validate`, and `zigux/tests/phase13_build.zig` aligned around the same active shared-helper tranche.
 - the same Phase 13 gate keeps the release evidence explicit instead of leaving the validator-helper contract implicit by requiring the docs packet and helper index to say that Phase 13 is still active, `make -C zigux phase13` routes through the validator before the shared replay, and `lib/devres.c` remains the only roadmap anchor without a manifest-backed survey packet.
+
+Phase 14 flow
+- `validate-phase14.py` checks that the bounded Phase 14 shared smoke packet still keeps `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/README.md`, the shared workflow path, `make -C zigux phase14-validate`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_build.zig` aligned around the same workqueue, skbuff, ring-buffer, and RCU stay-in-C boundary bundle.
+- the same Phase 14 gate keeps the productized smoke evidence explicit instead of leaving it to the slower Zig replay alone by requiring the docs packet and helper index to say that the shared Phase 14 smoke packet stays active, `make -C zigux phase14` routes through the validator before the shared replay, and the four anchor-local manifests plus survey notes still carry the same ready-next versus blocked posture under the stay-in-C boundary.
