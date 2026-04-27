@@ -36,13 +36,16 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for both contiguous-range rendering and the truncation path that must preserve a trailing terminator slot.
 - `tools/lib/bitmap.zig` direct Zig unit coverage now also keeps multiword-tail `xorBits` behavior aligned so callers can clamp the last word without leaking out-of-range bits into the asserted view.
+- `tools/lib/bitmap.zig` benchmark smoke now also exercises the existing `bitmap.scnprintf` formatting and truncation path so the Phase 1 perf gate covers both bitmap window operations and string rendering for the closed helper.
 - bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"`
+- bitmap benchmark smoke anchor: `zigux/tests/phase1_bench.zig:bitmapScnprintfBench`
 
 - `PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot`
 - `PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view`
+- `PHASE1_BITMAP_BENCH_REVIEW=bitmap benchmark smoke covers scnprintf rendering and truncation alongside bitmap window operations`
 
 - `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit stays in range while another lives past `nbits`.
 - `tools/lib/find_bit.zig` direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while later out-of-range tail matches still clamp to `nbits`.
