@@ -72,7 +72,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqualStrings("P14-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
-    try std.testing.expectEqualStrings("938667204613903ee75fa1e9e3575c0a0948275f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d839457a2f2dbdc7b53711401741b5e88541c818", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.tree_c_lines >= 4900);
     try std.testing.expect(manifest.survey_summary.tree_plugin_h_lines >= 1300);
@@ -95,7 +95,6 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var landed_count: usize = 0;
-    var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_freeze_note = false;
     var saw_survey_gate = false;
@@ -113,8 +112,6 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_stay_in_c_evidence")) {
             blocked_count += 1;
         }
@@ -152,9 +149,10 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-callback-offload-followup")) {
             saw_callback_offload_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "call_rcu_nocb()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "nocb_gp_wait()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcu_nocb_flush_deferred_wakeup()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-bridge-blocker")) {
@@ -168,8 +166,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 9), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_note);
     try std.testing.expect(saw_survey_gate);

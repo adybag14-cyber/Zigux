@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/rcu/tree.c
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
-- survey provenance captured against verified `master` head `938667204613903ee75fa1e9e3575c0a0948275f`
+- survey provenance captured against verified `master` head `d839457a2f2dbdc7b53711401741b5e88541c818`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_rcu_tree_manifest.json`
@@ -61,6 +61,16 @@ This run closes the previously recorded callback enqueue follow-up without chang
 
 The net result is still survey-only: callback enqueue, grace-period kick decisions, and callback invocation remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
+## Callback offload and wakeup follow-up
+
+This run closes the previously recorded callback-offload follow-up without changing the underlying freeze decision.
+
+- `call_rcu_nocb()` is not just a detached enqueue shim. It first tries the bypass path, falls back to `rcutree_enqueue()` when needed, and then funnels wake-versus-defer behavior through `__call_rcu_nocb_wake()` based on queue state, lazy-callback posture, and whether interrupts are already disabled.
+- `nocb_gp_wait()` is also not a leaf wait wrapper. It scans the offloaded `rcu_data` set, flushes bypass lists when pressure or age says to, advances callbacks under the live `rcu_node` lock, chooses the nearest grace-period sequence to wait for, and coordinates callback-thread wakeups while CPUs are being offloaded or re-offloaded.
+- `rcu_nocb_flush_deferred_wakeup()` stays coupled to the same GP wakeup machinery because it is only a public fastpath entry into `do_nocb_deferred_wakeup()`, which still depends on the current CPU's `rcu_data`, deferred-wakeup eligibility, and the shared NOCB GP wake lock and timer policy.
+
+The net result is still survey-only: offloaded callback enqueue, GP wait selection, and deferred wakeup flushing remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -73,7 +83,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-boundary-decision-checklist`
 - landed `phase14-rcu-tree-quiescent-state-followup`
 - landed `phase14-rcu-tree-callback-enqueue-followup`
-- ready-next `phase14-rcu-tree-callback-offload-followup`
+- landed `phase14-rcu-tree-callback-offload-followup`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/rcu/tree.c` remains in the freeze set for now, and that the repo still does not ship `kernel/rcu/tree_bridge.zig`.
@@ -99,4 +109,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 RCU tree lane and add one small survey-only audit next, limited to `call_rcu_nocb()`, `nocb_gp_wait()`, and `rcu_nocb_flush_deferred_wakeup()` so offloaded callback enqueue and wakeup behavior stay explicitly in C without turning the roadmap's `kernel/rcu/tree_bridge.zig` destination into implied active delivery.
+Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, expedited waits, NOCB wakeup ownership, quiescent-state propagation, callback enqueue, callback offload, and deferred wakeup flushing as stay-in-C behavior, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
