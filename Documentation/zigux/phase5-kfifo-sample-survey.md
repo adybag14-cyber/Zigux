@@ -96,13 +96,13 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 
 ## Recorded gap vs roadmap
 
-The current gap is not missing Phase 5 sample delivery for `kfifo`. The more precise gap is:
+The current gap is not missing Phase 5 sample delivery for `kfifo`. The more precise lane posture is:
 
 - all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
-- the canonical `kfifo` survey still has to say that plainly so reviewers do not mistake this slice for an unfinished anchor or confuse it with the separate later Phase 9 runtime pilots
+- this survey now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
 - the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
 
-This slice now keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, so future work can leave this lane parked unless a real same-family drift appears.
+This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, so future work can leave this lane parked unless a real same-family drift appears.
 
 ## Review gates for this survey
 
