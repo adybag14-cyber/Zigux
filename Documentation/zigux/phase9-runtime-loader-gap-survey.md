@@ -10,6 +10,7 @@ This document records the shared boot/runtime loader gap that still separates th
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
   - `Documentation/zigux/review-checklist.md`
+  - `Documentation/zigux/freeze-map.md`
   - `zigux/tests/runtime_loader_gap_manifest.json`
   - `zigux/tests/runtime_loader_gap_survey.zig`
   - `zigux/tests/phase9_build.zig`
@@ -35,6 +36,8 @@ The live repo already reflects that split:
 
 This survey keeps the lane honest by recording what is now landed and what is still blocked instead of pretending that runtime scheduling, polling, or event-loop work should be pulled forward into Phase 6.
 
+The freeze map also keeps the adjacent scheduler substrate boundary explicit. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this shared runtime-loader packet may record request-shape and blocker evidence, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
+
 The review checklist also remains part of this bounded governance surface. For this runtime-loader starter family, the checklist still needs to keep three review cues explicit:
 
 - no hidden runtime services
@@ -47,6 +50,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the roadmap-boundary note, blocker posture, and bounded replay contract
 - `Documentation/zigux/review-checklist.md` owns the runtime review guardrails and ownership prompts for the same evidence packet
+- `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule for any status change tied to scheduler-facing runtime substrate work
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, and shared request surface
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
@@ -74,6 +78,7 @@ What is still missing is actual runtime execution behavior:
 - no real runtime loader owns thread creation, task scheduling, polling, or event-loop behavior
 - no shared runtime command or environment control surface records whether bring-up is selected by command name, argv policy, or environment-derived activation cues
 - no path here claims module registration parity, live init invocation, or live exit teardown
+- no path here claims workqueue parity, scheduler-facing runtime transport ownership, or a freeze-map status change for `kernel/workqueue.c` without an explicit Architecture Council decision
 
 That means the current runtime surface is now a bounded shared request contract, not a real loadable runtime path.
 
@@ -86,6 +91,7 @@ The roadmap boundary matters here:
 - `Phase 9` is the first runtime-module phase, so this survey is recorded there even though the scheduled lane key is `P6-L01`
 
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
+It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`, so the shared loader packet must keep workqueue parity and any scheduler-core status change blocked until the Architecture Council explicitly reopens that anchor with fresh evidence.
 
 ## Gates
 
@@ -106,8 +112,9 @@ This slice does not yet claim:
 - a loadable runtime module path
 - command-name, argv-policy, or environment-derived activation controls
 - allocator ownership changes beyond the shared handoff contract built from `zigux/helpers/allocator_policy.zig`
+- parity or ownership for `kernel/workqueue.c`
 - Phase 6 runtime implementation progress
 
 ## Next bounded step
 
-If a future runtime lane reopens this blocker, keep the next step narrow: extend the shared `zigux/kernel/runtime_loader.zig` request surface only where a new runtime starter can reuse it, or add one explicit command or environment activation field once the separate Phase 8 tooling posture gives that control surface a real owner.
+If a future runtime lane reopens this blocker, keep the next step narrow: extend the shared `zigux/kernel/runtime_loader.zig` request surface only where a new runtime starter can reuse it, or add one explicit command or environment activation field once the separate Phase 8 tooling posture gives that control surface a real owner, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that boundary.
