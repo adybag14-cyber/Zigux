@@ -20,6 +20,30 @@ def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> l
                 discovered.append(cases_path.parent / rel)
     return discovered
 
+
+def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
+    data = json.loads(cases_path.read_text(encoding='utf-8'))
+    issues: list[str] = []
+
+    if not isinstance(data, dict):
+        return ['kconfig_bridge:manifest:expected_object']
+
+    expected_top_level = {'conf_cases', 'confdata_cases'}
+    unexpected_top_level = sorted(set(data) - expected_top_level)
+    for name in unexpected_top_level:
+        issues.append(f'kconfig_bridge:manifest:unexpected_top_level:{name}')
+
+    for group_name in sorted(expected_top_level):
+        group = data.get(group_name)
+        if not isinstance(group, list):
+            issues.append(f'kconfig_bridge:manifest:{group_name}:expected_list')
+            continue
+        if not group:
+            issues.append(f'kconfig_bridge:manifest:{group_name}:empty')
+
+    return issues
+
+
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
@@ -164,6 +188,8 @@ if targets_manifest.get('target_count') != 3:
     missing_markers.append('targets:target_count=3')
 if len(targets_manifest.get('targets', [])) != 3:
     missing_markers.append(f'targets:len={len(targets_manifest.get("targets", []))}')
+
+missing_markers.extend(validate_kconfig_bridge_manifest_shape(KCONFIG_BRIDGE_DIR / 'cases.json'))
 
 if missing_markers:
     print('PHASE2_CLOSURE_VALIDATION=fail')
