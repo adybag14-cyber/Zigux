@@ -48,7 +48,7 @@
       "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
-      "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for wide-value exchange and cmpxchg behavior plus selftest-family coverage before any broader runtime substrate work."
+      "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for wide-value exchange and cmpxchg behavior, bounded guard paths (`add_unless` and `inc_not_zero`), plus selftest-family coverage before any broader runtime substrate work."
     },
     {
       "id": "runtime-atomic64-substrate-handoff",
