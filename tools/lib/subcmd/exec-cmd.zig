@@ -75,6 +75,8 @@ pub const FileIdentity = struct {
     inode: u64,
 };
 
+pub const PathIdentity = FileIdentity;
+
 pub const max_execl_slots: usize = 32;
 pub const CollectExeclArgsError = error{
     MissingNullTerminator,
@@ -143,6 +145,11 @@ pub fn sameFileLocation(cwd_identity: FileIdentity, pwd_identity: FileIdentity) 
         cwd_identity.inode == pwd_identity.inode;
 }
 
+pub fn samePathIdentity(cwd_identity: FileIdentity, pwd_identity: ?FileIdentity) bool {
+    const pwd_value = pwd_identity orelse return false;
+    return sameFileLocation(cwd_identity, pwd_value);
+}
+
 pub fn choosePwdCwdFromFileIdentity(
     cwd: []const u8,
     pwd: ?[]const u8,
@@ -150,6 +157,15 @@ pub fn choosePwdCwdFromFileIdentity(
     pwd_identity: FileIdentity,
 ) []const u8 {
     return choosePwdCwd(cwd, pwd, sameFileLocation(cwd_identity, pwd_identity));
+}
+
+pub fn choosePwdCwdFromIdentities(
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    cwd_identity: FileIdentity,
+    pwd_identity: ?FileIdentity,
+) []const u8 {
+    return choosePwdCwd(cwd, pwd, samePathIdentity(cwd_identity, pwd_identity));
 }
 
 pub fn getArgvExecPath(
