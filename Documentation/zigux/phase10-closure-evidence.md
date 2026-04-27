@@ -12,6 +12,7 @@ This document records the current closure evidence for the active bounded Phase 
   - `drivers/virtio/virtio.zig`
   - `drivers/virtio/virtio_ring.zig`
   - `drivers/virtio/virtio_input.zig`
+  - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/tests/phase10_closure_manifest.json`
   - `scripts/zigux/validate-phase10-closure.py`
@@ -34,17 +35,18 @@ The current bounded Phase 10 evidence set is:
 - `Documentation/zigux/phase10-virtio-input-slice.md`
 - `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `zigux/tests/phase10_virtio_core_manifest.json`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
 
-- `PHASE10_DOC_COUNT=8`
+- `PHASE10_DOC_COUNT=9`
 - `PHASE10_MANIFEST_COUNT=4`
-- `PHASE10_DRIVER_COUNT=3`
-- `PHASE10_TEST_COUNT=7`
-- `PHASE10_HAS_VIRTIO_MMIO_ZIG=no`
+- `PHASE10_DRIVER_COUNT=4`
+- `PHASE10_TEST_COUNT=8`
+- `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
 ## Roadmap Parity Scoreboard
 
@@ -53,18 +55,18 @@ This scoreboard records the current parity evidence against the Phase 10 roadmap
 - `PHASE10_ROADMAP_PARITY_SCOREBOARD=present`
 - `PHASE10_ROADMAP_SCOREBOARD_ROW_COUNT=4`
 - `PHASE10_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed`
-- `PHASE10_ROADMAP_MMIO_WRAPPERS=survey_backed_ready_next`
+- `PHASE10_ROADMAP_MMIO_WRAPPERS=starter_landed`
 - `PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed`
 - `PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport`
 
 The current roadmap-facing reading is:
 
 - `virtqueue wrappers`: `starter_landed` through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `MMIO wrappers`: `survey_backed_ready_next` because `Documentation/zigux/phase10-virtio-mmio-survey.md` and `zigux/tests/phase10_virtio_mmio_manifest.json` keep the first register-window helper explicit while `drivers/virtio/virtio_mmio.zig` remains intentionally absent
+- `MMIO wrappers`: `starter_landed` through `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `lab-only driver validation`: `starter_landed` through `zigux/tests/phase10_build.zig`, `scripts/zigux/validate-phase10-closure.py`, and the shared `make -C zigux phase10-{validate,test}` entrypoints
 - `dual implementations for risky areas`: `blocked_on_risky_transport` because the current ring, input, and MMIO manifests still keep MMIO lifecycle paths, queue setup or reset, IRQ parity, DMA-facing paths, input registration lifecycle, and probe or remove work out of scope until smaller helpers land first
 
-This keeps the closure packet aligned with the roadmap's real Phase 10 requirements: queue-facing lab wrappers are partially landed, MMIO is still survey-backed, the lab validation gate is real, and risky transport expansion is still intentionally blocked.
+This keeps the closure packet aligned with the roadmap's real Phase 10 requirements: queue-facing lab wrappers are landed in bounded form, the first MMIO starter is real, the lab validation gate is real, and risky transport expansion is still intentionally blocked.
 
 ## Exact Checks
 
@@ -102,7 +104,7 @@ The current Phase 10 tranche is only considered evidence-verified when all of th
 - `PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no`
-- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
+- `PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle`
 
 The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/*.zig`, and the freeze map keeps the current deep-core anchors out of active Zigux delivery:
 
@@ -131,16 +133,15 @@ The exact current reading of the live repo is:
 - `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface and its next bounded helper step
 - `drivers/virtio/virtio_ring.zig` is the bounded virtqueue helper starter
 - `drivers/virtio/virtio_input.zig` is the bounded input-driver starter
-- `Documentation/zigux/phase10-virtio-mmio-survey.md` records that MMIO remains survey-backed and intentionally blocked from pretending to be an implemented Zig transport helper
+- `drivers/virtio/virtio_mmio.zig` is the bounded MMIO register-window starter, and `Documentation/zigux/phase10-virtio-mmio-slice.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json` record that landed surface plus the still-blocked transport lifecycle work
 
 This means the current evidence bundle is reviewable, but Phase 10 is not globally closed:
 
-- `drivers/virtio/virtio_mmio.zig` is still intentionally absent
 - transport-backed queue setup, interrupt handling, DMA-facing paths, and broader lifecycle parity remain out of scope
-- the blocked transport claim set stays explicit: `virtio_mmio.zig`, `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
+- the blocked transport claim set stays explicit: `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
 - the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
-- the current manifest-backed transport boundary stays explicit because the ring survey advances only to the ready-next `phase10-mmio-register-window-helper`, while `phase10-virtio-input-registration-lifecycle` and `phase10-mmio-lifecycle-and-irq-paths` must stay `blocked_on_risky_transport` until that smaller helper lands first
+- the current manifest-backed transport boundary stays explicit because the input survey advances only to the ready-next `phase10-virtio-input-registration-preflight-helper`, the MMIO survey advances only to the ready-next `phase10-mmio-queue-register-helper`, and `phase10-virtio-input-registration-lifecycle` plus `phase10-mmio-lifecycle-and-irq-paths` must stay `blocked_on_risky_transport` until those smaller helpers land first
 
 ## Boundary
 
@@ -148,7 +149,7 @@ This evidence record does not imply:
 
 - full `drivers/virtio/virtio.c` parity
 - full `drivers/virtio/virtio_ring.c` parity
-- any landed `drivers/virtio/virtio_mmio.zig`
+- full `drivers/virtio/virtio_mmio.c` parity
 - full `drivers/virtio/virtio_input.c` registration or lifecycle parity
 - Phase 10 roadmap closure as a whole
 
