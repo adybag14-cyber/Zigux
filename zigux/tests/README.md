@@ -15,7 +15,10 @@ Key entrypoints
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
+- `zigux/tests/phase6_base64.zig`
+- `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_checksum.zig`
+- `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -23,6 +26,7 @@ Key entrypoints
 - `zigux/tests/phase14_workqueue_bridge.zig`
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/validate-phase4.py`
+- `scripts/zigux/validate-phase6.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
