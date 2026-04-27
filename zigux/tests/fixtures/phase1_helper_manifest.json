@@ -54,6 +54,7 @@
         "string.strtobool_off",
         "string.strlcpy_len",
         "string.strlcpy_buffer",
+        "string.skip_spaces",
         "string.trim_spaces",
         "string.remove_spaces",
         "string.replace_char",
@@ -65,7 +66,7 @@
       "unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"",
       "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
       "alias_unit_test_anchor": "tools/lib/string.zig:test \"skip trim remove and replace spaces work in place\"",
-      "alias_unit_test_contract": "Direct Zig unit coverage exercises the strim and strreplace wrapper aliases alongside trimSpaces, removeSpaces, and replaceChar so the new string API aliases cannot silently drift from their underlying helpers."
+      "alias_unit_test_contract": "Direct Zig unit coverage exercises the strim and strreplace wrapper aliases alongside trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior that keeps strreplace from mutating trailing bytes past the first terminator."
     }
   }
 }
