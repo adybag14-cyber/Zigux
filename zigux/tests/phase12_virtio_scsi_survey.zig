@@ -7,6 +7,7 @@ const SurveySummary = struct {
     preexisting_virtio_core_zig_present: bool,
     preexisting_virtio_ring_zig_present: bool,
     preexisting_phase12_build_present: bool,
+    preexisting_phase12_make_target_present: bool,
     preexisting_phase12_virtio_net_survey_present: bool,
     preexisting_phase12_nvme_pci_starter_present: bool,
     preexisting_phase12_virtio_scsi_survey_present: bool,
@@ -52,6 +53,14 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -67,6 +76,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_nvme_pci_starter_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_survey_present);
@@ -75,6 +85,9 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
     try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-test") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -115,6 +128,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             saw_make_target = true;
             try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make target") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded driver test lane") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-core-foundation")) {
