@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L09",
+  "lane_key": "P15-L11",
   "phase": "Phase 15",
-  "surveyed_commit": "43c5bae4821c53b9adac96fcb028b9266325e1ed",
+  "surveyed_commit": "621356c2c80367701a16a5845f186163207b9a65",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
@@ -36,7 +36,7 @@
     ],
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
     "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared phase15_build.zig gate, and make -C zigux phase15 target.",
-    "maintenance_mode_next_step": "Wait for a separate shared-workflow decision to add Phase 15 to the published bootstrap path or for new deep-core evidence that changes a current blocker disposition."
+    "maintenance_mode_next_step": "Wait for one of the named reopen triggers to fit the evidence packet again or for the deep-core blocker posture to change enough to justify another bounded follow-up."
   },
   "anchors": [
     {
@@ -303,10 +303,10 @@
     },
     {
       "id": "phase15-shared-ci-coverage-gap",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "shared_ci",
       "zigux_destination": ".github/workflows/zigux-bootstrap.yml",
-      "why_now": "The roadmap-required Phase 15 governance bundle is landed locally, but the published shared bootstrap workflow still stops at Phase 14 and does not run the Phase 15 gate."
+      "why_now": "The published shared bootstrap workflow now runs `make -C zigux phase15`, so the roadmap-required Phase 15 governance bundle is replayed in the same shared path instead of only through local maintenance checks."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
