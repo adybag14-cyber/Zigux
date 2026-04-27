@@ -73,6 +73,12 @@ required_doc_markers = [
     'zigux/tests/phase4_build.zig',
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/phase4-validation-matrix.md',
+    'future host-side tools under `scripts/zigux/`',
+    'stale expected-output and catalog drift stays small, auditable, and easy to refresh',
+]
+forbidden_doc_markers = [
+    'future Phase 2 tooling work will reuse',
+    'reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`',
 ]
 required_tests_readme_markers = [
     'zigux/tests/runtime_atomic64_diff.zig',
@@ -142,6 +148,9 @@ for marker in required_workflow_markers:
 for marker in required_doc_markers:
     if marker not in artifact_doc:
         missing_markers.append(f'doc:{marker}')
+for marker in forbidden_doc_markers:
+    if marker in artifact_doc:
+        missing_markers.append(f'doc_stale:{marker}')
 for marker in required_tests_readme_markers:
     if marker not in tests_readme:
         missing_markers.append(f'tests_readme:{marker}')
@@ -229,5 +238,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
 )
