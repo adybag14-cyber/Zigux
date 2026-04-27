@@ -44,6 +44,10 @@ test "phase12 virtio net probe snapshot plans multiqueue control and rss state" 
     try std.testing.expect(snapshot.mergeable_rx_buffers);
     try std.testing.expect(snapshot.has_rss);
     try std.testing.expect(snapshot.has_rss_hash_report);
+    try std.testing.expectEqual(virtio_net.HeaderShape.hash_report, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 20), snapshot.hdr_len_bytes);
+    try std.testing.expect(snapshot.uses_hash_report_header);
+    try std.testing.expect(!snapshot.uses_udp_tunnel_header);
     try std.testing.expectEqual(virtio_net.RssSummary.active, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, snapshot.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
@@ -76,6 +80,10 @@ test "phase12 virtio net records rss downgrade when control virtqueue is missing
     try std.testing.expect(snapshot.mergeable_rx_buffers);
     try std.testing.expect(snapshot.has_rss);
     try std.testing.expect(snapshot.has_rss_hash_report);
+    try std.testing.expectEqual(virtio_net.HeaderShape.hash_report, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 20), snapshot.hdr_len_bytes);
+    try std.testing.expect(snapshot.uses_hash_report_header);
+    try std.testing.expect(!snapshot.uses_udp_tunnel_header);
     try std.testing.expectEqual(virtio_net.RssSummary.downgraded_single_queue, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.missing_control_vq, snapshot.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
@@ -143,7 +151,70 @@ test "phase12 virtio net keeps hash-report-only requests visible" {
 
     try std.testing.expect(!snapshot.has_rss);
     try std.testing.expect(snapshot.has_rss_hash_report);
+    try std.testing.expectEqual(virtio_net.HeaderShape.hash_report, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 20), snapshot.hdr_len_bytes);
+    try std.testing.expect(snapshot.uses_hash_report_header);
+    try std.testing.expect(!snapshot.uses_udp_tunnel_header);
     try std.testing.expectEqual(virtio_net.RssSummary.hash_report_only, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, snapshot.fallback_reason);
+    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.none, snapshot.queue_recovery_action);
+}
+
+test "phase12 virtio net uses mergeable header shape for version1-only negotiation" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_version_1,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_version_1,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+
+    try std.testing.expect(!snapshot.mergeable_rx_buffers);
+    try std.testing.expectEqual(virtio_net.HeaderShape.mrg_rxbuf, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 12), snapshot.hdr_len_bytes);
+    try std.testing.expect(!snapshot.uses_hash_report_header);
+    try std.testing.expect(!snapshot.uses_udp_tunnel_header);
+}
+
+test "phase12 virtio net upgrades hdr_len shape for udp tunnel support" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_guest_udp_tunnel_gso,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_guest_udp_tunnel_gso,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+
+    try std.testing.expectEqual(virtio_net.HeaderShape.hash_report_tunnel, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 24), snapshot.hdr_len_bytes);
+    try std.testing.expect(snapshot.uses_hash_report_header);
+    try std.testing.expect(snapshot.uses_udp_tunnel_header);
+}
+
+test "phase12 virtio net preserves legacy header shape without mergeable or hash features" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{});
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{},
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+
+    try std.testing.expectEqual(virtio_net.HeaderShape.legacy, snapshot.header_shape);
+    try std.testing.expectEqual(@as(u16, 10), snapshot.hdr_len_bytes);
+    try std.testing.expect(!snapshot.uses_hash_report_header);
+    try std.testing.expect(!snapshot.uses_udp_tunnel_header);
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.none, snapshot.queue_recovery_action);
 }
