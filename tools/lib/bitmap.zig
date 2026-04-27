@@ -253,6 +253,23 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
     }
 }
 
+pub fn alloc(allocator: std.mem.Allocator, nbits: usize) ?[]Word {
+    return allocator.alloc(Word, bitsToWords(nbits)) catch null;
+}
+
+pub fn zalloc(allocator: std.mem.Allocator, nbits: usize) ?[]Word {
+    const map = alloc(allocator, nbits) orelse return null;
+    @memset(map, 0);
+    return map;
+}
+
+pub fn free(allocator: std.mem.Allocator, map: *?[]Word) void {
+    if (map.*) |bitmap| {
+        allocator.free(bitmap);
+    }
+    map.* = null;
+}
+
 fn appendSlice(buffer: []u8, written: *usize, text: []const u8) void {
     if (buffer.len == 0) {
         return;
@@ -384,4 +401,33 @@ test "bitmap scnprintf truncates and keeps a terminator slot" {
     try std.testing.expectEqual(@as(usize, 3), len);
     try std.testing.expectEqualStrings("1-3", buffer[0..len]);
     try std.testing.expectEqual(@as(u8, 0), buffer[len]);
+}
+
+test "bitmap alloc and zalloc manage caller-owned slices" {
+    const allocator = std.testing.allocator;
+
+    var plain = alloc(allocator, bits_per_long + 5) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(bitsToWords(bits_per_long + 5), plain.len);
+    plain[0] = 1;
+    if (plain.len > 1) {
+        plain[1] = 2;
+    }
+
+    var plain_opt: ?[]Word = plain;
+    free(allocator, &plain_opt);
+    try std.testing.expect(plain_opt == null);
+
+    const zeroed = zalloc(allocator, bits_per_long + 5) orelse return error.TestUnexpectedResult;
+    defer {
+        var zeroed_opt: ?[]Word = zeroed;
+        free(allocator, &zeroed_opt);
+    }
+    try std.testing.expectEqual(bitsToWords(bits_per_long + 5), zeroed.len);
+    for (zeroed) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    var none: ?[]Word = null;
+    free(allocator, &none);
+    try std.testing.expect(none == null);
 }
