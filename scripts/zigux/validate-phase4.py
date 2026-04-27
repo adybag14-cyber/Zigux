@@ -87,6 +87,7 @@ required_doc_markers = [
     'Documentation/zigux/phase4-validation-matrix.md',
     'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
     'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
+    'the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate',
 ]
 forbidden_doc_markers = [
     'future Phase 2 tooling work will reuse',
