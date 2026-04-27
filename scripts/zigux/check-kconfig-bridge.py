@@ -74,6 +74,9 @@ def ensure_manifest_matches_bridge_modes() -> None:
     missing = sorted(manifest_modes - bridge_modes)
     if missing:
         fail_check('UNSUPPORTED_CONF_CASE_MODES', missing)
+    uncovered = sorted(bridge_modes - manifest_modes)
+    if uncovered:
+        fail_check('UNCOVERED_CONF_BRIDGE_MODES', uncovered)
 
 
 def ensure_manifest_is_deterministic() -> None:
@@ -91,13 +94,17 @@ def ensure_manifest_is_deterministic() -> None:
         fail_check('DUPLICATE_KCONFIG_CASE_NAMES', sorted(duplicate_names))
 
     missing_paths: list[str] = []
+    for case in CASES['conf_cases']:
+        rel_path = case['expected']
+        if not (FIXTURE_DIR / rel_path).exists():
+            missing_paths.append(f"{case['name']}:expected:{rel_path}")
     for case in CASES['confdata_cases']:
         for field_name in ('input', 'expected'):
             rel_path = case[field_name]
             if not (FIXTURE_DIR / rel_path).exists():
                 missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
     if missing_paths:
-        fail_check('MISSING_CONFDATA_CASE_PATHS', sorted(missing_paths))
+        fail_check('MISSING_KCONFIG_CASE_PATHS', sorted(missing_paths))
 
 
 def main() -> int:
