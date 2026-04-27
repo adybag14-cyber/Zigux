@@ -21,6 +21,7 @@ pub const Command = union(enum) {
 pub const ParseFailure = union(enum) {
     invalid_option: []const u8,
     missing_option_argument: []const u8,
+    unexpected_option_argument: []const u8,
     ambiguous_option: struct {
         option: []const u8,
         possibilities: []const []const u8,
@@ -88,6 +89,10 @@ fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
 
     const rendered = if (option.len == 0) "?" else option[0..1];
     try writer.print("option requires an argument -- '{s}'\n", .{rendered});
+}
+
+fn writeUnexpectedOptionArgumentError(writer: anytype, option: []const u8) !void {
+    try writer.print("option '{s}' doesn't allow an argument\n", .{option});
 }
 
 fn writeAmbiguousOptionError(writer: anytype, option: []const u8, possibilities: []const []const u8) !void {
@@ -210,7 +215,7 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
         },
         .matched => |spec| {
             if (!spec.requires_argument and inline_value != null) {
-                return .{ .failure = .{ .invalid_option = arg } };
+                return .{ .failure = .{ .unexpected_option_argument = arg[0 .. separator + 2] } };
             }
 
             switch (spec.kind) {
@@ -372,6 +377,7 @@ pub fn main(init: std.process.Init) !void {
             switch (failure) {
                 .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
                 .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
+                .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
                 .ambiguous_option => |details| try writeAmbiguousOptionError(&stderr_writer.interface, details.option, details.possibilities),
             }
             try stderr_writer.interface.flush();
@@ -518,6 +524,17 @@ test "genksyms bridge reports missing short option argument in getopt style" {
     switch (outcome) {
         .failure => |failure| switch (failure) {
             .missing_option_argument => |option| try std.testing.expectEqualStrings("r", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
+test "genksyms bridge rejects unexpected long option arguments in getopt style" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"--debug=extra"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("--debug", option),
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
