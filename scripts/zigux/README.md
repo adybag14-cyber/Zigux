@@ -25,6 +25,7 @@ Current bootstrap helpers
 - `validate-phase8.py`
 - `validate-phase9.py`
 - `validate-phase10-closure.py`
+- `validate-phase11.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -88,3 +89,7 @@ Phase 9 flow
 Phase 10 flow
 - `validate-phase10-closure.py` checks that the bounded Phase 10 virtio lab bundle still keeps `Documentation/zigux/phase10-closure-evidence.md`, the three manifest-backed survey records, the shared bootstrap workflow, `make -C zigux phase10-validate`, and `zigux/tests/phase10_build.zig` aligned.
 - the same Phase 10 gate keeps the current virtio tranche honest about its blocker posture by requiring the published evidence bundle to say explicitly that `drivers/virtio/virtio_mmio.zig` remains intentionally absent while the MMIO work stays survey-backed.
+
+Phase 11 flow
+- `validate-phase11.py` checks that the bounded Phase 11 simple-driver bundle still keeps `make -C zigux phase11-validate`, the shared workflow path, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_hvc_console_manifest.json`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` aligned around the same watchdog plus hvc starter tranche.
+- the same Phase 11 gate keeps the manifest bundle honest about its current follow-up posture by requiring the shared replay to keep `zigux/tests/phase11_hvc_console_survey.zig` as a dedicated survey replay while the shared `phase11_build.zig` path continues to cover the landed starter tests plus the watchdog and shared-header survey gates.
