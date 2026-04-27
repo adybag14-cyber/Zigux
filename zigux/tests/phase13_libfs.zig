@@ -11,6 +11,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
+    try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -245,4 +246,34 @@ test "phase13 libfs transaction staging planner rejects oversize, duplicate writ
     try std.testing.expect(publish.becomes_readable);
 
     try std.testing.expectError(error.TransactionTooLarge, libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1));
+}
+
+test "phase13 libfs transaction read planning stays pure around private-data presence" {
+    const closed = libfs.LibFsHelperLab.simpleTransactionReadPlan(false, 64);
+    try std.testing.expectEqualStrings("fs/libfs.c", closed.anchor);
+    try std.testing.expectEqual(@as(usize, 0), closed.readable_size);
+    try std.testing.expect(closed.returns_eof);
+    try std.testing.expect(!closed.delegates_to_simple_read_from_buffer);
+    try std.testing.expect(!closed.keeps_private_data);
+    try std.testing.expect(closed.leaves_pos_unchanged);
+
+    const readable = libfs.LibFsHelperLab.simpleTransactionReadPlan(true, 19);
+    try std.testing.expectEqual(@as(usize, 19), readable.readable_size);
+    try std.testing.expect(!readable.returns_eof);
+    try std.testing.expect(readable.delegates_to_simple_read_from_buffer);
+    try std.testing.expect(readable.keeps_private_data);
+    try std.testing.expect(!readable.leaves_pos_unchanged);
+}
+
+test "phase13 libfs transaction release planning only frees reserved private data" {
+    const no_private_data = libfs.LibFsHelperLab.simpleTransactionReleasePlan(false);
+    try std.testing.expectEqualStrings("fs/libfs.c", no_private_data.anchor);
+    try std.testing.expect(no_private_data.returns_zero);
+    try std.testing.expect(!no_private_data.frees_private_data);
+    try std.testing.expect(!no_private_data.had_private_data);
+
+    const release = libfs.LibFsHelperLab.simpleTransactionReleasePlan(true);
+    try std.testing.expect(release.returns_zero);
+    try std.testing.expect(release.frees_private_data);
+    try std.testing.expect(release.had_private_data);
 }
