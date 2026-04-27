@@ -50,7 +50,7 @@ required_closure_markers = [
     'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
     'PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree',
     'rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findFirst returns the leftmost duplicate match"`',
-    'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find and findFirst keep lookup behavior aligned, including the leftmost duplicate match for equal keys',
+    'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find returns a matching node or null while findFirst stays pinned to the leftmost duplicate match for equal keys',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
@@ -168,7 +168,7 @@ if rbtree_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps fi
     missing_markers.append('manifest:rbtree.unit_test_contract')
 if rbtree_review.get('search_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree findFirst returns the leftmost duplicate match"':
     missing_markers.append('manifest:rbtree.search_unit_test_anchor')
-if rbtree_review.get('search_unit_test_contract') != 'Direct Zig unit coverage keeps find and findFirst lookup behavior aligned, including the leftmost duplicate match for equal keys.':
+if rbtree_review.get('search_unit_test_contract') != 'Direct Zig unit coverage keeps find() returning a matching node or null while findFirst() stays pinned to the leftmost duplicate match for equal keys.':
     missing_markers.append('manifest:rbtree.search_unit_test_contract')
 if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
