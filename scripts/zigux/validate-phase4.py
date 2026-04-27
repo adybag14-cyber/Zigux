@@ -87,7 +87,16 @@ required_doc_markers = [
     'Documentation/zigux/phase4-validation-matrix.md',
     'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
     'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
-    'the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate',
+]
+required_doc_marker_groups = [
+    (
+        'reversible_delivery_link',
+        [
+            'reversible-delivery evidence',
+            'current C anchor',
+            'shared Phase 4 entrypoint',
+        ],
+    ),
 ]
 forbidden_doc_markers = [
     'future Phase 2 tooling work will reuse',
@@ -205,6 +214,10 @@ for marker in required_workflow_markers:
 for marker in required_doc_markers:
     if marker not in artifact_doc:
         missing_markers.append(f'doc:{marker}')
+for group_name, markers in required_doc_marker_groups:
+    for marker in markers:
+        if marker not in artifact_doc:
+            missing_markers.append(f'doc_group:{group_name}:{marker}')
 for marker in forbidden_doc_markers:
     if marker in artifact_doc:
         missing_markers.append(f'doc_stale:{marker}')
@@ -337,5 +350,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + sum(len(markers) for _, markers in required_doc_marker_groups) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
 )
