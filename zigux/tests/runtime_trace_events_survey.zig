@@ -4,6 +4,7 @@ const SurveySummary = struct {
     trace_events_sample_c_lines: usize,
     preexisting_runtime_trace_events_test_files: usize,
     preexisting_runtime_trace_events_sample_present: bool,
+    runtime_trace_events_loader_present: bool,
     preexisting_phase9_build_present: bool,
     preexisting_runtime_trace_events_doc_present: bool,
     preexisting_runtime_trace_events_summary_surface_present: bool,
@@ -65,6 +66,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
+    try std.testing.expect(!manifest.survey_summary.runtime_trace_events_loader_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_summary_surface_present);
@@ -163,4 +165,29 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
+}
+
+test "phase 9 runtime trace-events blocker stays loader-free until the scheduler substrate exists" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const phase9_build = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase9_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(phase9_build);
+
+    try std.testing.expectError(
+        error.FileNotFound,
+        std.Io.Dir.cwd().openFile(
+            io_instance.io(),
+            "samples/zigux/runtime_trace_events_loader.zig",
+            .{},
+        ),
+    );
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") == null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-module-tests") != null);
 }
