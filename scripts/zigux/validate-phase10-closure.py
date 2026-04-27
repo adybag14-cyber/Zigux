@@ -13,6 +13,7 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md",
     ROOT / "Documentation" / "zigux" / "freeze-map.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-core-slice.md",
+    ROOT / "Documentation" / "zigux" / "phase10-virtio-core-survey.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-input-slice.md",
@@ -28,6 +29,8 @@ required_files = [
     ROOT / "drivers" / "virtio" / "virtio_input.zig",
     ROOT / "zigux" / "tests" / "phase10_build.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_core.zig",
+    ROOT / "zigux" / "tests" / "phase10_virtio_core_manifest.json",
+    ROOT / "zigux" / "tests" / "phase10_virtio_core_survey.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_ring.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig",
     ROOT / "zigux" / "tests" / "phase10_virtio_input.zig",
@@ -61,6 +64,7 @@ ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
 manifest = load_json(ROOT / "zigux" / "tests" / "phase10_closure_manifest.json")
+core_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_core_manifest.json")
 ring_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_ring_manifest.json")
 input_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_input_manifest.json")
 mmio_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_mmio_manifest.json")
@@ -69,10 +73,10 @@ required_closure_markers = [
     "PHASE10_STATUS=active",
     "PHASE10_TRANCHE=virtio-lab-bundle",
     "PHASE10_CLOSURE_EVIDENCE=verified",
-    "PHASE10_DOC_COUNT=7",
-    "PHASE10_MANIFEST_COUNT=3",
+    "PHASE10_DOC_COUNT=8",
+    "PHASE10_MANIFEST_COUNT=4",
     "PHASE10_DRIVER_COUNT=3",
-    "PHASE10_TEST_COUNT=6",
+    "PHASE10_TEST_COUNT=7",
     "PHASE10_HAS_VIRTIO_MMIO_ZIG=no",
     "PHASE10_ROADMAP_PARITY_SCOREBOARD=present",
     "PHASE10_ROADMAP_SCOREBOARD_ROW_COUNT=4",
@@ -95,6 +99,9 @@ required_closure_markers = [
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
     "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
     "Documentation/zigux/review-checklist.md",
     "phase10-mmio-register-window-helper",
     "phase10-virtio-input-registration-lifecycle",
@@ -173,13 +180,13 @@ if manifest.get("status") != "active":
     missing_markers.append("manifest:status=active")
 if manifest.get("tranche") != "virtio-lab-bundle":
     missing_markers.append("manifest:tranche=virtio-lab-bundle")
-if manifest.get("doc_count") != 7:
+if manifest.get("doc_count") != 8:
     missing_markers.append(f'manifest:doc_count={manifest.get("doc_count")}')
-if manifest.get("manifest_count") != 3:
+if manifest.get("manifest_count") != 4:
     missing_markers.append(f'manifest:manifest_count={manifest.get("manifest_count")}')
 if manifest.get("driver_count") != 3:
     missing_markers.append(f'manifest:driver_count={manifest.get("driver_count")}')
-if manifest.get("test_count") != 6:
+if manifest.get("test_count") != 7:
     missing_markers.append(f'manifest:test_count={manifest.get("test_count")}')
 if manifest.get("has_virtio_mmio_zig") is not False:
     missing_markers.append(f'manifest:has_virtio_mmio_zig={manifest.get("has_virtio_mmio_zig")}')
@@ -320,16 +327,15 @@ expected_blocked_transport_gaps = {
 }
 if blocked_transport_gaps != expected_blocked_transport_gaps:
     missing_markers.append("manifest:blocked_transport_gaps:mismatch")
+for gap in core_manifest.get("gaps", []):
+    if isinstance(gap, dict) and gap.get("id") == "phase10-config-generation-summary-helper":
+        if gap.get("status") != "ready_next":
+            missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:ready_next")
 for gap in ring_manifest.get("gaps", []):
     if isinstance(gap, dict):
         why_now = gap.get("why_now")
         if isinstance(why_now, str) and "queue-wrapper gap" in why_now:
             missing_markers.append("phase10_virtio_ring_manifest:stale_marker:queue-wrapper gap")
-for gap in mmio_manifest.get("gaps", []):
-    if isinstance(gap, dict):
-        why_now = gap.get("why_now")
-        if isinstance(why_now, str) and "queue-wrapper roadmap gap" in why_now:
-            missing_markers.append("phase10_virtio_mmio_manifest:stale_marker:queue-wrapper roadmap gap")
 
 
 def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
@@ -361,6 +367,8 @@ def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
     return False
 
 
+if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper", "ready_next"):
+    missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:ready_next")
 if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "ready_next"):
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:ready_next")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecycle", "blocked_on_risky_transport"):
@@ -368,6 +376,7 @@ if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecyc
 if not has_gap_status(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
 
+validate_lane_manifest(core_manifest, "phase10_virtio_core_manifest")
 validate_lane_manifest(ring_manifest, "phase10_virtio_ring_manifest")
 validate_lane_manifest(input_manifest, "phase10_virtio_input_manifest")
 validate_lane_manifest(mmio_manifest, "phase10_virtio_mmio_manifest")
