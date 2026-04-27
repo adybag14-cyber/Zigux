@@ -45,6 +45,10 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
     'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`',
     'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits',
+    'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
+    'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
+    'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
+    'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short fixture cases',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -91,6 +95,7 @@ manifest_helpers = manifest.get('helpers', [])
 manifest_count = manifest.get('helper_count')
 bitmap_review = manifest.get('helper_review_notes', {}).get('tools/lib/bitmap.zig', {})
 find_bit_review = manifest.get('helper_review_notes', {}).get('tools/lib/find_bit.zig', {})
+string_review = manifest.get('helper_review_notes', {}).get('tools/lib/string.zig', {})
 if manifest.get('phase') != 'Phase 1':
     missing_markers.append('manifest:phase=Phase 1')
 if manifest.get('status') != 'closed':
@@ -133,6 +138,29 @@ if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "tail
     missing_markers.append('manifest:find_bit.unit_test_anchor')
 if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits.':
     missing_markers.append('manifest:find_bit.unit_test_contract')
+if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
+    missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
+if string_review.get('evidence_keys') != [
+    'string.strtobool_y',
+    'string.strtobool_on',
+    'string.strtobool_zero',
+    'string.strtobool_off',
+    'string.strlcpy_len',
+    'string.strlcpy_buffer',
+    'string.trim_spaces',
+    'string.remove_spaces',
+    'string.replace_char',
+    'string.replace_char_end',
+    'string.memchr_inv_index',
+    'string.memchr_inv_none',
+]:
+    missing_markers.append('manifest:string.evidence_keys')
+if string_review.get('summary') != 'Committed C-backed parity coverage includes Linux-style bool parsing, bounded strlcpy truncation, in-place whitespace and replacement helpers, and first-mismatch memchrInv detection.':
+    missing_markers.append('manifest:string.summary')
+if string_review.get('unit_test_anchor') != 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"':
+    missing_markers.append('manifest:string.unit_test_anchor')
+if string_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.':
+    missing_markers.append('manifest:string.unit_test_contract')
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
 loose_checksums = bench_expectations.get('checksums', [])
