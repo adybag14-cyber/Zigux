@@ -80,3 +80,7 @@ Phase 9 notes
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 - `zigux/tests/phase9_build.zig` and `make -C zigux phase9` now gate the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together, so new Phase 9 runtime work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 9 decision is no longer whether the kretprobe lane still needs a starter, a survey gate, or shared build wiring; those pieces and the newer loader-handoff scaffold are now landed, so the next follow-up should be whichever small shared runtime loader substrate step can honestly consume the existing bitmap or kretprobe loader plans without widening into a larger runtime-module implementation.
+
+Phase 10 notes
+- `Documentation/zigux/phase10-virtio-net-slice.md`
+- `zigux/tests/phase10_build.zig` now gates the current `virtio_net` mergeable receive-buffer planning helper alongside the existing virtio core, ring, input, and MMIO survey bundle, so packet-path follow-up work should stay reviewable through that shared Phase 10 lane rather than through standalone ad hoc checks.

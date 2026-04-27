@@ -25,6 +25,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const virtio_net_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_module.addImport("virtio", virtio_core_module);
     const phase10_virtio_ring_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_ring.zig"),
         .target = target,
@@ -47,6 +53,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase10_virtio_net_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_net.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_net_module.addImport("virtio_net", virtio_net_module);
     const phase10_virtio_mmio_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_mmio_survey.zig"),
         .target = target,
@@ -78,16 +90,22 @@ pub fn build(b: *std.Build) void {
         .root_module = phase10_virtio_input_survey_module,
     });
     const run_phase10_virtio_input_survey_tests = b.addRunArtifact(phase10_virtio_input_survey_tests);
+    const phase10_virtio_net_tests = b.addTest(.{
+        .name = "phase10-virtio-net-tests",
+        .root_module = phase10_virtio_net_module,
+    });
+    const run_phase10_virtio_net_tests = b.addRunArtifact(phase10_virtio_net_tests);
     const phase10_virtio_mmio_survey_tests = b.addTest(.{
         .name = "phase10-virtio-mmio-survey-tests",
         .root_module = phase10_virtio_mmio_survey_module,
     });
     const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmio_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 10 virtio core, virtio ring, virtio input, virtio_input survey, virtio_ring survey, and virtio_mmio survey tests");
+    const test_step = b.step("test", "Run Phase 10 virtio core, virtio ring, virtio input, virtio net, virtio_input survey, virtio_ring survey, and virtio_mmio survey tests");
     test_step.dependOn(&run_phase10_virtio_core_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
+    test_step.dependOn(&run_phase10_virtio_net_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);

@@ -6,6 +6,8 @@ pub const feature_control_vq: u16 = 17;
 pub const feature_multiqueue: u16 = 22;
 pub const feature_hash_report: u16 = 57;
 pub const feature_rss: u16 = 60;
+pub const default_page_size: u32 = 4096;
+pub const default_cache_line_size: u32 = 64;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -56,11 +58,37 @@ pub const ProbeSnapshot = struct {
     recovery_state: RecoveryState,
 };
 
+pub const MergeableReceiveBufferRequest = struct {
+    header_len: u16,
+    average_packet_len: u32,
+    min_buf_len: u32,
+    headroom: u32 = 0,
+    recycled_room: u32 = 0,
+    page_size: u32 = default_page_size,
+    cache_line_size: u32 = default_cache_line_size,
+    skb_shared_info_size: u32 = 0,
+};
+
+pub const MergeableReceiveBufferPlan = struct {
+    anchor: []const u8,
+    planned_queue_pairs: u16,
+    rx_queue_count: u16,
+    headroom: u32,
+    tailroom: u32,
+    room: u32,
+    requested_len: u32,
+    requested_alloc_len: u32,
+    page_size: u32,
+    uses_recycled_room: bool,
+    uses_page_pool: bool,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
     core: virtio.VirtioCoreLabDevice,
     last_snapshot: ?ProbeSnapshot = null,
+    last_mergeable_buffer_plan: ?MergeableReceiveBufferPlan = null,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -152,6 +180,57 @@ pub const VirtioNetProbeLab = struct {
         return snapshot;
     }
 
+    pub fn planMergeableReceiveBuffer(
+        self: *Self,
+        snapshot: ProbeSnapshot,
+        request: MergeableReceiveBufferRequest,
+    ) !MergeableReceiveBufferPlan {
+        if (!snapshot.mergeable_rx_buffers) return error.MergeableBuffersNotNegotiated;
+        if (request.header_len == 0) return error.InvalidHeaderLength;
+        if (request.min_buf_len == 0) return error.EmptyMinimumBufferLength;
+        if (request.cache_line_size == 0 or !std.math.isPowerOfTwo(request.cache_line_size))
+            return error.InvalidCacheLineSize;
+        if (request.page_size <= request.header_len) return error.InvalidPageSize;
+        if (request.recycled_room >= request.page_size) return error.InvalidRecycledRoom;
+        if (request.min_buf_len > request.page_size - request.header_len) return error.MinBufferLenTooLarge;
+        if (request.headroom > 0 and request.skb_shared_info_size == 0)
+            return error.MissingSkbSharedInfoSize;
+
+        const tailroom: u32 = if (request.headroom > 0) request.skb_shared_info_size else 0;
+        const room = try alignToPowerOfTwo(try checkedAddU32(request.headroom, tailroom), request.cache_line_size);
+
+        const requested_len = if (request.recycled_room > 0)
+            request.page_size - request.recycled_room
+        else blk: {
+            const clamped_payload = std.math.clamp(
+                request.average_packet_len,
+                request.min_buf_len,
+                request.page_size - request.header_len,
+            );
+            break :blk try alignToPowerOfTwo(
+                try checkedAddU32(request.header_len, clamped_payload),
+                request.cache_line_size,
+            );
+        };
+        const requested_alloc_len = try checkedAddU32(requested_len, room);
+
+        const plan = MergeableReceiveBufferPlan{
+            .anchor = descriptor().anchor,
+            .planned_queue_pairs = snapshot.planned_queue_pairs,
+            .rx_queue_count = snapshot.rx_queue_count,
+            .headroom = request.headroom,
+            .tailroom = tailroom,
+            .room = room,
+            .requested_len = requested_len,
+            .requested_alloc_len = requested_alloc_len,
+            .page_size = request.page_size,
+            .uses_recycled_room = request.recycled_room > 0,
+            .uses_page_pool = true,
+        };
+        self.last_mergeable_buffer_plan = plan;
+        return plan;
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -160,5 +239,15 @@ pub const VirtioNetProbeLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn checkedAddU32(lhs: u32, rhs: u32) !u32 {
+        const value = @as(u64, lhs) + rhs;
+        return std.math.cast(u32, value) orelse error.BufferLengthOverflow;
+    }
+
+    fn alignToPowerOfTwo(value: u32, alignment: u32) !u32 {
+        const widened = std.mem.alignForward(u64, value, alignment);
+        return std.math.cast(u32, widened) orelse error.BufferLengthOverflow;
     }
 };
