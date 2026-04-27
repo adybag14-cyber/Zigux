@@ -36,6 +36,24 @@ def parse_output(stdout: str) -> dict[str, str]:
     return parsed
 
 
+def expected_metric_keys(expectations: dict[str, object]) -> set[str]:
+    exact_checksums = expectations.get('exact_checksums', {})
+    return (
+        set(expectations['iterations'])
+        | set(exact_checksums)
+        | set(expectations['checksums'])
+    )
+
+
+def unexpected_bitmap_keys(parsed: dict[str, str], expectations: dict[str, object]) -> list[str]:
+    known_metrics = expected_metric_keys(expectations)
+    return sorted(
+        key
+        for key in parsed
+        if key.startswith('PHASE1_BENCH_BITMAP_') and key not in known_metrics
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Run and validate the bounded Phase 1 benchmark smoke output.')
     parser.add_argument('--zig', help='Path to Zig executable')
@@ -56,6 +74,15 @@ def main() -> int:
         print('PHASE1_BENCH_CHECK=fail')
         print(f"EXPECTED_STATUS={expectations['status']}")
         print(f"ACTUAL_STATUS={parsed.get('PHASE1_BENCH')}")
+        return 1
+
+    unexpected_bitmap = unexpected_bitmap_keys(parsed, expectations)
+    if unexpected_bitmap:
+        print('PHASE1_BENCH_CHECK=fail')
+        print('UNDECLARED_BITMAP_KEYS_START')
+        for key in unexpected_bitmap:
+            print(key)
+        print('UNDECLARED_BITMAP_KEYS_END')
         return 1
 
     missing = []
