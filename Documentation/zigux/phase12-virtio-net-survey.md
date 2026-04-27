@@ -1,6 +1,6 @@
 # Phase 12 Virtio Net Survey
 
-This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c`, the first landed Zigux starter tied to it, and the next tiny `hdr_len` follow-up.
+This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c`, the landed Zigux probe starter tied to it, and the already-landed queue-recovery and `hdr_len` follow-ups that keep this lane reviewable without widening into runtime data-path work.
 
 ## Status
 
