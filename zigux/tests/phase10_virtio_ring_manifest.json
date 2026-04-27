@@ -74,6 +74,13 @@
       "why_now": "The live ring slice now includes one tiny delayed-callback pacing helper that mirrors the bounded `virtqueue_enable_cb_delayed()` threshold shape in memory, so the queue-local prerequisite for the first MMIO register-window step is now satisfied without claiming interrupt delivery or event-index writes."
     },
     {
+      "id": "phase10-notify-prepare-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice now includes a tiny notify-prepare helper that mirrors the bounded `virtqueue_kick_prepare()` `num_added` flow in memory, so the survey no longer has to imply that notification bookkeeping landed without a matching manifest record."
+    },
+    {
       "id": "phase10-mmio-register-window-helper",
       "status": "ready_next",
       "kind": "transport_wrapper",
