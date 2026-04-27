@@ -8,6 +8,7 @@ pub const Mode = enum {
     mod2yesconfig,
     defconfig,
     savedefconfig,
+    mod2noconfig,
     allnoconfig,
     allyesconfig,
     allmodconfig,
@@ -32,6 +33,7 @@ pub const Mode = enum {
             .mod2yesconfig => "--mod2yesconfig",
             .defconfig => "--defconfig",
             .savedefconfig => "--savedefconfig",
+            .mod2noconfig => "--mod2noconfig",
             .allnoconfig => "--allnoconfig",
             .allyesconfig => "--allyesconfig",
             .allmodconfig => "--allmodconfig",
@@ -49,6 +51,7 @@ pub const Mode = enum {
             .mod2yesconfig => "mod2yesconfig",
             .defconfig => "defconfig",
             .savedefconfig => "savedefconfig",
+            .mod2noconfig => "mod2noconfig",
             .allnoconfig => "allnoconfig",
             .allyesconfig => "allyesconfig",
             .allmodconfig => "allmodconfig",
@@ -375,6 +378,44 @@ test "conf bridge emits mod2yesconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--mod2yesconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"promote/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"loongarch\"") != null);
+}
+
+test "conf bridge emits mod2noconfig argv and env" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 144), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .mod2noconfig,
+        .kconfig = "Kconfig",
+        .config = "demote/.config",
+        .arch = "mips",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"mod2noconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--mod2noconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"demote/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"mips\"") != null);
 }
 
 test "conf bridge emits defconfig mode argument before kconfig" {

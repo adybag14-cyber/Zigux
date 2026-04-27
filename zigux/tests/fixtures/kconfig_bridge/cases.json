@@ -73,6 +73,14 @@
       "expected": "mod2yesconfig_expected.json"
     },
     {
+      "name": "mod2noconfig",
+      "mode": "mod2noconfig",
+      "kconfig": "Kconfig",
+      "config": "demote/.config",
+      "arch": "mips",
+      "expected": "mod2noconfig_expected.json"
+    },
+    {
       "name": "randconfig",
       "mode": "randconfig",
       "kconfig": "Kconfig",
