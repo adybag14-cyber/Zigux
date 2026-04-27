@@ -216,3 +216,34 @@ test "runtime bitmap sample selftest keeps the bounded review contract explicit"
     try std.testing.expectEqual(summary_before_selftest.nbits, summary_after_selftest.nbits);
     try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
 }
+
+test "runtime bitmap sample keeps exit lifecycle and post-exit snapshot explicit" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+    try module.clearRange(bitmap_view.bits_per_long, 2);
+    try module.setRange(9, 4);
+    _ = try module.runSelftest();
+
+    const summary_before_exit = module.summary();
+    try module.exit();
+
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expect(!module.isSet(bitmap_view.bits_per_long));
+
+    const summary_after_exit = module.summary();
+    try std.testing.expectEqual(summary_before_exit.first_set, summary_after_exit.first_set);
+    try std.testing.expectEqual(summary_before_exit.first_zero, summary_after_exit.first_zero);
+    try std.testing.expectEqual(summary_before_exit.weight, summary_after_exit.weight);
+    try std.testing.expectEqual(summary_before_exit.nbits, summary_after_exit.nbits);
+
+    var source = RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{ 2, 9 });
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(1, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(1, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.copyFrom(&source));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
