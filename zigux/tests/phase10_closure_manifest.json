@@ -31,6 +31,41 @@
     "input_registration_lifecycle",
     "probe_remove_lifecycle"
   ],
+  "roadmap_parity_scoreboard": {
+    "virtqueue_wrappers": {
+      "status": "starter_landed",
+      "evidence": [
+        "drivers/virtio/virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring_manifest.json",
+        "Documentation/zigux/phase10-virtio-ring-survey.md"
+      ]
+    },
+    "mmio_wrappers": {
+      "status": "survey_backed_ready_next",
+      "evidence": [
+        "zigux/tests/phase10_virtio_mmio_manifest.json",
+        "Documentation/zigux/phase10-virtio-mmio-survey.md"
+      ]
+    },
+    "lab_only_driver_validation": {
+      "status": "starter_landed",
+      "evidence": [
+        "zigux/tests/phase10_build.zig",
+        "scripts/zigux/validate-phase10-closure.py",
+        "Documentation/zigux/phase10-closure-evidence.md"
+      ]
+    },
+    "dual_implementations_for_risky_areas": {
+      "status": "blocked_on_risky_transport",
+      "evidence": [
+        "Documentation/zigux/phase10-closure-evidence.md",
+        "zigux/tests/phase10_virtio_ring_manifest.json",
+        "zigux/tests/phase10_virtio_input_manifest.json",
+        "zigux/tests/phase10_virtio_mmio_manifest.json"
+      ]
+    }
+  },
   "ready_transport_followups": {
     "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-register-window-helper"
   },
