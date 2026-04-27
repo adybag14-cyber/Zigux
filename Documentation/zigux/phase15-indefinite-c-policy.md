@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 ## Status
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
-- `PHASE15_SLICE=indefinite-c-policy-field-sync-followup`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and the linked field-sync between the policy note, review-process packet fields, parity scorecard wording, and reserved evidence-archive templates
-- survey provenance refreshed against verified `master` head `cf59271229b54757ec5e60f73b4ea56ac27f5f9c`
+- `PHASE15_SLICE=indefinite-c-policy-current-gap-survey`
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and one current-roadmap-gap survey refresh that records the present indefinite-C policy posture against the surrounding Phase 15 governance bundle
+- survey provenance refreshed against verified `master` head `1eed1743a2d66f87c07293cbfbfbab0aeddfeb26`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -21,11 +21,33 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 
 ## Why this slice exists
 
-The roadmap says Phase 15 must include a policy for code that remains in C indefinitely. Current `master` already carries the freeze map, the review checklist prompt, the Architecture Council review-process note, the parity scorecard, and the reserved per-anchor evidence-archive templates, but those files still spread the long-term stay-in-C posture across several artifacts rather than giving it one dedicated Phase 15 policy record.
+The roadmap says Phase 15 must include a policy for code that remains in C indefinitely. Current `master` already carries the dedicated policy note, the review checklist prompt, the Architecture Council review-process note, the parity scorecard, and the reserved per-anchor evidence-archive templates, but this lane still needs one explicit survey of the current roadmap-vs-repo gap so the policy packet records whether anything remains missing beyond the deep-core blocker posture itself.
 
-That gap matters because the current freeze set is not just temporarily blocked work. `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` are the deep-core anchors most likely to remain C-owned for the current product plan unless an unusually strong and narrow seam appears later. Without a dedicated indefinite-C policy note, the repo can say "keep the code in C" in several places while still leaving unclear what must remain recorded when the product deliberately chooses long-term C ownership.
+That gap matters because the current freeze set is not just temporarily blocked work. `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` are the deep-core anchors most likely to remain C-owned for the current product plan unless an unusually strong and narrow seam appears later. Without one current survey section in the dedicated policy packet, the repo can carry the policy and its field sync while still leaving unclear whether the roadmap requirement is now locally satisfied or whether another missing governance artifact remains.
 
-The honest bounded step is therefore to make that indefinite-C posture explicit and reviewable without inventing any status-change approval, new deep-core implementation, or fake end-state certainty beyond the current product plan.
+The honest bounded step is therefore to record the current answer explicitly: the roadmap-required policy bundle is now landed locally, the dedicated indefinite-C policy gap is closed at the governance layer, and the only remaining blocked work is the stronger stay-in-C exception evidence that would be needed before any deep-core status change could even reopen.
+
+## Current Policy Gap
+
+The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.
+
+The roadmap-required indefinite-C policy bundle is already present locally:
+
+- freeze-map stay-in-C policy language exists in `Documentation/zigux/freeze-map.md`
+- the dedicated policy packet exists in `Documentation/zigux/phase15-indefinite-c-policy.md`
+- the Architecture Council review-process packet and the parity scorecard reuse the same stay-in-C fields and reopen-trigger catalog
+- the dedicated manifest and Zig test keep that policy packet machine-checkable in `zigux/tests/phase15_indefinite_c_policy.json` and `zigux/tests/phase15_indefinite_c_policy.zig`
+
+That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.
+
+The remaining blocked work is not another missing policy artifact. It is the already-recorded deep-core status-change blocker:
+
+- no bounded scheduler seam is approved yet
+- no bounded page-allocator seam is approved yet
+- the current RCU follow-up is still wider than the allowed seam
+- the current skbuff follow-up is still wider than the allowed packet-lifetime boundary
+
+This lane therefore stays in maintenance mode unless one of those blocker postures changes enough to justify another bounded indefinite-C follow-up.
 
 ## When the indefinite-C policy applies
 
@@ -113,6 +135,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
+- landed `phase15-indefinite-c-current-gap-survey`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, but it still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.
