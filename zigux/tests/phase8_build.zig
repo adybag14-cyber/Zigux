@@ -71,6 +71,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     pin_path_root_module.addImport("pin_path", pin_path_module);
+    const file_path_handle_bridge_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const file_path_handle_bridge_root_module = b.createModule(.{
+        .root_source_file = b.path("phase8_file_path_handle_bridge.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);
     const libbpf_segments_root_module = b.createModule(.{
         .root_source_file = b.path("phase8_libbpf_segments.zig"),
         .target = target,
@@ -112,6 +123,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase8-pin-path-tests",
         .root_module = pin_path_root_module,
     });
+    const file_path_handle_bridge_tests = b.addTest(.{
+        .name = "phase8-file-path-handle-bridge-tests",
+        .root_module = file_path_handle_bridge_root_module,
+    });
     const libbpf_segments_tests = b.addTest(.{
         .name = "phase8-libbpf-segment-tests",
         .root_module = libbpf_segments_root_module,
@@ -127,6 +142,7 @@ pub fn build(b: *std.Build) void {
     const run_cpu_mask_tests = b.addRunArtifact(cpu_mask_tests);
     const run_logging_tests = b.addRunArtifact(logging_tests);
     const run_pin_path_tests = b.addRunArtifact(pin_path_tests);
+    const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);
     const run_libbpf_segments_tests = b.addRunArtifact(libbpf_segments_tests);
     const run_bpf_type_names_tests = b.addRunArtifact(bpf_type_names_tests);
 
@@ -137,6 +153,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_cpu_mask_tests.step);
     test_step.dependOn(&run_logging_tests.step);
     test_step.dependOn(&run_pin_path_tests.step);
+    test_step.dependOn(&run_file_path_handle_bridge_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
     test_step.dependOn(&run_bpf_type_names_tests.step);
 }
