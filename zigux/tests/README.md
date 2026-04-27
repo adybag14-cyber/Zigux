@@ -24,6 +24,15 @@ Key entrypoints
 - `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/phase6_hexdump_perf.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- `zigux/tests/phase8_build.zig`
+- `zigux/tests/phase8_exec_cmd.zig`
+- `zigux/tests/phase8_help.zig`
+- `zigux/tests/phase8_kallsyms.zig`
+- `zigux/tests/phase8_cpu_mask.zig`
+- `zigux/tests/phase8_logging.zig`
+- `zigux/tests/phase8_pin_path.zig`
+- `zigux/tests/phase8_libbpf_segments.zig`
+- `zigux/tests/phase8_bpf_type_names.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -32,6 +41,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/validate-phase4.py`
 - `scripts/zigux/validate-phase6.py`
+- `scripts/zigux/validate-phase8.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
