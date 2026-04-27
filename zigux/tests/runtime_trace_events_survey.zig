@@ -130,7 +130,9 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parity scorecard") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status-change request") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-module-tests")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -208,6 +210,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Study / Boundary Only") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "ring-buffer parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "study-boundary note rather than a freeze-map reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Architecture Council") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
@@ -222,6 +226,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "Study / Boundary Only") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "ring-buffer parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "does not reopen the trace-core freeze posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "Architecture Council") != null);
 }
 
