@@ -6,13 +6,15 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus three landed helper-first starter slices
+- scope: segment manifest plus four landed helper-first starter slices
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `tools/lib/bpf/zigux_segments/logging.zig`
   - `tools/lib/bpf/zigux_segments/pin_path.zig`
+  - `tools/lib/bpf/zigux_segments/type_names.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
+  - `zigux/tests/phase8_bpf_type_names.zig`
   - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
@@ -33,16 +35,17 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 
 ## Segment catalog
 
-The manifest currently records six bounded segments:
+The manifest currently records seven bounded segments:
 
 - `logging-version-and-errno`
 - `pin-path-helpers`
 - `cpu-mask-parsing`
+- `type-name-helpers`
 - `skeleton-population`
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-`cpu-mask-parsing`, `logging-version-and-errno`, and `pin-path-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
+`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, and `type-name-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig`. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
 
 ## Current landed segment progress
 
@@ -53,6 +56,8 @@ The current starter implementation stays deliberately bounded:
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
 - delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
+- `type_names.zig` ports the exported attach, link, map, and program type string tables as pure dense lookups over the current `tools/include/uapi/linux/bpf.h` ordinal space
+- the type-name helper keeps unknown negative and oversized ordinals returning `null`, matching libbpf's bounded helper behavior without widening into name-to-type parsing or object lifecycle state
 - `logging.zig` ports libbpf's bounded print-level parsing, verbosity gating, major or minor version reporting, and the libbpf-specific strerror table without claiming environment reads, stderr output, or full errno-name coverage
 - the logging helper keeps invalid `LIBBPF_LOG_LEVEL`-style values explicit for callers instead of printing directly
 - custom libbpf error text is exposed through a compact helper and unknown or unmapped codes fall back to a stable `"Unknown libbpf error N"` formatter
@@ -68,6 +73,9 @@ The current tests check:
 - the bounded set-bit counter matches the parsed mask contents
 - empty and malformed ranges report explicit errors
 - reader contract failures stay explicit instead of silently truncating input
+- every exported attach, link, map, and program type-name table entry stays reachable through the paired helper
+- representative late ordinals from `tools/include/uapi/linux/bpf.h` still resolve to the shipped type-name strings
+- out-of-range negative and oversized type ordinals are rejected cleanly
 - warn, info, and debug verbosity resolution stays case-insensitive and preserves libbpf's gating order
 - invalid log-level text stays explicit while callers still receive the default `info` minimum level
 - the bounded major, minor, and version-string helpers match the current `tools/lib/bpf/libbpf_version.h` tuple

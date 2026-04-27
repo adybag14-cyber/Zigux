@@ -1,7 +1,7 @@
 {
   "lane_key": "P8-L13",
   "phase": "Phase 8",
-  "surveyed_commit": "63799ed231dfdbe5dbafe32bdcaac1fc78afcfc1",
+  "surveyed_commit": "f1ce538166d2bd99c6d723842b2c4bb1b5428cec",
   "anchor": "tools/lib/bpf/libbpf.c",
   "survey_summary": {
     "libbpf_c_lines": 14771,
@@ -80,6 +80,17 @@
     },
     {
       "id": "P8-L13-S04",
+      "slug": "type-name-helpers",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:260-324"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig",
+      "why_now": "The exported attach, link, map, and program type name tables are a stable userspace-to-kernel bridge surface that extends the helper-first libbpf entry without pulling in object loading, ELF state, or syscall-backed behavior."
+    },
+    {
+      "id": "P8-L13-S05",
       "slug": "skeleton-population",
       "status": "blocked_on_object_model",
       "kind": "object_adjacent",
@@ -90,7 +101,7 @@
       "why_now": "This is still a bounded cluster, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
     },
     {
-      "id": "P8-L13-S05",
+      "id": "P8-L13-S06",
       "slug": "object-and-elf-loader",
       "status": "deferred_high_risk",
       "kind": "core_loader",
@@ -102,7 +113,7 @@
       "why_now": "The object-model and ELF collection surface is the first place mirror-tree sprawl becomes likely, so it should stay deferred until helper-first segments are proven."
     },
     {
-      "id": "P8-L13-S06",
+      "id": "P8-L13-S07",
       "slug": "btf-relocation-and-program-load",
       "status": "deferred_high_risk",
       "kind": "verifier_facing",
