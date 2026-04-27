@@ -45,6 +45,28 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 200));
 }
 
+test "runtime kretprobe sample keeps bounded per-instance timestamps for concurrent probes" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    try std.testing.expect(try module.entryHandler(true, 160));
+    try std.testing.expectEqual(@as(usize, 2), module.active_instances);
+    try std.testing.expect(module.summary().entry_timestamp_armed);
+
+    const second = try module.retHandler(12, 210);
+    try std.testing.expectEqual(@as(usize, 12), second.retval);
+    try std.testing.expectEqual(@as(i64, 50), second.duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), module.active_instances);
+    try std.testing.expect(module.summary().entry_timestamp_armed);
+
+    const first = try module.retHandler(7, 260);
+    try std.testing.expectEqual(@as(usize, 7), first.retval);
+    try std.testing.expectEqual(@as(i64, 160), first.duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), module.active_instances);
+    try std.testing.expect(!module.summary().entry_timestamp_armed);
+}
+
 test "runtime kretprobe sample keeps selftest and outstanding-instance paths explicit" {
     var module = sample.RuntimeKretprobeSample{};
     try module.init();
@@ -74,4 +96,9 @@ test "runtime kretprobe sample keeps selftest and outstanding-instance paths exp
     const recovered = try outstanding.retHandler(9, 260);
     try std.testing.expectEqual(@as(i64, 60), recovered.duration_ns);
     try outstanding.exit();
+}
+
+test "runtime kretprobe sample rejects maxactive values outside the bounded starter contract" {
+    var module = sample.RuntimeKretprobeSample{ .maxactive = sample.RuntimeKretprobeSample.default_maxactive + 1 };
+    try std.testing.expectError(error.InvalidMaxactive, module.init());
 }
