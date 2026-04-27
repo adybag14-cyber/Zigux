@@ -22,6 +22,8 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
     ROOT / 'zigux' / 'tests' / 'build.zig',
+    ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig',
+    ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig',
     ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json',
@@ -39,6 +41,8 @@ if missing:
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
+bitmap_diff_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig').read_text(encoding='utf-8')
+bitmap_diff_build_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig').read_text(encoding='utf-8')
 
 required_ledger_markers = [
     'feat(tools/lib): start phase-1 helper ports',
@@ -52,6 +56,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/validate-phase1.py',
     'python3 scripts/zigux/check-phase1-parity.py',
     'zig build test --build-file zigux/tests/build.zig',
+    'zig build test --build-file zigux/tests/bitmap_diff_build.zig --summary all',
 ]
 required_test_markers = [
     '@import("argv_split")',
@@ -69,6 +74,17 @@ required_test_markers = [
     '@import("rbtree")',
     '@embedFile("fixtures/phase1_helpers.json")',
 ]
+required_bitmap_diff_markers = [
+    '@import("bitmap")',
+    '@import("find_bit")',
+    'bitmap.copyClearTail',
+    'bitmap.scnprintf',
+]
+required_bitmap_diff_build_markers = [
+    'b.path("bitmap_diff.zig")',
+    'diff_root.addImport("bitmap", bitmap_module)',
+    'diff_root.addImport("find_bit", find_bit_module)',
+]
 
 missing_markers = []
 for marker in required_ledger_markers:
@@ -80,6 +96,12 @@ for marker in required_workflow_markers:
 for marker in required_test_markers:
     if marker not in test_root:
         missing_markers.append(f'test:{marker}')
+for marker in required_bitmap_diff_markers:
+    if marker not in bitmap_diff_root:
+        missing_markers.append(f'bitmap_diff:{marker}')
+for marker in required_bitmap_diff_build_markers:
+    if marker not in bitmap_diff_build_root:
+        missing_markers.append(f'bitmap_diff_build:{marker}')
 
 if missing_markers:
     print('PHASE1_VALIDATION=fail')
@@ -91,4 +113,4 @@ if missing_markers:
 
 print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'PHASE1_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers)}')
+print(f'PHASE1_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers)}')
