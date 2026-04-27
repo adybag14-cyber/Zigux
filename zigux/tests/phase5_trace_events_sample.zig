@@ -19,6 +19,7 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
+    try std.testing.expectEqualSlices(i32, &.{ 1, 2 }, replay.array_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 2), replay.array_prefix_len);
     try std.testing.expectEqual(@as(i32, 0), replay.array_sentinel);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), replay.bitmask_word);
