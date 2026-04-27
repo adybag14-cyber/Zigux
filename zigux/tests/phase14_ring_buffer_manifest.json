@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L06",
   "phase": "Phase 14",
-  "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
+  "surveyed_commit": "0a66b6c6e651e39ca2ce56cb6776fbde352dc213",
   "anchor": "kernel/trace/ring_buffer.c",
   "roadmap_destinations": [
     "zigux/tests/",
@@ -80,6 +80,17 @@
         "tracing_buffers_splice_read"
       ],
       "rationale": "A mapped reader pins `resize_disabled`, blocks snapshot-style buffer swaps for mapped pages, and forces tracefs splice reads onto the copying path, so the mapping limitations remain one shared C-owned contract rather than a wrapper-first seam."
+    },
+    {
+      "id": "reader-page-consume-boundary",
+      "summary": "Keep reader-page acquisition, consuming reads, and iterator start in C while the survey records their shared reader-lock and resize boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "rb_get_reader_page",
+        "ring_buffer_read_start",
+        "ring_buffer_consume"
+      ],
+      "rationale": "Reader-page acquisition can swap the out-of-ring reader page with the head page, publish lost-event deltas, and wait for writer-side commits, while both consuming reads and iterator start take reader-side locks and pin `resize_disabled`, so the current lane should record one combined handoff rather than imply a wrapper can own any one piece safely."
     }
   ],
   "gaps": [
@@ -155,10 +166,17 @@
     },
     {
       "id": "phase14-ring-buffer-reader-page-consume-followup",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "why_now": "The lane now records a narrow reader-page consume audit around `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` so reader-page swaps, lost-event publication, iterator setup, and consuming reads stay explicit before any bridge candidate is entertained."
+    },
+    {
+      "id": "phase14-ring-buffer-read-page-extraction-followup",
       "status": "ready_next",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "With the mapped-reader ioctl path recorded, the next honest study-only step is a narrow reader-page follow-up around `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` before any bridge candidate is entertained."
+      "why_now": "With the reader-page consume path recorded, the next honest study-only step is a narrow read-page extraction follow-up around `ring_buffer_read_page()`, partial-copy versus page-swap behavior, and the `resize_disabled` handoff before any bridge candidate is entertained."
     },
     {
       "id": "phase14-ring-buffer-zig-port-blocker",
