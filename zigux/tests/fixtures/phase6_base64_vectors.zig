@@ -13,6 +13,7 @@ pub const DecodeCase = struct {
 
 pub const VariantCase = struct {
     expected: []const u8,
+    padding: bool,
     variant_name: []const u8,
 };
 
@@ -50,9 +51,12 @@ pub const standard_cases = [_]EncodeCase{
 pub const variant_sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
 
 pub const variant_cases = [_]VariantCase{
-    .{ .expected = "APv/f4A", .variant_name = "std" },
-    .{ .expected = "APv_f4A", .variant_name = "urlsafe" },
-    .{ .expected = "APv,f4A", .variant_name = "imap" },
+    .{ .expected = "APv/f4A", .padding = false, .variant_name = "std" },
+    .{ .expected = "APv/f4A=", .padding = true, .variant_name = "std" },
+    .{ .expected = "APv_f4A", .padding = false, .variant_name = "urlsafe" },
+    .{ .expected = "APv_f4A=", .padding = true, .variant_name = "urlsafe" },
+    .{ .expected = "APv,f4A", .padding = false, .variant_name = "imap" },
+    .{ .expected = "APv,f4A=", .padding = true, .variant_name = "imap" },
 };
 
 pub const standard_decode_cases = [_]DecodeCase{
@@ -103,5 +107,7 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
 
 pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = "APv_f4A", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "APv_f4A=", .expected = &variant_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },
+    .{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },
 };
