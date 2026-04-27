@@ -126,7 +126,8 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-validate phase12-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot of `virtscsi_probe()` config fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-limit summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also lands one tiny host-limit summary helper") != null);
