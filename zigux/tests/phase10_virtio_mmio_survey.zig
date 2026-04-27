@@ -4,8 +4,10 @@ const SurveySummary = struct {
     virtio_mmio_c_lines: usize,
     preexisting_phase10_test_files: usize,
     preexisting_virtio_core_zig_present: bool,
+    preexisting_virtio_core_survey_present: bool,
     preexisting_phase10_build_present: bool,
     preexisting_phase10_core_doc_present: bool,
+    preexisting_virtio_core_survey_doc_present: bool,
     preexisting_virtio_ring_zig_present: bool,
     preexisting_virtio_ring_doc_present: bool,
     preexisting_virtio_ring_survey_present: bool,
@@ -58,13 +60,15 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expectEqualStrings("P10-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("3d87956e698065c9059a2dc876579ba628c296d7", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("19bb9720bb531d66c7ef592f5ce55c9fb7a8bae7", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_survey_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_survey_present);
@@ -83,6 +87,8 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     var saw_ring_helper = false;
     var saw_ring_callback_delay = false;
     var saw_mmio_ready_next = false;
+    var saw_core_survey_gate = false;
+    var saw_core_survey_note = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -124,6 +130,20 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-survey.md", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-core-survey-gate")) {
+            saw_core_survey_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_core_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "full Phase 10 virtio survey surface") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-core-survey-note")) {
+            saw_core_survey_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-core-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current virtio-core gap") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
             saw_mmio_ready_next = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
@@ -153,5 +173,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expect(saw_mmio_ready_next);
     try std.testing.expect(saw_mmio_survey_gate);
     try std.testing.expect(saw_mmio_survey_note);
+    try std.testing.expect(saw_core_survey_gate);
+    try std.testing.expect(saw_core_survey_note);
     try std.testing.expect(saw_mmio_blocker);
 }
