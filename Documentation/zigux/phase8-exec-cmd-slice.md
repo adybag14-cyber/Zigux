@@ -41,7 +41,7 @@ The current starter slice covers:
 - a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
 - a tiny `PathIdentity` plus `samePathIdentity()` and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
-- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
+- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, its required trailing null terminator, and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
 
 The current tests check:
 
@@ -52,7 +52,7 @@ The current tests check:
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - the stat-identity helper prefers `PWD` only when both injected identities match and falls back cleanly when the `PWD` stat shape is missing
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
-- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
+- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, rejects a missing terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
 
 ## Non-goals
 
