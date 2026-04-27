@@ -167,12 +167,19 @@ def ensure_manifest_is_deterministic() -> None:
                 if input_path is not None:
                     if not input_path.endswith('.config'):
                         issues.append(f'{case_prefix}:input:expected_config_suffix')
+                    canonical_input = f'{name}.config'
+                    if input_path != canonical_input:
+                        issues.append(f'{case_prefix}:input:expected_canonical_name:{canonical_input}')
                     previous_case = seen_config_inputs.get(input_path)
                     if previous_case is not None:
                         issues.append(f'{case_prefix}:input:duplicate_with:{previous_case}')
                     else:
                         seen_config_inputs[input_path] = f'{group_name}:{name}'
                     referenced_files.add(input_path)
+                if expected_path is not None:
+                    canonical_expected = f'{name}_expected.json'
+                    if expected_path != canonical_expected:
+                        issues.append(f'{case_prefix}:expected:expected_canonical_name:{canonical_expected}')
 
             unexpected_case_keys = sorted(set(case) - allowed_keys)
             if unexpected_case_keys:
