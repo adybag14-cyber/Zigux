@@ -13,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
     provides_transaction_buffer_planning: bool,
+    provides_transaction_read_release_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -116,6 +117,22 @@ pub const TransactionPublishPlan = struct {
     becomes_readable: bool,
 };
 
+pub const TransactionReadPlan = struct {
+    anchor: []const u8,
+    readable_size: usize,
+    returns_eof: bool,
+    delegates_to_simple_read_from_buffer: bool,
+    keeps_private_data: bool,
+    leaves_pos_unchanged: bool,
+};
+
+pub const TransactionReleasePlan = struct {
+    anchor: []const u8,
+    returns_zero: bool,
+    frees_private_data: bool,
+    had_private_data: bool,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -127,6 +144,7 @@ pub const LibFsHelperLab = struct {
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
             .provides_transaction_buffer_planning = true,
+            .provides_transaction_read_release_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -400,6 +418,26 @@ pub const LibFsHelperLab = struct {
             .published_size = published_size,
             .uses_release_barrier = true,
             .becomes_readable = true,
+        };
+    }
+
+    pub fn simpleTransactionReadPlan(has_private_data: bool, readable_size: usize) TransactionReadPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .readable_size = if (has_private_data) readable_size else 0,
+            .returns_eof = !has_private_data,
+            .delegates_to_simple_read_from_buffer = has_private_data,
+            .keeps_private_data = has_private_data,
+            .leaves_pos_unchanged = !has_private_data,
+        };
+    }
+
+    pub fn simpleTransactionReleasePlan(has_private_data: bool) TransactionReleasePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .returns_zero = true,
+            .frees_private_data = has_private_data,
+            .had_private_data = has_private_data,
         };
     }
 };
