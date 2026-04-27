@@ -32,6 +32,9 @@ Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
+3. replay the checksum perf sanity harness for this math-sensitive helper
+- `make -C zigux phase6-checksum-perf`
+
 ## Current parity surface
 
 The current checksum helper surface exercised by this slice covers:
@@ -54,6 +57,7 @@ The current tests check:
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
+- a replayable perf-sanity harness reports representative checksum cost per call and per byte for a small fixed packet matrix
 
 The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and now borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
 
@@ -67,4 +71,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Checksum now has a small KUnit-inspired carry-discipline foothold alongside the existing compute, composition, seeded-partial, and pseudo-header fixtures. The next honest decision is whether that is enough to park this Phase 6 leaf-helper lane, or whether one more equally small external parity nibble belongs here before moving to the next unfinished Phase 6 helper.
+Checksum now has a small KUnit-inspired carry-discipline foothold alongside the existing compute, composition, seeded-partial, pseudo-header, and perf-sanity surfaces. The next honest decision is whether that evidence is now enough to park this Phase 6 leaf-helper lane unless a future direct threshold or external parity artifact becomes clearly worthwhile.
