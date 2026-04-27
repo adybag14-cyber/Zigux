@@ -110,10 +110,17 @@
     },
     {
       "id": "phase14-skbuff-validate-xmit-list-reset-followup",
+      "status": "starter_landed",
+      "kind": "lifetime_audit",
+      "zigux_destination": "net/core/skbuff_bridge.zig",
+      "why_now": "The bridge now records the validate_xmit_skb_list() consumer-side list reset, limited to next = skb->next, skb_mark_not_on_list(), skb->prev = skb, and tail = skb->prev so the lane can name the remaining list-reset contract without widening into live packet lifetime control."
+    },
+    {
+      "id": "phase14-skbuff-validate-xmit-republish-followup",
       "status": "ready_next",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff step is a smaller validate_xmit_skb_list() consumer-side follow-up, limited to skb_mark_not_on_list(), skb->prev = skb, and tail = skb->prev so the lane can name the remaining list-reset contract without widening into live packet lifetime control."
+      "why_now": "The next honest skbuff step is a smaller validate_xmit_skb_list() republish follow-up, limited to head = skb, tail->next = skb, and validate_xmit_skb() drop pruning so the lane can name how validated outputs are stitched back into one list without widening into live packet lifetime control."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
