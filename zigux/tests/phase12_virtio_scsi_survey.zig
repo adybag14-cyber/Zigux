@@ -61,6 +61,22 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
     );
     defer std.testing.allocator.free(makefile);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-scsi-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-scsi-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -88,6 +104,17 @@ test "phase12 virtio_scsi survey manifest records the landed probe snapshot star
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot of `virtscsi_probe()` config fields") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-limit summary helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_host_alloc()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_add_host()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_scan_host()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, and probe snapshot starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper next") == null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport freeze or restore boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "host-limit summary helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "cmd_per_lun") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "nr_hw_queues") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
