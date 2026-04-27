@@ -100,28 +100,28 @@ test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it ma
         exec_cmd.choosePwdCwd("/repo", "/other", false),
     );
 
-    const cwd_identity = exec_cmd.PathIdentity{ .device = 11, .inode = 7 };
-    const pwd_identity = exec_cmd.PathIdentity{ .device = 11, .inode = 7 };
-    const missing_pwd_identity: ?exec_cmd.PathIdentity = null;
+    const cwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const matching_pwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const different_pwd_identity = exec_cmd.FileIdentity{ .device = 99, .inode = 7 };
 
-    try std.testing.expect(exec_cmd.samePathIdentity(cwd_identity, pwd_identity));
-    try std.testing.expect(!exec_cmd.samePathIdentity(cwd_identity, missing_pwd_identity));
+    try std.testing.expect(exec_cmd.sameFileLocation(cwd_identity, matching_pwd_identity));
+    try std.testing.expect(!exec_cmd.sameFileLocation(cwd_identity, different_pwd_identity));
     try std.testing.expectEqualStrings(
         "/logical/repo",
-        exec_cmd.choosePwdCwdFromIdentities(
+        exec_cmd.choosePwdCwdFromFileIdentity(
             "/repo",
             "/logical/repo",
             cwd_identity,
-            pwd_identity,
+            matching_pwd_identity,
         ),
     );
     try std.testing.expectEqualStrings(
         "/repo",
-        exec_cmd.choosePwdCwdFromIdentities(
+        exec_cmd.choosePwdCwdFromFileIdentity(
             "/repo",
             "/logical/repo",
             cwd_identity,
-            missing_pwd_identity,
+            different_pwd_identity,
         ),
     );
 }
