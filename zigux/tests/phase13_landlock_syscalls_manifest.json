@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L13",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
-  "surveyed_commit": "5bd2b07d72e3fb8b5869ada8984c324668f48fe6",
+  "surveyed_commit": "5fe2a1bf39e95be8b8762e54c50168c7c28c9bfb",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -95,6 +95,13 @@
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
       "why_now": "The syscall helper now includes one tiny in-memory planner around `add_rule_net_port()` that keeps copied net-port attrs, reused add-rule validation, and the final `landlock_append_net_rule()` handoff explicit before any live TCP/IP, ruleset mutation, or domain state are attempted."
+    },
+    {
+      "id": "phase13-landlock-ruleset-fd-creation-handoff-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one tiny in-memory planner around `anon_inode_getfd()` that keeps the fixed `[landlock-ruleset]` label, `O_RDWR | O_CLOEXEC` flags, and the `landlock_put_ruleset()` failure release discipline explicit before any live file operations wiring or FD ownership is attempted."
     }
   ]
 }
