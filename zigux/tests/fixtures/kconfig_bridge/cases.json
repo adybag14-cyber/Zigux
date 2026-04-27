@@ -134,6 +134,11 @@
       "expected": "empty_string_expected.json"
     },
     {
+      "name": "malformed_quoted_string",
+      "input": "malformed_quoted_string.config",
+      "expected": "malformed_quoted_string_expected.json"
+    },
+    {
       "name": "ignore_non_config_lines",
       "input": "ignore_non_config_lines.config",
       "expected": "ignore_non_config_lines_expected.json"
