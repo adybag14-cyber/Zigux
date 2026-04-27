@@ -88,6 +88,15 @@
       "arch": "arm64",
       "mode_arg": "arch/arm64/configs/defconfig",
       "expected": "defconfig_expected.json"
+    },
+    {
+      "name": "savedefconfig",
+      "mode": "savedefconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "arm64",
+      "mode_arg": "arch/arm64/configs/minimal_defconfig",
+      "expected": "savedefconfig_expected.json"
     }
   ],
   "confdata_cases": [
