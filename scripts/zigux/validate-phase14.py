@@ -33,9 +33,11 @@ FILES = [
 ]
 
 MAKE_MARKERS = [
-    "PHONY += phase14-validate phase14-test phase14",
+    "PHONY += phase14-validate phase14-smoke phase14-test phase14",
     "phase14-validate:",
     "scripts/zigux/validate-phase14.py",
+    "phase14-smoke:",
+    "$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14-test:",
     "$(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14: phase14-validate phase14-test",
@@ -44,6 +46,8 @@ MAKE_MARKERS = [
 WORKFLOW_MARKERS = [
     "Validate Phase 14 shared smoke packet",
     "make -C zigux phase14-validate",
+    "Run Phase 14 smoke shard",
+    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "Run Phase 14 internal bridge tests",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
 ]
@@ -56,8 +60,10 @@ SCRIPT_README_MARKERS = [
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/freeze-map.md`",
     "`make -C zigux phase14-validate`",
+    "`make -C zigux phase14-smoke`",
     "`zigux/tests/phase14_build.zig`",
     "shared Phase 14 smoke packet",
+    "focused smoke-shard replay contract",
     "stay-in-C boundary",
 ]
 
@@ -81,7 +87,7 @@ RELEASE_MARKERS = [
 ]
 
 CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact smoke commands, ready-next versus blocked posture, and stay-in-C boundary?",
+    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, and explicit ZAR-to-product transfer rationale?",
 ]
 
 BUILD_MARKERS = [
@@ -199,6 +205,14 @@ expected_smoke_commands = [
 if smoke_commands != expected_smoke_commands:
     missing.append("manifest:smoke_commands")
 
+smoke_shard_commands = manifest.get("smoke_shard_commands")
+expected_smoke_shard_commands = [
+    "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14-smoke",
+]
+if smoke_shard_commands != expected_smoke_shard_commands:
+    missing.append("manifest:smoke_shard_commands")
+
 summary = manifest.get("survey_summary")
 if not isinstance(summary, dict):
     missing.append("manifest:survey_summary")
@@ -207,10 +221,16 @@ else:
         "phase14_validate_script_present",
         "phase14_validate_entrypoint_present",
         "phase14_build_has_shared_smoke_step",
+        "phase14_build_has_smoke_shard_step",
         "phase14_make_target_present",
+        "phase14_make_smoke_target_present",
         "workflow_runs_phase14_validate",
         "workflow_runs_phase14_build",
+        "workflow_runs_phase14_smoke_shard",
         "review_checklist_has_phase14_smoke_prompt",
+        "review_checklist_has_productization_prompt",
+        "smoke_note_records_owner_and_rollback",
+        "smoke_note_records_transfer_rationale",
         "freeze_map_lists_workqueue_c",
         "freeze_map_lists_skbuff_c",
         "freeze_map_lists_ring_buffer_c",
