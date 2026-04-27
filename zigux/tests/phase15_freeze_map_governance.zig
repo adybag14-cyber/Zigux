@@ -54,7 +54,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.governance_requirements.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.freeze_in_c_targets[1]);
@@ -72,6 +72,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     var saw_make = false;
     var saw_closeout_sync = false;
     var saw_governance_family_alignment = false;
+    var saw_drift_gate = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -119,6 +120,13 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "already landed") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "indefinite-C policy") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-governance-packet-drift-gate")) {
+            saw_drift_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "automatic return-to-blocked trigger") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "maintenance-mode handoff") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -131,7 +139,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), landed_count);
+    try std.testing.expectEqual(@as(usize, 7), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_doc);
@@ -140,6 +148,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expect(saw_make);
     try std.testing.expect(saw_closeout_sync);
     try std.testing.expect(saw_governance_family_alignment);
+    try std.testing.expect(saw_drift_gate);
     try std.testing.expect(saw_blocker);
 }
 
@@ -166,7 +175,7 @@ test "phase 15 freeze-map governance doc records the required gating language" {
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
 }
 
-test "phase 15 freeze-map governance note records the current blocker posture honestly" {
+test "phase 15 freeze-map governance note and checklist record the current blocker posture and drift gate honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -178,6 +187,14 @@ test "phase 15 freeze-map governance note records the current blocker posture ho
     );
     defer std.testing.allocator.free(governance_note);
 
+    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(20 * 1024),
+    );
+    defer std.testing.allocator.free(checklist);
+
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Current blocker posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded scheduler seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded allocator seam") != null);
@@ -186,6 +203,13 @@ test "phase 15 freeze-map governance note records the current blocker posture ho
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-clean-on-current-master`: yes") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "11/11` tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "dedicated freeze-map governance-packet drift gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the freeze-map governance packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "Documentation/zigux/phase15-freeze-map-governance.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "Documentation/zigux/phase15-parity-scorecard.md") != null);
 }
 
 test "phase 15 governance manifest required terms stay aligned with the freeze map" {
