@@ -37,6 +37,7 @@ Use this checklist before opening or merging Zigux product work.
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
 - if the change asks for a freeze-map status change, is the Architecture Council review record linked and are the current status bucket plus requested decision bucket explicit?
 - if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
+- if a freeze-map anchor is entering Architecture Council status review, is the rollback threshold explicit and does the packet name the automatic return-to-blocked trigger if the decision record, scorecard evidence, benchmark notes, replay command, blocker disposition, or rollback owner drops out?
 - if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state and reopen triggers explicit?
 - if a freeze-map anchor remains blocked, does the scorecard still name the current lane owner responsible for keeping that blocked evidence packet up to date?
 
