@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L06",
   "phase": "Phase 11",
-  "surveyed_commit": "d8638f7e136ae70164477451aadee9ec58671259",
+  "surveyed_commit": "2c5de273cf0ea08dfb8e446ce03e1ef54af4853b",
   "anchor": "drivers/watchdog/bcm2835_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -16,6 +16,7 @@
     "bcm2835_wdt_test_present": true,
     "bcm2835_wdt_slice_note_present": true,
     "bcm2835_wdt_validation_matrix_present": true,
+    "bcm2835_wdt_platform_handoff_present": true,
     "bcm2835_wdt_survey_gate_present": true,
     "bcm2835_wdt_survey_note_present": true
   },
@@ -84,6 +85,13 @@
       "why_now": "The lane now also records registration-facing handoff and poweroff ownership outcomes so an already-running watchdog, watchdog registration intent, and poweroff claim-vs-conflict behavior remain reviewable before any live PM base wiring or watchdog-core registration."
     },
     {
+      "id": "phase11-bcm2835-wdt-platform-registration",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
+      "why_now": "The lane now lands a tiny platform-registration and PM-base handoff summary that keeps parent attachment, PM-base readiness, register-device intent, and poweroff claim-vs-conflict reviewable before any live platform registration, MMIO, or shared poweroff-handler behavior lands."
+    },
+    {
       "id": "phase11-bcm2835-wdt-remove-summary",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
@@ -91,11 +99,11 @@
       "why_now": "The lane now records a tiny remove-time ownership summary for clearing the shared poweroff handler only when the bcm2835 driver currently owns it, while leaving conflicting or unrelated ownership untouched before any actual platform remove or poweroff plumbing."
     },
     {
-      "id": "phase11-bcm2835-wdt-platform-registration",
-      "status": "ready_next",
-      "kind": "simple_driver_starter",
-      "zigux_destination": "drivers/watchdog/bcm2835_wdt.zig",
-      "why_now": "With the hardware-validation matrix now landed, the next bounded follow-up is a tiny platform-registration and PM-base handoff summary that keeps watchdog registration intent, PM prerequisites, and poweroff ownership reviewable before any live platform registration, MMIO, or poweroff-handler behavior lands."
+      "id": "phase11-bcm2835-wdt-live-platform-registration",
+      "status": "blocked_on_driver_scaffold",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_bcm2835_wdt.zig",
+      "why_now": "Live platform-driver registration, PM base plumbing, watchdog-core lifecycle wiring, and shared poweroff-handler coordination remain blocked until the lane carries an explicit hardware-validation plan for behavior wider than the current handoff summary."
     }
   ]
 }
