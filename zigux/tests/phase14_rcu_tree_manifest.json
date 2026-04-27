@@ -1,12 +1,32 @@
 {
   "lane_key": "P14-L14",
   "phase": "Phase 14",
-  "surveyed_commit": "d839457a2f2dbdc7b53711401741b5e88541c818",
+  "surveyed_commit": "c6a3bc58efc57f3f276ebe7246d84be5d70200f2",
   "anchor": "kernel/rcu/tree.c",
   "roadmap_destinations": [
     "zigux/tests/",
     "Documentation/zigux/",
     "kernel/rcu/tree_bridge.zig"
+  ],
+  "boundary_map": [
+    {
+      "roadmap_destination": "zigux/tests/",
+      "current_state": "reviewable_survey_landed",
+      "reviewable_artifact": "zigux/tests/phase14_rcu_tree_survey.zig",
+      "blocker": ""
+    },
+    {
+      "roadmap_destination": "Documentation/zigux/",
+      "current_state": "reviewable_survey_landed",
+      "reviewable_artifact": "Documentation/zigux/phase14-rcu-tree-survey.md",
+      "blocker": ""
+    },
+    {
+      "roadmap_destination": "kernel/rcu/tree_bridge.zig",
+      "current_state": "blocked_on_stay_in_c_evidence",
+      "reviewable_artifact": "Documentation/zigux/freeze-map.md",
+      "blocker": "The roadmap destination stays blocked because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still shows gp-sequence publication, expedited waits, NOCB offload, and memory-ordering behavior that are too coupled for a Phase 14 bridge claim."
+    }
   ],
   "survey_summary": {
     "tree_c_lines": 4931,
