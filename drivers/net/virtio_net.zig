@@ -4,8 +4,11 @@ const virtio = @import("virtio");
 pub const feature_mergeable_rx_buffers: u16 = 15;
 pub const feature_control_vq: u16 = 17;
 pub const feature_multiqueue: u16 = 22;
+pub const feature_version_1: u16 = 32;
 pub const feature_hash_report: u16 = 57;
 pub const feature_rss: u16 = 60;
+pub const feature_guest_udp_tunnel_gso: u16 = 65;
+pub const feature_host_udp_tunnel_gso: u16 = 67;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -45,6 +48,13 @@ pub const RssSummary = enum {
     active,
 };
 
+pub const HeaderShape = enum {
+    legacy,
+    mrg_rxbuf,
+    hash_report,
+    hash_report_tunnel,
+};
+
 pub const ProbeRequest = struct {
     driver_feature_bits: []const u16,
     requested_queue_pairs: u16,
@@ -67,6 +77,10 @@ pub const ProbeSnapshot = struct {
     mergeable_rx_buffers: bool,
     has_rss: bool,
     has_rss_hash_report: bool,
+    header_shape: HeaderShape,
+    hdr_len_bytes: u16,
+    uses_hash_report_header: bool,
+    uses_udp_tunnel_header: bool,
     rss_summary: RssSummary,
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
@@ -119,6 +133,9 @@ pub const VirtioNetProbeLab = struct {
         const has_rss = try self.core.hasNegotiatedFeature(feature_rss);
         const has_hash_report = try self.core.hasNegotiatedFeature(feature_hash_report);
         const mergeable_rx_buffers = try self.core.hasNegotiatedFeature(feature_mergeable_rx_buffers);
+        const has_version_1 = try self.core.hasNegotiatedFeature(feature_version_1);
+        const has_guest_udp_tunnel_gso = try self.core.hasNegotiatedFeature(feature_guest_udp_tunnel_gso);
+        const has_host_udp_tunnel_gso = try self.core.hasNegotiatedFeature(feature_host_udp_tunnel_gso);
         const requested_rss = featureRequested(request.driver_feature_bits, feature_rss);
         const requested_hash_report = featureRequested(request.driver_feature_bits, feature_hash_report);
 
@@ -162,6 +179,13 @@ pub const VirtioNetProbeLab = struct {
             request.requested_queue_pairs,
             planned_queue_pairs,
         );
+        const header_shape = summarizeHeaderShape(
+            mergeable_rx_buffers,
+            has_hash_report,
+            has_version_1,
+            has_guest_udp_tunnel_gso,
+            has_host_udp_tunnel_gso,
+        );
 
         const snapshot = ProbeSnapshot{
             .anchor = descriptor().anchor,
@@ -177,6 +201,10 @@ pub const VirtioNetProbeLab = struct {
             .mergeable_rx_buffers = mergeable_rx_buffers,
             .has_rss = has_rss,
             .has_rss_hash_report = has_hash_report,
+            .header_shape = header_shape.shape,
+            .hdr_len_bytes = header_shape.hdr_len_bytes,
+            .uses_hash_report_header = header_shape.uses_hash_report_header,
+            .uses_udp_tunnel_header = header_shape.uses_udp_tunnel_header,
             .rss_summary = rss_summary,
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
@@ -230,6 +258,55 @@ pub const VirtioNetProbeLab = struct {
                 .degrade_to_single_queue
             else
                 .none,
+        };
+    }
+
+    const HeaderShapeSummary = struct {
+        shape: HeaderShape,
+        hdr_len_bytes: u16,
+        uses_hash_report_header: bool,
+        uses_udp_tunnel_header: bool,
+    };
+
+    fn summarizeHeaderShape(
+        mergeable_rx_buffers: bool,
+        has_hash_report: bool,
+        has_version_1: bool,
+        has_guest_udp_tunnel_gso: bool,
+        has_host_udp_tunnel_gso: bool,
+    ) HeaderShapeSummary {
+        if (has_guest_udp_tunnel_gso or has_host_udp_tunnel_gso) {
+            return .{
+                .shape = .hash_report_tunnel,
+                .hdr_len_bytes = 24,
+                .uses_hash_report_header = true,
+                .uses_udp_tunnel_header = true,
+            };
+        }
+
+        if (has_hash_report) {
+            return .{
+                .shape = .hash_report,
+                .hdr_len_bytes = 20,
+                .uses_hash_report_header = true,
+                .uses_udp_tunnel_header = false,
+            };
+        }
+
+        if (mergeable_rx_buffers or has_version_1) {
+            return .{
+                .shape = .mrg_rxbuf,
+                .hdr_len_bytes = 12,
+                .uses_hash_report_header = false,
+                .uses_udp_tunnel_header = false,
+            };
+        }
+
+        return .{
+            .shape = .legacy,
+            .hdr_len_bytes = 10,
+            .uses_hash_report_header = false,
+            .uses_udp_tunnel_header = false,
         };
     }
 };
