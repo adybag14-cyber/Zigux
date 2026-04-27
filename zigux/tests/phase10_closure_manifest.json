@@ -2,10 +2,10 @@
   "phase": "Phase 10",
   "status": "active",
   "tranche": "virtio-lab-bundle",
-  "doc_count": 7,
-  "manifest_count": 3,
+  "doc_count": 8,
+  "manifest_count": 4,
   "driver_count": 3,
-  "test_count": 6,
+  "test_count": 7,
   "has_virtio_mmio_zig": false,
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
@@ -85,6 +85,7 @@
   ],
   "docs": [
     "Documentation/zigux/phase10-virtio-core-slice.md",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-input-slice.md",
@@ -93,6 +94,7 @@
     "Documentation/zigux/phase10-virtio-mmio-survey.md"
   ],
   "manifests": [
+    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json"
@@ -104,6 +106,7 @@
   ],
   "tests": [
     "zigux/tests/phase10_virtio_core.zig",
+    "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
