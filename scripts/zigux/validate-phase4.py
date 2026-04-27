@@ -50,8 +50,8 @@ phase4_gate_expectations = {
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
-        'gate_scope': 'bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay',
-        'threshold_scope': 'range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
+        'gate_scope': 'bounded bitmap range, rounded-prefix, starter-population summary, exact nth-lookup, and copy-behavior replay',
+        'threshold_scope': 'range, rounded-prefix, starter-population summary, exact nth-lookup, and copy-behavior checkpoints',
     },
 }
 
