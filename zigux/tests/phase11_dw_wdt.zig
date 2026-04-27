@@ -153,6 +153,57 @@ test "phase11 dw_wdt probe summary records imported running state and restart bo
     try std.testing.expect(!probe.can_stop);
 }
 
+test "phase11 dw_wdt registration handoff keeps watchdog info, parent, and timeout bookkeeping reviewable" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const handoff = try watchdog.registrationHandoffSummary(false, .{
+        .nowayout = true,
+        .requested_timeout_sec = 9,
+    });
+    try std.testing.expectEqual(dw_wdt.WatchdogInfoSelection.basic, handoff.watchdog_info_selection);
+    try std.testing.expect(!handoff.watchdog_info_supports_pretimeout);
+    try std.testing.expectEqual(dw_wdt.TopSource.fixed, handoff.top_source);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.default_selection, handoff.timeout_origin);
+    try std.testing.expectEqual(@as(u32, 16), handoff.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), handoff.pretimeout_sec);
+    try std.testing.expect(handoff.nowayout);
+    try std.testing.expect(handoff.nowayout_applied);
+    try std.testing.expect(handoff.parent_attached);
+    try std.testing.expect(handoff.watchdog_drvdata_set);
+    try std.testing.expect(handoff.timeout_init_requested);
+    try std.testing.expect(!handoff.marks_hw_running);
+    try std.testing.expect(handoff.programs_timeout_before_registration);
+    try std.testing.expect(handoff.stop_on_reboot);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, handoff.restart_priority);
+    try std.testing.expect(handoff.register_device_requested);
+}
+
+test "phase11 dw_wdt registration handoff imports running state before registration when hardware is already active" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+
+    const handoff = try watchdog.registrationHandoffSummary(true, .{
+        .nowayout = false,
+    });
+    try std.testing.expectEqual(dw_wdt.WatchdogInfoSelection.pretimeout, handoff.watchdog_info_selection);
+    try std.testing.expect(handoff.watchdog_info_supports_pretimeout);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.imported_running_state, handoff.timeout_origin);
+    try std.testing.expectEqual(@as(u32, 16), handoff.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), handoff.pretimeout_sec);
+    try std.testing.expect(!handoff.nowayout);
+    try std.testing.expect(handoff.parent_attached);
+    try std.testing.expect(handoff.watchdog_drvdata_set);
+    try std.testing.expect(handoff.timeout_init_requested);
+    try std.testing.expect(handoff.marks_hw_running);
+    try std.testing.expect(!handoff.programs_timeout_before_registration);
+    try std.testing.expect(handoff.stop_on_reboot);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, handoff.restart_priority);
+    try std.testing.expect(handoff.register_device_requested);
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
