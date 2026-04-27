@@ -1,7 +1,7 @@
 {
   "lane_key": "P8-L13",
   "phase": "Phase 8",
-  "surveyed_commit": "246d0135fa18a1af90bf7d6e516ae4a7b2ac262a",
+  "surveyed_commit": "f96f0cc1962f2e909167185693aed38047570d1c",
   "anchor": "tools/lib/bpf/libbpf.c",
   "survey_summary": {
     "libbpf_c_lines": 14771,
