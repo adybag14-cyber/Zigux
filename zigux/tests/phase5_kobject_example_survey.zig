@@ -103,3 +103,33 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "sysfs file creation parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kernel_kobj integration"));
 }
+
+test "phase 5 kobject contributor docs stay aligned with the shipped review surface" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kobject-sample-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const readme_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(readme_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "attribute array order `foo`, `baz`, `bar` explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, readme_note, "registration, Linux `foo`/`baz`/`bar` attribute-order, and attribute-roundtrip checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme_note, "phase5_build.zig") != null);
+}
