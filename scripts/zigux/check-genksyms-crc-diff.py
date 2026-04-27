@@ -102,7 +102,9 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_crc_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         c_actual = tmp_dir / 'genksyms_crc.c.actual.json'
+        c_repeat = tmp_dir / 'genksyms_crc.c.repeat.json'
         zig_actual = tmp_dir / 'genksyms_crc.zig.actual.json'
+        zig_repeat = tmp_dir / 'genksyms_crc.zig.repeat.json'
 
         compile_run_c(tmp_dir, c_actual, compiler)
         run_zig(zig, tmp_dir, zig_actual)
@@ -117,7 +119,12 @@ def main() -> int:
         run(diff_base + [str(EXPECTED), str(c_actual)], cwd=str(ROOT))
         run(diff_base + [str(EXPECTED), str(zig_actual)], cwd=str(ROOT))
         run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
+        compile_run_c(tmp_dir, c_repeat, compiler)
+        run_zig(zig, tmp_dir, zig_repeat)
+        run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))
+        run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))
         print('GENKSYMS_CRC_DIFF=pass')
+        print('GENKSYMS_CRC_DETERMINISM=pass')
         print(f'FIXTURE={EXPECTED}')
         return 0
 
