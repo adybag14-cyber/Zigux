@@ -52,10 +52,10 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("5bd2b07d72e3fb8b5869ada8984c324668f48fe6", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("5fe2a1bf39e95be8b8762e54c50168c7c28c9bfb", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -65,7 +65,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -80,6 +80,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_path_followup = false;
     var saw_path_beneath_handoff = false;
     var saw_net_port_handoff = false;
+    var saw_ruleset_fd_creation_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -159,13 +160,20 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "add_rule_net_port()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_append_net_rule()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-fd-creation-handoff-followup")) {
+            saw_ruleset_fd_creation_handoff = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anon_inode_getfd()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_put_ruleset()") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -178,6 +186,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_path_followup);
     try std.testing.expect(saw_path_beneath_handoff);
     try std.testing.expect(saw_net_port_handoff);
+    try std.testing.expect(saw_ruleset_fd_creation_handoff);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -190,6 +199,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
+    try std.testing.expect(descriptor.provides_ruleset_fd_creation_planning);
     try std.testing.expect(descriptor.provides_path_fd_planning);
     try std.testing.expect(descriptor.provides_path_beneath_handoff_planning);
     try std.testing.expect(descriptor.provides_net_port_handoff_planning);
@@ -390,6 +400,29 @@ test "phase13 landlock syscalls get_ruleset_from_fd planning models mode checks 
         .required_mode = syscalls.fmode_can_read,
     });
     try std.testing.expectEqual(@as(u32, syscalls.fmode_can_read), read_plan.required_mode);
+}
+
+test "phase13 landlock syscalls create_ruleset_fd planning keeps anon-inode label, flags, and failure release explicit" {
+    const plan = try syscalls.SyscallsHelperLab.planCreateRulesetFd(.{});
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expectEqualStrings(syscalls.ruleset_fd_label, plan.label);
+    try std.testing.expectEqual(@as(u32, syscalls.ruleset_fd_flags), plan.flags);
+    try std.testing.expect(plan.invokes_anon_inode_getfd);
+    try std.testing.expect(plan.transfers_ruleset_to_fd_on_success);
+    try std.testing.expect(plan.releases_ruleset_on_fd_failure);
+}
+
+test "phase13 landlock syscalls create_ruleset_fd planning rejects missing rulesets, label drift, and flag drift" {
+    try std.testing.expectError(error.MissingRuleset, syscalls.SyscallsHelperLab.planCreateRulesetFd(.{
+        .ruleset_present = false,
+    }));
+    try std.testing.expectError(error.InvalidRulesetFdLabel, syscalls.SyscallsHelperLab.planCreateRulesetFd(.{
+        .label = "[wrong-ruleset]",
+    }));
+    try std.testing.expectError(error.InvalidRulesetFdFlags, syscalls.SyscallsHelperLab.planCreateRulesetFd(.{
+        .flags = syscalls.open_rdwr,
+    }));
 }
 
 test "phase13 landlock syscalls get_ruleset_from_fd planning rejects bad fd, type, mode, and layer drift" {
