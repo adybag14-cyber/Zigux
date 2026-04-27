@@ -2,8 +2,9 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "chrdev-notify-plan-interop",
-  "file_count": 4,
+  "file_count": 5,
   "files": [
+    "Documentation/zigux/phase3-chrdev-notify-slice.md",
     "zigux/helpers/chrdev_notify_plan.zig",
     "zigux/tests/phase3_chrdev_notify_dump.zig",
     "zigux/tests/fixtures/phase3_chrdev_notify/phase3_chrdev_notify_c_harness.c",
