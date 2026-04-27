@@ -86,9 +86,9 @@ required_closure_markers = [
     "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
-    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,irq_parity,dma_paths,input_registration_lifecycle",
+    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
     "Documentation/zigux/review-checklist.md",
-    "phase10-mmio-wrapper-lane",
+    "phase10-mmio-register-window-helper",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
     "blocked_on_risky_transport",
@@ -118,7 +118,7 @@ required_workflow_markers = [
 ]
 required_checklist_markers = [
     "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, the three Phase 10 survey manifests, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
-    "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, IRQ, registration, or DMA claims?",
+    "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
 ]
 missing_markers: list[str] = []
 for marker in required_closure_markers:
@@ -186,9 +186,11 @@ if manifest.get("architecture_council_reopen_attached") is not False:
     missing_markers.append("manifest:architecture_council_reopen_attached=true")
 expected_forbidden_transport_claims = [
     "virtio_mmio.zig",
+    "queue_setup_reset_paths",
     "irq_parity",
     "dma_paths",
     "input_registration_lifecycle",
+    "probe_remove_lifecycle",
 ]
 if manifest.get("forbidden_transport_claims") != expected_forbidden_transport_claims:
     missing_markers.append("manifest:forbidden_transport_claims:mismatch")
@@ -230,9 +232,15 @@ expected_exact_checks = {
 if set(manifest.get("exact_checks", [])) != expected_exact_checks:
     missing_markers.append("manifest:exact_checks:mismatch")
 
+ready_transport_followups = manifest.get("ready_transport_followups")
+expected_ready_transport_followups = {
+    "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-register-window-helper",
+}
+if ready_transport_followups != expected_ready_transport_followups:
+    missing_markers.append("manifest:ready_transport_followups:mismatch")
+
 blocked_transport_gaps = manifest.get("blocked_transport_gaps")
 expected_blocked_transport_gaps = {
-    "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-wrapper-lane",
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
@@ -253,7 +261,7 @@ def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
     if phase_manifest.get("roadmap_destinations") != expected_allowed_roadmap_destinations:
         missing_markers.append(f"{lane_name}:roadmap_destinations:mismatch")
 
-def has_blocked_gap(phase_manifest: object, gap_id: str) -> bool:
+def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
     if not isinstance(phase_manifest, dict):
         return False
     gaps = phase_manifest.get("gaps")
@@ -262,15 +270,15 @@ def has_blocked_gap(phase_manifest: object, gap_id: str) -> bool:
     for gap in gaps:
         if not isinstance(gap, dict):
             continue
-        if gap.get("id") == gap_id and gap.get("status") == "blocked_on_risky_transport":
+        if gap.get("id") == gap_id and gap.get("status") == status:
             return True
     return False
 
-if not has_blocked_gap(ring_manifest, "phase10-mmio-wrapper-lane"):
-    missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-wrapper-lane:blocked_on_risky_transport")
-if not has_blocked_gap(input_manifest, "phase10-virtio-input-registration-lifecycle"):
+if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "ready_next"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:ready_next")
+if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecycle", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
-if not has_blocked_gap(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths"):
+if not has_gap_status(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
 
 validate_lane_manifest(ring_manifest, "phase10_virtio_ring_manifest")
