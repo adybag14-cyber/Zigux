@@ -24,6 +24,7 @@ from phase3_check_lib import (
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
+ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -37,6 +38,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
+    ABI_LOW_LEVEL_BUILD_FILE_REL,
+    "zigux/tests/phase3_low_level_wrappers.zig",
 )
 ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
@@ -45,6 +48,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
+    "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
 
@@ -162,6 +166,15 @@ def validate_build_steps(root: Path, slices: list[object], issues: list[str]) ->
             issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
 
 
+def validate_abi_focused_build(root: Path, issues: list[str]) -> None:
+    build_file = root / ABI_LOW_LEVEL_BUILD_FILE_REL
+    if not build_file.exists():
+        issues.append(f"abi:missing_file:{ABI_LOW_LEVEL_BUILD_FILE_REL}")
+        return
+    if not _has_build_step(build_file, "phase3-low-level-wrappers-test"):
+        issues.append(f"abi:missing_build_step:{ABI_LOW_LEVEL_BUILD_FILE_REL}:phase3-low-level-wrappers-test")
+
+
 def validate_runner_metadata(slices: list[object], issues: list[str]) -> None:
     for entry in slices:
         runner_build_step = runner_build_step_for_slug(entry.slug)
@@ -243,6 +256,7 @@ def validate_slices(
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
 
     validate_build_steps(root, slices, issues)
+    validate_abi_focused_build(root, issues)
     validate_runner_metadata(slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
     if check_artifact_diff:
@@ -283,6 +297,11 @@ def run_self_test() -> int:
                     "",
                 ]
             ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
+            'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
             newline="\n",
         )
@@ -366,6 +385,7 @@ def run_self_test() -> int:
                     "PHASE3_PANIC_POLICY=explicit-modes-only",
                     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
                     "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
+                    "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
                     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
                     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
                     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
