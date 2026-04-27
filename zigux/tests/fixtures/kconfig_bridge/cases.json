@@ -127,6 +127,11 @@
       "name": "explicit_n_tristate",
       "input": "explicit_n_tristate.config",
       "expected": "explicit_n_tristate_expected.json"
+    },
+    {
+      "name": "ignore_non_config_lines",
+      "input": "ignore_non_config_lines.config",
+      "expected": "ignore_non_config_lines_expected.json"
     }
   ]
 }
