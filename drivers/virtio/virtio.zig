@@ -48,8 +48,10 @@ pub const QueueDescriptorShapeSummary = struct {
 
 pub const ConfigChangeSummary = struct {
     anchor: []const u8,
+    driver_name: []const u8,
     core_enabled: bool,
     driver_disabled: bool,
+    config_changed_registered: bool,
     change_pending: bool,
     delivery_count: usize,
 };
@@ -70,6 +72,8 @@ pub const VirtioCoreLabDevice = struct {
     };
 
     status: u8 = 0,
+    driver_name: []const u8 = "",
+    config_changed_registered: bool = false,
     device_features: FeatureSet = FeatureSet.initEmpty(),
     driver_features: FeatureSet = FeatureSet.initEmpty(),
     negotiated_features: FeatureSet = FeatureSet.initEmpty(),
@@ -103,6 +107,8 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn reset(self: *Self) void {
         self.status = 0;
+        self.driver_name = "";
+        self.config_changed_registered = false;
         self.driver_features = FeatureSet.initEmpty();
         self.negotiated_features = FeatureSet.initEmpty();
         self.queues = [_]QueueSlot{QueueSlot{}} ** queue_capacity;
@@ -121,6 +127,18 @@ pub const VirtioCoreLabDevice = struct {
     pub fn attachDriver(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
         self.status |= DeviceStatus.driver;
+    }
+
+    pub fn registerDriverBinding(
+        self: *Self,
+        driver_name: []const u8,
+        config_changed_registered: bool,
+    ) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (driver_name.len == 0) return error.EmptyDriverName;
+
+        self.driver_name = driver_name;
+        self.config_changed_registered = config_changed_registered;
     }
 
     pub fn offerDriverFeature(self: *Self, feature_bit: u16) !void {
@@ -326,8 +344,10 @@ pub const VirtioCoreLabDevice = struct {
     pub fn configChangeSummary(self: *const Self) ConfigChangeSummary {
         return .{
             .anchor = descriptor().anchor,
+            .driver_name = self.driver_name,
             .core_enabled = self.config_core_enabled,
             .driver_disabled = self.config_driver_disabled,
+            .config_changed_registered = self.config_changed_registered,
             .change_pending = self.config_change_pending,
             .delivery_count = self.config_change_delivery_count,
         };
@@ -340,6 +360,11 @@ pub const VirtioCoreLabDevice = struct {
     fn handleConfigChanged(self: *Self) void {
         if (!self.config_core_enabled or self.config_driver_disabled) {
             self.config_change_pending = true;
+            return;
+        }
+
+        if (!self.config_changed_registered) {
+            self.config_change_pending = false;
             return;
         }
 
