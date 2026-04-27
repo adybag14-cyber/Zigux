@@ -311,6 +311,19 @@ test "encode covers standard and variant alphabets" {
     try std.testing.expectEqualStrings("APv,f4A=", imap_padded_buf[0..imap_padded_len]);
 }
 
+test "encode accepts exact-fit buffers and rejects one-byte-short buffers" {
+    const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+    const exact_len = chars(sample.len, true);
+
+    var exact_buf: [8]u8 = undefined;
+    const written = try encode(exact_buf[0..exact_len], &sample, true, .std);
+    try std.testing.expectEqual(exact_len, written);
+    try std.testing.expectEqualStrings("APv/f4A=", exact_buf[0..written]);
+
+    var short_buf: [7]u8 = undefined;
+    try std.testing.expectError(EncodeError.DestinationTooSmall, encode(short_buf[0..], &sample, true, .std));
+}
+
 test "decode covers padded, unpadded, and variant inputs" {
     var out: [16]u8 = undefined;
     var variant_out: [8]u8 = undefined;
@@ -333,6 +346,20 @@ test "decode covers padded, unpadded, and variant inputs" {
 
     const imap_padded_len = try decode(variant_out[0..], "APv,f4A=", true, .imap);
     try std.testing.expectEqualSlices(u8, &sample, variant_out[0..imap_padded_len]);
+}
+
+test "decode accepts exact-fit buffers and rejects one-byte-short buffers" {
+    const encoded = "APv_f4A";
+    const exact_len = try bytes(encoded, false, .urlsafe);
+    const expected = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+
+    var exact_buf: [5]u8 = undefined;
+    const written = try decode(exact_buf[0..exact_len], encoded, false, .urlsafe);
+    try std.testing.expectEqual(exact_len, written);
+    try std.testing.expectEqualSlices(u8, &expected, exact_buf[0..written]);
+
+    var short_buf: [4]u8 = undefined;
+    try std.testing.expectError(DecodeError.DestinationTooSmall, decode(short_buf[0..], encoded, false, .urlsafe));
 }
 
 test "decode rejects malformed input and reports destination bounds" {
