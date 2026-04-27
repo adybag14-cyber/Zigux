@@ -82,6 +82,11 @@ required_closure_markers = [
     "PHASE10_FREEZE_STATUS_CHANGE_CLAIM=no",
     "PHASE10_FREEZE_IN_C_ANCHOR_COUNT=4",
     "PHASE10_STUDY_ONLY_ANCHOR_COUNT=2",
+    "PHASE10_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/helpers/",
+    "PHASE10_ALLOWED_EVIDENCE_KINDS=driver_local_lab_slices,survey_manifests,shared_validation_gates",
+    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
+    "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=virtio_mmio.zig,irq_parity,dma_paths,input_registration_lifecycle",
     "Documentation/zigux/review-checklist.md",
     "phase10-mmio-wrapper-lane",
     "phase10-virtio-input-registration-lifecycle",
@@ -162,6 +167,31 @@ if manifest.get("review_checklist") != "Documentation/zigux/review-checklist.md"
     missing_markers.append(f'manifest:review_checklist={manifest.get("review_checklist")}')
 if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
     missing_markers.append(f'manifest:risky_transport_posture={manifest.get("risky_transport_posture")}')
+expected_allowed_roadmap_destinations = [
+    "drivers/virtio/*.zig",
+    "zigux/helpers/",
+]
+if manifest.get("allowed_roadmap_destinations") != expected_allowed_roadmap_destinations:
+    missing_markers.append("manifest:allowed_roadmap_destinations:mismatch")
+expected_allowed_evidence_kinds = [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates",
+]
+if manifest.get("allowed_evidence_kinds") != expected_allowed_evidence_kinds:
+    missing_markers.append("manifest:allowed_evidence_kinds:mismatch")
+if manifest.get("architecture_council_reopen_required") is not True:
+    missing_markers.append("manifest:architecture_council_reopen_required=false")
+if manifest.get("architecture_council_reopen_attached") is not False:
+    missing_markers.append("manifest:architecture_council_reopen_attached=true")
+expected_forbidden_transport_claims = [
+    "virtio_mmio.zig",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+]
+if manifest.get("forbidden_transport_claims") != expected_forbidden_transport_claims:
+    missing_markers.append("manifest:forbidden_transport_claims:mismatch")
 
 expected_freeze_in_c_anchors = [
     "kernel/sched/core.c",
@@ -209,6 +239,20 @@ expected_blocked_transport_gaps = {
 if blocked_transport_gaps != expected_blocked_transport_gaps:
     missing_markers.append("manifest:blocked_transport_gaps:mismatch")
 
+def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
+    if not isinstance(phase_manifest, dict):
+        missing_markers.append(f"{lane_name}:expected_object")
+        return
+    if phase_manifest.get("phase") != "Phase 10":
+        missing_markers.append(f"{lane_name}:phase=Phase 10")
+    anchor = phase_manifest.get("anchor")
+    if not isinstance(anchor, str) or not anchor.startswith("drivers/virtio/"):
+        missing_markers.append(f"{lane_name}:anchor=drivers/virtio/*")
+    if anchor in expected_freeze_in_c_anchors or anchor in expected_study_only_anchors:
+        missing_markers.append(f"{lane_name}:anchor:freeze_map_overlap")
+    if phase_manifest.get("roadmap_destinations") != expected_allowed_roadmap_destinations:
+        missing_markers.append(f"{lane_name}:roadmap_destinations:mismatch")
+
 def has_blocked_gap(phase_manifest: object, gap_id: str) -> bool:
     if not isinstance(phase_manifest, dict):
         return False
@@ -228,6 +272,10 @@ if not has_blocked_gap(input_manifest, "phase10-virtio-input-registration-lifecy
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
 if not has_blocked_gap(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
+
+validate_lane_manifest(ring_manifest, "phase10_virtio_ring_manifest")
+validate_lane_manifest(input_manifest, "phase10_virtio_input_manifest")
+validate_lane_manifest(mmio_manifest, "phase10_virtio_mmio_manifest")
 
 if missing_markers:
     print("PHASE10_CLOSURE_VALIDATION=fail")
