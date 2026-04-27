@@ -57,7 +57,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "The existing ring survey keeps the queue-wrapper roadmap gap explicit, which the MMIO lane depends on before transport-facing work can honestly begin."
+      "why_now": "The existing ring survey keeps the MMIO follow-up boundary explicit, which the MMIO lane depends on before transport-facing work can honestly begin."
     },
     {
       "id": "phase10-virtio-ring-lab-helper",
