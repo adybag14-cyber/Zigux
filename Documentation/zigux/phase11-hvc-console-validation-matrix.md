@@ -40,7 +40,7 @@ Without this matrix, the slice named the right next step but did not yet preserv
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - exact shared outcome:
-  - `Build Summary: 15/15 steps succeeded; 29/29 tests passed`
+  - `Build Summary: 17/17 steps succeeded; 36/36 tests passed`
   - included hvc artifact: `run test phase11-hvc-console-tests 5 pass (5 total)`
   - no `phase11-hvc-console-survey-tests` artifact is present in that shared replay
 - dedicated survey replay still passes separately:
