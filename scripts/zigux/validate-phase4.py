@@ -126,7 +126,8 @@ required_phase4_matrix_markers = [
     'Remaining Measurability Gaps Vs Roadmap',
     'samples/zigux/kprobe_example.zig',
     'samples/zigux/test_fsmount.zig',
-    'rollback owner and lab matrix stay unassigned until a bounded Zig surface lands',
+    'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
+    'survey owner, rollback owner, and Zig lab matrix stay unassigned while the current replay stays on the C anchor via `make M=samples/vfs`; no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
 ]
 roadmap_gap_expectations = {
@@ -136,9 +137,9 @@ roadmap_gap_expectations = {
         'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
     },
     'samples/zigux/test_fsmount.zig': {
-        'current_repo_state': 'not present on `master`',
-        'measurability_gap': 'rollback owner and lab matrix stay unassigned until a bounded Zig surface lands',
-        'next_bounded_step': 'add a survey or starter gate that names one owner, one rollback owner, and one replay command before claiming this anchor as active Phase 4 work',
+        'current_repo_state': 'not present on `master`; the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
+        'measurability_gap': 'survey owner, rollback owner, and Zig lab matrix stay unassigned while the current replay stays on the C anchor via `make M=samples/vfs`; no hard timing threshold is approved before a bounded Zig sample lands',
+        'next_bounded_step': 'add a survey or starter gate that names one survey owner, one rollback owner, and one replay command before claiming this anchor as active Phase 4 work',
     },
     'perf baselines and thresholds for the two shipped rollback gates': {
         'current_repo_state': '`zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still correctness-only gates today',
@@ -283,9 +284,16 @@ for gate_name, expectation in phase4_gate_expectations.items():
 
 
 def check_roadmap_gap_alignment(item_name: str, expectation: dict[str, str]) -> list[str]:
-    row_prefix = f'| `{item_name}`'
+    row_prefixes = [
+        f'| `{item_name}`',
+        f'| {item_name} |',
+    ]
     row = next(
-        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        (
+            line
+            for line in phase4_matrix.splitlines()
+            if any(line.startswith(prefix) for prefix in row_prefixes)
+        ),
         '',
     )
     if not row:
