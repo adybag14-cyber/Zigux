@@ -385,6 +385,16 @@ test "bitmap xor keeps caller-selected bit window" {
     try std.testing.expectEqual(@as(Word, 0b1110), dst[0] & lastWordMask(4));
 }
 
+test "bitmap xor across a multiword tail still lets callers clamp the last word" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0b11_1001, 0b10_1110 };
+    const rhs = [_]Word{ 0b10_1010, 0b00_1001 };
+    var dst = [_]Word{ 0, 0 };
+
+    xorBits(&dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0b01_0011, 0b00_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
+}
+
 test "bitmap scnprintf collapses contiguous ranges" {
     var map = [_]Word{ 0, 0 };
     setRange(&map, 1, 3);
