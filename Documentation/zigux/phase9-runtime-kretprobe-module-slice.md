@@ -20,14 +20,14 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo already had runtime pilot starters for atomic64, bitmap, and trace-events, but it still had no kretprobe lane foothold. This slice lands the smallest honest kretprobe follow-on step: a sample-backed lifecycle scaffold that models entry timestamps, return values, duration, missed-instance bookkeeping, and now the loader handoff plan plus shared loader-request binding without claiming `register_kretprobe()` or loadable-module parity.
+The live repo already had runtime pilot starters for atomic64, bitmap, and trace-events, but it still had no kretprobe lane foothold. This slice lands the smallest honest kretprobe follow-on step: a sample-backed lifecycle scaffold that models bounded per-instance private entry timestamps, return values, duration, missed-instance bookkeeping, and now the loader handoff plan plus shared loader-request binding without claiming `register_kretprobe()` or loadable-module parity.
 
 ## Landed starter surface
 
 - module descriptor metadata naming the `samples/kprobes/kretprobe_example.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a retargetable symbol-name starter that defaults to `kernel_clone`, matching the Linux sample's module parameter
-- bounded entry-handler skip behavior for kernel-thread-like contexts, return-value and duration bookkeeping, and explicit `nmissed` tracking
+- bounded entry-handler skip behavior for kernel-thread-like contexts, bounded per-instance private entry-timestamp tracking across concurrent active probes, return-value and duration bookkeeping, and explicit `nmissed` tracking
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - a bounded `runtime_kretprobe_loader` scaffold that makes the planned `register_kretprobe()` and `unregister_kretprobe()` lifecycle, entry or exit symbol names, and per-instance private-data size explicit while the runtime substrate remains unavailable
 - a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that consumes the kretprobe loader handoff through explicit allocator posture, staged entry and exit symbols, and a machine-checkable kretprobe payload
