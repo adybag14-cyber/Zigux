@@ -6,8 +6,8 @@ This document records the bounded Phase 15 readiness lane for surveying the rema
 
 - `PHASE15_STATUS=readiness_gate_survey_landed`
 - `PHASE15_SLICE=tranche-readiness-gap-survey`
-- scope: one readiness survey note, one dedicated manifest and Zig test, and one shared `phase15_build.zig` follow-up that keeps the roadmap requirements, bootstrap ledger anchor, current repo evidence, and remaining blocked readiness gaps reviewable in one place
-- survey provenance refreshed against verified `master` head `fdb3e433f2084d18f3756ff24e63a4e5d1894018`
+- scope: one readiness survey note, one dedicated manifest and Zig test, one shared `phase15_build.zig` follow-up, and one shared bootstrap-workflow replay step that keep the roadmap requirements, bootstrap ledger anchor, current repo evidence, and remaining blocked readiness gaps reviewable in one place
+- survey provenance refreshed against verified `master` head `783e573845f21769925870e53a591e48878bb7f0`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
@@ -35,12 +35,9 @@ What was still missing was one dedicated readiness packet that compares those th
 - what the bootstrap ledger originally anchored
 - what the live repo has actually landed and what remains blocked
 
-That comparison matters because the remaining Phase 15 gaps are no longer “missing governance documents.” They are narrower readiness gaps:
+That comparison still matters because the remaining Phase 15 gap is no longer “missing governance documents” or missing shared replay coverage. The shared bootstrap workflow now runs the Phase 15 governance bundle, and the only remaining readiness blocker is that no deep-core anchor has evidence strong enough to leave the freeze-in-C posture.
 
-- the published shared bootstrap workflow still stops at Phase 14 and does not run the Phase 15 governance bundle
-- no deep-core anchor has evidence strong enough to leave the freeze-in-C posture
-
-The honest bounded step is therefore a readiness survey, not another new governance policy surface.
+The honest bounded step therefore remains maintenance of the existing readiness packet, not another new governance policy surface.
 
 ## Roadmap Versus Ledger
 
@@ -62,21 +59,11 @@ The honest bounded step is therefore a readiness survey, not another new governa
 - `Documentation/zigux/phase15-indefinite-c-policy.md` is present and records the source-of-truth, exception, reopen, and retained-closeout posture for long-term C ownership
 - `zigux/tests/phase15_build.zig` is present and replays the Phase 15 governance bundle locally
 - `zigux/Makefile` is present and exposes `make -C zigux phase15`
+- `.github/workflows/zigux-bootstrap.yml` is present and now runs `Run Phase 15 governance tests` so the current governance bundle is also replayed in the shared bootstrap workflow
 
 That means the roadmap-required governance bundle is landed locally on current `master`, and the bootstrap ledger anchor has already been carried forward into a fuller Phase 15 review surface.
 
 ## Remaining Readiness Gaps
-
-### Shared CI Coverage Still Missing
-
-The published shared bootstrap workflow still does not run the Phase 15 governance bundle.
-
-- `.github/workflows/zigux-bootstrap.yml` validates and replays through Phase 14
-- it contains no `Validate Phase 15` step
-- it contains no `Run Phase 15` step
-- current Phase 15 enforcement is therefore maintainer-run through `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`, not shared-CI enforced
-
-This is a real readiness gap, but it is a separate shared-workflow decision rather than a missing local Phase 15 governance artifact.
 
 ### Deep-Core Status Changes Still Blocked
 
@@ -95,9 +82,8 @@ The current readiness gate for trusting the Phase 15 tranche is:
 
 1. the roadmap-required governance bundle is present and internally aligned
 2. the bootstrap ledger anchor is still visible as the originating documentation root and freeze-map step
-3. the local Phase 15 replay surface stays green
+3. the local and shared-bootstrap Phase 15 replay surfaces stay green
 4. the remaining gaps stay explicit as:
-   - missing shared CI coverage for Phase 15
    - blocked deep-core status changes pending stronger stay-in-C exception evidence
 
 If any of those four conditions stops being true, the tranche is no longer ready for maintenance-mode governance.
@@ -110,17 +96,16 @@ The current lane state is:
 - landed `phase15-readiness-gate-manifest`
 - landed `phase15-readiness-gate-test`
 - landed `phase15-build-gate-readiness`
-- ready-next `phase15-shared-ci-coverage-gap`
+- landed `phase15-shared-ci-coverage`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight. Zigux now has one reviewable readiness packet that says the roadmap bundle is landed, the ledger anchor is still visible, and the remaining Phase 15 gaps are shared CI coverage plus still-blocked deep-core status changes.
+This keeps the lane tight. Zigux now has one reviewable readiness packet that says the roadmap bundle is landed, the ledger anchor is still visible, the shared bootstrap workflow replays the current Phase 15 gate, and the only remaining Phase 15 readiness gap is the still-blocked deep-core status-change posture.
 
 ## Non-goals
 
 This slice does not claim:
 
 - a new Phase 15 policy family beyond the already-landed governance bundle
-- a change to `.github/workflows/zigux-bootstrap.yml`
 - any Architecture Council approval for a freeze-map status change
 - any new deep-core Zig bridge, wrapper, or direct port
 
@@ -134,7 +119,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance tranche in maintenance mode. The next honest action inside this readiness lane is to wait for either:
-
-- a separate decision to add Phase 15 to the shared bootstrap workflow, or
-- new deep-core evidence that actually changes one of the current blocker dispositions
+Keep the Phase 15 governance tranche in maintenance mode. The next honest action inside this readiness lane is to wait for new deep-core evidence that actually changes one of the current blocker dispositions.
