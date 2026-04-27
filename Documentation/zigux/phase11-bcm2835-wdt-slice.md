@@ -14,4 +14,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.
 
-The next honest bounded step inside the same Phase 11 lane is to add a tiny hardware-validation matrix before any platform registration or poweroff-handler work.
+`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` now records the first bounded hardware-validation matrix for timeout conversion, probe-time bookkeeping, registration ownership, and remove-time ownership without widening into live PM base or poweroff plumbing.
+
+The next honest bounded step inside the same Phase 11 lane is a tiny platform-registration and PM-base handoff summary that keeps watchdog registration intent and poweroff ownership reviewable before any live platform or poweroff-handler work lands.
