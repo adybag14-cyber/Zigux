@@ -21,6 +21,29 @@ test "phase11 hvc_console exposes the bounded descriptor and slot validation" {
     try std.testing.expectError(error.ConsoleUnavailable, console.stageWrite("boot\n", 5));
 }
 
+test "phase11 hvc_console keeps a bounded header parity snapshot for the exported hvc surface" {
+    const header = hvc_console.headerParitySnapshot();
+    try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.h", header.anchor);
+    try std.testing.expectEqual(@as(usize, 16), header.max_nr_hvc_consoles);
+    try std.testing.expectEqual(@as(usize, 8), header.alloc_tty_adapters);
+    try std.testing.expect(header.exports_instantiate);
+    try std.testing.expect(header.exports_alloc);
+    try std.testing.expect(header.exports_remove);
+    try std.testing.expect(header.exports_poll);
+    try std.testing.expect(header.exports_resize);
+    try std.testing.expect(header.hv_ops.has_get_chars);
+    try std.testing.expect(header.hv_ops.has_put_chars);
+    try std.testing.expect(header.hv_ops.has_flush);
+    try std.testing.expect(header.hv_ops.has_notifier_add);
+    try std.testing.expect(header.hv_ops.has_notifier_del);
+    try std.testing.expect(header.hv_ops.has_notifier_hangup);
+    try std.testing.expect(header.hv_ops.has_tiocmget);
+    try std.testing.expect(header.hv_ops.has_tiocmset);
+    try std.testing.expect(header.hv_ops.has_dtr_rts);
+    try std.testing.expect(header.keeps_tty_registration_out_of_scope);
+    try std.testing.expect(header.keeps_live_hypervisor_io_out_of_scope);
+}
+
 test "phase11 hvc_console summarizes final-close wait boundaries without claiming tty registration" {
     var console = try hvc_console.HvcConsoleLab.init(2);
     _ = console.instantiate(0x41);
