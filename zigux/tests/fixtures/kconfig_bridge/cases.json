@@ -129,6 +129,11 @@
       "expected": "explicit_n_tristate_expected.json"
     },
     {
+      "name": "empty_string",
+      "input": "empty_string.config",
+      "expected": "empty_string_expected.json"
+    },
+    {
       "name": "ignore_non_config_lines",
       "input": "ignore_non_config_lines.config",
       "expected": "ignore_non_config_lines_expected.json"
