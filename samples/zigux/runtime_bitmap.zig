@@ -184,3 +184,35 @@ test "runtime bitmap sample keeps bounded view summaries stable" {
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
     try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
 }
+
+test "runtime bitmap sample selftest keeps the bounded review contract explicit" {
+    const descriptor = RuntimeBitmapSample.descriptor();
+    try std.testing.expectEqualStrings("runtime_bitmap", descriptor.name);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+
+    const summary_before_selftest = module.summary();
+    const selftest = try module.runSelftest();
+
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqualStrings(descriptor.anchor, selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expectEqual(OperationFamily.clear_set, selftest.operation_families[0]);
+    try std.testing.expectEqual(OperationFamily.copy, selftest.operation_families[1]);
+    try std.testing.expectEqual(OperationFamily.parse_and_print, selftest.operation_families[2]);
+    try std.testing.expectEqual(OperationFamily.iteration_and_ranges, selftest.operation_families[3]);
+    try std.testing.expect(selftest.checked_range_mutations);
+    try std.testing.expect(selftest.checked_iteration_paths);
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+
+    const summary_after_selftest = module.summary();
+    try std.testing.expectEqual(summary_before_selftest.first_set, summary_after_selftest.first_set);
+    try std.testing.expectEqual(summary_before_selftest.first_zero, summary_after_selftest.first_zero);
+    try std.testing.expectEqual(summary_before_selftest.weight, summary_after_selftest.weight);
+    try std.testing.expectEqual(summary_before_selftest.nbits, summary_after_selftest.nbits);
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
+}
