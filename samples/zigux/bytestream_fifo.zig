@@ -236,10 +236,24 @@ pub const expected_anchor_result = [_]u8{
 };
 
 test "bytestream fifo sample replays the Linux anchor result sequence" {
+    const expected_focus = [_]SampleFocus{
+        .bounded_fifo_order,
+        .wraparound_requeue,
+        .peek_and_skip,
+        .non_destructive_snapshot,
+        .reset_and_replay,
+        .ownership_and_lifetime,
+    };
+
     var sample = BytestreamFifoSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
 
+    try std.testing.expectEqualStrings(BytestreamFifoSample.descriptor().anchor, replay.anchor);
+    try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
+    for (expected_focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 15), replay.len_after_initial_fill);
