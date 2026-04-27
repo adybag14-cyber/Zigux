@@ -17,7 +17,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 ## Ownership
 
-- lane owner: `pending`
+- lane owner: `ABI and Runtime Team`
 - rollback owner: `Architecture Council + ABI and Runtime Team`
 
 ## Validation Gate Summary
