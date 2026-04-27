@@ -12,6 +12,23 @@
   "freeze_status_change_claimed": false,
   "review_checklist": "Documentation/zigux/review-checklist.md",
   "risky_transport_posture": "blocked_on_risky_transport",
+  "allowed_roadmap_destinations": [
+    "drivers/virtio/*.zig",
+    "zigux/helpers/"
+  ],
+  "allowed_evidence_kinds": [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates"
+  ],
+  "architecture_council_reopen_required": true,
+  "architecture_council_reopen_attached": false,
+  "forbidden_transport_claims": [
+    "virtio_mmio.zig",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle"
+  ],
   "blocked_transport_gaps": {
     "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-wrapper-lane",
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
