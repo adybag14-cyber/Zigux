@@ -173,6 +173,9 @@ jobs:
       - name: Run Phase 8 tooling tests
         run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
+      - name: Validate Phase 9 runtime gates
+        run: make -C zigux phase9-validate
+
       - name: Run Phase 9 runtime helper tests
         run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
 
