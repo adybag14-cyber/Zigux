@@ -54,7 +54,7 @@
     {
       "id": "post-exit-rejection",
       "kind": "ownership_lifetime",
-      "expected": "after exit the sample rejects later recordMissedInstance or handler calls"
+      "expected": "after exit the sample rejects later recordMissedInstance, entryHandler, or retHandler calls"
     }
   ],
   "non_goals": [
