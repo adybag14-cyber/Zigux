@@ -101,6 +101,35 @@ test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it ma
     );
 }
 
+test "phase 8 exec-cmd models stat-backed cwd and PWD identity proof" {
+    try std.testing.expect(exec_cmd.sameFileLocation(
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 3, .inode = 44 },
+    ));
+    try std.testing.expect(!exec_cmd.sameFileLocation(
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 3, .inode = 45 },
+    ));
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        exec_cmd.choosePwdCwdFromFileIdentity(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 3, .inode = 44 },
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwdFromFileIdentity(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 7, .inode = 44 },
+        ),
+    );
+}
+
 test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
