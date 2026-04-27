@@ -10,6 +10,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
+    try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
@@ -204,6 +205,57 @@ test "phase13 libfs directory emit planning advances after dots and tracks empty
 
     try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(-1, true, 0));
     try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(std.math.maxInt(i64), true, 1));
+}
+
+test "phase13 libfs cursor open planning stays in private-data reservation rules" {
+    const ready = libfs.LibFsHelperLab.dcacheDirOpenPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", ready.anchor);
+    try std.testing.expectEqual(libfs.CursorOpenMode.ready, ready.mode);
+    try std.testing.expect(ready.allocates_private_cursor);
+    try std.testing.expect(ready.stores_private_data);
+
+    const oom = libfs.LibFsHelperLab.dcacheDirOpenPlan(false);
+    try std.testing.expectEqual(libfs.CursorOpenMode.out_of_memory, oom.mode);
+    try std.testing.expect(!oom.allocates_private_cursor);
+    try std.testing.expect(!oom.stores_private_data);
+}
+
+test "phase13 libfs cursor preconditions gate positive scans on dots and cursor presence" {
+    const blocked = try libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(0, true, false);
+    try std.testing.expectEqualStrings("fs/libfs.c", blocked.anchor);
+    try std.testing.expectEqual(libfs.CursorPreconditionMode.blocked_on_emit_dots, blocked.mode);
+    try std.testing.expectEqual(libfs.CursorResumeSource.none, blocked.resume_source);
+    try std.testing.expect(blocked.requires_dir_emit_dots);
+    try std.testing.expect(!blocked.can_scan_positives);
+    try std.testing.expect(blocked.keeps_private_data);
+    try std.testing.expect(!blocked.defers_cursor_reposition);
+
+    const missing_cursor = try libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(3, false, true);
+    try std.testing.expectEqual(libfs.CursorPreconditionMode.missing_private_cursor, missing_cursor.mode);
+    try std.testing.expectEqual(libfs.CursorResumeSource.none, missing_cursor.resume_source);
+    try std.testing.expect(missing_cursor.requires_dir_emit_dots);
+    try std.testing.expect(!missing_cursor.can_scan_positives);
+    try std.testing.expect(!missing_cursor.keeps_private_data);
+    try std.testing.expect(!missing_cursor.defers_cursor_reposition);
+}
+
+test "phase13 libfs cursor preconditions choose first-child or cursor resume without claiming reposition" {
+    const first_child = try libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(2, true, true);
+    try std.testing.expectEqual(libfs.CursorPreconditionMode.ready, first_child.mode);
+    try std.testing.expectEqual(libfs.CursorResumeSource.first_child, first_child.resume_source);
+    try std.testing.expect(first_child.requires_dir_emit_dots);
+    try std.testing.expect(first_child.can_scan_positives);
+    try std.testing.expect(first_child.keeps_private_data);
+    try std.testing.expect(first_child.defers_cursor_reposition);
+
+    const resumed = try libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(7, true, true);
+    try std.testing.expectEqual(libfs.CursorPreconditionMode.ready, resumed.mode);
+    try std.testing.expectEqual(libfs.CursorResumeSource.stored_cursor_next, resumed.resume_source);
+    try std.testing.expect(resumed.can_scan_positives);
+    try std.testing.expect(resumed.keeps_private_data);
+    try std.testing.expect(resumed.defers_cursor_reposition);
+
+    try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true));
 }
 
 test "phase13 libfs transaction staging planner models one-write reservation and copy-fault retention" {
