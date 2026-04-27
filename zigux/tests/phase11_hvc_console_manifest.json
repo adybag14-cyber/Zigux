@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L13",
   "phase": "Phase 11",
-  "surveyed_commit": "7fd4845c2f4f4f52d2be2080d00e7a56f49275b5",
+  "surveyed_commit": "6bc5aab94fd86534959bf9197c904fa5145f23e2",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
@@ -12,6 +12,7 @@
     "hvc_console_c_lines": 1066,
     "preexisting_phase11_build_present": true,
     "preexisting_phase11_watchdog_lanes": 3,
+    "hvc_console_header_present": true,
     "hvc_console_zig_present": true,
     "hvc_console_test_present": true,
     "hvc_console_survey_gate_present": true,
@@ -45,6 +46,13 @@
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
       "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, and final-close wait-boundary summaries without claiming tty registration, khvcd polling, or live hypervisor I/O."
+    },
+    {
+      "id": "phase11-hvc-console-header-parity",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "A tiny header-parity surface now keeps MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, and the exported hvc alloc/remove/poll/resize surface reviewable without claiming tty registration or host-backed I/O."
     },
     {
       "id": "phase11-hvc-console-driver-tests",
