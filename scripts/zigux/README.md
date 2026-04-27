@@ -10,6 +10,7 @@ Initial responsibilities
 - artifact diff helpers for host-side tools
 
 Current bootstrap helpers
+- `artifact_diff.py`
 - `check-zig-toolchain.py`
 - `validate-bootstrap.py`
 - `install-zig.py`
@@ -35,6 +36,7 @@ Zig toolchain gate
 - `check-zig-toolchain.py --self-test` runs built-in parser and version-ordering coverage without needing a local Zig install.
 
 Phase 2 flow
+- `artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths before the bounded Phase 2 artifact lanes run.
 - `validate-phase2.py` checks that the bounded Phase 2 helper inventory, fixture set, workflow wiring, and docs markers stay in sync before the parity lanes run.
 - `validate-phase2-closure.py` confirms the closed Phase 2 tranche still matches the workflow, the closure docs, and the Phase 2 manifests.
 - `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including the multi-target, escaped-whitespace, comment-only no-target, and missing-dependency failure artifacts under `zigux/tests/fixtures/fixdep/`.
