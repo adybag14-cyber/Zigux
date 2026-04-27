@@ -34,7 +34,7 @@ MAKE_MARKERS = [
     "phase13-validate:",
     "scripts/zigux/validate-phase13-release.py",
     "phase13-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase13_build.zig",
+    "$(ZIG) build test --build-file zigux/tests/phase13_build.zig --summary all",
     "phase13: phase13-validate phase13-test",
 ]
 
@@ -60,6 +60,7 @@ RELEASE_MARKERS = [
     "PHASE13_RELEASE_CLOSED=no",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey still missing",
     "phase13_notifier_list_reviewability.zig",
+    "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
 ]
 
 TRACEABILITY_MARKERS = [
