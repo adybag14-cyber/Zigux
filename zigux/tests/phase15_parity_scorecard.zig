@@ -75,6 +75,7 @@ fn expectTemplateContains(
     io: std.Io,
     path: []const u8,
     anchor_path: []const u8,
+    lane_owner: []const u8,
     rollback_owner: []const u8,
     replay_command: []const u8,
     latest_blocker_disposition: []const u8,
@@ -91,6 +92,7 @@ fn expectTemplateContains(
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "decision record ID") != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "requested decision bucket") != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, "lane owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, lane_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, replay_command) != null);
     try std.testing.expect(std.mem.indexOf(u8, template_doc, latest_blocker_disposition) != null);
@@ -190,6 +192,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
             io_instance.io(),
             anchor.evidence_archive.decision_record_path,
             anchor.path,
+            anchor.lane_owner,
             anchor.rollback_owner,
             anchor.evidence_archive.replay_command,
             anchor.evidence_archive.latest_blocker_disposition,
