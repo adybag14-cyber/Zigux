@@ -54,9 +54,13 @@ It is a small substrate that makes future ports measurable:
 3. run Zig substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
+4. replay the focused low-level wrapper gate
+- `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
+
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+- `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 
 ## Interop rules
 
@@ -89,6 +93,7 @@ Low-level wrapper survey:
 - atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`
 - MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read32`, and `write32`, with pointer formation delegated back through the narrow unsafe layer
+- focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps those documented atomic, barrier, and MMIO wrappers on their own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
 
 ## Boundary
 
