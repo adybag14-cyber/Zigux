@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L13",
   "phase": "Phase 9",
-  "surveyed_commit": "248bfeaa7f2beddc283c3e398fc36fec3c841242",
+  "surveyed_commit": "19ef9c4ae9e4db5e43ff64143a997cb289dc3cc0",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -27,7 +27,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig",
-      "why_now": "A survey gate keeps the Linux anchor, landed starter status, and remaining runtime-substrate blocker explicit while the pilot stays small."
+      "why_now": "A survey gate keeps the Linux anchor, the landed starter, diff, loader scaffold, and shared loader-request surfaces, plus the remaining broader runtime-control blocker, explicit while the pilot stays small."
     },
     {
       "id": "runtime-kretprobe-sample-module",
@@ -48,21 +48,28 @@
       "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_diff.zig",
-      "why_now": "The next meaningful step is a tiny table-driven gate that replays a few entry-skip, duration, and nmissed expectations from the Linux sample before widening the starter."
+      "why_now": "A narrow differential gate now captures a few entry-skip, duration, and nmissed expectations from the Linux sample before any broader runtime substrate work."
     },
     {
-      "id": "runtime-kretprobe-loader-plan",
+      "id": "runtime-kretprobe-loader-scaffold",
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, and private-data size explicit while the real runtime substrate is still unavailable."
+      "why_now": "A bounded loader handoff makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, a no-substrate release path, and a kretprobe summary payload that now feeds the shared runtime-loader request surface."
     },
     {
-      "id": "runtime-kretprobe-substrate-handoff",
-      "status": "blocked_on_runtime_substrate",
+      "id": "runtime-kretprobe-live-loader-binding",
+      "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "A loadable module entry point and real register_kretprobe parity still depend on shared runtime substrate pieces that the repo has not started yet."
+      "why_now": "The shared runtime-loader request surface now consumes the kretprobe loader handoff directly through `zigux/kernel/runtime_loader.zig`, keeping allocator posture, staged entry and exit symbols, and kretprobe payload facts machine-checkable before any real runtime execution path exists."
+    },
+    {
+      "id": "runtime-kretprobe-shared-loader-controls",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_control_surface",
+      "zigux_destination": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "why_now": "The kretprobe pilot still depends on the broader shared runtime-loader control surface tracked by the runtime loader gap survey: command-name, argv-policy, and environment-derived activation handling are still absent, so the pilot remains pre-execution."
     }
   ]
 }
