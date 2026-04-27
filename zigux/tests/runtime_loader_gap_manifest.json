@@ -3,15 +3,15 @@
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
   "roadmap_command_environment_phase": "Phase 8",
-  "surveyed_commit": "1416d3b1ba442ede4ea26112f964157da0b7c3ba",
+  "surveyed_commit": "af0ff92ac05bd0449e25a875d18bab304bec2633",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
     "runtime_loader_plan_count": 2,
-    "shared_runtime_loader_present": false,
+    "shared_runtime_loader_present": true,
     "allocator_policy_present": true,
-    "shared_init_exit_contract_present": false,
+    "shared_init_exit_contract_present": true,
     "shared_command_environment_control_present": false
   },
   "phase6_leaf_helpers": [
@@ -43,7 +43,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_loader_gap_survey.zig",
-      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, and the missing runtime-loader seam explicit on current master."
+      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, the landed shared runtime-loader seam, and the still-absent command or environment controls explicit on current master."
     },
     {
       "id": "runtime-loader-gap-note",
@@ -68,17 +68,17 @@
     },
     {
       "id": "runtime-loader-allocator-handoff",
-      "status": "blocked_on_runtime_substrate",
+      "status": "starter_landed",
       "kind": "runtime_substrate",
-      "zigux_destination": "zigux/helpers/allocator_policy.zig",
-      "why_now": "The allocator policy surface exists, but no shared runtime loader consumes it yet, so allocator ownership, fallback rules, and failure cleanup stay unbound to runtime module bring-up."
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The shared runtime-loader request surface now consumes the allocator policy contract directly, so allocator ownership, fallback rules, and init-flow posture are machine-checkable before any real runtime loader behavior exists."
     },
     {
       "id": "runtime-loader-init-exit-consumer",
-      "status": "blocked_on_runtime_substrate",
+      "status": "starter_landed",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "A shared init and exit consumer is still missing, so the staged entry and exit symbol names published by the sample-side loader plans cannot become a real runtime lifecycle path."
+      "why_now": "The shared runtime-loader request surface now carries staged entry and exit symbol names from both sample-side loader plans, so the common lifecycle contract is explicit even though no real runtime execution path exists yet."
     }
   ]
 }
