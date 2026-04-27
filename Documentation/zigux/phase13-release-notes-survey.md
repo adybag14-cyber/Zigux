@@ -40,7 +40,7 @@ The live repo already carries real helper code, dedicated tests, and shared repl
 What was still missing was one compact release-discipline record that says, in one place, how to read that bundle today:
 
 - Phase 13 is active, not closed
-- the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
+- the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`
 - `libfs`, `landlock/ruleset`, and `landlock/syscalls` already have manifest-backed survey packets
 - `devres` is the one remaining roadmap anchor that still lacks the same manifest-backed survey shape
 
@@ -104,7 +104,7 @@ The current bounded release-evidence set is:
 - `make -C zigux phase13-validate`
 
 3. run the shared Phase 13 helper replay
-- `zig build test --build-file zigux/tests/phase13_build.zig`
+- `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
 
 4. run the Linux-style convenience entrypoint
 - `make -C zigux phase13`
