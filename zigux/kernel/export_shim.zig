@@ -1,7 +1,7 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
 
-pub fn header(flags: u16) abi.BoundaryHeader {
+fn header(flags: u16) abi.BoundaryHeader {
     return abi.defaultHeader(flags);
 }
 
