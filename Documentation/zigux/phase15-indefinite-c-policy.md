@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_SLICE=indefinite-c-policy-current-gap-survey`
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and one current-roadmap-gap survey refresh that records the present indefinite-C policy posture against the surrounding Phase 15 governance bundle
-- survey provenance refreshed against verified `master` head `3edd180f497b7ac67b27283717d85325c05868ce`
+- survey provenance refreshed against verified `master` head `65cb45dda5ca7fc760207a4ca711397bc7894e9e`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -92,20 +92,21 @@ The repo must not use an indefinite-C record to justify:
 
 There is no silent exception path around the indefinite-C policy.
 
-The only allowed exception is an Architecture Council reopen request that satisfies the documented reopen conditions and carries fresh linked evidence showing why the old blocker is no longer the current product truth.
+The only allowed exception is an Architecture Council reopen request that cites at least one named reopen-trigger catalog item and carries the trigger-specific evidence refresh needed to show why the old packet is no longer the current product truth.
 
 Until that happens, the existing blocker remains recorded, the C implementation remains the product source of truth, and the anchor stays in the freeze-in-C set for the current plan horizon.
 
 ## Reopen conditions
 
-An anchor recorded as remaining in C indefinitely may re-enter status review only when the repo can point to all of the following:
+An anchor recorded as remaining in C indefinitely may re-enter status review only when the repo can point to an Architecture Council review request that names at least one bounded reopen-trigger catalog item explicitly instead of implying silent drift.
 
-- a new bounded seam inventory that is narrower than the current freeze boundary
-- an updated validation plan and rollback owner for that narrower seam
-- fresh linked evidence in the evidence archive showing why the old blocker disposition is no longer current
-- an Architecture Council review request that names the reopen conditions explicitly instead of implying silent drift
+Each trigger keeps its own minimum evidence:
 
-If those reopen conditions are not met, the anchor remains in C and the review closes with the existing blocker still recorded.
+- `narrower_followup_answers_blocker`: a new bounded seam inventory that is narrower than the current freeze boundary, plus an updated validation plan and rollback owner for that narrower seam
+- `evidence_packet_stale_or_contradictory`: refreshed linked evidence in the evidence archive showing which validation, benchmark, survey, or blocker record has become stale or contradictory and what the current blocker disposition should be now
+- `ownership_or_validation_changed`: refreshed lane-owner, rollback-owner, or validation-gate evidence showing exactly which ownership or validation change invalidated the closed stay-in-C packet
+
+If none of those trigger-specific reopen conditions is met, the anchor remains in C and the review closes with the existing blocker still recorded.
 
 ## Reopen Trigger Catalog
 
