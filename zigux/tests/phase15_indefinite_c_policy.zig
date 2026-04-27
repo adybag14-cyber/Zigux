@@ -92,19 +92,20 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("remains in C indefinitely", requirement.required_terms[1]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-recordkeeping")) {
             saw_recordkeeping = true;
-            try std.testing.expectEqual(@as(usize, 12), requirement.required_terms.len);
+            try std.testing.expectEqual(@as(usize, 13), requirement.required_terms.len);
             try std.testing.expectEqualStrings("current status bucket", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("requested decision bucket", requirement.required_terms[1]);
             try std.testing.expectEqualStrings("decision record ID", requirement.required_terms[2]);
             try std.testing.expectEqualStrings("owner", requirement.required_terms[3]);
             try std.testing.expectEqualStrings("rollback owner", requirement.required_terms[4]);
             try std.testing.expectEqualStrings("validation gate summary", requirement.required_terms[5]);
-            try std.testing.expectEqualStrings("latest blocker disposition", requirement.required_terms[6]);
-            try std.testing.expectEqualStrings("evidence archive path", requirement.required_terms[7]);
-            try std.testing.expectEqualStrings("retained discussion state", requirement.required_terms[8]);
-            try std.testing.expectEqualStrings("parity scorecard link or blocker record", requirement.required_terms[9]);
-            try std.testing.expectEqualStrings("explicit non-goals", requirement.required_terms[10]);
-            try std.testing.expectEqualStrings("written rationale", requirement.required_terms[11]);
+            try std.testing.expectEqualStrings("benchmark notes", requirement.required_terms[6]);
+            try std.testing.expectEqualStrings("latest blocker disposition", requirement.required_terms[7]);
+            try std.testing.expectEqualStrings("evidence archive path", requirement.required_terms[8]);
+            try std.testing.expectEqualStrings("retained discussion state", requirement.required_terms[9]);
+            try std.testing.expectEqualStrings("parity scorecard link or blocker record", requirement.required_terms[10]);
+            try std.testing.expectEqualStrings("explicit non-goals", requirement.required_terms[11]);
+            try std.testing.expectEqualStrings("written rationale", requirement.required_terms[12]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-allowed-work")) {
             saw_allowed_work = true;
             try std.testing.expectEqualStrings("survey notes, boundary manifests, validation gates, and explicit non-goal records", requirement.required_terms[0]);
@@ -169,7 +170,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
 
     const policy_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        "Documentation/zigux/phase15-indefinite_c_policy.md",
         std.testing.allocator,
         .limited(24 * 1024),
     );
@@ -213,6 +214,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "new bounded seam inventory") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "updated validation plan") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "fresh linked evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "current benchmark-notes status") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "current lane posture: `maintenance_mode`") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "make -C zigux phase15") != null);
