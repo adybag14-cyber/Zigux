@@ -56,7 +56,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
     try std.testing.expectEqualStrings("P11-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("2c5de273cf0ea08dfb8e446ce03e1ef54af4853b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("4ac27bda8fc59b8bd9fb72446ac4704f8fa01ffe", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
