@@ -455,6 +455,17 @@ test "collectExeclArgs rejects the C helper's too-many-args shape" {
     );
 }
 
+test "collectExeclArgs requires the C helper's trailing null terminator" {
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        collectExeclArgs(
+            std.testing.allocator,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
+}
+
 test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
     const config = Config{
         .exec_name = "perf",
