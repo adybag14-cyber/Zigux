@@ -11,6 +11,7 @@ This document records the current release-discipline reading for the active Phas
 - scope: roadmap traceability, shared helper replay entrypoints, the three manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet, and the remaining `devres` survey asymmetry
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
+  - `scripts/zigux/README.md`
   - `Documentation/zigux/phase13-release-notes-survey.md`
   - `Documentation/zigux/phase13-roadmap-traceability.md`
   - `Documentation/zigux/README.md`
@@ -41,6 +42,7 @@ What was still missing was one compact release-discipline record that says, in o
 
 - Phase 13 is active, not closed
 - the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`
+- the validator helper itself is now part of the published evidence packet through `scripts/zigux/README.md` so the fast-check contract is documented alongside the release note instead of living only in the script and workflow wiring
 - `libfs`, `landlock/ruleset`, and `landlock/syscalls` already have manifest-backed survey packets
 - `devres` is the one remaining roadmap anchor that still lacks the same manifest-backed survey shape
 
@@ -74,6 +76,7 @@ The adjacent notifier-list reviewability packet remains useful release evidence,
 
 The current bounded release-evidence set is:
 
+- `scripts/zigux/README.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
