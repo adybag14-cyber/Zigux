@@ -1,0 +1,1 @@
+#define CONFIG_ZIGUX_DT_SOURCE 1
