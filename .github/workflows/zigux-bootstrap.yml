@@ -110,7 +110,7 @@ jobs:
       - name: Check bounded genksyms bridge parity
         run: python3 scripts/zigux/check-genksyms-bridge.py
 
-      - name: Check bounded genksyms CRC artifact parity
+      - name: Check bounded genksyms CRC artifact parity and determinism
         run: python3 scripts/zigux/check-genksyms-crc-diff.py
 
       - name: Check bounded kconfig bridge parity
