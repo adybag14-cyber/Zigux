@@ -172,8 +172,12 @@ exact_checksums = bench_expectations.get('exact_checksums', {})
 loose_checksums = bench_expectations.get('checksums', [])
 if exact_checksums.get('PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM') != 15621472:
     missing_markers.append('bench:exact_checksums.PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472')
+if exact_checksums.get('PHASE1_BENCH_STRING_CHECKSUM') != 100000:
+    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_STRING_CHECKSUM=100000')
 if 'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM' in loose_checksums:
     missing_markers.append('bench:remove_loose_find_bit_checksum')
+if 'PHASE1_BENCH_STRING_CHECKSUM' in loose_checksums:
+    missing_markers.append('bench:remove_loose_string_checksum')
 
 if missing_markers:
     print('PHASE1_CLOSURE_VALIDATION=fail')
