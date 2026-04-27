@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L09",
   "phase": "Phase 12",
-  "surveyed_commit": "6cdf1b24fad34b4ef67f0902da0aa8621383c7ee",
+  "surveyed_commit": "ec1f21e06c76ffea564156593196096c803a53e4",
   "anchor": "drivers/scsi/virtio_scsi.c",
   "roadmap_destinations": [
     "drivers/scsi/virtio_scsi.zig",
