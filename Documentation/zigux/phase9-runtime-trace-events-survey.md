@@ -59,10 +59,12 @@ This keeps the survey useful after the first starter slice lands without pretend
 This survey slice still does not claim:
 
 - a loadable Zigux trace-events runtime module
+- runtime task ownership or event-loop substrate parity
+- polling-backed wake or dispatch behavior
 - runtime trace registration or unregister parity with the Linux sample
 - generated tracepoint macro parity for `trace-events-sample.h`
 - full ftrace selftest execution inside Zigux
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest runtime-substrate handoff for module entry, thread creation, and tracepoint-registration lifecycle wiring.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest runtime-substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring.
