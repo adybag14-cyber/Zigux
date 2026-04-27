@@ -10,6 +10,7 @@
     "the manifest and survey test still describe the exact skip, return-value, duration, and missed-summary contract run through phase5_build.zig",
     "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still keep the landed Phase 5 kretprobe slice tied to the shared phase5_build.zig entrypoint and distinct from the separate Phase 9 runtime starter",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
+    "the sample keeps the Linux maxactive budget explicit as the fixed reviewable ceiling for this in-memory-only reference slice instead of implying runtime pressure tuning",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
@@ -34,6 +35,11 @@
       "id": "return-duration",
       "kind": "bounded_handler_path",
       "expected": "the replay records retval 42 and duration 75 ns after an entry timestamp of 100 and a return timestamp of 175"
+    },
+    {
+      "id": "maxactive-budget",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample keeps the Linux maxactive budget explicit at 20 concurrent instances even though this Phase 5 slice does not model register_kretprobe pressure handling"
     },
     {
       "id": "missed-summary",
