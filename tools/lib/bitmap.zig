@@ -309,7 +309,7 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
         range_bottom = current;
     }
 
-    if (buffer.len != 0 and written < buffer.len) {
+    if (buffer.len != 0 and !first and written < buffer.len) {
         buffer[written] = 0;
     }
 
@@ -415,4 +415,13 @@ test "bitmap scnprintf truncates and keeps a terminator slot" {
     try std.testing.expectEqual(@as(usize, 3), len);
     try std.testing.expectEqualStrings("1-3", buffer[0..len]);
     try std.testing.expectEqual(@as(u8, 0), buffer[len]);
+}
+
+test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {
+    const map = [_]Word{0};
+    var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+
+    const len = scnprintf(&map, 8, &buffer);
+    try std.testing.expectEqual(@as(usize, 0), len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);
 }

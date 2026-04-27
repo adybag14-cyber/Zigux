@@ -40,7 +40,8 @@ required_closure_markers = [
     'PHASE1_HELPER_COUNT=13',
     'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
     'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
-    'PHASE1_BITMAP_REVIEW=bitmap scnprintf truncation preserves the terminator slot',
+    'bitmap empty-bitmap review note: `bitmap_scnprintf` must leave a non-empty caller buffer untouched when no bits are set, matching the C helper contract',
+    'PHASE1_BITMAP_REVIEW=bitmap scnprintf parity covers contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
     'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"`',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view',
     'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
@@ -122,11 +123,13 @@ if bitmap_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:bitmap.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if bitmap_review.get('evidence_keys') != [
     'bitmap.scnprintf',
+    'bitmap.scnprintf_empty_len',
+    'bitmap.scnprintf_empty_bytes',
     'bitmap.scnprintf_trunc_len',
     'bitmap.scnprintf_trunc',
 ]:
     missing_markers.append('manifest:bitmap.evidence_keys')
-if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot.':
+if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes contiguous-range rendering, the empty-bitmap buffer-preservation contract, and truncation behavior that preserves the trailing terminator slot.':
     missing_markers.append('manifest:bitmap.summary')
 if bitmap_review.get('unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"':
     missing_markers.append('manifest:bitmap.unit_test_anchor')

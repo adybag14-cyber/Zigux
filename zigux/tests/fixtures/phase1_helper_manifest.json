@@ -22,10 +22,12 @@
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
       "evidence_keys": [
         "bitmap.scnprintf",
+        "bitmap.scnprintf_empty_len",
+        "bitmap.scnprintf_empty_bytes",
         "bitmap.scnprintf_trunc_len",
         "bitmap.scnprintf_trunc"
       ],
-      "summary": "Committed C-backed parity coverage includes contiguous-range rendering plus truncation behavior that preserves the trailing terminator slot.",
+      "summary": "Committed C-backed parity coverage includes contiguous-range rendering, the empty-bitmap buffer-preservation contract, and truncation behavior that preserves the trailing terminator slot.",
       "unit_test_anchor": "tools/lib/bitmap.zig:test \"bitmap xor across a multiword tail still lets callers clamp the last word\"",
       "unit_test_contract": "Direct Zig unit coverage keeps multiword-tail xor behavior aligned so callers can clamp the last word after xorBits without leaking out-of-range bits into the asserted view."
     },
