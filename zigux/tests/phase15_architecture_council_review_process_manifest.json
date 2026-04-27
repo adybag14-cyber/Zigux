@@ -1,5 +1,5 @@
 {
-  "lane_key": "P15-L11",
+  "lane_key": "P15-L12",
   "phase": "Phase 15",
   "surveyed_commit": "65cb45dda5ca7fc760207a4ca711397bc7894e9e",
   "roadmap_requirement": "Architecture Council review process",
@@ -60,6 +60,14 @@
     "bounded_dual_implementation",
     "defer_or_reject"
   ],
+  "handoff_evidence": {
+    "roadmap_source": "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md#phase-15-full-parity-blockers-and-long-term-governance",
+    "roadmap_handoff": "The Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step.",
+    "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
+    "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
+    "current_bounded_lane": "P15-L12 keeps the review-process handoff synced without reopening README ownership or parity-scorecard evidence work that already landed in nearby maintenance lanes.",
+    "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
+  },
   "handoff": {
     "current_mode": "maintenance_mode",
     "replay_commands": [
@@ -146,6 +154,13 @@
       "kind": "policy_gate",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "A freeze-map anchor that stays in C now has to link the dedicated indefinite-C policy note or say plainly why the packet is not yet entering that policy posture, so the review-process packet cannot drift away from the roadmap's long-term in-C policy surface."
+    },
+    {
+      "id": "phase15-review-process-roadmap-handoff-evidence",
+      "status": "starter_landed",
+      "kind": "handoff",
+      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+      "why_now": "The review-process slice needed the same roadmap source, bootstrap-ledger anchor, current bounded lane, and parked next-step evidence carried by the rest of the Phase 15 governance bundle so later runs can see why this note stays landed without reopening deep-core scope."
     }
   ]
 }
