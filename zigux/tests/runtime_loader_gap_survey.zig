@@ -98,7 +98,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.runtime_loader_plans.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -112,6 +112,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     var saw_build = false;
     var saw_gate = false;
     var saw_note = false;
+    var saw_review_checklist = false;
     var saw_plan_inputs = false;
     var saw_command_env_blocker = false;
     var saw_allocator_blocker = false;
@@ -144,6 +145,14 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 6 should not absorb runtime allocator or init-flow work") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-loader-review-checklist")) {
+            saw_review_checklist = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/review-checklist.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hidden runtime services") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "implicit allocation posture") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "panic behavior") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "visible unsafe ownership") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-loader-plan-inputs")) {
             saw_plan_inputs = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_*_loader.zig", gap.zigux_destination);
@@ -175,11 +184,12 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), landed_count);
+    try std.testing.expectEqual(@as(usize, 7), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_note);
+    try std.testing.expect(saw_review_checklist);
     try std.testing.expect(saw_plan_inputs);
     try std.testing.expect(saw_command_env_blocker);
     try std.testing.expect(saw_allocator_blocker);
@@ -209,8 +219,33 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "argv policy") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "environment-derived activation cues") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded shared runtime-loader request surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no hidden runtime services") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no implicit allocation posture beyond the explicit allocator-handoff contract") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no unclear panic or unsafe ownership story") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
+}
+
+test "runtime loader gap survey keeps the review checklist runtime guardrails explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const review_checklist = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContainsAll(review_checklist, &.{
+        "## ABI and Runtime",
+        "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
+        "if unsafe code exists, is it narrow, visible, and review-owned?",
+        "are parity tests or fixture checks included?",
+        "is there a stated rollback owner and fallback path?",
+    });
 }
 
 test "runtime loader gap survey proves the shared request surface and existing loader controls directly" {
