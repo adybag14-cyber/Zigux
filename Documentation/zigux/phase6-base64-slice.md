@@ -37,6 +37,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 The current base64 helper surface exercised by this slice covers:
 
 - `chars`
+- `bytes`
 - `encode`
 - `decode`
 - `Variant.std`
@@ -49,6 +50,7 @@ The current tests check:
 - standard RFC 4648 decode vectors with and without padding
 - variant alphabet parity for URL-safe and IMAP output
 - output-length accounting through `chars`
+- preflight decoded-length accounting through `bytes`
 - destination-bounds failures before partial writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
@@ -64,4 +66,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-shared KUnit-derived fixture module, or whether the current encode-plus-decode parity gate is already sufficient for a bounded Phase 6 leaf port.
+Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-shared KUnit-derived fixture module, or whether the symmetric `chars` plus `bytes` preflight gate is already sufficient for a bounded Phase 6 leaf port.
