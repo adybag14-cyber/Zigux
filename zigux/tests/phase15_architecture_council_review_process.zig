@@ -129,6 +129,14 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(checklist);
 
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Trigger Conditions") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Decision Buckets") != null);
@@ -144,4 +152,16 @@ test "phase 15 architecture council review-process note stays aligned with check
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state and reopen triggers explicit") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-parity-scorecard.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-evidence-archives/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "zigux/tests/phase15_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "maintenance mode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "named reopen triggers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "deep-core blocker posture") != null);
 }
