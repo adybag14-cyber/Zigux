@@ -57,13 +57,30 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 0), inc_not_zero_blocked.previous);
     try std.testing.expectEqual(@as(i64, 0), zero_guard.snapshotCounter());
 
+    const dec_if_positive_changed = try module.decIfPositiveCounter();
+    try std.testing.expect(dec_if_positive_changed.changed);
+    try std.testing.expectEqual(@as(i64, 13), dec_if_positive_changed.result);
+    try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
+
+    const dec_if_positive_zero = try zero_guard.decIfPositiveCounter();
+    try std.testing.expect(!dec_if_positive_zero.changed);
+    try std.testing.expectEqual(@as(i64, -1), dec_if_positive_zero.result);
+    try std.testing.expectEqual(@as(i64, 0), zero_guard.snapshotCounter());
+
+    var negative_guard = sample.RuntimeAtomic64Sample{};
+    try negative_guard.init(-1);
+    const dec_if_positive_negative = try negative_guard.decIfPositiveCounter();
+    try std.testing.expect(!dec_if_positive_negative.changed);
+    try std.testing.expectEqual(@as(i64, -2), dec_if_positive_negative.result);
+    try std.testing.expectEqual(@as(i64, -1), negative_guard.snapshotCounter());
+
     const summary = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);
     try std.testing.expect(summary.checked_returning_paths);
     try std.testing.expect(summary.checked_guard_paths);
-    try std.testing.expectEqual(@as(i64, 14), module.snapshotCounter());
+    try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
@@ -76,4 +93,5 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 13));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
 }
