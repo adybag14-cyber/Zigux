@@ -36,6 +36,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
+    for (manifest.surveyed_commit) |char| {
+        try std.testing.expect(std.ascii.isHex(char));
+        try std.testing.expect(!std.ascii.isUpper(char));
+    }
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
