@@ -52,6 +52,7 @@ Key entrypoints
 - `scripts/zigux/generate-phase3-check-wrappers.py --check`
 - `scripts/zigux/run-phase3-checks.py --self-test`
 - `scripts/zigux/run-phase3-checks.py`
+- the Phase 9 loader-gap manifest now also carries the manifest-backed catalog and ownership map for the current runtime evidence packet, so test-side validation names which file owns the survey note, the review checklist, the shared request contract, the sample-side loader plans, and the shared `phase9_build.zig` replay path.
 
 Phase 3 fixtures
 - each Phase 3 slice keeps its expected JSON and C harness under `zigux/tests/fixtures/phase3_*`
