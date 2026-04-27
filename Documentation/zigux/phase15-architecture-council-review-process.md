@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-ownership-refresh-gate`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also requires refreshed ownership evidence when a retained stay-in-C packet reopens because ownership or validation changed
-- survey provenance refreshed against verified `master` head `3100cd107fa0dc45ad0b6bb740e60ffa8b94497a`
+- survey provenance refreshed against verified `master` head `6550b8dd67aac841c8a35e3eb84a73a7d233f087`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
