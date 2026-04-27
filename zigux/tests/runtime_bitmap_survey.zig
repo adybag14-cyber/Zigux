@@ -75,7 +75,8 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_sample_module = false;
     var saw_diff_gate = false;
     var saw_loader_scaffold = false;
-    var saw_live_loader_blocker = false;
+    var saw_live_loader_binding = false;
+    var saw_shared_loader_controls_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -87,6 +88,8 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             runtime_test_destination_count += 1;
         } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
             // Sample-side starter and loader handoff scaffolds stay under samples.
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {
+            // Broader shared loader-control blockers may be tracked by the canonical runtime-loader gap note.
         } else {
             try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
@@ -116,9 +119,18 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-bitmap-live-loader-binding")) {
-            saw_live_loader_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            saw_live_loader_binding = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared runtime-loader request surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bitmap loader handoff") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-bitmap-shared-loader-controls")) {
+            saw_shared_loader_controls_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "command-name") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "argv-policy") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -128,11 +140,12 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 6);
+    try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
-    try std.testing.expect(saw_live_loader_blocker);
+    try std.testing.expect(saw_live_loader_binding);
+    try std.testing.expect(saw_shared_loader_controls_blocker);
 }
