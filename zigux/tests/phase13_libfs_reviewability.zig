@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed starter and remaining transaction follow-up gap" {
+test "phase13 libfs manifest records the landed cursor-precondition slice and remaining reposition gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -52,10 +52,10 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
-    try std.testing.expectEqualStrings("54aa513dce9060f4898a34d55065321cecc285f9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("a4f70b77b2b4e5c03f5362644f7deda7964167bd", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libfs_c_lines >= 2300);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -65,7 +65,7 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -74,6 +74,7 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
+    try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
@@ -94,6 +95,7 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
     var saw_transaction_helper = false;
     var saw_transaction_followup = false;
     var saw_cursor_preconditions = false;
+    var saw_cursor_reposition = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -177,10 +179,19 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-preconditions")) {
             saw_cursor_preconditions = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_open") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-reposition-bookkeeping")) {
+            saw_cursor_reposition = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_del_init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_add_before") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_add_behind") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -188,7 +199,7 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -203,4 +214,5 @@ test "phase13 libfs manifest records the landed starter and remaining transactio
     try std.testing.expect(saw_transaction_helper);
     try std.testing.expect(saw_transaction_followup);
     try std.testing.expect(saw_cursor_preconditions);
+    try std.testing.expect(saw_cursor_reposition);
 }
