@@ -78,6 +78,13 @@ test "phase 6 hexdump module imports cleanly" {
     _ = hexdump;
 }
 
+test "phase 6 hexdump exposes uppercase whole-buffer encoding" {
+    var encoded: [8]u8 = undefined;
+    const text = try hexdump.bin2hexUpper(encoded[0..], test_data_b[0..4]);
+
+    try std.testing.expectEqualSlices(u8, "BE32DB7B", text);
+}
+
 test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
     for (fixtures.parity_cases) |case| {
         try assertFixtureParityCase(case);
