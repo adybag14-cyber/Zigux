@@ -41,6 +41,19 @@ The review checklist also remains part of this bounded governance surface. For t
 - no implicit allocation posture beyond the explicit allocator-handoff contract
 - no unclear panic or unsafe ownership story
 
+## Delivery ownership map
+
+The manifest-backed catalog for this slice now names which file owns each part of the current delivery packet:
+
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the roadmap-boundary note, blocker posture, and bounded replay contract
+- `Documentation/zigux/review-checklist.md` owns the runtime review guardrails and ownership prompts for the same evidence packet
+- `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
+- `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, and shared request surface
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
+- `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator and init or exit handoff fields
+- `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection into the shared runtime request surface
+- `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection into the shared runtime request surface
+
 ## Current blocker posture
 
 The current runtime pilot surface already exposes reviewable loader inputs:
