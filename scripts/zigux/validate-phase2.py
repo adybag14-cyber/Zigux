@@ -9,6 +9,7 @@ GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_CASES = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json'
 CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
+CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
 
 
 def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -242,6 +243,22 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
 
     return issues
 
+
+def validate_kconfig_checker_confdata_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'confdata_bridge_constant': "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
+        'confdata_bridge_compile': 'compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',
+        'confdata_cases_loop': "for case in CASES['confdata_cases']:",
+        'confdata_bridge_replay': "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'kconfig_checker:{issue_name}')
+    return issues
+
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
@@ -333,6 +350,15 @@ if kconfig_bridge_issues:
     for item in kconfig_bridge_issues:
         print(item)
     print('MISSING_PHASE2_KCONFIG_BRIDGE_CASES_END')
+    sys.exit(1)
+
+kconfig_checker_issues = validate_kconfig_checker_confdata_gate(CHECK_KCONFIG_BRIDGE)
+if kconfig_checker_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_KCONFIG_CHECKER_GATES_START')
+    for item in kconfig_checker_issues:
+        print(item)
+    print('MISSING_PHASE2_KCONFIG_CHECKER_GATES_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
