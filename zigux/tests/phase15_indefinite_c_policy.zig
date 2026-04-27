@@ -55,9 +55,9 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("3edd180f497b7ac67b27283717d85325c05868ce", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("65cb45dda5ca7fc760207a4ca711397bc7894e9e", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
@@ -118,10 +118,12 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("existing blocker remains recorded", requirement.required_terms[2]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-gate")) {
             saw_reopen_gate = true;
-            try std.testing.expectEqualStrings("new bounded seam inventory", requirement.required_terms[0]);
-            try std.testing.expectEqualStrings("updated validation plan", requirement.required_terms[1]);
-            try std.testing.expectEqualStrings("fresh linked evidence", requirement.required_terms[2]);
-            try std.testing.expectEqualStrings("Architecture Council review request", requirement.required_terms[3]);
+            try std.testing.expectEqual(@as(usize, 5), requirement.required_terms.len);
+            try std.testing.expectEqualStrings("named reopen-trigger catalog item", requirement.required_terms[0]);
+            try std.testing.expectEqualStrings("narrower_followup_answers_blocker", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", requirement.required_terms[2]);
+            try std.testing.expectEqualStrings("ownership_or_validation_changed", requirement.required_terms[3]);
+            try std.testing.expectEqualStrings("trigger-specific evidence refresh", requirement.required_terms[4]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
             saw_reopen_trigger_catalog = true;
             try std.testing.expectEqualStrings("narrower_followup_answers_blocker", requirement.required_terms[0]);
@@ -218,9 +220,12 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "no silent exception path") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "Architecture Council reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "existing blocker remains recorded") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "named reopen-trigger catalog item") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "new bounded seam inventory") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "updated validation plan") != null);
-    try std.testing.expect(std.mem.indexOf(u8, policy_note, "fresh linked evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "trigger-specific evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "updated validation plan and rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "refreshed linked evidence in the evidence archive") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "refreshed lane-owner, rollback-owner, or validation-gate evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "current benchmark-notes status") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "current lane posture: `maintenance_mode`") != null);
