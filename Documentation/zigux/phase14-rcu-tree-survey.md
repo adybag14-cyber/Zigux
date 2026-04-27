@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/rcu/tree.c
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
-- survey provenance captured against verified `master` head `d839457a2f2dbdc7b53711401741b5e88541c818`
+- survey provenance captured against verified `master` head `c6a3bc58efc57f3f276ebe7246d84be5d70200f2`
 - product boundary:
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_rcu_tree_manifest.json`
@@ -22,6 +22,12 @@ The Phase 14 roadmap names `kernel/rcu/tree_bridge.zig` as the long-term destina
 That tension matters because the live anchor is already 4,931 lines and it does not stand alone. `kernel/rcu/tree_plugin.h` adds another 1,369 lines of plugin and flavor glue, `kernel/rcu/tree_exp.h` adds 1,118 lines of expedited-GP coordination, `kernel/rcu/tree_nocb.h` adds 1,702 lines of callback-offload logic, and even nearby `kernel/rcu/update.c` still depends on the existing state machine. The upstream design references also stay large and specific: `Documentation/RCU/Design/Requirements/Requirements.rst` is 2,873 lines and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` adds another 648 lines of ordering detail.
 
 The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`. It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can compare the roadmap target against the current freeze boundary without overstating progress.
+
+## Roadmap boundary map
+
+- `zigux/tests/`: `reviewable_survey_landed` via `zigux/tests/phase14_rcu_tree_survey.zig`, which keeps the RCU tree blocker and its survey package machine-checkable beside the rest of the Phase 14 gates.
+- `Documentation/zigux/`: `reviewable_survey_landed` via `Documentation/zigux/phase14-rcu-tree-survey.md`, which records the roadmap-vs-freeze comparison, the current checklist seams, and the current freeze-in-C blocker in one reviewable note.
+- `kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence` because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, NOCB offload, quiescent-state propagation, and callback lifecycle behavior to the live Tree RCU state machine.
 
 ## Survey findings
 
