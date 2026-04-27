@@ -244,6 +244,27 @@ pub fn nextMatch(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), 
     return candidate;
 }
 
+pub fn findAdd(node: *Node, root: *Root, cmp: *const fn (*Node, *const Node) i32) ?*Node {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+    return null;
+}
+
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
     if (victim.parent == null) {
         root.node = replacement;
@@ -631,6 +652,49 @@ test "rbtree find helpers return duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*Node, null), nextMatch(@as(i32, 10), third_match, cmp));
     try std.testing.expectEqual(@as(?*Node, null), find(@as(i32, 99), &root, cmp));
     try std.testing.expectEqual(@as(?*Node, null), findFirst(@as(i32, 99), &root, cmp));
+}
+
+test "rbtree findAdd inserts missing nodes and returns duplicate matches" {
+    const Entry = struct {
+        key: i32,
+        serial: i32,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(new: *Node, existing: *const Node) i32 {
+            const new_entry: *const Entry = @fieldParentPtr("node", new);
+            const existing_entry: *const Entry = @fieldParentPtr("node", existing);
+            if (new_entry.key != existing_entry.key) {
+                return orderToInt(std.math.order(new_entry.key, existing_entry.key));
+            }
+            return orderToInt(std.math.order(new_entry.serial, existing_entry.serial));
+        }
+    }.compare;
+
+    var root = Root.init();
+    var first_entry = Entry{ .key = 10, .serial = 0 };
+    var duplicate_entry = Entry{ .key = 10, .serial = 0 };
+    var lower_entry = Entry{ .key = 5, .serial = 0 };
+    var upper_entry = Entry{ .key = 15, .serial = 0 };
+
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&first_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), findAdd(&duplicate_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&lower_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&upper_entry.node, &root, cmp));
+
+    var order: [3]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15 }, order[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), duplicate_entry.node.parent);
 }
 
 test "rbtree postorder and empty node helpers behave" {
