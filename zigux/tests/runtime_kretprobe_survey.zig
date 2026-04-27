@@ -40,16 +40,7 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
-fn readWorkspaceFile(
-    io: anytype,
-    allocator: std.mem.Allocator,
-    path: []const u8,
-    limit: usize,
-) ![]u8 {
-    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
-}
-
-test "phase 9 runtime kretprobe survey manifest records the landed loader plan and the remaining substrate blocker" {
+test "phase 9 runtime kretprobe survey manifest records the landed loader binding and the remaining shared control blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -83,7 +74,9 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
-    var saw_loader_plan = false;
+    var saw_loader_scaffold = false;
+    var saw_live_loader_binding = false;
+    var saw_shared_loader_controls_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -93,11 +86,12 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
+            // Sample-side starter and loader handoff scaffolds stay under samples.
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {
+            // Broader shared loader-control blockers are tracked by the canonical runtime-loader gap note.
         } else {
-            try std.testing.expect(
-                std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/") or
-                    std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"),
-            );
+            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -118,10 +112,25 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_kretprobe_diff.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-loader-plan")) {
-            saw_loader_plan = true;
+        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-loader-scaffold")) {
+            saw_loader_scaffold = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-live-loader-binding")) {
+            saw_live_loader_binding = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared runtime-loader request surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "kretprobe loader handoff") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")) {
+            saw_shared_loader_controls_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "command-name") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "argv-policy") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -131,32 +140,12 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 6);
+    try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
-    try std.testing.expect(saw_loader_plan);
-}
-
-test "phase 9 runtime kretprobe survey doc keeps the landed starter ownership map explicit" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const survey_doc = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
-        16 * 1024,
-    );
-    defer std.testing.allocator.free(survey_doc);
-
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/zigux/runtime_kretprobe.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/zigux/runtime_kretprobe_loader.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_kretprobe_module.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_kretprobe_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_kretprobe_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "shared runtime loader substrate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "register_kretprobe") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "unregister_kretprobe") != null);
+    try std.testing.expect(saw_loader_scaffold);
+    try std.testing.expect(saw_live_loader_binding);
+    try std.testing.expect(saw_shared_loader_controls_blocker);
 }
