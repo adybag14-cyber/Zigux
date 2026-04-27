@@ -15,6 +15,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_insertion_planning: bool,
     provides_rule_tree_search_planning: bool,
     provides_rule_tree_link_planning: bool,
+    provides_rule_materialization_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -120,6 +121,20 @@ pub const RuleTreeLinkPlan = struct {
     resulting_num_rules: u32,
 };
 
+pub const RuleMaterializationMode = enum {
+    copy_only,
+    append_layer,
+};
+
+pub const RuleMaterializationPlan = struct {
+    anchor: []const u8,
+    key_type: KeyType,
+    mode: RuleMaterializationMode,
+    resulting_rule: RulePlan,
+    initializes_rb_node: bool,
+    would_acquire_object_reference: bool,
+};
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -132,6 +147,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_insertion_planning = true,
             .provides_rule_tree_search_planning = true,
             .provides_rule_tree_link_planning = true,
+            .provides_rule_materialization_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -223,22 +239,38 @@ pub const RulesetHelperLab = struct {
         return true;
     }
 
-    fn copyRulePlan(layers: []const Layer) !RulePlan {
-        if (layers.len == 0) {
+    fn makeRulePlan(base_layers: []const Layer, appended_layer: ?Layer) !RulePlan {
+        if (base_layers.len == 0) {
             return error.MissingLayers;
         }
-        if (layers.len > max_num_layers) {
+        const extra_layers: usize = if (appended_layer == null) 0 else 1;
+        const resulting_num_layers = base_layers.len + extra_layers;
+        if (resulting_num_layers > max_num_layers) {
             return error.TooManyLayers;
         }
 
         var copied = RulePlan{
-            .num_layers = layers.len,
+            .num_layers = resulting_num_layers,
             .layers = [_]Layer{.{ .level = 0, .access = 0 }} ** max_num_layers,
         };
-        for (layers, 0..) |layer, i| {
+        for (base_layers, 0..) |layer, i| {
             copied.layers[i] = layer;
         }
+        if (appended_layer) |layer| {
+            copied.layers[base_layers.len] = layer;
+        }
         return copied;
+    }
+
+    pub fn planRuleMaterialization(key_type: KeyType, base_layers: []const Layer, appended_layer: ?Layer) !RuleMaterializationPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .key_type = key_type,
+            .mode = if (appended_layer == null) .copy_only else .append_layer,
+            .resulting_rule = try makeRulePlan(base_layers, appended_layer),
+            .initializes_rb_node = true,
+            .would_acquire_object_reference = key_type == .inode,
+        };
     }
 
     pub fn planRuleInsertion(existing_rule: ?RulePlan, incoming_layers: []const Layer, current_num_rules: u32) !RuleInsertionPlan {
@@ -271,8 +303,7 @@ pub const RulesetHelperLab = struct {
                 return error.InvalidExistingRule;
             }
 
-            updated.layers[rule.num_layers] = incoming;
-            updated.num_layers += 1;
+            updated = try makeRulePlan(rule.layers[0..rule.num_layers], incoming);
             return .{
                 .anchor = descriptor().anchor,
                 .mode = .append_merged_layer,
@@ -288,7 +319,7 @@ pub const RulesetHelperLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .mode = .insert_new_rule,
-            .resulting_rule = try copyRulePlan(incoming_layers),
+            .resulting_rule = try makeRulePlan(incoming_layers, null),
             .resulting_num_rules = current_num_rules + 1,
         };
     }

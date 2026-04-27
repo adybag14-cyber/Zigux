@@ -65,7 +65,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -79,6 +79,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     var saw_merge_followup = false;
     var saw_search_followup = false;
     var saw_tree_link_followup = false;
+    var saw_materialization_followup = false;
     var saw_live_state_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -148,6 +149,13 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_link_node()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_insert_color()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-materialization-followup")) {
+            saw_materialization_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "create_rule()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RB_CLEAR_NODE") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-live-tree-state-blocker")) {
             saw_live_state_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_live_lsm_state", gap.status);
@@ -161,7 +169,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -173,6 +181,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(saw_merge_followup);
     try std.testing.expect(saw_search_followup);
     try std.testing.expect(saw_tree_link_followup);
+    try std.testing.expect(saw_materialization_followup);
     try std.testing.expect(saw_live_state_blocker);
 }
 
@@ -188,8 +197,48 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
+    try std.testing.expect(descriptor.provides_rule_materialization_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
+}
+
+test "phase13 landlock ruleset materialization planner copies a new rule without object ownership for net ports" {
+    const plan = try ruleset.RulesetHelperLab.planRuleMaterialization(.net_port, &.{.{ .level = 0, .access = 0x11 }}, null);
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", plan.anchor);
+    try std.testing.expectEqual(ruleset.KeyType.net_port, plan.key_type);
+    try std.testing.expectEqual(ruleset.RuleMaterializationMode.copy_only, plan.mode);
+    try std.testing.expectEqual(@as(usize, 1), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 0), plan.resulting_rule.layers[0].level);
+    try std.testing.expectEqual(@as(u32, 0x11), plan.resulting_rule.layers[0].access);
+    try std.testing.expect(plan.initializes_rb_node);
+    try std.testing.expect(!plan.would_acquire_object_reference);
+}
+
+test "phase13 landlock ruleset materialization planner appends a merged layer for inode keys" {
+    const plan = try ruleset.RulesetHelperLab.planRuleMaterialization(
+        .inode,
+        &.{ .{ .level = 1, .access = 0x3 }, .{ .level = 2, .access = 0x7 } },
+        .{ .level = 4, .access = 0x9 },
+    );
+
+    try std.testing.expectEqual(ruleset.RuleMaterializationMode.append_layer, plan.mode);
+    try std.testing.expectEqual(@as(usize, 3), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 1), plan.resulting_rule.layers[0].level);
+    try std.testing.expectEqual(@as(u16, 2), plan.resulting_rule.layers[1].level);
+    try std.testing.expectEqual(@as(u16, 4), plan.resulting_rule.layers[2].level);
+    try std.testing.expectEqual(@as(u32, 0x9), plan.resulting_rule.layers[2].access);
+    try std.testing.expect(plan.initializes_rb_node);
+    try std.testing.expect(plan.would_acquire_object_reference);
+}
+
+test "phase13 landlock ruleset materialization planner rejects overflow when appending beyond max layers" {
+    const base_layers = [_]ruleset.Layer{.{ .level = 1, .access = 1 }} ** ruleset.max_num_layers;
+
+    try std.testing.expectError(
+        error.TooManyLayers,
+        ruleset.RulesetHelperLab.planRuleMaterialization(.inode, &base_layers, .{ .level = 7, .access = 3 }),
+    );
 }
 
 test "phase13 landlock ruleset tree-search planner inserts at root when tree is empty" {

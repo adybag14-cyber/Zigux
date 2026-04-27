@@ -11,7 +11,8 @@ The current helper lab stays intentionally narrow:
 - adds one in-memory `insert_rule()` planner that distinguishes the no-match insertion path from matching-rule access extension and merged-layer append behavior without allocating tree nodes or touching object references
 - adds one follow-on in-memory tree-search planner around `get_root()`, `walker_node`, and parent or insertion-side selection so the no-match search outcome is reviewable before any `rb_link_node()` or `rb_insert_color()` work is attempted
 - adds one tiny tree-link planner for the no-match branch so the `rb_link_node()` and `rb_insert_color()` handoff is reviewable as an explicit root or left or right link mode before any live rb-tree mutation or object ownership is claimed
+- adds one bounded `create_rule()` materialization planner so copied layer stacks, optional merged-layer append behavior, `RB_CLEAR_NODE()` initialization, and key-type-owned object-reference intent are reviewable as data without claiming allocation or live ownership transfer
 
 This slice does not claim rb-tree mutation, object references, rule insertion, hierarchy allocation, merge or inherit behavior, workqueue-backed deferred frees, or any live Landlock hook integration.
 
-The next honest bounded step in this same lane is blocked until there is a justified way to study `rb_replace_node()`, object ownership, hierarchy lifetime, and other live ruleset state without pretending this helper lab already owns real Landlock storage or policy enforcement.
+The next honest bounded step in this same lane is blocked until there is a justified way to study `rb_replace_node()`, live object ownership transfer or release, hierarchy lifetime, and other live ruleset state without pretending this helper lab already owns real Landlock storage or policy enforcement.
