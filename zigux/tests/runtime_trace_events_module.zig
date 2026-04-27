@@ -14,6 +14,15 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     var module = sample.RuntimeTraceEventsSample{};
 
     try std.testing.expectEqual(sample.ModuleStage.cold, module.stage());
+    const cold_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.cold, cold_summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.total_events);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.registration_depth);
+    try std.testing.expectEqual(@as(i32, -1), cold_summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), cold_summary.last_fn_count);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_template_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_function_template_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_format_template);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(0));
     try std.testing.expectError(error.FunctionThreadNotRegistered, blk: {
         try module.init();
@@ -21,15 +30,21 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     });
 
     try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.total_events);
 
     const main_events = try module.emitMainIteration(7);
     try std.testing.expectEqual(@as(usize, 6), main_events);
-    try std.testing.expectEqual(@as(usize, 1), module.main_iterations);
-    try std.testing.expectEqual(@as(i32, 7), module.last_main_count);
-    try std.testing.expect(module.saw_vararg_payload);
-    try std.testing.expect(module.saw_rel_loc_payload);
-    try std.testing.expect(module.saw_conditional_path);
+    const main_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), main_summary.main_iterations);
+    try std.testing.expectEqual(@as(i32, 7), main_summary.last_main_count);
+    try std.testing.expect(main_summary.saw_vararg_payload);
+    try std.testing.expect(main_summary.saw_rel_loc_payload);
+    try std.testing.expect(main_summary.saw_conditional_path);
+    try std.testing.expectEqualStrings("HELLO", main_summary.last_main_template_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("iter=%d", main_summary.last_format_template orelse return error.ExpectedMainPayload);
     const main_payload = module.last_main_payload orelse return error.ExpectedMainPayload;
     try std.testing.expectEqualStrings("hello", main_payload.foo_bar_message);
     try std.testing.expectEqualStrings("HELLO", main_payload.template_message);
@@ -42,14 +57,16 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try module.registerFunctionThread();
     const fn_events = try module.emitFunctionIteration(9);
     try std.testing.expectEqual(@as(usize, 2), fn_events);
-    try std.testing.expectEqual(@as(usize, 1), module.fn_iterations);
-    try std.testing.expectEqual(@as(i32, 9), module.last_fn_count);
-    try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
+    const function_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), function_summary.fn_iterations);
+    try std.testing.expectEqual(@as(i32, 9), function_summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 1), function_summary.registration_depth);
+    try std.testing.expectEqualStrings("Look at me too", function_summary.last_function_template_message orelse return error.ExpectedFunctionPayload);
     const fn_payload = module.last_function_payload orelse return error.ExpectedFunctionPayload;
     try std.testing.expectEqualStrings("Look at me", fn_payload.foo_bar_message);
     try std.testing.expectEqualStrings("Look at me too", fn_payload.template_message);
     try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
 
     const summary = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
@@ -60,14 +77,25 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqual(@as(usize, 16), summary.total_events);
     try std.testing.expect(summary.conditional_paths_checked);
     try std.testing.expect(summary.registration_paths_checked);
-    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    const selftest_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftest_summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), selftest_summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), selftest_summary.main_iterations);
+    try std.testing.expectEqual(@as(usize, 2), selftest_summary.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 16), selftest_summary.total_events);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
+    try std.testing.expectEqualStrings("HELLO", selftest_summary.last_main_template_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Look at me too", selftest_summary.last_function_template_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
     try module.exit();
+    const exited_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 16), exited_summary.total_events);
+    try std.testing.expectEqualStrings("HELLO", exited_summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
