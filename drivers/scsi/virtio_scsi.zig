@@ -25,6 +25,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_queue_family_planner: bool,
     provides_probe_config_snapshot: bool,
+    provides_host_limit_summary: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -98,11 +99,29 @@ pub const ProbeSnapshot = struct {
     first_poll_queue_index: ?u16,
 };
 
+pub const HostLimitRequest = struct {
+    probe: ProbeRequest,
+    synthetic_can_queue: u32 = 0,
+};
+
+pub const HostLimitSummary = struct {
+    anchor: []const u8,
+    config_cmd_per_lun: u32,
+    config_can_queue: u32,
+    effective_can_queue: u32,
+    effective_cmd_per_lun: u32,
+    max_target: u32,
+    max_lun: u32,
+    max_sectors: u32,
+    nr_hw_queues: u16,
+};
+
 pub const VirtioScsiQueueLab = struct {
     const Self = @This();
 
     last_layout: ?QueueLayoutSummary = null,
     last_probe_snapshot: ?ProbeSnapshot = null,
+    last_host_limit_summary: ?HostLimitSummary = null,
     frozen_layout: ?QueueLayoutSummary = null,
     transport_frozen: bool = false,
     recovery_generation: u16 = 0,
@@ -113,6 +132,7 @@ pub const VirtioScsiQueueLab = struct {
             .anchor = "drivers/scsi/virtio_scsi.c",
             .provides_queue_family_planner = true,
             .provides_probe_config_snapshot = true,
+            .provides_host_limit_summary = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -209,6 +229,28 @@ pub const VirtioScsiQueueLab = struct {
         return snapshot;
     }
 
+    pub fn captureHostLimitSummary(self: *Self, request: HostLimitRequest) !HostLimitSummary {
+        const snapshot = try self.captureProbeSnapshot(request.probe);
+        const effective_can_queue = if (request.synthetic_can_queue == 0)
+            @as(u32, snapshot.request_queue_count)
+        else
+            request.synthetic_can_queue;
+
+        const summary = HostLimitSummary{
+            .anchor = descriptor().anchor,
+            .config_cmd_per_lun = snapshot.config_cmd_per_lun,
+            .config_can_queue = request.synthetic_can_queue,
+            .effective_can_queue = effective_can_queue,
+            .effective_cmd_per_lun = @min(snapshot.effective_cmd_per_lun, effective_can_queue),
+            .max_target = snapshot.effective_max_target_count,
+            .max_lun = snapshot.effective_max_lun,
+            .max_sectors = snapshot.effective_max_sectors,
+            .nr_hw_queues = snapshot.request_queue_count,
+        };
+        self.last_host_limit_summary = summary;
+        return summary;
+    }
+
     pub fn freezeForTransportReset(self: *Self) !RecoverySummary {
         if (self.transport_frozen) {
             return error.TransportAlreadyFrozen;
@@ -241,6 +283,8 @@ pub const VirtioScsiQueueLab = struct {
         self.transport_frozen = false;
         self.frozen_layout = null;
         self.last_layout = null;
+        self.last_probe_snapshot = null;
+        self.last_host_limit_summary = null;
         self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
 
         return .{
