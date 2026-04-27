@@ -30,7 +30,8 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now records concrete main-thread payload literals for `foo_bar`, template, conditional, template-print, and relative-location replay paths, plus explicit function-callback payload labels and the exported `iter=%d` format template.
-- the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration and event counts, payload-presence flags, and the latest main-thread and function-thread template literals so logging diagnostics stay machine-checkable.
+- the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration and event counts, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
+- the focused module gate now proves those bounded literals through the summary surface itself, leaving raw payload-struct inspection to the narrower diff gate.
 
 ## Recorded gaps
 

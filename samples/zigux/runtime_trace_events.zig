@@ -61,8 +61,14 @@ pub const RuntimeTraceEventsSummary = struct {
     saw_vararg_payload: bool,
     saw_rel_loc_payload: bool,
     saw_conditional_path: bool,
+    last_main_foo_bar_message: ?[]const u8,
     last_main_template_message: ?[]const u8,
+    last_main_conditional_message: ?[]const u8,
+    last_main_template_cond_message: ?[]const u8,
+    last_main_template_print_message: ?[]const u8,
+    last_main_relative_location_message: ?[]const u8,
     last_function_template_message: ?[]const u8,
+    last_function_foo_bar_message: ?[]const u8,
     last_format_template: ?[]const u8,
 };
 
@@ -113,8 +119,14 @@ pub const RuntimeTraceEventsSample = struct {
             .saw_vararg_payload = self.saw_vararg_payload,
             .saw_rel_loc_payload = self.saw_rel_loc_payload,
             .saw_conditional_path = self.saw_conditional_path,
+            .last_main_foo_bar_message = if (self.last_main_payload) |payload| payload.foo_bar_message else null,
             .last_main_template_message = if (self.last_main_payload) |payload| payload.template_message else null,
+            .last_main_conditional_message = if (self.last_main_payload) |payload| payload.conditional_message else null,
+            .last_main_template_cond_message = if (self.last_main_payload) |payload| payload.template_cond_message else null,
+            .last_main_template_print_message = if (self.last_main_payload) |payload| payload.template_print_message else null,
+            .last_main_relative_location_message = if (self.last_main_payload) |payload| payload.relative_location_message else null,
             .last_function_template_message = if (self.last_function_payload) |payload| payload.template_message else null,
+            .last_function_foo_bar_message = if (self.last_function_payload) |payload| payload.foo_bar_message else null,
             .last_format_template = if (self.last_main_payload) |payload| payload.format_template else null,
         };
     }
