@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "aeb279e35506501ee00fe315b73c2fe5e6720811",
+  "surveyed_commit": "007f00d0c6b6b430bfbb2110555544cc5faefe8b",
   "anchor": "kernel/workqueue.c",
   "roadmap_destinations": [
     "kernel/workqueue_bridge.zig",
@@ -101,10 +101,17 @@
     },
     {
       "id": "phase14-workqueue-flush-color-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records the `__flush_workqueue()` color cascade, `start_flush_work()` barrier insertion, and `pwq_dec_nr_in_flight()` release path so Zigux can name `wq->work_color`, `wq->flush_color`, `wq->first_flusher`, `wq->flusher_overflow`, and `nr_pwqs_to_flush` handoff rules without claiming live flush or cancellation completion."
+    },
+    {
+      "id": "phase14-workqueue-drain-cancel-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `__flush_workqueue()`, `start_flush_work()`, and `pwq_dec_nr_in_flight()` so Zigux can describe active-color handoff, drain progression, and in-flight release rules before any wrapper claims flush or cancellation completion."
+      "why_now": "The next honest Phase 14 step is to audit `drain_workqueue()`, `__flush_work()`, and `__cancel_work_sync()` so Zigux can describe reflush looping, single-work barrier waiting, and cancellation completion boundaries before any wrapper claims draining or cancellation parity."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
