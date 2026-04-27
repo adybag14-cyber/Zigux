@@ -152,6 +152,81 @@ test "phase 8 kallsyms chunked reader slice keeps parser behavior across split i
     try std.testing.expectEqual(@as(u8, 'w'), symbols.items[1].symbol_type);
 }
 
+test "phase 8 kallsyms chunked reader slice preserves callback failures across split input" {
+    const ChunkFixtureState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+    };
+
+    const ChunkFixture = struct {
+        fn next(state: *ChunkFixtureState) anyerror!?[]const u8 {
+            if (state.index >= state.chunks.len) {
+                return null;
+            }
+
+            const chunk = state.chunks[state.index];
+            state.index += 1;
+            return chunk;
+        }
+    };
+
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Collector = struct {
+        fn stopOnWeakSymbol(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) anyerror!void {
+            if (symbol.symbol_type == 'W') {
+                return error.StopOnWeakSymbol;
+            }
+
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    var state = ChunkFixtureState{
+        .chunks = &.{
+            "ffffffff81000000 T start",
+            "up_64\nffffffff81000200 W weak",
+            "_handler\nffffffff81000300 t ignored_after_callback_error\n",
+        },
+    };
+
+    var symbols = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (symbols.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        symbols.deinit(std.testing.allocator);
+    }
+
+    try std.testing.expectError(
+        error.StopOnWeakSymbol,
+        kallsyms.forEachParsedChunked(
+            std.testing.allocator,
+            &state,
+            ChunkFixture.next,
+            &symbols,
+            Collector.stopOnWeakSymbol,
+        ),
+    );
+
+    try std.testing.expectEqual(@as(usize, 1), symbols.items.len);
+    try std.testing.expectEqualStrings("startup_64", symbols.items[0].name);
+    try std.testing.expectEqual(@as(u8, 'T'), symbols.items[0].symbol_type);
+}
+
 test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser contract" {
     const SliceReader = struct {
         bytes: []const u8,
