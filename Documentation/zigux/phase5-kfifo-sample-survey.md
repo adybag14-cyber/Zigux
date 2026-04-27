@@ -21,17 +21,18 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kfifo/bytestream-example.c` as one of the four Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that `samples/zigux/` carries three bounded Phase 5 reference samples plus several later runtime-oriented starters:
+Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-approved bounded Phase 5 reference samples plus several later runtime-oriented starters:
 
 - `bytestream_fifo.zig`
 - `kobject_example.zig`
 - `kretprobe_example.zig`
+- `trace_events_sample.zig`
 - `runtime_atomic64.zig`
 - `runtime_bitmap.zig`
 - `runtime_kretprobe.zig`
 - `runtime_trace_events.zig`
 
-The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the last Phase 5 anchor still lacks a side-by-side starter, even where a later Phase 9 runtime pilot now exists under the same Linux sample family.
+The `kfifo`-specific gap is no longer missing sample delivery. The remaining work in this lane is to keep the approved idiom, exact checks, and non-goals honest now that the full Phase 5 anchor set is landed, especially where later Phase 9 runtime pilots exist under neighboring Linux sample families.
 
 ## Survey findings
 
@@ -43,9 +44,9 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters separate from these non-runtime reference readings.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
-## Approved idiom for a future kfifo-style sample
+## Approved idiom for the landed kfifo-style sample
 
-Until a bounded runtime substrate exists, a Phase 5 `samples/zigux/` reference sample for this anchor should:
+For the already-landed Phase 5 `samples/zigux/bytestream_fifo.zig` slice, the approved idiom remains:
 
 - model FIFO state and ordered operations entirely in memory
 - keep the Linux anchor path explicit in a descriptor or note
@@ -91,13 +92,13 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 
 ## Recorded gap vs roadmap
 
-The current gap is not "Zigux lacks every sample." The more precise gap is:
+The current gap is not missing Phase 5 sample delivery for `kfifo`. The more precise gap is:
 
-- the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters in `samples/zigux/`
-- the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters for `trace-events` and `kretprobe`
-- the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
+- all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
+- the canonical `kfifo` survey still has to say that plainly so reviewers do not mistake this slice for an unfinished anchor or confuse it with the separate later Phase 9 runtime pilots
+- the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
 
-This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
+This slice now keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, so future work can leave this lane parked unless a real same-family drift appears.
 
 ## Review gates for this survey
 
@@ -121,4 +122,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping the landed Phase 5 sample set distinct from the later Phase 9 runtime starters.
+Leave this narrow `kfifo` survey lane parked unless fresh repo inspection shows one more same-family drift in the approved idiom, contributor prompts, or roadmap-gap wording for the already-landed bytestream FIFO sample.
