@@ -1,12 +1,8 @@
 const std = @import("std");
 const runtime_bitmap_sample = @import("runtime_bitmap_sample");
+const runtime_loader = @import("runtime_loader");
 
-pub const LoaderStage = enum(u8) {
-    idle,
-    prepared,
-    waiting_on_runtime_substrate,
-    released_without_substrate,
-};
+pub const LoaderStage = runtime_loader.LoaderStage;
 
 pub const RuntimeBitmapLoadPlan = struct {
     module_name: []const u8,
@@ -67,11 +63,37 @@ pub const RuntimeBitmapLoader = struct {
         return self.cached_plan orelse error.MissingLoadPlan;
     }
 
+    pub fn requestSharedRuntimeLoad(self: *Self) !runtime_loader.RuntimeLoadRequest {
+        const plan = try self.requestRuntimeLoad();
+        return toSharedRequest(plan);
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
     }
 };
+
+pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest {
+    return .{
+        .module_name = plan.module_name,
+        .anchor = plan.anchor,
+        .entry_symbol = plan.entry_symbol,
+        .exit_symbol = plan.exit_symbol,
+        .requires_runtime_substrate = plan.requires_runtime_substrate,
+        .provides_selftest_hook = plan.provides_selftest_hook,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = plan.summary.first_set,
+                .first_zero = plan.summary.first_zero,
+                .weight = plan.summary.weight,
+                .nbits = plan.summary.nbits,
+            },
+        },
+    };
+}
 
 test "runtime bitmap loader prepares a bounded handoff plan from the sample contract" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
@@ -115,4 +137,22 @@ test "runtime bitmap loader keeps unavailable substrate and lifecycle guards exp
 
     try module.exit();
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeBitmapLoader.planFor(&module));
+}
+
+test "runtime bitmap loader emits the shared runtime-loader request shape" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    _ = try loader.prepare(&module);
+
+    const request = try loader.requestSharedRuntimeLoad();
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, request.lane());
+    try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expectEqual(@as(u32, 4), request.payload.bitmap.weight);
+    try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
+    try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, std.meta.activeTag(request.payload));
 }
