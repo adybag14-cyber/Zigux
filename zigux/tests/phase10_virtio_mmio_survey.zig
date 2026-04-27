@@ -60,7 +60,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expectEqualStrings("P10-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("19bb9720bb531d66c7ef592f5ce55c9fb7a8bae7", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("bd2093168cabffa63b14e69cbbedf3c98ca10726", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
