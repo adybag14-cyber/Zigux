@@ -364,6 +364,7 @@ else:
 
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-preflight-helper",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-register-helper",
 }
 if ready_transport_followups != expected_ready_transport_followups:
