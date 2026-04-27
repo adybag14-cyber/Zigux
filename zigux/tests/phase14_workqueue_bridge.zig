@@ -263,3 +263,27 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[11].guard == .scheduler_callback_under_pool_lock);
     try std.testing.expect(audit.checkpoints[12].guard == .mayday_lock_then_pool_lock);
 }
+
+test "phase14 workqueue bridge checklist prompt keeps review packet aligned" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(checklist);
+
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "Phase 14 workqueue bridge lane") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "kernel/workqueue_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "zigux/tests/phase14_workqueue_bridge_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "phase14-workqueue-bridge-slice.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "phase14-workqueue-bridge-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "boundary-map-only posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "thirteen-checkpoint audit outline") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "drain_workqueue()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "__flush_work()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "__cancel_work_sync()") != null);
+}
