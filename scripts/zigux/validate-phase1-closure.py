@@ -45,6 +45,10 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
     'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`',
     'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits',
+    'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
+    'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
+    'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
+    'PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
@@ -97,6 +101,7 @@ manifest_helpers = manifest.get('helpers', [])
 manifest_count = manifest.get('helper_count')
 bitmap_review = manifest.get('helper_review_notes', {}).get('tools/lib/bitmap.zig', {})
 find_bit_review = manifest.get('helper_review_notes', {}).get('tools/lib/find_bit.zig', {})
+rbtree_review = manifest.get('helper_review_notes', {}).get('tools/lib/rbtree.zig', {})
 string_review = manifest.get('helper_review_notes', {}).get('tools/lib/string.zig', {})
 if manifest.get('phase') != 'Phase 1':
     missing_markers.append('manifest:phase=Phase 1')
@@ -140,6 +145,25 @@ if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "tail
     missing_markers.append('manifest:find_bit.unit_test_anchor')
 if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits.':
     missing_markers.append('manifest:find_bit.unit_test_contract')
+if rbtree_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
+    missing_markers.append('manifest:rbtree.fixture=zigux/tests/fixtures/phase1_helpers.json')
+if rbtree_review.get('evidence_keys') != [
+    'rbtree.empty_root',
+    'rbtree.insert_order',
+    'rbtree.reverse_order',
+    'rbtree.replace_order',
+    'rbtree.erase_init_order',
+    'rbtree.postorder_count',
+    'rbtree.erase_init_node_empty',
+    'rbtree.cleared_node_empty',
+]:
+    missing_markers.append('manifest:rbtree.evidence_keys')
+if rbtree_review.get('summary') != 'Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks.':
+    missing_markers.append('manifest:rbtree.summary')
+if rbtree_review.get('unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"':
+    missing_markers.append('manifest:rbtree.unit_test_anchor')
+if rbtree_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.':
+    missing_markers.append('manifest:rbtree.unit_test_contract')
 if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if string_review.get('evidence_keys') != [
