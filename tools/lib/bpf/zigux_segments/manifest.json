@@ -1,7 +1,7 @@
 {
   "lane_key": "P8-L13",
   "phase": "Phase 8",
-  "surveyed_commit": "f96f0cc1962f2e909167185693aed38047570d1c",
+  "surveyed_commit": "ed156fb49e6f4ec5271adeacb8e0310e0baef11b",
   "anchor": "tools/lib/bpf/libbpf.c",
   "survey_summary": {
     "libbpf_c_lines": 14771,
@@ -91,16 +91,26 @@
     },
     {
       "id": "P8-L13-S08",
+      "slug": "fdinfo-map-info-helpers",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:4956-4987"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The proc fdinfo path construction and map-info text parsing inside bpf_get_map_info_from_fdinfo() can land as a pure helper without claiming procfs fopen or fclose behavior, pinned-map reuse, or token lifecycle parity."
+    },
+    {
+      "id": "P8-L13-S09",
       "slug": "file-path-and-handle-bridge",
       "status": "deferred_high_risk",
       "kind": "resource_boundary",
       "anchor_ranges": [
-        "tools/lib/bpf/libbpf.c:4956-4987",
         "tools/lib/bpf/libbpf.c:5112-5157",
         "tools/lib/bpf/libbpf.c:5255-5286"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "This is the smallest remaining libbpf surface that still crosses real procfs reads, bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should be recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
+      "why_now": "After the fdinfo pathname and text parser helper lands, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
     },
     {
       "id": "P8-L13-S05",
