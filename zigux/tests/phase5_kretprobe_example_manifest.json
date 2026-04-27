@@ -8,6 +8,7 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact skip, return-value, duration, and missed-summary contract run through phase5_build.zig",
+    "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still keep the landed Phase 5 kretprobe slice tied to the shared phase5_build.zig entrypoint and distinct from the separate Phase 9 runtime starter",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
