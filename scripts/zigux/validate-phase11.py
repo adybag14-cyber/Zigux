@@ -313,4 +313,4 @@ print(
 print(f"PHASE11_MANIFEST_COUNT={len(manifest_specs)}")
 print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_next_total}")
-print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total})
+print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
