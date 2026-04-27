@@ -6,15 +6,17 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus four landed helper-first starter slices
+- scope: segment manifest plus five landed helper-first starter slices
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `tools/lib/bpf/zigux_segments/logging.zig`
   - `tools/lib/bpf/zigux_segments/pin_path.zig`
   - `tools/lib/bpf/zigux_segments/type_names.zig`
+  - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_bpf_type_names.zig`
+  - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
@@ -35,18 +37,19 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 
 ## Segment catalog
 
-The manifest currently records eight bounded segments:
+The manifest currently records nine bounded segments:
 
 - `logging-version-and-errno`
 - `pin-path-helpers`
 - `cpu-mask-parsing`
 - `type-name-helpers`
+- `fdinfo-map-info-helpers`
 - `file-path-and-handle-bridge`
 - `skeleton-population`
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, and `type-name-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig`. `file-path-and-handle-bridge` is now called out separately as the next deferred resource-boundary cluster around `bpf_get_map_info_from_fdinfo()`, `bpf_object_prepare_token()`, and `bpf_object__reuse_map()`, because it crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flows, and fd close or ownership semantics without yet requiring full ELF or skeleton parity. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
+`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `fdinfo-map-info-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`. The new helper keeps `bpf_get_map_info_from_fdinfo()` bounded to `/proc/<pid>/fdinfo/<fd>` path construction and fdinfo text parsing only. `file-path-and-handle-bridge` stays deferred as the remaining resource-boundary cluster around `bpf_object_prepare_token()` and `bpf_object__reuse_map()`, because it still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flows, and fd close or ownership semantics without yet requiring full ELF or skeleton parity. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
 
 ## Current landed segment progress
 
@@ -65,6 +68,9 @@ The current starter implementation stays deliberately bounded:
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
+- `file_path_handle_bridge.zig` ports the pure `/proc/<pid>/fdinfo/<fd>` path construction and bounded `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` text parsing from `bpf_get_map_info_from_fdinfo()`
+- the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines and keeps duplicate or malformed fields explicit for callers instead of silently guessing
+- the new helper still does not claim `fopen()`, `fgets()`, `fclose()`, pinned-object reopen flows, or token creation lifecycle parity
 
 The current tests check:
 
@@ -84,6 +90,8 @@ The current tests check:
 - default and caller-provided pin roots join cleanly with map names
 - `.` characters inside pin roots and map names sanitize to `_` the same way bpffs pin-name helpers do in libbpf
 - buffer exhaustion during pin-path assembly stays explicit
+- proc fdinfo paths format cleanly for representative pid and fd pairs without widening into direct file reads
+- bounded fdinfo map metadata parsing accepts reordered lines and explicit `map_flags` bases while rejecting duplicates, malformed values, and missing required fields
 
 ## Gates
 
@@ -100,7 +108,7 @@ This survey slice does not yet claim:
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
 - `parse_cpu_mask_file()` parity or direct file reads
 - direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
-- direct `/proc/.../fdinfo` reads, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifecycle parity
+- direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifecycle parity
 - BTF relocation parity
 - ELF loader parity
 - perf-buffer runtime behavior
@@ -108,4 +116,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Treat the Phase 8 helper-first entry as substantively landed for now: keep the shared Phase 8 gate honest, leave the new file or path or handle bridge segment explicitly deferred, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded helper if fresh repo reality exposes one that stays smaller and lower risk than this direct resource-boundary cluster and the currently blocked object-model or loader-facing work.
+Treat the Phase 8 helper-first entry as substantively landed for now: keep the shared Phase 8 gate honest, leave the remaining file-path-and-handle bridge segment explicitly deferred around token and pinned-map handle lifecycle work, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded helper if fresh repo reality exposes one that stays smaller and lower risk than that remaining resource-boundary cluster and the currently blocked object-model or loader-facing work.
