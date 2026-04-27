@@ -88,8 +88,9 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_bytestream_fifo_manifest.json` and `zigux/tests/phase5_bytestream_fifo_survey.zig` still record the exact queue-order replay, non-destructive snapshot, and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
+- do `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the sample-backed survey note still record the exact queue-order replay, non-destructive snapshot, and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
+- does `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact Phase 5 replay contract?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
 These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete descriptor, manifest, and build entrypoint that current `master` already ships.
