@@ -56,6 +56,8 @@ if missing:
 closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").read_text(encoding="utf-8")
 freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
+ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
+ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
 manifest = load_json(ROOT / "zigux" / "tests" / "phase10_closure_manifest.json")
@@ -126,6 +128,17 @@ required_checklist_markers = [
     "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, the three Phase 10 survey manifests, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
 ]
+required_ring_survey_markers = [
+    "remaining MMIO follow-up boundary against the roadmap",
+    "phase10-mmio-register-window-helper",
+]
+required_ring_survey_test_markers = [
+    'test "phase10 virtio ring survey manifest records the live MMIO follow-up boundary" {',
+]
+forbidden_stale_ring_markers = [
+    "remaining queue-wrapper gap",
+    "queue-wrapper gap",
+]
 missing_markers: list[str] = []
 for marker in required_closure_markers:
     if marker not in closure:
@@ -142,6 +155,17 @@ for marker in required_workflow_markers:
 for marker in required_checklist_markers:
     if marker not in review_checklist:
         missing_markers.append(f"checklist:{marker}")
+for marker in required_ring_survey_markers:
+    if marker not in ring_survey:
+        missing_markers.append(f"ring_survey:{marker}")
+for marker in required_ring_survey_test_markers:
+    if marker not in ring_survey_test:
+        missing_markers.append(f"ring_survey_test:{marker}")
+for marker in forbidden_stale_ring_markers:
+    if marker in ring_survey:
+        missing_markers.append(f"ring_survey:stale_marker:{marker}")
+    if marker in ring_survey_test:
+        missing_markers.append(f"ring_survey_test:stale_marker:{marker}")
 
 if manifest.get("phase") != "Phase 10":
     missing_markers.append("manifest:phase=Phase 10")
@@ -296,6 +320,11 @@ expected_blocked_transport_gaps = {
 }
 if blocked_transport_gaps != expected_blocked_transport_gaps:
     missing_markers.append("manifest:blocked_transport_gaps:mismatch")
+for gap in ring_manifest.get("gaps", []):
+    if isinstance(gap, dict):
+        why_now = gap.get("why_now")
+        if isinstance(why_now, str) and "queue-wrapper gap" in why_now:
+            missing_markers.append("phase10_virtio_ring_manifest:stale_marker:queue-wrapper gap")
 
 
 def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
