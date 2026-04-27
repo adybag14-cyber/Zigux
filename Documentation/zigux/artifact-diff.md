@@ -8,6 +8,7 @@ Current Phase 1 use
 - `scripts/zigux/artifact_diff.py` is the generic comparison layer that future Phase 2 tooling work will reuse.
 
 Current Phase 2 use
+- `python3 scripts/zigux/artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths so deterministic comparison drift fails before the bounded Phase 2 parity lanes run.
 - `zigux/tests/fixtures/fixdep/sample_expected.txt` is generated from the current in-tree C `scripts/basic/fixdep.c` behavior on a bounded committed sample.
 - `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt` widens that claim with a second committed depfile covering multi-target parsing, comments, duplicate deps, no-parse files, and escaped `#`.
 - `zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve `\\ ` and `\\t` separators the same way as the C tool.
