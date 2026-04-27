@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
-- survey provenance refreshed against verified `master` head `3eac40e856ac7673f705447a1d6025f3d0193b5e`
+- survey provenance refreshed against verified `master` head `c509b20927011c6464cf26a9bc3c9b28fa622e43`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -85,6 +85,15 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 - the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
 - current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
+
+## Maintenance-Mode Handoff
+
+- current lane posture: `maintenance_mode`
+- replay before trusting this parked handoff:
+  - `zig build test --build-file zigux/tests/phase15_build.zig`
+  - `make -C zigux phase15`
+- reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
+- next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Recorded Gaps
 

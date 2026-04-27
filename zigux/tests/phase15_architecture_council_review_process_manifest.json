@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L14",
   "phase": "Phase 15",
-  "surveyed_commit": "3eac40e856ac7673f705447a1d6025f3d0193b5e",
+  "surveyed_commit": "c509b20927011c6464cf26a9bc3c9b28fa622e43",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -53,6 +53,15 @@
     "bounded_dual_implementation",
     "defer_or_reject"
   ],
+  "handoff": {
+    "current_mode": "maintenance_mode",
+    "replay_commands": [
+      "zig build test --build-file zigux/tests/phase15_build.zig",
+      "make -C zigux phase15"
+    ],
+    "blocker_posture_requirement": "deep_core_blocker_posture_change",
+    "next_step": "wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice"
+  },
   "gaps": [
     {
       "id": "phase15-architecture-council-review-process-doc",
