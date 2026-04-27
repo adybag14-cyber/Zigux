@@ -29,8 +29,13 @@ test "phase3 export shim keeps failure encoding explicit" {
     const success = ok(.kernel);
     try std.testing.expect(isOk(success));
 
+    const neutral = errno(0, .kernel);
+    try std.testing.expect(isOk(neutral));
+    try std.testing.expectEqual(@as(u16, 0), neutral.flags);
+
     const failure = errno(-22, .helpers);
     try std.testing.expect(!isOk(failure));
+    try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.helpers)), failure.facility);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), failure.flags);
 
     const hdr = header(0x10);
