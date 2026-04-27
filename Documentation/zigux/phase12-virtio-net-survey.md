@@ -31,6 +31,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, an explicit RSS outcome summary that distinguishes active, downgraded, hash-report-only, and unavailable states, and whether probe should treat the device as stable, renegotiate features, or reset-required.
 - the lane now also lands one small queue-recovery follow-up: the probe snapshot records an explicit queue recovery action that distinguishes staying in bounded single-queue fallback, renegotiating features, and requiring reset when the control-virtqueue path or negotiated feature set cannot support the requested topology.
 - the lane now also lands one tiny header-shape follow-up: the probe snapshot mirrors the `hdr_len` branch in `virtnet_probe()` so reviewability now distinguishes legacy headers, mergeable-or-version1 headers, hash-report headers, and UDP-tunnel headers without claiming any live queue activation or packet-path behavior.
+- the lane now also lands one bounded queue-recovery summary follow-up: the lab can freeze the last in-memory queue topology and recovery posture, refuse fresh probe snapshots while recovery is in flight, and clear stale planning state after restore while preserving the remembered queue-pair count, total queue count, control-queue placement, RSS summary, and reset or renegotiation intent.
 
 ## Recorded gaps
 
@@ -45,6 +46,7 @@ The survey manifest now records:
 - the landed `phase12-virtio-net-probe-snapshot-starter`
 - the landed `phase12-virtio-net-queue-recovery-followup`
 - the landed `phase12-virtio-net-hdr-len-followup`
+- the landed `phase12-virtio-net-queue-recovery-summary`
 - the still-blocked `phase12-virtio-net-runtime-data-path`
 
 This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter plus the bounded queue-recovery summary follow-up and the newer header-shape follow-up, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
