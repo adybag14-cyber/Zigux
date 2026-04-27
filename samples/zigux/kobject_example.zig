@@ -192,6 +192,13 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     var sample = KobjectExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
+    const expected_focus = [_]SampleFocus{
+        .bounded_attribute_roundtrip,
+        .shared_attribute_dispatch,
+        .ownership_and_lifetime,
+        .parse_error_visibility,
+        .reviewable_non_sysfs_scope,
+    };
 
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
     try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
@@ -206,5 +213,5 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
