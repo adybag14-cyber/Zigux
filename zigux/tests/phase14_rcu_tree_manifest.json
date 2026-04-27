@@ -45,7 +45,26 @@
     "preexisting_tree_bridge_zig_present": false,
     "preexisting_phase14_rcu_tree_manifest_present": true,
     "preexisting_phase14_rcu_tree_survey_test_present": true,
-    "preexisting_phase14_rcu_tree_survey_note_present": true
+    "preexisting_phase14_rcu_tree_survey_note_present": true,
+    "rollback_threshold_note_present": true,
+    "rollback_threshold_checklist_present": true,
+    "rollback_threshold_freeze_map_rule_present": true
+  },
+  "rollback_threshold": {
+    "status_bucket": "freeze_in_c",
+    "review_blocker_status": "blocked_on_stay_in_c_evidence",
+    "owner": "Core-Adjacent Pod",
+    "rollback_owner": "Repo Tooling Pod",
+    "required_evidence": [
+      "Architecture Council reopen record linked from the reviewable packet",
+      "parity scorecard evidence and benchmark notes attached to the same review packet",
+      "validation replay command and evidence archive path recorded beside the latest blocker disposition"
+    ],
+    "rollback_triggers": [
+      "any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record",
+      "missing parity scorecard evidence, benchmark notes, or replay command in the active review packet",
+      "freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner"
+    ]
   },
   "decision_checklist": [
     {
@@ -167,6 +186,13 @@
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
       "why_now": "The survey now records `call_rcu_nocb()`, `nocb_gp_wait()`, and `rcu_nocb_flush_deferred_wakeup()` as a landed stay-in-C audit so offloaded callback enqueue, grace-period wait selection, and deferred wakeup flushing remain reviewable without becoming a quiet side door toward `kernel/rcu/tree_bridge.zig`."
+    },
+    {
+      "id": "phase14-rcu-tree-rollback-threshold-guardrail",
+      "status": "starter_landed",
+      "kind": "rollback_guardrail",
+      "zigux_destination": "zigux/tests/phase14_rcu_tree_manifest.json",
+      "why_now": "The lane now records a manifest-backed rollback threshold so any future `kernel/rcu/tree_bridge.zig` status review must keep the Architecture Council reopen record, parity scorecard evidence, benchmark notes, replay command, blocker disposition, and rollback owner explicit or fall back to the current blocked freeze-in-C posture."
     },
     {
       "id": "phase14-rcu-tree-bridge-blocker",
