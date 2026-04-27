@@ -50,6 +50,10 @@ fn isLowerHexCommit(commit: []const u8) bool {
     return true;
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -131,7 +135,17 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
         if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
             saw_file_path_handle_segment = true;
             try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expectEqualStrings("resource_boundary", segment.kind);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
+            try std.testing.expectEqual(@as(usize, 3), segment.anchor_ranges.len);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:4956-4987", segment.anchor_ranges[0]);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5112-5157", segment.anchor_ranges[1]);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5255-5286", segment.anchor_ranges[2]);
+            try expectContains(segment.why_now, "procfs reads");
+            try expectContains(segment.why_now, "bpffs path opens");
+            try expectContains(segment.why_now, "token creation");
+            try expectContains(segment.why_now, "pinned-object reopen flows");
+            try expectContains(segment.why_now, "fd ownership");
         }
 
         for (manifest.segments[i + 1 ..]) |other| {
