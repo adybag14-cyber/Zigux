@@ -224,6 +224,23 @@ dedicated_survey_replays = build_inventory.get("dedicated_survey_replays")
 if dedicated_survey_replays != []:
     missing.append("phase12_build_fixture:dedicated_survey_replays")
 
+expected_step_count = build_inventory.get("expected_step_count")
+expected_test_count = build_inventory.get("expected_test_count")
+expected_summary_line = build_inventory.get("expected_summary_line")
+if not isinstance(expected_step_count, int) or expected_step_count <= 0:
+    missing.append("phase12_build_fixture:expected_step_count")
+if not isinstance(expected_test_count, int) or expected_test_count <= 0:
+    missing.append("phase12_build_fixture:expected_test_count")
+if not isinstance(expected_summary_line, str) or not expected_summary_line:
+    missing.append("phase12_build_fixture:expected_summary_line")
+elif isinstance(expected_step_count, int) and isinstance(expected_test_count, int):
+    canonical_summary_line = (
+        f"Build Summary: {expected_step_count}/{expected_step_count} steps succeeded; "
+        f"{expected_test_count}/{expected_test_count} tests passed"
+    )
+    if expected_summary_line != canonical_summary_line:
+        missing.append("phase12_build_fixture:expected_summary_line_mismatch")
+
 starter_total = 0
 blocked_dma_total = 0
 blocked_object_total = 0
@@ -312,6 +329,7 @@ print("PHASE12_VALIDATION=pass")
 print("PHASE12_MANIFEST_COUNT=4")
 print(f"PHASE12_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE12_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
+print(f"PHASE12_EXPECTED_SUMMARY_LINE={expected_summary_line}")
 print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE12_BLOCKED_DMA_STATUS_COUNT={blocked_dma_total}")
 print(f"PHASE12_BLOCKED_OBJECT_STATUS_COUNT={blocked_object_total}")

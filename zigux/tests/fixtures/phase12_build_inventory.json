@@ -19,6 +19,9 @@
     "run_phase12_libbpf_segments_tests",
     "run_phase12_libbpf_reviewability_tests"
   ],
+  "expected_step_count": 17,
+  "expected_test_count": 34,
+  "expected_summary_line": "Build Summary: 17/17 steps succeeded; 34/34 tests passed",
   "forbidden_markers": [],
   "dedicated_survey_replays": []
 }
