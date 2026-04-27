@@ -36,6 +36,10 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L20", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
+    for (manifest.surveyed_commit) |byte| {
+        try std.testing.expect(std.ascii.isLower(byte) or std.ascii.isDigit(byte));
+    }
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
