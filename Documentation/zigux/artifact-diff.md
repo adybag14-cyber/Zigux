@@ -5,7 +5,7 @@ Zigux uses committed artifacts only when they anchor a bounded parity claim.
 Current Phase 1 use
 - `zigux/tests/fixtures/phase1_helpers.json` is generated from the in-tree C helper implementations.
 - `scripts/zigux/check-phase1-parity.py` rebuilds that artifact and compares it against the committed JSON.
-- `scripts/zigux/artifact_diff.py` is the generic comparison layer that future Phase 2 tooling work will reuse.
+- `scripts/zigux/artifact_diff.py` is the generic comparison layer already reused by the current Phase 2 tooling lanes and kept available for future host-side diff tooling.
 
 Current Phase 2 use
 - `python3 scripts/zigux/artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths so deterministic comparison drift fails before the bounded Phase 2 parity lanes run.
@@ -87,5 +87,5 @@ Rules
 - do not use opaque binary blobs for early bootstrap parity when a text or JSON artifact is possible
 
 Near-term target
-- reuse the same artifact-diff pattern for Phase 2 dual-implementation and bridge outputs such as `fixdep`, `genksyms`, `genksyms_crc`, `kconfig_bridge`, and `mk_elfconfig`
-- keep using the same pattern for the full bounded Phase 3 interop ladder, with `python3 scripts/zigux/run-phase3-checks.py --slug <slice>` as the only documented execution entrypoint for those committed parity fixtures.
+- keep the same artifact-diff pattern available for future host-side tools under `scripts/zigux/` when a bounded expected artifact or generated catalog section needs a reviewable drift check.
+- prefer lane-owned expected artifacts or generated catalog rewrites over broad hand-maintained inventories so stale expected-output and catalog drift stays small, auditable, and easy to refresh.
