@@ -6,7 +6,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-indefinite-c-policy-gate`
-- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also requires an explicit indefinite-C policy link or applicability note whenever a freeze-map anchor stays in C
+- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also requires an explicit indefinite-C policy link or applicability note whenever a freeze-map anchor stays in C, plus one roadmap-ledger handoff note that keeps the parked future-target wording aligned with the current governance bundle
 - survey provenance refreshed against verified `master` head `65cb45dda5ca7fc760207a4ca711397bc7894e9e`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
@@ -90,6 +90,15 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 - current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, indefinite-c-policy link or applicability note, and reopen-trigger records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
+## Roadmap Handoff Evidence
+
+- roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
+- roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
+- bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
+- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
+- current bounded lane: `P15-L12` keeps the review-process handoff synced without reopening README ownership or parity-scorecard evidence work that already landed in nearby maintenance lanes
+- maintenance-mode next step: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
+
 ## Maintenance-Mode Handoff
 
 - current lane posture: `maintenance_mode`
@@ -114,8 +123,9 @@ The current lane state is:
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-ownership-refresh-gate`
 - landed `phase15-indefinite-c-policy-review-gate`
+- landed `phase15-review-process-roadmap-handoff-evidence`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, and now also forces an explicit indefinite-C policy link or applicability note when a freeze-map anchor stays in C, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, forces an explicit indefinite-C policy link or applicability note when a freeze-map anchor stays in C, keeps the roadmap and ledger provenance explicit in the same handoff surface, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
