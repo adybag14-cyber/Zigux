@@ -25,6 +25,7 @@ FILES = [
     "zigux/tests/phase12_nvme_pci_survey.zig",
     "zigux/tests/phase12_virtio_scsi_survey.zig",
     "zigux/tests/phase12_libbpf_segments.zig",
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
 ]
 
 MAKE_MARKERS = [
@@ -107,7 +108,7 @@ MANIFEST_SPECS = {
     "phase12_virtio_scsi_manifest.json": {
         "lane_key": "P12-L09",
         "anchor": "drivers/scsi/virtio_scsi.c",
-        "gap_count": 12,
+        "gap_count": 13,
         "roadmap_destinations": ["drivers/scsi/virtio_scsi.zig", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {
             "zigux/Makefile",
@@ -115,7 +116,7 @@ MANIFEST_SPECS = {
             "drivers/virtio/virtio_ring.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
-        "expected_status_totals": {"starter_landed": 11, "blocked_on_dma_transport": 1},
+        "expected_status_totals": {"starter_landed": 12, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
