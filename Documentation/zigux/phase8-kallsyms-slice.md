@@ -40,7 +40,7 @@ The current starter slice covers:
 - injected chunked reader iteration that reconstructs split lines before reusing the same parser
 - thin reader-backed parsing that reuses the same malformed-line and callback semantics
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
-- one direct `kallsymsParse()` wrapper that accepts a path plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
+- one direct `kallsymsParse()` wrapper that accepts a plain filename plus a C-shaped callback contract while `kallsymsParseInDir()` keeps the narrower injected-dir variant available for tests and callers that need it
 - a bounded symbol-name length guard that keeps the starter parser honest
 
 The current tests check:
@@ -50,7 +50,7 @@ The current tests check:
 - malformed lines are skipped without stopping iteration
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
-- the direct wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
+- the direct wrappers preserve both the cwd-based filename contract and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
