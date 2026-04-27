@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L05",
   "phase": "Phase 12",
-  "surveyed_commit": "d38645922521f8d7f3339006ff5d9f43a704eea0",
+  "surveyed_commit": "644e52bffdc6edf218362eeb71baa562b6488618",
   "anchor": "drivers/nvme/host/pci.c",
   "roadmap_destinations": [
     "drivers/nvme/host/pci.zig",
@@ -53,14 +53,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, reset-time queue freeze behavior, and the new PRP buffer-shape helper."
+      "why_now": "Dedicated driver tests now keep the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, reset-time queue freeze behavior, the PRP buffer-shape helper, and one tiny PRP-versus-SGL selection summary."
     },
     {
       "id": "phase12-nvme-pci-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
-      "why_now": "The slice note records what the landed queue planner and PRP buffer-shape helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
+      "why_now": "The slice note records what the landed queue planner, PRP buffer-shape helper, and pointer-selection helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
     },
     {
       "id": "phase12-virtio-net-driver-starter",
@@ -98,11 +98,18 @@
       "why_now": "The landed PRP buffer-shape helper now records first-page offset, rounded span, and page-list bound checks without crossing into SGL setup, live DMA mapping, request submission, or hardware-backed queue setup."
     },
     {
+      "id": "phase12-nvme-pci-pointer-selection-helper",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The landed pointer-selection helper now records the bounded PRP-versus-SGL decision surface around admin-versus-I/O queues, page-gap forcing, user-command forcing, integrity-segment forcing, and average-segment threshold preference without claiming live descriptor allocation or DMA mapping."
+    },
+    {
       "id": "phase12-nvme-pci-live-queue-and-dma",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked even though the smaller PRP buffer-shape helper is now landed and the roadmap-approved DMA-safe transport substrate is still missing."
+      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked even though the smaller PRP buffer-shape and pointer-selection helpers are now landed and the roadmap-approved DMA-safe transport substrate is still missing."
     }
   ]
 }
