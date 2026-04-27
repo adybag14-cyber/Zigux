@@ -39,6 +39,8 @@ This slice does not yet claim:
 
 - a kernel-loadable Zigux trace-events module
 - `CREATE_TRACE_POINTS` or tracepoint macro parity
+- runtime task ownership or event-loop substrate parity
+- polling-backed wake or dispatch behavior
 - real kernel thread scheduling or timeout behavior
 - payload-by-payload differential parity for the full Linux sample
 
@@ -52,4 +54,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, thread creation, and tracepoint-registration lifecycle wiring.
+Stay in the Phase 9 runtime trace-events lane and keep broader work blocked until there is a small honest substrate handoff for module entry, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring.
