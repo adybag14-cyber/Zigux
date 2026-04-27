@@ -45,13 +45,25 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 17), add_unless_changed.previous);
     try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
 
+    const inc_not_zero_changed = try module.incNotZeroCounter();
+    try std.testing.expect(inc_not_zero_changed.changed);
+    try std.testing.expectEqual(@as(i64, 13), inc_not_zero_changed.previous);
+    try std.testing.expectEqual(@as(i64, 14), module.snapshotCounter());
+
+    var zero_guard = sample.RuntimeAtomic64Sample{};
+    try zero_guard.init(0);
+    const inc_not_zero_blocked = try zero_guard.incNotZeroCounter();
+    try std.testing.expect(!inc_not_zero_blocked.changed);
+    try std.testing.expectEqual(@as(i64, 0), inc_not_zero_blocked.previous);
+    try std.testing.expectEqual(@as(i64, 0), zero_guard.snapshotCounter());
+
     const summary = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);
     try std.testing.expect(summary.checked_returning_paths);
     try std.testing.expect(summary.checked_guard_paths);
-    try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
+    try std.testing.expectEqual(@as(i64, 14), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
@@ -63,4 +75,5 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 13));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
 }
