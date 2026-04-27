@@ -39,12 +39,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_order_prompt = false;
+    var saw_docs_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
     var saw_order = false;
@@ -58,6 +59,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "foo/baz/bar attribute order") != null) {
             saw_order_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
+            std.mem.indexOf(u8, prompt, "review checklist") != null and
+            std.mem.indexOf(u8, prompt, "phase5_build.zig") != null)
+        {
+            saw_docs_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group") != null and
             std.mem.indexOf(u8, prompt, "post-exit") != null)
@@ -95,6 +102,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
 
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_order_prompt);
+    try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_order);
@@ -116,20 +124,23 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     );
     defer std.testing.allocator.free(survey_note);
 
-    const readme_note = try std.Io.Dir.cwd().readFileAlloc(
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "Documentation/zigux/README.md",
+        "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
         .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(readme_note);
+    defer std.testing.allocator.free(review_checklist);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "attribute array order `foo`, `baz`, `bar` explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, readme_note, "registration, Linux `foo`/`baz`/`bar` attribute-order, and attribute-roundtrip checks") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
 }
