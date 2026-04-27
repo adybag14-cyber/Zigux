@@ -176,6 +176,9 @@ jobs:
       - name: Validate Phase 9 runtime gates
         run: make -C zigux phase9-validate
 
+      - name: Validate Phase 10 closure evidence
+        run: make -C zigux phase10-validate
+
       - name: Run Phase 9 runtime helper tests
         run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
 
