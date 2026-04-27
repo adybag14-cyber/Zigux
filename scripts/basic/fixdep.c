@@ -150,10 +150,11 @@ static void add_to_hashtable(const char *name, int len, unsigned int hash,
 static bool in_hashtable(const char *name, int len, struct item *hashtab[])
 {
 	struct item *aux;
-	unsigned int hash = strhash(name, len);
+	unsigned int ulen = len;
+	unsigned int hash = strhash(name, ulen);
 
 	for (aux = hashtab[hash % HASHSZ]; aux; aux = aux->next) {
-		if (aux->hash == hash && aux->len == len &&
+		if (aux->hash == hash && aux->len == ulen &&
 		    memcmp(aux->name, name, len) == 0)
 			return true;
 	}
