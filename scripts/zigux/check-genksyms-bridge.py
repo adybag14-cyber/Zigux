@@ -104,6 +104,7 @@ def normalize_cli_stderr(text: str) -> str:
         re.compile(r"^.+: (option requires an argument -- '.+')$"),
         re.compile(r"^.+: (option '--.+?' requires an argument)$"),
         re.compile(r"^.+: (unrecognized option '.+')$"),
+        re.compile(r"^.+: (option '--.+?' is ambiguous; possibilities: .+)$"),
     )
     normalized_lines: list[str] = []
     for line in text.splitlines():
