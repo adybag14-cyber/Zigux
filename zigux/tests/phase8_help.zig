@@ -233,3 +233,46 @@ test "phase 8 help output emission keeps column-major pretty-printing pure and t
         rendered.writer.buffered(),
     );
 }
+
+test "phase 8 help section rendering keeps list_commands formatting pure and shared-width aware" {
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("report", 6);
+    try main_cmds.addCmdName("stat", 4);
+    main_cmds.sort();
+
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("trace", 5);
+    other_cmds.sort();
+
+    try std.testing.expectEqual(@as(usize, 6), help.longestNameLenAcrossLists(main_cmds, other_cmds));
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try help.writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "/x",
+        main_cmds,
+        other_cmds,
+        null,
+        "24",
+        null,
+    );
+
+    const main_rule = [_]u8{'-'} ** 22;
+    const other_rule = [_]u8{'-'} ** 43;
+    const expected = std.fmt.comptimePrint(
+        "available perf in '/x'\n{s}\n" ++
+            "  report stat\n" ++
+            "\n" ++
+            "perf available from elsewhere on your $PATH\n{s}\n" ++
+            "  trace\n" ++
+            "\n",
+        .{ main_rule[0..], other_rule[0..] },
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
+}
