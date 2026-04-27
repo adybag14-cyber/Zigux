@@ -9,6 +9,14 @@
       "expected": "olddefconfig_expected.json"
     },
     {
+      "name": "oldconfig",
+      "mode": "oldconfig",
+      "kconfig": "Kconfig",
+      "config": "old/.config",
+      "arch": "x86_64",
+      "expected": "oldconfig_expected.json"
+    },
+    {
       "name": "syncconfig",
       "mode": "syncconfig",
       "kconfig": "Kconfig",
@@ -56,6 +64,30 @@
       "arch": "arm64",
       "mode_arg": "arch/arm64/configs/defconfig",
       "expected": "defconfig_expected.json"
+    },
+    {
+      "name": "allnoconfig",
+      "mode": "allnoconfig",
+      "kconfig": "Kconfig",
+      "config": "none/.config",
+      "arch": "arm64",
+      "expected": "allnoconfig_expected.json"
+    },
+    {
+      "name": "allyesconfig",
+      "mode": "allyesconfig",
+      "kconfig": "Kconfig",
+      "config": "yes/.config",
+      "arch": "riscv64",
+      "expected": "allyesconfig_expected.json"
+    },
+    {
+      "name": "randconfig",
+      "mode": "randconfig",
+      "kconfig": "Kconfig",
+      "config": "rand/.config",
+      "arch": "x86",
+      "expected": "randconfig_expected.json"
     }
   ],
   "confdata_cases": [
