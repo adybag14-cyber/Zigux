@@ -140,6 +140,11 @@ roadmap_gap_expectations = {
         'measurability_gap': 'rollback owner and lab matrix stay unassigned until a bounded Zig surface lands',
         'next_bounded_step': 'add a survey or starter gate that names one owner, one rollback owner, and one replay command before claiming this anchor as active Phase 4 work',
     },
+    'perf baselines and thresholds for the two shipped rollback gates': {
+        'current_repo_state': '`zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still correctness-only gates today',
+        'measurability_gap': 'benchmark command and acceptable limit are still unapproved for both landed gates',
+        'next_bounded_step': 'land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage',
+    },
 }
 required_artifact_diff_markers = [
     'def emit_result(matched: bool, details: dict[str, object]) -> int:',
