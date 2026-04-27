@@ -196,6 +196,7 @@ test "tail mask keeps the in-range shared bit for and scans" {
 
     try std.testing.expectEqual(@as(usize, bits_per_long + 3), findFirstAndBit(&lhs, &rhs, nbits));
     try std.testing.expectEqual(@as(usize, bits_per_long + 3), findNextAndBit(&lhs, &rhs, nbits, bits_per_long));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 3), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 2));
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4));
 }
 
