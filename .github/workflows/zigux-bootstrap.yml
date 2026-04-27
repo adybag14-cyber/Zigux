@@ -104,6 +104,9 @@ jobs:
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
 
+      - name: Check focused bitmap diff gate
+        run: zig build test --build-file zigux/tests/bitmap_diff_build.zig --summary all
+
       - name: Check Phase 1 helper benchmark output
         run: python3 scripts/zigux/check-phase1-bench.py
 
