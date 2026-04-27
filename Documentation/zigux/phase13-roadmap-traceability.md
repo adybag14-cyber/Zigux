@@ -62,7 +62,7 @@ Current traceability gap:
 - that means the roadmap anchor is present in code, tests, and one slice note, but not yet in the same manifest-backed traceability shape as the other active Phase 13 slices
 
 Traceability summary:
-- `devres` is landed as a helper slice, but it is currently the asymmetric Phase 13 anchor and the clearest candidate for the next documentation-or-survey follow-up if this lane reopens.
+- `devres` is landed as a helper slice, but it is currently the asymmetric Phase 13 anchor and the clearest candidate for the next manifest-backed survey follow-up if this lane reopens.
 
 ### `security/landlock/ruleset.c`
 
