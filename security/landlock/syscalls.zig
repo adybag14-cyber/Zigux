@@ -2,6 +2,10 @@ const std = @import("std");
 
 pub const page_size_limit: usize = 4096;
 pub const abi_version: u32 = 9;
+pub const ruleset_fd_label = "[landlock-ruleset]";
+pub const open_rdwr: u32 = 0x2;
+pub const open_cloexec: u32 = 0x80000;
+pub const ruleset_fd_flags: u32 = open_rdwr | open_cloexec;
 
 pub const create_ruleset_version_flag: u32 = 1 << 0;
 pub const create_ruleset_errata_flag: u32 = 1 << 1;
@@ -27,6 +31,7 @@ pub const ModuleDescriptor = struct {
     provides_restrict_self_flag_planning: bool,
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
+    provides_ruleset_fd_creation_planning: bool,
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
     provides_net_port_handoff_planning: bool,
@@ -142,6 +147,21 @@ pub const RulesetFdPlan = struct {
     expected_layer_count: usize,
 };
 
+pub const CreateRulesetFdRequest = struct {
+    ruleset_present: bool = true,
+    label: []const u8 = ruleset_fd_label,
+    flags: u32 = ruleset_fd_flags,
+};
+
+pub const CreateRulesetFdPlan = struct {
+    anchor: []const u8,
+    label: []const u8,
+    flags: u32,
+    invokes_anon_inode_getfd: bool,
+    transfers_ruleset_to_fd_on_success: bool,
+    releases_ruleset_on_fd_failure: bool,
+};
+
 pub const PathFdRequest = struct {
     fd_present: bool = true,
     is_ruleset_fd: bool = false,
@@ -198,6 +218,7 @@ pub const SyscallsHelperLab = struct {
             .provides_restrict_self_flag_planning = true,
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
+            .provides_ruleset_fd_creation_planning = true,
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
             .provides_net_port_handoff_planning = true,
@@ -385,6 +406,27 @@ pub const SyscallsHelperLab = struct {
             .validates_mode = true,
             .acquires_ruleset_reference = true,
             .expected_layer_count = 1,
+        };
+    }
+
+    pub fn planCreateRulesetFd(request: CreateRulesetFdRequest) !CreateRulesetFdPlan {
+        if (!request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+        if (!std.mem.eql(u8, request.label, ruleset_fd_label)) {
+            return error.InvalidRulesetFdLabel;
+        }
+        if (request.flags != ruleset_fd_flags) {
+            return error.InvalidRulesetFdFlags;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .label = ruleset_fd_label,
+            .flags = ruleset_fd_flags,
+            .invokes_anon_inode_getfd = true,
+            .transfers_ruleset_to_fd_on_success = true,
+            .releases_ruleset_on_fd_failure = true,
         };
     }
 
