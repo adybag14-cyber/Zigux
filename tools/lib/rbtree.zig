@@ -498,6 +498,36 @@ pub fn nextPostorder(node: *const Node) ?*Node {
     return parent;
 }
 
+fn expectValidSubtree(node: ?*Node) !usize {
+    const current = node orelse return 1;
+
+    if (current.left) |left| {
+        try std.testing.expectEqual(current, left.parent);
+    }
+    if (current.right) |right| {
+        try std.testing.expectEqual(current, right.parent);
+    }
+
+    if (current.color == .red) {
+        try std.testing.expectEqual(.black, colorOf(current.left));
+        try std.testing.expectEqual(.black, colorOf(current.right));
+    }
+
+    const left_height = try expectValidSubtree(current.left);
+    const right_height = try expectValidSubtree(current.right);
+    try std.testing.expectEqual(left_height, right_height);
+
+    return left_height + @intFromBool(current.color == .black);
+}
+
+fn expectValidTree(root: *const Root) !void {
+    if (root.node) |node| {
+        try std.testing.expectEqual(@as(?*Node, null), node.parent);
+        try std.testing.expectEqual(.black, node.color);
+    }
+    _ = try expectValidSubtree(root.node);
+}
+
 test "rbtree inserts and traverses in sorted order" {
     const Entry = struct {
         key: i32,
@@ -525,6 +555,7 @@ test "rbtree inserts and traverses in sorted order" {
 
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
+        try expectValidTree(&root);
     }
 
     var order: [5]i32 = undefined;
@@ -579,9 +610,12 @@ test "rbtree erase and replace keep traversal consistent" {
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
+    try expectValidTree(&root);
 
     erase(&entries[1].node, &root);
+    try expectValidTree(&root);
     replaceNode(&entries[0].node, &replacement.node, &root);
+    try expectValidTree(&root);
 
     var order: [4]i32 = undefined;
     var count: usize = 0;
@@ -619,8 +653,10 @@ test "rbtree eraseInit detaches erased node" {
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
+    try expectValidTree(&root);
 
     eraseInit(&entries[0].node, &root);
+    try expectValidTree(&root);
 
     try std.testing.expect(emptyNode(&entries[0].node));
 
@@ -661,6 +697,7 @@ test "rbtree postorder and empty node helpers behave" {
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
+    try expectValidTree(&root);
 
     var count: usize = 0;
     var current = firstPostorder(&root);
@@ -702,15 +739,20 @@ test "rbtree findAdd keeps the first duplicate and inserts new keys" {
     var root = Root.init();
 
     try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[0].node, &root, cmp));
+    try expectValidTree(&root);
     try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[1].node, &root, cmp));
+    try expectValidTree(&root);
     try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[2].node, &root, cmp));
+    try expectValidTree(&root);
 
     const existing = findAdd(&entries[3].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try expectValidTree(&root);
     const existing_entry: *const Entry = @fieldParentPtr("node", existing);
     try std.testing.expectEqual(@as(i32, 10), existing_entry.key);
     try std.testing.expectEqual(@as(usize, 0), existing_entry.serial);
 
     try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[4].node, &root, cmp));
+    try expectValidTree(&root);
 
     var order: [4]i32 = undefined;
     var count: usize = 0;
@@ -762,6 +804,7 @@ test "rbtree find returns the matching key or null" {
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
+    try expectValidTree(&root);
 
     const wanted = @as(i32, 10);
     const found = find(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
@@ -810,6 +853,7 @@ test "rbtree findFirst returns the leftmost duplicate match" {
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
+    try expectValidTree(&root);
 
     const wanted = @as(i32, 10);
     const found = findFirst(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
