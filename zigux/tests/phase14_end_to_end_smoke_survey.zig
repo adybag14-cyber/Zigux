@@ -14,6 +14,7 @@ const SurveySummary = struct {
 const AnchorPacket = struct {
     lane_key: []const u8,
     anchor: []const u8,
+    surveyed_commit: []const u8,
     manifest_path: []const u8,
     survey_note_path: []const u8,
     ready_next_gap: []const u8,
@@ -38,6 +39,7 @@ const AnchorGap = struct {
 const AnchorManifest = struct {
     lane_key: []const u8,
     anchor: []const u8,
+    surveyed_commit: []const u8,
     gaps: []const AnchorGap,
 };
 
@@ -82,9 +84,11 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_tree_c);
 
     try std.testing.expectEqualStrings("P14-L01", manifest.anchor_packets[0].lane_key);
+    try std.testing.expectEqualStrings("007f00d0c6b6b430bfbb2110555544cc5faefe8b", manifest.anchor_packets[0].surveyed_commit);
     try std.testing.expectEqualStrings("phase14-workqueue-drain-cancel-followup", manifest.anchor_packets[0].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-workqueue-live-execution-blocker", manifest.anchor_packets[0].blocked_gap);
     try std.testing.expectEqualStrings("P14-L14", manifest.anchor_packets[3].lane_key);
+    try std.testing.expectEqualStrings("d839457a2f2dbdc7b53711401741b5e88541c818", manifest.anchor_packets[3].surveyed_commit);
     try std.testing.expectEqualStrings("", manifest.anchor_packets[3].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", manifest.anchor_packets[3].blocked_gap);
 }
@@ -158,6 +162,15 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "kernel/rcu/tree.c") != null);
 
+    const smoke_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+        allocator,
+        .limited(32 * 1024),
+    );
+    defer allocator.free(smoke_note);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.surveyed_commit) != null);
+
     for (smoke_manifest.value.anchor_packets) |packet| {
         const anchor_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
             io_instance.io(),
@@ -174,6 +187,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
 
         try std.testing.expectEqualStrings(packet.lane_key, anchor_manifest.value.lane_key);
         try std.testing.expectEqualStrings(packet.anchor, anchor_manifest.value.anchor);
+        try std.testing.expectEqualStrings(packet.surveyed_commit, anchor_manifest.value.surveyed_commit);
         if (packet.ready_next_gap.len > 0) {
             try std.testing.expect(hasGapWithStatus(anchor_manifest.value.gaps, packet.ready_next_gap, "ready_next"));
         }
@@ -188,6 +202,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
         );
         defer allocator.free(survey_note);
         try std.testing.expect(std.mem.indexOf(u8, survey_note, packet.anchor) != null);
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, packet.surveyed_commit) != null);
         if (packet.ready_next_gap.len > 0) {
             try std.testing.expect(std.mem.indexOf(u8, survey_note, "Next bounded step") != null);
         }
