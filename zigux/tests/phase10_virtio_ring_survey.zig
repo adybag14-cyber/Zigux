@@ -34,7 +34,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
+test "phase10 virtio ring survey manifest records the live MMIO follow-up boundary" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
