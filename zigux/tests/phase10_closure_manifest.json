@@ -68,6 +68,24 @@
       ]
     }
   },
+  "cross_phase_scoreboard_boundary": {
+    "reference_samples": {
+      "status": "out_of_scope",
+      "evidence": [
+        "samples/zigux",
+        "zigux/tests/phase5_build.zig",
+        "Documentation/zigux/review-checklist.md"
+      ]
+    },
+    "runtime_starters": {
+      "status": "out_of_scope",
+      "evidence": [
+        "samples/zigux",
+        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        "zigux/tests/phase9_build.zig"
+      ]
+    }
+  },
   "ready_transport_followups": {
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-register-helper"
   },
