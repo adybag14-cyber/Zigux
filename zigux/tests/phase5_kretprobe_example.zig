@@ -24,7 +24,7 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
@@ -38,6 +38,7 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
     try module.retargetSymbol("do_sys_openat2");
     try module.init();
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
+    try std.testing.expectEqual(sample.KretprobeExampleSample.default_maxactive, module.maxactive);
     try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
