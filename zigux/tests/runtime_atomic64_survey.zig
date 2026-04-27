@@ -126,3 +126,32 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_substrate_handoff);
 }
+
+test "phase 9 runtime atomic64 module slice note stays aligned with the landed guard trio" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const module_slice = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice);
+
+    const required_markers = [_][]const u8{
+        "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
+        "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
+        "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker",
+    };
+
+    for (required_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, module_slice, marker) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        module_slice,
+        "most likely `dec_if_positive`",
+    ) == null);
+}
