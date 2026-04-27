@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L09",
+  "lane_key": "P13-L12",
   "phase": "Phase 13",
-  "surveyed_commit": "a957197f5bc4f965fa792b64a090a5330f45b770",
+  "surveyed_commit": "a4f70b77b2b4e5c03f5362644f7deda7964167bd",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
@@ -10,7 +10,7 @@
   ],
   "survey_summary": {
     "ruleset_c_lines": 719,
-    "landlock_security_file_count": 31,
+    "landlock_security_file_count": 33,
     "preexisting_phase13_build_present": true,
     "preexisting_phase13_make_target_present": true,
     "preexisting_ruleset_zig_present": true,
