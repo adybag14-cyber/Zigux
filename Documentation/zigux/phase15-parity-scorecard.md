@@ -5,8 +5,8 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-reporting-behavior-verify`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and the current shared-workflow replay state for the landed Phase 15 governance bundle
+- `PHASE15_SLICE=maintenance-mode-handoff-synthesis`
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and the maintenance-mode handoff now that the landed Phase 15 governance bundle already replays in the shared workflow
 - survey provenance refreshed against verified `master` head `621356c2c80367701a16a5845f186163207b9a65`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -29,7 +29,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, and `make -C zigux phase15` convenience target
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, `make -C zigux phase15` convenience target, and the shared bootstrap workflow replay
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
 ## Scorecard Entries
@@ -162,14 +162,14 @@ The current lane state is:
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-roadmap-handoff-evidence-followup`
 - landed `phase15-readme-governance-index`
-- landed `phase15-shared-ci-coverage-gap`
+- landed `phase15-maintenance-mode-handoff-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, a visible roadmap-handoff note, a top-level docs index for the Phase 15 governance bundle, and shared bootstrap replay that now runs the landed Phase 15 governance bundle. It still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, a visible roadmap-handoff note, a top-level docs index for the Phase 15 governance bundle, shared bootstrap replay for the landed governance bundle, and one explicit maintenance-mode handoff note. It still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
-## Current Parity-Tracking Gap
+## Current Maintenance-Mode Handoff
 
-The current roadmap-vs-repo parity-tracking gap inside this scorecard lane is no longer a missing local governance artifact or a local-versus-shared replay mismatch.
+The current roadmap-vs-repo handoff task inside this scorecard lane is no longer a missing local governance artifact or a local-versus-shared replay mismatch.
 
 The roadmap-required bundle is already present locally:
 
@@ -184,7 +184,7 @@ The landed bundle is now enforced and tracked through both local replay and the 
 - local replay exists through `make -C zigux phase15`
 - the published shared bootstrap workflow now runs the landed Phase 15 governance bundle through `make -C zigux phase15`
 
-That closes `phase15-shared-ci-coverage-gap` as a landed reporting follow-up for this scorecard packet, while the deep-core blocker records remain separately blocked on stronger stay-in-C exception evidence.
+That closes the old shared-CI follow-up for this scorecard packet and leaves `phase15-maintenance-mode-handoff-sync` as the landed synthesis note, while the deep-core blocker records remain separately blocked on stronger stay-in-C exception evidence.
 
 ## Architecture Council Review Gate
 
