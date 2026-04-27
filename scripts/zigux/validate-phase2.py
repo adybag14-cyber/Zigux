@@ -43,6 +43,79 @@ def case_files_from_list(case_manifest: Path, *field_names: str) -> list[Path]:
     return discovered_files
 
 
+def fixdep_depfile_inputs(case_manifest: Path) -> list[Path]:
+    cases = json.loads(case_manifest.read_text(encoding='utf-8'))
+    discovered_files: list[Path] = []
+    seen: set[Path] = set()
+
+    for case in cases:
+        if int(case.get('expected_exit_code', 0)) != 0:
+            continue
+        depfile_path = case_manifest.parent / case['depfile']
+        text = depfile_path.read_text(encoding='utf-8')
+        index = 0
+        is_target = True
+
+        while index < len(text):
+            ch = text[index]
+            if ch == '#':
+                index += 1
+                while index < len(text) and text[index] != '\n':
+                    if text[index] == '\\' and index + 1 < len(text):
+                        index += 1
+                    index += 1
+                continue
+            if ch in ' \t':
+                index += 1
+                continue
+            if ch == '\\' and index + 1 < len(text) and text[index + 1] == '\n':
+                index += 2
+                continue
+            if ch == '\n':
+                index += 1
+                is_target = True
+                continue
+            if ch == ':':
+                index += 1
+                is_target = False
+                continue
+
+            token_chars: list[str] = []
+            while index < len(text):
+                ch = text[index]
+                if ch in ' \t\n#:':
+                    break
+                if ch == '\\' and index + 1 < len(text):
+                    escaped = text[index + 1]
+                    if escaped == '\n':
+                        break
+                    if escaped in '#:':
+                        token_chars.append(escaped)
+                        index += 2
+                        continue
+                    if escaped in ' \t':
+                        token_chars.append(ch)
+                        token_chars.append(escaped)
+                        index += 2
+                        continue
+                token_chars.append(ch)
+                index += 1
+
+            token = ''.join(token_chars)
+            if not token or is_target:
+                continue
+            if token.endswith('include/generated/autoconf.h'):
+                continue
+
+            discovered_path = ROOT / token
+            if discovered_path in seen:
+                continue
+            seen.add(discovered_path)
+            discovered_files.append(discovered_path)
+
+    return discovered_files
+
+
 def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
     cases = json.loads(case_manifest.read_text(encoding='utf-8'))
     expected_cases = {
@@ -160,6 +233,9 @@ required_files.extend(case_files_from_list(
     'expected',
     'expected_stdout',
     'expected_stderr',
+))
+required_files.extend(fixdep_depfile_inputs(
+    FIXDEP_CASES,
 ))
 required_files.extend(case_files_from_groups(GENKSYMS_BRIDGE_DIR / 'cases.json', ('cases', 'expected')))
 required_files.extend(case_files_from_groups(
