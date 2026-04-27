@@ -55,9 +55,13 @@ if missing:
 
 closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").read_text(encoding="utf-8")
 freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
+review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
 manifest = load_json(ROOT / "zigux" / "tests" / "phase10_closure_manifest.json")
+ring_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_ring_manifest.json")
+input_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_input_manifest.json")
+mmio_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_mmio_manifest.json")
 
 required_closure_markers = [
     "PHASE10_STATUS=active",
@@ -78,6 +82,11 @@ required_closure_markers = [
     "PHASE10_FREEZE_STATUS_CHANGE_CLAIM=no",
     "PHASE10_FREEZE_IN_C_ANCHOR_COUNT=4",
     "PHASE10_STUDY_ONLY_ANCHOR_COUNT=2",
+    "Documentation/zigux/review-checklist.md",
+    "phase10-mmio-wrapper-lane",
+    "phase10-virtio-input-registration-lifecycle",
+    "phase10-mmio-lifecycle-and-irq-paths",
+    "blocked_on_risky_transport",
 ]
 required_freeze_map_markers = [
     "kernel/sched/core.c",
@@ -102,6 +111,10 @@ required_workflow_markers = [
     "Run Phase 10 virtio helper tests",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
 ]
+required_checklist_markers = [
+    "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, the three Phase 10 survey manifests, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
+    "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, IRQ, registration, or DMA claims?",
+]
 missing_markers: list[str] = []
 for marker in required_closure_markers:
     if marker not in closure:
@@ -115,6 +128,9 @@ for marker in required_makefile_markers:
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f"workflow:{marker}")
+for marker in required_checklist_markers:
+    if marker not in review_checklist:
+        missing_markers.append(f"checklist:{marker}")
 
 if manifest.get("phase") != "Phase 10":
     missing_markers.append("manifest:phase=Phase 10")
@@ -142,6 +158,10 @@ if manifest.get("freeze_status_change_claimed") is not False:
     missing_markers.append(
         "manifest:freeze_status_change_claimed=true"
     )
+if manifest.get("review_checklist") != "Documentation/zigux/review-checklist.md":
+    missing_markers.append(f'manifest:review_checklist={manifest.get("review_checklist")}')
+if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
+    missing_markers.append(f'manifest:risky_transport_posture={manifest.get("risky_transport_posture")}')
 
 expected_freeze_in_c_anchors = [
     "kernel/sched/core.c",
@@ -179,6 +199,35 @@ expected_exact_checks = {
 }
 if set(manifest.get("exact_checks", [])) != expected_exact_checks:
     missing_markers.append("manifest:exact_checks:mismatch")
+
+blocked_transport_gaps = manifest.get("blocked_transport_gaps")
+expected_blocked_transport_gaps = {
+    "zigux/tests/phase10_virtio_ring_manifest.json": "phase10-mmio-wrapper-lane",
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+}
+if blocked_transport_gaps != expected_blocked_transport_gaps:
+    missing_markers.append("manifest:blocked_transport_gaps:mismatch")
+
+def has_blocked_gap(phase_manifest: object, gap_id: str) -> bool:
+    if not isinstance(phase_manifest, dict):
+        return False
+    gaps = phase_manifest.get("gaps")
+    if not isinstance(gaps, list):
+        return False
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            continue
+        if gap.get("id") == gap_id and gap.get("status") == "blocked_on_risky_transport":
+            return True
+    return False
+
+if not has_blocked_gap(ring_manifest, "phase10-mmio-wrapper-lane"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-wrapper-lane:blocked_on_risky_transport")
+if not has_blocked_gap(input_manifest, "phase10-virtio-input-registration-lifecycle"):
+    missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
+if not has_blocked_gap(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
 
 if missing_markers:
     print("PHASE10_CLOSURE_VALIDATION=fail")
