@@ -36,6 +36,10 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
 )
+ABI_REQUIRED_DOC_MARKERS = (
+    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
+    "PHASE3_UAPI_SCOPE=version-only",
+)
 
 
 def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
@@ -45,6 +49,12 @@ def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
 def _required_manifest_files_for_slug(slug: str) -> tuple[str, ...]:
     if slug == "abi":
         return ABI_REQUIRED_MANIFEST_FILES
+    return ()
+
+
+def _required_doc_markers_for_slug(slug: str) -> tuple[str, ...]:
+    if slug == "abi":
+        return ABI_REQUIRED_DOC_MARKERS
     return ()
 
 
@@ -108,6 +118,7 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
     if manifest:
         required_markers.insert(0, f"PHASE3_STATUS={manifest.get('status')}")
         required_markers.insert(1, f"PHASE3_SLICE={manifest.get('slice')}")
+    required_markers.extend(_required_doc_markers_for_slug(slug))
     for marker in required_markers:
         if marker not in doc:
             issues.append(f"{slug}:missing_doc_marker={marker}")
@@ -319,6 +330,44 @@ def run_self_test() -> int:
         abi_issues = []
         validate_manifest(root, abi_manifest_path, "abi", abi_issues)
         assert abi_issues == []
+        abi_doc_path = root / "tmp" / "phase3-abi-slice.md"
+        abi_doc_path.write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=abi-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues = []
+        validate_doc_markers(root, abi_doc_path, "abi", {"status": "ready", "slice": "abi-slice"}, abi_issues)
+        for marker in ABI_REQUIRED_DOC_MARKERS:
+            assert f"abi:missing_doc_marker={marker}" in abi_issues
+        abi_doc_path.write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=abi-slice",
+                    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
+                    "PHASE3_UAPI_SCOPE=version-only",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues = []
+        validate_doc_markers(root, abi_doc_path, "abi", {"status": "ready", "slice": "abi-slice"}, abi_issues)
+        assert abi_issues == []
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
                 [
@@ -520,7 +569,7 @@ def run_self_test() -> int:
         loop_fixture_dir = paths.fixtures_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy"
         loop_fixture_dir.mkdir(parents=True, exist_ok=True)
         loop_manifest_rel = f"{loop_fixture_dir.relative_to(root).as_posix()}/expected.json"
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_manifest.json").write_text(
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_POLICY_manifest.json").write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
