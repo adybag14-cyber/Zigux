@@ -196,7 +196,9 @@ def main() -> int:
             input_path = FIXTURE_DIR / case['input_hex']
             expected_path = FIXTURE_DIR / case['expected']
             c_actual = tmp_dir / f"{case['name']}.c.actual.json"
+            c_repeat = tmp_dir / f"{case['name']}.c.repeat.json"
             zig_actual = tmp_dir / f"{case['name']}.zig.actual.json"
+            zig_repeat = tmp_dir / f"{case['name']}.zig.repeat.json"
             data = read_hex_fixture(input_path)
 
             c_result = run_c_binary(c_exe, data, c_actual)
@@ -212,11 +214,19 @@ def main() -> int:
             run(diff + [str(expected_path), str(zig_actual)], cwd=str(ROOT))
             run(diff + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
 
+            c_repeat_result = run_c_binary(c_exe, data, c_repeat)
+            zig_repeat_result = run_binary(zig_exe, data)
+            zig_repeat.write_text(json.dumps(zig_repeat_result, indent=2) + '\n', encoding='utf-8')
+
+            run(diff + [str(c_actual), str(c_repeat)], cwd=str(ROOT))
+            run(diff + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))
+
     if args.refresh:
         print('MK_ELFCONFIG_REFRESH=pass')
         print(f'FIXTURE_DIR={FIXTURE_DIR}')
     else:
         print('MK_ELFCONFIG_DIFF=pass')
+        print('MK_ELFCONFIG_DETERMINISM=pass')
         print(f'FIXTURE_DIR={FIXTURE_DIR}')
     return 0
 
