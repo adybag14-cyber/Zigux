@@ -13,6 +13,7 @@ pub const SampleFocus = enum {
     bounded_fifo_order,
     wraparound_requeue,
     peek_and_skip,
+    non_destructive_snapshot,
     reset_and_replay,
     ownership_and_lifetime,
 };
@@ -33,6 +34,8 @@ pub const ReplaySummary = struct {
     second_out: [2]u8,
     skipped_byte: u8,
     peek_value: u8,
+    snapshot_len: usize,
+    snapshot_before_final_drain: [fifo_capacity]u8,
     fill_start: u8,
     fill_end: u8,
     final_len: usize,
@@ -126,6 +129,15 @@ pub const BytestreamFifoSample = struct {
         return self.storage[self.head];
     }
 
+    pub fn snapshotInto(self: *const Self, dest: []u8) usize {
+        const copied = @min(self.len, dest.len);
+        var index: usize = 0;
+        while (index < copied) : (index += 1) {
+            dest[index] = self.storage[(self.head + index) % capacity];
+        }
+        return copied;
+    }
+
     pub fn skipByte(self: *Self) ?u8 {
         return self.popByte();
     }
@@ -161,6 +173,10 @@ pub const BytestreamFifoSample = struct {
 
         const peek_value = self.peekByte() orelse return error.UnexpectedPeekOnEmpty;
 
+        var snapshot_before_final_drain: [capacity]u8 = [_]u8{0} ** capacity;
+        const snapshot_len = self.snapshotInto(snapshot_before_final_drain[0..]);
+        if (snapshot_len != self.count()) return error.UnexpectedSnapshotLength;
+
         var final_sequence: [capacity]u8 = undefined;
         const final_len = self.drain(final_sequence[0..]);
         if (final_len != capacity) return error.UnexpectedFinalLength;
@@ -175,6 +191,8 @@ pub const BytestreamFifoSample = struct {
             .second_out = second_out,
             .skipped_byte = skipped,
             .peek_value = peek_value,
+            .snapshot_len = snapshot_len,
+            .snapshot_before_final_drain = snapshot_before_final_drain,
             .fill_start = 20,
             .fill_end = fill_end,
             .final_len = final_len,
@@ -183,6 +201,7 @@ pub const BytestreamFifoSample = struct {
                 .bounded_fifo_order,
                 .wraparound_requeue,
                 .peek_and_skip,
+                .non_destructive_snapshot,
                 .reset_and_replay,
                 .ownership_and_lifetime,
             },
@@ -228,6 +247,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), replay.snapshot_len);
+    try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_before_final_drain[0..]);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
