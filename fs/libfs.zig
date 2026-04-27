@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const page_size: u32 = 4096;
 pub const name_max: u32 = 255;
+pub const simple_transaction_limit: usize = page_size;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -11,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
+    provides_transaction_buffer_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -88,6 +90,32 @@ pub const DirectoryEmitPlan = struct {
     should_stop: bool,
 };
 
+pub const TransactionAcquireMode = enum {
+    ready,
+    request_too_large,
+    out_of_memory,
+    already_open,
+    copy_fault,
+};
+
+pub const TransactionAcquirePlan = struct {
+    anchor: []const u8,
+    mode: TransactionAcquireMode,
+    requested_size: usize,
+    copied_size: usize,
+    staging_capacity: usize,
+    reserves_private_data: bool,
+    requires_release: bool,
+    keeps_private_data_on_failure: bool,
+};
+
+pub const TransactionPublishPlan = struct {
+    anchor: []const u8,
+    published_size: usize,
+    uses_release_barrier: bool,
+    becomes_readable: bool,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -98,6 +126,7 @@ pub const LibFsHelperLab = struct {
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
+            .provides_transaction_buffer_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -291,6 +320,86 @@ pub const LibFsHelperLab = struct {
             .emitted_any_entries = emitted_entries != 0,
             .stays_in_dots_window = new_pos <= 2,
             .should_stop = emitted_entries == 0,
+        };
+    }
+
+    pub fn simpleTransactionGetPlan(has_private_data: bool, request_size: usize, allocation_succeeds: bool, uncopied_tail: usize) TransactionAcquirePlan {
+        const uncopied = @min(uncopied_tail, request_size);
+
+        if (request_size > simple_transaction_limit - 1) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .request_too_large,
+                .requested_size = request_size,
+                .copied_size = 0,
+                .staging_capacity = simple_transaction_limit,
+                .reserves_private_data = false,
+                .requires_release = false,
+                .keeps_private_data_on_failure = false,
+            };
+        }
+
+        if (!allocation_succeeds) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .out_of_memory,
+                .requested_size = request_size,
+                .copied_size = 0,
+                .staging_capacity = simple_transaction_limit,
+                .reserves_private_data = false,
+                .requires_release = false,
+                .keeps_private_data_on_failure = false,
+            };
+        }
+
+        if (has_private_data) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .already_open,
+                .requested_size = request_size,
+                .copied_size = 0,
+                .staging_capacity = simple_transaction_limit,
+                .reserves_private_data = false,
+                .requires_release = false,
+                .keeps_private_data_on_failure = false,
+            };
+        }
+
+        if (uncopied != 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .mode = .copy_fault,
+                .requested_size = request_size,
+                .copied_size = request_size - uncopied,
+                .staging_capacity = simple_transaction_limit,
+                .reserves_private_data = true,
+                .requires_release = true,
+                .keeps_private_data_on_failure = true,
+            };
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = .ready,
+            .requested_size = request_size,
+            .copied_size = request_size,
+            .staging_capacity = simple_transaction_limit,
+            .reserves_private_data = true,
+            .requires_release = true,
+            .keeps_private_data_on_failure = false,
+        };
+    }
+
+    pub fn simpleTransactionSetPlan(published_size: usize) !TransactionPublishPlan {
+        if (published_size > simple_transaction_limit) {
+            return error.TransactionTooLarge;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .published_size = published_size,
+            .uses_release_barrier = true,
+            .becomes_readable = true,
         };
     }
 };
