@@ -18,16 +18,20 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-test "phase 5 bytestream fifo manifest records the exact bounded checks" {
+fn readText(path: []const u8) ![]u8 {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+    return std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        path,
         std.testing.allocator,
         .limited(32 * 1024),
     );
+}
+
+test "phase 5 bytestream fifo manifest records the exact bounded checks" {
+    const manifest_json = try readText("zigux/tests/phase5_bytestream_fifo_manifest.json");
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -44,12 +48,13 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_docs_prompt = false;
     var saw_snapshot_prompt = false;
     var saw_exact_sequence = false;
     var saw_snapshot = false;
@@ -66,6 +71,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
+            std.mem.indexOf(u8, prompt, "review checklist") != null)
+        {
+            saw_docs_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "non-destructive snapshot") != null) {
             saw_snapshot_prompt = true;
@@ -111,6 +121,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
 
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_snapshot_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_snapshot);
@@ -120,4 +131,23 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_guards);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
+}
+
+test "phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface" {
+    const survey_note = try readText("Documentation/zigux/phase5-kfifo-sample-survey.md");
+    defer std.testing.allocator.free(survey_note);
+
+    const review_checklist = try readText("Documentation/zigux/review-checklist.md");
+    defer std.testing.allocator.free(review_checklist);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
 }
