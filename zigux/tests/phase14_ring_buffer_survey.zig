@@ -67,7 +67,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expectEqualStrings("P14-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
-    try std.testing.expectEqualStrings("946d5c73fdb763ba860a20879b05da54e1896e8c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0a66b6c6e651e39ca2ce56cb6776fbde352dc213", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
@@ -81,8 +81,8 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 5), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -93,6 +93,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_splice_resize_followup = false;
     var saw_mapped_reader_ioctl_followup = false;
     var saw_reader_page_consume_followup = false;
+    var saw_read_page_extraction_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -146,10 +147,17 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-reader-page-consume-followup")) {
             saw_reader_page_consume_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_get_reader_page()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_consume()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-read-page-extraction-followup")) {
+            saw_read_page_extraction_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_read_page()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "resize_disabled") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
@@ -162,7 +170,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), landed_count);
+    try std.testing.expectEqual(@as(usize, 11), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
@@ -171,6 +179,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_splice_resize_followup);
     try std.testing.expect(saw_mapped_reader_ioctl_followup);
     try std.testing.expect(saw_reader_page_consume_followup);
+    try std.testing.expect(saw_read_page_extraction_followup);
     try std.testing.expect(saw_port_blocker);
 }
 
@@ -223,4 +232,11 @@ test "phase 14 ring-buffer survey exposes the landed stay-in-c checklist" {
     try std.testing.expectEqualStrings("ring_buffer_map_get_reader", checklist[4].anchor_symbols[3]);
     try std.testing.expectEqualStrings("tracing_buffers_splice_read", checklist[4].anchor_symbols[4]);
     try std.testing.expect(std.mem.indexOf(u8, checklist[4].rationale, "resize_disabled") != null);
+
+    try std.testing.expectEqualStrings("reader-page-consume-boundary", checklist[5].id);
+    try std.testing.expectEqualStrings("rb_get_reader_page", checklist[5].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("ring_buffer_read_start", checklist[5].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("ring_buffer_consume", checklist[5].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[5].rationale, "lost-event") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[5].rationale, "resize_disabled") != null);
 }
