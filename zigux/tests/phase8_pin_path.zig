@@ -53,3 +53,61 @@ test "phase 8 pin-path segment keeps overflow failures explicit" {
         pin_path.buildMapPinPath(&buffer, "/custom/root", "very_long_map_name"),
     );
 }
+
+test "phase 8 pin-path segment resolves stored versus requested pin paths" {
+    const requested = try pin_path.resolveMapPinRequest("/sys/fs/bpf/cache_map", null, false);
+    switch (requested) {
+        .proceed => |resolution| {
+            try std.testing.expectEqualStrings("/sys/fs/bpf/cache_map", resolution.path);
+            try std.testing.expectEqual(.requested, resolution.source);
+        },
+        .already_pinned => unreachable,
+    }
+
+    const stored = try pin_path.resolveMapPinRequest(null, "/sys/fs/bpf/cache_map", false);
+    switch (stored) {
+        .proceed => |resolution| {
+            try std.testing.expectEqualStrings("/sys/fs/bpf/cache_map", resolution.path);
+            try std.testing.expectEqual(.stored, resolution.source);
+        },
+        .already_pinned => unreachable,
+    }
+
+    const pinned = try pin_path.resolveMapPinRequest(
+        "/sys/fs/bpf/cache_map",
+        "/sys/fs/bpf/cache_map",
+        true,
+    );
+    switch (pinned) {
+        .proceed => unreachable,
+        .already_pinned => |path| try std.testing.expectEqualStrings("/sys/fs/bpf/cache_map", path),
+    }
+
+    try std.testing.expectError(error.PathMismatch, pin_path.resolveMapPinRequest(
+        "/sys/fs/bpf/other_map",
+        "/sys/fs/bpf/cache_map",
+        false,
+    ));
+    try std.testing.expectError(error.MissingPath, pin_path.resolveMapPinRequest(null, null, false));
+    try std.testing.expectError(error.AlreadyPinned, pin_path.resolveMapPinRequest(
+        "/sys/fs/bpf/cache_map",
+        null,
+        true,
+    ));
+}
+
+test "phase 8 pin-path segment resolves stored versus requested unpin paths" {
+    const stored = try pin_path.resolveMapUnpinRequest(null, "/sys/fs/bpf/cache_map");
+    try std.testing.expectEqualStrings("/sys/fs/bpf/cache_map", stored.path);
+    try std.testing.expectEqual(.stored, stored.source);
+
+    const requested = try pin_path.resolveMapUnpinRequest("/sys/fs/bpf/cache_map", null);
+    try std.testing.expectEqualStrings("/sys/fs/bpf/cache_map", requested.path);
+    try std.testing.expectEqual(.requested, requested.source);
+
+    try std.testing.expectError(error.PathMismatch, pin_path.resolveMapUnpinRequest(
+        "/sys/fs/bpf/other_map",
+        "/sys/fs/bpf/cache_map",
+    ));
+    try std.testing.expectError(error.MissingPath, pin_path.resolveMapUnpinRequest(null, null));
+}
