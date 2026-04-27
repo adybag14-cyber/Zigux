@@ -68,6 +68,9 @@ jobs:
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
 
+      - name: Self-test artifact diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
