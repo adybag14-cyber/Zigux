@@ -39,6 +39,8 @@ script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='u
 tests_readme = (ROOT / 'zigux' / 'tests' / 'README.md').read_text(encoding='utf-8')
 doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 phase6_build = (ROOT / 'zigux' / 'tests' / 'phase6_build.zig').read_text(encoding='utf-8')
+phase6_bsearch = (ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig').read_text(encoding='utf-8')
+phase6_bsearch_perf = (ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig').read_text(encoding='utf-8')
 phase6_hexdump = (ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig').read_text(encoding='utf-8')
 
 slice_docs = {
@@ -109,6 +111,22 @@ required_phase6_build_markers = [
     'Run the Phase 6 bsearch performance sanity harness',
 ]
 
+required_bsearch_markers = [
+    'phase 6 bsearch supports string keys against sorted records',
+    'phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection',
+    'phase 6 bsearch keeps representative lookup work inside a binary-search budget',
+    'compareU32Counted',
+]
+
+required_bsearch_perf_markers = [
+    'phase6-bsearch-perf',
+    '.{ .label = "256", .len = 256, .reps = 2_000 }',
+    '.{ .label = "4096", .len = 4096, .reps = 500 }',
+    'avg_compare_calls',
+    'std.math.log2_int_ceil',
+    'try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));',
+]
+
 required_hexdump_markers = [
     'phase 6 hexdump overflow contract matches truncation expectations',
     'phase 6 hexdump covers normalization and empty-buffer edge cases',
@@ -125,6 +143,9 @@ required_slice_markers = {
         'lib/bsearch.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-bsearch-perf',
+        'duplicate-key found-or-null parity without claiming stable duplicate selection',
+        'representative lookup work stays inside a bounded binary-search comparison budget',
+        'replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices',
     ],
     'phase6-checksum-slice.md': [
         'PHASE6_STATUS=active',
@@ -160,6 +181,12 @@ for marker in required_doc_readme_markers:
 for marker in required_phase6_build_markers:
     if marker not in phase6_build:
         missing_markers.append(f'phase6_build:{marker}')
+for marker in required_bsearch_markers:
+    if marker not in phase6_bsearch:
+        missing_markers.append(f'phase6_bsearch:{marker}')
+for marker in required_bsearch_perf_markers:
+    if marker not in phase6_bsearch_perf:
+        missing_markers.append(f'phase6_bsearch_perf:{marker}')
 for marker in required_hexdump_markers:
     if marker not in phase6_hexdump:
         missing_markers.append(f'phase6_hexdump:{marker}')
@@ -181,5 +208,5 @@ print('PHASE6_VALIDATION=pass')
 print(f'PHASE6_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE6_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
 )
