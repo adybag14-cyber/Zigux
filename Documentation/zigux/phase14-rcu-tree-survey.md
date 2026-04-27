@@ -77,6 +77,29 @@ This run closes the previously recorded callback-offload follow-up without chang
 
 The net result is still survey-only: offloaded callback enqueue, GP wait selection, and deferred wakeup flushing remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
+## Rollback threshold guardrail
+
+This run adds one narrow rollback-threshold guardrail so the lane cannot quietly drift from "blocked survey" into "bridge momentum."
+
+- current status bucket: `freeze_in_c`
+- active review blocker status: `blocked_on_stay_in_c_evidence`
+- lane owner: `Core-Adjacent Pod`
+- rollback owner: `Repo Tooling Pod`
+
+Any future Architecture Council reopen attempt for `kernel/rcu/tree_bridge.zig` has to keep all of this explicit in the same reviewable packet:
+
+- `Architecture Council reopen record linked from the reviewable packet`
+- `parity scorecard evidence and benchmark notes attached to the same review packet`
+- `validation replay command and evidence archive path recorded beside the latest blocker disposition`
+
+If any of the following happens, the lane rolls straight back to the current blocked freeze posture instead of lingering in an implied review state:
+
+- any `kernel/rcu/tree_bridge.zig` claim or status review that lacks the Architecture Council reopen record
+- `missing parity scorecard evidence, benchmark notes, or replay command in the active review packet`
+- `freeze-map, survey note, or manifest drift that drops the blocked bridge disposition or rollback owner`
+
+This is intentionally strict. The roadmap already treats `kernel/rcu/tree.c` as a freeze-in-C anchor, so the threshold for reopening review has to be stronger than "the survey changed" or "a bridge file appeared."
+
 ## Recorded gaps
 
 The current lane state is:
@@ -90,6 +113,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-quiescent-state-followup`
 - landed `phase14-rcu-tree-callback-enqueue-followup`
 - landed `phase14-rcu-tree-callback-offload-followup`
+- landed `phase14-rcu-tree-rollback-threshold-guardrail`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/rcu/tree.c` remains in the freeze set for now, and that the repo still does not ship `kernel/rcu/tree_bridge.zig`.
@@ -115,4 +139,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, expedited waits, NOCB wakeup ownership, quiescent-state propagation, callback enqueue, callback offload, and deferred wakeup flushing as stay-in-C behavior, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
+Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, expedited waits, NOCB wakeup ownership, quiescent-state propagation, callback enqueue, callback offload, deferred wakeup flushing, and the rollback threshold that would force any weak status-review attempt back to blocked freeze posture, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
