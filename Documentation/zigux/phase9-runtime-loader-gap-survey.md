@@ -76,10 +76,14 @@ This slice therefore stays deliberately pre-execution. It does not claim runtime
 
 ## Gates
 
-1. run the shared Phase 9 runtime survey bundle
+1. run the release-discipline validator
+- `python3 scripts/zigux/validate-phase9.py`
+
+2. run the shared Phase 9 runtime survey bundle
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience targets
+- `make -C zigux phase9-validate`
 - `make -C zigux phase9`
 
 ## Non-goals
