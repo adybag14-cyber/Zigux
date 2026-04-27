@@ -38,7 +38,7 @@ Phase 5 notes
 Phase 4 notes
 - `make -C zigux phase4-validate` runs `python3 scripts/zigux/artifact_diff.py --self-test` plus `python3 scripts/zigux/validate-phase4.py` before the shared Phase 4 Zig gate.
 - `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
-- `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, and lab or CI replay matrix.
+- `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, the exact bootstrap workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, and the shared `phase4-runtime-atomic64-diff-tests` plus `phase4-bitmap-diff-tests` build entries that make local replay measurable.
 
 Phase 6 notes
 - `Documentation/zigux/phase6-base64-slice.md`
@@ -125,7 +125,7 @@ Phase 3 notes
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check` catches wrapper-template drift and obsolete wrapper files before the parity suite runs.
 - `make -C zigux phase3-validate` runs the same lightweight Phase 3 validator, self-test, wrapper-check, and documentation-sync audit mix that the bootstrap workflow expects before the heavier parity steps.
 - `python3 scripts/zigux/run-phase3-checks.py --list` shows the currently discovered Phase 3 parity slices.
-- `python3 scripts/zigux/run-phase3-checks.py` executes the full discovered Phase 3 parity suite.
+- `python3 scripts/zigux/run-phase3-checks.py` executes the full Phase 3 parity suite.
 
 Windows note
 - a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
