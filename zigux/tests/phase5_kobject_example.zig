@@ -16,12 +16,17 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     const replay = try module.runAnchorReplay();
 
     try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
+    try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
+    try std.testing.expectEqualStrings("baz", replay.ordered_attr_names[1]);
+    try std.testing.expectEqualStrings("bar", replay.ordered_attr_names[2]);
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
     try std.testing.expectEqualStrings("foo", replay.foo_value.attr_name);
+    try std.testing.expectEqualStrings("baz", replay.baz_value.attr_name);
+    try std.testing.expectEqualStrings("bar", replay.bar_value.attr_name);
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
