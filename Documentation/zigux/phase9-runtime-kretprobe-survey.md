@@ -8,9 +8,11 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - scope: survey manifest, dedicated survey and diff gates, the bounded loader-handoff scaffold, shared Phase 9 build wiring, and the lane-level note that now records the landed runtime starter plus the remaining substrate blocker
 - product boundary:
+  - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
+  - `zigux/tests/runtime_kretprobe_module.zig`
   - `zigux/tests/runtime_kretprobe_diff.zig`
   - `zigux/tests/phase9_build.zig`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
