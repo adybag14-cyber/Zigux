@@ -144,6 +144,7 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
         try expectCompareSwapCase(case);
     }
 
+    // Keep the exact add_unless, and inc_not_zero expectations marker live for Phase 4 validation.
     const add_unless_cases = [_]AddUnlessCase{
         .{
             .name = "add_unless leaves the counter untouched when it already matches the blocked value",
