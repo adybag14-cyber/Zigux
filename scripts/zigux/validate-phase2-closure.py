@@ -7,6 +7,18 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
+
+
+def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> list[Path]:
+    data = json.loads(cases_path.read_text(encoding='utf-8'))
+    discovered: list[Path] = []
+    for group_name, field_name in group_specs:
+        for case in data.get(group_name, []):
+            rel = case.get(field_name)
+            if rel:
+                discovered.append(cases_path.parent / rel)
+    return discovered
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
@@ -35,15 +47,16 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'missing_long_reference_argument_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'missing_long_dump_types_argument_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'unexpected_long_option_argument_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample.config',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample_expected.json',
+    KCONFIG_BRIDGE_DIR / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json',
 ]
+required_files.extend(case_files_from_groups(
+    KCONFIG_BRIDGE_DIR / 'cases.json',
+    ('conf_cases', 'expected'),
+    ('confdata_cases', 'input'),
+    ('confdata_cases', 'expected'),
+))
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
