@@ -9,6 +9,10 @@ pub const SampleStage = enum(u8) {
     exited,
 };
 
+pub const StorageBacking = enum {
+    embedded_fixed_buffer,
+};
+
 pub const SampleFocus = enum {
     bounded_fifo_order,
     wraparound_requeue,
@@ -23,6 +27,7 @@ pub const SampleDescriptor = struct {
     anchor: []const u8,
     requires_runtime_substrate: bool,
     provides_selfcheck: bool,
+    storage_backing: StorageBacking,
 };
 
 pub const ReplaySummary = struct {
@@ -41,6 +46,7 @@ pub const ReplaySummary = struct {
     final_len: usize,
     final_sequence: [fifo_capacity]u8,
     checked_focus: []const SampleFocus,
+    storage_backing: StorageBacking,
 };
 
 pub const BytestreamFifoSample = struct {
@@ -61,6 +67,7 @@ pub const BytestreamFifoSample = struct {
             .anchor = "samples/kfifo/bytestream-example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+            .storage_backing = .embedded_fixed_buffer,
         };
     }
 
@@ -205,6 +212,7 @@ pub const BytestreamFifoSample = struct {
                 .reset_and_replay,
                 .ownership_and_lifetime,
             },
+            .storage_backing = .embedded_fixed_buffer,
         };
     }
 
@@ -267,6 +275,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay.storage_backing);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
 
