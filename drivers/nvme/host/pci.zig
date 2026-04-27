@@ -20,6 +20,18 @@ pub const RecoveryState = enum {
     reset_frozen,
 };
 
+pub const SglSupport = enum {
+    unavailable,
+    optional,
+    forced,
+};
+
+pub const DataPointerPlan = enum {
+    prp,
+    sgl,
+    blocked,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -69,6 +81,27 @@ pub const PrpBufferShapeSummary = struct {
     prp_list_entries_per_page: u16,
     prp_list_pages: u16,
     fits_single_prp_list_page: bool,
+    reset_generation: u32,
+};
+
+pub const DataPointerStrategySummary = struct {
+    anchor: []const u8,
+    queue_id: u16,
+    transfer_bytes: u32,
+    segment_count: u16,
+    average_segment_bytes: u32,
+    page_gap_mask: u32,
+    controller_supports_sgl: bool,
+    user_command: bool,
+    integrity_segment_count: u16,
+    sgl_threshold_bytes: u32,
+    sgl_support: SglSupport,
+    selected_pointer: DataPointerPlan,
+    forced_by_page_gap: bool,
+    forced_by_user_command: bool,
+    forced_by_integrity_segments: bool,
+    threshold_prefers_sgl: bool,
+    forced_sgl_unavailable: bool,
     reset_generation: u32,
 };
 
@@ -196,6 +229,62 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn planDataPointerStrategy(
+        self: *const Self,
+        queue_id: u16,
+        transfer_bytes: u32,
+        segment_count: u16,
+        page_gap_mask: u32,
+        controller_supports_sgl: bool,
+        user_command: bool,
+        integrity_segment_count: u16,
+        sgl_threshold_bytes: u32,
+    ) !DataPointerStrategySummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+        if (transfer_bytes == 0) return error.InvalidTransferBytes;
+        if (segment_count == 0) return error.InvalidSegmentCount;
+
+        const forced_by_page_gap = (page_gap_mask & (self.page_size - 1)) != 0;
+        const forced_by_user_command = user_command;
+        const forced_by_integrity_segments = integrity_segment_count > 1;
+        const forced_sgl = forced_by_page_gap or forced_by_user_command or forced_by_integrity_segments;
+        const average_segment_bytes = try checkedDivCeilU32ByU16(transfer_bytes, segment_count);
+        const sgl_support: SglSupport = if (queue_id != admin_queue_id and controller_supports_sgl)
+            (if (forced_sgl) .forced else .optional)
+        else
+            .unavailable;
+        const threshold_prefers_sgl = sgl_support == .optional and
+            sgl_threshold_bytes != 0 and
+            average_segment_bytes >= sgl_threshold_bytes;
+        const forced_sgl_unavailable = forced_sgl and sgl_support == .unavailable;
+        const selected_pointer: DataPointerPlan = switch (sgl_support) {
+            .forced => .sgl,
+            .optional => if (threshold_prefers_sgl) .sgl else .prp,
+            .unavailable => if (forced_sgl_unavailable) .blocked else .prp,
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_id = queue_id,
+            .transfer_bytes = transfer_bytes,
+            .segment_count = segment_count,
+            .average_segment_bytes = average_segment_bytes,
+            .page_gap_mask = page_gap_mask,
+            .controller_supports_sgl = controller_supports_sgl,
+            .user_command = user_command,
+            .integrity_segment_count = integrity_segment_count,
+            .sgl_threshold_bytes = sgl_threshold_bytes,
+            .sgl_support = sgl_support,
+            .selected_pointer = selected_pointer,
+            .forced_by_page_gap = forced_by_page_gap,
+            .forced_by_user_command = forced_by_user_command,
+            .forced_by_integrity_segments = forced_by_integrity_segments,
+            .threshold_prefers_sgl = threshold_prefers_sgl,
+            .forced_sgl_unavailable = forced_sgl_unavailable,
+            .reset_generation = self.reset_generation,
+        };
+    }
+
     fn planQueue(
         self: *const Self,
         role: QueueRole,
@@ -282,5 +371,10 @@ pub const NvmePciQueueLab = struct {
         const rounded = @as(u64, bytes) + page_size - 1;
         const pages = rounded / page_size;
         return std.math.cast(u16, pages) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedDivCeilU32ByU16(value: u32, divisor: u16) !u32 {
+        const rounded = @as(u64, value) + divisor - 1;
+        return std.math.cast(u32, rounded / divisor) orelse error.QueueBytesOverflow;
     }
 };
