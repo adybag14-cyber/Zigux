@@ -32,6 +32,21 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+fn findGap(manifest: Manifest, id: []const u8) ?Gap {
+    for (manifest.gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, id)) return gap;
+    }
+    return null;
+}
+
+fn stripReadyNextPrefix(why_now: []const u8) []const u8 {
+    const prefix = "The next honest bounded step is ";
+    if (std.mem.startsWith(u8, why_now, prefix)) {
+        return why_now[prefix.len..];
+    }
+    return why_now;
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -238,4 +253,52 @@ test "phase11 dw_wdt survey keeps the watchdog header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOS_DISABLECARD") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_ops") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
+}
+
+test "phase11 dw_wdt notes stay pinned to the manifest commit and ready-next wording" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_dw_wdt_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    const manifest = parsed.value;
+    const ready_next_gap = findGap(manifest, "phase11-dw-wdt-platform-resource-preflight").?;
+    try std.testing.expectEqualStrings("ready_next", ready_next_gap.status);
+
+    const commit_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`master` `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(commit_marker);
+
+    const ready_next_marker = stripReadyNextPrefix(ready_next_gap.why_now);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, ready_next_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, ready_next_marker) != null);
 }
