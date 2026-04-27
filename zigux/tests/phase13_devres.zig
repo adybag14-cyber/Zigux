@@ -9,6 +9,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
+    try std.testing.expect(descriptor.provides_ioremap_resource_uc_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_wc_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
@@ -113,6 +114,57 @@ test "phase13 devres keeps requested mapping types and unnamed pretty names" {
             try std.testing.expectEqual(@as(u64, 0x20), plan.size);
         },
         .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres plans an uncached managed ioremap resource wrapper" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourceUc(std.testing.allocator, .{
+        .device_name = "uart3",
+        .resource = .{
+            .start = 0x2400,
+            .end = 0x243f,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "cfg",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan| {
+            defer std.testing.allocator.free(plan.pretty_name);
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqualStrings("uart3 cfg", plan.pretty_name);
+            try std.testing.expectEqual(devres.IoremapType.uc, plan.effective_type);
+            try std.testing.expectEqual(@as(u64, 0x40), plan.size);
+            try std.testing.expect(plan.requests_region);
+            try std.testing.expect(!plan.releases_region_on_remap_failure);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres propagates uncached managed resource failures" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResourceUc(std.testing.allocator, .{
+        .device_name = "uart4",
+        .resource = .{
+            .start = 0x2500,
+            .end = 0x257f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "cfg",
+        },
+        .remap_succeeds = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.remap, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.uc, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(failure.releases_region_on_remap_failure);
+        },
     }
 }
 
