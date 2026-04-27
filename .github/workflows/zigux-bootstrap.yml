@@ -75,7 +75,7 @@ jobs:
         run: python3 scripts/zigux/validate-phase3.py
 
       - name: Validate Phase 4 diff gates
-        run: python3 scripts/zigux/validate-phase4.py
+        run: make -C zigux phase4-validate
 
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
@@ -153,7 +153,7 @@ jobs:
         run: zig build phase3-test --build-file zigux/tests/build.zig
 
       - name: Run Phase 4 diff tests
-        run: zig build test --build-file zigux/tests/phase4_build.zig
+        run: make -C zigux phase4-test
 
       - name: Run Phase 5 reference sample tests
         run: zig build test --build-file zigux/tests/phase5_build.zig --summary all
