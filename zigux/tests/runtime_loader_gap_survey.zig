@@ -257,6 +257,12 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn releaseWithoutSubstrate",
         "@import(\"runtime_loader\")",
     };
+    const shared_request_surface = [_][]const u8{
+        "pub const RuntimeLoadRequest = struct",
+        "pub fn isWaitingOnRuntimeSubstrate",
+        "pub fn isReleasedWithoutSubstrate",
+        "pub fn releasedWithoutSubstrate",
+    };
     const absent_command_env_surface = [_][]const u8{
         "command_name",
         "argv_policy",
@@ -270,12 +276,11 @@ test "runtime loader gap survey proves the shared request surface and existing l
     try expectContainsNone(runtime_loader_file, &absent_command_env_surface);
     try expectContainsAll(runtime_loader_file, &.{
         "pub const AllocatorHandoff = struct",
-        "pub const RuntimeLoadRequest = struct",
         "pub const LoaderPayload = union(LoaderLane)",
         "allocator_handoff",
         "pub fn allocatorHandoffFor",
-        "pub fn isWaitingOnRuntimeSubstrate",
     });
+    try expectContainsAll(runtime_loader_file, &shared_request_surface);
 
     try expectContainsAll(bitmap_loader, &.{
         "pub const RuntimeBitmapLoadPlan = struct",
