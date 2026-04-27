@@ -40,12 +40,14 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_snapshot_prompt = false;
     var saw_exact_sequence = false;
+    var saw_snapshot = false;
     var saw_capacity = false;
     var saw_lifecycle = false;
 
@@ -58,6 +60,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "non-destructive snapshot") != null) {
+            saw_snapshot_prompt = true;
+        }
     }
 
     for (manifest.exact_checks, 0..) |check, i| {
@@ -68,6 +73,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
             saw_exact_sequence = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
+        }
+        if (std.mem.eql(u8, check.id, "snapshot-before-final-drain")) {
+            saw_snapshot = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "non-destructive snapshot") != null);
         }
         if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
             saw_capacity = true;
@@ -85,7 +94,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
 
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_snapshot_prompt);
     try std.testing.expect(saw_exact_sequence);
+    try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
