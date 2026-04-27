@@ -9,6 +9,7 @@ This document records the shared boot/runtime loader gap that still separates th
 - scope: shared survey note, manifest-backed survey gate, explicit roadmap-boundary note for the mixed Phase 6 schedule wording, and a bounded shared runtime-loader request surface that keeps allocator plus init or exit handoff machine-checkable without claiming real runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  - `Documentation/zigux/review-checklist.md`
   - `zigux/tests/runtime_loader_gap_manifest.json`
   - `zigux/tests/runtime_loader_gap_survey.zig`
   - `zigux/tests/phase9_build.zig`
@@ -33,6 +34,12 @@ The live repo already reflects that split:
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
 
 This survey keeps the lane honest by recording what is now landed and what is still blocked instead of pretending that runtime scheduling, polling, or event-loop work should be pulled forward into Phase 6.
+
+The review checklist also remains part of this bounded governance surface. For this runtime-loader starter family, the checklist still needs to keep three review cues explicit:
+
+- no hidden runtime services
+- no implicit allocation posture beyond the explicit allocator-handoff contract
+- no unclear panic or unsafe ownership story
 
 ## Current blocker posture
 
