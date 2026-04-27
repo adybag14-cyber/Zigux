@@ -32,6 +32,23 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn isLowerHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
+}
+
+fn readWorkspaceFile(
+    io: anytype,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
 test "phase 9 runtime kretprobe survey manifest records the landed loader plan and the remaining substrate blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -50,6 +67,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.kretprobe_example_c_lines >= 100);
@@ -119,4 +137,26 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_plan);
+}
+
+test "phase 9 runtime kretprobe survey doc keeps the landed starter ownership map explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_doc = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/zigux/runtime_kretprobe.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/zigux/runtime_kretprobe_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_kretprobe_module.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_kretprobe_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_kretprobe_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "shared runtime loader substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "register_kretprobe") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "unregister_kretprobe") != null);
 }
