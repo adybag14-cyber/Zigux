@@ -46,12 +46,19 @@ pub const QueueDescriptorShapeSummary = struct {
     uses_indirect_descriptors: bool,
 };
 
+pub const DeviceIdentitySummary = struct {
+    anchor: []const u8,
+    device_index: u16,
+    device_id: u32,
+    vendor_id: u32,
+    device_name: []const u8,
+    modalias: []const u8,
+};
+
 pub const ConfigChangeSummary = struct {
     anchor: []const u8,
-    driver_name: []const u8,
     core_enabled: bool,
     driver_disabled: bool,
-    config_changed_registered: bool,
     change_pending: bool,
     delivery_count: usize,
 };
@@ -70,13 +77,21 @@ pub const VirtioCoreLabDevice = struct {
         writable_descriptor_count: u16 = 0,
         uses_indirect_descriptors: bool = false,
     };
+    const device_name_capacity: usize = 16;
+    const modalias_capacity: usize = 32;
 
     status: u8 = 0,
-    driver_name: []const u8 = "",
-    config_changed_registered: bool = false,
     device_features: FeatureSet = FeatureSet.initEmpty(),
     driver_features: FeatureSet = FeatureSet.initEmpty(),
     negotiated_features: FeatureSet = FeatureSet.initEmpty(),
+    device_identity_registered: bool = false,
+    device_index: u16 = 0,
+    device_id: u32 = 0,
+    vendor_id: u32 = 0,
+    device_name_buffer: [device_name_capacity]u8 = [_]u8{0} ** device_name_capacity,
+    device_name_len: usize = 0,
+    modalias_buffer: [modalias_capacity]u8 = [_]u8{0} ** modalias_capacity,
+    modalias_len: usize = 0,
     queues: [queue_capacity]QueueSlot = [_]QueueSlot{QueueSlot{}} ** queue_capacity,
     config_core_enabled: bool = true,
     config_driver_disabled: bool = false,
@@ -107,8 +122,6 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn reset(self: *Self) void {
         self.status = 0;
-        self.driver_name = "";
-        self.config_changed_registered = false;
         self.driver_features = FeatureSet.initEmpty();
         self.negotiated_features = FeatureSet.initEmpty();
         self.queues = [_]QueueSlot{QueueSlot{}} ** queue_capacity;
@@ -120,6 +133,28 @@ pub const VirtioCoreLabDevice = struct {
         self.reset_count += 1;
     }
 
+    pub fn registerDeviceIdentity(
+        self: *Self,
+        device_index: u16,
+        device_id: u32,
+        vendor_id: u32,
+    ) !DeviceIdentitySummary {
+        if (self.device_identity_registered) return error.DeviceIdentityAlreadyRegistered;
+
+        self.device_index = device_index;
+        self.device_id = device_id;
+        self.vendor_id = vendor_id;
+        self.device_name_len = (try std.fmt.bufPrint(&self.device_name_buffer, "virtio{d}", .{device_index})).len;
+        self.modalias_len = (try std.fmt.bufPrint(
+            &self.modalias_buffer,
+            "virtio:d{X:0>8}v{X:0>8}",
+            .{ device_id, vendor_id },
+        )).len;
+        self.device_identity_registered = true;
+
+        return self.deviceIdentitySummary();
+    }
+
     pub fn acknowledge(self: *Self) void {
         self.status |= DeviceStatus.acknowledge;
     }
@@ -127,18 +162,6 @@ pub const VirtioCoreLabDevice = struct {
     pub fn attachDriver(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
         self.status |= DeviceStatus.driver;
-    }
-
-    pub fn registerDriverBinding(
-        self: *Self,
-        driver_name: []const u8,
-        config_changed_registered: bool,
-    ) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
-        if (driver_name.len == 0) return error.EmptyDriverName;
-
-        self.driver_name = driver_name;
-        self.config_changed_registered = config_changed_registered;
     }
 
     pub fn offerDriverFeature(self: *Self, feature_bit: u16) !void {
@@ -314,6 +337,19 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn deviceIdentitySummary(self: *const Self) !DeviceIdentitySummary {
+        if (!self.device_identity_registered) return error.DeviceIdentityNotRegistered;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .device_index = self.device_index,
+            .device_id = self.device_id,
+            .vendor_id = self.vendor_id,
+            .device_name = self.device_name_buffer[0..self.device_name_len],
+            .modalias = self.modalias_buffer[0..self.modalias_len],
+        };
+    }
+
     pub fn disableConfigDriver(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
         self.config_driver_disabled = true;
@@ -344,10 +380,8 @@ pub const VirtioCoreLabDevice = struct {
     pub fn configChangeSummary(self: *const Self) ConfigChangeSummary {
         return .{
             .anchor = descriptor().anchor,
-            .driver_name = self.driver_name,
             .core_enabled = self.config_core_enabled,
             .driver_disabled = self.config_driver_disabled,
-            .config_changed_registered = self.config_changed_registered,
             .change_pending = self.config_change_pending,
             .delivery_count = self.config_change_delivery_count,
         };
@@ -360,11 +394,6 @@ pub const VirtioCoreLabDevice = struct {
     fn handleConfigChanged(self: *Self) void {
         if (!self.config_core_enabled or self.config_driver_disabled) {
             self.config_change_pending = true;
-            return;
-        }
-
-        if (!self.config_changed_registered) {
-            self.config_change_pending = false;
             return;
         }
 
