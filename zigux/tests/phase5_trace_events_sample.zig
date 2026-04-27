@@ -94,4 +94,6 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionCallback());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.replayFunctionIteration(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionCallback());
 }
