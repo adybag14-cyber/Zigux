@@ -33,6 +33,15 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn readWorkspaceFile(
+    io: anytype,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
 test "phase 9 runtime trace-events survey manifest stays anchored to the survey lane while recording the landed diff gate and blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -102,6 +111,14 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "diagnostics-summary") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-substrate-handoff")) {
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime task ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling and event-loop substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "thread creation") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracepoint registration parity") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -115,4 +132,35 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
+}
+
+test "phase 9 runtime trace-events docs keep the task and event-loop substrate gap explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_doc = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const module_doc = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(module_doc);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "thread creation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tracepoint-registration lifecycle wiring") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
 }
