@@ -128,11 +128,19 @@ test "phase10 virtio ring polls newly used buffers without transport callbacks" 
     try std.testing.expect(poll_summary.has_newly_used_chains);
 }
 
-test "phase10 virtio ring re-enables callbacks and reports whether polling is still needed" {
+test "phase10 virtio ring disables and re-enables callbacks with queue-local poll bookkeeping" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(6, 8, .split, true, false);
 
-    try ring.disableCallback(6);
+    var disable_summary = try ring.disableCallback(6);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", disable_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), disable_summary.queue_index);
+    try std.testing.expect(!disable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.pending_used_chain_count);
+    try std.testing.expect(!disable_summary.should_poll);
+
     try ring.publishDescriptorChain(6);
     try ring.recordUsedChains(6, 1);
 
@@ -146,7 +154,12 @@ test "phase10 virtio ring re-enables callbacks and reports whether polling is st
     try std.testing.expect(enable_summary.should_poll);
 
     _ = try ring.pollUsedBuffers(6);
-    try ring.disableCallback(6);
+    disable_summary = try ring.disableCallback(6);
+    try std.testing.expect(!disable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), disable_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), disable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.pending_used_chain_count);
+    try std.testing.expect(!disable_summary.should_poll);
 
     enable_summary = try ring.enableCallback(6);
     try std.testing.expect(enable_summary.callback_enabled);
@@ -160,7 +173,10 @@ test "phase10 virtio ring delays callbacks until most outstanding buffers are co
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(7, 8, .split, true, false);
 
-    try ring.disableCallback(7);
+    var disable_summary = try ring.disableCallback(7);
+    try std.testing.expect(!disable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), disable_summary.pending_used_chain_count);
+    try std.testing.expect(!disable_summary.should_poll);
     try ring.publishDescriptorChain(7);
     try ring.publishDescriptorChain(7);
     try ring.publishDescriptorChain(7);
@@ -180,8 +196,13 @@ test "phase10 virtio ring delays callbacks until most outstanding buffers are co
     try std.testing.expect(!delayed_summary.should_poll);
 
     _ = try ring.pollUsedBuffers(7);
-    try ring.disableCallback(7);
     try ring.recordUsedChains(7, 3);
+    disable_summary = try ring.disableCallback(7);
+    try std.testing.expect(!disable_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 4), disable_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), disable_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 3), disable_summary.pending_used_chain_count);
+    try std.testing.expect(disable_summary.should_poll);
 
     delayed_summary = try ring.enableCallbackDelayed(7);
     try std.testing.expect(delayed_summary.callback_enabled);
