@@ -60,6 +60,7 @@ phase3-interop:
 phase3: phase3-validate phase3-abi phase3-interop
 
 phase4-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase4.py
 
 phase4-test:
