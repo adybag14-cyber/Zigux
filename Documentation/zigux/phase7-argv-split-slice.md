@@ -11,6 +11,8 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - product boundary:
   - `lib/argv_split.zig`
   - `zigux/tests/phase7_argv_split.zig`
+  - `zigux/tests/phase7_argv_split_survey.zig`
+  - `zigux/tests/phase7_argv_split_manifest.json`
   - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
   - `zigux/tests/phase7_build.zig`
 
@@ -34,6 +36,9 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
 
+3. keep the roadmap survey record machine-checked
+- `zig test zigux/tests/phase7_argv_split_survey.zig`
+
 ## Current parity surface
 
 The current landed slice covers:
@@ -51,6 +56,7 @@ The current tests check:
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - optional argc reporting that stays in sync with the returned argv length
+- a machine-checked survey record that keeps the Phase 7 roadmap anchor, landed review surfaces, and the one remaining generated-parity follow-up explicit
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
 
@@ -65,4 +71,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, or dedicated-gate surface.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, survey, or dedicated-gate surface, with a generated C-backed parity artifact now the one clearly recorded same-lane follow-up.
