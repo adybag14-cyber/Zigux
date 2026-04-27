@@ -34,3 +34,21 @@ test "runtime kretprobe diff gate keeps maxactive pressure and nmissed explicit"
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
 }
+
+test "runtime kretprobe diff gate keeps per-instance private entry timestamps explicit" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    try std.testing.expect(try module.entryHandler(true, 160));
+
+    const second = try module.retHandler(21, 205);
+    try std.testing.expectEqual(@as(i64, 45), second.duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), module.active_instances);
+    try std.testing.expect(module.summary().entry_timestamp_armed);
+
+    const first = try module.retHandler(22, 260);
+    try std.testing.expectEqual(@as(i64, 160), first.duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), module.active_instances);
+    try std.testing.expect(!module.summary().entry_timestamp_armed);
+}
