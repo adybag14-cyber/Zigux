@@ -30,6 +30,14 @@ pub const RecoveryState = enum {
     reset_required,
 };
 
+pub const RssSummary = enum {
+    not_requested,
+    requested_but_unavailable,
+    hash_report_only,
+    downgraded_single_queue,
+    active,
+};
+
 pub const ProbeRequest = struct {
     driver_feature_bits: []const u16,
     requested_queue_pairs: u16,
@@ -52,6 +60,7 @@ pub const ProbeSnapshot = struct {
     mergeable_rx_buffers: bool,
     has_rss: bool,
     has_rss_hash_report: bool,
+    rss_summary: RssSummary,
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
 };
@@ -102,6 +111,8 @@ pub const VirtioNetProbeLab = struct {
         const has_rss = try self.core.hasNegotiatedFeature(feature_rss);
         const has_hash_report = try self.core.hasNegotiatedFeature(feature_hash_report);
         const mergeable_rx_buffers = try self.core.hasNegotiatedFeature(feature_mergeable_rx_buffers);
+        const requested_rss = featureRequested(request.driver_feature_bits, feature_rss);
+        const requested_hash_report = featureRequested(request.driver_feature_bits, feature_hash_report);
 
         var max_queue_pairs: u16 = 1;
         var fallback_reason: QueueFallbackReason = .none;
@@ -130,6 +141,14 @@ pub const VirtioNetProbeLab = struct {
             .renegotiate_features
         else
             .stable;
+        const rss_summary = summarizeRss(
+            requested_rss,
+            requested_hash_report,
+            has_rss,
+            has_hash_report,
+            request.requested_queue_pairs,
+            planned_queue_pairs,
+        );
 
         const snapshot = ProbeSnapshot{
             .anchor = descriptor().anchor,
@@ -145,6 +164,7 @@ pub const VirtioNetProbeLab = struct {
             .mergeable_rx_buffers = mergeable_rx_buffers,
             .has_rss = has_rss,
             .has_rss_hash_report = has_hash_report,
+            .rss_summary = rss_summary,
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
         };
@@ -160,5 +180,27 @@ pub const VirtioNetProbeLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn featureRequested(feature_bits: []const u16, wanted: u16) bool {
+        for (feature_bits) |feature_bit| {
+            if (feature_bit == wanted) return true;
+        }
+        return false;
+    }
+
+    fn summarizeRss(
+        requested_rss: bool,
+        requested_hash_report: bool,
+        has_rss: bool,
+        has_hash_report: bool,
+        requested_queue_pairs: u16,
+        planned_queue_pairs: u16,
+    ) RssSummary {
+        if (!requested_rss and !requested_hash_report) return .not_requested;
+        if (has_rss and planned_queue_pairs > 1) return .active;
+        if (has_rss and requested_queue_pairs > planned_queue_pairs) return .downgraded_single_queue;
+        if (has_hash_report) return .hash_report_only;
+        return .requested_but_unavailable;
     }
 };

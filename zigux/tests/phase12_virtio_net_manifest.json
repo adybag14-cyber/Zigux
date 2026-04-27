@@ -74,7 +74,7 @@
       "status": "ready_next",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The next honest virtio_net step after the probe snapshot is one bounded queue-recovery follow-up around reset-required propagation, control-vq loss fallback, or RSS downgrade summaries before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "The next honest virtio_net step after the probe snapshot is one bounded queue-recovery follow-up around reset-required propagation or control-vq loss fallback before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
