@@ -45,6 +45,11 @@ pub const IncNotZeroResult = struct {
     changed: bool,
 };
 
+pub const DecIfPositiveResult = struct {
+    result: i64,
+    changed: bool,
+};
+
 pub const RuntimeAtomic64Sample = struct {
     const Self = @This();
 
@@ -164,6 +169,36 @@ pub const RuntimeAtomic64Sample = struct {
                     }
 
                     break :blk .{ .previous = current, .changed = true };
+                }
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn decIfPositiveCounter(self: *Self) !DecIfPositiveResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                var current = atomic.load(i64, &self.counter, .seq_cst);
+                while (true) {
+                    const result = current - 1;
+                    if (current <= 0) {
+                        break :blk .{ .result = result, .changed = false };
+                    }
+
+                    const mismatch = atomic.compareExchange(
+                        i64,
+                        &self.counter,
+                        current,
+                        result,
+                        .seq_cst,
+                        .seq_cst,
+                    );
+                    if (mismatch) |previous| {
+                        current = previous;
+                        continue;
+                    }
+
+                    break :blk .{ .result = result, .changed = true };
                 }
             },
             else => error.InvalidLifecycleTransition,
