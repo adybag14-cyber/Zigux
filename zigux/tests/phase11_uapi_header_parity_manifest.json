@@ -1,8 +1,8 @@
 {
-  "lane_key": "P11-L11",
+  "lane_key": "P11-L17",
   "phase": "Phase 11",
-  "surveyed_commit": "71c0ed93260f46dd1058e043c0bb111270628ca1",
-  "anchor": "include/uapi/linux/watchdog.h",
+  "surveyed_commit": "06318487f68090588ddfebf85f87b4c0bc61f46e",
+  "anchor": "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h",
   "roadmap_destinations": [
     "Documentation/zigux/",
     "zigux/tests/",
@@ -13,6 +13,7 @@
     "preexisting_phase11_build_present": true,
     "watchdog_uapi_header_present": true,
     "watchdog_core_header_present": true,
+    "termios_uapi_header_present": true,
     "hvc_console_header_present": true,
     "dw_wdt_survey_note_present": true,
     "dw_wdt_manifest_present": true,
@@ -54,6 +55,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
       "why_now": "The shared header-parity gate now carries one bounded layout_assert checkpoint for struct watchdog_info so size, alignment, and field offsets stay reviewable without turning this simple-driver slice into a wider watchdog-core ownership claim."
+    },
+    {
+      "id": "phase11-hvc-console-winsize-layout-assert",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared header-parity gate now carries one bounded layout_assert checkpoint for struct winsize so the hvc resize surface keeps size, alignment, and ws_row/ws_col/ws_xpixel/ws_ypixel offsets reviewable without claiming tty-core or struct hvc_struct ownership."
     },
     {
       "id": "phase11-phase3-interop-followup",
