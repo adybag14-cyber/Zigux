@@ -27,6 +27,7 @@ BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
+    "zigux/bindings/abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/helpers/layout_assert.zig",
@@ -656,81 +657,4 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_dump.zig").write_text(
-            "// overgrown\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        (overgrown_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (
-            overgrown_fixture_dir
-            / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_c_harness.c"
-        ).write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        slices = discover_phase3_slices(paths)
-        issues = validate_slices(root, slices, check_slug_sanity=True)
-        assert any(issue.startswith(f"slug_audit:slug-too-many-tokens:{overgrown_slug}:") for issue in issues)
-        assert any(issue.startswith(f"slug_audit:slug-repeated-token:{loop_slug}:") for issue in issues)
-        assert any(issue.startswith(f"slug_audit:slug-repeated-phrase:{loop_slug}:") for issue in issues)
-        assert not any(
-            issue.startswith(f"slug_rename_candidate:{overgrown_slug}:")
-            for issue in issues
-        )
-
-    print("PHASE3_VALIDATE_SELF_TEST=pass")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate discovered Phase 3 slice assets and documentation markers.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validation coverage in a temporary workspace.")
-    parser.add_argument(
-        "--slug",
-        action="append",
-        default=[],
-        help="Only validate the named Phase 3 slug. Repeat to validate more than one bounded slice.",
-    )
-    parser.add_argument(
-        "--check-artifact-diff-phase3-section",
-        action="store_true",
-        help="Also require Documentation/zigux/artifact-diff.md to match the generated Phase 3 section from the catalog.",
-    )
-    parser.add_argument(
-        "--check-slug-sanity",
-        action="store_true",
-        help="Also require discovered Phase 3 slugs to pass the optional catalog sanity audit.",
-    )
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    slices = select_slices(discover_phase3_slices(), args.slug)
-    if not slices:
-        raise SystemExit("no Phase 3 slices discovered")
-    issues = validate_slices(
-        ROOT,
-        slices,
-        check_artifact_diff=args.check_artifact_diff_phase3_section,
-        check_slug_sanity=args.check_slug_sanity,
-        check_all_wrappers=not bool(args.slug),
-    )
-    if issues:
-        print("PHASE3_VALIDATION=fail")
-        print("MISSING_PHASE3_MARKERS_START")
-        for issue in issues:
-            print(issue)
-        print("MISSING_PHASE3_MARKERS_END")
-        return 1
-
-    print("PHASE3_VALIDATION=pass")
-    print(f"PHASE3_SLICE_COUNT={len(slices)}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        (paths.tests_dir / "phase3_alpha_beta_gamma_delta_epsilon_zeta_eta_theta_iota_kappa_lambda_mu_nu_dump.zig").writeText = None
