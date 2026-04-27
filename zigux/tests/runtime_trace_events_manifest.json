@@ -9,10 +9,11 @@
   ],
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
-    "preexisting_runtime_trace_events_test_files": 2,
+    "preexisting_runtime_trace_events_test_files": 3,
     "preexisting_runtime_trace_events_sample_present": true,
     "preexisting_phase9_build_present": true,
-    "preexisting_runtime_trace_events_doc_present": true
+    "preexisting_runtime_trace_events_doc_present": true,
+    "preexisting_runtime_trace_events_summary_surface_present": true
   },
   "gaps": [
     {
@@ -41,7 +42,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_trace_events_module.zig",
-      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions, event emission counts, and registration balance."
+      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions, event emission counts, registration balance, and the stable diagnostics-summary surface."
     },
     {
       "id": "runtime-trace-events-diff-gate",
