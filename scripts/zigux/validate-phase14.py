@@ -17,7 +17,6 @@ FILES = [
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
     "Documentation/zigux/phase14-workqueue-bridge-survey.md",
     "Documentation/zigux/phase14-skbuff-bridge-survey.md",
-    "Documentation/zigux/phase14-ring-buffer-survey.md",
     "Documentation/zigux/phase14-rcu-tree-survey.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/freeze-map.md",
@@ -115,7 +114,7 @@ EXPECTED_ANCHOR_LANES = [
     ("P14-L01", "kernel/workqueue.c"),
     ("P14-L11", "net/core/skbuff.c"),
     ("P14-L06", "kernel/trace/ring_buffer.c"),
-    ("P14-L13", "kernel/rcu/tree.c"),
+    ("P14-L14", "kernel/rcu/tree.c"),
 ]
 
 
@@ -251,7 +250,7 @@ for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
     ("zigux/tests/phase14_skbuff_bridge_manifest.json", "P14-L11", "net/core/skbuff.c"),
     ("zigux/tests/phase14_ring_buffer_manifest.json", "P14-L06", "kernel/trace/ring_buffer.c"),
-    ("zigux/tests/phase14_rcu_tree_manifest.json", "P14-L13", "kernel/rcu/tree.c"),
+    ("zigux/tests/phase14_rcu_tree_manifest.json", "P14-L14", "kernel/rcu/tree.c"),
 ]:
     anchor_manifest = load_json(manifest_path)
     if anchor_manifest.get("phase") != "Phase 14":
