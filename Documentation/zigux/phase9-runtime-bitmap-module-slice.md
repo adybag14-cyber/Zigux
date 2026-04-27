@@ -30,6 +30,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
+- a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, and staged entry or exit symbols without claiming live execution
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
@@ -51,4 +52,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining shared runtime-substrate blocker, most likely a future `zigux/kernel/runtime_loader.zig` or equivalent binding surface that can consume the new handoff plan without pretending full kernel module parity already exists.
+Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than inventing another bitmap-local binding surface now that `zigux/kernel/runtime_loader.zig` already consumes the current handoff plan.
