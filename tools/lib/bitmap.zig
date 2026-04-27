@@ -376,6 +376,25 @@ test "bitmap and andnot equal intersects subset" {
     try std.testing.expect(subset(&rhs, &lhs, 8));
 }
 
+test "bitmap tail-masked comparisons ignore out-of-range bits" {
+    const nbits = bits_per_long + 5;
+    const in_range = [_]Word{ 0, (@as(Word, 1) << 3) };
+    const with_tail_noise = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
+    const only_tail_noise = [_]Word{ 0, (@as(Word, 1) << 9) };
+    var dst = [_]Word{ 0, 0 };
+
+    try std.testing.expect(equal(&in_range, &with_tail_noise, nbits));
+    try std.testing.expect(intersects(&in_range, &with_tail_noise, nbits));
+    try std.testing.expect(subset(&in_range, &with_tail_noise, nbits));
+    try std.testing.expect(!intersects(&in_range, &only_tail_noise, nbits));
+    try std.testing.expect(subset(&only_tail_noise, &in_range, nbits));
+
+    try std.testing.expect(!andBits(&dst, &in_range, &only_tail_noise, nbits));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
+    try std.testing.expect(!andNotBits(&dst, &only_tail_noise, &in_range, nbits));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
+}
+
 test "bitmap xor keeps caller-selected bit window" {
     const lhs = [_]Word{0b1_1111};
     const rhs = [_]Word{0b1_0001};
@@ -399,6 +418,7 @@ test "bitmap scnprintf collapses contiguous ranges" {
 test "bitmap scnprintf truncates and keeps a terminator slot" {
     var map = [_]Word{0};
     setRange(&map, 1, 3);
+    setRange(&map, 7, 1);
 
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
     const len = scnprintf(&map, 8, &buffer);
