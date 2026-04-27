@@ -1,5 +1,6 @@
 const std = @import("std");
 const string_helpers = @import("string_helpers");
+const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");
 
 test "phase 7 string helpers module imports cleanly" {
     _ = string_helpers;
@@ -61,25 +62,12 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     var out = [_]u8{0} ** 32;
 
-    const space_len = string_helpers.stringUnescape("\\f\\ \\n\\r\\t\\v", &out, out.len, string_helpers.UNESCAPE_SPACE);
-    try std.testing.expectEqual(@as(usize, 7), space_len);
-    try std.testing.expectEqualSlices(u8, "\x0c\\ \n\r\t\x0b", out[0..space_len]);
-
-    const octal_len = string_helpers.stringUnescape("\\40\\1\\387\\0064\\05\\040\\8a\\110\\777", &out, out.len, string_helpers.UNESCAPE_OCTAL);
-    try std.testing.expectEqual(@as(usize, 15), octal_len);
-    try std.testing.expectEqualSlices(u8, " \x01\x0387\x064\x05 \\8aH?7", out[0..octal_len]);
-
-    const hex_len = string_helpers.stringUnescape("\\xv\\xa\\x2c\\xD\\x6f2", &out, out.len, string_helpers.UNESCAPE_HEX);
-    try std.testing.expectEqual(@as(usize, 8), hex_len);
-    try std.testing.expectEqualSlices(u8, "\\xv\n,\ro2", out[0..hex_len]);
-
-    const special_len = string_helpers.stringUnescape("\\h\\\\\\\"\\a\\e\\", &out, out.len, string_helpers.UNESCAPE_SPECIAL);
-    try std.testing.expectEqual(@as(usize, 7), special_len);
-    try std.testing.expectEqualSlices(u8, "\\h\\\"\x07\x1b\\", out[0..special_len]);
-
-    const any_len = string_helpers.stringUnescape("\\n\\x41\\040\\e", &out, out.len, string_helpers.UNESCAPE_ANY);
-    try std.testing.expectEqual(@as(usize, 4), any_len);
-    try std.testing.expectEqualSlices(u8, "\nA \x1b", out[0..any_len]);
+    for (escape_vectors.unescape_cases) |case| {
+        @memset(&out, 0);
+        const actual_len = string_helpers.stringUnescape(case.input, &out, out.len, case.flags);
+        try std.testing.expectEqual(case.expected_len, actual_len);
+        try std.testing.expectEqualSlices(u8, case.expected, out[0..actual_len]);
+    }
 }
 
 test "phase 7 stringUnescape supports in-place and bounded destination behavior" {
@@ -100,23 +88,10 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
 test "phase 7 stringEscapeMem covers the bounded escape subset" {
     var out = [_]u8{0} ** 64;
 
-    const any_len = string_helpers.stringEscapeMem("\n\\\x00", &out, string_helpers.ESCAPE_ANY, null);
-    try std.testing.expectEqual(@as(usize, 6), any_len);
-    try std.testing.expectEqualSlices(u8, "\\n\\\\\\0", out[0..any_len]);
-
-    const hex_len = string_helpers.stringEscapeMem("A\x01z", &out, string_helpers.ESCAPE_NP | string_helpers.ESCAPE_HEX, null);
-    try std.testing.expectEqual(@as(usize, 6), hex_len);
-    try std.testing.expectEqualSlices(u8, "A\\x01z", out[0..hex_len]);
-}
-
-test "phase 7 stringEscapeMem keeps only and append behavior deterministic" {
-    var out = [_]u8{0} ** 64;
-
-    const dict_len = string_helpers.stringEscapeMem("A\n\tZ", &out, string_helpers.ESCAPE_SPACE, "\n");
-    try std.testing.expectEqual(@as(usize, 5), dict_len);
-    try std.testing.expectEqualSlices(u8, "A\\n\tZ", out[0..dict_len]);
-
-    const append_len = string_helpers.stringEscapeMem("A\nZ", &out, string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND, "\n");
-    try std.testing.expectEqual(@as(usize, 6), append_len);
-    try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..append_len]);
+    for (escape_vectors.escape_cases) |case| {
+        @memset(&out, 0);
+        const actual_len = string_helpers.stringEscapeMem(case.input, &out, case.flags, case.only);
+        try std.testing.expectEqual(case.expected_len, actual_len);
+        try std.testing.expectEqualSlices(u8, case.expected, out[0..actual_len]);
+    }
 }
