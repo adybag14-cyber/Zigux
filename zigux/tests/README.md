@@ -36,6 +36,17 @@ Key entrypoints
 - `zigux/tests/phase9_build.zig`
 - `zigux/tests/runtime_loader_gap_survey.zig`
 - `zigux/tests/runtime_loader_gap_manifest.json`
+- `zigux/tests/phase10_build.zig`
+- `zigux/tests/phase10_virtio_core.zig`
+- `zigux/tests/phase10_virtio_ring.zig`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
+- `zigux/tests/phase10_virtio_input.zig`
+- `zigux/tests/phase10_virtio_input_survey.zig`
+- `zigux/tests/phase10_virtio_mmio_survey.zig`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_input_manifest.json`
+- `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_closure_manifest.json`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -46,6 +57,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase6.py`
 - `scripts/zigux/validate-phase8.py`
 - `scripts/zigux/validate-phase9.py`
+- `scripts/zigux/validate-phase10-closure.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
@@ -67,3 +79,7 @@ Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
+
+Phase 10 guidance
+- keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig` and the three manifest-backed survey records instead of treating individual virtio starter files as independent closure signals
+- if the Phase 10 evidence bundle changes, update `zigux/tests/phase10_closure_manifest.json` and `Documentation/zigux/phase10-closure-evidence.md` together so the shared closure gate stays truthful about what is implemented versus still survey-backed
