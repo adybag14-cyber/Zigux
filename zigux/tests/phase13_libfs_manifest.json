@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L02",
+  "lane_key": "P13-L06",
   "phase": "Phase 13",
-  "surveyed_commit": "54aa513dce9060f4898a34d55065321cecc285f9",
+  "surveyed_commit": "a4f70b77b2b4e5c03f5362644f7deda7964167bd",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -98,10 +98,17 @@
     },
     {
       "id": "phase13-libfs-dcache-cursor-preconditions",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the smallest non-live dcache_dir_open() / dcache_readdir() cursor preconditions in planning form around cursor allocation failure, dir_emit_dots() gating, first-child-versus-cursor resume selection, and missing private-data blocking before any cursor dentries, sibling traversal, or lock ordering behavior is claimed."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-reposition-bookkeeping",
       "status": "ready_next",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is to model the smallest non-live dcache_dir_open() / dcache_readdir() cursor preconditions in planning form before any cursor dentries, sibling traversal, or lock ordering behavior is claimed."
+      "why_now": "The next honest step is to model the post-scan cursor reposition bookkeeping around hlist_del_init() plus hlist_add_before() / hlist_add_behind() without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership."
     }
   ]
 }
