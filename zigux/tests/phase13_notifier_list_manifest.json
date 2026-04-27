@@ -1,0 +1,86 @@
+{
+  "lane_key": "P13-L13",
+  "phase": "Phase 13",
+  "surveyed_commit": "4dcec04fe763160344ae352d76162962ab823dcf",
+  "anchors": [
+    "include/linux/list.h",
+    "include/linux/notifier.h"
+  ],
+  "roadmap_scope": "Phase 13 is the shared helper tranche, so this lane stays reviewability-only and records the current interop gap between the preexisting list surfaces and the still-missing generic notifier helper surface.",
+  "survey_summary": {
+    "preexisting_phase13_build_present": true,
+    "preexisting_phase3_build_present": true,
+    "preexisting_list_abi_present": true,
+    "preexisting_hlist_abi_present": true,
+    "preexisting_list_view_present": true,
+    "preexisting_hlist_view_present": true,
+    "preexisting_chrdev_notify_plan_present": true,
+    "preexisting_generic_notifier_abi_present": false,
+    "preexisting_generic_notifier_helper_present": false
+  },
+  "gaps": [
+    {
+      "id": "phase13-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "The shared Phase 13 replay now carries a dedicated notifier/list reviewability test so this survey lane stays machine-checkable instead of living only in prose."
+    },
+    {
+      "id": "phase13-notifier-list-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
+      "why_now": "A small reviewability gate ties the current list ABI surface, list or hlist view helpers, chrdev-only notifier planning, and the still-missing generic notifier surface together in one repeatable check."
+    },
+    {
+      "id": "phase13-notifier-list-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-notifier-list-survey.md",
+      "why_now": "The survey note records the exact current posture on master so later runs do not mistake the chrdev-only notify family for a generic notifier helper or overstate Phase 13 parity."
+    },
+    {
+      "id": "phase3-list-abi-and-view-surface",
+      "status": "preexisting_phase3_surface",
+      "kind": "shared_helper_surface",
+      "zigux_destination": "zigux/bindings/abi.zig",
+      "why_now": "The current repo already exposes ListHeadRef and HListHeadRef plus the list and hlist summary flags, which means list-shaped interop has a reusable ABI foothold even though it still lives under the Phase 3 helper bundle."
+    },
+    {
+      "id": "phase3-list-view-helper-surface",
+      "status": "preexisting_phase3_surface",
+      "kind": "shared_helper_surface",
+      "zigux_destination": "zigux/helpers/list_view.zig",
+      "why_now": "The existing list view helper already models bounded list_head traversal, empty or singular detection, and truncation-aware summaries without claiming list mutation or notifier delivery semantics."
+    },
+    {
+      "id": "phase3-list-hlist-replay-surface",
+      "status": "preexisting_phase3_surface",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/build.zig",
+      "why_now": "The shared Phase 3 build already replays list_view and hlist_view directly, which makes the current list side of the survey observable on master rather than hypothetical."
+    },
+    {
+      "id": "phase3-chrdev-notify-surface",
+      "status": "preexisting_chrdev_surface",
+      "kind": "chrdev_local_notify_planner",
+      "zigux_destination": "zigux/helpers/chrdev_notify_plan.zig",
+      "why_now": "Notifier-like behavior in the current repo is still chrdev-local: the notify planner maps chrdev completion state into notify outcomes, but it does not expose a generic notifier_block or notifier_head ABI for shared helper consumers."
+    },
+    {
+      "id": "phase13-generic-notifier-abi-gap",
+      "status": "ready_next",
+      "kind": "shared_helper_gap",
+      "zigux_destination": "zigux/bindings/abi.zig",
+      "why_now": "The next honest shared-helper step is a tiny generic notifier ABI surface such as notifier_block or notifier_head references that stays read-only and reviewable before any callback registration or chain execution is claimed."
+    },
+    {
+      "id": "phase13-generic-notifier-helper-gap",
+      "status": "ready_next",
+      "kind": "shared_helper_gap",
+      "zigux_destination": "zigux/helpers/",
+      "why_now": "After a generic notifier ABI exists, the smallest follow-up is one bounded helper that only surveys notifier-chain linkage against the existing list_head footprint instead of widening into live registration, priority ordering, SRCU, or blocking-callback behavior."
+    }
+  ]
+}
