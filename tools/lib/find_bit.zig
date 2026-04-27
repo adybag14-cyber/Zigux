@@ -29,17 +29,8 @@ fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
 
-fn tailWordMask(idx: usize, nbits: usize) Word {
-    if (nbits == 0) {
-        return 0;
-    }
-
-    const last_idx = bitsToWords(nbits) - 1;
-    return if (idx == last_idx) lastWordMask(nbits) else ~@as(Word, 0);
-}
-
-fn maskWordInRange(idx: usize, value: Word, nbits: usize) Word {
-    return value & tailWordMask(idx, nbits);
+fn maskTailWord(idx: usize, value: Word, last_idx: usize, last_mask: Word) Word {
+    return if (idx == last_idx) value & last_mask else value;
 }
 
 fn bitIndex(idx: usize, value: Word, nbits: usize) usize {
@@ -67,9 +58,12 @@ fn findFirstImpl(comptime kind: ScanKind, addr1: []const Word, addr2: ?[]const W
         assertBitmapLen(addr2.?, nbits);
     }
 
+    const last_idx = if (nbits == 0) 0 else bitsToWords(nbits) - 1;
+    const last_mask = lastWordMask(nbits);
+
     var idx: usize = 0;
     while (idx * bits_per_long < nbits) : (idx += 1) {
-        const value = maskWordInRange(idx, scanWord(kind, idx, addr1, addr2), nbits);
+        const value = maskTailWord(idx, scanWord(kind, idx, addr1, addr2), last_idx, last_mask);
         if (value != 0) {
             return bitIndex(idx, value, nbits);
         }
@@ -87,15 +81,18 @@ fn findNextImpl(comptime kind: ScanKind, addr1: []const Word, addr2: ?[]const Wo
         return nbits;
     }
 
+    const last_idx = bitsToWords(nbits) - 1;
+    const last_mask = lastWordMask(nbits);
+
     var idx = start / bits_per_long;
-    var value = maskWordInRange(idx, scanWord(kind, idx, addr1, addr2), nbits) & firstWordMask(start);
+    var value = maskTailWord(idx, scanWord(kind, idx, addr1, addr2), last_idx, last_mask) & firstWordMask(start);
 
     while (value == 0) {
         idx += 1;
         if (idx * bits_per_long >= nbits) {
             return nbits;
         }
-        value = maskWordInRange(idx, scanWord(kind, idx, addr1, addr2), nbits);
+        value = maskTailWord(idx, scanWord(kind, idx, addr1, addr2), last_idx, last_mask);
     }
 
     return bitIndex(idx, value, nbits);
