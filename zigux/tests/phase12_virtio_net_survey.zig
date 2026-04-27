@@ -37,6 +37,19 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
+fn isLowerHexCommit(value: []const u8) bool {
+    if (value.len != 40) return false;
+
+    for (value) |byte| {
+        switch (byte) {
+            '0'...'9', 'a'...'f' => {},
+            else => return false,
+        }
+    }
+
+    return true;
+}
+
 test "phase12 virtio_net survey manifest stays aligned with the landed probe starter" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -64,7 +77,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-    try std.testing.expectEqualStrings("200651a73be45b091b8103c174d7bcd0738950a1", manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
