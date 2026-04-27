@@ -58,7 +58,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
-    try std.testing.expectEqualStrings("aeb279e35506501ee00fe315b73c2fe5e6720811", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("007f00d0c6b6b430bfbb2110555544cc5faefe8b", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.workqueue_c_lines >= 8400);
     try std.testing.expect(manifest.survey_summary.workqueue_internal_h_lines >= 80);
@@ -71,7 +71,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -87,6 +87,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     var saw_max_active_audit = false;
     var saw_lock_handoff_audit = false;
     var saw_pending_audit = false;
+    var saw_flush_color_audit = false;
     var saw_followup = false;
     var saw_blocker = false;
 
@@ -166,12 +167,21 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pwq->refcnt") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-flush-color-followup")) {
+            saw_flush_color_audit = true;
             saw_followup = true;
             try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__flush_workqueue()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "start_flush_work()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pwq_dec_nr_in_flight()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-workqueue-drain-cancel-followup")) {
+            saw_followup = true;
+            try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drain_workqueue()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__flush_work()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__cancel_work_sync()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-live-execution-blocker")) {
             saw_blocker = true;
@@ -186,7 +196,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -200,6 +210,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(saw_max_active_audit);
     try std.testing.expect(saw_lock_handoff_audit);
     try std.testing.expect(saw_pending_audit);
+    try std.testing.expect(saw_flush_color_audit);
     try std.testing.expect(saw_followup);
     try std.testing.expect(saw_blocker);
 }
@@ -221,11 +232,11 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
 
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), workqueue_bridge.WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expectEqual(@as(usize, 10), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 13), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 10), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__flush_workqueue()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "start_flush_work()") != null);
+    try std.testing.expectEqual(@as(usize, 13), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "drain_workqueue()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__cancel_work_sync()") != null);
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
     try std.testing.expectEqualStrings("max-active-ordering-gate", audit.checkpoints[2].id);
@@ -236,10 +247,19 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[4].guard == .pwq_refcnt_retry_loop);
     try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[5].id);
     try std.testing.expect(audit.checkpoints[5].guard == .last_pool_lock_handoff);
-    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[6].id);
-    try std.testing.expect(audit.checkpoints[6].guard == .callback_execution_outside_pool_lock);
-    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[7].id);
-    try std.testing.expect(audit.checkpoints[7].guard == .idle_sleep_transition);
-    try std.testing.expect(audit.checkpoints[8].guard == .scheduler_callback_under_pool_lock);
-    try std.testing.expect(audit.checkpoints[9].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("flush-workqueue-color-cascade", audit.checkpoints[6].id);
+    try std.testing.expect(audit.checkpoints[6].guard == .flush_color_cascade_under_wq_mutex);
+    try std.testing.expectEqualStrings("wq->flusher_overflow", audit.checkpoints[6].observed_fields[3]);
+    try std.testing.expectEqualStrings("flush-work-barrier-insertion", audit.checkpoints[7].id);
+    try std.testing.expect(audit.checkpoints[7].guard == .flush_barrier_insert_under_pool_lock);
+    try std.testing.expectEqualStrings("wq->saved_max_active", audit.checkpoints[7].observed_fields[3]);
+    try std.testing.expectEqualStrings("pwq-in-flight-color-release", audit.checkpoints[8].id);
+    try std.testing.expect(audit.checkpoints[8].guard == .in_flight_color_release_completion);
+    try std.testing.expectEqualStrings("wq->first_flusher", audit.checkpoints[8].observed_fields[3]);
+    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[9].id);
+    try std.testing.expect(audit.checkpoints[9].guard == .callback_execution_outside_pool_lock);
+    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[10].id);
+    try std.testing.expect(audit.checkpoints[10].guard == .idle_sleep_transition);
+    try std.testing.expect(audit.checkpoints[11].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expect(audit.checkpoints[12].guard == .mayday_lock_then_pool_lock);
 }
