@@ -14,6 +14,14 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     var module = sample.BytestreamFifoSample{};
     try module.init();
     const replay = try module.runAnchorReplay();
+    const expected_focus = [_]sample.SampleFocus{
+        .bounded_fifo_order,
+        .wraparound_requeue,
+        .peek_and_skip,
+        .non_destructive_snapshot,
+        .reset_and_replay,
+        .ownership_and_lifetime,
+    };
 
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
@@ -26,7 +34,10 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.final_len);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(expected_focus.len, replay.checked_focus.len);
+    for (expected_focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.snapshot_before_final_drain[0..]);
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
