@@ -204,7 +204,7 @@ pub fn forEachParsedPath(
     try forEachParsedFile(allocator, io, file, scratch_buffer, process_context, process_symbol);
 }
 
-pub fn kallsymsParse(
+pub fn kallsymsParseInDir(
     allocator: std.mem.Allocator,
     io: std.Io,
     dir: std.Io.Dir,
@@ -255,6 +255,23 @@ pub fn kallsymsParse(
     };
 
     return callback_state.result;
+}
+
+pub fn kallsymsParse(
+    allocator: std.mem.Allocator,
+    io: std.Io,
+    filename: []const u8,
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+) !i32 {
+    return kallsymsParseInDir(
+        allocator,
+        io,
+        std.Io.Dir.cwd(),
+        filename,
+        context,
+        process_symbol,
+    );
 }
 
 const ChunkFixtureState = struct {
@@ -521,7 +538,7 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
     ));
 }
 
-test "kallsymsParse preserves callback contract and stop codes" {
+test "kallsymsParseInDir preserves callback contract and stop codes" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
@@ -578,7 +595,7 @@ test "kallsymsParse preserves callback contract and stop codes" {
     var callback_state = CallbackState.init();
     defer callback_state.deinit(std.testing.allocator);
 
-    const result = try kallsymsParse(
+    const result = try kallsymsParseInDir(
         std.testing.allocator,
         io,
         temp_dir.dir,
@@ -588,6 +605,85 @@ test "kallsymsParse preserves callback contract and stop codes" {
     );
 
     try std.testing.expectEqual(@as(i32, 17), result);
+    try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), callback_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), callback_state.starts.items[1]);
+}
+
+test "kallsymsParse preserves filename-shaped callback contract" {
+    const CallbackState = struct {
+        names: std.ArrayList([]u8),
+        symbol_types: std.ArrayList(u8),
+        starts: std.ArrayList(u64),
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+                .symbol_types = std.ArrayList(u8).empty,
+                .starts = std.ArrayList(u64).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| {
+                allocator.free(name);
+            }
+            self.names.deinit(allocator);
+            self.symbol_types.deinit(allocator);
+            self.starts.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -95) catch return -94;
+            self.symbol_types.append(std.testing.allocator, symbol_type) catch return -93;
+            self.starts.append(std.testing.allocator, start) catch return -92;
+            if (symbol_type == 'W') {
+                return 29;
+            }
+            return 0;
+        }
+    };
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(
+            "ffffffff81000000 T startup_64\n" ++
+                "garbage\n" ++
+                "ffffffff81000200 W weak_handler\n" ++
+                "ffffffff81000300 t ignored_after_stop\n",
+        );
+        try writer.interface.flush();
+    }
+
+    const filename = try std.fs.path.join(
+        std.testing.allocator,
+        &.{ ".zig-cache", "tmp", temp_dir.sub_path[0..], "kallsyms.map" },
+    );
+    defer std.testing.allocator.free(filename);
+
+    var callback_state = CallbackState.init();
+    defer callback_state.deinit(std.testing.allocator);
+
+    const result = try kallsymsParse(
+        std.testing.allocator,
+        io,
+        filename,
+        &callback_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 29), result);
     try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
     try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
     try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
