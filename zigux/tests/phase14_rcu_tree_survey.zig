@@ -90,7 +90,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
     try std.testing.expectEqualStrings("0855a2fc20664cd4a138379d7731edf8183d74e6", manifest.surveyed_commit);
