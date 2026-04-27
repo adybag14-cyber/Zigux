@@ -1,0 +1,75 @@
+{
+  "lane_key": "P6-L01",
+  "schedule_phase": "Phase 6",
+  "roadmap_runtime_phase": "Phase 9",
+  "surveyed_commit": "1416d3b1ba442ede4ea26112f964157da0b7c3ba",
+  "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
+  "survey_summary": {
+    "phase6_leaf_helper_count": 4,
+    "runtime_sample_count": 4,
+    "runtime_loader_plan_count": 2,
+    "shared_runtime_loader_present": false,
+    "allocator_policy_present": true,
+    "shared_init_exit_contract_present": false
+  },
+  "phase6_leaf_helpers": [
+    "lib/base64.zig",
+    "lib/bsearch.zig",
+    "lib/checksum.zig",
+    "lib/hexdump.zig"
+  ],
+  "runtime_samples": [
+    "samples/zigux/runtime_atomic64.zig",
+    "samples/zigux/runtime_bitmap.zig",
+    "samples/zigux/runtime_kretprobe.zig",
+    "samples/zigux/runtime_trace_events.zig"
+  ],
+  "runtime_loader_plans": [
+    "samples/zigux/runtime_bitmap_loader.zig",
+    "samples/zigux/runtime_kretprobe_loader.zig"
+  ],
+  "gaps": [
+    {
+      "id": "phase9-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared Phase 9 build step is the narrowest honest place to keep the runtime survey family machine-checkable without inventing a runtime loader implementation."
+    },
+    {
+      "id": "runtime-loader-gap-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_loader_gap_survey.zig",
+      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, and the missing runtime-loader seam explicit on current master."
+    },
+    {
+      "id": "runtime-loader-gap-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "why_now": "The repo already had runtime starter samples and two loader-plan files, but it still lacked one shared note that says Phase 6 should not absorb runtime allocator or init-flow work."
+    },
+    {
+      "id": "runtime-loader-plan-inputs",
+      "status": "starter_landed",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_*_loader.zig",
+      "why_now": "The bitmap and kretprobe starter lanes already publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+    },
+    {
+      "id": "runtime-loader-allocator-handoff",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "zigux/helpers/allocator_policy.zig",
+      "why_now": "The allocator policy surface exists, but no shared runtime loader consumes it yet, so allocator ownership, fallback rules, and failure cleanup stay unbound to runtime module bring-up."
+    },
+    {
+      "id": "runtime-loader-init-exit-consumer",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_substrate",
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "A shared init and exit consumer is still missing, so the staged entry and exit symbol names published by the sample-side loader plans cannot become a real runtime lifecycle path."
+    }
+  ]
+}
