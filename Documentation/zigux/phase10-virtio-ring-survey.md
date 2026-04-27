@@ -39,6 +39,7 @@ The survey manifest now records:
 - the landed `phase10-used-buffer-polling-helper`
 - the landed `phase10-callback-enable-helper`
 - the landed `phase10-callback-delay-helper`
+- the landed `phase10-notify-prepare-helper`
 - the landed `phase10-virtio-ring-slice-note`
 - the ready-next `phase10-mmio-register-window-helper`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
