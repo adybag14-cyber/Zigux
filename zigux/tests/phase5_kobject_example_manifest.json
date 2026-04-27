@@ -8,8 +8,9 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact registration, Linux foo/baz/bar attribute order, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
+    "the sample-backed survey note and shared review checklist still name the manifest-backed survey, sample-backed survey note, and phase5_build.zig entrypoint as part of the shipped kobject review surface",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
-    "sample-behavior changes update the manifest-backed registration and lifecycle contract instead of leaving reviewers to infer it from code alone",
+    "sample-behavior changes update the manifest-backed registration, attribute-order, and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
