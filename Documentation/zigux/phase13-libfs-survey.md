@@ -28,7 +28,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` starter plus `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_build.zig` compiles that dedicated libfs helper test path.
-- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, and one tiny `dcache_readdir()`-adjacent emit planner.
+- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, and a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner.
 - the reviewability gate and manifest tie the starter, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
@@ -44,11 +44,12 @@ The current lane state is:
 - landed `phase13-libfs-survey-note`
 - landed `phase13-libfs-offset-seek-helper`
 - landed `phase13-libfs-directory-emit-helper`
-- ready-next `phase13-libfs-transaction-buffer-helper`
+- landed `phase13-libfs-transaction-buffer-helper`
+- ready-next `phase13-libfs-transaction-read-release-followup`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper foothold plus a reviewability checkpoint, but it still does not claim live dcache parity, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
+This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper foothold plus a reviewability checkpoint and a bounded transaction-buffer planner, but it still does not claim live dcache parity, private-data-backed transaction state, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
 
 ## Non-goals
 
@@ -71,4 +72,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 libfs lane and add one tiny `fs/libfs.zig` transaction-buffer helper next, limited to reviewable `simple_transaction`-adjacent staging-buffer sizing or cursor bookkeeping before any live cursor dentry, inode, or pseudo-filesystem work.
+Stay in the Phase 13 libfs lane and add one tiny `fs/libfs.zig` `simple_transaction_read()` / `simple_transaction_release()` follow-up next, limited to reviewable private-data presence checks and release bookkeeping before any live cursor dentry, inode, or pseudo-filesystem work.
