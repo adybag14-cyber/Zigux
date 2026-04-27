@@ -18,20 +18,16 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-fn readText(path: []const u8) ![]u8 {
+test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    return std.Io.Dir.cwd().readFileAlloc(
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        path,
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
         std.testing.allocator,
         .limited(32 * 1024),
     );
-}
-
-test "phase 5 bytestream fifo manifest records the exact bounded checks" {
-    const manifest_json = try readText("zigux/tests/phase5_bytestream_fifo_manifest.json");
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -49,16 +45,17 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
     var saw_docs_prompt = false;
-    var saw_snapshot_prompt = false;
+    var saw_storage_prompt = false;
     var saw_exact_sequence = false;
     var saw_snapshot = false;
     var saw_capacity = false;
+    var saw_storage_contract = false;
     var saw_focus_list = false;
     var saw_lifecycle = false;
     var saw_lifecycle_guards = false;
@@ -77,8 +74,8 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         {
             saw_docs_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "non-destructive snapshot") != null) {
-            saw_snapshot_prompt = true;
+        if (std.mem.indexOf(u8, prompt, "fixed embedded backing") != null) {
+            saw_storage_prompt = true;
         }
     }
 
@@ -98,6 +95,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
+        }
+        if (std.mem.eql(u8, check.id, "storage-backing-contract")) {
+            saw_storage_contract = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "fixed embedded 32-byte ring buffer") != null);
         }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
@@ -122,10 +123,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
     try std.testing.expect(saw_docs_prompt);
-    try std.testing.expect(saw_snapshot_prompt);
+    try std.testing.expect(saw_storage_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
+    try std.testing.expect(saw_storage_contract);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(saw_lifecycle_guards);
@@ -134,16 +136,30 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
 }
 
 test "phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface" {
-    const survey_note = try readText("Documentation/zigux/phase5-kfifo-sample-survey.md");
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
     defer std.testing.allocator.free(survey_note);
 
-    const review_checklist = try readText("Documentation/zigux/review-checklist.md");
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
     defer std.testing.allocator.free(review_checklist);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
