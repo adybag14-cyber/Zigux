@@ -51,6 +51,16 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits`
 - `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits`
 
+- `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers, and first-mismatch `memchrInv` detection.
+- `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
+- string fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
+- string manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
+- string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`
+
+- `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
+- `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection`
+- `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short fixture cases`
+
 ## Closure Gates
 
 Phase 1 is only considered closed when all of the following are green:
