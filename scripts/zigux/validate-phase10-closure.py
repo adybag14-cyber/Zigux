@@ -88,6 +88,13 @@ required_closure_markers = [
     "PHASE10_ROADMAP_MMIO_WRAPPERS=starter_landed",
     "PHASE10_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed",
     "PHASE10_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport",
+    "PHASE10_REFERENCE_SAMPLE_PARITY_OUT_OF_SCOPE=yes",
+    "PHASE10_RUNTIME_STARTER_PARITY_OUT_OF_SCOPE=yes",
+    "PHASE10_CROSS_PHASE_SCOREBOARD_BOUNDARY=phase5_reference_samples_and_phase9_runtime_starters_do_not_count_as_phase10_virtio_driver_evidence",
+    "samples/zigux/",
+    "zigux/tests/phase5_build.zig",
+    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "zigux/tests/phase9_build.zig",
     "PHASE10_CLOSURE_GATE=python3 scripts/zigux/validate-phase10-closure.py",
     "PHASE10_BUILD_GATE=zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "PHASE10_VALIDATE_ENTRYPOINT=make -C zigux phase10-validate",
@@ -141,6 +148,7 @@ required_workflow_markers = [
 ]
 required_checklist_markers = [
     "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, `zigux/tests/phase10_closure_manifest.json`, the four Phase 10 survey manifests, the landed `Documentation/zigux/phase10-virtio-mmio-slice.md` plus `zigux/tests/phase10_virtio_mmio.zig` starter pair, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
+    "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and Phase 9 runtime lane still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, and `zigux/tests/phase9_build.zig` are not silently counted as driver-local virtio evidence?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
 ]
 required_ring_survey_markers = [
@@ -322,6 +330,33 @@ else:
         for rel in item.get("evidence", []):
             if not (ROOT / rel).exists():
                 missing_markers.append(f"manifest:roadmap_parity_scoreboard:evidence_missing:{rel}")
+
+expected_cross_phase_scoreboard_boundary = {
+    "reference_samples": {
+        "status": "out_of_scope",
+        "evidence": [
+            "samples/zigux",
+            "zigux/tests/phase5_build.zig",
+            "Documentation/zigux/review-checklist.md",
+        ],
+    },
+    "runtime_starters": {
+        "status": "out_of_scope",
+        "evidence": [
+            "samples/zigux",
+            "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+            "zigux/tests/phase9_build.zig",
+        ],
+    },
+}
+cross_phase_scoreboard_boundary = manifest.get("cross_phase_scoreboard_boundary")
+if cross_phase_scoreboard_boundary != expected_cross_phase_scoreboard_boundary:
+    missing_markers.append("manifest:cross_phase_scoreboard_boundary:mismatch")
+else:
+    for item in cross_phase_scoreboard_boundary.values():
+        for rel in item.get("evidence", []):
+            if not (ROOT / rel).exists():
+                missing_markers.append(f"manifest:cross_phase_scoreboard_boundary:evidence_missing:{rel}")
 
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
