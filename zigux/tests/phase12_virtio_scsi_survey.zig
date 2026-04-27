@@ -60,6 +60,30 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     );
     defer std.testing.allocator.free(makefile);
 
+    const phase12_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase12_build);
+
+    const virtio_scsi_driver = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/scsi/virtio_scsi.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(virtio_scsi_driver);
+
+    const virtio_scsi_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_virtio_scsi.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(virtio_scsi_tests);
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase12-virtio-scsi-survey.md",
@@ -115,6 +139,18 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "synthetic `can_queue`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`cmd_per_lun`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`nr_hw_queues`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase12_build, "run_phase12_virtio_scsi_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub const VirtioScsiQueueLab = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_probe_config_snapshot = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_host_limit_summary = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub fn captureProbeSnapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub fn captureHostLimitSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_tests, "phase12 virtio scsi probe snapshot records config fields and queue layout") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_tests, "phase12 virtio scsi host limit summary clamps cmd_per_lun against synthetic can_queue") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
