@@ -23,7 +23,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_build.zig",
-      "why_now": "The shared Phase 11 build entry now runs the bounded hvc_console starter beside the existing watchdog starters and survey gates so this tty anchor stays visible in the tranche review path."
+      "why_now": "The shared Phase 11 build entry currently runs the bounded hvc_console starter beside the watchdog starter and survey gates, while the dedicated hvc_console survey gate remains a separate replay path so this tty anchor stays visible without overclaiming shared-gate coverage."
     },
     {
       "id": "phase11-hvc-console-survey-gate",
@@ -58,7 +58,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 test gate, the bounded close-wait teardown evidence, and the still-pending tty-registration and khvcd-facing follow-up without claiming host-backed I/O."
+      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 starter replay, records that the dedicated hvc_console survey gate still runs separately, and keeps the bounded close-wait plus khvcd-facing follow-up honest without claiming host-backed I/O."
     },
     {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
