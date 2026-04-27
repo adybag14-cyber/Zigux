@@ -79,6 +79,7 @@ Allocator policy:
 
 Unsafe policy:
 - raw pointer and volatile access stay inside `zigux/unsafe/narrow.zig` and `zigux/helpers/mmio.zig`
+- `zigux/unsafe/narrow.zig` now mirrors that boundary with a local `UnsafeScopeTag` for `none`, `volatile_mmio`, and `raw_pointer_bridge`, plus explicit permit helpers and Zig tests
 - new unsafe entry points must be justified and reviewed as boundary expansion
 
 ## Boundary
