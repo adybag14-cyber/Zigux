@@ -1,0 +1,29 @@
+{
+  "build_test_names": [
+    "phase11-gpio-wdt-tests",
+    "phase11-gpio-wdt-survey-tests",
+    "phase11-bcm2835-wdt-tests",
+    "phase11-bcm2835-wdt-survey-tests",
+    "phase11-dw-wdt-tests",
+    "phase11-dw-wdt-survey-tests",
+    "phase11-uapi-header-parity-survey-tests",
+    "phase11-hvc-console-tests"
+  ],
+  "shared_test_depend_steps": [
+    "run_phase11_gpio_wdt_tests",
+    "run_phase11_gpio_wdt_survey_tests",
+    "run_phase11_bcm2835_wdt_tests",
+    "run_phase11_bcm2835_wdt_survey_tests",
+    "run_phase11_dw_wdt_tests",
+    "run_phase11_dw_wdt_survey_tests",
+    "run_phase11_uapi_header_parity_survey_tests",
+    "run_phase11_hvc_console_tests"
+  ],
+  "forbidden_markers": [
+    "phase11_hvc_console_survey_tests",
+    "run_phase11_hvc_console_survey_tests.step"
+  ],
+  "dedicated_survey_replays": [
+    "zigux/tests/phase11_hvc_console_survey.zig"
+  ]
+}
