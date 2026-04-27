@@ -11,6 +11,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
+    try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
@@ -358,6 +359,59 @@ test "phase13 devres preserves translated size when devm_of_iomap hits downstrea
             try std.testing.expectEqual(@as(?devres.ErrorStage, .request_region), failure.resource_stage);
         },
     }
+}
+
+test "phase13 devres retains WC tokens on successful managed arch_phys_wc_add planning" {
+    const outcome = try devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .base = 0xb000,
+        .size = 0x100,
+        .release_record_allocated = true,
+        .token_result = 7,
+    });
+
+    switch (outcome) {
+        .added => |plan| {
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqual(@as(u64, 0xb000), plan.base);
+            try std.testing.expectEqual(@as(u64, 0x100), plan.size);
+            try std.testing.expectEqual(@as(i32, 7), plan.token);
+            try std.testing.expect(plan.added_to_devres);
+            try std.testing.expect(plan.release_record_retained);
+            try std.testing.expect(!plan.release_record_freed);
+            try std.testing.expect(plan.should_remove_on_detach);
+        },
+        .err => return error.UnexpectedFailure,
+    }
+}
+
+test "phase13 devres frees WC token records when managed arch_phys_wc_add fails" {
+    const outcome = try devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .base = 0xb100,
+        .size = 0x80,
+        .release_record_allocated = true,
+        .token_result = -16,
+    });
+
+    switch (outcome) {
+        .added => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(@as(i32, -16), failure.error_code);
+            try std.testing.expect(!failure.added_to_devres);
+            try std.testing.expect(!failure.release_record_retained);
+            try std.testing.expect(failure.release_record_freed);
+            try std.testing.expect(!failure.should_remove_on_detach);
+        },
+    }
+}
+
+test "phase13 devres rejects WC token planning when the release record cannot be allocated" {
+    try std.testing.expectError(error.OutOfMemory, devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .base = 0xb200,
+        .size = 0x40,
+        .release_record_allocated = false,
+        .token_result = 3,
+    }));
 }
 
 test "phase13 devres retains memtype release records on successful WC reservation" {
