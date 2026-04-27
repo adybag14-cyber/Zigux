@@ -14,6 +14,8 @@ FILES = [
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
     "drivers/watchdog/gpio_wdt.zig",
@@ -52,6 +54,7 @@ README_MARKERS = [
     "make -C zigux phase11-validate",
     "phase11_gpio_wdt_manifest.json",
     "phase11_uapi_header_parity_manifest.json",
+    "dedicated hvc_console survey note and validation matrix",
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
@@ -78,7 +81,7 @@ MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 10, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L06", "drivers/watchdog/bcm2835_wdt.c", 12, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L10", "drivers/watchdog/dw_wdt.c", 11, ["phase11-dw-wdt-platform-resource-preflight"], ["phase11-dw-wdt-platform-and-pm"]),
-    "phase11_hvc_console_manifest.json": ("P11-L13", "drivers/tty/hvc/hvc_console.c", 8, ["phase11-hvc-console-tty-and-teardown-parity"], []),
+    "phase11_hvc_console_manifest.json": ("P11-L14", "drivers/tty/hvc/hvc_console.c", 8, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 7, ["phase11-phase3-interop-followup"], []),
 }
 ALLOWED_STATUSES = {
@@ -109,6 +112,10 @@ SURVEY_SPECS = {
         "path": "zigux/tests/phase11_uapi_header_parity_survey.zig",
         "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next")],
     },
+}
+HVC_DOC_PATHS = {
+    "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
+    "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
 }
 
 
@@ -217,9 +224,30 @@ for name, (lane_key, anchor, gap_count, ready_ids, blocked_ids) in MANIFEST_SPEC
         if count_marker not in survey_text:
             missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
 
-if starter_total != 42:
+hvc_manifest = load_manifest("phase11_hvc_console_manifest.json")
+hvc_commit = str(hvc_manifest.get("surveyed_commit", ""))
+hvc_survey_doc = text(HVC_DOC_PATHS["survey"])
+hvc_matrix_doc = text(HVC_DOC_PATHS["matrix"])
+for marker in [
+    f"reviewed against live `master` `{hvc_commit}`",
+    "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
+    "The next honest bounded step inside the same Phase 11 lane is a tiny khvcd polling-contract summary",
+]:
+    if marker not in hvc_survey_doc:
+        missing.append(f"phase11_hvc_console_docs:survey:{marker}")
+for marker in [
+    "PHASE11_HVC_CONSOLE_STATUS=tty_registration_handoff_landed",
+    "shared replay observed on `master` currently runs `phase11-hvc-console-tests` but not `phase11-hvc-console-survey-tests`",
+    "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
+    "`zig test zigux/tests/phase11_hvc_console_survey.zig`",
+    "deepen the next bounded khvcd polling-contract summary",
+]:
+    if marker not in hvc_matrix_doc:
+        missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
+
+if starter_total != 43:
     missing.append(f"phase11_bundle:starter_total={starter_total}")
-if ready_total != 3:
+if ready_total != 2:
     missing.append(f"phase11_bundle:ready_total={ready_total}")
 if blocked_total != 3:
     missing.append(f"phase11_bundle:blocked_total={blocked_total}")
