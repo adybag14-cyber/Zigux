@@ -43,6 +43,9 @@ workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(en
 test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
 bitmap_diff_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig').read_text(encoding='utf-8')
 bitmap_diff_build_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig').read_text(encoding='utf-8')
+find_bit_fixture = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json').read_text(encoding='utf-8')
+find_bit_harness = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c').read_text(encoding='utf-8')
+find_bit_manifest = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8')
 
 required_ledger_markers = [
     'feat(tools/lib): start phase-1 helper ports',
@@ -85,6 +88,49 @@ required_bitmap_diff_build_markers = [
     'diff_root.addImport("bitmap", bitmap_module)',
     'diff_root.addImport("find_bit", find_bit_module)',
 ]
+required_find_bit_test_markers = [
+    'fixture.find_bit.tail_clamped_first',
+    'fixture.find_bit.tail_zero_clamped_first',
+    'fixture.find_bit.tail_and_mixed_first',
+    'find_bit.findFirstBit(&find_tail_window, find_tail_nbits)',
+    'find_bit.findNextBit(&find_tail_window, find_tail_nbits, fixture.find_bit.bits_per_long + 4)',
+    'find_bit.findFirstZeroBit(&find_tail_zero_window, find_tail_nbits)',
+    'find_bit.findNextZeroBit(&find_tail_zero_window, find_tail_nbits, fixture.find_bit.bits_per_long)',
+]
+required_find_bit_fixture_markers = [
+    '"tail_clamped_first"',
+    '"tail_clamped_next"',
+    '"tail_zero_clamped_first"',
+    '"tail_zero_clamped_next"',
+    '"tail_and_clamped_first"',
+    '"tail_and_clamped_next"',
+    '"tail_and_mixed_first"',
+    '"tail_and_mixed_next"',
+]
+required_find_bit_harness_markers = [
+    'tail_clamped_first',
+    'tail_clamped_next',
+    'tail_zero_clamped_first',
+    'tail_zero_clamped_next',
+    'tail_and_clamped_first',
+    'tail_and_clamped_next',
+    'tail_and_mixed_first',
+    'tail_and_mixed_next',
+    'find_first_and_bit(tail_and_mixed, tail_and_mixed, tail_nbits)',
+    'find_next_and_bit(tail_and_mixed, tail_and_mixed, tail_nbits, BITS_PER_LONG + 4)',
+]
+required_find_bit_manifest_markers = [
+    '"tools/lib/find_bit.zig"',
+    '"find_bit.tail_clamped_first"',
+    '"find_bit.tail_clamped_next"',
+    '"find_bit.tail_zero_clamped_first"',
+    '"find_bit.tail_zero_clamped_next"',
+    '"find_bit.tail_and_clamped_first"',
+    '"find_bit.tail_and_clamped_next"',
+    '"find_bit.tail_and_mixed_first"',
+    '"find_bit.tail_and_mixed_next"',
+    'tail mask keeps the in-range shared bit for and scans',
+]
 
 missing_markers = []
 for marker in required_ledger_markers:
@@ -102,6 +148,18 @@ for marker in required_bitmap_diff_markers:
 for marker in required_bitmap_diff_build_markers:
     if marker not in bitmap_diff_build_root:
         missing_markers.append(f'bitmap_diff_build:{marker}')
+for marker in required_find_bit_test_markers:
+    if marker not in test_root:
+        missing_markers.append(f'find_bit_test:{marker}')
+for marker in required_find_bit_fixture_markers:
+    if marker not in find_bit_fixture:
+        missing_markers.append(f'find_bit_fixture:{marker}')
+for marker in required_find_bit_harness_markers:
+    if marker not in find_bit_harness:
+        missing_markers.append(f'find_bit_harness:{marker}')
+for marker in required_find_bit_manifest_markers:
+    if marker not in find_bit_manifest:
+        missing_markers.append(f'find_bit_manifest:{marker}')
 
 if missing_markers:
     print('PHASE1_VALIDATION=fail')
@@ -113,4 +171,7 @@ if missing_markers:
 
 print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'PHASE1_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers)}')
+print(
+    'PHASE1_REQUIRED_MARKER_COUNT='
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers)}'
+)
