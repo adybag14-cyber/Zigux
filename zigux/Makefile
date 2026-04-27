@@ -1,7 +1,7 @@
 PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-abi phase3-interop phase3
 PHONY += phase4-validate phase4-test phase4
-PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6
+PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-perf phase6
 PHONY += phase7-test phase7
 PHONY += phase8-test phase8
 PHONY += phase9-test phase9
@@ -82,6 +82,9 @@ phase6-bsearch-perf:
 
 phase6-checksum-perf:
 	cd $(ZIGUX_ROOT) && $(ZIG) build checksum-perf --build-file zigux/tests/phase6_build.zig
+
+phase6-hexdump-perf:
+	cd $(ZIGUX_ROOT) && $(ZIG) build hexdump-perf --build-file zigux/tests/phase6_build.zig
 
 phase6: phase6-validate phase6-test
 
