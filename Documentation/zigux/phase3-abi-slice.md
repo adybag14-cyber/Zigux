@@ -6,6 +6,8 @@ This document starts the first bounded Phase 3 slice for Zigux.
 
 - `PHASE3_STATUS=active`
 - `PHASE3_SLICE=abi-substrate-skeleton`
+- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only`
+- `PHASE3_UAPI_SCOPE=version-only`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
@@ -72,6 +74,10 @@ Unsafe policy:
 - new unsafe entry points must be justified and reviewed as boundary expansion
 
 ## Boundary
+
+Current repo-backed boundary survey:
+- export shim reality today: `zigux/kernel/export_shim.zig` is still a narrow status/header helper, which matches the roadmap's explicit export-shim requirement but does not yet claim a broader exported runtime surface
+- UAPI reality today: `zigux/uapi/` currently exposes only `version.zig`, which is enough for the bounded ABI substrate but is intentionally short of the roadmap's eventual broader UAPI shim destination
 
 This slice does not claim:
 
