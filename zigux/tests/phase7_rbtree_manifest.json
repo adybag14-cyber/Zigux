@@ -1,7 +1,7 @@
 {
-  "lane_key": "P7-L13",
+  "lane_key": "P7-L16",
   "phase": "Phase 7",
-  "surveyed_commit": "03507a2565f511609519b8d931ef8c08d3518e80",
+  "surveyed_commit": "f9fcf27e2eab45ae770e523aa5e2e0b1e9cff2fd",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -47,14 +47,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree_survey.zig",
-      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the parked same-lane follow-up boundary explicit without reopening tree logic."
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the remaining parity-fixture follow-up explicit without reopening tree logic."
     },
     {
       "id": "phase7-rbtree-parity-fixture-layer",
       "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json",
-      "why_now": "The committed C-backed parity fixture already locks ordered insert, reverse traversal, replace, duplicate-key lookup order, and postorder expectations against lib/rbtree.c without widening into cached, linked, RCU, or augmented trees."
+      "why_now": "The committed parity layer now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-key lookup ranges, reverse traversal, and postorder behavior against lib/rbtree.c."
     }
   ]
 }
