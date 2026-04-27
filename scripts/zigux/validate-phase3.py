@@ -49,6 +49,9 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add",
+    "PHASE3_BARRIER_SCOPE=acquire-release-full",
+    "PHASE3_MMIO_SCOPE=range-read32-write32",
 )
 
 
@@ -198,7 +201,7 @@ def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[st
     for path in sorted(scripts_dir.glob("check-phase3-*.py")):
         if path.resolve() in expected_paths:
             continue
-        issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
+        issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}" )
 
 
 def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -386,6 +389,9 @@ def run_self_test() -> int:
                     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
                     "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
                     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+                    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add",
+                    "PHASE3_BARRIER_SCOPE=acquire-release-full",
+                    "PHASE3_MMIO_SCOPE=range-read32-write32",
                     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
                     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
                     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
@@ -632,11 +638,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (loop_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_c_harness.c").write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-            newline="\n",
-        )
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_POLICY_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
         canonical_slug = "alpha-beta-gamma-delta"
         (paths.docs_dir / f"phase3-{canonical_slug}-slice.md").write_text(
             "canonical\n",
