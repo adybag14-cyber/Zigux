@@ -1,77 +1,6 @@
 const std = @import("std");
 const base64 = @import("base64");
-
-const EncodeCase = struct {
-    variant: base64.Variant,
-    padding: bool,
-    input: []const u8,
-};
-
-const DecodeCase = struct {
-    variant: base64.Variant,
-    padding: bool,
-    input: []const u8,
-};
-
-const InvalidCase = struct {
-    variant: base64.Variant,
-    padding: bool,
-    input: []const u8,
-};
-
-const variant_sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
-const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
-
-const encode_cases = [_]EncodeCase{
-    .{ .variant = .std, .padding = true, .input = "" },
-    .{ .variant = .std, .padding = true, .input = "f" },
-    .{ .variant = .std, .padding = true, .input = "fo" },
-    .{ .variant = .std, .padding = false, .input = "" },
-    .{ .variant = .std, .padding = false, .input = "f" },
-    .{ .variant = .std, .padding = false, .input = "fo" },
-    .{ .variant = .std, .padding = false, .input = "foo" },
-    .{ .variant = .std, .padding = false, .input = "foob" },
-    .{ .variant = .std, .padding = false, .input = "fooba" },
-    .{ .variant = .std, .padding = false, .input = "foobar" },
-    .{ .variant = .std, .padding = true, .input = "Hello, world!" },
-    .{ .variant = .std, .padding = false, .input = "Hello, world!" },
-    .{ .variant = .urlsafe, .padding = false, .input = &variant_sample },
-    .{ .variant = .urlsafe, .padding = true, .input = &variant_sample },
-    .{ .variant = .imap, .padding = false, .input = &variant_sample },
-    .{ .variant = .imap, .padding = true, .input = &variant_sample },
-};
-
-const decode_cases = [_]DecodeCase{
-    .{ .variant = .std, .padding = true, .input = "" },
-    .{ .variant = .std, .padding = true, .input = "Zg==" },
-    .{ .variant = .std, .padding = true, .input = "Zm8=" },
-    .{ .variant = .std, .padding = false, .input = "" },
-    .{ .variant = .std, .padding = false, .input = "Zg" },
-    .{ .variant = .std, .padding = false, .input = "Zm8" },
-    .{ .variant = .std, .padding = false, .input = "Zm9v" },
-    .{ .variant = .std, .padding = false, .input = "Zm9vYg" },
-    .{ .variant = .std, .padding = false, .input = "Zm9vYmE" },
-    .{ .variant = .std, .padding = false, .input = "Zm9vYmFy" },
-    .{ .variant = .std, .padding = true, .input = "SGVsbG8sIHdvcmxkIQ==" },
-    .{ .variant = .std, .padding = false, .input = "SGVsbG8sIHdvcmxkIQ" },
-    .{ .variant = .urlsafe, .padding = false, .input = "APv_f4A" },
-    .{ .variant = .urlsafe, .padding = true, .input = "APv_f4A=" },
-    .{ .variant = .imap, .padding = false, .input = "APv,f4A" },
-    .{ .variant = .imap, .padding = true, .input = "APv,f4A=" },
-};
-
-const invalid_cases = [_]InvalidCase{
-    .{ .variant = .std, .padding = true, .input = "Zg=!" },
-    .{ .variant = .std, .padding = true, .input = "Zm$=" },
-    .{ .variant = .std, .padding = true, .input = "Z===" },
-    .{ .variant = .std, .padding = true, .input = "Zg" },
-    .{ .variant = .std, .padding = false, .input = "Zm9v====" },
-    .{ .variant = .std, .padding = false, .input = "Zg=" },
-    .{ .variant = .std, .padding = false, .input = "Zm==v" },
-    .{ .variant = .std, .padding = true, .input = invalid_with_nul[0..] },
-    .{ .variant = .urlsafe, .padding = false, .input = "Zg==" },
-    .{ .variant = .imap, .padding = false, .input = "Zg==" },
-};
+const fixtures = @import("fixtures/phase6_base64_vectors.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -82,28 +11,49 @@ pub fn main(init: std.process.Init) !void {
     var decode_buf: [128]u8 = undefined;
     var hex_buf: [256]u8 = undefined;
 
-    for (encode_cases) |case| {
-        const written = try base64.encode(encode_buf[0..], case.input, case.padding, case.variant);
-        try writer.print("enc\t{s}\t{}\t", .{ variantName(case.variant), @intFromBool(case.padding) });
+    for (fixtures.standard_cases) |case| {
+        const written = try base64.encode(encode_buf[0..], case.input, case.padding, .std);
+        try writer.print("enc\tstd\t{}\t", .{@intFromBool(case.padding)});
         try writeHex(writer, case.input);
         try writer.writeAll("\t");
         try writeHex(writer, encode_buf[0..written]);
         try writer.writeAll("\n");
     }
 
-    for (decode_cases) |case| {
-        const written = try base64.decode(decode_buf[0..], case.input, case.padding, case.variant);
-        try writer.print("dec\t{s}\t{}\t", .{ variantName(case.variant), @intFromBool(case.padding) });
+    for (fixtures.variant_cases) |case| {
+        const variant = fixtureVariant(case.variant_name);
+        const written = try base64.encode(encode_buf[0..], &fixtures.variant_sample, case.padding, variant);
+        try writer.print("enc\t{s}\t{}\t", .{ case.variant_name, @intFromBool(case.padding) });
+        try writeHex(writer, &fixtures.variant_sample);
+        try writer.writeAll("\t");
+        try writeHex(writer, encode_buf[0..written]);
+        try writer.writeAll("\n");
+    }
+
+    for (fixtures.standard_decode_cases) |case| {
+        const written = try base64.decode(decode_buf[0..], case.input, case.padding, .std);
+        try writer.print("dec\tstd\t{}\t", .{@intFromBool(case.padding)});
         try writeHex(writer, case.input);
         try writer.writeAll("\t");
         try writeHex(writer, decode_buf[0..written]);
         try writer.writeAll("\n");
     }
 
-    for (invalid_cases) |case| {
-        const bytes_result = base64.bytes(case.input, case.padding, case.variant);
-        const decode_result = base64.decode(decode_buf[0..], case.input, case.padding, case.variant);
-        try writer.print("inv\t{s}\t{}\t", .{ variantName(case.variant), @intFromBool(case.padding) });
+    for (fixtures.variant_decode_cases) |case| {
+        const variant = fixtureVariant(case.variant_name);
+        const written = try base64.decode(decode_buf[0..], case.input, case.padding, variant);
+        try writer.print("dec\t{s}\t{}\t", .{ case.variant_name, @intFromBool(case.padding) });
+        try writeHex(writer, case.input);
+        try writer.writeAll("\t");
+        try writeHex(writer, decode_buf[0..written]);
+        try writer.writeAll("\n");
+    }
+
+    for (fixtures.invalid_decode_cases) |case| {
+        const variant = fixtureVariant(case.variant_name);
+        const bytes_result = base64.bytes(case.input, case.padding, variant);
+        const decode_result = base64.decode(decode_buf[0..], case.input, case.padding, variant);
+        try writer.print("inv\t{s}\t{}\t", .{ case.variant_name, @intFromBool(case.padding) });
         try writeHex(writer, case.input);
         try writer.print("\t{s}\t{s}\n", .{ errorName(bytes_result), errorName(decode_result) });
     }
@@ -112,12 +62,17 @@ pub fn main(init: std.process.Init) !void {
     try stdout.flush();
 }
 
-fn variantName(variant: base64.Variant) []const u8 {
-    return switch (variant) {
-        .std => "std",
-        .urlsafe => "urlsafe",
-        .imap => "imap",
-    };
+fn fixtureVariant(name: []const u8) base64.Variant {
+    if (std.mem.eql(u8, name, "std")) {
+        return .std;
+    }
+    if (std.mem.eql(u8, name, "urlsafe")) {
+        return .urlsafe;
+    }
+    if (std.mem.eql(u8, name, "imap")) {
+        return .imap;
+    }
+    unreachable;
 }
 
 fn errorName(result: anytype) []const u8 {
