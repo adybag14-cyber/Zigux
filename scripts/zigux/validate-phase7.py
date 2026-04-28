@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import re
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+PHASE7_BUILD_PATH = ROOT / "zigux" / "tests" / "phase7_build.zig"
 
 required_files = [
     ROOT / "scripts" / "zigux" / "validate-phase7.py",
@@ -170,6 +172,40 @@ required_phase7_rbtree_survey_markers = [
     "zigux/tests/phase7_rbtree_manifest.json",
 ]
 
+expected_phase7_build_paths = {
+    "../../lib/string_helpers.zig",
+    "../../lib/cmdline.zig",
+    "../../lib/argv_split.zig",
+    "../../lib/rbtree.zig",
+    "phase7_string_helpers.zig",
+    "phase7_cmdline.zig",
+    "phase7_argv_split.zig",
+    "phase7_argv_split_survey.zig",
+    "phase7_rbtree.zig",
+    "phase7_rbtree_survey.zig",
+}
+
+expected_phase7_import_lines = {
+    'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
+    'cmdline_root_module.addImport("cmdline", cmdline_module);',
+    'argv_split_root_module.addImport("argv_split", argv_split_module);',
+    'rbtree_root_module.addImport("rbtree", rbtree_module);',
+}
+
+expected_phase7_run_labels = {
+    "phase7-string-helpers-tests",
+    "phase7-cmdline-tests",
+    "phase7-argv-split-tests",
+    "phase7-argv-split-survey-tests",
+    "phase7-rbtree-tests",
+    "phase7-rbtree-survey-tests",
+}
+
+unexpected_phase7_build_markers = [
+    "../../tools/lib/",
+    "zigux/tests/build.zig",
+]
+
 checks = [
     ("zigux/Makefile", makefile, required_make_markers),
     (".github/workflows/zigux-bootstrap.yml", workflow, required_workflow_markers),
@@ -194,6 +230,62 @@ if missing_markers:
     for label, marker in missing_markers:
         print(f"{label}: {marker}")
     print("MISSING_PHASE7_MARKERS_END")
+    sys.exit(1)
+
+phase7_build_paths = set(re.findall(r'b\.path\("([^"]+)"\)', phase7_build))
+if phase7_build_paths != expected_phase7_build_paths:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_PATH_DRIFT_START")
+    missing_paths = sorted(expected_phase7_build_paths - phase7_build_paths)
+    unexpected_paths = sorted(phase7_build_paths - expected_phase7_build_paths)
+    for rel_path in missing_paths:
+        print(f"missing:{rel_path}")
+    for rel_path in unexpected_paths:
+        print(f"unexpected:{rel_path}")
+    print("PHASE7_BUILD_PATH_DRIFT_END")
+    sys.exit(1)
+
+missing_build_inputs = []
+for rel_path in sorted(expected_phase7_build_paths):
+    resolved = (PHASE7_BUILD_PATH.parent / rel_path).resolve()
+    if not resolved.exists():
+        missing_build_inputs.append(str(resolved.relative_to(ROOT)))
+
+if missing_build_inputs:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_INPUTS_MISSING_START")
+    for rel_path in missing_build_inputs:
+        print(rel_path)
+    print("PHASE7_BUILD_INPUTS_MISSING_END")
+    sys.exit(1)
+
+missing_imports = sorted(line for line in expected_phase7_import_lines if line not in phase7_build)
+if missing_imports:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_IMPORT_DRIFT_START")
+    for line in missing_imports:
+        print(line)
+    print("PHASE7_BUILD_IMPORT_DRIFT_END")
+    sys.exit(1)
+
+missing_run_labels = sorted(label for label in expected_phase7_run_labels if label not in phase7_build)
+if missing_run_labels:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_RUN_LABEL_DRIFT_START")
+    for label in missing_run_labels:
+        print(label)
+    print("PHASE7_BUILD_RUN_LABEL_DRIFT_END")
+    sys.exit(1)
+
+unexpected_build_hits = [
+    marker for marker in unexpected_phase7_build_markers if marker in phase7_build
+]
+if unexpected_build_hits:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_STALE_MARKERS_START")
+    for marker in unexpected_build_hits:
+        print(marker)
+    print("PHASE7_BUILD_STALE_MARKERS_END")
     sys.exit(1)
 
 print("PHASE7_VALIDATION=pass")
