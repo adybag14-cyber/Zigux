@@ -70,11 +70,17 @@ pub fn build(b: *std.Build) void {
     const run_bsearch_perf = b.addRunArtifact(bsearch_perf);
     run_bsearch_perf.skip_foreign_checks = true;
 
+    const checksum_vectors_module = b.createModule(.{
+        .root_source_file = b.path("fixtures/phase6_checksum_vectors.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const checksum_module = b.createModule(.{
         .root_source_file = b.path("../../lib/checksum.zig"),
         .target = target,
         .optimize = optimize,
     });
+    checksum_module.addImport("phase6_checksum_vectors", checksum_vectors_module);
     const checksum_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_checksum.zig"),
         .target = target,
