@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L01",
   "phase": "Phase 13",
-  "surveyed_commit": "0d796d2d0bfe4d85c0b15fe27a6f4dfc626e0288",
+  "surveyed_commit": "8d5b5b18ae2628a05b3437ef124a2fc57f9672a2",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -116,6 +116,20 @@
       "kind": "blocked_runtime_behavior",
       "zigux_destination": "lib/devres.zig",
       "why_now": "The current lane still does not claim live devres_alloc_node() ownership, devres_add() installation, devm_request_mem_region() side effects, or direct ioremap() / iounmap() execution against real MMIO state."
+    },
+    {
+      "id": "phase13-devres-live-dma-mappings",
+      "status": "blocked_on_dma_state",
+      "kind": "blocked_runtime_behavior",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "The current helper lab does not claim dmam_alloc_coherent(), dmam_free_coherent(), dma_map_resource(), dma_unmap_resource(), dma_map_sgtable(), or any other live DMA-backed mapping, unmapping, or ownership state."
+    },
+    {
+      "id": "phase13-devres-live-scatterlist-ownership",
+      "status": "blocked_on_scatterlist_state",
+      "kind": "blocked_runtime_behavior",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "The current helper lab does not claim live struct scatterlist, sg_table, sg_* traversal, or other scatter-gather ownership, iteration, merging, or detach-time cleanup beyond the existing helper-first MMIO and memtype planners."
     },
     {
       "id": "phase13-devres-live-device-tree-walk",
