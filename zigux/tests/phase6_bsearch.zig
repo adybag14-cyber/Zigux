@@ -90,7 +90,7 @@ test "phase 6 bsearch exposes a mutable pointer when searching mutable storage" 
     try std.testing.expectEqual(@as(u32, 22), values[3]);
 }
 
-test "phase 6 bsearch treats duplicate keys as found-or-null across beginning middle and end runs" {
+test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {
     const cases = [_]struct {
         values: [6]u32,
         needle: u32,
