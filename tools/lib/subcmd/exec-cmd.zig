@@ -356,6 +356,10 @@ test "systemPath and getArgvExecPath preserve C-style precedence" {
     defer std.testing.allocator.free(explicit);
     try std.testing.expectEqualStrings("/tmp/perf", explicit);
 
+    const explicit_empty = try getArgvExecPath(std.testing.allocator, config, "", "/ignored");
+    defer std.testing.allocator.free(explicit_empty);
+    try std.testing.expectEqualStrings("", explicit_empty);
+
     const from_env = try getArgvExecPath(std.testing.allocator, config, null, "/env/perf");
     defer std.testing.allocator.free(from_env);
     try std.testing.expectEqualStrings("/env/perf", from_env);
@@ -392,6 +396,19 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     try std.testing.expectEqualStrings(
         "/work/tree/tools/bin:/work/tree/scripts:/usr/bin:/bin",
         built,
+    );
+
+    const explicit_empty_exec_path = try buildSearchPath(
+        std.testing.allocator,
+        "/work/tree",
+        "",
+        "scripts",
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(explicit_empty_exec_path);
+    try std.testing.expectEqualStrings(
+        "/work/tree/scripts:/usr/bin",
+        explicit_empty_exec_path,
     );
 
     const inherited_empty = try buildSearchPath(
@@ -553,6 +570,38 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         updated,
     );
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+
+    var explicit_empty_env = EnvMap.init(std.testing.allocator);
+    defer explicit_empty_env.deinit();
+    try execCmdInit(&explicit_empty_env, config);
+
+    var explicit_empty_state = ExecCmdState{};
+    defer explicit_empty_state.deinit(std.testing.allocator);
+    try setArgvExecPath(
+        std.testing.allocator,
+        &explicit_empty_env,
+        &explicit_empty_state,
+        config,
+        "",
+    );
+    try setArgv0Path(std.testing.allocator, &explicit_empty_state, "scripts");
+    try explicit_empty_env.set("PATH", "/usr/bin");
+
+    const explicit_empty = try setupPath(
+        std.testing.allocator,
+        &explicit_empty_env,
+        explicit_empty_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(explicit_empty);
+
+    try std.testing.expectEqualStrings("", explicit_empty_env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/repo/scripts:/usr/bin",
+        explicit_empty,
+    );
+    try std.testing.expectEqualStrings(explicit_empty, explicit_empty_env.get("PATH").?);
 
     var fallback_env = EnvMap.init(std.testing.allocator);
     defer fallback_env.deinit();
