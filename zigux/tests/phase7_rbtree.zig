@@ -332,6 +332,59 @@ test "phase 7 rbtree find helpers walk duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.findFirst(@as(i32, 99), &root, cmp));
 }
 
+test "phase 7 rbtree iterateMatches streams duplicate-key ranges" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const rbtree.Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    var iterator = rbtree.iterateMatches(fixture.duplicates.key, &root, cmp);
+    var actual_serials: [3]i32 = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |match| {
+        const entry: *const Entry = @fieldParentPtr("node", match);
+        actual_serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(fixture.duplicates.match_serials.len, count);
+    try std.testing.expectEqualSlices(i32, fixture.duplicates.match_serials, actual_serials[0..count]);
+
+    var missing = rbtree.iterateMatches(@as(i32, 99), &root, cmp);
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), missing.next());
+}
+
 test "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates" {
     const cmp = struct {
         fn compare(new: *rbtree.Node, existing: *const rbtree.Node) i32 {
