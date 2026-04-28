@@ -23,10 +23,9 @@ This survey exists so the core lane no longer relies on the slice note alone whi
 
 - `drivers/virtio/virtio.c` is present on `master` at 730 lines and mixes status sequencing, feature negotiation, config-change enable and disable handling, config-change delivery gating, reset, and broader probe or remove lifecycle paths.
 - the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`.
-- the landed Zigux helper now covers bounded status sequencing, feature negotiation, queue callback bookkeeping, queue descriptor-shape metadata, config-change pending and flush bookkeeping, and the small driver-binding branch around `drv && drv->config_changed` in memory only.
-- the live repo now models bounded config-generation increments, last-observed generation state, and pending-generation visibility beside the earlier config-change bookkeeping.
+- the landed Zigux helper now covers bounded status sequencing, feature negotiation, queue callback bookkeeping, queue descriptor-shape metadata, config-change pending and flush bookkeeping, one bounded config-generation counter plus observation summaries, and the small driver-binding branch around `drv && drv->config_changed` in memory only.
 - the live repo still does not model probe or remove lifecycle parity, transport-backed reset paths, or MMIO and virtqueue setup behavior.
-- this means the virtio core lane no longer has another honest core-local starter to claim before risky lifecycle work; the remaining broader lifecycle gap should stay blocked instead of quietly widening.
+- this means the virtio-core packet is now parked at a cleaner boundary, and the next honest new Phase 10 work lies in adjacent ring or MMIO wrappers rather than more core lifecycle claims.
 
 ## Recorded gaps
 
@@ -50,7 +49,6 @@ This keeps the lane reviewable without overstating progress: the core starter is
 
 This survey slice does not yet claim:
 
-- config-generation parity beyond one future bounded summary helper
 - probe, remove, or transport-backed reset lifecycle parity
 - real virtqueue wrappers from `virtio_ring.c`
 - real MMIO register-window or interrupt behavior from `virtio_mmio.c`
@@ -66,4 +64,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Leave the Phase 10 virtio-core helper parked unless fresh repo inspection finds review drift in the landed config-generation summary packet. Any broader follow-up in this lane should stay explicitly blocked on risky transport-backed probe, remove, or reset lifecycle work rather than widening core claims indirectly through ring or MMIO changes.
+Leave the Phase 10 virtio-core lane parked unless fresh repo inspection finds a directly coupled drift inside the landed core packet; the next new Phase 10 wrapper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
