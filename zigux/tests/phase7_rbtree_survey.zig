@@ -83,6 +83,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             saw_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/rbtree.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-survey-gate")) {
@@ -95,6 +96,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             saw_parity_follow_up = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_rbtree.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
