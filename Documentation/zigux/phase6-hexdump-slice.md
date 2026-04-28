@@ -54,6 +54,7 @@ The current tests check:
 
 - uppercase whole-buffer hex encoding for a representative byte packet
 - append-style whole-buffer encoding that can chain lowercase and uppercase segments without recomputing offsets
+- direct nibble helper coverage for lowercase and uppercase hex digits
 - direct byte-pack helper coverage for lowercase and uppercase output plus the short-buffer contract
 - mixed-case hex digit decoding
 - encode/decode round-trips on bounded fixtures
