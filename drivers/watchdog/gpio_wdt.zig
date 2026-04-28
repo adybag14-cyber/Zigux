@@ -23,12 +23,10 @@ pub const ProbeStartMode = enum {
 
 pub const RegistrationSurface = enum {
     watchdog_device_metadata,
-    register_device_call,
 };
 
 pub const ValidationFocus = enum {
     pre_registration_metadata,
-    platform_registration,
 };
 
 pub const ModuleDescriptor = struct {
