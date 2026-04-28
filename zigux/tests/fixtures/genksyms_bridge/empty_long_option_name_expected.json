@@ -1,0 +1,5 @@
+{
+  "stdout": "",
+  "stderr": "option '--=value' is ambiguous; possibilities: '--debug' '--warnings' '--quiet' '--dump' '--reference' '--dump-types' '--preserve' '--version' '--help'\n",
+  "exit_code": 1
+}
