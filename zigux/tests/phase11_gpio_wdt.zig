@@ -168,3 +168,43 @@ test "phase11 gpio_wdt registration handoff summary records startup state and st
     try std.testing.expect(dormant_handoff.stop_allowed_by_watchdog_core);
     try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, dormant_handoff.pre_registration_stop_disposition);
 }
+
+test "phase11 gpio_wdt registration plan summary keeps the first registration surface explicit" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_plan = prestarted_watchdog.registrationPlanSummary(true);
+    try std.testing.expectEqual(gpio_wdt.RegistrationSurface.watchdog_device_metadata, prestarted_plan.selected_surface);
+    try std.testing.expectEqual(gpio_wdt.ValidationFocus.pre_registration_metadata, prestarted_plan.validation_focus);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, prestarted_plan.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, prestarted_plan.start_mode);
+    try std.testing.expect(prestarted_plan.always_running);
+    try std.testing.expect(prestarted_plan.nowayout);
+    try std.testing.expect(prestarted_plan.watchdog_info_ready);
+    try std.testing.expect(prestarted_plan.watchdog_ops_ready);
+    try std.testing.expect(prestarted_plan.watchdog_device_ready);
+    try std.testing.expect(prestarted_plan.timeout_init_requested);
+    try std.testing.expect(prestarted_plan.parent_attached);
+    try std.testing.expect(prestarted_plan.stop_on_reboot);
+    try std.testing.expect(prestarted_plan.reaches_registration_running);
+    try std.testing.expect(prestarted_plan.reaches_registration_line_state);
+    try std.testing.expect(prestarted_plan.reaches_registration_line_is_output);
+    try std.testing.expect(!prestarted_plan.register_device_requested);
+    try std.testing.expect(prestarted_plan.blocked_on_gpio_descriptor);
+    try std.testing.expect(prestarted_plan.blocked_on_platform_registration);
+    try std.testing.expect(prestarted_plan.blocked_on_reboot_glue);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_plan = dormant_watchdog.registrationPlanSummary(false);
+    try std.testing.expectEqual(gpio_wdt.RegistrationSurface.watchdog_device_metadata, dormant_plan.selected_surface);
+    try std.testing.expectEqual(gpio_wdt.ValidationFocus.pre_registration_metadata, dormant_plan.validation_focus);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, dormant_plan.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_plan.start_mode);
+    try std.testing.expect(!dormant_plan.always_running);
+    try std.testing.expect(!dormant_plan.nowayout);
+    try std.testing.expect(!dormant_plan.reaches_registration_running);
+    try std.testing.expect(!dormant_plan.reaches_registration_line_state);
+    try std.testing.expect(dormant_plan.reaches_registration_line_is_output);
+    try std.testing.expect(!dormant_plan.register_device_requested);
+    try std.testing.expect(dormant_plan.blocked_on_gpio_descriptor);
+    try std.testing.expect(dormant_plan.blocked_on_platform_registration);
+    try std.testing.expect(dormant_plan.blocked_on_reboot_glue);
+}
