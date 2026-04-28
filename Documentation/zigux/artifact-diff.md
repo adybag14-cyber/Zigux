@@ -86,6 +86,10 @@ Current Phase 4 use
 - `scripts/zigux/validate-phase4.py` keeps that shared self-test, the Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, lab/CI replay matrix, and the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate.
 
+Current Phase 12 use
+- `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchors the bounded libbpf reproducibility packet across `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json`.
+- `scripts/zigux/check-phase12-libbpf-snapshot.py` rebuilds that five-file packet twice, proves repeat-run JSON stability, and compares the regenerated snapshot against the committed fixture through `scripts/zigux/artifact_diff.py --mode json` before the shared Phase 12 lane passes.
+
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
