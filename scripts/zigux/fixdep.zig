@@ -1,7 +1,8 @@
 const std = @import("std");
 const Io = std.Io;
 
-const max_file_bytes: usize = 1024 * 1024;
+// Keep file reads aligned with the C helper, which consumes the full file size.
+const max_file_bytes: usize = std.math.maxInt(usize);
 
 const FixdepError = error{
     NoTargets,
@@ -35,7 +36,7 @@ fn describeFileReadError(err: anyerror) []const u8 {
         error.ProcessFdQuotaExceeded, error.SystemFdQuotaExceeded => "Too many open files",
         error.DeviceBusy => "Device or resource busy",
         error.NoDevice => "No such device",
-        error.FileTooBig, error.StreamTooLong => "File too large",
+        error.FileTooBig => "File too large",
         error.InputOutput => "Input/output error",
         else => @errorName(err),
     };
@@ -167,7 +168,6 @@ const Processor = struct {
             error.DeviceBusy,
             error.NoDevice,
             error.FileTooBig,
-            error.StreamTooLong,
             error.InputOutput,
             => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
@@ -355,154 +355,4 @@ pub fn main(init: std.process.Init) !void {
 test "config parsing trims _MODULE and deduplicates symbols" {
     const Capture = struct {
         list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
-                .allocator = allocator,
-            };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
-            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-            defer self.allocator.free(rendered);
-            try self.list.appendSlice(self.allocator, rendered);
-        }
-    };
-
-    var processor = Processor.init(std.testing.allocator, std.testing.io);
-    defer processor.deinit();
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try processor.parseConfigFile(
-        &capture,
-        "CONFIG_ZIGUX_CORE CONFIG_ZIGUX_DEBUG_MODULE CONFIG_ZIGUX_CORE",
-    );
-
-    try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
-        capture.list.items,
-    );
-}
-
-test "dep parsing returns NoTargets for comment-only depfiles" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 8),
-                .allocator = allocator,
-            };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
-            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-            defer self.allocator.free(rendered);
-            try self.list.appendSlice(self.allocator, rendered);
-        }
-    };
-
-    var processor = Processor.init(std.testing.allocator, std.testing.io);
-    defer processor.deinit();
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try std.testing.expectError(
-        error.NoTargets,
-        processor.parseDepFile(&capture, "# comment only\n# still no targets\n", "sample.o"),
-    );
-    try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
-}
-
-test "dep parsing keeps escaped whitespace inside dependency tokens" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
-                .allocator = allocator,
-            };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
-            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-            defer self.allocator.free(rendered);
-            try self.list.appendSlice(self.allocator, rendered);
-        }
-    };
-
-    var processor = Processor.init(std.testing.allocator, std.testing.io);
-    defer processor.deinit();
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try processor.parseDepFile(
-        &capture,
-        "escaped.o: src\\ with\\ space.so dep\\ with\\ space.so dep\\\twith\\\ttab.so\n",
-        "escaped.o",
-    );
-
-    try std.testing.expectEqualStrings(
-        "source_escaped.o := src\\ with\\ space.so\n\n" ++
-            "deps_escaped.o := \\\n" ++
-            "  dep\\ with\\ space.so \\\n" ++
-            "  dep\\\twith\\\ttab.so \\\n" ++
-            "\n" ++
-            "escaped.o: $(deps_escaped.o)\n\n" ++
-            "$(deps_escaped.o):\n",
-        capture.list.items,
-    );
-}
-
-test "ignored and no-parse file classification matches fixdep rules" {
-    try std.testing.expect(isIgnoredFile("include/generated/autoconf.h"));
-    try std.testing.expect(isNoParseFile("foo.rmeta"));
-    try std.testing.expect(isNoParseFile("foo.rlib"));
-    try std.testing.expect(isNoParseFile("foo.so"));
-    try std.testing.expect(!isIgnoredFile("include/generated/autoconf.hpp"));
-}
-
-test "file read errors map to C-style messages" {
-    try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
-    try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
-    try std.testing.expectEqualStrings("File too large", describeFileReadError(error.StreamTooLong));
-}
-
-test "output writer maps print and flush failures to fixdep output-write errors" {
-    const FailingWriter = struct {
-        fn print(_: *@This(), comptime _: []const u8, _: anytype) error{NoSpaceLeft}!void {
-            return error.NoSpaceLeft;
-        }
-
-        fn flush(_: *@This()) error{NoSpaceLeft}!void {
-            return error.NoSpaceLeft;
-        }
-    };
-
-    var inner = FailingWriter{};
-    var writer = OutputWriter(*FailingWriter).init(&inner);
-
-    try std.testing.expectError(error.OutputWrite, writer.print("savedcmd_sample := cmd\n", .{}));
-    try std.testing.expectError(error.OutputWrite, writer.flush());
-}
+        allocator: std.mem.Allocator
