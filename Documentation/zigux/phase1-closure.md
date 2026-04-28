@@ -46,14 +46,14 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view`
 
 - `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit stays in range while another lives past `nbits`.
-- `tools/lib/find_bit.zig` direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while later out-of-range tail matches still clamp to `nbits`.
+- `tools/lib/find_bit.zig` direct Zig unit coverage now keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to `nbits`.
 - find_bit fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - find_bit manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`
+- find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`
 
 - `PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits`
-- `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits`
+- `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit same-word zero-scan start masking keeps inclusive starts honest, skips earlier zero matches after the search advances, and still clamps tail results to nbits`
 
 - `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.
 - `tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.
@@ -79,7 +79,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection`
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
-- `PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior at the first terminator
+- `PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior at the first terminator`
 
 ## Closure Gates
 
@@ -103,10 +103,11 @@ Phase 1 is only considered closed when all of the following are green:
 6. workflow viability
 - the bootstrap workflow must not rely on deprecated Node 20 action execution
 - the bootstrap workflow must pin current action releases where available
+
 - `PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py`
 - `PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig`
 - `PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig`
-- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigu/check-phase1-bench.py`
+- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`
 - `PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py`
 
 ## Performance Policy
@@ -142,4 +143,26 @@ This is part of closure because a closed validation tranche that is about to sto
 ## Rollback
 
 Rollback owner:
-- Zigux product maintainers working in `tools/lib` and `scriptsš%Õá€()…±±‰…¬ÉÕ±”è(´¥˜„¡•±Á•ÈÉ•É•ÍÍ•Ì°Ñ¡”i¥œÁ½ÉĞ¥Ì‘¥Í…‰±•™É½´Ñ¡”i¥ÕàÙ…±¥‘…Ñ¥½¸½‰Õ¥±Á…Ñ …¹ÕÉÉ•¹ĞÉ•µ…¥¹Ì…ÕÑ¡½É¥Ñ…Ñ¥Ù”()¥Í…‰±”Á…Ñ è(´É•µ½Ù”Ñ¡”™…¥±¥¹œ¡•±Á•È™É½´é¥Õà½Ñ•ÍÑÌ½‰Õ¥±¹é¥€(´É•µ½Ù”Ñ¡”¡•±Á•È™É½´é¥Õà½Ñ•ÍÑÌ½Á¡…Í”Å}¡•±Á•ÉÌ¹é¥€(´É•™É•Í Ñ¡”½µµ¥ÑÑ•Á…É¥Ñä™¥áÑÕÉ”¥˜A¡…Í”€ÄÍ½Á”¥Ì¥¹Ñ•¹Ñ¥½¹…±±äÉ•‘Õ•((´A!MÅ}I=11	,õ­••À…ÕÑ¡½É¥Ñ…Ñ¥Ù”…¹É•µ½Ù”™…¥±¥¹œi¥œ¡•±Á•È™É½´Ñ•ÍĞ½‰Õ¥±İ¥É¥¹€((ŒŒ	½Õ¹‘…Éä()A¡…Í”€Ä±½ÍÕÉ”‘½•Ì¹½Ğ¥µÁ±äè((´ÉÕ¹Ñ¥µ”­•É¹•°¡•±Á•È±½ÍÕÉ”(´	$±½ÍÕÉ”(´…Ñ½µ¥Œ½È‰…ÉÉ¥•ÈÍÕ‰ÍÑÉ…Ñ”±½ÍÕÉ”(´‘É¥Ù•ÈÉ•…‘¥¹•ÍÌ(´A¡…Í”€ÈÑ½½±¡…¥¸±½ÍÕÉ”()A¡…Í”€Ä¥Ì½¹±äÑ¡”‰½Õ¹‘•ÁÉ½½˜Ñ¡…Ği¥œ¡•±Á•È½‘”…¸±¥Ù”¥¸µÑÉ•”‰•Í¥‘”1¥¹Õàµ½İ¹•¡½ÍĞ¡•±Á•È½‘”İ¥Ñ Á…É¥Ñä™¥áÑÕÉ•Ì…¹É•Á•…Ñ…‰±”Ù…±¥‘…Ñ¥½¸¸
+- Zigux product maintainers working in `tools/lib` and `scripts/zigux`
+
+Fallback rule:
+- if a helper regresses, the Zig port is disabled from the Zigux validation/build path and current C remains authoritative
+
+Disable path:
+- remove the failing helper from `zigux/tests/build.zig`
+- remove the helper from `zigux/tests/phase1_helpers.zig`
+- refresh the committed parity fixture if Phase 1 scope is intentionally reduced
+
+- `PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring`
+
+## Boundary
+
+Phase 1 closure does not imply:
+
+- runtime kernel helper closure
+- ABI closure
+- atomic or barrier substrate closure
+- driver readiness
+- Phase 2 toolchain closure
+
+Phase 1 is only the bounded proof that Zig helper code can live in-tree beside Linux-owned host helper code with parity fixtures and repeatable validation.
