@@ -48,13 +48,13 @@ def fail_check(block: str, values: list[str]) -> None:
     raise SystemExit(1)
 
 
-def supported_conf_modes() -> set[str]:
+def supported_conf_modes_in_order() -> list[str]:
     source = CONF_BRIDGE.read_text(encoding='utf-8')
     match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
     if not match:
         raise SystemExit('failed to parse conf bridge Mode enum')
 
-    modes: set[str] = set()
+    modes: list[str] = []
     for raw_line in match.group(1).splitlines():
         line = raw_line.strip()
         if not line or line.startswith('pub ') or line.startswith('//'):
@@ -62,21 +62,32 @@ def supported_conf_modes() -> set[str]:
         if line.endswith(','):
             candidate = line[:-1].strip()
             if candidate and candidate.isidentifier():
-                modes.add(candidate)
+                modes.append(candidate)
     if not modes:
         raise SystemExit('failed to discover conf bridge modes')
     return modes
 
 
 def ensure_manifest_matches_bridge_modes() -> None:
-    manifest_modes = {case['mode'] for case in CASES['conf_cases']}
-    bridge_modes = supported_conf_modes()
-    missing = sorted(manifest_modes - bridge_modes)
+    bridge_modes = supported_conf_modes_in_order()
+    manifest_modes = [case['mode'] for case in CASES['conf_cases']]
+
+    missing = sorted(set(manifest_modes) - set(bridge_modes))
     if missing:
         fail_check('UNSUPPORTED_CONF_CASE_MODES', missing)
-    uncovered = sorted(bridge_modes - manifest_modes)
+
+    uncovered = sorted(set(bridge_modes) - set(manifest_modes))
     if uncovered:
         fail_check('UNCOVERED_CONF_BRIDGE_MODES', uncovered)
+
+    if manifest_modes != bridge_modes:
+        fail_check(
+            'UNSORTED_CONF_CASE_ORDER',
+            [
+                'manifest=' + ','.join(manifest_modes),
+                'expected=' + ','.join(bridge_modes),
+            ],
+        )
 
 
 def read_nonempty_string(case: dict[str, object], field_name: str, issues: list[str], *, prefix: str) -> str | None:
