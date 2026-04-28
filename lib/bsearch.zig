@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
 
+pub fn Comparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) i32;
+}
+
 pub fn searchIndex(
     comptime Key: type,
     comptime T: type,
     key: *const Key,
     items: []const T,
-    comptime compare: fn (*const Key, *const T) i32,
+    compare: Comparator(Key, T),
 ) ?usize {
     var base: usize = 0;
     var num = items.len;
@@ -34,7 +38,7 @@ pub fn search(
     comptime T: type,
     key: *const Key,
     items: []const T,
-    comptime compare: fn (*const Key, *const T) i32,
+    compare: Comparator(Key, T),
 ) ?*const T {
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
@@ -45,7 +49,7 @@ pub fn searchMutable(
     comptime T: type,
     key: *const Key,
     items: []T,
-    comptime compare: fn (*const Key, *const T) i32,
+    compare: Comparator(Key, T),
 ) ?*T {
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
@@ -57,6 +61,10 @@ fn compareInt(key: *const i32, item: *const i32) i32 {
         .eq => 0,
         .gt => 1,
     };
+}
+
+fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
+    return compareInt(item, key);
 }
 
 const Entry = struct {
@@ -130,4 +138,17 @@ test "search supports heterogeneous keys through the comparator" {
     const beta = search([]const u8, Entry, &@as([]const u8, "beta"), entries[0..], compareName) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(u32, 2), beta.value);
     try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
+}
+
+test "search accepts runtime-selected comparator function pointers" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 23, 7 };
+
+    for (comparators, slices, targets) |compare, items, target| {
+        const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(target, found.*);
+    }
 }
