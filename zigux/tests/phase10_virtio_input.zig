@@ -349,6 +349,68 @@ test "phase10 virtio input teardown summary keeps reset cleanup and identity pre
     try std.testing.expectEqual(identity_before.ids.bustype, identity_after.ids.bustype);
 }
 
+test "phase10 virtio input records registration preflight once identity and capability intent are staged" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-11", 11, null);
+
+    try std.testing.expectError(
+        error.CapabilityConfigNotConfigured,
+        device.registrationPreflightSummary(),
+    );
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ 0x00, 0x01 });
+    try device.configureAbsInfo(0x00, .{
+        .minimum = -2048,
+        .maximum = 2047,
+        .resolution = 32,
+    });
+    try device.configureAbsInfo(0x01, .{
+        .minimum = 0,
+        .maximum = 4095,
+        .resolution = 48,
+    });
+
+    const summary = try device.registrationPreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expectEqual(@as(usize, 1), summary.staged_event_type_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.staged_capability_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.staged_abs_param_count);
+    try std.testing.expect(!summary.multitouch_enabled);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expectEqual(@as(usize, 0), summary.multitouch_slot_count);
+    try std.testing.expect(summary.ready_for_registration);
+}
+
+test "phase10 virtio input registration preflight requires multitouch slot intent when multitouch is enabled" {
+    var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-12", 12, null);
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ virtio_input.abs_mt_slot, 0x30 });
+    device.setMultitouch(true);
+
+    try std.testing.expectError(
+        error.MultitouchSlotAbsInfoNotConfigured,
+        device.registrationPreflightSummary(),
+    );
+
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 7,
+    });
+    try device.configureAbsInfo(0x30, .{
+        .minimum = 0,
+        .maximum = 1024,
+        .resolution = 16,
+    });
+
+    const summary = try device.registrationPreflightSummary();
+    try std.testing.expect(summary.multitouch_enabled);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expectEqual(@as(usize, 8), summary.multitouch_slot_count);
+    try std.testing.expect(summary.ready_for_registration);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
