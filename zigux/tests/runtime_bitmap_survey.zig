@@ -80,7 +80,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 5);
-    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 6);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -91,6 +91,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_exit_lifecycle = false;
     var saw_bounds_errors = false;
     var saw_zero_length_source_guards = false;
+    var saw_loader_request_surface = false;
     var saw_diff_fill_case = false;
     var saw_diff_cutout_case = false;
     var saw_diff_sparse_copy_case = false;
@@ -142,6 +143,13 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             saw_zero_length_source_guards = true;
             try std.testing.expectEqualStrings("helper_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidSourceLifecycle") != null);
+        }
+        if (std.mem.eql(u8, check.id, "loader-request-surface")) {
+            saw_loader_request_surface = true;
+            try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zigux_runtime_bitmap_init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "helper_owned") != null);
         }
         if (std.mem.eql(u8, check.id, "diff-fill-set-case")) {
             saw_diff_fill_case = true;
@@ -255,6 +263,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_exit_lifecycle);
     try std.testing.expect(saw_bounds_errors);
     try std.testing.expect(saw_zero_length_source_guards);
+    try std.testing.expect(saw_loader_request_surface);
     try std.testing.expect(saw_diff_fill_case);
     try std.testing.expect(saw_diff_cutout_case);
     try std.testing.expect(saw_diff_sparse_copy_case);
