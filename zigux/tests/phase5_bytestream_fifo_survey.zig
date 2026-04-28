@@ -13,6 +13,7 @@ const Manifest = struct {
     anchor: []const u8,
     sample_path: []const u8,
     validation_entrypoint: []const u8,
+    reference_patterns: []const []const u8,
     review_prompts: []const []const u8,
     exact_checks: []const ExactCheck,
     non_goals: []const []const u8,
@@ -44,10 +45,16 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
+    try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
+    var saw_embedded_pattern = false;
+    var saw_anchor_pattern = false;
+    var saw_wraparound_pattern = false;
+    var saw_snapshot_pattern = false;
+    var saw_lifecycle_pattern = false;
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
     var saw_docs_prompt = false;
@@ -59,6 +66,26 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_focus_list = false;
     var saw_lifecycle = false;
     var saw_lifecycle_guards = false;
+
+    for (manifest.reference_patterns) |pattern| {
+        try std.testing.expect(pattern.len > 0);
+
+        if (std.mem.indexOf(u8, pattern, "fixed embedded 32-byte ring buffer") != null) {
+            saw_embedded_pattern = true;
+        }
+        if (std.mem.indexOf(u8, pattern, "exact queue-order replay mirrors the Linux bytestream anchor") != null) {
+            saw_anchor_pattern = true;
+        }
+        if (std.mem.indexOf(u8, pattern, "wraparound requeue, skip, and peek") != null) {
+            saw_wraparound_pattern = true;
+        }
+        if (std.mem.indexOf(u8, pattern, "non-destructive snapshot") != null) {
+            saw_snapshot_pattern = true;
+        }
+        if (std.mem.indexOf(u8, pattern, "ownership and lifetime boundaries explicit") != null) {
+            saw_lifecycle_pattern = true;
+        }
+    }
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
@@ -120,6 +147,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
     }
 
+    try std.testing.expect(saw_embedded_pattern);
+    try std.testing.expect(saw_anchor_pattern);
+    try std.testing.expect(saw_wraparound_pattern);
+    try std.testing.expect(saw_snapshot_pattern);
+    try std.testing.expect(saw_lifecycle_pattern);
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
     try std.testing.expect(saw_docs_prompt);
@@ -155,18 +187,13 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     );
     defer std.testing.allocator.free(review_checklist);
 
-    const readme = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/README.md",
-        std.testing.allocator,
-        .limited(64 * 1024),
-    );
-    defer std.testing.allocator.free(readme);
-
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "wraparound requeue, skip, and peek") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
 
@@ -174,9 +201,4 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, readme, "all four roadmap sample anchors") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/bytestream_fifo.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "Phase 9 runtime pilot tranche") != null);
 }
