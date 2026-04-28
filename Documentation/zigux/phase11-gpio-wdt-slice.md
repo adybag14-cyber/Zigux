@@ -12,7 +12,8 @@ The starter stays intentionally narrow:
 - distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior so stop-path review does not blur policy gating with hardware gating
 - adds a tiny registration-facing handoff summary so the starter records what startup state, stop policy, timeout init, and reboot bookkeeping reach `devm_watchdog_register_device()` without claiming the registration call itself
 - records the first chosen registration surface and validation focus so the lane stays explicitly parked at watchdog-device metadata planning instead of overclaiming a real register-device call
+- now pairs that starter surface with `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` so the shared replay contract and the current metadata-only registration boundary are recorded in one reviewable place
 
-This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or real hardware validation yet.
+This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or live hardware validation yet.
 
 The next honest bounded step inside the same Phase 11 lane is to advance from that metadata-only registration plan to the first bounded `devm_watchdog_register_device()` call surface, with the minimum validation needed to keep GPIO acquisition, reboot glue, and broader watchdog integration out of scope until the call boundary itself is reviewable.
