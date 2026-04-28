@@ -21,6 +21,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     uapi_version_module.addImport("abi_bindings", abi_bindings_module);
+    export_shim_module.addImport("uapi_version", uapi_version_module);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_export_uapi.zig"),
