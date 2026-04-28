@@ -43,7 +43,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 virtio_scsi survey manifest records the landed host-limit summary starter" {
+test "phase12 virtio_scsi survey manifest records the landed queue-depth summary starter" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -137,7 +137,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_raw_github_fallback_catalog_present);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.raw_github_tree_fallback_count);
     try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.raw_github_file_fallback_count);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
@@ -145,12 +145,13 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot of `virtscsi_probe()` config fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-limit summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also lands one tiny host-limit summary helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "adds one tiny queue-depth summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps one bounded io-queue-map plus recovery-restore summary in memory") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live `map_queues` callback or CPU-affinity wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_host_alloc()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_add_host()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_scan_host()`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, host-limit summary, and io-queue-map starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "5ecf3870d48d43e7a718b620b02ab9f60c0b969f") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "cf92730c0711f5d0705b5c35aa8dfbf777219bcc") != null);
@@ -163,6 +164,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "synthetic `can_queue`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`cmd_per_lun`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "`nr_hw_queues`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`virtscsi_change_queue_depth()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "verified_master_head: `5ecf3870d48d43e7a718b620b02ab9f60c0b969f`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "raw_github_tree_fallback_count: `3`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "raw_github_file_fallback_count: `10`") != null);
@@ -201,10 +203,13 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub const VirtioScsiQueueLab = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_probe_config_snapshot = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_host_limit_summary = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "provides_queue_depth_summary = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub fn captureProbeSnapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub fn captureHostLimitSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_driver, "pub fn captureQueueDepthSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_tests, "phase12 virtio scsi probe snapshot records config fields and queue layout") != null);
     try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_tests, "phase12 virtio scsi host limit summary clamps cmd_per_lun against synthetic can_queue") != null);
+    try std.testing.expect(std.mem.indexOf(u8, virtio_scsi_tests, "phase12 virtio scsi queue depth summary clamps requests to cmd_per_lun") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -329,6 +334,14 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`nr_hw_queues`") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-queue-depth-summary-starter")) {
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-depth summary helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`virtscsi_change_queue_depth()`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`track_queue_depth`") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-io-queue-map-summary-starter")) {
             saw_io_queue_map_summary = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
@@ -345,6 +358,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scsi_add_host()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-depth summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "io-queue-map helpers are now landed") != null);
         }
 
@@ -353,7 +367,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
