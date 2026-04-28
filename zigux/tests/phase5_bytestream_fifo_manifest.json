@@ -16,6 +16,7 @@
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate false while provides_selfcheck stays true, and names the fixed embedded storage backing used by the sample",
     "the manifest, reference-pattern list, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
+    "samples/zigux/README.md still lists bytestream_fifo.zig with the fixed embedded storage, exact queue-order replay, ownership and lifetime, and non-goal cues that keep the Phase 5 sample distinct from the later runtime starters in the same directory",
     "the review checklist still points reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared phase5_build.zig entrypoint for this exact replay contract",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
   ],
