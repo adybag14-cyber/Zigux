@@ -30,6 +30,7 @@ Current bootstrap helpers
 - `validate-phase12.py`
 - `validate-phase13-release.py`
 - `validate-phase14.py`
+- `validate-phase3-roadmap-gap-survey.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
 - `check-phase1-parity.py`
@@ -56,6 +57,8 @@ Phase 2 flow
 - `check-mk-elfconfig-diff.py` covers the bounded `mk_elfconfig.zig` artifact parity lane.
 
 Phase 3 flow
+- `validate-phase3-roadmap-gap-survey.py` checks that `Documentation/zigux/phase3-roadmap-gap-survey.md` stays aligned with the live repo-backed Phase 3 substrate, the published README note, and the current roadmap-backed `rbtree` gap.
+- `validate-phase3-roadmap-gap-survey.py --self-test` exercises the survey-marker and README-hook checks without needing the full repo tree.
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions, build-step overrides, and the current `PHASE3_INTEROP_GATE` mode recorded in each slice doc.
 - `phase3_catalog.py --self-test` exercises isolated slug discovery, manifest selection, and interop-gate classification across docs, dumps, and fixture candidates.
 - `phase3_catalog.py --legacy-wrapper-docs` lists the discovered slice docs that still point at legacy `check-phase3-*.py` compatibility wrappers.
