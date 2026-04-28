@@ -56,7 +56,9 @@
       ],
       "summary": "Committed C-backed parity coverage includes baseline set, zero, and shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past nbits.",
       "unit_test_anchor": "tools/lib/find_bit.zig:test \"find next zero bit skips earlier matches in the same word\"",
-      "unit_test_contract": "Direct Zig unit coverage keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to nbits."
+      "unit_test_contract": "Direct Zig unit coverage keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to nbits.",
+      "boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \"empty and boundary scans return nbits\"",
+      "boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range."
     },
     "tools/lib/rbtree.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
