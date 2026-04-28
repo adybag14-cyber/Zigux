@@ -113,17 +113,11 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
         const fourth_char = src[src_index + 3];
 
         if (third_char == '=' or fourth_char == '=') {
-            var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
-            dst[out_index] = @truncate(value >> 10);
-            out_index += 1;
-
-            if (third_char != '=') {
-                const c = try decodeValue(third_char, variant);
-                value |= @as(u32, c);
-                dst[out_index] = @truncate(value >> 2);
-                out_index += 1;
-            }
-
+            const tail_src = if (third_char == '=')
+                src[src_index .. src_index + 2]
+            else
+                src[src_index .. src_index + 3];
+            out_index += try decodeTail(dst[out_index..], tail_src, variant);
             return out_index;
         }
 
@@ -144,21 +138,7 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
     if (tail == 0) {
         return out_index;
     }
-
-    const a = try decodeValue(src[src_index], variant);
-    const b = try decodeValue(src[src_index + 1], variant);
-    var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
-    dst[out_index] = @truncate(value >> 10);
-    out_index += 1;
-
-    if (tail == 2) {
-        return out_index;
-    }
-
-    const c = try decodeValue(src[src_index + 2], variant);
-    value |= @as(u32, c);
-    dst[out_index] = @truncate(value >> 2);
-    out_index += 1;
+    out_index += try decodeTail(dst[out_index..], src[src_index..], variant);
     return out_index;
 }
 
@@ -239,7 +219,7 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
     return out_len + try validateTail(src[src_index..], variant);
 }
 
-fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
+fn decodeTail(dst: []u8, src: []const u8, variant: Variant) DecodeError!usize {
     if (src.len < 2 or src.len > 3) {
         return DecodeError.InvalidInput;
     }
@@ -252,6 +232,7 @@ fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
         if ((value & 0x3ff) != 0) {
             return DecodeError.InvalidInput;
         }
+        dst[0] = @truncate(value >> 10);
         return 1;
     }
 
@@ -260,7 +241,14 @@ fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
     if ((value & 0x3) != 0) {
         return DecodeError.InvalidInput;
     }
+    dst[0] = @truncate(value >> 10);
+    dst[1] = @truncate(value >> 2);
     return 2;
+}
+
+fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
+    var scratch: [2]u8 = undefined;
+    return decodeTail(scratch[0..], src, variant);
 }
 
 fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
@@ -385,6 +373,33 @@ test "decode covers padded, unpadded, and variant inputs" {
 
     const imap_padded_len = try decode(variant_out[0..], "APv,f4A=", true, .imap);
     try std.testing.expectEqualSlices(u8, &sample, variant_out[0..imap_padded_len]);
+}
+
+test "decode and bytes cover one-byte and two-byte variant tails" {
+    const urlsafe_one = [_]u8{0xfb};
+    const urlsafe_two = [_]u8{ 0xff, 0xf0 };
+    var out: [4]u8 = undefined;
+
+    try std.testing.expectEqual(@as(usize, 1), try bytes("-w", false, .urlsafe));
+    try std.testing.expectEqual(@as(usize, 1), try bytes("-w==", true, .urlsafe));
+    try std.testing.expectEqual(@as(usize, 1), try decode(out[0..], "-w", false, .urlsafe));
+    try std.testing.expectEqualSlices(u8, &urlsafe_one, out[0..1]);
+    try std.testing.expectEqual(@as(usize, 1), try decode(out[0..], "-w==", true, .urlsafe));
+    try std.testing.expectEqualSlices(u8, &urlsafe_one, out[0..1]);
+
+    try std.testing.expectEqual(@as(usize, 2), try bytes("__A", false, .urlsafe));
+    try std.testing.expectEqual(@as(usize, 2), try bytes("__A=", true, .urlsafe));
+    try std.testing.expectEqual(@as(usize, 2), try decode(out[0..], "__A", false, .urlsafe));
+    try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
+    try std.testing.expectEqual(@as(usize, 2), try decode(out[0..], "__A=", true, .urlsafe));
+    try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
+
+    try std.testing.expectEqual(@as(usize, 2), try bytes(",,A", false, .imap));
+    try std.testing.expectEqual(@as(usize, 2), try bytes(",,A=", true, .imap));
+    try std.testing.expectEqual(@as(usize, 2), try decode(out[0..], ",,A", false, .imap));
+    try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
+    try std.testing.expectEqual(@as(usize, 2), try decode(out[0..], ",,A=", true, .imap));
+    try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
 }
 
 test "decode accepts exact-fit buffers and rejects one-byte-short buffers" {
