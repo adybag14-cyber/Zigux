@@ -126,6 +126,7 @@ required_closure_markers = [
     "phase10-mmio-config-write-helper",
     "phase10-config-delivery-disposition-helper",
     "phase10-virtio-input-registration-preflight-helper",
+    "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
     "blocked_on_risky_transport",
@@ -376,7 +377,7 @@ else:
 
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
-    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-preflight-helper",
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-queue-callback-preflight-helper",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-config-write-helper",
 }
 if ready_transport_followups != expected_ready_transport_followups:
@@ -445,6 +446,10 @@ if not has_gap_status(core_manifest, "phase10-config-delivery-disposition-helper
     missing_markers.append("phase10_virtio_core_manifest:phase10-config-delivery-disposition-helper:starter_landed")
 if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:starter_landed")
+if not has_gap_status(input_manifest, "phase10-virtio-input-registration-preflight-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-preflight-helper:starter_landed")
+if not has_gap_status(input_manifest, "phase10-virtio-input-queue-callback-preflight-helper", "ready_next"):
+    missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-queue-callback-preflight-helper:ready_next")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecycle", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
 if not has_gap_status(mmio_manifest, "phase10-mmio-config-window-helper", "starter_landed"):
