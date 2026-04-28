@@ -178,6 +178,10 @@ required_trace_events_survey_markers = [
     "Documentation/zigux/freeze-map.md",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
+    "Delivery ownership map",
+    "manifest-backed delivery catalog",
+    "zigux/tests/runtime_trace_events_manifest.json",
+    "zigux/tests/phase9_build.zig",
     "runtime task ownership",
     "polling and event-loop substrate",
     "ring-buffer parity",
@@ -195,6 +199,14 @@ required_trace_events_module_slice_markers = [
 ]
 
 required_trace_events_manifest_markers = [
+    '"delivery_evidence_catalog": [',
+    '"id": "runtime-trace-events-manifest"',
+    '"path": "zigux/tests/runtime_trace_events_manifest.json"',
+    '"id": "phase9-trace-events-build-gate"',
+    '"path": "zigux/tests/phase9_build.zig"',
+    '"ownership_map": [',
+    '"surface": "zigux/tests/runtime_trace_events_manifest.json"',
+    '"surface": "Documentation/zigux/freeze-map.md"',
     '"id": "runtime-trace-events-freeze-map-boundary"',
     '"zigux_destination": "Documentation/zigux/phase9-runtime-trace-events-survey.md"',
     '"id": "runtime-trace-events-substrate-handoff"',
@@ -204,11 +216,19 @@ required_trace_events_manifest_markers = [
 ]
 
 required_trace_events_survey_test_markers = [
+    'const DeliveryEvidence = struct {',
+    'const OwnershipEntry = struct {',
     'var saw_freeze_map_boundary = false;',
+    'var saw_manifest_catalog = false;',
+    'var saw_shared_build_catalog = false;',
+    'var saw_freeze_map_catalog = false;',
     'std.mem.eql(u8, gap.id, "runtime-trace-events-freeze-map-boundary")',
+    'std.mem.eql(u8, entry.id, "runtime-trace-events-manifest")',
+    'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_manifest.json")',
     'std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md")',
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
+    'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
     'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
 ]
 
