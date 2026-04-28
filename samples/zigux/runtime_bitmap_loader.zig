@@ -145,6 +145,34 @@ test "runtime bitmap loader keeps unavailable substrate and lifecycle guards exp
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeBitmapLoader.planFor(&module));
 }
 
+test "runtime bitmap loader snapshots the prepared bitmap summary before later sample mutation" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+
+    var loader = RuntimeBitmapLoader{};
+    const prepared = try loader.prepare(&module);
+
+    try module.clearRange(0, 1);
+    try module.setRange(9, 4);
+
+    const mutated_summary = module.summary();
+    try std.testing.expectEqual(@as(u32, 5), mutated_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), mutated_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), mutated_summary.weight);
+
+    const pending_plan = try loader.requestRuntimeLoad();
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.initialized, prepared.handoff_stage);
+    try std.testing.expectEqual(prepared.handoff_stage, pending_plan.handoff_stage);
+    try std.testing.expectEqual(prepared.summary.first_set, pending_plan.summary.first_set);
+    try std.testing.expectEqual(prepared.summary.first_zero, pending_plan.summary.first_zero);
+    try std.testing.expectEqual(prepared.summary.weight, pending_plan.summary.weight);
+    try std.testing.expectEqual(prepared.summary.nbits, pending_plan.summary.nbits);
+    try std.testing.expectEqual(@as(u32, 0), pending_plan.summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), pending_plan.summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);
+}
+
 test "runtime bitmap loader emits the shared runtime-loader request shape" {
     var module = runtime_bitmap_sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, 64, 70 });
