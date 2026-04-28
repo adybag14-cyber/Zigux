@@ -102,7 +102,7 @@ pub const standard_decode_cases = [_]DecodeCase{
     .{ .input = "Zm9vYmFy", .expected = "foobar", .padding = false, .variant_name = "std" },
     .{ .input = "TWFu", .expected = "Man", .padding = false, .variant_name = "std" },
     .{ .input = "SGVsbG8sIHdvcmxkIQ", .expected = "Hello, world!", .padding = false, .variant_name = "std" },
-    .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", .expected = "ABCDEFGHIIJKLMNOPQRSTUVWXYZ", .padding = false, .variant_name = "std" },
+    .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", .expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", .padding = false, .variant_name = "std" },
     .{ .input = "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo", .expected = "abcdefghijklmnopqrstuvwxyz", .padding = false, .variant_name = "std" },
     .{ .input = "MDEyMzQ1Njc4OSsv", .expected = "0123456789+/", .padding = false, .variant_name = "std" },
 };
