@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L12",
   "phase": "Phase 13",
-  "surveyed_commit": "a4f70b77b2b4e5c03f5362644f7deda7964167bd",
+  "surveyed_commit": "4ee5cca6c2c1219fc6f267d3817d1dd0ef37e066",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
@@ -90,11 +90,18 @@
       "why_now": "The ruleset helper now includes one bounded `create_rule()` materialization planner around copied layer stacks, optional merged-layer append behavior, `RB_CLEAR_NODE()` initialization, and whether the key kind would imply object-backed ownership, while still avoiding allocation, live refcounts, or `rb_replace_node()` state."
     },
     {
+      "id": "phase13-landlock-rule-release-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now includes one bounded `free_rule()` release planner around the unconditional `might_sleep()` boundary, the null-rule early return, `landlock_put_object()` only for inode-backed keys, and `kfree()` intent only when a rule is present, while still avoiding live refcount mutation or deferred workqueue ownership."
+    },
+    {
       "id": "phase13-landlock-live-tree-state-blocker",
       "status": "blocked_on_live_lsm_state",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next remaining ruleset gap now starts after helper-only materialization planning and crosses into `rb_replace_node()`, live object ownership transfer or release, hierarchy lifetime, and other ruleset state that would overstate this helper lab if it were modeled as a pure in-memory followup."
+      "why_now": "The next remaining ruleset gap now starts after helper-only materialization and release planning and crosses into `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other ruleset state that would overstate this helper lab if it were modeled as a pure in-memory followup."
     }
   ]
 }
