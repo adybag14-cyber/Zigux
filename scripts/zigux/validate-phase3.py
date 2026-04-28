@@ -211,7 +211,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
 
 
 def validate_source_markers(root: Path, slug: str, issues: list[str]) -> None:
-    for rel, markers in _required_source_markers_for_slug(slug).items():
+    for rel, markers in _required_source_markERS_for_slug(slug).items():
         path = root / rel
         try:
             content = path.read_text(encoding="utf-8")
@@ -276,7 +276,7 @@ def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[st
     expected = {entry.check_script.resolve() for entry in slices}
     for path in sorted((root / "scripts" / "zigux").glob("check-phase3-*.py")):
         if path.resolve() not in expected:
-            issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
+            issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}" )
 
 
 def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -354,7 +354,7 @@ def run_self_test() -> int:
         for rel in ABI_REQUIRED_MANIFEST_FILES:
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.writeText("// abi boundary\n", encoding="utf-8", newline="\n")
+            target.write_text("// abi boundary\n", encoding="utf-8", newline="\n")
 
         (root / "zigux" / "helpers" / "layout_assert.zig").write_text(
             'test "phase3 layout assertions cover canonical bindings" {\n'
@@ -447,17 +447,17 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_export_uapi_build.zig").writeText(
+        (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
             'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");\n',
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_policy_unsafe_build.zig").writeText(
+        (paths.tests_dir / "phase3_policy_unsafe_build.zig").write_text(
             'const phase3_policy_unsafe_step = b.step("phase3-policy-unsafe-test", "Run focused Phase 3 policy and unsafe substrate tests");\n',
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").writeText(
+        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
             'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
             newline="\n",
@@ -466,7 +466,7 @@ def run_self_test() -> int:
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
         partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-8])
-        abi_manifest_path.writeText(
+        abi_manifest_path.write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
@@ -492,7 +492,7 @@ def run_self_test() -> int:
             "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
         ]
 
-        abi_manifest_path.writeText(
+        abi_manifest_path.write_text(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "abi-slice", "files": list(ABI_REQUIRED_MANIFEST_FILES), "file_count": len(ABI_REQUIRED_MANIFEST_FILES)}),
             encoding="utf-8",
             newline="\n",
@@ -500,7 +500,7 @@ def run_self_test() -> int:
         assert validate_manifest(root, abi_manifest_path, "abi", []) is not None
 
         abi_doc_path = root / "tmp" / "phase3-abi-slice.md"
-        abi_doc_path.writeText(
+        abi_doc_path.write_text(
             "\n".join([
                 "PHASE3_STATUS=ready",
                 "PHASE3_SLICE=abi-slice",
@@ -515,7 +515,7 @@ def run_self_test() -> int:
         )
         assert validate_slices(root, []) == []
 
-        (root / "zigux" / "helpers" / "panic_policy.zig").writeText(
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
@@ -529,7 +529,7 @@ def run_self_test() -> int:
         assert drift_issues == [
             'abi:missing_source_marker=zigux/helpers/panic_policy.zig:test "phase3 panic policy stays explicit"',
         ]
-        (root / "zigux" / "helpers" / "panic_policy.zig").writeText(
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
@@ -538,7 +538,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "helpers" / "barrier.zig").writeText(
+        (root / "zigux" / "helpers" / "barrier.zig").write_text(
             "pub fn acquire() void {}\n"
             "pub fn release() void {}\n"
             "pub fn full() void {}\n\n"
@@ -551,7 +551,7 @@ def run_self_test() -> int:
         assert barrier_drift_issues == [
             'abi:missing_source_marker=zigux/helpers/barrier.zig:test "phase3 barrier wrappers stay local to each barrier probe"',
         ]
-        (root / "zigux" / "helpers" / "barrier.zig").writeText(
+        (root / "zigux" / "helpers" / "barrier.zig").write_text(
             "pub fn acquire() void {}\n"
             "pub fn release() void {}\n"
             "pub fn full() void {}\n\n"
@@ -561,7 +561,7 @@ def run_self_test() -> int:
         )
 
         manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
-        (paths.docs_dir / "phase3-alpha-slice.md").writeText(
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join([
                 "PHASE3_STATUS=ready",
                 "PHASE3_SLICE=alpha-slice",
@@ -573,11 +573,11 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.scripts_dir / "check-phase3-alpha.py").writeText(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").writeText("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").writeText("{}\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_c_harness.c").writeText("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_manifest.json").writeText(
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "alpha-slice", "files": [manifest_rel], "file_count": 1}),
             encoding="utf-8",
             newline="\n",
