@@ -61,6 +61,7 @@ RELEASE_MARKERS = [
     "PHASE13_VALIDATE_ENTRYPOINT=make -C zigux phase13-validate",
     "PHASE13_SHARED_BUILD_PRESENT=yes",
     "PHASE13_SHARED_MAKE_TARGET_PRESENT=yes",
+    "PHASE13_SHARED_REPLAY_STEP_COUNT=7",
     "PHASE13_RELEASE_CLOSED=no",
     "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
     "phase13_notifier_list_reviewability.zig",
@@ -161,6 +162,9 @@ build_text = text("zigux/tests/phase13_build.zig")
 build_names = BUILD_TEST_NAME_RE.findall(build_text)
 if build_names != BUILD_NAME_MARKERS:
     missing.append("build:test_names")
+for build_name in BUILD_NAME_MARKERS:
+    if build_name not in release_text:
+        missing.append(f"release:shared_replay_step:{build_name}")
 depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
 if len(depend_steps) != 7:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
