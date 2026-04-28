@@ -52,6 +52,7 @@ The current tests check:
 
 - integer-key hits at the beginning, middle, and end of a sorted slice
 - misses below, between, and above known values
+- singleton and empty-slice lookups keep the same found-or-null boundary as the external parity replay
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful lookups
 - mutable-pointer parity when searching mutable storage
