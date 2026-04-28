@@ -73,6 +73,8 @@ required_script_readme_markers = [
     "phase9-runtime-loader-gap-survey.md",
     "review-checklist.md",
     "manifest-backed catalog and ownership map",
+    "selftest-hook markers",
+    "bounded lifecycle-parity posture",
 ]
 
 required_tests_readme_markers = [
@@ -92,6 +94,8 @@ required_doc_readme_markers = [
     "make -C zigux phase9-validate",
     "zigux/tests/phase9_build.zig",
     "manifest-backed catalog and ownership map",
+    "selftest-hook markers",
+    "bounded lifecycle-parity posture",
 ]
 
 required_freeze_map_markers = [
@@ -102,6 +106,7 @@ required_freeze_map_markers = [
 
 required_review_checklist_markers = [
     "if the change is a Phase 9 runtime slice, do the module or sample note, the manifest-backed survey or loader-gap survey, and the shared `phase9_build.zig` entrypoint still agree on the same Linux anchor, bounded blocker posture, and replay scope?",
+    "if the change is a Phase 9 runtime slice, do the shipped sample, manifest-backed survey, and shared `phase9_build.zig` evidence still keep the roadmap's selftest-hook markers and bounded lifecycle-parity posture explicit instead of implying a loadable module path that the runtime substrate does not support yet?",
     "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
     "if a Phase 9 runtime trace-events change touches the frozen trace-core boundary, do `Documentation/zigux/freeze-map.md`, the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `kernel/trace/ring_buffer.c` as `Study / Boundary Only` and require an Architecture Council decision before any status change?",
