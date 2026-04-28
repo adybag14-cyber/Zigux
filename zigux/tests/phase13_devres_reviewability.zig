@@ -55,10 +55,10 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("8d5b5b18ae2628a05b3437ef124a2fc57f9672a2", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("7f50505d85ecd5e25afa9d833310cc24002de8ae", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
