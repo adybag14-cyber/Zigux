@@ -4,7 +4,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `8d5b5b18ae2628a05b3437ef124a2fc57f9672a2`
+- reviewed against live `master` `7f50505d85ecd5e25afa9d833310cc24002de8ae`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the `devm_ioremap_uc()` and `devm_ioremap_wc()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - the current helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, so the Phase 13 packet remains outside DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
