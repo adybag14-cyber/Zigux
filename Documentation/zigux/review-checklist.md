@@ -3,7 +3,7 @@
 Use this checklist before opening or merging Zigux product work.
 
 ## Scope
-- is the target phase named explicitly?
+- is the current roadmap phase named explicitly?
 - is the status bucket explicit: port now, port after substrate, dual implementation required, study only, or freeze in C initially?
 - is the Linux anchor file or tree path named directly?
 
@@ -45,7 +45,7 @@ Use this checklist before opening or merging Zigux product work.
 - if the change touches the Phase 14 workqueue bridge lane, do `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, `Documentation/zigux/phase14-workqueue-bridge-survey.md`, and `zigux/tests/phase14_workqueue_bridge.zig` still agree on the same boundary-map-only posture, the same thirteen-checkpoint audit outline, and the same current `drain_workqueue()`, `__flush_work()`, or `__cancel_work_sync()` follow-up without implying live worker-pool, scheduler-hook, or rescuer ownership?
 - if the change touches a freeze-map anchor, is the parity scorecard evidence or blocker state explicit?
 - if the change asks for a freeze-map status change, is the Architecture Council review record linked and are the current status bucket plus requested decision bucket explicit?
-- if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
+- if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit, and are the current roadmap phase plus written rationale explicit too?
 - if a freeze-map anchor reopens because `ownership_or_validation_changed`, does the packet refresh both the current lane owner and the rollback owner before active review resumes?
 - if a freeze-map anchor is entering Architecture Council status review, is the rollback threshold explicit and does the packet name the automatic return-to-blocked trigger if the decision record, scorecard evidence, benchmark notes, replay command, blocker disposition, or rollback owner drops out?
 - if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the indefinite-C policy link or explicit non-applicability note, and the reopen triggers explicit?
