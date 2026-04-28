@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -92,6 +94,13 @@ def emit_result(matched: bool, details: dict[str, object]) -> int:
     return 0
 
 
+def capture_emit_result(matched: bool, details: dict[str, object]) -> tuple[int, list[str]]:
+    stream = io.StringIO()
+    with contextlib.redirect_stdout(stream):
+        exit_code = emit_result(matched, details)
+    return exit_code, stream.getvalue().splitlines()
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_artifact_diff_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -135,11 +144,30 @@ def run_self_test() -> int:
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert matched
         assert details['expected_sha256'] == details['actual_sha256']
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 0
+        assert lines == [
+            'ARTIFACT_DIFF=pass',
+            'MODE=sha256',
+            f'EXPECTED={blob_a}',
+            f'ACTUAL={blob_b}',
+            f"SHA256={details['expected_sha256']}",
+        ]
 
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
         assert details['expected_exists'] is False
         assert details['actual_exists'] is True
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=text',
+            f'EXPECTED={missing}',
+            f'ACTUAL={text_a}',
+            'EXPECTED_EXISTS=False',
+            'ACTUAL_EXISTS=True',
+        ]
 
     print('ARTIFACT_DIFF_SELF_TEST=pass')
     return 0
