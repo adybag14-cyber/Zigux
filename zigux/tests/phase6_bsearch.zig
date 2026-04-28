@@ -53,6 +53,20 @@ test "phase 6 bsearch rejects missing integer keys without widening the contract
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 40), values[0..], compareU32));
 }
 
+test "phase 6 bsearch keeps singleton and empty slices on the same found-or-null boundary" {
+    const empty = [_]u32{};
+    var singleton = [_]u32{21};
+
+    try std.testing.expectEqual(@as(?usize, 0), bsearch.searchIndex(u32, u32, &@as(u32, 21), singleton[0..], compareU32));
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 20), singleton[0..], compareU32));
+    try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 21), empty[0..], compareU32) == null);
+
+    const found = bsearch.searchMutable(u32, u32, &@as(u32, 21), singleton[0..], compareU32) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&singleton[0]), @intFromPtr(found));
+    found.* = 22;
+    try std.testing.expectEqual(@as(u32, 22), singleton[0]);
+}
+
 test "phase 6 bsearch supports string keys against sorted records" {
     const symbols = [_]Symbol{
         .{ .name = "do_exit", .address = 0x1000 },
