@@ -16,14 +16,25 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const ExactCheck = struct {
+    id: []const u8,
+    kind: []const u8,
+    expected: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    sample_path: []const u8,
+    validation_entrypoint: []const u8,
     survey_summary: SurveySummary,
+    review_prompts: []const []const u8,
+    exact_checks: []const ExactCheck,
     gaps: []const Gap,
+    non_goals: []const []const u8,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -61,12 +72,98 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap.zig", manifest.sample_path);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.validation_entrypoint);
     try std.testing.expect(manifest.survey_summary.test_bitmap_c_lines >= 1000);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_bitmap_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
+    try std.testing.expect(manifest.review_prompts.len >= 5);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+
+    var saw_descriptor_contract = false;
+    var saw_initial_summary = false;
+    var saw_range_mutation_copy = false;
+    var saw_selftest_surface = false;
+    var saw_exit_lifecycle = false;
+    var saw_bounds_errors = false;
+    var saw_zero_length_source_guards = false;
+    var saw_diff_fill_case = false;
+    var saw_diff_cutout_case = false;
+    var saw_diff_sparse_copy_case = false;
+
+    for (manifest.review_prompts) |prompt| {
+        try std.testing.expect(prompt.len > 0);
+    }
+
+    for (manifest.exact_checks, 0..) |check, i| {
+        try std.testing.expect(check.id.len > 0);
+        try std.testing.expect(check.kind.len > 0);
+        try std.testing.expect(check.expected.len > 0);
+
+        if (std.mem.eql(u8, check.id, "descriptor-contract")) {
+            saw_descriptor_contract = true;
+            try std.testing.expectEqualStrings("review_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime_bitmap") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires_runtime_substrate true") != null);
+        }
+        if (std.mem.eql(u8, check.id, "initial-summary")) {
+            saw_initial_summary = true;
+            try std.testing.expectEqualStrings("summary_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "first_set 0") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "weight 4") != null);
+        }
+        if (std.mem.eql(u8, check.id, "range-mutation-and-copy")) {
+            saw_range_mutation_copy = true;
+            try std.testing.expectEqualStrings("mutation_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "weight 7") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "copyFrom") != null);
+        }
+        if (std.mem.eql(u8, check.id, "selftest-surface")) {
+            saw_selftest_surface = true;
+            try std.testing.expectEqualStrings("selftest_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "clear_set") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "iteration_and_ranges") != null);
+        }
+        if (std.mem.eql(u8, check.id, "exit-and-lifecycle-guards")) {
+            saw_exit_lifecycle = true;
+            try std.testing.expectEqualStrings("ownership_lifetime", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
+        }
+        if (std.mem.eql(u8, check.id, "bounds-errors")) {
+            saw_bounds_errors = true;
+            try std.testing.expectEqualStrings("input_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "BitRangeOutOfBounds") != null);
+        }
+        if (std.mem.eql(u8, check.id, "zero-length-and-source-guards")) {
+            saw_zero_length_source_guards = true;
+            try std.testing.expectEqualStrings("helper_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidSourceLifecycle") != null);
+        }
+        if (std.mem.eql(u8, check.id, "diff-fill-set-case")) {
+            saw_diff_fill_case = true;
+            try std.testing.expectEqualStrings("differential_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "first_zero 9") != null);
+        }
+        if (std.mem.eql(u8, check.id, "diff-clear-cutout-case")) {
+            saw_diff_cutout_case = true;
+            try std.testing.expectEqualStrings("differential_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "clearRange(79, 19)") != null);
+        }
+        if (std.mem.eql(u8, check.id, "diff-find-nth-and-copy-case")) {
+            saw_diff_sparse_copy_case = true;
+            try std.testing.expectEqualStrings("differential_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "bits 10, 20, 30, 40, 50, 60, 80, and 123") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "weight 109") != null);
+        }
+
+        for (manifest.exact_checks[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, check.id, other.id));
+        }
+    }
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -143,6 +240,16 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(saw_descriptor_contract);
+    try std.testing.expect(saw_initial_summary);
+    try std.testing.expect(saw_range_mutation_copy);
+    try std.testing.expect(saw_selftest_surface);
+    try std.testing.expect(saw_exit_lifecycle);
+    try std.testing.expect(saw_bounds_errors);
+    try std.testing.expect(saw_zero_length_source_guards);
+    try std.testing.expect(saw_diff_fill_case);
+    try std.testing.expect(saw_diff_cutout_case);
+    try std.testing.expect(saw_diff_sparse_copy_case);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
