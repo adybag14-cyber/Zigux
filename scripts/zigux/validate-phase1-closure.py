@@ -58,8 +58,8 @@ required_closure_markers = [
     'PHASE1_STRING_REVIEW=string parity covers true, false, and invalid bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
-    'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim stop at the first embedded NUL"`',
-    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim stop at the first embedded NUL before trailing-whitespace trimming or wrapper-alias return slices can drift into later bytes',
+    'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
+    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -209,9 +209,9 @@ if string_review.get('unit_test_anchor') != 'tools/lib/string.zig:test "memchrIn
     missing_markers.append('manifest:string.unit_test_anchor')
 if string_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.':
     missing_markers.append('manifest:string.unit_test_contract')
-if string_review.get('alias_unit_test_anchor') != 'tools/lib/string.zig:test "trimSpaces and strim stop at the first embedded NUL"':
+if string_review.get('alias_unit_test_anchor') != 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"':
     missing_markers.append('manifest:string.alias_unit_test_anchor')
-if string_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by stopping at the first embedded NUL before trailing-whitespace trimming or wrapper-alias return slices can drift into later bytes.':
+if string_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.':
     missing_markers.append('manifest:string.alias_unit_test_contract')
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
