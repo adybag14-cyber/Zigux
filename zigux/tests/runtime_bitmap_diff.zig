@@ -18,6 +18,8 @@ const DiffCase = struct {
     set_ranges: []const RangeOp,
     clear_ranges: []const RangeOp,
     expected_summary: SummaryExpectation,
+    expected_nth_set_bit_prefix: []const u32,
+    expects_more_set_bits_after_prefix: bool,
     must_be_set: []const u32,
     must_be_clear: []const u32,
 };
@@ -39,6 +41,16 @@ fn expectCase(case: DiffCase) !void {
     try std.testing.expectEqual(case.expected_summary.weight, summary.weight);
     try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, summary.nbits);
 
+    for (case.expected_nth_set_bit_prefix, 0..) |bit, index| {
+        try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
+    }
+    const next_after_prefix = module.nthSetBit(@intCast(case.expected_nth_set_bit_prefix.len));
+    if (case.expects_more_set_bits_after_prefix) {
+        try std.testing.expect(next_after_prefix != null);
+    } else {
+        try std.testing.expectEqual(@as(?u32, null), next_after_prefix);
+    }
+
     for (case.must_be_set) |bit| {
         try std.testing.expect(module.isSet(bit));
     }
@@ -55,6 +67,8 @@ test "runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations" {
             .set_ranges = &.{.{ .start = 0, .len = 9 }},
             .clear_ranges = &.{},
             .expected_summary = .{ .first_set = 0, .first_zero = 9, .weight = 9 },
+            .expected_nth_set_bit_prefix = &.{ 0, 1, 2, 3, 4, 5, 6, 7, 8 },
+            .expects_more_set_bits_after_prefix = false,
             .must_be_set = &.{ 0, 8 },
             .must_be_clear = &.{ 9, 10, sample.RuntimeBitmapSample.bitmap_nbits - 1 },
         },
@@ -68,6 +82,8 @@ test "runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations" {
                 .first_zero = 79,
                 .weight = sample.RuntimeBitmapSample.bitmap_nbits - 19,
             },
+            .expected_nth_set_bit_prefix = &.{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 },
+            .expects_more_set_bits_after_prefix = true,
             .must_be_set = &.{ 0, 78, 98, sample.RuntimeBitmapSample.bitmap_nbits - 1 },
             .must_be_clear = &.{ 79, 97 },
         },
@@ -77,6 +93,8 @@ test "runtime bitmap diff gate replays bounded lib/test_bitmap.c expectations" {
             .set_ranges = &.{},
             .clear_ranges = &.{},
             .expected_summary = .{ .first_set = 10, .first_zero = 0, .weight = 8 },
+            .expected_nth_set_bit_prefix = &.{ 10, 20, 30, 40, 50, 60, 80, 123 },
+            .expects_more_set_bits_after_prefix = false,
             .must_be_set = &.{ 10, 80, 123 },
             .must_be_clear = &.{ 0, 79, 124 },
         },
