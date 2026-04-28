@@ -210,7 +210,8 @@ required_checksum_perf_markers = [
     'fixtures.fillPerfPayload(payload);',
     'referencePartial',
     'ns_per_byte',
-    'try std.testing.expect(elapsed > 0);',
+    'slowdown_samples',
+    'median3(',
 ]
 
 required_hexdump_perf_markers = [
