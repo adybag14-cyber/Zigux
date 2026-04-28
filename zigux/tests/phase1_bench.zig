@@ -16,6 +16,7 @@ const Entry = struct {
 
 const iterations_bitmap = 20_000;
 const iterations_bitmap_window = 20_000;
+const iterations_bitmap_copy = 20_000;
 const iterations_bitmap_scnprintf = 12_000;
 const iterations_find_bit = 20_000;
 const iterations_find_zero_bit = 20_000;
@@ -59,7 +60,7 @@ fn bitmapWindowBench() struct { checksum: u64 } {
             rhs[1] &= ~(@as(bitmap.Word, 1) << 4);
         } else {
             lhs[1] &= ~(@as(bitmap.Word, 1) << 2);
-            rhs[1] |= (@as(bitmap.Word, 1) << 4);
+            rhs[1] |= @as(bitmap.Word, 1) << 4;
         }
 
         bitmap.orBits(&dst, &lhs, &rhs, nbits);
@@ -75,6 +76,44 @@ fn bitmapWindowBench() struct { checksum: u64 } {
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
         checksum +%= @as(u64, @intFromBool(bitmap.intersects(&lhs, &rhs, nbits)));
         checksum +%= @as(u64, @intFromBool(bitmap.subset(&rhs, &dst, nbits)));
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn bitmapCopyBench() struct { checksum: u64 } {
+    const full_nbits = bitmap.bits_per_long * 3;
+    const aligned_copy_nbits = bitmap.bits_per_long + 33;
+    const partial_tail_nbits = bitmap.bits_per_long + 45;
+
+    var sparse_src = [_]bitmap.Word{0} ** bitmap.bitsToWords(full_nbits);
+    var dense_src = [_]bitmap.Word{
+        ~@as(bitmap.Word, 0),
+        ~@as(bitmap.Word, 0),
+        0,
+    };
+    var dst = [_]bitmap.Word{0} ** bitmap.bitsToWords(full_nbits);
+
+    bitmap.setRange(&sparse_src, 0, 109);
+    dense_src[2] = 0;
+
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_bitmap_copy) : (idx += 1) {
+        bitmap.fill(&dst, full_nbits);
+        bitmap.copy(&dst, &sparse_src, aligned_copy_nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
+        checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+
+        bitmap.fill(&dst, full_nbits);
+        bitmap.copy(&dst, &dense_src, partial_tail_nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
+        checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+
+        bitmap.fill(&dst, full_nbits);
+        bitmap.copyClearTail(&dst, &dense_src, partial_tail_nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
+        checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
     }
 
     return .{ .checksum = checksum };
@@ -176,7 +215,7 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64 } {
 
 fn findZeroBitBench() struct { checksum: u64 } {
     const nbits = find_bit.bits_per_long * 4 + 11;
-    var map = [_]find_bit.Word{ ~@as(find_bit.Word, 0) } ** find_bit.bitsToWords(nbits);
+    var map = [_]find_bit.Word{~@as(find_bit.Word, 0)} ** find_bit.bitsToWords(nbits);
     map[0] &= ~(@as(find_bit.Word, 1) << 2);
     map[1] &= ~(@as(find_bit.Word, 1) << 7);
     map[2] &= ~(@as(find_bit.Word, 1) << 5);
@@ -335,6 +374,7 @@ pub fn main(init: std.process.Init) !void {
 
     const bitmap_result = bitmapBench();
     const bitmap_window_result = bitmapWindowBench();
+    const bitmap_copy_result = bitmapCopyBench();
     const bitmap_scnprintf_result = bitmapScnprintfBench();
     const find_bit_result = findBitBench();
     const find_zero_bit_result = findZeroBitBench();
@@ -346,6 +386,7 @@ pub fn main(init: std.process.Init) !void {
 
     std.debug.assert(bitmap_result.checksum != 0);
     std.debug.assert(bitmap_window_result.checksum != 0);
+    std.debug.assert(bitmap_copy_result.checksum != 0);
     std.debug.assert(bitmap_scnprintf_result.checksum != 0);
     std.debug.assert(find_bit_result.next_checksum != 0);
     std.debug.assert(find_bit_result.family_checksum != 0);
@@ -361,6 +402,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM={d}\n", .{bitmap_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS={d}\n", .{iterations_bitmap_window});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM={d}\n", .{bitmap_window_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_COPY_ITERATIONS={d}\n", .{iterations_bitmap_copy});
+    try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_COPY_CHECKSUM={d}\n", .{bitmap_copy_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_SCNPRINTF_ITERATIONS={d}\n", .{iterations_bitmap_scnprintf});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_SCNPRINTF_CHECKSUM={d}\n", .{bitmap_scnprintf_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
