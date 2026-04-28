@@ -96,6 +96,7 @@ required_doc_readme_markers = [
     "manifest-backed catalog and ownership map",
     "selftest-hook markers",
     "bounded lifecycle-parity posture",
+    "existing atomic64, bitmap, or kretprobe loader plans",
 ]
 
 required_freeze_map_markers = [
@@ -120,8 +121,11 @@ required_loader_gap_survey_markers = [
     "zigux/tests/runtime_loader_gap_survey.zig",
     "zigux/tests/phase9_build.zig",
     "zigux/kernel/runtime_loader.zig",
+    "samples/zigux/runtime_atomic64_loader.zig",
     "Delivery ownership map",
     "manifest-backed catalog",
+    "three sample-side loader plans",
+    "atomic64 loader-plan projection",
     "bitmap loader-plan projection",
     "kretprobe loader-plan projection",
     "Phase 8",
@@ -145,6 +149,8 @@ required_loader_gap_survey_test_markers = [
     "runtime loader gap survey keeps the review checklist runtime guardrails explicit",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/runtime_loader_gap_manifest.json",
+    'std.mem.indexOf(u8, survey_note, "three sample-side loader plans")',
+    'std.mem.indexOf(u8, survey_note, "atomic64 loader-plan projection")',
 ]
 
 required_loader_gap_manifest_markers = [
