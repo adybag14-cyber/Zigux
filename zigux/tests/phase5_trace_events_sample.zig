@@ -69,6 +69,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
     try module.registerFunctionCallback();
+    try std.testing.expectError(error.CallbackAlreadyRegistered, module.registerFunctionCallback());
     try module.replayFunctionIteration(3);
     try std.testing.expectEqual(@as(i32, 3), module.last_function_count);
     try std.testing.expect(module.saw_function_callback_path);
@@ -88,6 +89,7 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try module.registerFunctionCallback();
+    try std.testing.expectError(error.CallbackAlreadyRegistered, module.registerFunctionCallback());
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
     try module.unregisterFunctionCallback();
     try module.exit();
