@@ -249,7 +249,7 @@ test "phase11 dw_wdt survey keeps the watchdog header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
 }
 
-test "phase11 dw_wdt notes stay pinned to the manifest commit and platform-resource preflight wording" {
+test "phase11 dw_wdt notes stay pinned to the manifest commit and platform-resource ordering wording" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -292,9 +292,14 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and platform-resou
     defer std.testing.allocator.free(commit_marker);
 
     const preflight_marker = "timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring";
+    const resource_order_marker = "tclk, optional pclk, reset, irq, and registration sequencing";
+    try std.testing.expect(std.mem.indexOf(u8, preflight_gap.why_now, "live resource-order summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, preflight_gap.why_now, resource_order_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, preflight_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, resource_order_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, preflight_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, resource_order_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked on platform-driver scaffold work") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked on platform-driver scaffold work") != null);
 }
