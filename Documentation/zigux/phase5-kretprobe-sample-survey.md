@@ -6,7 +6,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
-- scope: roadmap-vs-repo sample delivery, approved probe-lifecycle guidance, and exact bounded checks for the first `samples/zigux/` kretprobe-style replay
+- scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   - `Documentation/zigux/README.md`
@@ -20,7 +20,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kprobes/kretprobe_example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference samples plus a later Phase 9 runtime `kretprobe` starter. The missing Phase 5 job was still the earlier non-runtime reading of the same Linux anchor so reviewers can see the anchor behavior without confusing it with runtime substrate work.
+Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `kretprobe_example` slice. The kretprobe-specific job is no longer missing sample delivery; it is to keep this probe-lifecycle idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
 
 ## Survey findings
 
@@ -32,7 +32,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference s
   - return-value and duration reporting from the stored entry timestamp
   - a fixed `maxactive = 20` concurrency budget plus the exit-side `nmissed` summary that explains when that budget was too low
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
-- the honest Phase 5 move is to make symbol choice, skip behavior, the one-word private timestamp record, duration bookkeeping, the fixed `maxactive` budget, and the `nmissed` summary reviewable in memory while leaving probe registration and module plumbing out of scope.
+- the ongoing Phase 5 review job is to keep symbol choice, skip behavior, the one-word private timestamp record, duration bookkeeping, the fixed `maxactive` budget, and the `nmissed` summary reviewable in memory while leaving probe registration and module plumbing out of scope.
 
 ## Landed sample and exact checks
 
