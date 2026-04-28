@@ -86,7 +86,7 @@ BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 12, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 12, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
-    "phase11_dw_wdt_manifest.json": ("P11-L09", "drivers/watchdog/dw_wdt.c", 11, [], ["phase11-dw-wdt-platform-and-pm"]),
+    "phase11_dw_wdt_manifest.json": ("P11-L10", "drivers/watchdog/dw_wdt.c", 11, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L14", "drivers/tty/hvc/hvc_console.c", 8, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
