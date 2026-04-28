@@ -99,17 +99,24 @@
     },
     {
       "id": "phase10-virtio-input-registration-preflight-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded in-memory registration-preflight summary that records when identity, capability, and multitouch slot-init intent are all present before any `input_register_device()` or transport-backed queue work."
+    },
+    {
+      "id": "phase10-virtio-input-queue-callback-preflight-helper",
       "status": "ready_next",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "With `ABS_MT_SLOT` planning now modeled in memory, the next honest virtio_input follow-up is one tiny registration-preflight summary that records when identity, capability, and slot-init intent are all present before any `input_register_device()` or transport-backed queue work."
+      "why_now": "With registration preflight now modeled in memory, the next honest same-family follow-up is one tiny queue-callback preflight summary that records whether the event queue is filled, the status queue is configured, and the device is ready before any transport-backed callback or registration-lifecycle work."
     },
     {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until the registration-preflight helper and broader queue callback plumbing are in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky until the queue-callback preflight helper and broader queue callback plumbing are in place."
     }
   ]
 }
