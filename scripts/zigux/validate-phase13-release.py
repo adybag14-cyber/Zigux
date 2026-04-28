@@ -17,6 +17,7 @@ FILES = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-libfs-survey.md",
+    "Documentation/zigux/phase13-devres-survey.md",
     "Documentation/zigux/phase13-landlock-ruleset-survey.md",
     "Documentation/zigux/phase13-landlock-syscalls-survey.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
@@ -24,9 +25,11 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_libfs_manifest.json",
+    "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_notifier_list_reviewability.zig",
 ]
 
@@ -52,14 +55,14 @@ RELEASE_MARKERS = [
     "PHASE13_RELEASE_SURVEY=present",
     "PHASE13_RELEASE_VALIDATOR=present",
     "PHASE13_ROADMAP_ANCHOR_COUNT=4",
-    "PHASE13_MANIFEST_BACKED_SURVEY_COUNT=3",
-    "PHASE13_ACTIVE_ASYMMETRIC_ANCHOR_COUNT=1",
+    "PHASE13_MANIFEST_BACKED_SURVEY_COUNT=4",
+    "PHASE13_ACTIVE_ASYMMETRIC_ANCHOR_COUNT=0",
     "PHASE13_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase13-release.py",
     "PHASE13_VALIDATE_ENTRYPOINT=make -C zigux phase13-validate",
     "PHASE13_SHARED_BUILD_PRESENT=yes",
     "PHASE13_SHARED_MAKE_TARGET_PRESENT=yes",
     "PHASE13_RELEASE_CLOSED=no",
-    "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey still missing",
+    "lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked",
     "phase13_notifier_list_reviewability.zig",
     "zig build test --build-file zigux/tests/phase13_build.zig --summary all",
 ]
@@ -68,7 +71,7 @@ TRACEABILITY_MARKERS = [
     "Shared tranche entrypoints already present on `master`:",
     "`zigux/tests/phase13_build.zig`",
     "`zigux/Makefile` via `make -C zigux phase13`",
-    "`lib/devres.c` is represented by real helper code, real tests, and a slice note, but not yet by a committed manifest-backed survey packet",
+    "`lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence",
 ]
 
 SCRIPT_README_MARKERS = [
@@ -77,13 +80,15 @@ SCRIPT_README_MARKERS = [
     "Phase 13 flow",
     "`Documentation/zigux/phase13-release-notes-survey.md`",
     "`Documentation/zigux/phase13-roadmap-traceability.md`",
-    "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/README.md`",
     "`make -C zigux phase13-validate`",
     "`zigux/tests/phase13_build.zig`",
     "`make -C zigux phase13` routes through the validator before the shared replay",
-    "`lib/devres.c` remains the only roadmap anchor without a manifest-backed survey packet",
+    "`Documentation/zigux/phase13-devres-survey.md`",
+    "`zigux/tests/phase13_devres_manifest.json`",
+    "`zigux/tests/phase13_devres_reviewability.zig`",
+    "live DMA-backed mappings and scatterlist ownership",
 ]
 
 BUILD_NAME_MARKERS = [
@@ -92,6 +97,7 @@ BUILD_NAME_MARKERS = [
     "phase13-landlock-ruleset-tests",
     "phase13-landlock-syscalls-tests",
     "phase13-libfs-reviewability-tests",
+    "phase13-devres-reviewability-tests",
     "phase13-notifier-list-reviewability-tests",
 ]
 
@@ -129,19 +135,24 @@ release_text = text("Documentation/zigux/phase13-release-notes-survey.md")
 for rel in [
     "scripts/zigux/validate-phase13-release.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/phase13_build.zig",
     "zigux/Makefile",
     "Documentation/zigux/phase13-libfs-survey.md",
+    "Documentation/zigux/phase13-devres-survey.md",
     "Documentation/zigux/phase13-landlock-ruleset-survey.md",
     "Documentation/zigux/phase13-landlock-syscalls-survey.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_libfs_manifest.json",
+    "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
 ]:
     if rel not in release_text:
         missing.append(f"release:evidence_path:{rel}")
@@ -151,11 +162,12 @@ build_names = BUILD_TEST_NAME_RE.findall(build_text)
 if build_names != BUILD_NAME_MARKERS:
     missing.append("build:test_names")
 depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-if len(depend_steps) != 6:
+if len(depend_steps) != 7:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
+    ("zigux/tests/phase13_devres_manifest.json", "P13-L01", "lib/devres.c"),
     ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
     ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L13", "security/landlock/syscalls.c"),
 ]:
@@ -174,6 +186,12 @@ for manifest_path, lane_key, anchor in [
         missing.append(f"{manifest_path}:build_present")
     if summary.get("preexisting_phase13_make_target_present") is not True:
         missing.append(f"{manifest_path}:make_present")
+
+
+devres_manifest = load_json("zigux/tests/phase13_devres_manifest.json")
+for blocked in ["blocked_on_dma_state", "blocked_on_scatterlist_state"]:
+    if not any(gap.get("status") == blocked for gap in devres_manifest.get("gaps", []) if isinstance(gap, dict)):
+        missing.append(f"zigux/tests/phase13_devres_manifest.json:{blocked}")
 
 notifier_manifest = load_json("zigux/tests/phase13_notifier_list_manifest.json")
 if notifier_manifest.get("phase") != "Phase 13":
