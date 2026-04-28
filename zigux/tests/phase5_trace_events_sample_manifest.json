@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L19",
   "phase": "Phase 5",
-  "surveyed_commit": "08cdfd65024fced143db1ba414423846810e02c8",
+  "surveyed_commit": "7ebb1b604a930f836d76306292d63f4347ba7a26",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "sample_path": "samples/zigux/trace_events_sample.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -25,6 +25,11 @@
       "id": "message-and-string-shape",
       "kind": "bounded_payload",
       "expected": "runAnchorReplay formats iter=7 and selects Gandalf from the Linux random_strings table for len 2"
+    },
+    {
+      "id": "modulo-string-cycle",
+      "kind": "bounded_payload",
+      "expected": "the sample self-check replays counts 0 through 4 so the full modulo-selected string cycle stays explicit: Mother Goose, Snoopy, Gandalf, Frodo, and One ring to rule them all"
     },
     {
       "id": "iteration-cues",
