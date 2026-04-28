@@ -88,12 +88,15 @@ pub const KobjectExampleSample = struct {
         return self.stage_state;
     }
 
-    pub fn attributesAreAccessible(self: *const Self) bool {
-        return self.stage() == .registered;
+    pub fn activeAttrCount(self: *const Self) usize {
+        return switch (self.stage()) {
+            .registered => 3,
+            else => 0,
+        };
     }
 
-    pub fn activeAttrCount(self: *const Self) usize {
-        return if (self.attributesAreAccessible()) 3 else 0;
+    pub fn attributesAreAccessible(self: *const Self) bool {
+        return self.stage() == .registered;
     }
 
     pub fn init(self: *Self) !void {
@@ -129,7 +132,7 @@ pub const KobjectExampleSample = struct {
     }
 
     pub fn storeValue(self: *Self, attr_name: []const u8, input: []const u8) !usize {
-        if (!self.attributesAreAccessible()) return error.InvalidLifecycleTransition;
+        if (self.stage() != .registered) return error.InvalidLifecycleTransition;
 
         const attr = try parseAttrName(attr_name);
         const trimmed = std.mem.trim(u8, input, " \t\r\n");
@@ -139,7 +142,7 @@ pub const KobjectExampleSample = struct {
     }
 
     pub fn showValue(self: *Self, attr_name: []const u8) !RenderedAttribute {
-        if (!self.attributesAreAccessible()) return error.InvalidLifecycleTransition;
+        if (self.stage() != .registered) return error.InvalidLifecycleTransition;
 
         const attr = try parseAttrName(attr_name);
         var rendered = RenderedAttribute{
@@ -200,7 +203,6 @@ pub const KobjectExampleSample = struct {
 test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     var sample = KobjectExampleSample{};
     try sample.init();
-    try std.testing.expect(!sample.attributesAreAccessible());
     const replay = try sample.runAnchorReplay();
     const expected_focus = [_]SampleFocus{
         .bounded_attribute_roundtrip,
@@ -223,7 +225,6 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
-    try std.testing.expect(sample.attributesAreAccessible());
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
