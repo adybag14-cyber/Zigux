@@ -67,13 +67,6 @@ fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
     return compareInt(item, key);
 }
 
-var counted_compare_calls: usize = 0;
-
-fn compareCountedInt(key: *const i32, item: *const i32) i32 {
-    counted_compare_calls += 1;
-    return compareInt(key, item);
-}
-
 const Entry = struct {
     name: []const u8,
     value: u32,
@@ -146,5 +139,53 @@ test "search and searchMutable keep singleton and empty slices on the found-or-n
     try std.testing.expect(searchMutable(i32, i32, &@as(i32, 21), singleton[0..0], compareInt) == null);
 }
 
-test "search accepts duplicate keys without claiming stable selection" {
-    const values = [_]i32{ 1,²H†@Lƒ„–çB’“°¢G'’7FBçFW7F–æræW‡V7B†6÷VçFVEö6ö×&Uö6ÆÇ2ÃÒB“° ¢6÷VçFVEö6ö×&Uö6ÆÇ2Ò°¢G'’7FBçFW7F–æræW‡V7DWVÂ„2ƒ÷W6—¦RÂçVÆÂ’Â6V&6„–æFW‚†“3"Â“3"Âd2†“3"ÂSr’ÂfÇVW5³âåÒÂ6ö×&T6÷VçFVD–çB’“°¢G'’7FBçFW7F–æræW‡V7B†6÷VçFVEö6ö×&Uö6ÆÇ2ÃÒB“° ¢6÷VçFVEö6ö×&Uö6ÆÇ2Ò°¢G'’7FBçFW7F–æræW‡V7DWVÂ„2ƒ÷W6—¦RÂçVÆÂ’Â6V&6„–æFW‚†“3"Â“3"Âd2†“3"Â3’ÂfÇVW5³âåÒÂ6ö×&T6÷VçFVD–çB’“°¢G'’7FBçFW7F–æræW‡V7B†6÷VçFVEö6ö×&Uö6ÆÇ2ÃÒB“°§Ð §FW7B'6V&6‚7W÷'G2†WFW&övVæV÷W2¶W—2F‡&÷Vv‚F†R6ö×&F÷""°¢6öç7BVçG&–W2ÒµõÔVçG'—°¢ç²ææÖRÒ&Ç†"ÂçfÇVRÒÒÀ¢ç²ææÖRÒ&&WF"ÂçfÇVRÒ"ÒÀ¢ç²ææÖRÒ&FVÇF"ÂçfÇVRÒBÒÀ¢ç²ææÖRÒ&öÖVv"ÂçfÇVRÒ#BÒÀ¢Ó° ¢6öç7B&WFÒ6V&6‚…µÖ6öç7BS‚ÂVçG'’Âd2…µÖ6öç7BS‚Â&&WF"’ÂVçG&–W5³âåÒÂ6ö×&TæÖR’÷&VÇ6R&WGW&âW'&÷"åFW7EVæW‡V7FVE&W7VÇC°¢G'’7FBçFW7F–æræW‡V7DWVÂ„2‡S3"Â"’Â&WFçfÇVR“°¢G'’7FBçFW7F–æræW‡V7B‡6V&6‚…µÖ6öç7BS‚ÂVçG'’Âd2…µÖ6öç7BS‚Â&vÖÖ"’ÂVçG&–W5³âåÒÂ6ö×&TæÖR’ÓÒçVÆÂ“°§Ð §FW7B'6V&6‚66WG2'VçF–ÖR×6VÆV7FVB6ö×&F÷"gVæ7F–öâö–çFW'2"°¢6öç7B66VæF–ærÒµõÖ“3'²"ÂBÂrÂÂbÂ#2ÂC"Ó°¢6öç7BFW66VæF–ærÒµõÖ“3'²C"Â#2ÂbÂÂrÂBÂ"Ó°¢6öç7B6ö×&F÷'2ÒµõÔ6ö×&F÷"†“3"Â“3"—²6ö×&T–çBÂ6ö×&TFW66VæF–æt–çBÓ°¢6öç7B6Æ–6W2ÒµõÕµÖ6öç7B“3'²66VæF–æu³âåÒÂFW66VæF–æu³âåÒÓ°¢6öç7BF&vWG2ÒµõÖ“3'²#2ÂrÓ° ¢f÷"†6ö×&F÷'2Â6Æ–6W2ÂF&vWG2’Æ6ö×&RÂ—FV×2ÂF&vWGÂ°¢6öç7Bf÷VæBÒ6V&6‚†“3"Â“3"ÂgF&vWBÂ—FV×2Â6ö×&R’÷&VÇ6R&WGW&âW'&÷"åFW7EVæW‡V7FVE&W7VÇC°¢G'’7FBçFW7F–æræW‡V7DWVÂ‡F&vWBÂf÷VæBâ¢“°¢Ð§Ð 
+test "search accepts duplicate keys across beginning middle and end runs without claiming stable selection" {
+    const cases = [_]struct {
+        values: [6]i32,
+        needle: i32,
+        lower: usize,
+        upper: usize,
+    }{
+        .{ .values = .{ 4, 4, 4, 9, 16, 25 }, .needle = 4, .lower = 0, .upper = 2 },
+        .{ .values = .{ 1, 4, 4, 4, 9, 16 }, .needle = 4, .lower = 1, .upper = 3 },
+        .{ .values = .{ 1, 4, 9, 16, 16, 16 }, .needle = 16, .lower = 3, .upper = 5 },
+    };
+
+    for (cases) |case| {
+        const values = case.values;
+        const index = searchIndex(i32, i32, &case.needle, values[0..], compareInt) orelse return error.TestUnexpectedResult;
+        const found = search(i32, i32, &case.needle, values[0..], compareInt) orelse return error.TestUnexpectedResult;
+        const found_index = (@intFromPtr(found) - @intFromPtr(&values[0])) / @sizeOf(i32);
+
+        try std.testing.expect(index >= case.lower and index <= case.upper);
+        try std.testing.expectEqual(case.needle, values[index]);
+        try std.testing.expect(found_index >= case.lower and found_index <= case.upper);
+        try std.testing.expectEqual(case.needle, found.*);
+    }
+}
+
+test "search supports heterogeneous keys through the comparator" {
+    const entries = [_]Entry{
+        .{ .name = "alpha", .value = 1 },
+        .{ .name = "beta", .value = 2 },
+        .{ .name = "delta", .value = 4 },
+        .{ .name = "omega", .value = 24 },
+    };
+
+    const beta = search([]const u8, Entry, &@as([]const u8, "beta"), entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(u32, 2), beta.value);
+    try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
+}
+
+test "search accepts runtime-selected comparator function pointers" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 23, 7 };
+
+    for (comparators, slices, targets) |compare, items, target| {
+        const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(target, found.*);
+    }
+}
