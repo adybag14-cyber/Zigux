@@ -83,7 +83,13 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8
         if (byte == '\\') {
             if (index + 1 < inner.len) {
                 index += 1;
-                try decoded.append(allocator, inner[index]);
+                const escaped = switch (inner[index]) {
+                    'n' => '\n',
+                    'r' => '\r',
+                    't' => '\t',
+                    else => inner[index],
+                };
+                try decoded.append(allocator, escaped);
             }
             continue;
         }
@@ -303,10 +309,10 @@ test "confdata bridge emits bounded json output" {
 
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
-    var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \"bridge\""
-        \\CONFIG_PATH="drivers\\zigux"
-        \\
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_BANNER=\"zigux \\\"bridge\\\"\"\n" ++
+            "CONFIG_PATH=\"drivers\\\\zigux\"\n",
     );
     defer deinitSummary(allocator, &summary);
 
@@ -314,6 +320,22 @@ test "confdata bridge decodes escaped quoted strings" {
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("zigux \"bridge\"", summary.entries[0].value);
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
+}
+
+test "confdata bridge decodes escaped control sequences in quoted strings" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_BANNER=\"line1\\nline2\"\n" ++
+            "CONFIG_TITLE=\"zigux\\tbridge\"\n" ++
+            "CONFIG_STATUS=\"ready\\rok\"\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqualStrings("line1\nline2", summary.entries[0].value);
+    try std.testing.expectEqualStrings("zigux\tbridge", summary.entries[1].value);
+    try std.testing.expectEqualStrings("ready\rok", summary.entries[2].value);
 }
 
 test "confdata bridge accepts CRLF config lines" {
