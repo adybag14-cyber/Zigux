@@ -192,6 +192,13 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
             .final = 0,
             .changed = true,
         },
+        .{
+            .name = "inc_not_zero keeps the high-bit atomic64_test.c sentinel nonzero while incrementing it",
+            .seed = std.math.minInt(i64),
+            .previous = std.math.minInt(i64),
+            .final = std.math.minInt(i64) + 1,
+            .changed = true,
+        },
     };
 
     for (inc_not_zero_cases) |case| {
