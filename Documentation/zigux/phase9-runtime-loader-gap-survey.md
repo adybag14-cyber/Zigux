@@ -53,12 +53,12 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `Documentation/zigux/review-checklist.md` owns the runtime review guardrails and ownership prompts for the same evidence packet
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule for any status change tied to scheduler-facing runtime substrate work
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
-- `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, and shared request surface
+- `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
 - `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, command-name, and init or exit handoff fields
-- `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection into the shared runtime request surface
-- `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection into the shared runtime request surface
-- `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection into the shared runtime request surface
+- `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
+- `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection and without-substrate rollback path into the shared runtime request surface
+- `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection and without-substrate rollback path into the shared runtime request surface
 
 ## Current blocker posture
 
@@ -75,6 +75,12 @@ What is now landed is the smallest shared consumer contract:
 - the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for either atomic64, bitmap, or kretprobe facts
 - the shared request also consumes `zigux/helpers/allocator_policy.zig` through an explicit allocator-handoff record instead of leaving allocator posture in prose
 - the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`
+
+The current pilot-module evidence also carries an explicit rollback-without-substrate path:
+
+- each landed sample-side loader can release its pending shared request without claiming runtime execution
+- each release path moves the shared handoff state from `waiting_on_runtime_substrate` to `released_without_substrate`
+- this is the current fallback path for the pre-execution packet, so rollback stays explicit even though there is still no real runtime loader
 
 What is still missing is actual runtime execution behavior:
 
@@ -115,6 +121,7 @@ This slice does not yet claim:
 - a loadable runtime module path
 - argv-policy or environment-derived activation controls
 - allocator ownership changes beyond the shared handoff contract built from `zigux/helpers/allocator_policy.zig`
+- rollback beyond the explicit without-substrate release path already recorded in the sample-side loaders and shared request contract
 - parity or ownership for `kernel/workqueue.c`
 - Phase 6 runtime implementation progress
 
