@@ -44,13 +44,16 @@ The current hexdump helper surface exercised by this slice covers:
 - `hexBytePack`
 - `hexBytePackUpper`
 - `hex2bin`
+- `bin2hexAppend`
 - `bin2hex`
+- `bin2hexAppendUpper`
 - `bin2hexUpper`
 - `hexDumpToBuffer`
 
 The current tests check:
 
 - uppercase whole-buffer hex encoding for a representative byte packet
+- append-style whole-buffer encoding that can chain lowercase and uppercase segments without recomputing offsets
 - direct byte-pack helper coverage for lowercase and uppercase output plus the short-buffer contract
 - mixed-case hex digit decoding
 - encode/decode round-trips on bounded fixtures
