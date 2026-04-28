@@ -238,6 +238,16 @@ test "trimSpaces and strim stop at the first embedded NUL" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ '\t', 'o', 'k', 0, 'x', '\n' }, &strim_cstr_buf);
 }
 
+test "trimSpaces and strim trim trailing whitespace before an embedded NUL" {
+    var trim_trailing_cstr_buf = [_]u8{ ' ', 'a', ' ', '\t', 0, 'x' };
+    try std.testing.expectEqualStrings("a", trimSpaces(&trim_trailing_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 0, '\t', 0, 'x' }, &trim_trailing_cstr_buf);
+
+    var strim_trailing_cstr_buf = [_]u8{ ' ', 'o', 'k', ' ', '\t', 0, 'x' };
+    try std.testing.expectEqualStrings("ok", strim(&strim_trailing_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, '\t', 0, 'x' }, &strim_trailing_cstr_buf);
+}
+
 test "memdup and memchrInv preserve byte content" {
     const allocator = std.testing.allocator;
     const duplicated = try memdup(allocator, "zigux");
