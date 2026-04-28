@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
-const empty_argv_null_terminated = [_]?[*:0]const u8{null};
+const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};
 
 pub const ArgvSplitResult = struct {
     storage: [:0]u8,
@@ -8,13 +8,17 @@ pub const ArgvSplitResult = struct {
     argv_null_terminated: []const ?[*:0]const u8,
 
     pub fn deinit(self: *ArgvSplitResult, allocator: std.mem.Allocator) void {
-        allocator.free(self.argv_null_terminated);
-        allocator.free(self.argv);
+        if (self.argv_null_terminated.ptr != empty_argv_null_terminated.ptr) {
+            allocator.free(self.argv_null_terminated);
+        }
+        if (self.argv.len != 0) {
+            allocator.free(self.argv);
+        }
         allocator.free(self.storage);
         self.* = .{
             .storage = undefined,
             .argv = &.{},
-            .argv_null_terminated = &empty_argv_null_terminated,
+            .argv_null_terminated = empty_argv_null_terminated,
         };
     }
 
@@ -53,6 +57,17 @@ pub fn argvSplitWithArgc(
     errdefer allocator.free(storage);
 
     const argc = countArgc(storage);
+    if (argc == 0) {
+        if (argcp) |count_out| {
+            count_out.* = 0;
+        }
+        return .{
+            .storage = storage,
+            .argv = &.{},
+            .argv_null_terminated = empty_argv_null_terminated,
+        };
+    }
+
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
 
@@ -179,6 +194,19 @@ test "argvSplit preserves C-string termination for the final token and argv vect
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(split.cArgv()[1].?));
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+}
+
+test "argvSplit reuses the exported empty argv view for blank input" {
+    var buffer: [4]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    defer split.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
 test "ArgvSplitResult deinit leaves exported argv views empty and null terminated" {
