@@ -232,28 +232,23 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
         return null;
     }
 
-    const sign_offset: usize = if (s[0] == '+') 1 else 0;
-    if (sign_offset == s.len) {
-        return null;
-    }
-
     var base: u8 = 10;
-    var start: usize = sign_offset;
+    var start: usize = 0;
 
-    if (s.len >= sign_offset + 3 and s[sign_offset] == '0' and (s[sign_offset + 1] == 'x' or s[sign_offset + 1] == 'X') and isDigitForBase(s[sign_offset + 2], 16)) {
+    if (s.len >= 3 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X') and isDigitForBase(s[2], 16)) {
         base = 16;
-        start = sign_offset + 2;
-    } else if (s[sign_offset] == '0') {
+        start = 2;
+    } else if (s[0] == '0') {
         base = 8;
-        start = sign_offset + 1;
+        start = 1;
     }
 
     var index = start;
     while (index < s.len and isDigitForBase(s[index], base)) : (index += 1) {}
 
     if (index == start) {
-        if (start == sign_offset + 1 and s[sign_offset] == '0') {
-            return .{ .value = 0, .len = sign_offset + 1 };
+        if (start == 1) {
+            return .{ .value = 0, .len = 1 };
         }
         return null;
     }
@@ -362,18 +357,6 @@ test "memparse handles size suffixes and reports where parsing stopped" {
     try std.testing.expectEqual(@as(usize, 0), index);
 }
 
-test "numeric parsing accepts an explicit leading plus sign" {
-    var rest: []const u8 = "+5,tail";
-    var value: i32 = -1;
-    try std.testing.expectEqual(@as(u8, 2), getOption(&rest, &value));
-    try std.testing.expectEqual(@as(i32, 5), value);
-    try std.testing.expectEqualStrings("tail", rest);
-
-    var index: usize = 999;
-    try std.testing.expectEqual(@as(u64, 4 * 1024), memparse("+4K", &index));
-    try std.testing.expectEqual(@as(usize, 3), index);
-}
-
 test "numeric parsing only treats 0x as hexadecimal when a hex digit follows" {
     var rest: []const u8 = "0x,tail";
     var value: i32 = -1;
@@ -384,6 +367,21 @@ test "numeric parsing only treats 0x as hexadecimal when a hex digit follows" {
     var mem_index: usize = 999;
     try std.testing.expectEqual(@as(u64, 0), memparse("0xK", &mem_index));
     try std.testing.expectEqual(@as(usize, 1), mem_index);
+}
+
+test "numeric parsing rejects an explicit leading plus sign" {
+    var rest: []const u8 = "+7,tail";
+    var value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 0), getOption(&rest, &value));
+    try std.testing.expectEqual(@as(i32, -1), value);
+    try std.testing.expectEqualStrings("+7,tail", rest);
+
+    var mem_index: usize = 999;
+    try std.testing.expectEqual(@as(u64, 0), memparse("+32K", &mem_index));
+    try std.testing.expectEqual(@as(usize, 0), mem_index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("+", &mem_index));
+    try std.testing.expectEqual(@as(usize, 0), mem_index);
 }
 
 test "parseOptionStr only matches full comma-delimited options" {
