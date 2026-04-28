@@ -316,6 +316,23 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     return written;
 }
 
+pub fn bitmapAlloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    return allocator.alloc(Word, bitsToWords(nbits));
+}
+
+pub fn bitmapZalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    const map = try bitmapAlloc(allocator, nbits);
+    @memset(map, 0);
+    return map;
+}
+
+pub fn bitmapFree(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    if (bitmap.*) |map| {
+        allocator.free(map);
+        bitmap.* = null;
+    }
+}
+
 test "bitmap set clear weight and empty full helpers" {
     var map = [_]Word{ 0, 0, 0 };
     setRange(&map, 1, 3);
@@ -424,4 +441,26 @@ test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {
     const len = scnprintf(&map, 8, &buffer);
     try std.testing.expectEqual(@as(usize, 0), len);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);
+}
+
+test "bitmap allocation helpers size zero fill and reset optionals" {
+    const allocator = std.testing.allocator;
+    const nbits = bits_per_long + 5;
+
+    var plain: ?[]Word = try bitmapAlloc(allocator, nbits);
+    defer bitmapFree(allocator, &plain);
+    try std.testing.expectEqual(@as(usize, bitsToWords(nbits)), plain.?.len);
+    @memset(plain.?, ~@as(Word, 0));
+
+    var zeroed: ?[]Word = try bitmapZalloc(allocator, nbits);
+    defer bitmapFree(allocator, &zeroed);
+    try std.testing.expectEqual(@as(usize, bitsToWords(nbits)), zeroed.?.len);
+    for (zeroed.?) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    bitmapFree(allocator, &plain);
+    try std.testing.expect(plain == null);
+    bitmapFree(allocator, &zeroed);
+    try std.testing.expect(zeroed == null);
 }
