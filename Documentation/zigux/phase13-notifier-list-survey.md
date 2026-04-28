@@ -13,6 +13,7 @@ Current repo state on `master`:
 - notifier-shaped logic is present only in the chrdev-specific planner family such as `zigux/helpers/chrdev_notify_plan.zig`
 - a driver-local notifier/list anchor is also already visible in the landed Phase 11 `drivers/tty/hvc/hvc_console.h` plus `drivers/tty/hvc/hvc_console.zig` parity surface, where `struct hvc_struct` carries `struct list_head next` and `hv_ops` exposes notifier callbacks without turning that header into a shared helper API
 - a generic notifier header anchor is already present in `include/linux/acpi_amd_wbrf.h`, which includes `include/linux/notifier.h` and publishes `amd_wbrf_register_notifier()` plus `amd_wbrf_unregister_notifier()` around `struct notifier_block *nb` without yet giving Zigux a shared ABI or helper surface for that contract
+- `include/linux/notifier.h` also already fixes the field-level read-only shape that any future Zigux ABI would need to mirror: `struct notifier_block` carries `notifier_call`, `next`, and `priority`, and `struct raw_notifier_head` anchors the chain through `head`
 - there is still no generic notifier ABI surface in `zigux/bindings/abi.zig` and no shared helper under `zigux/helpers/` that models notifier-chain linkage directly
 
 Why this matters for Phase 13:
@@ -20,6 +21,7 @@ Why this matters for Phase 13:
 - the roadmap treats Phase 13 as the shared helper tranche, but its named anchors are still `libfs`, `devres`, and Landlock, so notifier/list evidence belongs here only as a bounded helper-first interop note
 - the current list side is reusable enough to survey today, and there is now concrete driver-local evidence that notifier callbacks can coexist with `list_head` linkage without yet implying a shared helper contract
 - the generic header anchor narrows the remaining gap: upstream C already exposes a reusable `notifier_block` contract, but Zigux still lacks the tiny read-only ABI and helper surfaces that would make that contract reviewable on the Zig side
+- the field-level notifier layout anchor makes that remaining gap sharper: the missing Zigux ABI is no longer just about naming the contract, but about mirroring a specific read-only chain shape without over-claiming registration or execution semantics
 - that mismatch means later helper work such as list-backed cursor or chain bookkeeping can accidentally overstate notifier readiness unless the gap is recorded explicitly
 
 The next honest bounded step in this same lane is a tiny generic notifier ABI foothold, paired with one helper-first survey of notifier-chain linkage against the existing list and hlist view surface. That follow-up must stay out of live callback registration, chain execution, SRCU or blocking semantics, and any new chrdev delivery expansion.
