@@ -7,6 +7,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_lab_queue_planner);
     try std.testing.expect(descriptor.provides_prp_shape_helper);
+    try std.testing.expect(descriptor.provides_pointer_selection_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
