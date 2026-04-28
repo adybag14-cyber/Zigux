@@ -19,6 +19,7 @@
     "preexisting_cpu_mask_zig_present": true,
     "preexisting_logging_zig_present": true,
     "preexisting_pin_path_zig_present": true,
+    "preexisting_file_path_handle_bridge_zig_present": true,
     "preexisting_phase12_build_present": true,
     "preexisting_phase12_libbpf_survey_present": true,
     "preexisting_phase12_survey_note_present": true,
@@ -94,6 +95,13 @@
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/pin_path.zig",
       "why_now": "The landed pin-path helper keeps bpffs path joining and dot-sanitization reviewable through bounded buffer APIs before any mkdir, statfs, unlink, or object-loader work enters the lane."
+    },
+    {
+      "id": "phase12-libbpf-file-path-handle-helper-foundation",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The landed file-path-and-fdinfo helper keeps `/proc/<pid>/fdinfo/<fd>` path construction plus bounded map-info text parsing explicit and reviewable before any direct procfs reads, pinned-object reopen flows, token creation, or fd-ownership behavior enters the lane."
     },
     {
       "id": "phase12-libbpf-skeleton-population",
