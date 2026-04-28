@@ -43,10 +43,10 @@ phase4_gate_expectations = {
         'owner': 'ABI and Runtime Team',
         'rollback_owner': 'ABI and Runtime Team',
         'fallback_path': 'keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses',
-        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
+        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
         'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
-        'gate_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay',
-        'threshold_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, and selftest-family replay set',
+        'gate_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay',
+        'threshold_scope': 'exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
         'local_replay_test': 'phase4-runtime-atomic64-diff-tests',
         'reversible_delivery': '`lib/atomic64_test.c` stays the source of truth, and removing `runtime_atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move while the existing Phase 9 runtime atomic64 starter remains the forward path',
     },
@@ -180,9 +180,11 @@ required_phase4_build_markers = [
 required_runtime_atomic64_markers = [
     'addUnlessCounter',
     'incNotZeroCounter',
+    'decIfPositiveCounter',
     'add_unless, and inc_not_zero expectations',
     'checked_guard_paths',
     'error.InvalidLifecycleTransition, module.incNotZeroCounter()',
+    'runtime atomic64 diff gate keeps post-selftest replay explicit',
 ]
 required_bitmap_diff_markers = [
     'test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations"',
