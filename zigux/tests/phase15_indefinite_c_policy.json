@@ -27,7 +27,7 @@
     },
     {
       "id": "indefinite-c-recordkeeping",
-      "summary": "The review record must preserve the shared review-packet fields, roadmap phase, replay command, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
+      "summary": "The review record must preserve the shared review-packet fields, roadmap phase, replay command, automatic return-to-blocked trigger, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
       "required_terms": [
         "Linux anchor path",
         "current roadmap phase",
@@ -41,6 +41,7 @@
         "evidence archive path",
         "replay command",
         "latest blocker disposition",
+        "automatic return-to-blocked trigger",
         "retained discussion state",
         "reopen triggers",
         "parity scorecard link or blocker record",
@@ -135,7 +136,7 @@
       "id": "phase15-indefinite-c-maintenance-handoff",
       "status": "starter_landed",
       "kind": "handoff",
-      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite_c_policy.md",
       "why_now": "The parked indefinite-C policy lane now needs the same machine-checkable maintenance-mode handoff already recorded on the other Phase 15 governance surfaces so future-target wording cannot drift silently."
     },
     {
