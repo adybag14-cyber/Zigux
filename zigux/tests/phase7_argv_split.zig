@@ -50,3 +50,16 @@ test "phase 7 argvSplitWithArgc reports the split length through the optional ou
     try std.testing.expectEqual(@as(usize, 3), argc);
     try std.testing.expectEqual(argc, split.argv.len);
 }
+
+test "phase 7 argvSplit deinit leaves exported argv views empty and null terminated" {
+    var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+
+    try std.testing.expectEqual(@as(usize, 3), split.argv.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+
+    split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
