@@ -20,6 +20,8 @@ The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first p
 
 That keeps the lane honest: `exec-cmd` now covers the smallest reviewable setup and argv-preparation surface from the C helper without widening into direct process-launch side effects or sibling `help.c` behavior.
 
+The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranche, while `kernel/workqueue.c` remains a Phase 14 boundary-study target. So this slice can model argument preparation and environment setup for later deferred execution, but it must stop before `execv_cmd()` or `execvp()` side effects, scheduler-facing transport ownership, or anything that reads like a workqueue-style execution substrate.
+
 ## Gates
 
 1. run the focused Zig module tests
@@ -63,10 +65,12 @@ The current tests check:
 This slice still does not claim:
 
 - direct `execvp()` parity or process-launch behavior
+- deferred execution ownership, queueing, or scheduler-facing transport behavior
+- any handoff into `kernel/workqueue.c` or other Phase 14 boundary-study ownership
 - direct OS environment reads or writes
 - the terminal/help listing surface from `tools/lib/subcmd/help.c`
 - the larger Phase 8 anchors in `tools/lib/symbol/` or `tools/lib/bpf/`
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, and the empty explicit exec-path sentinel is already covered too, so future Phase 8 work should usually continue in sibling files instead.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, and the empty explicit exec-path sentinel is already covered too, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, deferred execution, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
