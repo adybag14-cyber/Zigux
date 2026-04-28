@@ -60,7 +60,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expectEqualStrings("P10-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("6324553a90c6e99383dc347b415b106af6b01989", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d0e4d331195eac3610783d42f59e58891076f24a", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
@@ -109,6 +109,10 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             saw_ring_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-change disposition summaries") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-callback-delay-helper")) {
@@ -165,6 +169,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             saw_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-register helpers") != null);
         }
