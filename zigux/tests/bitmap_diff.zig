@@ -44,6 +44,12 @@ fn weight(map: []const Word, nbits: usize) usize {
     return bitmap.weight(map, nbits);
 }
 
+fn expectPrintedList(map: []const Word, nbits: usize, expected: []const u8) !void {
+    var buffer: [128]u8 = undefined;
+    const len = bitmap.scnprintf(map, nbits, &buffer);
+    try std.testing.expectEqualStrings(expected, buffer[0..len]);
+}
+
 fn findNthSet(map: []const Word, nbits: usize, nth: usize) usize {
     var bit = firstSet(map, nbits);
     var seen: usize = 0;
@@ -112,6 +118,7 @@ test "bitmap diff gate records exact full-width fill and zero endpoints" {
 }
 
 test "bitmap diff gate records exact bounded copy checks" {
+    const copy_nbits = bits_per_long * 3;
     var small_src = [_]Word{ 0, 0 };
     var small_dst = [_]Word{ 0, 0 };
     var src = [_]Word{ 0, 0, 0 };
@@ -124,6 +131,7 @@ test "bitmap diff gate records exact bounded copy checks" {
     copyFrom(&small_dst, &small_src, 23);
     try std.testing.expectEqual(@as(usize, 19), weight(&small_dst, 23));
     try std.testing.expectEqual(@as(usize, 19), firstZero(&small_dst, 23));
+    try expectPrintedList(&small_dst, 23, "0-18");
     try expectSet(&small_dst, 18);
     try expectClear(&small_dst, 19);
     try expectClear(&small_dst, 22);
@@ -133,34 +141,39 @@ test "bitmap diff gate records exact bounded copy checks" {
     // test_copy single-word copy clears the stale tail bits inside the copied window
     copyFrom(&small_dst, &small_src, 23);
     try std.testing.expectEqual(@as(usize, 19), weight(&small_dst, 23));
+    try expectPrintedList(&small_dst, 23, "0-18");
     try expectSet(&small_dst, 18);
     try expectClear(&small_dst, 19);
     try expectClear(&small_dst, 22);
 
     bitmap.setRange(&src, 0, 109);
-    copyFrom(&dst, &src, bits_per_long * 3);
-    try std.testing.expectEqual(@as(usize, 109), weight(&dst, bits_per_long * 3));
-    try std.testing.expectEqual(@as(usize, 109), firstZero(&dst, bits_per_long * 3));
+    copyFrom(&dst, &src, copy_nbits);
+    try std.testing.expectEqual(@as(usize, 109), weight(&dst, copy_nbits));
+    try std.testing.expectEqual(@as(usize, 109), firstZero(&dst, copy_nbits));
+    try expectPrintedList(&dst, copy_nbits, "0-108");
 
-    bitmap.fill(&dst, bits_per_long * 3);
+    bitmap.fill(&dst, copy_nbits);
     // test_copy partial-word tail clearing at 109 bits
     copyFrom(&dst, &src, 109);
     try std.testing.expectEqual(@as(usize, 109), weight(dst[0..bitmap.bitsToWords(109)], 109));
+    try expectPrintedList(&dst, copy_nbits, "0-108,128-191");
     try std.testing.expectEqual(bitmap.lastWordMask(109), dst[1]);
     try std.testing.expectEqual(~@as(Word, 0), dst[2]);
 
-    bitmap.fill(&dst, bits_per_long * 3);
+    bitmap.fill(&dst, copy_nbits);
     // test_copy aligned-on-word-length at 97 bits keeps the stale tail word visible
     copyFrom(&dst, &src, 97);
-    try std.testing.expectEqual(@as(usize, 109 + bits_per_long), weight(&dst, bits_per_long * 3));
+    try std.testing.expectEqual(@as(usize, 109 + bits_per_long), weight(&dst, copy_nbits));
+    try expectPrintedList(&dst, copy_nbits, "0-108,128-191");
     try expectSet(&dst, 108);
     try expectClear(&dst, 109);
     try expectClear(&dst, bits_per_long * 2 - 1);
     try expectSet(&dst, bits_per_long * 2);
 
-    bitmap.fill(&dst, bits_per_long * 3);
+    bitmap.fill(&dst, copy_nbits);
     bitmap.copyClearTail(&dst, &src, 109);
     try std.testing.expectEqual(@as(usize, 109), weight(dst[0..bitmap.bitsToWords(109)], 109));
+    try expectPrintedList(&dst, copy_nbits, "0-108,128-191");
     try std.testing.expectEqual(bitmap.lastWordMask(109), dst[1]);
     try std.testing.expectEqual(~@as(Word, 0), dst[2]);
 }
