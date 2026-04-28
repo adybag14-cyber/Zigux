@@ -61,10 +61,10 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("187729dff8353fd7d9b745c0b9ffa16f62c6d558", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("e078a6f17710c8095c1ba9557651897d7eb615f1", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.dw_wdt_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -291,8 +291,8 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and platform-resou
     );
     defer std.testing.allocator.free(commit_marker);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
     const preflight_marker = "timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring";
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, preflight_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, preflight_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked on platform-driver scaffold work") != null);
