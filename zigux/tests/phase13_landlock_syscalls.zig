@@ -201,7 +201,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_addRule);
+    try std.testing.expect(saw_add_rule);
     try std.testing.expect(saw_fd_followup);
     try std.testing.expect(saw_path_followup);
     try std.testing.expect(saw_path_beneath_handoff);
