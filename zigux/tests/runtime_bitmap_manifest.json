@@ -45,6 +45,11 @@
       "expected": "runSelftest moves the sample to selftest_complete, records exactly four operation families in order: clear_set, copy, parse_and_print, and iteration_and_ranges, and leaves the summary unchanged"
     },
     {
+      "id": "post-selftest-mutation-replay",
+      "kind": "selftest_lifecycle",
+      "expected": "after runSelftest reaches selftest_complete, clearRange(64, 2) plus setRange(9, 4) still yields first_set 0, first_zero 1, weight 7, keeps bit 70 set, sets bit 12, and copyFrom preserves that replay on an initialized mirror sample before exit"
+    },
+    {
       "id": "exit-and-lifecycle-guards",
       "kind": "ownership_lifetime",
       "expected": "exit moves the sample to exited, keeps the final bitmap snapshot reviewable, and later setRange, runSelftest, exit, or re-init calls fail with InvalidLifecycleTransition"
