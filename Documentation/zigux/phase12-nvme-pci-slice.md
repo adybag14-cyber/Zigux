@@ -10,7 +10,8 @@ The starter stays intentionally narrow:
 - freezes queue planning during reset and clears planned I/O queue numbering only after reset completion
 - records one tiny PRP buffer-shape summary with first-page offset, rounded span, and page-list bound checks without claiming live PRP chaining or DMA mapping
 - records one tiny PRP-versus-SGL selection summary around admin-versus-I/O queues, page-gap forcing, user-command forcing, integrity-segment forcing, and average-segment threshold preference without claiming live descriptor allocation or DMA mapping
+- records one tiny recovery-replay summary around cached PRP-shape and pointer-selection staleness, dropped I/O queue count, admin-queue replay need, and post-reset queue-number restart without claiming timeout handling, IRQ-driven recovery, or live PCI queue reinitialization
 
 This slice does not claim PCI probe or remove wiring, interrupt registration, controller enable or shutdown sequences, live MMIO, PRP or SGL descriptor allocation, blk-mq integration, tagset setup, or hardware-backed recovery.
 
-The next honest bounded step inside the same Phase 12 lane is now to keep the lane parked on survey or validation evidence until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the queue planner, PRP buffer-shape helper, and pointer-selection helper.
+The next honest bounded step inside the same Phase 12 lane is now to keep the lane parked on survey or validation evidence until the roadmap-approved DMA-safe transport substrate exists for a truthful follow-up beyond the queue planner, PRP buffer-shape helper, pointer-selection helper, and recovery-replay helper.
