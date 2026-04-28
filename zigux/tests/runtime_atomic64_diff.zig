@@ -288,3 +288,39 @@ test "runtime atomic64 diff gate keeps lifecycle transitions single-shot" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(17));
     try std.testing.expectEqual(@as(i64, 7), module.snapshotCounter());
 }
+
+test "runtime atomic64 diff gate keeps post-selftest replay explicit" {
+    var module = sample.RuntimeAtomic64Sample{};
+    const seed = 0x1111_2222_3333_4444;
+
+    try module.init(seed);
+    _ = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+
+    const swapped = try module.swapCounter(seed + 1);
+    try std.testing.expectEqual(seed, swapped);
+    try std.testing.expectEqual(seed + 1, module.snapshotCounter());
+
+    const compare_swap = try module.compareSwapCounter(seed + 1, seed + 2);
+    try std.testing.expectEqual(seed + 1, compare_swap.previous);
+    try std.testing.expect(compare_swap.stored);
+    try std.testing.expectEqual(seed + 2, module.snapshotCounter());
+
+    const add_unless = try module.addUnlessCounter(3, 0);
+    try std.testing.expectEqual(seed + 2, add_unless.previous);
+    try std.testing.expect(add_unless.changed);
+    try std.testing.expectEqual(seed + 5, module.snapshotCounter());
+
+    const inc_not_zero = try module.incNotZeroCounter();
+    try std.testing.expectEqual(seed + 5, inc_not_zero.previous);
+    try std.testing.expect(inc_not_zero.changed);
+    try std.testing.expectEqual(seed + 6, module.snapshotCounter());
+
+    const dec_if_positive = try module.decIfPositiveCounter();
+    try std.testing.expectEqual(seed + 5, dec_if_positive.result);
+    try std.testing.expect(dec_if_positive.changed);
+    try std.testing.expectEqual(seed + 5, module.snapshotCounter());
+
+    try module.exit();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+}
