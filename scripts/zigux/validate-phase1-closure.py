@@ -54,6 +54,10 @@ required_closure_markers = [
     'PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree',
     'rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`',
     'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node',
+    'rbtree cached-root unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root keeps leftmost in sync across add erase and replace"`',
+    'PHASE1_RBTREE_CACHED_UNIT_REVIEW=rbtree RootCached leftmost tracking stays aligned across addCached, eraseCached, and replaceNodeCached so the cached first node matches the underlying tree root',
+    'rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`',
+    'PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_STRING_REVIEW=string parity covers true, false, and invalid bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
@@ -184,6 +188,14 @@ if rbtree_review.get('search_unit_test_anchor') != 'tools/lib/rbtree.zig:test "r
     missing_markers.append('manifest:rbtree.search_unit_test_anchor')
 if rbtree_review.get('search_unit_test_contract') != 'Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.':
     missing_markers.append('manifest:rbtree.search_unit_test_contract')
+if rbtree_review.get('cached_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree cached root keeps leftmost in sync across add erase and replace"':
+    missing_markers.append('manifest:rbtree.cached_unit_test_anchor')
+if rbtree_review.get('cached_unit_test_contract') != 'Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root.':
+    missing_markers.append('manifest:rbtree.cached_unit_test_contract')
+if rbtree_review.get('iterator_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"':
+    missing_markers.append('manifest:rbtree.iterator_unit_test_anchor')
+if rbtree_review.get('iterator_unit_test_contract') != 'Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.':
+    missing_markers.append('manifest:rbtree.iterator_unit_test_contract')
 if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if string_review.get('evidence_keys') != [
