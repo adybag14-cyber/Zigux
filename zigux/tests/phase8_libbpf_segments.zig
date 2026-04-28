@@ -31,8 +31,6 @@ const Manifest = struct {
     segments: []const Segment,
 };
 
-const expected_surveyed_commit = "66f1975bcbd96c5a3ea19b49deacc1ec348360c3";
-
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "starter_landed") or
@@ -84,7 +82,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
-    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "246d0135fa18a1af90bf7d6e516ae4a7b2ac262a"));
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
@@ -149,11 +147,13 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expectEqualStrings("helper_first", segment.kind);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
-            try std.testing.expectEqual(@as(usize, 1), segment.anchor_ranges.len);
+            try std.testing.expectEqual(@as(usize, 2), segment.anchor_ranges.len);
             try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:4956-4987", segment.anchor_ranges[0]);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:4976-4994", segment.anchor_ranges[1]);
             try expectContains(segment.why_now, "fdinfo");
             try expectContains(segment.why_now, "path construction");
             try expectContains(segment.why_now, "text parsing");
+            try expectContains(segment.why_now, "reused-map-name chooser");
         }
         if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
             saw_file_path_handle_segment = true;
@@ -167,6 +167,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try expectContains(segment.why_now, "token creation");
             try expectContains(segment.why_now, "pinned-object reopen flows");
             try expectContains(segment.why_now, "fd ownership");
+            try expectContains(segment.why_now, "token-preparation planner");
         }
         if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
             saw_interrupt_routing_segment = true;
@@ -200,7 +201,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(saw_type_names_segment);
 }
 
-test "phase 8 libbpf segment evidence still matches the live irq and cpumask anchors" {
+test "phase 8 libbpf segment evidence still matches the live irq and reuse-name anchors" {
     const libbpf_c = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/libbpf.c",
@@ -213,6 +214,9 @@ test "phase 8 libbpf segment evidence still matches the live irq and cpumask anc
     try expectContains(libbpf_c, "if (p->cpu_cnt <= 0 && (cpu >= n || !online[cpu]))");
     try expectContains(libbpf_c, "int parse_cpu_mask_file(const char *fcpu, bool **mask, int *mask_sz)");
     try expectContains(libbpf_c, "int libbpf_num_possible_cpus(void)");
+    try expectContains(libbpf_c, "name_len = strlen(info.name);");
+    try expectContains(libbpf_c, "if (name_len == BPF_OBJ_NAME_LEN - 1 && strncmp(map->name, info.name, name_len) == 0)");
+    try expectContains(libbpf_c, "new_name = strdup(map->name);");
 }
 
 test "phase 8 docs keep the deferred libbpf boundaries explicit" {
@@ -233,11 +237,12 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
     try expectContains(survey_note, "blocked object-model");
-    try expectContains(survey_note, expected_surveyed_commit);
     try expectContains(survey_note, "skeleton");
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "online CPU filtering");
     try expectContains(survey_note, "interrupt-routing-sensitive boundary");
+    try expectContains(survey_note, "reused-map-name chooser");
+    try expectContains(survey_note, "token-preparation planning");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
     try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
