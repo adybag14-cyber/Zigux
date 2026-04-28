@@ -254,6 +254,8 @@ int main(void)
     static const unsigned char upper_alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     static const unsigned char lower_alpha[] = "abcdefghijklmnopqrstuvwxyz";
     static const unsigned char digits_and_symbols[] = "0123456789+/";
+    static const unsigned char variant_one_byte[] = { 0xfb };
+    static const unsigned char variant_two_byte[] = { 0xff, 0xf0 };
     static const unsigned char variant_sample[] = { 0x00, 0xfb, 0xff, 0x7f, 0x80 };
     static const unsigned char invalid_with_nul[] = { 'Z', 'g', 0, '=' };
 
@@ -286,6 +288,18 @@ int main(void)
         { BASE64_URLSAFE, true, variant_sample, sizeof(variant_sample) },
         { BASE64_IMAP, false, variant_sample, sizeof(variant_sample) },
         { BASE64_IMAP, true, variant_sample, sizeof(variant_sample) },
+        { BASE64_STD, false, variant_one_byte, sizeof(variant_one_byte) },
+        { BASE64_STD, true, variant_one_byte, sizeof(variant_one_byte) },
+        { BASE64_URLSAFE, false, variant_one_byte, sizeof(variant_one_byte) },
+        { BASE64_URLSAFE, true, variant_one_byte, sizeof(variant_one_byte) },
+        { BASE64_IMAP, false, variant_one_byte, sizeof(variant_one_byte) },
+        { BASE64_IMAP, true, variant_one_byte, sizeof(variant_one_byte) },
+        { BASE64_STD, false, variant_two_byte, sizeof(variant_two_byte) },
+        { BASE64_STD, true, variant_two_byte, sizeof(variant_two_byte) },
+        { BASE64_URLSAFE, false, variant_two_byte, sizeof(variant_two_byte) },
+        { BASE64_URLSAFE, true, variant_two_byte, sizeof(variant_two_byte) },
+        { BASE64_IMAP, false, variant_two_byte, sizeof(variant_two_byte) },
+        { BASE64_IMAP, true, variant_two_byte, sizeof(variant_two_byte) },
     };
     static const struct decode_case decode_cases[] = {
         { BASE64_STD, true, (const unsigned char *)"", 0 },
@@ -314,6 +328,14 @@ int main(void)
         { BASE64_URLSAFE, true, (const unsigned char *)"APv_f4A=", 8 },
         { BASE64_IMAP, false, (const unsigned char *)"APv,f4A", 7 },
         { BASE64_IMAP, true, (const unsigned char *)"APv,f4A=", 8 },
+        { BASE64_URLSAFE, false, (const unsigned char *)"-w", 2 },
+        { BASE64_URLSAFE, true, (const unsigned char *)"-w==", 4 },
+        { BASE64_IMAP, false, (const unsigned char *)"+w", 2 },
+        { BASE64_IMAP, true, (const unsigned char *)"+w==", 4 },
+        { BASE64_URLSAFE, false, (const unsigned char *)"__A", 3 },
+        { BASE64_URLSAFE, true, (const unsigned char *)"__A=", 4 },
+        { BASE64_IMAP, false, (const unsigned char *)",,A", 3 },
+        { BASE64_IMAP, true, (const unsigned char *)",,A=", 4 },
     };
     static const struct invalid_case invalid_cases[] = {
         { BASE64_STD, true, (const unsigned char *)"Zg=!", 4 },
