@@ -316,7 +316,7 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             }
             break;
         }
-        if (arg.len == 0 or arg[0] != '-') {
+        if (arg.len == 0 or arg[0] != '-' or std.mem.eql(u8, arg, "-")) {
             try positional_args.append(allocator, arg);
             continue;
         }
@@ -590,6 +590,25 @@ test "genksyms bridge ignores positional args while still parsing later options"
                 try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
                 try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
                 try std.testing.expectEqualSlices([]const u8, &.{ "-d", "-r", "foo.symref", "leftover.c", "rightover.h" }, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge treats lone dash as positional passthrough" {
+    const args = &.{ "-", "-d", "tail" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 0), request.reference_files.len);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, &.{ "-d", "-", "tail" }, request.rendered_args);
             },
             else => return error.UnexpectedCommand,
         },
