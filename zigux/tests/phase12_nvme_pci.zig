@@ -121,7 +121,7 @@ test "phase12 nvme pci prp shape helper records first-page offset and list bound
     try std.testing.expectEqual(@as(u32, 0), shape.reset_generation);
 }
 
-test "phase12 nvme pci prp shape helper handles single-page spans and reset blocking" {
+test "phase12 nvme pci prp shape helper handles single-page spans and resumes after reset" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     const shape = try lab.shapePrpBuffer(0x2000, 1024);
     try std.testing.expectEqual(@as(u32, 0), shape.first_page_offset);
@@ -134,6 +134,12 @@ test "phase12 nvme pci prp shape helper handles single-page spans and reset bloc
     _ = lab.beginReset();
     try std.testing.expectError(error.QueuePlanningBlockedByReset, lab.shapePrpBuffer(0x2000, 1024));
     _ = lab.completeReset();
+
+    const shape_after_reset = try lab.shapePrpBuffer(0x3080, 4096);
+    try std.testing.expectEqual(@as(u32, 0x80), shape_after_reset.first_page_offset);
+    try std.testing.expectEqual(@as(u16, 2), shape_after_reset.spanned_pages);
+    try std.testing.expectEqual(@as(u32, 1), shape_after_reset.reset_generation);
+
     try std.testing.expectError(error.InvalidTransferBytes, lab.shapePrpBuffer(0x2000, 0));
 }
 
@@ -179,10 +185,17 @@ test "phase12 nvme pci data pointer strategy selects prp, threshold sgl, and for
     try std.testing.expect(!forced_strategy.forced_sgl_unavailable);
 }
 
-test "phase12 nvme pci data pointer strategy respects reset freeze and segment validation" {
+test "phase12 nvme pci data pointer strategy respects reset freeze and resumes after reset" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     try std.testing.expectError(error.InvalidSegmentCount, lab.planDataPointerStrategy(1, 4096, 0, 0, true, false, 0, 32768));
 
     _ = lab.beginReset();
     try std.testing.expectError(error.QueuePlanningBlockedByReset, lab.planDataPointerStrategy(1, 4096, 1, 0, true, false, 0, 32768));
+
+    _ = lab.completeReset();
+    const strategy_after_reset = try lab.planDataPointerStrategy(1, 16384, 4, 0, true, false, 0, 4096);
+    try std.testing.expectEqual(nvme_pci.SglSupport.optional, strategy_after_reset.sgl_support);
+    try std.testing.expectEqual(nvme_pci.DataPointerPlan.sgl, strategy_after_reset.selected_pointer);
+    try std.testing.expect(strategy_after_reset.threshold_prefers_sgl);
+    try std.testing.expectEqual(@as(u32, 1), strategy_after_reset.reset_generation);
 }
