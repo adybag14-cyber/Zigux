@@ -45,7 +45,7 @@ The current tests check:
 
 - signed integer parsing and comma handling
 - Linux-style hyphen range expansion and validation-only counting
-- descending-range early stop behavior
+- descending-range and unparseable-suffix early stop behavior
 - memory-size suffix scaling with accurate parse-stop reporting
 - rejection of explicit leading-plus numeric inputs so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
 - exact bare-option matching for comma-delimited flags
