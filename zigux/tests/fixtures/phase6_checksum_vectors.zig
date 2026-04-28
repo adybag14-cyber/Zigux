@@ -37,6 +37,13 @@ pub const CarryDisciplineCase = struct {
     expected_compute: u16,
 };
 
+pub const PerfCase = struct {
+    label: []const u8,
+    len: usize,
+    reps: usize,
+    seed: u32,
+};
+
 const ipv4_header = [_]u8{
     0x45, 0x00, 0x00, 0x3c,
     0x1c, 0x46, 0x40, 0x00,
@@ -164,3 +171,17 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
         .expected_compute = 0x0404,
     },
 };
+
+pub const perf_cases = [_]PerfCase{
+    .{ .label = "64", .len = 64, .reps = 20_000, .seed = 0 },
+    .{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678 },
+};
+
+pub fn fillPerfPayload(buffer: []u8) void {
+    var state: u32 = 0x51_67_2026;
+
+    for (buffer, 0..) |*byte, idx| {
+        state = state *% 1664525 +% 1013904223 +% @as(u32, @intCast(idx));
+        byte.* = @truncate((state >> 16) ^ state);
+    }
+}
