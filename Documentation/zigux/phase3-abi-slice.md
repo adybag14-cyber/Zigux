@@ -6,7 +6,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 
 - `PHASE3_STATUS=active`
 - `PHASE3_SLICE=abi-substrate-skeleton`
-- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
+- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header`
 - `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
