@@ -22,6 +22,18 @@ const ExactCheck = struct {
     expected: []const u8,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    role: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    owns: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -33,6 +45,8 @@ const Manifest = struct {
     survey_summary: SurveySummary,
     review_prompts: []const []const u8,
     exact_checks: []const ExactCheck,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
     non_goals: []const []const u8,
 };
@@ -81,6 +95,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 5);
     try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 7);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -95,9 +111,79 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_loader_request_surface = false;
     var saw_diff_add_bitwise = false;
     var saw_diff_swap_guard = false;
+    var saw_manifest_catalog = false;
+    var saw_shared_build_catalog = false;
+    var saw_loader_gap_note = false;
+    var saw_runtime_loader_binding_catalog = false;
+    var saw_atomic64_loader_scaffold_catalog = false;
+    var saw_loader_gap_ownership = false;
+    var saw_atomic64_diff_ownership = false;
+    var saw_atomic64_sample_ownership = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
+    }
+
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.kind.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+
+        if (std.mem.eql(u8, entry.id, "runtime-atomic64-manifest")) {
+            saw_manifest_catalog = true;
+            try std.testing.expectEqualStrings("manifest", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_manifest.json", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "delivery catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "phase9-atomic64-build-gate")) {
+            saw_shared_build_catalog = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "phase9-runtime-atomic64-sample-tests") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-loader-gap-note")) {
+            saw_loader_gap_note = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "argv-policy") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-atomic64-shared-loader-binding")) {
+            saw_runtime_loader_binding_catalog = true;
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared runtime-loader request contract") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-atomic64-loader-scaffold")) {
+            saw_atomic64_loader_scaffold_catalog = true;
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "released_without_substrate") != null);
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+        }
+    }
+
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.owns.len > 0);
+
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")) {
+            saw_loader_gap_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "argv-policy") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_atomic64_diff.zig")) {
+            saw_atomic64_diff_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "differential replay") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64.zig")) {
+            saw_atomic64_sample_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "selftest-hook metadata") != null);
+        }
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
+        }
     }
 
     for (manifest.exact_checks, 0..) |check, i| {
@@ -278,6 +364,14 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_loader_request_surface);
     try std.testing.expect(saw_diff_add_bitwise);
     try std.testing.expect(saw_diff_swap_guard);
+    try std.testing.expect(saw_manifest_catalog);
+    try std.testing.expect(saw_shared_build_catalog);
+    try std.testing.expect(saw_loader_gap_note);
+    try std.testing.expect(saw_runtime_loader_binding_catalog);
+    try std.testing.expect(saw_atomic64_loader_scaffold_catalog);
+    try std.testing.expect(saw_loader_gap_ownership);
+    try std.testing.expect(saw_atomic64_diff_ownership);
+    try std.testing.expect(saw_atomic64_sample_ownership);
 }
 
 test "phase 9 runtime atomic64 module slice note stays aligned with the landed loader-backed review packet" {
@@ -323,9 +417,14 @@ test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and 
     defer std.testing.allocator.free(survey_doc);
 
     const required_markers = [_][]const u8{
+        "manifest-backed delivery catalog and ownership map",
         "direct `phase9-runtime-atomic64-sample-tests` shared-build leg",
         "a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig`",
         "a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+        "Delivery ownership map",
+        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        "blocked shared command-name, argv-policy, and environment-derived activation-control posture",
+        "shared Phase 9 replay entrypoint",
         "command-name, argv-policy, and environment-derived activation handling still have no shared owner",
         "rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
     };
@@ -333,4 +432,6 @@ test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and 
     for (required_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
     }
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Delivery ownership map") != null);
 }
