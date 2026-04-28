@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L07",
   "phase": "Phase 10",
-  "surveyed_commit": "d972271ce0f34e503516acaa17c2576f83a55485",
+  "surveyed_commit": "f2654040a58e901ca03e342d590a151552eac8f4",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -95,18 +95,18 @@
       "why_now": "The live ring slice now includes a tiny notify-prepare helper that mirrors the bounded `virtqueue_kick_prepare()` `num_added` flow in memory, so the survey no longer has to imply that notification bookkeeping landed without a matching manifest record."
     },
     {
-      "id": "phase10-queue-reset-helper",
+      "id": "phase10-queue-reset-guard-helper",
       "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice now includes a tiny queue-reset helper that clears in-memory queue bookkeeping while preserving queue shape, which keeps the new review surface honest about queue discipline without claiming transport-backed reset semantics."
+      "why_now": "The live ring slice now includes a tiny queue-reset guard helper that reports unpublished chains, outstanding used work, and follow-up poll debt before reset, so queue discipline no longer permits in-memory resets that would drop unfinished virtqueue state."
     },
     {
       "id": "phase10-mmio-register-window-helper",
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With queue shape, used-buffer polling, callback re-enable, delayed-callback pacing, and notify-prepare bookkeeping landed, the first honest bounded MMIO follow-up is now the landed `virtio_mmio` register-window helper rather than more queue-local work."
+      "why_now": "With queue shape, used-buffer polling, callback re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping, and queue-reset guard discipline landed, the first honest bounded MMIO follow-up is now the landed `virtio_mmio` register-window helper rather than more queue-local work."
     },
     {
       "id": "phase10-mmio-queue-register-helper",
