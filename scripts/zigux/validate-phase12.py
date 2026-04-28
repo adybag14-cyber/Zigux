@@ -354,7 +354,7 @@ for name, spec in MANIFEST_SPECS.items():
         if actual_total != expected_total:
             missing.append(f"{name}:status_total:{status}={actual_total}")
         if status == "starter_landed":
-            expected_starter_total += expected_total
+            expected_starter_TOTAL += expected_total
         elif status == "blocked_on_dma_transport":
             expected_blocked_dma_total += expected_total
         elif status == "blocked_on_object_model":
@@ -381,6 +381,16 @@ for name, spec in MANIFEST_SPECS.items():
         missing.append(f"{name}:survey_note_commit_pin")
     if "make -C zigux phase12" not in survey_note_text:
         missing.append(f"{name}:survey_note_make_target")
+    for marker_key, marker_text in [
+        ("section", "## Rollback And Reversible Delivery"),
+        ("owner", "- owner: `"),
+        ("rollback_owner", "- rollback owner: `"),
+        ("fallback_path", "- fallback path:"),
+        ("reversible_delivery", "- reversible delivery evidence:"),
+        ("rollback_drill", "- rollback drill:"),
+    ]:
+        if marker_text not in survey_note_text:
+            missing.append(f"{name}:survey_note_rollback:{marker_key}")
 
     raw_fallback_catalog_path = spec.get("raw_fallback_catalog_path")
     if isinstance(raw_fallback_catalog_path, str):
