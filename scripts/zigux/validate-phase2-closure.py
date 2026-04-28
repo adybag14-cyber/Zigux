@@ -59,6 +59,7 @@ required_files = [
     FIXDEP_DIR / 'sample_concatenated_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.stderr.txt',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'genksyms_bridge_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'debug_reference_types_expected.json',
