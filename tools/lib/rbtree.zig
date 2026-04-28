@@ -24,6 +24,15 @@ pub const Root = struct {
     }
 };
 
+pub const RootCached = struct {
+    root: Root = .{},
+    leftmost: ?*Node = null,
+
+    pub fn init() RootCached {
+        return .{};
+    }
+};
+
 pub const LessFn = *const fn (*const Node, *const Node) bool;
 pub const CmpNodeFn = *const fn (*const Node, *const Node) i32;
 pub const CmpKeyFn = *const fn (*const anyopaque, *const Node) i32;
@@ -191,6 +200,50 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColor(node, root);
+}
+
+pub fn firstCached(root: *const RootCached) ?*Node {
+    return root.leftmost;
+}
+
+pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {
+    if (leftmost) {
+        root.leftmost = node;
+    }
+    insertColor(node, &root.root);
+}
+
+pub fn eraseCached(node: *Node, root: *RootCached) void {
+    if (root.leftmost == node) {
+        root.leftmost = next(node);
+    }
+    erase(node, &root.root);
+}
+
+pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
+    if (root.leftmost == victim) {
+        root.leftmost = new;
+    }
+    replaceNode(victim, new, &root.root);
+}
+
+pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+            leftmost = false;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
 }
 
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
@@ -1006,4 +1059,51 @@ test "rbtree iterateMatches streams only the duplicate range" {
     const missing = @as(i32, 17);
     var missing_iterator = iterateMatches(&missing, &root, cmpKey);
     try std.testing.expectEqual(@as(?*Node, null), missing_iterator.next());
+}
+
+test "rbtree cached root keeps leftmost in sync across add erase and replace" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 7 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
+
+    for (&entries) |*entry| {
+        addCached(&entry.node, &root, less);
+        try expectValidTree(&root.root);
+    }
+
+    const leftmost_entry: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 5), leftmost_entry.key);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    eraseCached(&entries[2].node, &root);
+    try expectValidTree(&root.root);
+    const after_erase_entry: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 10), after_erase_entry.key);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    replaceNodeCached(&entries[0].node, &replacement.node, &root);
+    try expectValidTree(&root.root);
+    const after_replace_entry: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 7), after_replace_entry.key);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
