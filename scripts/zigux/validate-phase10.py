@@ -66,10 +66,11 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_survey.zig",
     "registration-preflight helper",
     "registration-lifecycle blocker",
-    "three lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+    "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
 ]
 
 FORBIDDEN_TESTS_README_MARKERS = [
+    "three lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
     "three manifest-backed survey records",
 ]
 
