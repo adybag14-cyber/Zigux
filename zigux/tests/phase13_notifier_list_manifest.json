@@ -18,6 +18,7 @@
     "preexisting_chrdev_notify_plan_present": true,
     "preexisting_phase11_hvc_header_parity_present": true,
     "preexisting_generic_notifier_header_anchor_present": true,
+    "preexisting_generic_notifier_layout_anchor_present": true,
     "preexisting_generic_notifier_abi_present": false,
     "preexisting_generic_notifier_helper_present": false
   },
@@ -84,6 +85,13 @@
       "kind": "generic_notifier_header_anchor",
       "zigux_destination": "include/linux/acpi_amd_wbrf.h",
       "why_now": "The current repo already exposes one public generic notifier consumer header that imports include/linux/notifier.h and publishes register or unregister entry points around struct notifier_block *nb, so the remaining Phase 13 gap is specifically Zigux-side ABI and helper reviewability rather than missing upstream notifier anchors."
+    },
+    {
+      "id": "linux-generic-notifier-layout-anchor",
+      "status": "preexisting_header_surface",
+      "kind": "generic_notifier_layout_anchor",
+      "zigux_destination": "include/linux/notifier.h",
+      "why_now": "The current repo also exposes the concrete read-only field layout any future Zigux ABI would need to mirror: notifier_block carries notifier_call, next, and priority, while raw_notifier_head anchors the chain through head."
     },
     {
       "id": "phase13-generic-notifier-abi-gap",
