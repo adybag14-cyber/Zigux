@@ -23,7 +23,15 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    review_prompts: []const []const u8,
+    exact_checks: []const ExactCheck,
     gaps: []const Gap,
+};
+
+const ExactCheck = struct {
+    id: []const u8,
+    kind: []const u8,
+    expected: []const u8,
 };
 
 fn readWorkspaceFile(
@@ -67,25 +75,58 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader bindin
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expectEqualStrings("77787e76a385b8c7258ef85c96a785d22ed8e879", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.kretprobe_example_c_lines >= 100);
-    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_runtime_kretprobe_test_files);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_kretprobe_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
+    try std.testing.expectEqual(@as(usize, 3), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 6);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_loader_rollback_prompt = false;
+    var saw_loader_rollback_check = false;
+    var saw_shared_controls_check = false;
     var saw_sample_module = false;
     var saw_diff_gate = false;
     var saw_loader_scaffold = false;
     var saw_live_loader_binding = false;
     var saw_shared_loader_controls_blocker = false;
+
+    for (manifest.review_prompts) |prompt| {
+        try std.testing.expect(prompt.len > 0);
+        if (std.mem.indexOf(u8, prompt, "released_without_substrate") != null) {
+            saw_loader_rollback_prompt = true;
+        }
+    }
+
+    for (manifest.exact_checks) |check| {
+        try std.testing.expect(check.id.len > 0);
+        try std.testing.expect(check.kind.len > 0);
+        try std.testing.expect(check.expected.len > 0);
+
+        if (std.mem.eql(u8, check.id, "loader-rollback-surface")) {
+            saw_loader_rollback_check = true;
+            try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "register and unregister API names") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
+        }
+        if (std.mem.eql(u8, check.id, "shared-loader-controls-blocker")) {
+            saw_shared_controls_check = true;
+            try std.testing.expectEqualStrings("runtime_control_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "command-name") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "argv-policy") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "environment-derived activation handling") != null);
+        }
+    }
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -126,6 +167,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader bindin
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "released_without_substrate") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-kretprobe-live-loader-binding")) {
             saw_live_loader_binding = true;
@@ -152,6 +194,9 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader bindin
     try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(saw_loader_rollback_prompt);
+    try std.testing.expect(saw_loader_rollback_check);
+    try std.testing.expect(saw_shared_controls_check);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
@@ -184,10 +229,15 @@ test "phase 9 runtime kretprobe docs keep the lifecycle-summary surface explicit
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`init_runs`, `selftest_runs`, `exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "active-instance state") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded probe results") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "rollback path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "shared runtime-loader request surface") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "lifecycle stage") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`, `selftest_runs`, `exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "active-instance state") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded probe results") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "released_without_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "rollback path") != null);
 }
