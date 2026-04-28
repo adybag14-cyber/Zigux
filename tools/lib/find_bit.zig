@@ -157,6 +157,7 @@ test "find next and bit skips earlier shared matches in the same word" {
         @as(Word, 1) << 4,
     };
 
+    try std.testing.expectEqual(@as(usize, 6), findNextAndBit(&lhs, &rhs, nbits, 2));
     try std.testing.expectEqual(@as(usize, 6), findNextAndBit(&lhs, &rhs, nbits, 6));
     try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&lhs, &rhs, nbits, 7));
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 5));
