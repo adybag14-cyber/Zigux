@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `725257b3d57edd8029d814404128d52877c6b7f4`
+- verified head: `fcac175d389c062a1a2513ec9d9a5b2bf44c7592`
 
 ## Scope
 
