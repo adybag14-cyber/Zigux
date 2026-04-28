@@ -86,7 +86,7 @@ BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 12, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 12, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
-    "phase11_dw_wdt_manifest.json": ("P11-L10", "drivers/watchdog/dw_wdt.c", 11, ["phase11-dw-wdt-platform-resource-preflight"], ["phase11-dw-wdt-platform-and-pm"]),
+    "phase11_dw_wdt_manifest.json": ("P11-L10", "drivers/watchdog/dw_wdt.c", 11, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L14", "drivers/tty/hvc/hvc_console.c", 8, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
@@ -283,9 +283,9 @@ for marker in [
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
 
-if starter_total != 46:
+if starter_total != 47:
     missing.append(f"phase11_bundle:starter_total={starter_total}")
-if ready_total != 2:
+if ready_total != 1:
     missing.append(f"phase11_bundle:ready_total={ready_total}")
 if blocked_total != 3:
     missing.append(f"phase11_bundle:blocked_total={blocked_total}")
