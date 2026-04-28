@@ -55,7 +55,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("54170a5e351d515f75482d86075c653515efa524", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("69b17fba9879f5d8bac7c630ae7087e70b97f1bb", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -120,6 +120,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CRLF") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "flush intent") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-parity")) {
@@ -138,6 +139,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newline framing") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown gating") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff boundaries") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract wakeup") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-validation-matrix")) {
@@ -147,16 +149,16 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 starter replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "survey gate still runs separately") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd-facing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-tty-and-teardown-parity")) {
             saw_tty_block = true;
             try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "close-wait ownership") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd-facing behavior") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-driven versus polling-driven wakeups") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
