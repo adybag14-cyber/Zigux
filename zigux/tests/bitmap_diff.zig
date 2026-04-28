@@ -112,8 +112,30 @@ test "bitmap diff gate records exact full-width fill and zero endpoints" {
 }
 
 test "bitmap diff gate records exact bounded copy checks" {
+    var small_src = [_]Word{ 0, 0 };
+    var small_dst = [_]Word{ 0, 0 };
     var src = [_]Word{ 0, 0, 0 };
     var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+
+    bitmap.zero(&small_src, bits_per_long * small_src.len);
+    bitmap.zero(&small_dst, bits_per_long * small_dst.len);
+    bitmap.setRange(&small_src, 0, 19);
+    // test_copy single-word copy keeps only the source bits inside a 23-bit window
+    copyFrom(&small_dst, &small_src, 23);
+    try std.testing.expectEqual(@as(usize, 19), weight(&small_dst, 23));
+    try std.testing.expectEqual(@as(usize, 19), firstZero(&small_dst, 23));
+    try expectSet(&small_dst, 18);
+    try expectClear(&small_dst, 19);
+    try expectClear(&small_dst, 22);
+
+    bitmap.zero(&small_dst, bits_per_long * small_dst.len);
+    bitmap.setRange(&small_dst, 0, 23);
+    // test_copy single-word copy clears the stale tail bits inside the copied window
+    copyFrom(&small_dst, &small_src, 23);
+    try std.testing.expectEqual(@as(usize, 19), weight(&small_dst, 23));
+    try expectSet(&small_dst, 18);
+    try expectClear(&small_dst, 19);
+    try expectClear(&small_dst, 22);
 
     bitmap.setRange(&src, 0, 109);
     copyFrom(&dst, &src, bits_per_long * 3);
