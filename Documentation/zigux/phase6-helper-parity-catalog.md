@@ -2,6 +2,8 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
+- verified head: `725257b3d57edd8029d814404128d52877c6b7f4`
+
 ## Scope
 
 The current Phase 6 helper-parity packet is intentionally limited to the four roadmap-backed leaf helpers:
@@ -20,6 +22,8 @@ The shared replay and gating surface for that packet is:
 - `Documentation/zigux/README.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+
+This shared catalog exists so reviewers can confirm, in one place, that the roadmap-backed Phase 6 packet still stops at the four leaf helpers and that the docs, validator, workflow, and test entrypoints all describe the same shipped surface.
 
 ## Current helper evidence
 
