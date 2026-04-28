@@ -9,6 +9,7 @@ const SurveySummary = struct {
     bcm2835_wdt_slice_note_present: bool,
     bcm2835_wdt_validation_matrix_present: bool,
     bcm2835_wdt_platform_handoff_present: bool,
+    bcm2835_wdt_shared_replay_evidence_present: bool,
     bcm2835_wdt_survey_gate_present: bool,
     bcm2835_wdt_survey_note_present: bool,
 };
@@ -37,7 +38,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and blocked live platform gap" {
+test "phase11 bcm2835_wdt survey manifest and validation matrix record the landed handoff summary plus replay surface" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -48,6 +49,14 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const matrix_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(matrix_doc);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -66,9 +75,19 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_validation_matrix_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_platform_handoff_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_shared_replay_evidence_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
     try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "full platform registration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PM base ioremap") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -109,6 +128,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation matrix status") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-starter")) {
@@ -116,7 +136,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-registration and PM-base handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
         }
 
@@ -124,6 +144,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-handoff prerequisites") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership outcomes") != null);
         }
 
@@ -131,6 +152,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
         }
 
@@ -139,7 +161,8 @@ test "phase11 bcm2835_wdt survey manifest records the landed handoff summary and
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PM-base follow-up") != null or std.mem.indexOf(u8, gap.why_now, "PM-base") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed platform-handoff review surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay commands") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-probe-summary")) {
