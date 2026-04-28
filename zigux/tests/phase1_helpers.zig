@@ -71,6 +71,8 @@ const Fixture = struct {
         skip_spaces: []const u8,
         trim_spaces: []const u8,
         remove_spaces: []const u8,
+        remove_spaces_nul: []const u8,
+        remove_spaces_nul_bytes: []const u64,
         replace_char: []const u8,
         replace_char_end: usize,
         memchr_inv_index: usize,
@@ -163,6 +165,13 @@ fn expectWordSlice(actual: []const bitmap.Word, expected: []const u64) !void {
     try std.testing.expectEqual(expected.len, actual.len);
     for (actual, expected) |value, expected_value| {
         try std.testing.expectEqual(@as(bitmap.Word, @intCast(expected_value)), value);
+    }
+}
+
+fn expectByteValues(actual: []const u8, expected: []const u64) !void {
+    try std.testing.expectEqual(expected.len, actual.len);
+    for (actual, expected) |value, expected_value| {
+        try std.testing.expectEqual(@as(u8, @intCast(expected_value)), value);
     }
 }
 
@@ -303,6 +312,12 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqualStrings(fixture.string.trim_spaces, string.trimSpaces(trim_buffer[0 .. trim_buffer.len - 1]));
     var remove_buffer = [_]u8{ 'a', ' ', 'b', ' ', 'c', 0 };
     try std.testing.expectEqualStrings(fixture.string.remove_spaces, string.removeSpaces(remove_buffer[0 .. remove_buffer.len - 1]));
+    var remove_nul_buffer = [_]u8{ 'a', ' ', 'b', 0, ' ', 'x' };
+    try std.testing.expectEqualStrings(
+        fixture.string.remove_spaces_nul,
+        string.removeSpaces(remove_nul_buffer[0 .. remove_nul_buffer.len - 1]),
+    );
+    try expectByteValues(&remove_nul_buffer, fixture.string.remove_spaces_nul_bytes);
     var replace_buffer = [_]u8{ 'a', '-', 'b', 0 };
     try std.testing.expectEqual(
         fixture.string.replace_char_end,
