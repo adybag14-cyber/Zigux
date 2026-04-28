@@ -85,6 +85,22 @@ test "phase 6 hexdump exposes uppercase whole-buffer encoding" {
     try std.testing.expectEqualSlices(u8, "BE32DB7B", text);
 }
 
+test "phase 6 hexdump exposes byte-pack helpers and short-buffer errors" {
+    var lower: [4]u8 = undefined;
+    var upper: [4]u8 = undefined;
+    const lower_rest = try hexdump.hexBytePack(lower[0..], test_data_b[0]);
+    const upper_rest = try hexdump.hexBytePackUpper(upper[0..], test_data_b[0]);
+
+    try std.testing.expectEqual(@as(usize, 2), lower_rest.len);
+    try std.testing.expectEqual(@as(usize, 2), upper_rest.len);
+    try std.testing.expectEqualSlices(u8, "be", lower[0..2]);
+    try std.testing.expectEqualSlices(u8, "BE", upper[0..2]);
+
+    var short: [1]u8 = undefined;
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePack(short[0..], test_data_b[0]));
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePackUpper(short[0..], test_data_b[0]));
+}
+
 test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
     for (fixtures.parity_cases) |case| {
         try assertFixtureParityCase(case);
