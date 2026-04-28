@@ -33,6 +33,14 @@
       "expected": "oldconfig_expected.json"
     },
     {
+      "name": "listnewconfig",
+      "mode": "listnewconfig",
+      "kconfig": "Kconfig",
+      "config": "pending/.config",
+      "arch": "s390",
+      "expected": "listnewconfig_expected.json"
+    },
+    {
       "name": "allnoconfig",
       "mode": "allnoconfig",
       "kconfig": "Kconfig",
