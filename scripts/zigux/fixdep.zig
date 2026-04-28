@@ -35,7 +35,7 @@ fn describeFileReadError(err: anyerror) []const u8 {
         error.ProcessFdQuotaExceeded, error.SystemFdQuotaExceeded => "Too many open files",
         error.DeviceBusy => "Device or resource busy",
         error.NoDevice => "No such device",
-        error.FileTooBig => "File too large",
+        error.FileTooBig, error.StreamTooLong => "File too large",
         error.InputOutput => "Input/output error",
         else => @errorName(err),
     };
@@ -167,6 +167,7 @@ const Processor = struct {
             error.DeviceBusy,
             error.NoDevice,
             error.FileTooBig,
+            error.StreamTooLong,
             error.InputOutput,
             => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
@@ -485,6 +486,7 @@ test "ignored and no-parse file classification matches fixdep rules" {
 test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
+    try std.testing.expectEqualStrings("File too large", describeFileReadError(error.StreamTooLong));
 }
 
 test "output writer maps print and flush failures to fixdep output-write errors" {
