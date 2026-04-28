@@ -14,13 +14,13 @@ MAKEFILE_REL = "zigux/Makefile"
 
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
-    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header",
+    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
     "PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed",
     "PHASE3_UAPI_ROOT=zigux/uapi",
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
     "PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-shared-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry",
 )
 
 REQUIRED_SURVEY_PATHS = (
