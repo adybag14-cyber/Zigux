@@ -222,6 +222,46 @@ test "phase 7 rbtree balancing helpers keep ordered insert erase traversal stabl
     try std.testing.expectEqualSlices(i32, fixture.ordered.replace_order, replaced_actual[0..replaced_index]);
 }
 
+test "phase 7 rbtree eraseInit detaches erased nodes for reuse" {
+    const less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+    };
+    var root = rbtree.Root.init();
+
+    for (&entries) |*entry| {
+        rbtree.add(&entry.node, &root, less);
+    }
+
+    rbtree.eraseInit(&entries[0].node, &root);
+
+    try std.testing.expect(rbtree.emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.next(&entries[0].node));
+    try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.prev(&entries[0].node));
+
+    const expected = [_]i32{ 5, 20 };
+    var actual: [expected.len]i32 = undefined;
+    var count: usize = 0;
+    var current = rbtree.first(&root);
+    while (current) |node| : (current = rbtree.next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        actual[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(expected.len, count);
+    try std.testing.expectEqualSlices(i32, &expected, actual[0..count]);
+}
+
 test "phase 7 rbtree clearNode marks detached nodes as empty" {
     var node = rbtree.Node.init();
 
