@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-lab-starter`
-- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, registration identity bookkeeping, config-change bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
+- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, registration identity bookkeeping, config-change and config-generation bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
 - product boundary:
   - `drivers/virtio/virtio.zig`
   - `zigux/tests/phase10_virtio_core.zig`
@@ -17,7 +17,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 The Phase 10 roadmap explicitly names `drivers/virtio/virtio.c` as the first virtio-core anchor and calls for lab-only validation before any deeper queue, transport, or MMIO work.
 
-This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, registration identity bookkeeping, transport refusal handling, and config-change bookkeeping.
+This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, registration identity bookkeeping, transport refusal handling, config-change bookkeeping, and one bounded config-generation observation surface.
 
 ## Landed starter surface
 
@@ -32,7 +32,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
 - registration identity bookkeeping for the `register_virtio_device()` and `virtio_uevent()` path, including the bounded `virtio%u` device name and modalias string
 - config-change enable, disable, pending, flush, and reset bookkeeping that stays entirely in memory while making the later `virtio_config_enable()` and `virtio_config_disable()` review surface concrete
-- bounded config-generation increments, last-observed generation state, and pending-generation visibility that keep one more core-local review surface explicit without claiming transport reads
+- bounded config-generation summaries that record generation, last observed generation, and pending observation state without pretending to read transport MMIO registers
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
@@ -42,14 +42,14 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - covered now:
   - lab-only validation for `drivers/virtio/virtio.c`
   - core-side status sequencing and feature negotiation
-  - bounded queue callback bookkeeping and queue shape metadata for reviewable lab tests
+  - bounded queue callback bookkeeping, queue shape metadata, and config-generation summaries for reviewable lab tests
 - still intentionally missing:
   - real virtqueue wrappers from `virtio_ring.c`
   - real MMIO wrappers from `virtio_mmio.c`
   - dual implementations for risky transport-facing paths
   - probe, remove, and real device lifecycle wiring
 
-This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape, one bounded registration identity path, and one bounded config-change path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
+This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape, one bounded registration identity path, one bounded config-change path, and one bounded config-generation observation path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
 
 ## Non-goals
 
