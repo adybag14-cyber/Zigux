@@ -39,6 +39,7 @@ Without this matrix, the slice names the right next step but does not preserve t
 
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
+- the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane
 - this bounded worker-entry step stays inside the existing starter, test, survey, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules

@@ -242,7 +242,7 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
         io_instance.io(),
         "drivers/tty/hvc/hvc_console.zig",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(24 * 1024),
     );
     defer std.testing.allocator.free(hvc_zig);
 
