@@ -58,10 +58,18 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
         '"' => try writer.writeAll("\\\""),
+        '\x08' => try writer.writeAll("\\b"),
+        '\x0c' => try writer.writeAll("\\f"),
         '\n' => try writer.writeAll("\\n"),
         '\r' => try writer.writeAll("\\r"),
         '\t' => try writer.writeAll("\\t"),
-        else => try writer.writeByte(c),
+        else => {
+            if (c < 0x20) {
+                try writer.print("\\u00{x:0>2}", .{c});
+            } else {
+                try writer.writeByte(c);
+            }
+        },
     };
 }
 
@@ -84,6 +92,8 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8
             if (index + 1 < inner.len) {
                 index += 1;
                 const escaped = switch (inner[index]) {
+                    'b' => '\x08',
+                    'f' => '\x0c',
                     'n' => '\n',
                     'r' => '\r',
                     't' => '\t',
@@ -307,6 +317,50 @@ test "confdata bridge emits bounded json output" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"CONFIG_DEBUG\"") != null);
 }
 
+test "confdata bridge escapes low control bytes in emitted json" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_CTRL=\"a\\bb\\fc\x1dd\"\n",
+        &capture,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\b") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\f") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\u00") != null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x08') == null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x0c') == null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x1d') == null);
+}
+
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
@@ -327,15 +381,19 @@ test "confdata bridge decodes escaped control sequences in quoted strings" {
     var summary = try parseConfig(
         allocator,
         "CONFIG_BANNER=\"line1\\nline2\"\n" ++
+            "CONFIG_NOTE=\"zigux\\bbridge\"\n" ++
             "CONFIG_TITLE=\"zigux\\tbridge\"\n" ++
-            "CONFIG_STATUS=\"ready\\rok\"\n",
+            "CONFIG_STATUS=\"ready\\rok\"\n" ++
+            "CONFIG_FORM=\"line1\\fline2\"\n",
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 5), summary.entries.len);
     try std.testing.expectEqualStrings("line1\nline2", summary.entries[0].value);
-    try std.testing.expectEqualStrings("zigux\tbridge", summary.entries[1].value);
-    try std.testing.expectEqualStrings("ready\rok", summary.entries[2].value);
+    try std.testing.expectEqualStrings("zigux\x08bridge", summary.entries[1].value);
+    try std.testing.expectEqualStrings("zigux\tbridge", summary.entries[2].value);
+    try std.testing.expectEqualStrings("ready\rok", summary.entries[3].value);
+    try std.testing.expectEqualStrings("line1\x0cline2", summary.entries[4].value);
 }
 
 test "confdata bridge accepts CRLF config lines" {
