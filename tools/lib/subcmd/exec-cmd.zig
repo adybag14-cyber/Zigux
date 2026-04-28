@@ -296,6 +296,25 @@ pub fn setupPath(
     return new_path;
 }
 
+pub fn setupPathWithPwd(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    pwd: ?[]const u8,
+    cwd_identity: FileIdentity,
+    pwd_identity: ?FileIdentity,
+) ![]u8 {
+    return setupPath(
+        allocator,
+        env,
+        state,
+        config,
+        choosePwdCwdFromIdentities(cwd, pwd, cwd_identity, pwd_identity),
+    );
+}
+
 pub fn prepareExecCmd(
     allocator: std.mem.Allocator,
     config: Config,
@@ -655,6 +674,103 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         inherited_empty,
     );
     try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
+}
+
+test "setupPathWithPwd reuses the logical PWD only when the injected identities match" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    const cwd_identity = FileIdentity{ .device = 3, .inode = 44 };
+    const matching_pwd_identity = FileIdentity{ .device = 3, .inode = 44 };
+    const different_pwd_identity = FileIdentity{ .device = 7, .inode = 44 };
+
+    var matched_env = EnvMap.init(std.testing.allocator);
+    defer matched_env.deinit();
+    try execCmdInit(&matched_env, config);
+
+    var matched_state = ExecCmdState{};
+    defer matched_state.deinit(std.testing.allocator);
+    try setArgvExecPath(std.testing.allocator, &matched_env, &matched_state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &matched_state, "scripts");
+    try matched_env.set("PATH", "/usr/bin");
+
+    const matched = try setupPathWithPwd(
+        std.testing.allocator,
+        &matched_env,
+        matched_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        matching_pwd_identity,
+    );
+    defer std.testing.allocator.free(matched);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",
+        matched,
+    );
+    try std.testing.expectEqualStrings(matched, matched_env.get("PATH").?);
+
+    var different_env = EnvMap.init(std.testing.allocator);
+    defer different_env.deinit();
+    try execCmdInit(&different_env, config);
+
+    var different_state = ExecCmdState{};
+    defer different_state.deinit(std.testing.allocator);
+    try setArgvExecPath(std.testing.allocator, &different_env, &different_state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &different_state, "scripts");
+    try different_env.set("PATH", "/usr/bin");
+
+    const different = try setupPathWithPwd(
+        std.testing.allocator,
+        &different_env,
+        different_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        different_pwd_identity,
+    );
+    defer std.testing.allocator.free(different);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        different,
+    );
+    try std.testing.expectEqualStrings(different, different_env.get("PATH").?);
+
+    var missing_env = EnvMap.init(std.testing.allocator);
+    defer missing_env.deinit();
+    try execCmdInit(&missing_env, config);
+
+    var missing_state = ExecCmdState{};
+    defer missing_state.deinit(std.testing.allocator);
+    try setArgvExecPath(std.testing.allocator, &missing_env, &missing_state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &missing_state, "scripts");
+    try missing_env.set("PATH", "/usr/bin");
+
+    const missing = try setupPathWithPwd(
+        std.testing.allocator,
+        &missing_env,
+        missing_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        null,
+    );
+    defer std.testing.allocator.free(missing);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        missing,
+    );
+    try std.testing.expectEqualStrings(missing, missing_env.get("PATH").?);
 }
 
 test "choosePwdCwd prefers PWD only when it points at the same location" {
