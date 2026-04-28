@@ -6,7 +6,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus five landed helper-first starter slices and one explicit deferred interrupt-routing boundary
+- scope: segment manifest plus five landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on
+- survey checkpoint: refreshed against inspected `master` head `618b563069e1015c86668639beb89aeb1e40b5cf`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -34,7 +35,7 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 - `tools/lib/bpf/libbpf.c` is still the dominant anchor at 14771 lines.
 - companion C leaves such as `btf.c`, `linker.c`, `bpf.c`, `features.c`, `ringbuf.c`, `netlink.c`, `nlattr.c`, and `libbpf_utils.c` confirm that Phase 8 needs a segmented rollout instead of a single-file port attempt.
 - before this survey landed, the repo had no `tools/lib/bpf/zigux_segments/` directory and no dedicated Phase 8 libbpf review note.
-- the first realistic Zigux entry points are helper-first clusters with stable text or path behavior, while direct file reads, path opens, token handles, and fd ownership still need an explicit deferred boundary before any broader object work starts.
+- the first realistic Zigux entry points are helper-first clusters with stable text or path behavior, while direct file reads, path opens, token handles, fd ownership, and perf-buffer CPU routing still need explicit deferred boundaries before any broader object work starts.
 
 ## Segment catalog
 
@@ -84,6 +85,7 @@ The current tests check:
 - empty and malformed ranges report explicit errors
 - reader contract failures stay explicit instead of silently truncating input
 - the manifest-backed survey now rejects dropping the deferred perf-buffer online-CPU routing boundary from the segment catalog
+- the survey summary keeps both the deferred file-path resource boundary and the blocked skeleton follow-on visible so the landed helper set is not mistaken for object-model progress
 - every exported attach, link, map, and program type-name table entry stays reachable through the paired helper
 - representative late ordinals from `tools/include/uapi/linux/bpf.h` still resolve to the shipped type-name strings
 - out-of-range negative and oversized type ordinals are rejected cleanly
