@@ -139,6 +139,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    runtime_trace_events_survey_module.addImport("runtime_trace_events_sample", runtime_trace_events_sample_module);
     const runtime_kretprobe_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_kretprobe_survey.zig"),
         .target = target,
