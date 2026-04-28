@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L07",
   "phase": "Phase 10",
-  "surveyed_commit": "4b1a5d87c7f43de99dc311b75d62a24c60d67514",
+  "surveyed_commit": "42809b6eace69a1f8ec5a60ea39ca3ef6379182c",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -29,7 +29,7 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The existing virtio core lab slice already covers status negotiation, bounded queue callback bookkeeping, descriptor-shape metadata, and notification accounting, so the ring survey should build on that real foothold instead of pretending those core-side capabilities are still missing."
+      "why_now": "The existing virtio core lab slice already covers status negotiation, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, and notification accounting, so the ring survey should build on that real foothold instead of pretending those core-side capabilities are still missing."
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
@@ -43,7 +43,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO follow-up boundary against the roadmap and prevents the repo from overstating virtio_ring progress."
+      "why_now": "The lane needs a Phase 10 note that records the current MMIO follow-up ladder against the roadmap and prevents the repo from overstating virtio_ring progress."
     },
     {
       "id": "phase10-virtqueue-shape-helper",
@@ -106,21 +106,42 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With queue shape, used-buffer polling, callback re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping, and queue-reset guard discipline landed, the first honest bounded MMIO follow-up is now the landed `virtio_mmio` register-window helper rather than more queue-local work."
+      "why_now": "With queue shape, used-buffer polling, callback re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping, and queue-reset guard discipline landed, the first honest bounded MMIO follow-up was the register-window helper rather than more queue-local work."
     },
     {
       "id": "phase10-mmio-queue-register-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "With the register-window helper landed, the repo now also carries queue select, queue size bounds, and ready-state bookkeeping in the bounded MMIO helper, so the older queue-register step no longer belongs in ready-next posture."
+    },
+    {
+      "id": "phase10-mmio-queue-notify-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "Once queue select, queue size, and ready-state bookkeeping were reviewable in memory, the next bounded MMIO step was the landed queue-notify snapshot helper rather than a still-missing transport rung."
+    },
+    {
+      "id": "phase10-mmio-queue-address-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "With queue-notify bookkeeping now reviewable, the live helper can also carry the landed version-scoped queue-address planning step around legacy PFN versus modern DESC, AVAIL, and USED register windows without claiming queue setup, shared interrupt delivery, or lifecycle parity."
+    },
+    {
+      "id": "phase10-mmio-config-window-helper",
       "status": "ready_next",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Now that the register-window helper is landed, the next honest bounded MMIO follow-up is queue select, queue size bounds, and ready-state bookkeeping rather than IRQ, lifecycle, or DMA-facing transport work."
+      "why_now": "After the landed queue-address planning helper, the next honest cross-lane MMIO follow-up is the tiny config-window helper rather than more speculative ring work, queue setup, IRQ delivery, or lifecycle glue."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Broader `virtio_mmio.c` parity still mixes interrupt acknowledgement, queue setup, reset, and probe or remove lifecycle paths, which remain too transport-facing to claim before a first register-window helper lands and gets reviewed."
+      "why_now": "Broader `virtio_mmio.c` parity still mixes interrupt acknowledgement, queue setup, reset, and probe or remove lifecycle paths, which remain too transport-facing to claim before the bounded queue-address and config-window helpers are reviewed."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
