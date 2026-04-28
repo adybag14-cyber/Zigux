@@ -35,6 +35,11 @@ pub const CompareExchangeResult = struct {
     stored: bool,
 };
 
+pub const AddResult = struct {
+    previous: i64,
+    final: i64,
+};
+
 pub const AddUnlessResult = struct {
     previous: i64,
     changed: bool,
@@ -110,6 +115,16 @@ pub const RuntimeAtomic64Sample = struct {
                     .{ .previous = previous, .stored = false }
                 else
                     .{ .previous = expected, .stored = true };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn addCounter(self: *Self, addend: i64) !AddResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchAdd(i64, &self.counter, addend, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous + addend };
             },
             else => error.InvalidLifecycleTransition,
         };
