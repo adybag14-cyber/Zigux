@@ -1,6 +1,6 @@
 const std = @import("std");
 const checksum = @import("checksum");
-const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
+const fixtures = @import("phase6_checksum_vectors");
 
 fn foldCarry(sum: u32) u32 {
     var acc = sum;
@@ -87,6 +87,16 @@ test "seeded partial accumulation matches the fixture-backed reference" {
 
 test "kunit-inspired carry discipline stays stable on the helper surface" {
     for (fixtures.carry_discipline_cases) |case| {
+        const partial = checksum.partial(case.bytes, case.seed);
+
+        try std.testing.expectEqual(case.expected_partial, partial);
+        try std.testing.expectEqual(case.expected_compute, checksum.fold(partial));
+        try std.testing.expectEqual(case.expected_compute, referenceFoldedChecksum(case.bytes, case.seed));
+    }
+}
+
+test "kunit random-prefix parity stays stable on the helper surface" {
+    for (fixtures.kunit_random_prefix_cases) |case| {
         const partial = checksum.partial(case.bytes, case.seed);
 
         try std.testing.expectEqual(case.expected_partial, partial);
