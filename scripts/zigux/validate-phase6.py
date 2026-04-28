@@ -145,6 +145,15 @@ required_phase6_catalog_markers = [
     'lib/checksum.zig',
     'lib/hexdump.zig',
     'zigux/tests/phase6_build.zig',
+    '## Current perf gate posture',
+    'max_encode_slowdown_pct = 125',
+    'max_decode_slowdown_pct = 225',
+    'avg_compare_calls <= std.math.log2_int_ceil(len) + 1',
+    'max_slowdown_pct = 150',
+    'there is no hard formatter-cost threshold yet because the current lane only claims deterministic perf-sanity evidence',
+    '`zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds',
+    '`zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded comparison budget rather than a nanosecond threshold',
+    '`zigux/tests/phase6_hexdump_perf.zig` currently remains a deterministic formatter-cost sanity harness without a numeric slowdown ceiling',
     'scripts/zigux/validate-phase6.py',
     '.github/workflows/zigux-bootstrap.yml',
     'Documentation/zigux/README.md',
@@ -181,11 +190,13 @@ required_base64_markers = [
 
 required_base64_perf_markers = [
     'phase6-base64-perf',
-    'fixtures.perf_cases',
-    'fixtures.fillPerfPayload(input[0..case.size]);',
+    'max_encode_slowdown_pct',
+    'max_decode_slowdown_pct',
     'encode_ns_per_op',
     'decode_ns_per_op',
-    'try std.testing.expectEqualSlices(u8, input[0..case.size], decoded[0..decoded_len]);',
+    'encode_slowdown_pct',
+    'decode_slowdown_pct',
+    'try std.testing.expectEqualSlices(u8, input[0..case.size], helper_decoded[0..decoded_len]);',
 ]
 
 required_bsearch_markers = [
@@ -239,7 +250,7 @@ required_slice_markers = {
         'zigux/tests/fixtures/phase6_base64_vectors.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-base64-perf',
-        'fixture-backed perf corpus owned by `zigux/tests/fixtures/phase6_base64_vectors.zig`',
+        '`zigux/tests/fixtures/phase6_base64_vectors.zig` module also owns the deterministic perf corpus shape',
     ],
     'phase6-bsearch-slice.md': [
         'PHASE6_STATUS=active',
@@ -247,7 +258,7 @@ required_slice_markers = {
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-bsearch-perf',
         'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
-        'duplicate-key found-or-null parity without claiming stable duplicate selection',
+        'duplicate-key found-or-null parity without claiming stable selection',
         'representative lookup work stays inside a bounded binary-search comparison budget',
         'representative external C-vs-Zig parity spot check',
         'replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices',
