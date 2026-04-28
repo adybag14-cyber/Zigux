@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 const std = @import("std");
+const fixtures = @import("phase6_checksum_vectors");
 
 pub fn add(sum: u32, addend: u32) u32 {
     const result = sum +% addend;
@@ -102,74 +103,16 @@ fn appendBigEndianU32(buffer: []u8, value: u32) void {
     std.mem.writeInt(u32, pair, value, .big);
 }
 
-const ComputeCase = struct {
-    bytes: []const u8,
-    expected_partial: u32,
-    expected_compute: u16,
-};
-
-const CompositionCase = struct {
-    payload: []const u8,
-    split: usize,
-    expected_partial: u32,
-    expected_fold: u16,
-};
-
-const SeededCase = struct {
-    bytes: []const u8,
-    seed: u32,
-    expected_partial: u32,
-};
-
-const CarryDisciplineCase = struct {
-    bytes: []const u8,
-    seed: u32,
-    expected_partial: u32,
-    expected_compute: u16,
-};
-
-const PseudoHeaderCase = struct {
-    payload: []const u8,
-    saddr: u32,
-    daddr: u32,
-    proto: u8,
-    expected_compute: u16,
-};
-
-test "compute matches the current checksum edge-case matrix" {
-    const carry_payload = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x7f };
-    const cases = [_]ComputeCase{
-        .{ .bytes = "", .expected_partial = 0x0000, .expected_compute = 0xffff },
-        .{ .bytes = "\x00\x01", .expected_partial = 0x0001, .expected_compute = 0xfffe },
-        .{
-            .bytes = &[_]u8{
-                0x45, 0x00, 0x00, 0x3c,
-                0x1c, 0x46, 0x40, 0x00,
-                0x40, 0x06, 0x00, 0x00,
-                0xc0, 0xa8, 0x00, 0x01,
-                0xc0, 0xa8, 0x00, 0xc7,
-            },
-            .expected_partial = 0x63a2,
-            .expected_compute = 0x9c5d,
-        },
-        .{ .bytes = "abcde", .expected_partial = 0x29c7, .expected_compute = 0xd638 },
-        .{ .bytes = &carry_payload, .expected_partial = 0x7f00, .expected_compute = 0x80ff },
-    };
-
-    for (cases) |case| {
+test "compute matches the shared checksum edge-case matrix" {
+    for (fixtures.compute_cases) |case| {
         try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, 0));
         try std.testing.expectEqual(case.expected_partial, partial(case.bytes, 0));
         try std.testing.expectEqual(case.expected_compute, compute(case.bytes));
     }
 }
 
-test "partial checksums compose across the even and odd split matrix" {
-    const cases = [_]CompositionCase{
-        .{ .payload = "checksum fragments keep their carry", .split = 20, .expected_partial = 0x0e7b, .expected_fold = 0xf184 },
-        .{ .payload = "checksum fragments keep their carry", .split = 21, .expected_partial = 0x0e7b, .expected_fold = 0xf184 },
-    };
-
-    for (cases) |case| {
+test "partial checksums compose across the shared even and odd split matrix" {
+    for (fixtures.composition_cases) |case| {
         const whole = partial(case.payload, 0);
         const left = partial(case.payload[0..case.split], 0);
         const right = partial(case.payload[case.split..], 0);
@@ -182,53 +125,15 @@ test "partial checksums compose across the even and odd split matrix" {
     }
 }
 
-test "partial honors non-zero seeds across carry-heavy inputs" {
-    const carry_payload = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x7f };
-    const seeded_cases = [_]SeededCase{
-        .{ .bytes = "abcde", .seed = 0xffff, .expected_partial = 0x29c7 },
-        .{ .bytes = &carry_payload, .seed = 0x1fffe, .expected_partial = 0x7f00 },
-        .{ .bytes = "\x45\x00\x00\x3c\x1c\x46\x40", .seed = 0xabcd, .expected_partial = 0x4d50 },
-    };
-
-    for (seeded_cases) |case| {
+test "partial honors shared non-zero seeded cases across carry-heavy inputs" {
+    for (fixtures.seeded_cases) |case| {
         try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
         try std.testing.expectEqual(case.expected_partial, partial(case.bytes, case.seed));
     }
 }
 
-test "carry discipline matches the current helper-local edge matrix" {
-    const all_ones_odd = [_]u8{0xff};
-    const all_ones_even = [_]u8{ 0xff, 0xff };
-    const no_carry_single = [_]u8{0x04};
-    const no_carry_pair = [_]u8{ 0x04, 0x04 };
-    const cases = [_]CarryDisciplineCase{
-        .{
-            .bytes = &all_ones_odd,
-            .seed = 0xffff_ffff,
-            .expected_partial = 0xff00,
-            .expected_compute = 0x00ff,
-        },
-        .{
-            .bytes = &all_ones_even,
-            .seed = 0,
-            .expected_partial = 0xffff,
-            .expected_compute = 0x0000,
-        },
-        .{
-            .bytes = &no_carry_single,
-            .seed = 0xffff_fbfb,
-            .expected_partial = 0xfffb,
-            .expected_compute = 0x0004,
-        },
-        .{
-            .bytes = &no_carry_pair,
-            .seed = 0xffff_f7f7,
-            .expected_partial = 0xfbfb,
-            .expected_compute = 0x0404,
-        },
-    };
-
-    for (cases) |case| {
+test "carry discipline matches the shared helper-local edge matrix" {
+    for (fixtures.carry_discipline_cases) |case| {
         const actual_partial = partial(case.bytes, case.seed);
         try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
         try std.testing.expectEqual(case.expected_partial, actual_partial);
@@ -236,18 +141,8 @@ test "carry discipline matches the current helper-local edge matrix" {
     }
 }
 
-test "tcpUdpNofold matches the pseudo-header fixture parity" {
-    const cases = [_]PseudoHeaderCase{
-        .{
-            .payload = "zigux checksum",
-            .saddr = 0xc0a8_0001,
-            .daddr = 0xc0a8_00c7,
-            .proto = 17,
-            .expected_compute = 0x7a1b,
-        },
-    };
-
-    for (cases) |case| {
+test "tcpUdpNofold matches the shared pseudo-header fixture parity" {
+    for (fixtures.pseudo_header_cases) |case| {
         const payload_partial = partial(case.payload, 0);
 
         var pseudo_header: [12]u8 = undefined;
