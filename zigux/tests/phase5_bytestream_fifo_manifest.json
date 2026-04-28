@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L06",
   "phase": "Phase 5",
-  "surveyed_commit": "f68f94c2cf3ef842afbcffb94f82d06ee5ddc1f2",
+  "surveyed_commit": "67553cdcf1ea95eae875eac746164dba3858cc5a",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -75,6 +75,11 @@
       "id": "preview-truncation",
       "kind": "helper_contract",
       "expected": "after the wraparound replay setup, snapshotInto truncates to the destination length and a length-8 preview yields exactly [2,3,4,5,6,7,8,9] while leaving the queue length at 10"
+    },
+    {
+      "id": "queue-only-reset",
+      "kind": "helper_contract",
+      "expected": "reset clears buffered bytes back to an empty queue without rewinding lifecycle stage or the init_runs and exit_runs bookkeeping counters"
     },
     {
       "id": "checked-focus-list",
