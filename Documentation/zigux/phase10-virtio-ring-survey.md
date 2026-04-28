@@ -56,6 +56,7 @@ This survey slice does not yet claim:
 - DMA mapping or unmapping wrappers
 - `virtqueue_add_*`, `virtqueue_get_buf`, or `vring_interrupt` lifecycle behavior
 - `virtio_mmio.c` transport glue
+- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and only advances through the bounded `phase10-mmio-queue-register-helper` follow-up
 
 ## Gates
 
