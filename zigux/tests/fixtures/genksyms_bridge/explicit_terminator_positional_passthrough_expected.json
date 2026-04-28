@@ -1,0 +1,1 @@
+{"tool":"scripts/genksyms/genksyms","stdin":"cpp-stream","stdout":"symversions","argv":["scripts/genksyms/genksyms","-d","--","leftover.c","tail.h"],"options":{"debug_level":1,"warnings":false,"dump_defs":false,"preserve":false,"reference_files":[],"dump_types_file":null}}
