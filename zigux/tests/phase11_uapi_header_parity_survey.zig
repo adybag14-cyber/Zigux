@@ -1,4 +1,5 @@
 const std = @import("std");
+const hvc_console = @import("hvc_console");
 const layout_assert = @import("layout_assert");
 
 const SurveySummary = struct {
@@ -7,6 +8,7 @@ const SurveySummary = struct {
     watchdog_core_header_present: bool,
     termios_uapi_header_present: bool,
     hvc_console_header_present: bool,
+    hvc_console_header_snapshot_present: bool,
     dw_wdt_survey_note_present: bool,
     dw_wdt_manifest_present: bool,
     hvc_console_survey_note_present: bool,
@@ -75,11 +77,12 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expect(manifest.survey_summary.watchdog_core_header_present);
     try std.testing.expect(manifest.survey_summary.termios_uapi_header_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_header_present);
+    try std.testing.expect(manifest.survey_summary.hvc_console_header_snapshot_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_manifest_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_manifest_present);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -87,6 +90,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     var saw_gate = false;
     var saw_dw_boundary = false;
     var saw_hvc_boundary = false;
+    var saw_hvc_snapshot_check = false;
     var saw_watchdog_layout_checkpoint = false;
     var saw_winsize_layout_checkpoint = false;
     var saw_phase3_followup = false;
@@ -131,6 +135,14 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-snapshot-check")) {
+            saw_hvc_snapshot_check = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_console.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops callback booleans") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-info-layout-assert")) {
             saw_watchdog_layout_checkpoint = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
@@ -160,12 +172,13 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_dw_boundary);
     try std.testing.expect(saw_hvc_boundary);
+    try std.testing.expect(saw_hvc_snapshot_check);
     try std.testing.expect(saw_watchdog_layout_checkpoint);
     try std.testing.expect(saw_winsize_layout_checkpoint);
     try std.testing.expect(saw_phase3_followup);
@@ -214,6 +227,13 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(hvc_header);
+    const hvc_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/tty/hvc/hvc_console.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(hvc_zig);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/linux/watchdog.h") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct watchdog_info") != null);
@@ -231,6 +251,8 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct hvc_struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 interop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared struct layouts") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hvc_console.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "backed by code instead of prose alone") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "__u32 options") != null);
     try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "__u32 firmware_version") != null);
@@ -249,6 +271,37 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "struct hv_ops") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "struct winsize ws;") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_header, "__hvc_resize(struct hvc_struct *hp, struct winsize ws)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub const max_nr_hvc_consoles: usize = 16;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub const alloc_tty_adapters: usize = 8;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub const HeaderParitySnapshot = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, "pub fn headerParitySnapshot() HeaderParitySnapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".anchor = \"drivers/tty/hvc/hvc_console.h\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_resize = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".has_notifier_hangup = true") != null);
+}
+
+test "phase11 shared header parity survey keeps the hvc snapshot aligned with the bounded header mirror" {
+    const snapshot = hvc_console.headerParitySnapshot();
+
+    try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.h", snapshot.anchor);
+    try std.testing.expectEqual(@as(usize, 16), snapshot.max_nr_hvc_consoles);
+    try std.testing.expectEqual(@as(usize, 8), snapshot.alloc_tty_adapters);
+    try std.testing.expect(snapshot.exports_instantiate);
+    try std.testing.expect(snapshot.exports_alloc);
+    try std.testing.expect(snapshot.exports_remove);
+    try std.testing.expect(snapshot.exports_poll);
+    try std.testing.expect(snapshot.exports_resize);
+    try std.testing.expect(snapshot.hv_ops.has_get_chars);
+    try std.testing.expect(snapshot.hv_ops.has_put_chars);
+    try std.testing.expect(snapshot.hv_ops.has_flush);
+    try std.testing.expect(snapshot.hv_ops.has_notifier_add);
+    try std.testing.expect(snapshot.hv_ops.has_notifier_del);
+    try std.testing.expect(snapshot.hv_ops.has_notifier_hangup);
+    try std.testing.expect(snapshot.hv_ops.has_tiocmget);
+    try std.testing.expect(snapshot.hv_ops.has_tiocmset);
+    try std.testing.expect(snapshot.hv_ops.has_dtr_rts);
+    try std.testing.expect(snapshot.keeps_tty_registration_out_of_scope);
+    try std.testing.expect(snapshot.keeps_live_hypervisor_io_out_of_scope);
 }
 
 test "phase11 shared header parity survey keeps a bounded watchdog_info layout proof" {
