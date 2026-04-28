@@ -185,7 +185,10 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, request.lane());
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsInitExitContractExplicit());
+    try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(request.keepsSharedHandoffContractExplicit());
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, request.allocator_handoff.init_flow);
     try std.testing.expect(request.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!request.allocator_handoff.requires_reset_on_init);
@@ -211,7 +214,10 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, released.lane());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(released.keepsInitExitContractExplicit());
+    try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(released.keepsSharedHandoffContractExplicit());
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, released.allocator_handoff.init_flow);
     try std.testing.expect(released.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!released.allocator_handoff.requires_reset_on_init);
