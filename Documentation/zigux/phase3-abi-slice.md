@@ -93,7 +93,7 @@ Low-level wrapper survey:
 - atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`
 - MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read32`, and `write32`, with pointer formation delegated back through the narrow unsafe layer
-- focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps those documented atomic, barrier, and MMIO wrappers on their own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
+- focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps those documented atomic, barrier, and MMIO wrappers, plus the narrow export-shim status contract and the UAPI version pin, on their own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
 
 ## Boundary
 
