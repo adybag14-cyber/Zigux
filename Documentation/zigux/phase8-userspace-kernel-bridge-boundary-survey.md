@@ -33,7 +33,7 @@ The current parked command boundary is helper-only:
 The current libbpf bridge packet is also helper-first:
 
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` only claims `/proc/<pid>/fdinfo/<fd>` path construction plus bounded fdinfo text parsing from `bpf_get_map_info_from_fdinfo()`
-- `Documentation/zigux/phase8-libbpf-segment-survey.md` keeps the deferred `file-path-and-handle-bridge` boundary explicit around `bpf_object_prepare_token()`, `bpf_object__reuse_map()`, `bpf_obj_get()` reopen flows, and `open()` or `close()` ownership
+- `Documentation/zigux/phase8-libbpf-segment-survey.md` keeps the deferred `file-path-and-handle-bridge` boundary explicit around `bpf_object_prepare_token()`, `bpf_object__reuse_map()`, `bpf_obj_get()` reopen flows, and `open()` or `close()` ownership, even after the bounded `planTokenPreparation()` helper made the optional-versus-mandatory token-path intent reviewable
 - the same survey keeps the separate perf-buffer routing boundary explicit, so the landed helper-first rollout still does not claim direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, bpffs path opens, `bpf_token_create()` handle lifecycle parity, or interrupt-routing-sensitive perf-buffer behavior
 
 ## Review gate
