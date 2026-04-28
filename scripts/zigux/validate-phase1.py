@@ -166,14 +166,14 @@ required_string_manifest_markers = [
     '"tools/lib/string.zig"',
     '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
-    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim stop at the first embedded NUL\\""',
-    '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by stopping at the first embedded NUL before trailing-whitespace trimming or wrapper-alias return slices can drift into later bytes."',
+    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\""',
+    '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
 ]
 required_string_closure_markers = [
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
-    'string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`',
+    'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
-    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string skip_spaces, remove_spaces, strim, strreplace, and memchr_inv aliases stay aligned with skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv, including the embedded-NUL stop behavior that keeps remove_spaces and strreplace from touching trailing bytes past the first terminator',
+    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
 ]
 required_rbtree_helper_markers = [
     'pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
