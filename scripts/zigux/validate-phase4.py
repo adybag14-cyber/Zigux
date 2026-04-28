@@ -66,6 +66,7 @@ PHASE4_GATE_EXPECTATIONS = {
 
 REQUIRED_FILES = [
     'scripts/zigux/artifact_diff.py',
+    'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/artifact-diff.md',
     'Documentation/zigux/phase4-validation-matrix.md',
@@ -81,6 +82,7 @@ REQUIRED_MAKE_MARKERS = [
     'PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-bitmap-diff phase4',
     'phase4-validate:',
     'scripts/zigux/artifact_diff.py --self-test',
+    'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/validate-phase4.py',
     'scripts/zigux/validate-phase4.py --self-test',
     'phase4-test:',
@@ -135,6 +137,9 @@ REQUIRED_TESTS_README_MARKERS = [
 
 REQUIRED_SCRIPT_README_MARKERS = [
     'artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
+    'ARTIFACT_DIFF=pass',
+    'ARTIFACT_DIFF=fail',
     'make -C zigux phase4-validate',
     'validate-phase4.py',
     'Phase 4 flow',
@@ -160,6 +165,7 @@ REQUIRED_DOC_README_MARKERS = [
 
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'deterministic_preflight_and_cli_contract_replay_required_for_host_side_diff_tools',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
@@ -211,6 +217,16 @@ REQUIRED_ARTIFACT_DIFF_MARKERS = [
     "details['expected_exists'] = expected.exists()",
     "print(f\"EXPECTED_JSON_ERROR={details['expected_json_error']}\")",
     "print(f\"ACTUAL_JSON_ERROR={details['actual_json_error']}\")",
+]
+
+REQUIRED_ARTIFACT_DIFF_CONTRACT_MARKERS = [
+    'ARTIFACT_DIFF_CONTRACT=pass',
+    "['--mode', 'text', str(expected), str(actual)]",
+    "['--mode', 'text', str(missing), str(actual)]",
+    'ARTIFACT_DIFF=pass',
+    'ARTIFACT_DIFF=fail',
+    'EXPECTED_EXISTS=False',
+    'ACTUAL_EXISTS=True',
 ]
 
 REQUIRED_PHASE4_BUILD_MARKERS = [
@@ -378,6 +394,35 @@ def check_roadmap_gap_alignment(phase4_matrix: str, item_name: str, expectation:
     return missing
 
 
+def check_artifact_diff_matrix_alignment(phase4_matrix: str) -> list[str]:
+    heading = '### `scripts/zigux/artifact_diff.py --self-test`'
+    heading_index = phase4_matrix.find(heading)
+    if heading_index == -1:
+        return ['phase4_matrix:missing_artifact_diff_heading']
+
+    matrix_heading_index = phase4_matrix.find('\n## Lab And CI Matrix', heading_index + len(heading))
+    gate_block = phase4_matrix[heading_index:matrix_heading_index]
+    row_prefix = '| `scripts/zigux/artifact_diff.py --self-test` |'
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+
+    missing = []
+    block_marker = '- external contract replay: `python3 scripts/zigux/check-artifact-diff-contract.py` reruns one stable pass case and one missing-file failure case against the live CLI so the outward `ARTIFACT_DIFF=...`, `MODE=...`, and exit-code contract stays reviewable outside the built-in self-test'
+    if block_marker not in gate_block:
+        missing.append(f'phase4_matrix:artifact_diff_block:{block_marker}')
+    row_markers = [
+        'python3 scripts/zigux/check-artifact-diff-contract.py',
+        'deterministic_preflight_and_cli_contract_replay_required_for_host_side_diff_tools',
+        'removing either its self-test or `check-artifact-diff-contract.py` from `phase4-validate` would drop the roadmap-backed deterministic preflight and outward CLI contract evidence',
+    ]
+    for marker in row_markers:
+        if marker not in row:
+            missing.append(f'phase4_matrix:artifact_diff_row:{marker}')
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
@@ -386,6 +431,7 @@ def validate_root(root: Path) -> list[str]:
     makefile = read_text(root, 'zigux/Makefile')
     workflow = read_text(root, '.github/workflows/zigux-bootstrap.yml')
     artifact_diff = read_text(root, 'scripts/zigux/artifact_diff.py')
+    artifact_diff_contract = read_text(root, 'scripts/zigux/check-artifact-diff-contract.py')
     artifact_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
     tests_readme = read_text(root, 'zigux/tests/README.md')
     script_readme = read_text(root, 'scripts/zigux/README.md')
@@ -423,6 +469,13 @@ def validate_root(root: Path) -> list[str]:
         collect_missing_markers(artifact_diff, 'artifact_diff', REQUIRED_ARTIFACT_DIFF_MARKERS)
     )
     missing_markers.extend(
+        collect_missing_markers(
+            artifact_diff_contract,
+            'artifact_diff_contract',
+            REQUIRED_ARTIFACT_DIFF_CONTRACT_MARKERS,
+        )
+    )
+    missing_markers.extend(
         collect_missing_markers(phase4_build, 'phase4_build', REQUIRED_PHASE4_BUILD_MARKERS)
     )
     missing_markers.extend(
@@ -445,6 +498,7 @@ def validate_root(root: Path) -> list[str]:
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
+    missing_markers.extend(check_artifact_diff_matrix_alignment(phase4_matrix))
 
     for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
         missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
@@ -478,7 +532,8 @@ def build_phase4_matrix_fixture() -> str:
         '- make -C zigux phase4-validate',
         '- make -C zigux phase4-test',
         '- scripts/zigux/artifact_diff.py --self-test',
-        '- deterministic_preflight_required_for_host_side_diff_tools',
+        '- check-artifact-diff-contract.py',
+        '- deterministic_preflight_and_cli_contract_replay_required_for_host_side_diff_tools',
         '- phase4-runtime-atomic64-diff-tests',
         '- phase4-runtime-atomic64-diff-survey-tests',
         '- phase4-bitmap-diff-tests',
@@ -490,6 +545,7 @@ def build_phase4_matrix_fixture() -> str:
         '- the lab and CI matrix that replays the gates today',
         '- the reversible-delivery evidence that ties each shipped Zig gate back to its current C anchor if the shared entrypoint has to drop that gate',
         '- the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned',
+        "- one external artifact-diff CLI contract replay that proves the shared comparator's outward `ARTIFACT_DIFF=...`, `MODE=...`, and exit-code behavior outside the helper's built-in self-test",
         '- one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head',
         '- the survey-backed atomic64 replay that keeps the current roadmap-path and broader-surface gaps measurable inside the shared Phase 4 build',
         '- one isolated bitmap replay command that can be run without depending on the atomic64 lane or the shared `phase4-test` bundle on the same head',
@@ -503,6 +559,7 @@ def build_phase4_matrix_fixture() -> str:
         '- owner: `Validation and Perf Team`',
         '- rollback owner: `Validation and Perf Team`',
         '- fallback path: keep the shared self-test wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the host-side diff tooling is aligned',
+        '- external contract replay: `python3 scripts/zigux/check-artifact-diff-contract.py` reruns one stable pass case and one missing-file failure case against the live CLI so the outward `ARTIFACT_DIFF=...`, `MODE=...`, and exit-code contract stays reviewable outside the built-in self-test',
         '- perf threshold status: deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
         '',
     ]
@@ -535,7 +592,7 @@ def build_phase4_matrix_fixture() -> str:
             '',
             '| lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | reversible delivery evidence | threshold posture |',
             '| --- | --- | --- | --- | --- | --- | --- | --- |',
-            '| `scripts/zigux/artifact_diff.py --self-test` | deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the shared self-test before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` replay when the helper changes | `scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks | `deterministic_preflight_required_for_host_side_diff_tools` |',
+            '| `scripts/zigux/artifact_diff.py --self-test` | deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns both the shared self-test and `python3 scripts/zigux/check-artifact-diff-contract.py` before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` plus `python3 scripts/zigux/check-artifact-diff-contract.py` replay when the helper changes | `scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing either its self-test or `check-artifact-diff-contract.py` from `phase4-validate` would drop the roadmap-backed deterministic preflight and outward CLI contract evidence that now guard the rollback-readiness docs and diff checks | `deterministic_preflight_and_cli_contract_replay_required_for_host_side_diff_tools` |',
         ]
     )
 
@@ -574,6 +631,9 @@ def build_phase4_matrix_fixture() -> str:
 def write_fixture_tree(root: Path) -> None:
     file_contents = {
         'scripts/zigux/artifact_diff.py': '\n'.join(REQUIRED_ARTIFACT_DIFF_MARKERS) + '\n',
+        'scripts/zigux/check-artifact-diff-contract.py': '\n'.join(
+            REQUIRED_ARTIFACT_DIFF_CONTRACT_MARKERS
+        ) + '\n',
         'scripts/zigux/validate-phase4.py': '# synthetic self-test target\n',
         'Documentation/zigux/artifact-diff.md': '\n'.join(
             REQUIRED_DOC_MARKERS
@@ -633,6 +693,7 @@ def required_marker_count() -> int:
         + len(REQUIRED_DOC_README_MARKERS)
         + len(REQUIRED_PHASE4_MATRIX_MARKERS)
         + len(REQUIRED_ARTIFACT_DIFF_MARKERS)
+        + len(REQUIRED_ARTIFACT_DIFF_CONTRACT_MARKERS)
         + len(REQUIRED_PHASE4_BUILD_MARKERS)
         + len(REQUIRED_RUNTIME_ATOMIC64_MARKERS)
         + len(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
