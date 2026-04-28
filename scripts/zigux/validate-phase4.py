@@ -195,6 +195,8 @@ required_bitmap_diff_markers = [
     'test_find_nth_bit starter population',
     'test "bitmap diff gate records exact bounded copy checks"',
     'test_copy partial-word tail clearing at 109 bits',
+    'test_copy aligned-on-word-length at 97 bits keeps the stale tail word visible',
+    'test_copy_clear_tail keeps the 109-bit cleared-tail contract explicit',
     'test "bitmap diff gate records exact bounded find_nth_bit checks"',
     'test_find_nth_bit full-width nth 7',
     'test_find_nth_bit truncated-width nth 8 returns nbits',
