@@ -25,6 +25,8 @@ pub const ModuleDescriptor = struct {
 pub const MainThreadPayload = struct {
     foo_bar_message: []const u8,
     random_choice_message: []const u8,
+    vararg_array_length: usize,
+    vararg_array_terminator_zero: bool,
     template_message: []const u8,
     conditional_message: []const u8,
     template_cond_message: []const u8,
@@ -76,6 +78,8 @@ pub const RuntimeTraceEventsSummary = struct {
     saw_conditional_path: bool,
     last_main_foo_bar_message: ?[]const u8,
     last_main_random_choice_message: ?[]const u8,
+    last_main_vararg_array_length: ?usize,
+    last_main_vararg_array_terminator_zero: ?bool,
     last_main_template_message: ?[]const u8,
     last_main_conditional_message: ?[]const u8,
     last_main_template_cond_message: ?[]const u8,
@@ -137,6 +141,8 @@ pub const RuntimeTraceEventsSample = struct {
             .saw_conditional_path = self.saw_conditional_path,
             .last_main_foo_bar_message = if (self.last_main_payload) |payload| payload.foo_bar_message else null,
             .last_main_random_choice_message = if (self.last_main_payload) |payload| payload.random_choice_message else null,
+            .last_main_vararg_array_length = if (self.last_main_payload) |payload| payload.vararg_array_length else null,
+            .last_main_vararg_array_terminator_zero = if (self.last_main_payload) |payload| payload.vararg_array_terminator_zero else null,
             .last_main_template_message = if (self.last_main_payload) |payload| payload.template_message else null,
             .last_main_conditional_message = if (self.last_main_payload) |payload| payload.conditional_message else null,
             .last_main_template_cond_message = if (self.last_main_payload) |payload| payload.template_cond_message else null,
@@ -189,6 +195,10 @@ pub const RuntimeTraceEventsSample = struct {
         return random_strings[@as(usize, @intCast(len))];
     }
 
+    fn mainArrayLengthForCount(count: i32) usize {
+        return @as(usize, @intCast(@mod(count, @as(i32, @intCast(random_strings.len)))));
+    }
+
     pub fn emitMainIteration(self: *Self, count: i32) !usize {
         try self.ensureMutable();
 
@@ -200,6 +210,8 @@ pub const RuntimeTraceEventsSample = struct {
         self.last_main_payload = .{
             .foo_bar_message = "hello",
             .random_choice_message = randomStringForCount(count),
+            .vararg_array_length = mainArrayLengthForCount(count),
+            .vararg_array_terminator_zero = true,
             .template_message = "HELLO",
             .conditional_message = "Some times print",
             .template_cond_message = "prints other times",
@@ -307,6 +319,9 @@ test "runtime trace-events sample keeps selftest replay explicit" {
     try std.testing.expect(summary.saw_rel_loc_payload);
     try std.testing.expect(summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Gandalf", summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(usize, 2), summary.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
+    try std.testing.expect(summary.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", summary.last_main_template_cond_message orelse return error.ExpectedMainPayload);
@@ -343,6 +358,9 @@ test "runtime trace-events sample keeps exit lifecycle explicit" {
     try std.testing.expect(summary.saw_rel_loc_payload);
     try std.testing.expect(summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(usize, 0), summary.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
+    try std.testing.expect(summary.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", summary.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
