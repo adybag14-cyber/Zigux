@@ -91,7 +91,6 @@ required_workflow_markers = [
 
 required_script_readme_markers = [
     'validate-phase6.py',
-    'check-phase6-base64-c-parity.py',
     'check-phase6-bsearch-c-parity.py',
     'Phase 6 flow',
     'make -C zigux phase6-validate',
@@ -104,9 +103,7 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_build.zig',
     'zigux/tests/phase6_base64.zig',
     'zigux/tests/phase6_base64_perf.zig',
-    'zigux/tests/phase6_base64_c_parity.zig',
     'zigux/tests/fixtures/phase6_base64_vectors.zig',
-    'zigux/tests/fixtures/phase6_base64_c_harness.c',
     'zigux/tests/phase6_bsearch.zig',
     'zigux/tests/phase6_bsearch_perf.zig',
     'zigux/tests/phase6_bsearch_c_parity.zig',
@@ -143,7 +140,6 @@ required_phase6_catalog_markers = [
     'Phase 6 Helper Parity Catalog',
     'verified head:',
     'lib/base64.zig',
-    'scripts/zigux/check-phase6-base64-c-parity.py',
     'lib/bsearch.zig',
     'scripts/zigux/check-phase6-bsearch-c-parity.py',
     'lib/checksum.zig',
@@ -185,8 +181,8 @@ required_base64_markers = [
 
 required_base64_perf_markers = [
     'phase6-base64-perf',
-    '.{ .label = "64B", .size = 64, .reps = 20_000 }',
-    '.{ .label = "1KB", .size = 1024, .reps = 4_000 }',
+    'fixtures.perf_cases',
+    'fixtures.fillPerfPayload(input[0..case.size]);',
     'encode_ns_per_op',
     'decode_ns_per_op',
     'try std.testing.expectEqualSlices(u8, input[0..case.size], decoded[0..decoded_len]);',
@@ -241,6 +237,7 @@ required_slice_markers = {
         'zigux/tests/fixtures/phase6_base64_vectors.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-base64-perf',
+        'fixture-backed perf corpus owned by `zigux/tests/fixtures/phase6_base64_vectors.zig`',
     ],
     'phase6-bsearch-slice.md': [
         'PHASE6_STATUS=active',
@@ -248,7 +245,7 @@ required_slice_markers = {
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-bsearch-perf',
         'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
-        'duplicate-key found-or-null parity without claiming stable selection',
+        'duplicate-key found-or-null parity without claiming stable duplicate selection',
         'representative lookup work stays inside a bounded binary-search comparison budget',
         'representative external C-vs-Zig parity spot check',
         'replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices',

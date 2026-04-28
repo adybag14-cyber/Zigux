@@ -67,7 +67,7 @@ The current tests check:
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
-- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that prints per-operation timings while rechecking round-trip correctness
+- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that prints per-operation timings while rechecking round-trip correctness from a fixture-backed perf corpus owned by `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 ## Non-goals
 

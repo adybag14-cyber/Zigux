@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const EncodeCase = struct {
     input: []const u8,
     expected: []const u8,
@@ -22,6 +24,12 @@ pub const InvalidDecodeCase = struct {
     input: []const u8,
     padding: bool,
     variant_name: []const u8,
+};
+
+pub const PerfCase = struct {
+    label: []const u8,
+    size: usize,
+    reps: usize,
 };
 
 pub const standard_cases = [_]EncodeCase{
@@ -94,7 +102,7 @@ pub const standard_decode_cases = [_]DecodeCase{
     .{ .input = "Zm9vYmFy", .expected = "foobar", .padding = false, .variant_name = "std" },
     .{ .input = "TWFu", .expected = "Man", .padding = false, .variant_name = "std" },
     .{ .input = "SGVsbG8sIHdvcmxkIQ", .expected = "Hello, world!", .padding = false, .variant_name = "std" },
-    .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", .expected = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", .padding = false, .variant_name = "std" },
+    .{ .input = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", .expected = "ABCDEFGHIIJKLMNOPQRSTUVWXYZ", .padding = false, .variant_name = "std" },
     .{ .input = "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo", .expected = "abcdefghijklmnopqrstuvwxyz", .padding = false, .variant_name = "std" },
     .{ .input = "MDEyMzQ1Njc4OSsv", .expected = "0123456789+/", .padding = false, .variant_name = "std" },
 };
@@ -134,3 +142,13 @@ pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },
     .{ .input = ",,A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "imap" },
 };
+
+pub const perf_cases = [_]PerfCase{
+    .{ .label = "64B", .size = 64, .reps = 20_000 },
+    .{ .label = "1KB", .size = 1024, .reps = 4_000 },
+};
+
+pub fn fillPerfPayload(buffer: []u8) void {
+    var prng = std.Random.DefaultPrng.init(0x5a17_2026_0640_0001);
+    prng.random().bytes(buffer);
+}

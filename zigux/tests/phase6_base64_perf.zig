@@ -1,21 +1,11 @@
 const std = @import("std");
 const base64 = @import("base64");
-
-const PerfCase = struct {
-    label: []const u8,
-    size: usize,
-    reps: usize,
-};
-
-const perf_cases = [_]PerfCase{
-    .{ .label = "64B", .size = 64, .reps = 20_000 },
-    .{ .label = "1KB", .size = 1024, .reps = 4_000 },
-};
+const fixtures = @import("fixtures/phase6_base64_vectors.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
-    for (perf_cases) |case| {
+    for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
             "phase6-base64-perf {s} encode_ns_per_op={} decode_ns_per_op={} encoded_len={} decoded_len={}\n",
@@ -35,15 +25,14 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
-fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
+fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     var input: [1024]u8 = undefined;
     var encoded: [1368]u8 = undefined;
     var decoded: [1024]u8 = undefined;
 
     std.debug.assert(case.size <= input.len);
 
-    var prng = std.Random.DefaultPrng.init(0x5a17_2026_0640_0001);
-    prng.random().bytes(input[0..case.size]);
+    fixtures.fillPerfPayload(input[0..case.size]);
 
     const encoded_len = try base64.encode(encoded[0..], input[0..case.size], true, .std);
     const decoded_len = try base64.decode(decoded[0..], encoded[0..encoded_len], true, .std);
