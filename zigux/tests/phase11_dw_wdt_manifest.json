@@ -55,7 +55,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests now keep fixed-top limits, custom-top ordering, probe-time bookkeeping, registration-facing watchdog info and parent handoff details, reset-mode and IRQ-mode timeout behavior, restart intent, and non-stoppable stop semantics reviewable around the landed starter."
+      "why_now": "Dedicated Phase 11 tests now keep fixed-top limits, custom-top ordering, probe-time bookkeeping, registration-facing watchdog info and parent handoff details, platform-resource preflight and live resource-order sequencing, reset-mode and IRQ-mode timeout behavior, restart intent, and non-stoppable stop semantics reviewable around the landed starter."
     },
     {
       "id": "phase11-dw-wdt-watchdog-header-boundary",
@@ -90,7 +90,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/dw_wdt.zig",
-      "why_now": "The starter now includes a tiny platform-resource preflight around timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring before any live devm calls or watchdog registration work lands."
+      "why_now": "The starter now includes a tiny platform-resource preflight plus live resource-order summary around timer-clock choice, optional APB clock presence, reset-control availability, optional pretimeout-IRQ wiring, and the bounded tclk, optional pclk, reset, irq, and registration sequencing before any live devm calls or watchdog registration work lands."
     },
     {
       "id": "phase11-dw-wdt-platform-and-pm",
