@@ -18,6 +18,8 @@ Key entrypoints
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
 - `zigux/tests/phase6_base64.zig`
+- `zigux/tests/phase6_base64_perf.zig`
+- `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_bsearch_perf.zig`
 - `zigux/tests/phase6_checksum.zig`
