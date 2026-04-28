@@ -45,7 +45,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -59,6 +59,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_order = false;
     var saw_mode = false;
     var saw_pre_registration = false;
+    var saw_initialized_exit = false;
     var saw_dispatch = false;
     var saw_exit = false;
 
@@ -81,6 +82,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group") != null and
             std.mem.indexOf(u8, prompt, "pre-registration") != null and
+            std.mem.indexOf(u8, prompt, "initialized-only exit summary") != null and
             std.mem.indexOf(u8, prompt, "post-exit") != null)
         {
             saw_group_boundary_prompt = true;
@@ -90,7 +92,9 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         {
             saw_pre_registration_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "post-exit init/register/show/store boundary") != null) {
+        if (std.mem.indexOf(u8, prompt, "teardown-summary") != null and
+            std.mem.indexOf(u8, prompt, "lifecycle contract") != null)
+        {
             saw_exit_terminal_prompt = true;
         }
     }
@@ -117,13 +121,19 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "active attribute count at zero") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "registerAttributes claims ownership") != null);
         }
+        if (std.mem.eql(u8, check.id, "initialized-exit-teardown")) {
+            saw_initialized_exit = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "abandoned-before-registration teardown summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registerRuns at zero") != null);
+        }
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "7 and -5") != null);
         }
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later show or store calls") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registered exit returns a teardown summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later init, registerAttributes, showValue, or storeValue calls") != null);
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
@@ -142,6 +152,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_order);
     try std.testing.expect(saw_mode);
     try std.testing.expect(saw_pre_registration);
+    try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_dispatch);
     try std.testing.expect(saw_exit);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "sysfs file creation parity"));
@@ -175,8 +186,8 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `0664` attribute mode pattern") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-registration and post-`exit()` show or store rejection boundaries") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "manifest-backed checks for registration, attribute order, shared `0664` attribute mode, dispatch, parse failures, and teardown") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-only `exit()` path returns an `abandoned_before_registration` teardown summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
