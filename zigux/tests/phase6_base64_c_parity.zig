@@ -31,8 +31,9 @@ pub fn main(init: std.process.Init) !void {
     }
 
     for (fixtures.standard_decode_cases) |case| {
+        const exact_len = try base64.bytes(case.input, case.padding, .std);
         const written = try base64.decode(decode_buf[0..], case.input, case.padding, .std);
-        try writer.print("dec\tstd\t{}\t", .{@intFromBool(case.padding)});
+        try writer.print("dec\tstd\t{}\t{}\t", .{ @intFromBool(case.padding), exact_len });
         try writeHex(writer, case.input);
         try writer.writeAll("\t");
         try writeHex(writer, decode_buf[0..written]);
@@ -41,8 +42,9 @@ pub fn main(init: std.process.Init) !void {
 
     for (fixtures.variant_decode_cases) |case| {
         const variant = fixtureVariant(case.variant_name);
+        const exact_len = try base64.bytes(case.input, case.padding, variant);
         const written = try base64.decode(decode_buf[0..], case.input, case.padding, variant);
-        try writer.print("dec\t{s}\t{}\t", .{ case.variant_name, @intFromBool(case.padding) });
+        try writer.print("dec\t{s}\t{}\t{}\t", .{ case.variant_name, @intFromBool(case.padding), exact_len });
         try writeHex(writer, case.input);
         try writer.writeAll("\t");
         try writeHex(writer, decode_buf[0..written]);
