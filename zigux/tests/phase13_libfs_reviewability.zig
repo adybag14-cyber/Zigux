@@ -30,6 +30,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const expected_surveyed_commit = "de4608e6d7660ef469a327e5053a7a2dc932be71";
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -52,10 +54,18 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-libfs-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
-    try std.testing.expectEqualStrings("a4f70b77b2b4e5c03f5362644f7deda7964167bd", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libfs_c_lines >= 2300);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -66,6 +76,8 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);

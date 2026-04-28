@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L06",
   "phase": "Phase 13",
-  "surveyed_commit": "a4f70b77b2b4e5c03f5362644f7deda7964167bd",
+  "surveyed_commit": "de4608e6d7660ef469a327e5053a7a2dc932be71",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
