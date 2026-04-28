@@ -79,6 +79,11 @@ pub const Request = struct {
     mode_arg: ?[]const u8 = null,
 };
 
+const ValidateModeArgError = error{
+    MissingModeArg,
+    UnexpectedModeArg,
+};
+
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
@@ -114,6 +119,15 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("}}\n");
 }
 
+fn validateModeArg(mode: Mode, mode_arg: ?[]const u8) ValidateModeArgError!void {
+    if ((mode == .defconfig or mode == .savedefconfig) and mode_arg == null) {
+        return error.MissingModeArg;
+    }
+    if (mode != .defconfig and mode != .savedefconfig and mode_arg != null) {
+        return error.UnexpectedModeArg;
+    }
+}
+
 pub fn main(init: std.process.Init) !void {
     const arena = init.arena.allocator();
     const io = init.io;
@@ -136,20 +150,22 @@ pub fn main(init: std.process.Init) !void {
     };
 
     const mode_arg = if (args.len == 6) args[5] else null;
-    if ((mode == .defconfig or mode == .savedefconfig) and mode_arg == null) {
-        var stderr_buffer: [160]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Error: mode requires <mode-arg>\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    }
-    if (mode != .defconfig and mode != .savedefconfig and mode_arg != null) {
-        var stderr_buffer: [160]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    }
+    validateModeArg(mode, mode_arg) catch |err| switch (err) {
+        error.MissingModeArg => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: mode requires <mode-arg>\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.UnexpectedModeArg => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+    };
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -198,43 +214,6 @@ test "conf bridge emits olddefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"olddefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--olddefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\".config\"") != null);
-}
-
-test "conf bridge emits oldconfig argv and env" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 128), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try runConfBridge(&capture, .{
-        .mode = .oldconfig,
-        .kconfig = "Kconfig",
-        .config = "old/.config",
-        .arch = "x86_64",
-    });
-
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"oldconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--oldconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"old/.config\"") != null);
 }
 
 test "conf bridge emits listnewconfig argv and env" {
@@ -540,6 +519,22 @@ test "conf bridge emits mod2noconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"mips\"") != null);
 }
 
+test "conf bridge requires mode arg for defconfig modes" {
+    try std.testing.expectError(error.MissingModeArg, validateModeArg(.defconfig, null));
+    try std.testing.expectError(error.MissingModeArg, validateModeArg(.savedefconfig, null));
+}
+
+test "conf bridge rejects mode arg for non-argument modes" {
+    try std.testing.expectError(error.UnexpectedModeArg, validateModeArg(.olddefconfig, "unexpected"));
+    try std.testing.expectError(error.UnexpectedModeArg, validateModeArg(.syncconfig, "unexpected"));
+}
+
+test "conf bridge accepts valid mode arg combinations" {
+    try validateModeArg(.defconfig, "arch/arm64/configs/defconfig");
+    try validateModeArg(.savedefconfig, "arch/arm64/configs/minimal_defconfig");
+    try validateModeArg(.oldconfig, null);
+}
+
 test "conf bridge emits defconfig mode argument before kconfig" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -614,4 +609,43 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"savedefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--savedefconfig\",\"arch/arm64/configs/minimal_defconfig\",\"Kconfig\"]") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"out/.config\"") != null);
+}
+
+test "conf bridge escapes JSON-sensitive argv and env values" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 256), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .defconfig,
+        .kconfig = "Kconfig\"main",
+        .config = "out\t/.config",
+        .arch = "arm64\nbe",
+        .mode_arg = "arch\\arm64/configs/mini\"defconfig",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "Kconfig\\\"main") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "out\\t/.config") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arm64\\nbe") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arch\\\\arm64/configs/mini\\\"defconfig") != null);
 }
