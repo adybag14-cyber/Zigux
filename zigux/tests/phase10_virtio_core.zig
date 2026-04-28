@@ -258,6 +258,7 @@ test "phase10 virtio core delivers config changes immediately when core and driv
 
     device.acknowledge();
     try device.attachDriver();
+    try device.setConfigChangedHandlerPresent(true);
 
     try device.noteConfigChanged();
     const summary = device.configChangeSummary();
@@ -274,6 +275,7 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
 
     device.acknowledge();
     try device.attachDriver();
+    try device.setConfigChangedHandlerPresent(true);
     try device.disableConfigDriver();
     try device.noteConfigChanged();
 
@@ -323,11 +325,40 @@ test "phase10 virtio core does not fabricate config delivery when driver re-enab
     try std.testing.expect(!summary.change_pending);
 }
 
+test "phase10 virtio core records bounded driver binding around config_changed" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 12 });
+
+    device.acknowledge();
+    try device.attachDriver();
+
+    var summary = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(!summary.config_changed_handler_present);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+
+    try device.setConfigChangedHandlerPresent(true);
+    summary = device.driverBindingSummary();
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(summary.config_changed_handler_present);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+
+    device.reset();
+    summary = device.driverBindingSummary();
+    try std.testing.expect(!summary.driver_attached);
+    try std.testing.expect(!summary.config_changed_handler_present);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+}
+
 test "phase10 virtio core keeps config changes pending while the core path is disabled and clears them on reset" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 11 });
 
     device.acknowledge();
     try device.attachDriver();
+    try device.setConfigChangedHandlerPresent(true);
     try device.disableConfigCore();
     try device.noteConfigChanged();
 
@@ -377,11 +408,31 @@ test "phase10 virtio core does not fabricate config delivery when core re-enable
     try std.testing.expect(!summary.change_pending);
 }
 
+test "phase10 virtio core keeps enabled config changes inert without a config_changed handler" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 6, 13 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteConfigChanged();
+
+    const binding = device.driverBindingSummary();
+    const summary = device.configChangeSummary();
+    try std.testing.expect(binding.driver_attached);
+    try std.testing.expect(!binding.config_changed_handler_present);
+    try std.testing.expect(!binding.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), binding.delivery_count);
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+}
+
 test "phase10 virtio core records config generation while change delivery is deferred" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 6, 13 });
 
     device.acknowledge();
     try device.attachDriver();
+    try device.setConfigChangedHandlerPresent(true);
 
     var summary = device.configGenerationSummary();
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
@@ -408,6 +459,7 @@ test "phase10 virtio core observes config generation after deferred and immediat
 
     device.acknowledge();
     try device.attachDriver();
+    try device.setConfigChangedHandlerPresent(true);
     try device.disableConfigCore();
     try device.noteConfigChanged();
 
