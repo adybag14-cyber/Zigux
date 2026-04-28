@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const supported_feature_pages: usize = 2;
 pub const supported_interrupt_bits: u32 = 0x3;
+pub const supported_queues: usize = 2;
 
 pub const Register = enum(u32) {
     magic_value = 0x000,
@@ -12,6 +13,10 @@ pub const Register = enum(u32) {
     device_features_sel = 0x014,
     driver_features = 0x020,
     driver_features_sel = 0x024,
+    queue_sel = 0x030,
+    queue_num_max = 0x034,
+    queue_num = 0x038,
+    queue_ready = 0x044,
     interrupt_status = 0x060,
     interrupt_ack = 0x064,
     status = 0x070,
@@ -34,6 +39,14 @@ pub const FeatureWindowSummary = struct {
     selected_driver_features: u32,
 };
 
+pub const QueueRegisterSummary = struct {
+    anchor: []const u8,
+    selected_queue: u32,
+    selected_queue_size_max: u16,
+    selected_queue_size: u16,
+    selected_queue_ready: bool,
+};
+
 pub const StatusSummary = struct {
     anchor: []const u8,
     status: u8,
@@ -53,6 +66,12 @@ pub const InterruptAckSummary = struct {
     pending_bits_after_ack: u32,
 };
 
+const QueueRegisterState = struct {
+    max_size: u16 = 0,
+    size: u16 = 0,
+    ready: bool = false,
+};
+
 pub const VirtioMmioRegisterWindowLab = struct {
     const Self = @This();
 
@@ -60,6 +79,8 @@ pub const VirtioMmioRegisterWindowLab = struct {
     driver_feature_pages: [supported_feature_pages]u32 = .{ 0, 0 },
     selected_device_page: u32 = 0,
     selected_driver_page: u32 = 0,
+    queues: [supported_queues]QueueRegisterState = .{ .{}, .{} },
+    selected_queue: u32 = 0,
     status: u8 = 0,
     config_generation: u32 = 0,
     interrupt_status: u32 = 0,
@@ -76,8 +97,26 @@ pub const VirtioMmioRegisterWindowLab = struct {
     }
 
     pub fn init(device_feature_pages: [supported_feature_pages]u32, config_generation: u32) Self {
+        return initWithQueueMaximums(
+            device_feature_pages,
+            config_generation,
+            [_]u16{0} ** supported_queues,
+        );
+    }
+
+    pub fn initWithQueueMaximums(
+        device_feature_pages: [supported_feature_pages]u32,
+        config_generation: u32,
+        queue_maximums: [supported_queues]u16,
+    ) Self {
+        var queue_states: [supported_queues]QueueRegisterState = undefined;
+        for (queue_maximums, 0..) |max_size, index| {
+            queue_states[index] = .{ .max_size = max_size };
+        }
+
         return .{
             .device_feature_pages = device_feature_pages,
+            .queues = queue_states,
             .config_generation = config_generation,
         };
     }
@@ -112,6 +151,46 @@ pub const VirtioMmioRegisterWindowLab = struct {
         };
     }
 
+    pub fn selectQueue(self: *Self, queue: u32) !QueueRegisterSummary {
+        _ = try checkedQueue(queue);
+        self.selected_queue = queue;
+        return self.queueRegisterSummary();
+    }
+
+    pub fn writeSelectedQueueSize(self: *Self, size: u16) !QueueRegisterSummary {
+        const queue_index = try checkedQueue(self.selected_queue);
+        const queue_state = &self.queues[queue_index];
+
+        if (queue_state.max_size == 0) return error.QueueSizeUnavailable;
+        if (size == 0) return error.QueueSizeMustBeNonZero;
+        if (size > queue_state.max_size) return error.QueueSizeExceedsMaximum;
+        if (queue_state.ready) return error.QueueReadyBlocksResize;
+
+        queue_state.size = size;
+        return self.queueRegisterSummary();
+    }
+
+    pub fn writeSelectedQueueReady(self: *Self, ready: bool) !QueueRegisterSummary {
+        const queue_index = try checkedQueue(self.selected_queue);
+        const queue_state = &self.queues[queue_index];
+
+        if (ready and queue_state.size == 0) return error.QueueReadyRequiresConfiguredSize;
+
+        queue_state.ready = ready;
+        return self.queueRegisterSummary();
+    }
+
+    pub fn queueRegisterSummary(self: *const Self) !QueueRegisterSummary {
+        const queue_state = self.queues[try checkedQueue(self.selected_queue)];
+        return .{
+            .anchor = descriptor().anchor,
+            .selected_queue = self.selected_queue,
+            .selected_queue_size_max = queue_state.max_size,
+            .selected_queue_size = queue_state.size,
+            .selected_queue_ready = queue_state.ready,
+        };
+    }
+
     pub fn setStatus(self: *Self, status: u8) !StatusSummary {
         if (status == 0) return error.ResetRequiresDedicatedPath;
         self.status = status;
@@ -120,6 +199,11 @@ pub const VirtioMmioRegisterWindowLab = struct {
 
     pub fn reset(self: *Self) StatusSummary {
         self.status = 0;
+        self.selected_queue = 0;
+        for (&self.queues) |*queue_state| {
+            queue_state.size = 0;
+            queue_state.ready = false;
+        }
         self.reset_count += 1;
         return self.statusSummary();
     }
@@ -179,6 +263,11 @@ fn checkedFeaturePage(page: u32) !usize {
     return @intCast(page);
 }
 
+fn checkedQueue(queue: u32) !usize {
+    if (queue >= supported_queues) return error.QueueIndexOutOfRange;
+    return @intCast(queue);
+}
+
 fn validateInterruptBits(bits: u32) !void {
     if (bits == 0) return error.EmptyInterruptMask;
     if ((bits & ~supported_interrupt_bits) != 0) return error.UnsupportedInterruptBits;
@@ -187,6 +276,8 @@ fn validateInterruptBits(bits: u32) !void {
 test "register enum keeps the bounded mmio offsets reviewable" {
     try std.testing.expectEqual(@as(u32, 0x010), @intFromEnum(Register.device_features));
     try std.testing.expectEqual(@as(u32, 0x024), @intFromEnum(Register.driver_features_sel));
+    try std.testing.expectEqual(@as(u32, 0x030), @intFromEnum(Register.queue_sel));
+    try std.testing.expectEqual(@as(u32, 0x044), @intFromEnum(Register.queue_ready));
     try std.testing.expectEqual(@as(u32, 0x064), @intFromEnum(Register.interrupt_ack));
     try std.testing.expectEqual(@as(u32, 0x0fc), @intFromEnum(Register.config_generation));
 }
