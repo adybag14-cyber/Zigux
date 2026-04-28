@@ -48,6 +48,10 @@ def fail_check(block: str, values: list[str]) -> None:
     raise SystemExit(1)
 
 
+def compare_json_artifacts(expected: Path, actual: Path) -> None:
+    run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(expected), str(actual)], cwd=str(ROOT))
+
+
 def supported_conf_modes_in_order() -> list[str]:
     source = CONF_BRIDGE.read_text(encoding='utf-8')
     match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
@@ -253,8 +257,10 @@ def main() -> int:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ('conf-bridge.exe' if sys.platform == 'win32' else 'conf-bridge')
         confdata_exe = tmp_dir / ('confdata-bridge.exe' if sys.platform == 'win32' else 'confdata-bridge')
+        confdata_rebuild_exe = tmp_dir / ('confdata-bridge-rebuild.exe' if sys.platform == 'win32' else 'confdata-bridge-rebuild')
         compile_tool(zig, CONF_BRIDGE, conf_exe)
         compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
+        compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)
 
         for case in CASES['conf_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
@@ -270,20 +276,24 @@ def main() -> int:
                 cmd.append(case['mode_arg'])
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
-            run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(FIXTURE_DIR / case['expected']), str(actual)], cwd=str(ROOT))
+            compare_json_artifacts(FIXTURE_DIR / case['expected'], actual)
             repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
-            run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(actual), str(repeat)], cwd=str(ROOT))
+            compare_json_artifacts(actual, repeat)
 
         for case in CASES['confdata_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
+            rebuild = tmp_dir / f"{case['name']}.rebuild.json"
             result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
-            run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(FIXTURE_DIR / case['expected']), str(actual)], cwd=str(ROOT))
+            compare_json_artifacts(FIXTURE_DIR / case['expected'], actual)
             repeat_result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
-            run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(actual), str(repeat)], cwd=str(ROOT))
+            compare_json_artifacts(actual, repeat)
+            rebuild_result = run([str(confdata_rebuild_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
+            rebuild.write_text(rebuild_result.stdout, encoding='utf-8', newline='\n')
+            compare_json_artifacts(actual, rebuild)
 
     print('KCONFIG_BRIDGE_DIFF=pass')
     print('KCONFIG_BRIDGE_DETERMINISM=pass')
