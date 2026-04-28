@@ -85,6 +85,7 @@ Phase 7 flow
 - `make -C zigux phase7-test` is the shared local wrapper for the current `zigux/tests/phase7_build.zig` replay, while the bootstrap workflow intentionally uses the same build file through `zig build test --build-file zigux/tests/phase7_build.zig --summary all` so CI keeps the extra step summary without changing the exercised test bundle.
 - `make -C zigux phase7` keeps that same runtime-helper lane reviewable through one shared bundle instead of ad hoc slice-local checks.
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py` replays the current external C-vs-Zig `rbtree` parity fixture so the parked Phase 7 packet still carries one representative non-Zig-only evidence path.
+- `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json` are the current manifest-backed survey records for the two Phase 7 survey gates, so build-graph and package-inventory changes should move those records together with `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and the shared `phase7_build.zig` entrypoint.
 - the current published slice notes for `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md` are part of that same shared validation surface.
 
 Phase 9 flow
