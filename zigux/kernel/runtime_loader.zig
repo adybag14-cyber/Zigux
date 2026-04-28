@@ -83,6 +83,15 @@ pub const RuntimeLoadRequest = struct {
         return self.handoff_stage == .released_without_substrate;
     }
 
+    pub fn waitingOnRuntimeSubstrate(self: RuntimeLoadRequest) RuntimeLoadRequest {
+        var waiting = self;
+        waiting.handoff_stage = if (waiting.requires_runtime_substrate)
+            .waiting_on_runtime_substrate
+        else
+            .prepared;
+        return waiting;
+    }
+
     pub fn releasedWithoutSubstrate(self: RuntimeLoadRequest) RuntimeLoadRequest {
         var released = self;
         released.handoff_stage = .released_without_substrate;
@@ -201,6 +210,13 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
     try std.testing.expectEqual(@as(u32, 4), request.payload.bitmap.weight);
 
+    const waiting = request.waitingOnRuntimeSubstrate();
+    try std.testing.expectEqual(LoaderLane.bitmap, waiting.lane());
+    try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+    try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expectEqual(@as(u32, 4), waiting.payload.bitmap.weight);
+
     const released = request.releasedWithoutSubstrate();
     try std.testing.expectEqual(LoaderLane.bitmap, released.lane());
     try std.testing.expectEqual(@as(?[]const u8, null), released.command_name);
@@ -253,6 +269,13 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+
+    const waiting = request.waitingOnRuntimeSubstrate();
+    try std.testing.expectEqual(LoaderLane.kretprobe, waiting.lane());
+    try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+    try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expectEqualStrings("register_kretprobe", waiting.payload.kretprobe.register_api);
 
     const released = request.releasedWithoutSubstrate();
     try std.testing.expectEqual(LoaderLane.kretprobe, released.lane());
@@ -336,4 +359,27 @@ test "runtime loader request rejects implicit init-exit and stage handoff contra
     try std.testing.expect(!empty_command_name.keepsCommandNameExplicit());
     try std.testing.expect(empty_command_name.keepsInitExitContractExplicit());
     try std.testing.expect(!empty_command_name.keepsSharedHandoffContractExplicit());
+
+    const no_substrate = (RuntimeLoadRequest{
+        .module_name = "runtime_atomic64",
+        .command_name = null,
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = false,
+        .provides_selftest_hook = true,
+        .handoff_stage = .idle,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = 0,
+                .first_zero = 1,
+                .weight = 1,
+                .nbits = 64,
+            },
+        },
+    }).waitingOnRuntimeSubstrate();
+    try std.testing.expect(!no_substrate.isWaitingOnRuntimeSubstrate());
+    try std.testing.expectEqual(LoaderStage.prepared, no_substrate.handoff_stage);
+    try std.testing.expect(no_substrate.keepsStageConsistentWithRuntimeSubstrate());
 }
