@@ -372,7 +372,7 @@ pub const VirtioCoreLabDevice = struct {
     pub fn enableConfigDriver(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
         self.config_driver_disabled = false;
-        self.handleConfigChanged();
+        self.flushPendingConfigChange();
     }
 
     pub fn disableConfigCore(self: *Self) !void {
@@ -383,7 +383,7 @@ pub const VirtioCoreLabDevice = struct {
     pub fn enableConfigCore(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
         self.config_core_enabled = true;
-        self.handleConfigChanged();
+        self.flushPendingConfigChange();
     }
 
     pub fn noteConfigChanged(self: *Self) !void {
@@ -431,6 +431,11 @@ pub const VirtioCoreLabDevice = struct {
 
         self.config_change_pending = false;
         self.config_change_delivery_count += 1;
+    }
+
+    fn flushPendingConfigChange(self: *Self) void {
+        if (!self.config_change_pending) return;
+        self.handleConfigChanged();
     }
 
     fn checkedFeatureIndex(feature_bit: u16) !usize {
