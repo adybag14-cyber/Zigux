@@ -45,7 +45,7 @@ The current starter slice covers:
 - injected `get_term_dimensions()`-adjacent resolution that prefers explicit `LINES` and `COLUMNS` values before fallback terminal dimensions or the default `25x80`
 - `pretty_print_string_list()`-adjacent column and row planning without direct terminal I/O
 - `pretty_print_string_list()`-adjacent pure output emission through an injected writer, including the same column-major traversal, two-space indent, and ragged-last-column padding rules as the C helper
-- `list_commands()`-adjacent shared longest-name calculation plus pure section-level rendering for the exec-path and PATH headings, underline widths, and blank-line separation without direct `getenv()` or `get_argv_exec_path()` reads
+- `list_commands()`-adjacent shared longest-name calculation plus pure section-level rendering for the exec-path and PATH headings, underline widths, blank-line separation, and empty-section suppression without direct `getenv()` or `get_argv_exec_path()` reads
 
 The current tests check:
 
@@ -59,7 +59,7 @@ The current tests check:
 - membership and longest-name tracking stay aligned with stored entries
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
 - pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
-- section-level output stays testable without `printf()` by rendering the same `available <title> in '<path>'` and `$PATH` headings, underline lengths, shared column width, and section spacing that `list_commands()` uses in `help.c`
+- section-level output stays testable without `printf()` by rendering the same `available <title> in '<path>'` and `$PATH` headings, underline lengths, shared column width, section spacing, and empty-section suppression that `list_commands()` uses in `help.c`
 
 ## Non-goals
 
@@ -71,4 +71,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the bounded `help.zig` lane unless a fresh helper-only parity gap appears, and prefer another still-active tooling slice before widening this command into direct environment reads, directory walking, or full CLI behavior.
+Park the bounded `help.zig` lane unless a fresh helper-only parity gap appears; the section renderer now has explicit coverage for both shared-width output and empty-section suppression, so the next honest follow-up should only reopen this lane for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
