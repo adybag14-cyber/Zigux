@@ -54,11 +54,11 @@ phase4_gate_expectations = {
         'owner': 'Shared Subsystems Pod',
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
-        'exact_checks': '`bitmap_fill(..., 35)` currently proves the 35-bit prefix start plus the 34, 35, and `BITS_PER_LONG` boundary bits, `bitmap_zero(..., 115)` still proves the two-word rounded clear, full-width `bitmap_fill(..., 1024)` and `bitmap_zero(..., 1024)` keep the endpoints honest, `bitmap_scnprintf()` preserves both the full `1-3,7,10-11` summary and the truncated `1-3` rendering, `bitmap_copy()` replays the 109-bit partial-tail and 97-bit aligned-copy cases while `bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract, and `find_nth_bit()` records both the full-width nth-7 and nth-8 outcomes plus the reduced-width `64 * 3 - 1` cutoff that still returns bit 123 for nth 6 and the cutoff width for nth 7',
-        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
+        'exact_checks': '`bitmap_fill(..., 35)` rounds to one full word, `bitmap_zero(..., 115)` rounds to two full words, the cross-boundary `bitmap_set(..., 79, 19)` and `bitmap_clear(..., 79, 19)` cases keep the 64..78 and 98..1023 boundaries explicit, full-width `bitmap_fill(..., 1024)` and `bitmap_zero(..., 1024)` keep the endpoints honest, `bitmap_scnprintf()` preserves both the full `1-3,7,10-11` summary and the truncated `1-3` rendering, `bitmap_copy()` replays the 109-bit partial-tail and 97-bit aligned-copy cases while `bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract, and `find_nth_bit()` records both the full-width nth-7 and nth-8 outcomes plus the reduced-width `64 * 3 - 1` cutoff that still returns bit 123 for nth 6 and the cutoff width for nth 7',
+        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
-        'gate_scope': 'bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay',
-        'threshold_scope': 'range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
+        'gate_scope': 'bounded bitmap range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior replay',
+        'threshold_scope': 'range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
         'local_replay_test': 'phase4-bitmap-diff-tests',
         'reversible_delivery': '`lib/test_bitmap.c` stays the source of truth, and removing `bitmap_diff.zig` from the shared `phase4_build.zig` entrypoint falls back to the existing broad bitmap parity checks',
     },
@@ -147,7 +147,6 @@ required_phase4_matrix_markers = [
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
     'survey owner, rollback owner, and Zig lab matrix stay unassigned while the current replay stays on the C anchor via `make M=samples/vfs`; no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
-    'paired `bitmap_zero(..., 35)` and `bitmap_fill(..., 115)` rounded-prefix checkpoints stay out of the shipped gate until `tools/lib/bitmap.zig` matches the `lib/test_bitmap.c` anchor on those cases',
 ]
 roadmap_gap_expectations = {
     'samples/zigux/kprobe_example.zig': {
@@ -192,6 +191,9 @@ required_bitmap_diff_markers = [
     'test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations"',
     'test_fill_set bitmap_fill rounds 35 bits to one full word',
     'test_zero_clear bitmap_zero rounds 115 bits to two full words',
+    'test "bitmap diff gate records exact cross-boundary set and clear checks"',
+    'test_fill_set bitmap_set crosses the 79..97 window without disturbing the gap',
+    'test_zero_clear bitmap_clear crosses the 79..97 window without disturbing the prefix',
     'test "bitmap diff gate records exact full-width fill and zero endpoints"',
     'test_find_nth_bit starter population',
     'test "bitmap diff gate records exact bounded copy checks"',
