@@ -26,6 +26,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - first-NUL C-string bounds on both counting and splitting
 - optional argc reporting that matches the C helper's out-parameter shape more directly
 - an explicit result object that owns the copied token buffer
+- a shared exported empty argv view for blank input without extra argv-vector allocation
 - deterministic Zig-only validation without quote or shell expansion behavior
 
 ## Gates
@@ -56,6 +57,7 @@ The current tests check:
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - optional argc reporting that stays in sync with the returned argv length
+- blank-input reuse of the exported empty argv view under a four-byte fixed-buffer allocator
 - a machine-checked survey record that keeps the Phase 7 roadmap anchor, landed review surfaces, and the parked generated-parity artifact note explicit without advertising active same-lane work
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
