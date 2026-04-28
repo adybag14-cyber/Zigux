@@ -41,6 +41,11 @@
       "expected": "positional_passthrough_expected.json"
     },
     {
+      "name": "explicit_terminator_positional_passthrough",
+      "argv": ["leftover.c", "-d", "--", "tail.h"],
+      "expected": "explicit_terminator_positional_passthrough_expected.json"
+    },
+    {
       "name": "help",
       "argv": ["--help"],
       "mode": "process_json",
