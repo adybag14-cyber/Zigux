@@ -431,13 +431,13 @@ test "parseOptionStr matches only exact bare options before NUL" {
 }
 
 test "nextArg preserves leading equals sentinels and trims trailing spaces" {
-    var sentinel_input = [_]u8{ '=','b','a','d',' ','n','e','x','t',0 };
+    var sentinel_input = [_]u8{ '=', 'b', 'a', 'd', ' ', 'n', 'e', 'x', 't', 0 };
     const sentinel = nextArg(sentinel_input[0..]);
     try std.testing.expectEqualStrings("=bad", sentinel.param);
     try std.testing.expectEqual(@as(?[]const u8, null), sentinel.value);
     try std.testing.expectEqualStrings("next", cStringPrefix(sentinel.rest));
 
-    var spaced_input = [_]u8{ 'm','o','d','e','=','f','a','s','t',' ',' ',' ',0 };
+    var spaced_input = [_]u8{ 'm', 'o', 'd', 'e', '=', 'f', 'a', 's', 't', ' ', ' ', ' ', 0 };
     const spaced = nextArg(spaced_input[0..]);
     try std.testing.expectEqualStrings("mode", spaced.param);
     try std.testing.expectEqualStrings("fast", spaced.value.?);
