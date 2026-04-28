@@ -108,6 +108,33 @@ pub const QueueRecoverySummary = struct {
     recovery_generation: u16,
 };
 
+pub const QueueResumeReadiness = enum {
+    ready,
+    requires_feature_renegotiation,
+    requires_reset,
+};
+
+pub const QueueResumeScope = enum {
+    data_queues_only,
+    data_and_control_queue,
+    data_control_and_rss,
+};
+
+pub const QueueResumeSummary = struct {
+    anchor: []const u8,
+    is_frozen: bool,
+    recovery_generation: u16,
+    readiness: QueueResumeReadiness,
+    rebuild_scope: QueueResumeScope,
+    resume_queue_pairs: u16,
+    resume_total_queue_count: u16,
+    resume_control_queue_index: ?u16,
+    remembered_rss_summary: RssSummary,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    requires_control_queue_restore: bool,
+    requires_rss_reapply: bool,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -261,6 +288,13 @@ pub const VirtioNetProbeLab = struct {
         return summarizeRecovery(.restore, true, false, true, snapshot, self.recovery_generation);
     }
 
+    pub fn planQueueResume(self: *Self) !QueueResumeSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        return summarizeQueueResume(snapshot, self.recovery_generation);
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -329,6 +363,40 @@ pub const VirtioNetProbeLab = struct {
             .remembered_recovery_state = snapshot.recovery_state,
             .remembered_queue_recovery_action = snapshot.queue_recovery_action,
             .recovery_generation = recovery_generation,
+        };
+    }
+
+    fn summarizeQueueResume(
+        snapshot: ProbeSnapshot,
+        recovery_generation: u16,
+    ) QueueResumeSummary {
+        const readiness: QueueResumeReadiness = switch (snapshot.recovery_state) {
+            .stable => .ready,
+            .renegotiate_features => .requires_feature_renegotiation,
+            .reset_required => .requires_reset,
+        };
+        const requires_control_queue_restore = snapshot.control_queue_index != null;
+        const requires_rss_reapply = snapshot.rss_summary == .active;
+        const rebuild_scope: QueueResumeScope = if (requires_rss_reapply)
+            .data_control_and_rss
+        else if (requires_control_queue_restore)
+            .data_and_control_queue
+        else
+            .data_queues_only;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .is_frozen = true,
+            .recovery_generation = recovery_generation,
+            .readiness = readiness,
+            .rebuild_scope = rebuild_scope,
+            .resume_queue_pairs = snapshot.planned_queue_pairs,
+            .resume_total_queue_count = snapshot.total_queue_count,
+            .resume_control_queue_index = snapshot.control_queue_index,
+            .remembered_rss_summary = snapshot.rss_summary,
+            .remembered_queue_recovery_action = snapshot.queue_recovery_action,
+            .requires_control_queue_restore = requires_control_queue_restore,
+            .requires_rss_reapply = requires_rss_reapply,
         };
     }
 
