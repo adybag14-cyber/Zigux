@@ -213,7 +213,7 @@ test "phase 8 libbpf segment evidence still matches the live irq and cpumask anc
     try expectContains(libbpf_c, "int libbpf_num_possible_cpus(void)");
 }
 
-test "phase 8 docs keep the deferred irq routing boundary explicit" {
+test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     const survey_note = try readWorkspaceFile(
         std.testing.allocator,
         "Documentation/zigux/phase8-libbpf-segment-survey.md",
@@ -228,6 +228,10 @@ test "phase 8 docs keep the deferred irq routing boundary explicit" {
     );
     defer std.testing.allocator.free(cpu_mask_note);
 
+    try expectContains(survey_note, "deferred resource boundary");
+    try expectContains(survey_note, "file-path-and-handle-bridge");
+    try expectContains(survey_note, "blocked object-model");
+    try expectContains(survey_note, "skeleton");
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "online CPU filtering");
     try expectContains(survey_note, "interrupt-routing-sensitive boundary");
