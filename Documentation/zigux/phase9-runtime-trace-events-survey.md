@@ -39,6 +39,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
 - the focused module and diff gates now both prove the bounded replay counts, explicit per-thread event totals, and payload literals through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
+- the paired module-slice note now repeats that loader-free blocked handoff explicitly so the dedicated docs cannot drift into implying a partial loader or scheduler-facing substrate before the shared runtime handoff exists.
 - the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownership, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
 - no parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane, so the current trace-events packet remains a study-boundary note rather than a freeze-map reopen request.
 
