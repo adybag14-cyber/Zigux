@@ -4,6 +4,18 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const find_bit_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/find_bit.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bitmap.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_module.addImport("find_bit", find_bit_module);
+
     const atomic_module = b.createModule(.{
         .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
@@ -29,6 +41,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    bitmap_diff_module.addImport("bitmap", bitmap_module);
+    bitmap_diff_module.addImport("find_bit", find_bit_module);
 
     const atomic64_diff_tests = b.addTest(.{
         .name = "phase4-runtime-atomic64-diff-tests",
