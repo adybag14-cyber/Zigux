@@ -57,9 +57,9 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("0875a574c226ed5091e06e3e9e59c64ed9e5bf37", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d5cc3e9fa1b0c69ab8e1787db6bc2a6b58f7a129", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
