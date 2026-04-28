@@ -94,7 +94,7 @@ pub const RuntimeKretprobeLoader = struct {
 };
 
 pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest {
-    return .{
+    return (runtime_loader.RuntimeLoadRequest{
         .module_name = plan.module_name,
         .command_name = plan.command_name,
         .anchor = plan.anchor,
@@ -102,7 +102,7 @@ pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoa
         .exit_symbol = plan.exit_symbol,
         .requires_runtime_substrate = plan.requires_runtime_substrate,
         .provides_selftest_hook = plan.provides_selftest_hook,
-        .handoff_stage = .waiting_on_runtime_substrate,
+        .handoff_stage = .prepared,
         .allocator_handoff = runtime_loader.allocatorHandoffFor(.kernel_heap),
         .payload = .{
             .kretprobe = .{
@@ -120,7 +120,7 @@ pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoa
                 .entry_timestamp_armed = plan.summary.entry_timestamp_armed,
             },
         },
-    };
+    }).waitingOnRuntimeSubstrate();
 }
 
 test "runtime kretprobe loader prepares a bounded registration handoff plan" {
