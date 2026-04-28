@@ -14,6 +14,24 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const layout_assert_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/layout_assert.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    layout_assert_module.addImport("abi_bindings", abi_bindings_module);
+    const panic_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy_module.addImport("abi_bindings", abi_bindings_module);
+    const allocator_policy_module = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy_module.addImport("abi_bindings", abi_bindings_module);
     const atomic_helpers_module = b.createModule(.{
         .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
@@ -38,6 +56,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     low_level_root_module.addImport("abi_bindings", abi_bindings_module);
+    low_level_root_module.addImport("layout_assert", layout_assert_module);
+    low_level_root_module.addImport("panic_policy", panic_policy_module);
+    low_level_root_module.addImport("allocator_policy", allocator_policy_module);
     low_level_root_module.addImport("atomic_helpers", atomic_helpers_module);
     low_level_root_module.addImport("barrier_helpers", barrier_helpers_module);
     low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);
