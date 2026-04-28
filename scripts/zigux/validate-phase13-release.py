@@ -92,6 +92,14 @@ SCRIPT_README_MARKERS = [
     "live DMA-backed mappings and scatterlist ownership",
 ]
 
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 13 release-discipline packet, do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` still agree",
+    "`make -C zigux phase13` routes through `make -C zigux phase13-validate` before the shared replay",
+    "and that the shared replay still names the same seven steps?",
+    "if the change touches the shared Phase 13 release-discipline packet, do `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_notifier_list_reviewability.zig` still back the same four manifest-backed roadmap anchors plus the adjacent notifier-list reviewability packet",
+    "while keeping live DMA-backed mappings and scatterlist ownership blocked rather than implied?",
+]
+
 BUILD_NAME_MARKERS = [
     "phase13-libfs-tests",
     "phase13-devres-tests",
@@ -127,6 +135,7 @@ for name, source, markers in [
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("release", text("Documentation/zigux/phase13-release-notes-survey.md"), RELEASE_MARKERS),
     ("traceability", text("Documentation/zigux/phase13-roadmap-traceability.md"), TRACEABILITY_MARKERS),
+    ("review_checklist", text("Documentation/zigux/review-checklist.md"), REVIEW_CHECKLIST_MARKERS),
 ]:
     for marker in markers:
         if marker not in source:
@@ -213,7 +222,7 @@ print("PHASE13_RELEASE_VALIDATION=pass")
 print(f"PHASE13_RELEASE_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE13_RELEASE_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(SCRIPT_README_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(RELEASE_MARKERS) + len(TRACEABILITY_MARKERS) + len(SCRIPT_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
 )
 print(f"PHASE13_RELEASE_BUILD_TEST_COUNT={len(build_names)}")
 print(f"PHASE13_RELEASE_BUILD_DEPEND_STEP_COUNT={len(depend_steps)}")
