@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L13",
   "phase": "Phase 9",
-  "surveyed_commit": "19ef9c4ae9e4db5e43ff64143a997cb289dc3cc0",
+  "surveyed_commit": "77787e76a385b8c7258ef85c96a785d22ed8e879",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -9,11 +9,33 @@
   ],
   "survey_summary": {
     "kretprobe_example_c_lines": 108,
-    "preexisting_runtime_kretprobe_test_files": 2,
+    "preexisting_runtime_kretprobe_test_files": 3,
     "preexisting_runtime_kretprobe_sample_present": true,
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_kretprobe_doc_present": true
   },
+  "review_prompts": [
+    "the review packet still keeps the Linux anchor, bounded lifecycle-summary surface, and the current no-substrate rollback path explicit instead of implying a real register or unregister handoff",
+    "the manifest, survey gate, module gate, diff gate, loader scaffold, and shared Phase 9 build entrypoint still agree on the same bounded kretprobe replay contract and blocked shared runtime-control posture",
+    "the loader scaffold still names `register_kretprobe`, `unregister_kretprobe`, `requires_runtime_substrate`, and the `released_without_substrate` fallback so rollback evidence stays machine-checkable on current master"
+  ],
+  "exact_checks": [
+    {
+      "id": "lifecycle-summary-surface",
+      "kind": "summary_contract",
+      "expected": "the bounded starter exposes RuntimeKretprobeSummary with lifecycle stage, init or selftest or exit counters, active-instance state, and the latest bounded probe results so selftest and post-exit review never depend on internal field reads"
+    },
+    {
+      "id": "loader-rollback-surface",
+      "kind": "runtime_loader_contract",
+      "expected": "the loader scaffold keeps register and unregister API names, explicit init and exit symbols, waiting_on_runtime_substrate handoff, and a released_without_substrate rollback path machine-checkable through the shared runtime-loader request surface"
+    },
+    {
+      "id": "shared-loader-controls-blocker",
+      "kind": "runtime_control_surface",
+      "expected": "the survey packet keeps broader shared runtime-loader command-name, argv-policy, and environment-derived activation handling blocked so the kretprobe pilot remains pre-execution"
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
@@ -55,7 +77,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, a no-substrate release path, and a kretprobe summary payload that now feeds the shared runtime-loader request surface."
+      "why_now": "A bounded loader handoff makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, a released_without_substrate rollback path, and a kretprobe summary payload that now feeds the shared runtime-loader request surface."
     },
     {
       "id": "runtime-kretprobe-live-loader-binding",
