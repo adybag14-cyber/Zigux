@@ -50,6 +50,10 @@ This slice does not yet claim:
 2. run the convenience target
 - `make -C zigux phase10`
 
+3. run the dedicated validation guard
+- `python3 scripts/zigux/validate-phase10.py`
+- `make -C zigux phase10-validate`
+
 ## Next bounded step
 
-Stay in the Phase 10 virtio_input lane and add one small in-memory registration-preflight helper next so the lab slice can build on the landed capability staging and multitouch slot planning without claiming transport, interrupt, or `input_dev` registration work.
+Stay in the Phase 10 virtio_input lane and add one small in-memory registration-preflight helper next so the lab slice can build on the landed capability staging and multitouch slot planning without claiming transport, interrupt, or input-device registration work.
