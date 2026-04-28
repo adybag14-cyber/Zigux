@@ -79,7 +79,9 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "descriptor-facing registration handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "nowayout failure-mode evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "first bounded `devm_watchdog_register_device()` call surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "descriptor-facing registration handoff") == null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
