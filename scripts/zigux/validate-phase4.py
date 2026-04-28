@@ -53,6 +53,7 @@ PHASE4_GATE_EXPECTATIONS = {
 
 REQUIRED_FILES = [
     'scripts/zigux/artifact_diff.py',
+    'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/artifact-diff.md',
     'Documentation/zigux/phase4-validation-matrix.md',
@@ -67,6 +68,7 @@ REQUIRED_MAKE_MARKERS = [
     'PHONY += phase4-validate phase4-test phase4',
     'phase4-validate:',
     'scripts/zigux/artifact_diff.py --self-test',
+    'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/validate-phase4.py',
     'scripts/zigux/validate-phase4.py --self-test',
     'phase4-test:',
@@ -83,6 +85,7 @@ REQUIRED_WORKFLOW_MARKERS = [
 REQUIRED_DOC_MARKERS = [
     'Current Phase 4 use',
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
@@ -90,6 +93,7 @@ REQUIRED_DOC_MARKERS = [
     'Documentation/zigux/phase4-validation-matrix.md',
     'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
     'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
+    'outward `ARTIFACT_DIFF=...` CLI lines',
     '`EXPECTED_JSON_ERROR=`',
     '`ACTUAL_JSON_ERROR=`',
 ]
@@ -119,6 +123,7 @@ REQUIRED_TESTS_README_MARKERS = [
 
 REQUIRED_SCRIPT_README_MARKERS = [
     'artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'make -C zigux phase4-validate',
     'validate-phase4.py',
     'Phase 4 flow',
@@ -131,6 +136,7 @@ REQUIRED_DOC_README_MARKERS = [
     'Phase 4 notes',
     'make -C zigux phase4-validate',
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'validate-phase4.py',
     'phase4-validation-matrix.md',
     'Validate Phase 4 diff gates',
@@ -140,7 +146,9 @@ REQUIRED_DOC_README_MARKERS = [
 
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'deterministic_preflight_required_for_host_side_diff_tools',
+    'deterministic_cli_contract_replay_required_for_host_side_diff_tools',
     'runtime_atomic64_diff.zig',
     'bitmap_diff.zig',
     'rollback owner',
@@ -159,6 +167,7 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
     'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
+    'one stable pass case plus one missing-file failure shape',
 ]
 
 ROADMAP_GAP_EXPECTATIONS = {
@@ -415,6 +424,7 @@ def build_phase4_matrix_fixture() -> str:
         '- `PHASE4_STATUS=differential_validation_matrix_landed`',
         '- current repo reality:',
         '  - `scripts/zigux/artifact_diff.py`',
+        '  - `scripts/zigux/check-artifact-diff-contract.py`',
         '  - `zigux/tests/runtime_atomic64_diff.zig`',
         '  - `zigux/tests/bitmap_diff.zig`',
         '  - `zigux/tests/phase4_build.zig`',
@@ -429,9 +439,12 @@ def build_phase4_matrix_fixture() -> str:
         '- make -C zigux phase4-validate',
         '- make -C zigux phase4-test',
         '- scripts/zigux/artifact_diff.py --self-test',
+        '- python3 scripts/zigux/check-artifact-diff-contract.py',
         '- deterministic_preflight_required_for_host_side_diff_tools',
+        '- deterministic_cli_contract_replay_required_for_host_side_diff_tools',
         '- phase4-runtime-atomic64-diff-tests',
         '- phase4-bitmap-diff-tests',
+        '- one stable pass case plus one missing-file failure shape',
         '',
         '## Why this exists',
         '',
@@ -440,6 +453,7 @@ def build_phase4_matrix_fixture() -> str:
         '- the lab and CI matrix that replays the gates today',
         '- the reversible-delivery evidence that ties each shipped Zig gate back to its current C anchor if the shared entrypoint has to drop that gate',
         '- the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned',
+        '- the external CLI-contract replay that keeps one stable pass case plus one missing-file failure shape explicit outside the helper\'s built-in self-test',
         '- one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head',
         '',
         '## Gate Ownership',
@@ -452,6 +466,16 @@ def build_phase4_matrix_fixture() -> str:
         '- rollback owner: `Validation and Perf Team`',
         '- fallback path: keep the shared self-test wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the host-side diff tooling is aligned',
         '- perf threshold status: deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
+        '',
+        '### `python3 scripts/zigux/check-artifact-diff-contract.py`',
+        '',
+        '- anchor: `scripts/zigux/` host-side diff and layout tooling',
+        '- phase bucket: `Phase 4 external artifact-diff CLI contract replay for host-side tools`',
+        '- owner: `Validation and Perf Team`',
+        '- rollback owner: `Validation and Perf Team`',
+        '- exact bounded checks: one stable pass case plus one missing-file failure shape for the outward `ARTIFACT_DIFF=...` CLI lines',
+        '- fallback path: keep the checker wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the outward `ARTIFACT_DIFF=...` contract is still reviewable on the current head',
+        '- perf threshold status: deterministic correctness-only replay today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
         '',
     ]
 
@@ -484,6 +508,7 @@ def build_phase4_matrix_fixture() -> str:
             '| lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | reversible delivery evidence | threshold posture |',
             '| --- | --- | --- | --- | --- | --- | --- | --- |',
             '| `scripts/zigux/artifact_diff.py --self-test` | deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the shared self-test before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` replay when the helper changes | `scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks | `deterministic_preflight_required_for_host_side_diff_tools` |',
+            '| `python3 scripts/zigux/check-artifact-diff-contract.py` | deterministic outward CLI-contract replay for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the external CLI-contract replay before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/check-artifact-diff-contract.py` replay when the outward `ARTIFACT_DIFF=...` contract changes | `scripts/zigux/check-artifact-diff-contract.py` stays the shared external replay for the bounded Phase 4 host-side tooling packet, and removing it from `phase4-validate` would drop the roadmap-backed external proof that the outward `ARTIFACT_DIFF=...` lines still match the documented pass and missing-file failure shapes | `deterministic_cli_contract_replay_required_for_host_side_diff_tools` |',
         ]
     )
 
@@ -520,6 +545,7 @@ def build_phase4_matrix_fixture() -> str:
 def write_fixture_tree(root: Path) -> None:
     file_contents = {
         'scripts/zigux/artifact_diff.py': '\n'.join(REQUIRED_ARTIFACT_DIFF_MARKERS) + '\n',
+        'scripts/zigux/check-artifact-diff-contract.py': '# synthetic contract checker\n',
         'scripts/zigux/validate-phase4.py': '# synthetic self-test target\n',
         'Documentation/zigux/artifact-diff.md': '\n'.join(
             REQUIRED_DOC_MARKERS
