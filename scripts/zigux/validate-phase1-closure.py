@@ -55,7 +55,7 @@ required_closure_markers = [
     'rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`',
     'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
-    'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
+    'PHASE1_STRING_REVIEW=string parity covers true, false, and invalid bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`',
@@ -191,6 +191,7 @@ if string_review.get('evidence_keys') != [
     'string.strtobool_on',
     'string.strtobool_zero',
     'string.strtobool_off',
+    'string.strtobool_invalid',
     'string.strlcpy_len',
     'string.strlcpy_buffer',
     'string.skip_spaces',
@@ -202,7 +203,7 @@ if string_review.get('evidence_keys') != [
     'string.memchr_inv_none',
 ]:
     missing_markers.append('manifest:string.evidence_keys')
-if string_review.get('summary') != 'Committed C-backed parity coverage includes Linux-style bool parsing, bounded strlcpy truncation, in-place whitespace and replacement helpers, and first-mismatch memchrInv detection.':
+if string_review.get('summary') != 'Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, bounded strlcpy truncation, in-place whitespace and replacement helpers, and first-mismatch memchrInv detection.':
     missing_markers.append('manifest:string.summary')
 if string_review.get('unit_test_anchor') != 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"':
     missing_markers.append('manifest:string.unit_test_anchor')
