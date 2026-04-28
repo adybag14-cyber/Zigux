@@ -7,7 +7,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper slice plus shared deterministic escape fixtures landed; parked unless a new `string_helpers.c` parity issue appears
+- lane state: helper slice plus shared deterministic escape fixtures and shared wrapper-entrypoint coverage landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
@@ -49,7 +49,13 @@ The current starter slice covers:
 - `string_lower()`
 - `string_get_size()` over the bounded SI and binary formatting subset
 - `string_unescape()`
+- `string_unescape_inplace()`
+- `string_unescape_any()`
+- `string_unescape_any_inplace()`
 - `string_escape_mem()` over the bounded runtime-safe escape subset
+- `string_escape_mem_any_np()`
+- `string_escape_str()`
+- `string_escape_str_any_np()`
 
 The current tests check:
 
@@ -65,10 +71,12 @@ The current tests check:
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays the landed escape-space, special, null, octal, hex, dictionary-limited, and passthrough-filter cases from one reviewable source
 - in-place unescape behavior and bounded destination termination
+- shared wrapper proofs that `string_unescape_inplace()`, `string_unescape_any()`, and `string_unescape_any_inplace()` preserve `UNESCAPE_ANY`, stop at the first written NUL, and leave trailing storage untouched
 - deterministic escape-space, special, null, octal, and hex output cases through the shared fixture table
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof through the shared fixture table
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset through the shared fixture table
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
+- shared wrapper proofs that `string_escape_mem_any_np()`, `string_escape_str()`, and `string_escape_str_any_np()` reuse the bounded `ESCAPE_ANY_NP` policy and stop at the first C-string terminator instead of walking tail bytes
 
 ## Non-goals
 
