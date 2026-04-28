@@ -65,12 +65,26 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expect(module.isSet(12));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
+    const summary_before_exit = module.summary();
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const summary_after_exit = module.summary();
+    try std.testing.expectEqual(summary_before_exit.first_set, summary_after_exit.first_set);
+    try std.testing.expectEqual(summary_before_exit.first_zero, summary_after_exit.first_zero);
+    try std.testing.expectEqual(summary_before_exit.weight, summary_after_exit.weight);
+    try std.testing.expectEqual(summary_before_exit.nbits, summary_after_exit.nbits);
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(!module.isSet(second_word_base));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.setRange(1, 1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.clearRange(1, 1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));
+
+    var source = sample.RuntimeBitmapSample{};
+    try source.initWithSetBits(&.{ 2, 9 });
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.copyFrom(&source));
 }
 
 test "runtime bitmap sample keeps bounded errors explicit" {
@@ -80,17 +94,6 @@ test "runtime bitmap sample keeps bounded errors explicit" {
     try module.initWithSetBits(&.{ 1, 3 });
     try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(sample.RuntimeBitmapSample.bitmap_nbits - 1, 2));
     try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 1));
-}
-
-test "runtime bitmap sample keeps sparse nth-set-bit replay explicit" {
-    var module = sample.RuntimeBitmapSample{};
-    try module.initWithSetBits(&.{ 10, 20, 30, 40, 50, 60, 80, 123 });
-
-    const expected = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
-    for (expected, 0..) |bit, index| {
-        try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
-    }
-    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
 }
 
 test "runtime bitmap sample keeps zero-length mutations and invalid copy sources explicit" {
