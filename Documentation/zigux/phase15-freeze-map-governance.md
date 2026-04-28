@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-enforcement-refresh`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, and the real current enforcement state on `master`
-- survey provenance refreshed against verified `master` head `040884eb7ae838156e6a1f6cb4026b4cd22b5d51`
+- survey provenance refreshed against verified `master` head `9f4c19ac36fd6bcaf184e9c528750cd7d973b5fa`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -97,7 +97,7 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- verified remote `master` head for this check: `040884eb7ae838156e6a1f6cb4026b4cd22b5d51`
+- verified remote `master` head for this check: `9f4c19ac36fd6bcaf184e9c528750cd7d973b5fa`
 - the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
@@ -106,7 +106,7 @@ This slice does not claim:
 - the shared bootstrap workflow now invokes the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle is no longer maintainer-run only
 - focused replay against current `master` shows the narrower freeze-map governance packet is runnable, while the wider shared Phase 15 bundle is currently drifted:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
-  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` currently fails on current `master` because `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` hit `error.StreamTooLong` while reading `Documentation/zigux/README.md`, and `phase15_architecture_council_review_process.zig` still expects the older docs-root phrase `Phase 15 notes`
+  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` currently fails on current `master` because `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` still hit `error.StreamTooLong` while reading `Documentation/zigux/README.md`
   - `make -C zigux phase15` currently fails for the same shared Phase 15 replay drift because it delegates to `zigux/tests/phase15_build.zig`
 - current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that keeps the governance packet aligned during maintenance edits, and one still-open neighboring maintenance drift in the broader shared Phase 15 packet family
 
@@ -117,8 +117,8 @@ This slice does not claim:
 - `phase15-local-entrypoint-present`: yes
 - `phase15-shared-ci-enforcement-present`: yes
 - `phase15-build-clean-on-current-master`: no
-- `phase15-build-failure-cause`: `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` currently exceed their `Documentation/zigux/README.md` read limits, and `phase15_architecture_council_review_process.zig` still expects the older docs-root phrase `Phase 15 notes`
-- next repair step inside this lane family: leave the deep-core blocker posture parked here and let a neighboring Phase 15 maintenance lane decide whether to narrow the docs-root drift or increase those shared read limits
+- `phase15-build-failure-cause`: `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` currently exceed their `Documentation/zigux/README.md` read limits
+- next repair step inside this lane family: leave the deep-core blocker posture parked here and let a neighboring Phase 15 maintenance lane decide whether to increase those shared README read limits
 
 ## Next bounded step
 
