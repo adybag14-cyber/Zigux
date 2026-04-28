@@ -8,6 +8,33 @@ pub const FdInfoMapInfo = struct {
     map_flags: u32,
 };
 
+pub const default_bpf_fs_path = "/sys/fs/bpf";
+
+pub const TokenPreparationDisposition = enum {
+    prevented,
+    optional_probe,
+    mandatory_probe,
+};
+
+pub const TokenPreparationLogLevel = enum {
+    debug,
+    warn,
+};
+
+pub const TokenPreparationPlan = struct {
+    disposition: TokenPreparationDisposition,
+    bpffs_path: []const u8,
+    log_level: ?TokenPreparationLogLevel,
+
+    pub fn requiresBpffsOpen(self: TokenPreparationPlan) bool {
+        return self.disposition != .prevented;
+    }
+
+    pub fn requiresTokenCreate(self: TokenPreparationPlan) bool {
+        return self.disposition != .prevented;
+    }
+};
+
 pub const FilePathHandleBridgeError = error{
     PathTooLong,
     InvalidPid,
@@ -91,6 +118,30 @@ pub fn buildCurrentProcessFdinfoPath(buffer: []u8, fd: i32) FilePathHandleBridge
     return buildFdinfoPath(buffer, pid, fd);
 }
 
+pub fn planTokenPreparation(token_path: ?[]const u8) TokenPreparationPlan {
+    if (token_path) |path| {
+        if (path.len == 0) {
+            return .{
+                .disposition = .prevented,
+                .bpffs_path = "",
+                .log_level = null,
+            };
+        }
+
+        return .{
+            .disposition = .mandatory_probe,
+            .bpffs_path = path,
+            .log_level = .warn,
+        };
+    }
+
+    return .{
+        .disposition = .optional_probe,
+        .bpffs_path = default_bpf_fs_path,
+        .log_level = .debug,
+    };
+}
+
 pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {
     var info = FdInfoMapInfo{
         .map_type = 0,
@@ -154,6 +205,29 @@ test "buildCurrentProcessFdinfoPath matches the live libbpf current-process anch
         try buildCurrentProcessFdinfoPath(&actual, 11),
     );
     try std.testing.expectError(error.InvalidFd, buildCurrentProcessFdinfoPath(&actual, -1));
+}
+
+test "planTokenPreparation keeps token-path intent explicit without claiming io parity" {
+    const prevented = planTokenPreparation("");
+    try std.testing.expectEqual(TokenPreparationDisposition.prevented, prevented.disposition);
+    try std.testing.expectEqualStrings("", prevented.bpffs_path);
+    try std.testing.expectEqual(@as(?TokenPreparationLogLevel, null), prevented.log_level);
+    try std.testing.expect(!prevented.requiresBpffsOpen());
+    try std.testing.expect(!prevented.requiresTokenCreate());
+
+    const optional = planTokenPreparation(null);
+    try std.testing.expectEqual(TokenPreparationDisposition.optional_probe, optional.disposition);
+    try std.testing.expectEqualStrings(default_bpf_fs_path, optional.bpffs_path);
+    try std.testing.expectEqual(TokenPreparationLogLevel.debug, optional.log_level.?);
+    try std.testing.expect(optional.requiresBpffsOpen());
+    try std.testing.expect(optional.requiresTokenCreate());
+
+    const mandatory = planTokenPreparation("/custom/bpffs");
+    try std.testing.expectEqual(TokenPreparationDisposition.mandatory_probe, mandatory.disposition);
+    try std.testing.expectEqualStrings("/custom/bpffs", mandatory.bpffs_path);
+    try std.testing.expectEqual(TokenPreparationLogLevel.warn, mandatory.log_level.?);
+    try std.testing.expect(mandatory.requiresBpffsOpen());
+    try std.testing.expect(mandatory.requiresTokenCreate());
 }
 
 test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
