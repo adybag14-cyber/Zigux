@@ -30,6 +30,13 @@ pub const SelftestSummary = struct {
     checked_guard_paths: bool,
 };
 
+pub const RuntimeAtomic64Summary = struct {
+    counter_snapshot: i64,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
+};
+
 pub const CompareExchangeResult = struct {
     previous: i64,
     stored: bool,
@@ -236,6 +243,15 @@ pub const RuntimeAtomic64Sample = struct {
             },
             .checked_returning_paths = true,
             .checked_guard_paths = true,
+        };
+    }
+
+    pub fn summary(self: *const Self) RuntimeAtomic64Summary {
+        return .{
+            .counter_snapshot = self.snapshotCounter(),
+            .init_runs = self.init_runs,
+            .selftest_runs = self.selftest_runs,
+            .exit_runs = self.exit_runs,
         };
     }
 
