@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
 from phase3_catalog import (
@@ -157,8 +158,8 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
 
 
 def _has_build_step(build_file: Path, step_name: str) -> bool:
-    marker = f'b.step("{step_name}"'
-    return marker in build_file.read_text(encoding="utf-8")
+    pattern = re.compile(r'b\.step\(\s*"' + re.escape(step_name) + r'"', re.MULTILINE)
+    return pattern.search(build_file.read_text(encoding="utf-8")) is not None
 
 
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -309,6 +310,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").writeText = None
         (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
             'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
@@ -424,6 +426,103 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").writeText = None
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text(
+            render_wrapper_stub(),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text(
+            "// alpha\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (fixture_dir / "expected.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (fixture_dir / "phase3_alpha_c_harness.c").write_text(
+            "int main(void) { return 0; }\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-slice",
+                    "files": [manifest_rel],
+                    "file_count": 1,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        discovered = discover_phase3_slices(paths)
+        alpha = [entry for entry in discovered if entry.slug == "alpha"]
+        assert len(alpha) == 1
+        assert validate_slices(root, alpha) == []
+
+    print("PHASE3_VALIDATOR_SELF_TEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
+    parser.add_argument(
+        "--slug",
+        action="append",
+        default=[],
+        help="Only validate the named Phase 3 slug. Repeat to validate more than one.",
+    )
+    parser.add_argument(
+        "--check-artifact-diff",
+        action="store_true",
+        help="Also validate the generated Current Phase 3 use section in Documentation/zigux/artifact-diff.md.",
+    )
+    parser.add_argument(
+        "--check-slug-sanity",
+        action="store_true",
+        help="Also audit discovered Phase 3 slugs for overgrown or repetitive naming drift.",
+    )
+    parser.add_argument(
+        "--skip-obsolete-wrapper-check",
+        action="store_true",
+        help="Skip the stale wrapper-file scan when only a narrow subset of files is available.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run isolated validator checks without reading the repository tree.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    slices = select_slices(discover_phase3_slices(), args.slug)
+    if not slices:
+        raise SystemExit("no Phase 3 slices discovered")
+
+    issues = validate_slices(
+        ROOT,
+        slices,
+        check_artifact_diff=args.check_artifact_diff,
+        check_slug_sanity=args.check_slug_sanity,
+        check_all_wrappers=not args.skip_obsolete_wrapper_check,
+    )
+    if issues:
+        print("PHASE3_VALIDATION=fail")
+        for issue in issues:
+            print(issue)
+        return 1
+
+    print("PHASE3_VALIDATION=pass")
+    print("PHASE3_VALIDATED_SLUGS=" + ",".join(entry.slug for entry in slices))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
