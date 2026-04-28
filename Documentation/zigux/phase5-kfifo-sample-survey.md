@@ -81,6 +81,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - the descriptor and replay keep the sample on a fixed embedded 32-byte ring buffer rather than dynamic or runtime-backed storage
+- the review path stays explicit across `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/review-checklist.md`, and the shared `zigux/tests/phase5_build.zig` entrypoint
 - empty-queue peek and skip return `null`, `snapshotInto()` leaves queue order intact, pushing past capacity returns `false`, and `reset()` restores an empty queue
 - the replay advertises exactly six review-focus areas: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `reset_and_replay`, and `ownership_and_lifetime`
 - the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
@@ -97,6 +98,24 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
 These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete descriptor, manifest, and build entrypoint that current `master` already ships.
+
+## Current verification record
+
+The exact checks above were re-verified on current `master` through the same review path:
+
+1. confirm the Phase 5 roadmap anchor still points at the Linux bytestream example and the shipped survey note
+- `rg -n "samples/kfifo/bytestream-example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
+
+2. confirm the current `samples/zigux/` surface still keeps the bounded Phase 5 reference sample separate from later runtime starters
+- `find samples/zigux -maxdepth 1 -type f | sort`
+
+3. run the sample-backed survey gate that checks the manifest and review-path packet
+- `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
+
+4. run the shared Phase 5 bundle entrypoint that wires the sample import and exercises the bytestream behavior, helper, and ownership checks alongside the other Phase 5 sample families
+- `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+
+The current repo routes the bytestream behavior test through that shared `phase5_build.zig` entrypoint rather than a standalone `zig test zigux/tests/phase5_bytestream_fifo.zig` invocation, because the sample module import is provided by the build file.
 
 ## Recorded gap vs roadmap
 
