@@ -18,6 +18,17 @@ test "phase 8 file-path-handle bridge builds proc fdinfo paths without widening 
     try std.testing.expectError(error.PathTooLong, file_path_handle_bridge.buildFdinfoPath(&short_buffer, 4321, 9));
 }
 
+test "phase 8 file-path-handle bridge keeps the current-process fdinfo helper aligned" {
+    var actual: [64]u8 = undefined;
+    var expected: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        try std.fmt.bufPrint(&expected, "/proc/{d}/fdinfo/{d}", .{ std.os.linux.getpid(), 11 }),
+        try file_path_handle_bridge.buildCurrentProcessFdinfoPath(&actual, 11),
+    );
+    try std.testing.expectError(error.InvalidFd, file_path_handle_bridge.buildCurrentProcessFdinfoPath(&actual, -1));
+}
+
 test "phase 8 file-path-handle bridge plans token preparation without claiming live bpffs io" {
     const prevented = file_path_handle_bridge.planTokenPreparation("");
     try std.testing.expectEqual(
