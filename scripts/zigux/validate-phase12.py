@@ -141,7 +141,7 @@ MANIFEST_SPECS = {
     "phase12_virtio_scsi_manifest.json": {
         "lane_key": "P12-L09",
         "anchor": "drivers/scsi/virtio_scsi.c",
-        "gap_count": 14,
+        "gap_count": 15,
         "roadmap_destinations": ["drivers/scsi/virtio_scsi.zig", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {
             "zigux/Makefile",
@@ -149,7 +149,7 @@ MANIFEST_SPECS = {
             "drivers/virtio/virtio_ring.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
-        "expected_status_totals": {"starter_landed": 13, "blocked_on_dma_transport": 1},
+        "expected_status_totals": {"starter_landed": 14, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
         "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
@@ -197,14 +197,11 @@ MANIFEST_SPECS = {
     },
 }
 
-
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
-
 def load_manifest(name: str) -> dict[str, object]:
     return json.loads(text(f"zigux/tests/{name}"))
-
 
 def count_statuses(manifest: dict[str, object], match: str) -> int:
     total = 0
@@ -215,7 +212,6 @@ def count_statuses(manifest: dict[str, object], match: str) -> int:
         if status == match:
             total += 1
     return total
-
 
 def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
     roadmap_destinations = tuple(str(item) for item in spec["roadmap_destinations"])
@@ -228,11 +224,9 @@ def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
             return True
     return False
 
-
 def expect_catalog_marker(catalog_text: str, marker: str, missing_key: str, missing: list[str]) -> None:
     if marker not in catalog_text:
         missing.append(missing_key)
-
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
