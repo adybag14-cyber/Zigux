@@ -128,6 +128,7 @@ Host-side helper timing is too sensitive to hosted runner drift to make nanoseco
 Instead, Phase 1 uses:
 
 - a benchmark smoke executable for representative helper paths
+- representative bitmap smoke for weight, tail-window bitwise ops, tail-sensitive copy and `copyClearTail` replay, and range rendering
 - stable checksum and iteration outputs so the benchmark cannot silently optimize away the hot loops
 - machine-readable benchmark expectations in `zigux/tests/fixtures/phase1_bench_expectations.json`
 - manual review of timing deltas before expanding helper scope
