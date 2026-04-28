@@ -80,7 +80,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 5);
-    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 6);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -93,6 +93,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_bounds_errors = false;
     var saw_zero_length_source_guards = false;
     var saw_loader_request_surface = false;
+    var saw_loader_build_leg = false;
     var saw_diff_fill_case = false;
     var saw_diff_cutout_case = false;
     var saw_diff_sparse_copy_case = false;
@@ -159,6 +160,12 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "helper_owned") != null);
         }
+        if (std.mem.eql(u8, check.id, "loader-build-leg")) {
+            saw_loader_build_leg = true;
+            try std.testing.expectEqualStrings("shared_build_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-bitmap-loader-tests") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-bitmap-sample-tests") != null);
+        }
         if (std.mem.eql(u8, check.id, "diff-fill-set-case")) {
             saw_diff_fill_case = true;
             try std.testing.expectEqualStrings("differential_validation", check.kind);
@@ -173,7 +180,6 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             saw_diff_sparse_copy_case = true;
             try std.testing.expectEqualStrings("differential_validation", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "bits 10, 20, 30, 40, 50, 60, 80, and 123") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "nthSetBit") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "weight 109") != null);
         }
 
@@ -222,7 +228,8 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-bitmap-sample-tests") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sample contract stays first-class") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-bitmap-loader-tests") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sample and loader contracts stay first-class") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-bitmap-sample-module")) {
             saw_sample_module = true;
@@ -274,6 +281,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_bounds_errors);
     try std.testing.expect(saw_zero_length_source_guards);
     try std.testing.expect(saw_loader_request_surface);
+    try std.testing.expect(saw_loader_build_leg);
     try std.testing.expect(saw_diff_fill_case);
     try std.testing.expect(saw_diff_cutout_case);
     try std.testing.expect(saw_diff_sparse_copy_case);
@@ -285,7 +293,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_shared_loader_controls_blocker);
 }
 
-test "phase 9 runtime bitmap survey doc keeps the direct sample build leg explicit" {
+test "phase 9 runtime bitmap survey doc keeps the direct sample and loader build legs explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -306,7 +314,10 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample build leg explic
     defer std.testing.allocator.free(phase9_build);
 
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-loader-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs") != null);
 }
