@@ -115,6 +115,25 @@ test "bitmap diff gate records exact bounded copy checks" {
     var src = [_]Word{ 0, 0, 0 };
     var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
 
+    bitmap.setRange(&src, 0, 19);
+    bitmap.zero(&dst, bits_per_long * 3);
+    // test_copy single-word source shape at 23 bits
+    copyFrom(&dst, &src, 23);
+    try std.testing.expectEqual(@as(usize, 19), weight(dst[0..bitmap.bitsToWords(23)], 23));
+    try expectSet(&dst, 18);
+    try expectClear(&dst, 19);
+    try expectClear(&dst, 22);
+
+    bitmap.fill(&dst, bits_per_long * 3);
+    // test_copy single-word copied tail clears through source state
+    copyFrom(&dst, &src, 23);
+    try std.testing.expectEqual(@as(usize, 19), weight(dst[0..bitmap.bitsToWords(23)], 23));
+    try expectSet(&dst, 18);
+    try expectClear(&dst, 19);
+    try expectClear(&dst, 22);
+    try expectSet(&dst, bits_per_long);
+
+    bitmap.zero(&src, bits_per_long * 3);
     bitmap.setRange(&src, 0, 109);
     copyFrom(&dst, &src, bits_per_long * 3);
     try std.testing.expectEqual(@as(usize, 109), weight(&dst, bits_per_long * 3));
