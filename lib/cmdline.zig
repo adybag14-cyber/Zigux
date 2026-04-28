@@ -424,6 +424,26 @@ test "numeric parsing rejects an explicit leading plus sign" {
     try std.testing.expectEqual(@as(usize, 0), mem_index);
 }
 
+test "parseOptionStr matches only exact bare options before NUL" {
+    try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
+    try std.testing.expect(!parseOptionStr("quiet,debug=1,nohlt", "debug"));
+    try std.testing.expect(!parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
+}
+
+test "nextArg preserves leading equals sentinels and trims trailing spaces" {
+    var sentinel_input = [_]u8{ '=','b','a','d',' ','n','e','x','t',0 };
+    const sentinel = nextArg(sentinel_input[0..]);
+    try std.testing.expectEqualStrings("=bad", sentinel.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), sentinel.value);
+    try std.testing.expectEqualStrings("next", cStringPrefix(sentinel.rest));
+
+    var spaced_input = [_]u8{ 'm','o','d','e','=','f','a','s','t',' ',' ',' ',0 };
+    const spaced = nextArg(spaced_input[0..]);
+    try std.testing.expectEqualStrings("mode", spaced.param);
+    try std.testing.expectEqualStrings("fast", spaced.value.?);
+    try std.testing.expectEqualStrings("", cStringPrefix(spaced.rest));
+}
+
 test "getOption matches malformed-token classification from the Linux KUnit corpus" {
     const cases = [_]GetOptionCase{
         .{ .input = "\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
