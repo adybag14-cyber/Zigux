@@ -354,7 +354,7 @@ for name, spec in MANIFEST_SPECS.items():
         if actual_total != expected_total:
             missing.append(f"{name}:status_total:{status}={actual_total}")
         if status == "starter_landed":
-            expected_starter_TOTAL += expected_total
+            expected_starter_total += expected_total
         elif status == "blocked_on_dma_transport":
             expected_blocked_dma_total += expected_total
         elif status == "blocked_on_object_model":
