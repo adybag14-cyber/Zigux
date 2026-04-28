@@ -7,11 +7,14 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper slice plus shared deterministic escape fixtures landed; parked unless a new `string_helpers.c` parity issue appears
+- lane state: helper slice plus shared deterministic escape fixtures, bounded sample replay, and manifest-backed survey evidence landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
   - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
+  - `samples/zigux/string_helpers_sample.zig`
+  - `zigux/tests/phase7_string_helpers_sample_manifest.json`
+  - `zigux/tests/phase7_string_helpers_sample_survey.zig`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
 
@@ -67,6 +70,8 @@ The current tests check:
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof through the shared fixture table
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset through the shared fixture table
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
+- the bounded `samples/zigux/string_helpers_sample.zig` replay for descriptor ownership, lifecycle transitions, newline-tolerant matching, binary size rendering, and deterministic hex escaping through the shared Phase 7 build
+- the manifest-backed `zigux/tests/phase7_string_helpers_sample_survey.zig` gate so the helper, shared fixtures, sample replay, and slice note stay aligned in one reviewable packet
 
 ## Non-goals
 
