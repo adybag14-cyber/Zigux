@@ -87,11 +87,21 @@ fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
         return;
     }
 
+    if (option.len > 1) {
+        try writer.print("option '--{s}' requires an argument\n", .{option});
+        return;
+    }
+
     const rendered = if (option.len == 0) "?" else option[0..1];
     try writer.print("option requires an argument -- '{s}'\n", .{rendered});
 }
 
 fn writeUnexpectedOptionArgumentError(writer: anytype, option: []const u8) !void {
+    if (!std.mem.startsWith(u8, option, "--") and option.len > 1) {
+        try writer.print("option '--{s}' doesn't allow an argument\n", .{option});
+        return;
+    }
+
     try writer.print("option '{s}' doesn't allow an argument\n", .{option});
 }
 
@@ -215,7 +225,7 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
         },
         .matched => |spec| {
             if (!spec.requires_argument and inline_value != null) {
-                return .{ .failure = .{ .unexpected_option_argument = arg[0 .. separator + 2] } };
+                return .{ .failure = .{ .unexpected_option_argument = spec.name } };
             }
 
             switch (spec.kind) {
@@ -244,7 +254,7 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
                 .reference, .dump_types => {
                     const value = inline_value orelse blk: {
                         if (index.* + 1 >= args.len) {
-                            return .{ .failure = .{ .missing_option_argument = arg } };
+                            return .{ .failure = .{ .missing_option_argument = spec.name } };
                         }
                         index.* += 1;
                         break :blk args[index.*];
@@ -534,7 +544,29 @@ test "genksyms bridge rejects unexpected long option arguments in getopt style" 
     const outcome = try parseArgs(std.testing.allocator, &.{"--debug=extra"});
     switch (outcome) {
         .failure => |failure| switch (failure) {
-            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("--debug", option),
+            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("debug", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
+test "genksyms bridge canonicalizes abbreviated long option missing-argument errors" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"--ref"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .missing_option_argument => |option| try std.testing.expectEqualStrings("reference", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
+test "genksyms bridge canonicalizes abbreviated long option unexpected-argument errors" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"--deb=extra"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("debug", option),
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
