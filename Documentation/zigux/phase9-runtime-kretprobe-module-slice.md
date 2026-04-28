@@ -31,6 +31,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - a stable `RuntimeKretprobeSummary` view exposing lifecycle stage, `init_runs`, `selftest_runs`, `exit_runs`, active-instance state, and the latest bounded probe results without requiring direct field access on the sample
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - a bounded `runtime_kretprobe_loader` scaffold that makes the planned `register_kretprobe()` and `unregister_kretprobe()` lifecycle, entry or exit symbol names, and per-instance private-data size explicit while the runtime substrate remains unavailable
+- the same loader scaffold now keeps the no-substrate rollback path explicit through `releaseSharedRuntimeLoadWithoutSubstrate()` and the shared `released_without_substrate` request state, so fallback review does not rely on prose alone
 - a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that consumes the kretprobe loader handoff through explicit allocator posture, staged entry and exit symbols, and a machine-checkable kretprobe payload
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
