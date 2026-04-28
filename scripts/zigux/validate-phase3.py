@@ -193,7 +193,7 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
         "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
     ]
     if manifest is not None:
-        required[:0] = [f"PHASE3_STATUS={manifest.get('status')}", f"PHASE3_SLICE={manifest.get('slice')}”]
+        required[:0] = [f"PHASE3_STATUS={manifest.get('status')}", f"PHASE3_SLICE={manifest.get('slice')}"]
     required.extend(_required_doc_markers_for_slug(slug))
     for marker in required:
         if marker not in doc:
