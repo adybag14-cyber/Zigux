@@ -53,6 +53,10 @@ SCRIPT_README_MARKERS = [
     "phase10-virtio-input-slice.md",
     "phase10-virtio-input-survey.md",
     "blocked registration-lifecycle contract",
+    "registration-preflight helper remains the single ready-next step",
+]
+
+FORBIDDEN_SCRIPT_README_MARKERS = [
     "ABS_MT_SLOT remains the single ready-next helper step",
 ]
 
@@ -62,6 +66,11 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_survey.zig",
     "registration-preflight helper",
     "registration-lifecycle blocker",
+    "three lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
+]
+
+FORBIDDEN_TESTS_README_MARKERS = [
+    "three manifest-backed survey records",
 ]
 
 DOC_README_MARKERS = [
@@ -157,6 +166,14 @@ for name, source, markers in [
     for marker in markers:
         if marker not in source:
             missing.append(f"{name}:{marker}")
+
+for name, source, markers in [
+    ("script_readme", text("scripts/zigux/README.md"), FORBIDDEN_SCRIPT_README_MARKERS),
+    ("tests_readme", text("zigux/tests/README.md"), FORBIDDEN_TESTS_README_MARKERS),
+]:
+    for marker in markers:
+        if marker in source:
+            missing.append(f"{name}:stale_marker:{marker}")
 
 manifest = load_manifest("zigux/tests/phase10_virtio_input_manifest.json")
 if manifest.get("lane_key") != "P10-L13":
