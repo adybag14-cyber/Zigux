@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L05",
   "phase": "Phase 11",
-  "surveyed_commit": "712042fdeddcdc46bc653d68c8124e68bbed4b16",
+  "surveyed_commit": "53adda107fb76e2329b5458faf8c515fc5a077a4",
   "anchor": "drivers/watchdog/bcm2835_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
