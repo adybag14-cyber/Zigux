@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const libbpf_major_version: u32 = 1;
 pub const libbpf_minor_version: u32 = 8;
+pub const libbpf_log_level_env_var = "LIBBPF_LOG_LEVEL";
 
 pub const PrintLevel = enum(u8) {
     warn = 0,
@@ -112,6 +113,22 @@ pub fn formatErrorString(buffer: []u8, err: i32) ![]const u8 {
     return std.fmt.bufPrint(buffer, "Unknown libbpf error {d}", .{normalized});
 }
 
+pub fn formatInvalidLogLevelWarning(
+    buffer: []u8,
+    env_var: []const u8,
+    value: []const u8,
+) ![]const u8 {
+    return std.fmt.bufPrint(
+        buffer,
+        "libbpf: unrecognized '{s}' envvar value: '{s}', should be one of 'warn', 'debug', or 'info'.\n",
+        .{ env_var, value },
+    );
+}
+
+pub fn formatDefaultInvalidLogLevelWarning(buffer: []u8, value: []const u8) ![]const u8 {
+    return formatInvalidLogLevelWarning(buffer, libbpf_log_level_env_var, value);
+}
+
 test "resolveMinPrintLevel preserves warn info and debug case-insensitively" {
     try std.testing.expectEqual(.warn, resolveMinPrintLevel("warn").min_level);
     try std.testing.expectEqual(.info, resolveMinPrintLevel("INFO").min_level);
@@ -164,5 +181,27 @@ test "formatErrorString falls back cleanly for unmapped custom errors" {
     try std.testing.expectEqualStrings(
         "Unknown libbpf error 4999",
         try formatErrorString(&buffer, -4999),
+    );
+}
+
+test "formatInvalidLogLevelWarning matches libbpf's explicit invalid envvar guidance" {
+    var buffer: [128]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "libbpf: unrecognized 'LIBBPF_LOG_LEVEL' envvar value: 'trace', should be one of 'warn', 'debug', or 'info'.\n",
+        try formatDefaultInvalidLogLevelWarning(&buffer, "trace"),
+    );
+    try std.testing.expectEqualStrings(
+        "libbpf: unrecognized 'CUSTOM_LOG_LEVEL' envvar value: 'verbose', should be one of 'warn', 'debug', or 'info'.\n",
+        try formatInvalidLogLevelWarning(&buffer, "CUSTOM_LOG_LEVEL", "verbose"),
+    );
+}
+
+test "formatInvalidLogLevelWarning keeps buffer exhaustion explicit" {
+    var short_buffer: [32]u8 = undefined;
+
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        formatDefaultInvalidLogLevelWarning(&short_buffer, "trace"),
     );
 }
