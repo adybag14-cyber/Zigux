@@ -55,7 +55,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("5fe2a1bf39e95be8b8762e54c50168c7c28c9bfb", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("05a762ea272fa488b877178987418c54c030b239", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -66,6 +66,16 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
     try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
