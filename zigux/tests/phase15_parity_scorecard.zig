@@ -24,6 +24,8 @@ const AnchorScorecard = struct {
 const RepoEvidence = struct {
     freeze_map_present: bool,
     review_checklist_present: bool,
+    phase15_review_process_note_present: bool,
+    phase15_indefinite_c_policy_note_present: bool,
     phase14_rcu_survey_present: bool,
     phase14_skbuff_survey_present: bool,
     phase15_readme_reviewability_present: bool,
@@ -156,6 +158,8 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
     try std.testing.expect(manifest.repo_evidence.review_checklist_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_review_process_note_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_indefinite_c_policy_note_present);
     try std.testing.expect(manifest.repo_evidence.phase14_rcu_survey_present);
     try std.testing.expect(manifest.repo_evidence.phase14_skbuff_survey_present);
     try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
@@ -397,6 +401,22 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const review_process_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-architecture-council-review-process.md",
+        std.testing.allocator,
+        .limited(28 * 1024),
+    );
+    defer std.testing.allocator.free(review_process_doc);
+
+    const indefinite_c_policy_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        std.testing.allocator,
+        .limited(28 * 1024),
+    );
+    defer std.testing.allocator.free(indefinite_c_policy_doc);
+
     const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/README.md",
@@ -439,6 +459,14 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "## Required Review Packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "## Maintenance-Mode Handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "current lane posture: `maintenance_mode`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "## Current Policy Gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "## Maintenance-Mode Handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "policy for code that remains in C indefinitely") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
