@@ -33,6 +33,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - explicit registration-balance checks for the function-callback path
 - a stable `RuntimeTraceEventsSummary` view exposing lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals without requiring direct field-by-field payload inspection
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
+- the same main-thread replay now also keeps the Linux sample's `count % 5` array-shape replay explicit by recording the bounded vararg array length and its zero terminator alongside the selected random string
 - concrete function-callback payload labels for the current bounded replay path
 - a helper-local sample proof that `selftest_complete` still permits bounded replay while preserving registration balance, per-thread event totals, and payload-summary visibility until `exit()`
 - a helper-local failed-exit rollback proof showing that `error.OutstandingRegistration` leaves the module in the initialized stage with its current counters and payload summary intact until the registration is unwound and the normal selftest-to-exit path resumes
