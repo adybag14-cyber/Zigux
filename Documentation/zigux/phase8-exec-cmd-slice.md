@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus stat-identity proof, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus a bounded setup-path wrapper that consumes stat-identity proof, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -42,6 +42,7 @@ The current parked slice covers:
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization, including the inherited-empty-`PATH` trailing-`:` shape from the C helper and the skipped empty explicit exec-path segment when only `argv0_path` remains
 - a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
 - a tiny `FileIdentity` plus `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
+- `setupPathWithPwd()` as the bounded wrapper that applies that stat-backed `PWD` proof directly to `setupPath()` before relative search-path normalization
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, its required trailing null terminator, and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
 
@@ -53,6 +54,7 @@ The current tests check:
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge and the skipped empty explicit exec-path segment
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly when the optional `PWD` stat shape is missing
+- `setupPathWithPwd()` reuses the logical `PWD` only when the injected stat identities match and otherwise falls back to the physical cwd before rebuilding `PATH`
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, rejects a missing terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
 
@@ -67,4 +69,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof and the empty explicit exec-path sentinel are now covered through the helper-local and shared validation layers, so future Phase 8 work should usually continue in sibling files instead.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, and the empty explicit exec-path sentinel is already covered too, so future Phase 8 work should usually continue in sibling files instead.
