@@ -47,7 +47,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_embedded_pattern = false;
@@ -66,6 +66,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_storage_contract = false;
     var saw_transfer_counts = false;
     var saw_preview_truncation = false;
+    var saw_queue_only_reset = false;
     var saw_focus_list = false;
     var saw_lifecycle = false;
     var saw_lifecycle_guards = false;
@@ -148,6 +149,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "length-8 preview yields exactly [2,3,4,5,6,7,8,9]") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "queue length at 10") != null);
         }
+        if (std.mem.eql(u8, check.id, "queue-only-reset")) {
+            saw_queue_only_reset = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "without rewinding lifecycle stage") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "init_runs and exit_runs") != null);
+        }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires init before replay") != null);
@@ -184,6 +190,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_storage_contract);
     try std.testing.expect(saw_transfer_counts);
     try std.testing.expect(saw_preview_truncation);
+    try std.testing.expect(saw_queue_only_reset);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(saw_lifecycle_guards);
