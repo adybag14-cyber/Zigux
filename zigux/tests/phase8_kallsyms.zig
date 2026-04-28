@@ -14,7 +14,7 @@ test "phase 8 kallsyms starter slice covers symbol helpers and injected record p
     try std.testing.expect(kallsyms.isFunction('W'));
     try std.testing.expect(!kallsyms.isFunction('n'));
 
-    const parsed = (try kallsyms.parseLine("ffffffff81000100 t secondary_startup_64")) orelse unreachable;
+    const parsed = kallsyms.parseLine("ffffffff81000100 t secondary_startup_64") orelse unreachable;
     try std.testing.expectEqual(@as(u64, 0xffffffff81000100), parsed.start);
     try std.testing.expectEqual(@as(u8, 't'), parsed.symbol_type);
     try std.testing.expectEqualStrings("secondary_startup_64", parsed.name);
@@ -41,7 +41,7 @@ test "phase 8 kallsyms starter slice covers symbol helpers and injected record p
     try std.testing.expectEqualStrings("weak_handler", symbols.items[1].name);
     try std.testing.expectEqual(@as(u8, 'W'), symbols.items[1].symbol_type);
 
-    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 1);
+    const too_long_name = "a" ** (kallsyms.KSYM_NAME_LEN + 5);
     const oversized_line = try std.fmt.allocPrint(
         std.testing.allocator,
         "1 T {s}",
@@ -49,10 +49,11 @@ test "phase 8 kallsyms starter slice covers symbol helpers and injected record p
     );
     defer std.testing.allocator.free(oversized_line);
 
-    try std.testing.expectError(
-        error.SymbolNameTooLong,
-        kallsyms.forEachParsedLine(oversized_line, &symbols, Collector.append),
-    );
+    symbols.clearRetainingCapacity();
+    try kallsyms.forEachParsedLine(oversized_line, &symbols, Collector.append);
+    try std.testing.expectEqual(@as(usize, 1), symbols.items.len);
+    try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), symbols.items[0].name.len);
+    try std.testing.expect(std.mem.allEqual(u8, symbols.items[0].name, 'a'));
 }
 
 test "phase 8 kallsyms injected parser preserves callback failures" {
