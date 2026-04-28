@@ -160,7 +160,9 @@ Phase 15 notes
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-evidence-archives/`
-- the active Phase 15 governance packet now keeps the freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, and reserved evidence archives visible from the top-level docs index, so the maintenance-mode bundle stays reviewable as one unit instead of hiding only in deeper packet notes.
+- the active Phase 15 governance packet now keeps the freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, the tranche-readiness survey, the parked-next-step synthesis, and the reserved evidence archives visible from the top-level docs index, so the maintenance mode bundle stays reviewable as one unit instead of hiding only in deeper packet notes.
 - `zigux/tests/phase15_build.zig`, `zigux/Makefile`, and the shared bootstrap workflow now expose the same bounded replay path through `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15`, so the current Phase 15 governance bundle is no longer maintainer-memory only.
 - the same top-level Phase 15 packet now keeps the named reopen triggers and deep-core blocker posture explicit alongside the retained stay-in-C closeout state, so maintenance edits do not imply a silent status change for `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`.
