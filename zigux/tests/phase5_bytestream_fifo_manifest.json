@@ -1,13 +1,20 @@
 {
   "lane_key": "P5-L06",
   "phase": "Phase 5",
-  "surveyed_commit": "fb849dd26b81c5c78510b14c3a50e6278520f9ea",
+  "surveyed_commit": "4f8dd2d3e20d69142214bfa9ebb2ce9f8f169308",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "reference_patterns": [
+    "fixed embedded 32-byte ring buffer keeps the Phase 5 sample in memory and reviewable",
+    "exact queue-order replay mirrors the Linux bytestream anchor without claiming procfs or module parity",
+    "wraparound requeue, skip, and peek stay explicit as bounded FIFO operations rather than hidden helper behavior",
+    "non-destructive snapshot keeps reviewer inspection separate from the final drain sequence",
+    "init, replay, and exit keep ownership and lifetime boundaries explicit for the bytestream sample"
+  ],
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate false while provides_selfcheck stays true, and names the fixed embedded storage backing used by the sample",
-    "the manifest, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
+    "the manifest, reference-pattern list, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "the review checklist still points reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared phase5_build.zig entrypoint for this exact replay contract",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
@@ -71,7 +78,7 @@
     {
       "id": "lifecycle-guards-and-counters",
       "kind": "ownership_lifetime",
-      "expected": "runAnchorReplay fails before init and after exit, init fails when repeated outside the cold state, exit fails when repeated after teardown, and a single successful pass leaves init_runs and exit_runs at 1"
+      "expected": "runAnchorReplay fails before init and after exit, init fails when repeated outside the cold state, exit fails if repeated after teardown, and a single successful pass leaves init_runs and exit_runs at 1"
     }
   ],
   "non_goals": [
