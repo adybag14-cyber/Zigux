@@ -356,3 +356,29 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
 }
+
+test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
+    const exec_cmd_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/subcmd/exec-cmd.c",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(exec_cmd_c);
+
+    try expectContains(exec_cmd_c, "static const char *get_pwd_cwd(char *buf, size_t sz)");
+    try expectContains(exec_cmd_c, "pwd_stat.st_dev == cwd_stat.st_dev");
+    try expectContains(exec_cmd_c, "pwd_stat.st_ino == cwd_stat.st_ino");
+    try expectContains(exec_cmd_c, "char *get_argv_exec_path(void)");
+    try expectContains(exec_cmd_c, "if (argv_exec_path)");
+    try expectContains(exec_cmd_c, "env = getenv(subcmd_config.exec_path_env);");
+    try expectContains(exec_cmd_c, "if (env && *env)");
+    try expectContains(exec_cmd_c, "void setup_path(void)");
+    try expectContains(exec_cmd_c, "add_path(&new_path, tmp);");
+    try expectContains(exec_cmd_c, "add_path(&new_path, argv0_path);");
+    try expectContains(exec_cmd_c, "static const char **prepare_exec_cmd(const char **argv)");
+    try expectContains(exec_cmd_c, "int execv_cmd(const char **argv)");
+    try expectContains(exec_cmd_c, "execvp(subcmd_config.exec_name, (char **)nargv);");
+    try expectContains(exec_cmd_c, "int execl_cmd(const char *cmd,...)");
+    try expectContains(exec_cmd_c, "while (argc < MAX_ARGS)");
+    try expectContains(exec_cmd_c, "if (MAX_ARGS <= argc)");
+}
