@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L13",
   "phase": "Phase 9",
-  "surveyed_commit": "77787e76a385b8c7258ef85c96a785d22ed8e879",
+  "surveyed_commit": "b8d59685e5772a0476af3fd95f1319247e5f6096",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
