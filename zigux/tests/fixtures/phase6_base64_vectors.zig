@@ -12,6 +12,7 @@ pub const DecodeCase = struct {
 };
 
 pub const VariantCase = struct {
+    input: []const u8,
     expected: []const u8,
     padding: bool,
     variant_name: []const u8,
@@ -49,14 +50,28 @@ pub const standard_cases = [_]EncodeCase{
 };
 
 pub const variant_sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+pub const variant_one_byte_sample = [_]u8{0xfb};
+pub const variant_two_byte_sample = [_]u8{ 0xff, 0xf0 };
 
 pub const variant_cases = [_]VariantCase{
-    .{ .expected = "APv/f4A", .padding = false, .variant_name = "std" },
-    .{ .expected = "APv/f4A=", .padding = true, .variant_name = "std" },
-    .{ .expected = "APv_f4A", .padding = false, .variant_name = "urlsafe" },
-    .{ .expected = "APv_f4A=", .padding = true, .variant_name = "urlsafe" },
-    .{ .expected = "APv,f4A", .padding = false, .variant_name = "imap" },
-    .{ .expected = "APv,f4A=", .padding = true, .variant_name = "imap" },
+    .{ .input = &variant_sample, .expected = "APv/f4A", .padding = false, .variant_name = "std" },
+    .{ .input = &variant_sample, .expected = "APv/f4A=", .padding = true, .variant_name = "std" },
+    .{ .input = &variant_sample, .expected = "APv_f4A", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = &variant_sample, .expected = "APv_f4A=", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = &variant_sample, .expected = "APv,f4A", .padding = false, .variant_name = "imap" },
+    .{ .input = &variant_sample, .expected = "APv,f4A=", .padding = true, .variant_name = "imap" },
+    .{ .input = &variant_one_byte_sample, .expected = "+w", .padding = false, .variant_name = "std" },
+    .{ .input = &variant_one_byte_sample, .expected = "+w==", .padding = true, .variant_name = "std" },
+    .{ .input = &variant_one_byte_sample, .expected = "-w", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = &variant_one_byte_sample, .expected = "-w==", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = &variant_one_byte_sample, .expected = "+w", .padding = false, .variant_name = "imap" },
+    .{ .input = &variant_one_byte_sample, .expected = "+w==", .padding = true, .variant_name = "imap" },
+    .{ .input = &variant_two_byte_sample, .expected = "//A", .padding = false, .variant_name = "std" },
+    .{ .input = &variant_two_byte_sample, .expected = "//A=", .padding = true, .variant_name = "std" },
+    .{ .input = &variant_two_byte_sample, .expected = "__A", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = &variant_two_byte_sample, .expected = "__A=", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = &variant_two_byte_sample, .expected = ",,A", .padding = false, .variant_name = "imap" },
+    .{ .input = &variant_two_byte_sample, .expected = ",,A=", .padding = true, .variant_name = "imap" },
 };
 
 pub const standard_decode_cases = [_]DecodeCase{
@@ -110,4 +125,12 @@ pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = "APv_f4A=", .expected = &variant_sample, .padding = true, .variant_name = "urlsafe" },
     .{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },
     .{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },
+    .{ .input = "-w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "-w==", .expected = &variant_one_byte_sample, .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "+w", .expected = &variant_one_byte_sample, .padding = false, .variant_name = "imap" },
+    .{ .input = "+w==", .expected = &variant_one_byte_sample, .padding = true, .variant_name = "imap" },
+    .{ .input = "__A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "__A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "urlsafe" },
+    .{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },
+    .{ .input = ",,A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "imap" },
 };
