@@ -208,3 +208,13 @@ test "phase11 gpio_wdt registration plan summary keeps the first registration su
     try std.testing.expect(dormant_plan.blocked_on_platform_registration);
     try std.testing.expect(dormant_plan.blocked_on_reboot_glue);
 }
+
+test "phase11 gpio_wdt registration planning enums stay metadata-only until a real call surface lands" {
+    const registration_surface_fields = @typeInfo(gpio_wdt.RegistrationSurface).@"enum".fields;
+    try std.testing.expectEqual(@as(usize, 1), registration_surface_fields.len);
+    try std.testing.expectEqualStrings("watchdog_device_metadata", registration_surface_fields[0].name);
+
+    const validation_focus_fields = @typeInfo(gpio_wdt.ValidationFocus).@"enum".fields;
+    try std.testing.expectEqual(@as(usize, 1), validation_focus_fields.len);
+    try std.testing.expectEqualStrings("pre_registration_metadata", validation_focus_fields[0].name);
+}
