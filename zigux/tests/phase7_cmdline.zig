@@ -79,7 +79,7 @@ test "phase 7 getOption keeps bare 0x in octal-style zero parsing" {
     try std.testing.expectEqualStrings("x,tail", rest);
 }
 
-test "phase 7 numeric helpers reject an explicit leading plus sign to match simple_strtoull parity" {
+test "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics" {
     var rest: []const u8 = "+7,panic";
     var value: i32 = -1;
     try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&rest, &value));
@@ -88,6 +88,9 @@ test "phase 7 numeric helpers reject an explicit leading plus sign to match simp
 
     var index: usize = 0;
     try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+32K", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
+
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+0x10", &index));
     try std.testing.expectEqual(@as(usize, 0), index);
 }
 
