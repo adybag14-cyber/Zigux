@@ -17,6 +17,14 @@ const CompareSwapCase = struct {
     stored: bool,
 };
 
+const AddCase = struct {
+    name: []const u8,
+    seed: i64,
+    addend: i64,
+    previous: i64,
+    final: i64,
+};
+
 const AddUnlessCase = struct {
     name: []const u8,
     seed: i64,
@@ -66,6 +74,16 @@ fn expectCompareSwapCase(case: CompareSwapCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
+fn expectAddCase(case: AddCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.addCounter(case.addend);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.final, result.final);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
 fn expectAddUnlessCase(case: AddUnlessCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -96,7 +114,28 @@ fn expectDecIfPositiveCase(case: DecIfPositiveCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
+test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
+    const add_cases = [_]AddCase{
+        .{
+            .name = "add grows the starter counter by the onestwos constant from atomic64_test.c",
+            .seed = 0x2aaa_3137_4001_500d,
+            .addend = 0x1111_1111_2222_2222,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = 0x3bbb_4248_6223_722f,
+        },
+        .{
+            .name = "add accepts the negative one decrement path from atomic64_test.c",
+            .seed = 0x2aaa_3137_4001_500d,
+            .addend = -1,
+            .previous = 0x2aaa_3137_4001_500d,
+            .final = 0x2aaa_3137_4001_500c,
+        },
+    };
+
+    for (add_cases) |case| {
+        try expectAddCase(case);
+    }
+
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
