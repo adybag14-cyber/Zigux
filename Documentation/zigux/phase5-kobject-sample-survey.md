@@ -40,7 +40,7 @@ The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `KobjectExampleSample.descriptor()`
 - it models only the directory name, the unnamed attribute group shape, the Linux `foo`/`baz`/`bar` attribute-array order, integer roundtrips, and the shared `baz` or `bar` dispatch path in memory
-- it uses a tiny `init()` -> `registerAttributes()` -> `showValue()` or `storeValue()` -> `exit()` lifecycle so ownership and teardown remain explicit
+- it uses a tiny `init()` -> `registerAttributes()` -> `showValue()` or `storeValue()` -> `exit()` lifecycle so the initialized-but-not-registered ownership boundary and teardown remain explicit
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready sysfs or module implementation
 
 The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
@@ -48,6 +48,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
 - the replay summary keeps the Linux attribute array order `foo`, `baz`, `bar` explicit
 - `runAnchorReplay()` requires `init()` first, registers exactly three attributes, and leaves the sample in the `registered` stage
+- the initialized-but-not-registered stage keeps the active attribute count at `0` and rejects show or store calls until `registerAttributes()` claims ownership
 - storing `42` into `foo` renders back as `42\n`
 - `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
 - non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
@@ -60,7 +61,8 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, Linux `foo`/`baz`/`bar` attribute order, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
 - does this sample-backed survey note stay aligned with the manifest-backed survey, `Documentation/zigux/review-checklist.md`, and the shared `zigux/tests/phase5_build.zig` entrypoint so reviewers can see the whole shipped kobject review surface in one place?
-- do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
+- do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the pre-registration and post-`exit()` show or store rejection boundaries explicit instead of implying sysfs registration?
+- do the ownership checks still keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show or store access until `registerAttributes()` claims ownership?
 - if the sample behavior changes, is the manifest updated alongside the registration, attribute-order, and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
 
@@ -70,7 +72,7 @@ The roadmap delivery gap is already closed. The more precise ongoing review job 
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, attribute order, dispatch, parse failures, and teardown
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
-- contributor guidance still needs to keep the in-memory directory, unnamed-group shape, and attribute-array order visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
+- contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle, attribute-order, and non-goal cues reviewers should check before approving future edits, without reopening the closed Phase 5 sample-delivery gap.
 
