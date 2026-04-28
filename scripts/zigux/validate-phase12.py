@@ -151,11 +151,11 @@ MANIFEST_SPECS = {
     "phase12_libbpf_manifest.json": {
         "lane_key": "P12-L13",
         "anchor": "tools/lib/bpf/libbpf.c",
-        "gap_count": 12,
+        "gap_count": 13,
         "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {"zigux/Makefile"},
         "allowed_statuses": {"starter_landed", "blocked_on_object_model"},
-        "expected_status_totals": {"starter_landed": 10, "blocked_on_object_model": 2},
+        "expected_status_totals": {"starter_landed": 11, "blocked_on_object_model": 2},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
         "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model")],
