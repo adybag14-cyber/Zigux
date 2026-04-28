@@ -10,6 +10,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase6-base64-c-parity.py',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'Documentation' / 'zigux' / 'README.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase6-helper-parity-catalog.md',
     ROOT / 'Documentation' / 'zigux' / 'phase6-base64-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase6-bsearch-slice.md',
     ROOT / 'Documentation' / 'zigux' / 'phase6-checksum-slice.md',
@@ -47,6 +48,7 @@ workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(en
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 tests_readme = (ROOT / 'zigux' / 'tests' / 'README.md').read_text(encoding='utf-8')
 doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding='utf-8')
+phase6_catalog = (ROOT / 'Documentation' / 'zigux' / 'phase6-helper-parity-catalog.md').read_text(encoding='utf-8')
 phase6_build = (ROOT / 'zigux' / 'tests' / 'phase6_build.zig').read_text(encoding='utf-8')
 phase6_base64 = (ROOT / 'zigux' / 'tests' / 'phase6_base64.zig').read_text(encoding='utf-8')
 phase6_base64_perf = (ROOT / 'zigux' / 'tests' / 'phase6_base64_perf.zig').read_text(encoding='utf-8')
@@ -89,6 +91,7 @@ required_script_readme_markers = [
     'Phase 6 flow',
     'make -C zigux phase6-validate',
     'phase6_build.zig',
+    'phase6-helper-parity-catalog.md',
     'phase6-hexdump-slice.md',
 ]
 
@@ -105,11 +108,13 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_hexdump.zig',
     'zigux/tests/phase6_hexdump_perf.zig',
     'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
+    'Documentation/zigux/phase6-helper-parity-catalog.md',
     'scripts/zigux/validate-phase6.py',
 ]
 
 required_doc_readme_markers = [
     'Phase 6 notes',
+    'Documentation/zigux/phase6-helper-parity-catalog.md',
     'Documentation/zigux/phase6-base64-slice.md',
     'Documentation/zigux/phase6-bsearch-slice.md',
     'Documentation/zigux/phase6-checksum-slice.md',
@@ -122,6 +127,24 @@ required_doc_readme_markers = [
     'make -C zigux phase6-hexdump-perf',
     'generated fixture flow',
     'python3 scripts/zigux/validate-phase6.py',
+]
+
+required_catalog_markers = [
+    'Phase 6 Helper Parity Catalog',
+    'lib/base64.zig',
+    'zigux/tests/phase6_base64_perf.zig',
+    'zigux/tests/fixtures/phase6_base64_vectors.zig',
+    'lib/bsearch.zig',
+    'zigux/tests/phase6_bsearch_perf.zig',
+    'lib/checksum.zig',
+    'zigux/tests/fixtures/phase6_checksum_vectors.zig',
+    'zigux/tests/phase6_checksum_perf.zig',
+    'lib/hexdump.zig',
+    'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
+    'zigux/tests/phase6_hexdump_perf.zig',
+    'zigux/tests/phase6_build.zig',
+    'scripts/zigux/validate-phase6.py',
+    'make -C zigux phase6-validate',
 ]
 
 required_phase6_build_markers = [
@@ -255,6 +278,9 @@ for marker in required_tests_readme_markers:
 for marker in required_doc_readme_markers:
     if marker not in doc_readme:
         missing_markers.append(f'doc_readme:{marker}')
+for marker in required_catalog_markers:
+    if marker not in phase6_catalog:
+        missing_markers.append(f'phase6_catalog:{marker}')
 for marker in required_phase6_build_markers:
     if marker not in phase6_build:
         missing_markers.append(f'phase6_build:{marker}')
@@ -299,5 +325,5 @@ print('PHASE6_VALIDATION=pass')
 print(f'PHASE6_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE6_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_base64_markers) + len(required_base64_perf_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_catalog_markers) + len(required_phase6_build_markers) + len(required_base64_markers) + len(required_base64_perf_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
 )
