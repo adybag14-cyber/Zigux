@@ -91,6 +91,7 @@ required_script_readme_markers = [
     "make -C zigux phase8-validate",
     "phase8_build.zig",
     "phase8-exec-cmd-slice.md",
+    "phase8-userspace-kernel-bridge-boundary-survey.md",
     "tools/lib/subcmd/exec-cmd.zig",
     "deferred execution",
     "execvp()",
@@ -111,6 +112,7 @@ required_tests_readme_markers = [
     "zigux/tests/phase8_libbpf_segments.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "scripts/zigux/validate-phase8.py",
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
 ]
 
 required_doc_readme_markers = [
@@ -121,6 +123,7 @@ required_doc_readme_markers = [
     "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
     "Documentation/zigux/phase8-bpf-type-names-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/logging.zig",
     "tools/lib/bpf/zigux_segments/pin_path.zig",
