@@ -21,8 +21,28 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
 
+    const bitwise_or = try module.orCounter(0x00ff_0000_0000_00ff);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), bitwise_or.previous);
+    try std.testing.expectEqual(@as(i64, 0x11ff_1111_2222_22ff), bitwise_or.final);
+    try std.testing.expectEqual(@as(i64, 0x11ff_1111_2222_22ff), module.snapshotCounter());
+
+    const bitwise_and = try module.andCounter(0x0fff_ffff_ffff_ff0f);
+    try std.testing.expectEqual(@as(i64, 0x11ff_1111_2222_22ff), bitwise_and.previous);
+    try std.testing.expectEqual(@as(i64, 0x01ff_1111_2222_220f), bitwise_and.final);
+    try std.testing.expectEqual(@as(i64, 0x01ff_1111_2222_220f), module.snapshotCounter());
+
+    const bitwise_xor = try module.xorCounter(0x0000_00ff_0000_00f0);
+    try std.testing.expectEqual(@as(i64, 0x01ff_1111_2222_220f), bitwise_xor.previous);
+    try std.testing.expectEqual(@as(i64, 0x01ff_11ee_2222_22ff), bitwise_xor.final);
+    try std.testing.expectEqual(@as(i64, 0x01ff_11ee_2222_22ff), module.snapshotCounter());
+
+    const bitwise_andnot = try module.andNotCounter(0x0000_0000_0000_00ff);
+    try std.testing.expectEqual(@as(i64, 0x01ff_11ee_2222_22ff), bitwise_andnot.previous);
+    try std.testing.expectEqual(@as(i64, 0x01ff_11ee_2222_2200), bitwise_andnot.final);
+    try std.testing.expectEqual(@as(i64, 0x01ff_11ee_2222_2200), module.snapshotCounter());
+
     const previous = try module.swapCounter(-9);
-    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), previous);
+    try std.testing.expectEqual(@as(i64, 0x01ff_11ee_2222_2200), previous);
     try std.testing.expectEqual(@as(i64, -9), module.snapshotCounter());
 
     const compare_success = try module.compareSwapCounter(-9, 17);
@@ -91,6 +111,10 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andNotCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 13));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
