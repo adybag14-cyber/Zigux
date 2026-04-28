@@ -24,6 +24,40 @@ fn expectNextArgFixture(fixture: next_arg_vectors.NextArgCase) !void {
     try std.testing.expectEqualStrings(fixture.expected_rest, cStringPrefix(parsed.rest));
 }
 
+const GetOptionCase = struct {
+    input: []const u8,
+    expected_rc: u8,
+    expected_rest: []const u8,
+};
+
+const GetOptionsCase = struct {
+    input: []const u8,
+    expected: []const i32,
+};
+
+fn expectGetOptionCase(case: GetOptionCase) !void {
+    var rest = case.input;
+    var value: i32 = -1;
+    try std.testing.expectEqual(case.expected_rc, cmdline.getOption(&rest, &value));
+    try std.testing.expectEqualStrings(case.expected_rest, rest);
+}
+
+fn expectGetOptionsCase(case: GetOptionsCase) !void {
+    var parsed = [_]i32{0} ** 16;
+    _ = cmdline.getOptions(case.input, parsed.len, &parsed);
+    try std.testing.expectEqualSlices(i32, case.expected, parsed[0..case.expected.len]);
+    for (parsed[case.expected.len..]) |value| {
+        try std.testing.expectEqual(@as(i32, 0), value);
+    }
+
+    var validate = [_]i32{0} ** 16;
+    _ = cmdline.getOptions(case.input, 0, &validate);
+    try std.testing.expectEqual(case.expected[0], validate[0]);
+    for (validate[1..]) |value| {
+        try std.testing.expectEqual(@as(i32, 0), value);
+    }
+}
+
 test "phase 7 cmdline module imports cleanly" {
     _ = cmdline;
 }
@@ -97,5 +131,39 @@ test "phase 7 numeric helpers reject explicit leading plus signs to stay with cm
 test "phase 7 nextArg matches serialized edge fixtures" {
     for (next_arg_vectors.next_arg_cases) |fixture| {
         try expectNextArgFixture(fixture);
+    }
+}
+
+test "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus" {
+    const cases = [_]GetOptionCase{
+        .{ .input = "\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
+        .{ .input = "-,", .expected_rc = 0, .expected_rest = "," },
+        .{ .input = "-", .expected_rc = 0, .expected_rest = "" },
+        .{ .input = "--", .expected_rc = 0, .expected_rest = "-" },
+        .{ .input = "-\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
+        .{ .input = "37,", .expected_rc = 2, .expected_rest = "" },
+        .{ .input = "37--", .expected_rc = 3, .expected_rest = "--" },
+        .{ .input = "-21", .expected_rc = 1, .expected_rest = "" },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionCase(case);
+    }
+}
+
+test "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus" {
+    const cases = [_]GetOptionsCase{
+        .{ .input = "-1-2", .expected = &[_]i32{ 4, -1, 0, 1, 2 } },
+        .{ .input = "7--9", .expected = &[_]i32{ 0, 7 } },
+        .{ .input = "7-", .expected = &[_]i32{ 0, 7 } },
+        .{ .input = "5-a", .expected = &[_]i32{ 0, 5 } },
+        .{ .input = "5-8", .expected = &[_]i32{ 4, 5, 6, 7, 8 } },
+        .{ .input = "-3,0-1,6", .expected = &[_]i32{ 4, -3, 0, 1, 6 } },
+        .{ .input = "4,-", .expected = &[_]i32{ 1, 4 } },
+        .{ .input = "0-1,-3,6", .expected = &[_]i32{ 4, 0, 1, -3, 6 } },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionsCase(case);
     }
 }
