@@ -118,16 +118,40 @@ def run_self_test() -> int:
         matched, details = compare_artifacts('text', text_a, text_b)
         assert matched
         assert details['mode'] == 'text'
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 0
+        assert lines == [
+            'ARTIFACT_DIFF=pass',
+            'MODE=text',
+            f'EXPECTED={text_a}',
+            f'ACTUAL={text_b}',
+        ]
 
         text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
         assert not matched
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=text',
+            f'EXPECTED={text_a}',
+            f'ACTUAL={text_b}',
+        ]
 
         json_a.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert matched
         assert details['mode'] == 'json'
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 0
+        assert lines == [
+            'ARTIFACT_DIFF=pass',
+            'MODE=json',
+            f'EXPECTED={json_a}',
+            f'ACTUAL={json_b}',
+        ]
 
         invalid_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', invalid_json, json_a)
