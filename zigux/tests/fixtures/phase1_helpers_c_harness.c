@@ -188,14 +188,24 @@ static void run_string_section(void)
 	char dst[4] = {0};
 	char trim_buf[] = " \thi \n";
 	char remove_buf[] = "a b c";
+	char remove_nul_buf[] = {'a', ' ', 'b', 0, ' ', 'x'};
 	char replace_buf[] = "a-b";
 	char *replace_end;
 	char *skip = skip_spaces("   hello");
 	char *trimmed = strim(trim_buf);
 	remove_spaces(remove_buf);
+	remove_spaces(remove_nul_buf);
 	replace_end = strreplace(replace_buf, '-', '_');
 	void *memchr_hit = memchr_inv("aaaaXaaa", 'a', 8);
 	void *memchr_none = memchr_inv("bbbb", 'b', 4);
+	unsigned long remove_nul_bytes[6] = {
+		(unsigned char)remove_nul_buf[0],
+		(unsigned char)remove_nul_buf[1],
+		(unsigned char)remove_nul_buf[2],
+		(unsigned char)remove_nul_buf[3],
+		(unsigned char)remove_nul_buf[4],
+		(unsigned char)remove_nul_buf[5],
+	};
  
 	printf("\"string\":{");
 	strtobool("y", &value);
@@ -212,6 +222,8 @@ static void run_string_section(void)
 	printf("\"skip_spaces\":\"%s\",", skip);
 	printf("\"trim_spaces\":\"%s\",", trimmed);
 	printf("\"remove_spaces\":\"%s\",", remove_buf);
+	printf("\"remove_spaces_nul\":\"%s\",", remove_nul_buf);
+	printf("\"remove_spaces_nul_bytes\":"); emit_word_array(remove_nul_bytes, 6); printf(",");
 	printf("\"replace_char\":\"%s\",", replace_buf);
 	printf("\"replace_char_end\":%td,", (ptrdiff_t)(replace_end - replace_buf));
 	printf("\"memchr_inv_index\":%td,", (ptrdiff_t)((const char *)memchr_hit - "aaaaXaaa"));
