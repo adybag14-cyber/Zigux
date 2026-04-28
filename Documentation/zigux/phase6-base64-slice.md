@@ -36,6 +36,9 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `zig build base64-perf --build-file zigux/tests/phase6_build.zig`
 - or `make -C zigux phase6-base64-perf`
 
+4. run the external C-vs-Zig parity spot check when reviewing portability-sensitive helper drift
+- `python3 scripts/zigux/check-phase6-base64-c-parity.py`
+
 ## Current parity surface
 
 The current base64 helper surface exercised by this slice covers:
@@ -59,6 +62,7 @@ The current tests check:
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
+- a small external C-vs-Zig spot-check harness that compiles `zigux/tests/fixtures/phase6_base64_c_harness.c`, runs it beside `zigux/tests/phase6_base64_c_parity.zig`, and compares the emitted representative encode, decode, and invalid-input cases
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
@@ -70,8 +74,8 @@ This slice does not yet claim:
 
 - KUnit integration
 - a hard performance threshold that would be too environment-sensitive for this early leaf-helper lane
-- a C-emitted parity harness beyond the current Zig fixture module
+- a full generated external fixture corpus beyond the current representative C-vs-Zig spot-check harness
 
 ## Next bounded step
 
-Decide whether the helper now needs a small external C-vs-Zig fixture layer beyond the direct shared fixture module, or whether the expanded reverse-map parity surface plus the reviewable performance-sanity step is already sufficient to leave this bounded Phase 6 leaf port parked.
+Leave this helper parked unless fresh repo inspection shows a concrete parity drift. If Phase 6 base64 reopens, keep the next step narrow: either widen the representative external C-vs-Zig corpus into a generated fixture flow or retire the spot check if a better shared parity substrate replaces it.
