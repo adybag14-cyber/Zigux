@@ -23,8 +23,32 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
-def run_capture(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, check=False, text=True, capture_output=True, **kwargs)
+def run_capture(cmd: list[str], stdout_mode: str = 'capture', **kwargs) -> subprocess.CompletedProcess[str]:
+    if stdout_mode == 'capture':
+        result = subprocess.run(cmd, check=False, text=True, capture_output=True, **kwargs)
+        return subprocess.CompletedProcess(
+            args=result.args,
+            returncode=result.returncode,
+            stdout=result.stdout or '',
+            stderr=result.stderr or '',
+        )
+    if stdout_mode == 'dev_full':
+        with open('/dev/full', 'w', encoding='utf-8') as full_device:
+            result = subprocess.run(
+                cmd,
+                check=False,
+                text=True,
+                stdout=full_device,
+                stderr=subprocess.PIPE,
+                **kwargs,
+            )
+        return subprocess.CompletedProcess(
+            args=result.args,
+            returncode=result.returncode,
+            stdout='',
+            stderr=result.stderr or '',
+        )
+    raise ValueError(f'unsupported stdout mode: {stdout_mode}')
 
 
 def find_compiler(explicit: str | None) -> str:
@@ -59,7 +83,15 @@ def windows_to_wsl(path: Path) -> str:
     return f'/mnt/{drive}{tail}'
 
 
-def compile_run_c_wsl(tmp_dir: Path, exe: Path, compiler: str, depfile: Path, target: str, cmdline: str) -> subprocess.CompletedProcess[str]:
+def compile_run_c_wsl(
+    tmp_dir: Path,
+    exe: Path,
+    compiler: str,
+    depfile: Path,
+    target: str,
+    cmdline: str,
+    stdout_mode: str,
+) -> subprocess.CompletedProcess[str]:
     script_path = tmp_dir / 'run_fixdep_c.sh'
     stdout_path = tmp_dir / 'fixdep.c.actual.txt'
     stderr_path = tmp_dir / 'fixdep.c.actual.stderr.txt'
@@ -85,7 +117,13 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, compiler: str, depfile: Path, ta
         'rc=$?',
         f"printf '%s' \"$rc\" > {shlex.quote(windows_to_wsl(rc_path))}",
     ]
-    lines[3] += f" > {shlex.quote(windows_to_wsl(stdout_path))} 2> {shlex.quote(windows_to_wsl(stderr_path))} || true"
+    if stdout_mode == 'capture':
+        lines[3] += f" > {shlex.quote(windows_to_wsl(stdout_path))} 2> {shlex.quote(windows_to_wsl(stderr_path))} || true"
+    elif stdout_mode == 'dev_full':
+        lines[3] += f" > /dev/full 2> {shlex.quote(windows_to_wsl(stderr_path))} || true"
+        lines.append(f": > {shlex.quote(windows_to_wsl(stdout_path))}")
+    else:
+        raise ValueError(f'unsupported stdout mode: {stdout_mode}')
     script_path.write_text('\n'.join(lines) + '\n', encoding='utf-8', newline='\n')
     run(['wsl', 'bash', windows_to_wsl(script_path)], cwd=str(ROOT))
     return subprocess.CompletedProcess(
@@ -96,10 +134,17 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, compiler: str, depfile: Path, ta
     )
 
 
-def compile_run_c(tmp_dir: Path, compiler: str, depfile: Path, target: str, cmdline: str) -> subprocess.CompletedProcess[str]:
+def compile_run_c(
+    tmp_dir: Path,
+    compiler: str,
+    depfile: Path,
+    target: str,
+    cmdline: str,
+    stdout_mode: str = 'capture',
+) -> subprocess.CompletedProcess[str]:
     exe = tmp_dir / ('fixdep-c.exe' if os.name == 'nt' else 'fixdep-c')
     if os.name == 'nt' and shutil.which('wsl'):
-        return compile_run_c_wsl(tmp_dir, exe, compiler, depfile, target, cmdline)
+        return compile_run_c_wsl(tmp_dir, exe, compiler, depfile, target, cmdline, stdout_mode)
 
     compile_cmd = [
         compiler,
@@ -111,14 +156,21 @@ def compile_run_c(tmp_dir: Path, compiler: str, depfile: Path, target: str, cmdl
         str(C_FIXDEP),
     ]
     run(compile_cmd, cwd=str(ROOT))
-    return run_capture([str(exe), str(depfile), target, cmdline], cwd=str(ROOT))
+    return run_capture([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
 
-def run_zig(zig: str, tmp_dir: Path, depfile: Path, target: str, cmdline: str) -> subprocess.CompletedProcess[str]:
+def run_zig(
+    zig: str,
+    tmp_dir: Path,
+    depfile: Path,
+    target: str,
+    cmdline: str,
+    stdout_mode: str = 'capture',
+) -> subprocess.CompletedProcess[str]:
     exe = tmp_dir / ('fixdep-zig.exe' if os.name == 'nt' else 'fixdep-zig')
     build_cmd = [zig, 'build-exe', str(ZIG_FIXDEP), '-femit-bin=' + str(exe)]
     run(build_cmd, cwd=str(ROOT))
-    return run_capture([str(exe), str(depfile), target, cmdline], cwd=str(ROOT))
+    return run_capture([str(exe), str(depfile), target, cmdline], cwd=str(ROOT), stdout_mode=stdout_mode)
 
 
 def compare_returncode(label: str, expected: int, actual: int) -> None:
@@ -151,6 +203,7 @@ def main() -> int:
         expected_stderr_name = case.get('expected_stderr')
         expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
         expected_exit_code = int(case.get('expected_exit_code', 0))
+        stdout_mode = case.get('stdout_mode', 'capture')
         target = case['target']
         cmdline = case['cmdline']
 
@@ -165,8 +218,8 @@ def main() -> int:
             zig_repeat = tmp_dir / 'fixdep.zig.repeat.txt'
             zig_repeat_stderr = tmp_dir / 'fixdep.zig.repeat.stderr.txt'
 
-            c_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline)
-            zig_result = run_zig(zig, tmp_dir, depfile, target, cmdline)
+            c_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline, stdout_mode)
+            zig_result = run_zig(zig, tmp_dir, depfile, target, cmdline, stdout_mode)
             write_result(c_actual, c_actual_stderr, c_result)
             write_result(zig_actual, zig_actual_stderr, zig_result)
 
@@ -176,8 +229,8 @@ def main() -> int:
                     expected_stderr.write_text(c_result.stderr, encoding='utf-8')
                 continue
 
-            c_repeat_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline)
-            zig_repeat_result = run_zig(zig, tmp_dir, depfile, target, cmdline)
+            c_repeat_result = compile_run_c(tmp_dir, compiler, depfile, target, cmdline, stdout_mode)
+            zig_repeat_result = run_zig(zig, tmp_dir, depfile, target, cmdline, stdout_mode)
             write_result(c_repeat, c_repeat_stderr, c_repeat_result)
             write_result(zig_repeat, zig_repeat_stderr, zig_repeat_result)
 
