@@ -365,7 +365,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "helpers" / "panic_policy.zig").writeText(
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
