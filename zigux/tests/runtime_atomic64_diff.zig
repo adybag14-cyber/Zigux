@@ -25,6 +25,14 @@ const AddCase = struct {
     final: i64,
 };
 
+const BitwiseCase = struct {
+    name: []const u8,
+    seed: i64,
+    operand: i64,
+    previous: i64,
+    final: i64,
+};
+
 const AddUnlessCase = struct {
     name: []const u8,
     seed: i64,
@@ -50,6 +58,10 @@ const DecIfPositiveCase = struct {
     final: i64,
     changed: bool,
 };
+
+fn signed(bits: u64) i64 {
+    return @bitCast(bits);
+}
 
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
@@ -79,6 +91,46 @@ fn expectAddCase(case: AddCase) !void {
     try module.init(case.seed);
 
     const result = try module.addCounter(case.addend);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.final, result.final);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+fn expectOrCase(case: BitwiseCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.orCounter(case.operand);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.final, result.final);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+fn expectAndCase(case: BitwiseCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.andCounter(case.operand);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.final, result.final);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+fn expectXorCase(case: BitwiseCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.xorCounter(case.operand);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.final, result.final);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+fn expectAndNotCase(case: BitwiseCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.andNotCounter(case.operand);
     try std.testing.expectEqual(case.previous, result.previous);
     try std.testing.expectEqual(case.final, result.final);
     try std.testing.expectEqual(case.final, module.snapshotCounter());
@@ -114,21 +166,26 @@ fn expectDecIfPositiveCase(case: DecIfPositiveCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
+test "runtime atomic64 diff gate replays bounded atomic64_test.c add, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
+    const v0 = signed(0xaaa3_1337_c001_d00d);
+    const v1 = signed(0xdead_beef_deaf_cafe);
+    const v2 = signed(0xface_abad_f00d_f001);
+    const onestwos = signed(0x1111_1111_2222_2222);
+
     const add_cases = [_]AddCase{
         .{
             .name = "add grows the starter counter by the onestwos constant from atomic64_test.c",
-            .seed = 0x2aaa_3137_4001_500d,
-            .addend = 0x1111_1111_2222_2222,
-            .previous = 0x2aaa_3137_4001_500d,
-            .final = 0x3bbb_4248_6223_722f,
+            .seed = v0,
+            .addend = onestwos,
+            .previous = v0,
+            .final = signed(0xbbb4_2448_e223_f22f),
         },
         .{
             .name = "add accepts the negative one decrement path from atomic64_test.c",
-            .seed = 0x2aaa_3137_4001_500d,
+            .seed = v0,
             .addend = -1,
-            .previous = 0x2aaa_3137_4001_500d,
-            .final = 0x2aaa_3137_4001_500c,
+            .previous = v0,
+            .final = signed(0xaaa3_1337_c001_d00c),
         },
     };
 
@@ -136,16 +193,72 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, 
         try expectAddCase(case);
     }
 
-    const cases = [_]DiffCase{
+    const or_cases = [_]BitwiseCase{
+        .{
+            .name = "or matches the v0|v1 family from atomic64_test.c",
+            .seed = v0,
+            .operand = v1,
+            .previous = v0,
+            .final = signed(0xfeaf_bfff_deaf_daff),
+        },
+    };
+
+    for (or_cases) |case| {
+        try expectOrCase(case);
+    }
+
+    const and_cases = [_]BitwiseCase{
+        .{
+            .name = "and matches the v0&v1 family from atomic64_test.c",
+            .seed = v0,
+            .operand = v1,
+            .previous = v0,
+            .final = signed(0x8aa1_1227_c001_c00c),
+        },
+    };
+
+    for (and_cases) |case| {
+        try expectAndCase(case);
+    }
+
+    const xor_cases = [_]BitwiseCase{
+        .{
+            .name = "xor matches the v0^v1 family from atomic64_test.c",
+            .seed = v0,
+            .operand = v1,
+            .previous = v0,
+            .final = signed(0x740e_add8_1eae_1af3),
+        },
+    };
+
+    for (xor_cases) |case| {
+        try expectXorCase(case);
+    }
+
+    const andnot_cases = [_]BitwiseCase{
+        .{
+            .name = "andnot matches the v0&~v1 family from atomic64_test.c",
+            .seed = v0,
+            .operand = v1,
+            .previous = v0,
+            .final = signed(0x2002_0110_0000_1001),
+        },
+    };
+
+    for (andnot_cases) |case| {
+        try expectAndNotCase(case);
+    }
+
+    const exchange_cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
-            .seed = 0x2aaa_3137_4001_500d,
-            .next = -0x2152_4110_2150_3502,
+            .seed = v0,
+            .next = v1,
         },
         .{
             .name = "v1 to v2 keeps wide negative and positive 64-bit values distinct",
-            .seed = -0x2152_4110_2150_3502,
-            .next = -0x0531_5452_0ff2_0fff,
+            .seed = v1,
+            .next = v2,
         },
         .{
             .name = "high-bit starter from atomic64_test.c still round-trips through exchange",
@@ -154,27 +267,27 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, 
         },
     };
 
-    for (cases) |case| {
+    for (exchange_cases) |case| {
         try expectExchangeCase(case);
     }
 
     const compare_swap_cases = [_]CompareSwapCase{
         .{
             .name = "cmpxchg success path stores the desired value when the expected value matches",
-            .seed = 0x2aaa_3137_4001_500d,
-            .expected = 0x2aaa_3137_4001_500d,
-            .desired = -0x2152_4110_2150_3502,
-            .previous = 0x2aaa_3137_4001_500d,
-            .final = -0x2152_4110_2150_3502,
+            .seed = v0,
+            .expected = v0,
+            .desired = v1,
+            .previous = v0,
+            .final = v1,
             .stored = true,
         },
         .{
             .name = "cmpxchg mismatch keeps the original value visible",
-            .seed = 0x2aaa_3137_4001_500d,
-            .expected = -0x0531_5452_0ff2_0fff,
-            .desired = -0x2152_4110_2150_3502,
-            .previous = 0x2aaa_3137_4001_500d,
-            .final = 0x2aaa_3137_4001_500d,
+            .seed = v0,
+            .expected = v2,
+            .desired = v1,
+            .previous = v0,
+            .final = v0,
             .stored = false,
         },
     };
@@ -183,24 +296,24 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, 
         try expectCompareSwapCase(case);
     }
 
-    // Keep the exact add_unless, and inc_not_zero expectations marker live for Phase 4 validation.
+    // Keep the exact add_unless, inc_not_zero, and dec_if_positive expectations marker live for review.
     const add_unless_cases = [_]AddUnlessCase{
         .{
             .name = "add_unless leaves the counter untouched when it already matches the blocked value",
-            .seed = 0x2aaa_3137_4001_500d,
+            .seed = v0,
             .addend = 1,
-            .unless_value = 0x2aaa_3137_4001_500d,
-            .previous = 0x2aaa_3137_4001_500d,
-            .final = 0x2aaa_3137_4001_500d,
+            .unless_value = v0,
+            .previous = v0,
+            .final = v0,
             .changed = false,
         },
         .{
             .name = "add_unless applies the addend when the current value differs from the blocked value",
-            .seed = 0x2aaa_3137_4001_500d,
+            .seed = v0,
             .addend = 1,
-            .unless_value = -0x2152_4110_2150_3502,
-            .previous = 0x2aaa_3137_4001_500d,
-            .final = 0x2aaa_3137_4001_500e,
+            .unless_value = v1,
+            .previous = v0,
+            .final = signed(0xaaa3_1337_c001_d00e),
             .changed = true,
         },
     };
@@ -212,9 +325,9 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, 
     const inc_not_zero_cases = [_]IncNotZeroCase{
         .{
             .name = "inc_not_zero increments a positive non-zero counter",
-            .seed = 0x1111_2222_3333_4444,
-            .previous = 0x1111_2222_3333_4444,
-            .final = 0x1111_2222_3333_4445,
+            .seed = onestwos,
+            .previous = onestwos,
+            .final = 0x1111_1111_2222_2223,
             .changed = true,
         },
         .{
@@ -247,7 +360,7 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c add, exchange, 
     const dec_if_positive_cases = [_]DecIfPositiveCase{
         .{
             .name = "dec_if_positive decrements a positive counter and returns the decremented value",
-            .seed = 0x1111_1111_2222_2222,
+            .seed = onestwos,
             .result = 0x1111_1111_2222_2221,
             .final = 0x1111_1111_2222_2221,
             .changed = true,
@@ -296,6 +409,10 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
         std.math.minInt(i64),
         7,
     ));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andNotCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(
         1,
         std.math.minInt(i64),
@@ -336,8 +453,24 @@ test "runtime atomic64 diff gate keeps post-selftest replay explicit" {
     _ = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
 
+    const or_result = try module.orCounter(0x0000_0000_0000_00ff);
+    try std.testing.expectEqual(seed, or_result.previous);
+    try std.testing.expectEqual(0x1111_2222_3333_44ff, module.snapshotCounter());
+
+    const and_result = try module.andCounter(0x0fff_ffff_ffff_ff0f);
+    try std.testing.expectEqual(0x1111_2222_3333_44ff, and_result.previous);
+    try std.testing.expectEqual(0x0111_2222_3333_440f, module.snapshotCounter());
+
+    const xor_result = try module.xorCounter(0x0000_00ff_0000_00f0);
+    try std.testing.expectEqual(0x0111_2222_3333_440f, xor_result.previous);
+    try std.testing.expectEqual(0x0111_22dd_3333_44ff, module.snapshotCounter());
+
+    const andnot_result = try module.andNotCounter(0x0000_0000_0000_00ff);
+    try std.testing.expectEqual(0x0111_22dd_3333_44ff, andnot_result.previous);
+    try std.testing.expectEqual(0x0111_22dd_3333_4400, module.snapshotCounter());
+
     const swapped = try module.swapCounter(seed + 1);
-    try std.testing.expectEqual(seed, swapped);
+    try std.testing.expectEqual(0x0111_22dd_3333_4400, swapped);
     try std.testing.expectEqual(seed + 1, module.snapshotCounter());
 
     const compare_swap = try module.compareSwapCounter(seed + 1, seed + 2);
