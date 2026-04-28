@@ -22,7 +22,7 @@ That matters because the live repo already has real helper-first progress under 
 
 The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
 
-This checkpoint has now been re-verified against current `master` head `a61c5a2e199c76045061acfe6dcf83853ef53071`, with the same landed helper set and the same blocked skeleton and loader split still holding.
+This checkpoint has now been re-verified against current `master` head `1ce18b1897d996a4585c22f74da05b1103b2c617`, with the same landed helper set and the same blocked skeleton and loader split still holding.
 
 ## Survey findings
 
