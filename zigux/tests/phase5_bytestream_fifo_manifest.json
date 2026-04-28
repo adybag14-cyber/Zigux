@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L06",
   "phase": "Phase 5",
-  "surveyed_commit": "4f8dd2d3e20d69142214bfa9ebb2ce9f8f169308",
+  "surveyed_commit": "f68f94c2cf3ef842afbcffb94f82d06ee5ddc1f2",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -44,6 +44,11 @@
       "id": "snapshot-before-final-drain",
       "kind": "reviewable_snapshot",
       "expected": "a non-destructive snapshot before the final drain preserves the exact 32-byte anchor sequence [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]"
+    },
+    {
+      "id": "truncated-wraparound-preview",
+      "kind": "reviewable_snapshot",
+      "expected": "a truncated 8-byte snapshot on wrapped queue state preserves the prefix [3,4,5,6,7,8,9,0] without consuming the queue"
     },
     {
       "id": "fill-to-capacity",
