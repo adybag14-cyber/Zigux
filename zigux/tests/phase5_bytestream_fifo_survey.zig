@@ -194,6 +194,14 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     );
     defer std.testing.allocator.free(survey_note);
 
+    const readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(readme);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
@@ -217,6 +225,13 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "capacity ceiling") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "outside the main replay path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "preview-truncation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "fixed embedded backing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "lifecycle-boundary checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "procfs, user-copy, locking, and module registration parity") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
