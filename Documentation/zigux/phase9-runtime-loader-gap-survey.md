@@ -32,6 +32,7 @@ The live repo already reflects that split:
 - the full bounded Phase 6 leaf-helper set is landed
 - four Phase 9 runtime starter samples are landed under `samples/zigux/runtime_*`
 - two sample-side loader plans are landed under `samples/zigux/runtime_*_loader.zig`
+- the `runtime_atomic64` and `runtime_trace_events` starters still do not have shared loader-plan projections, so only half of the current runtime starters can emit the shared request contract
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
 
 This survey keeps the lane honest by recording what is now landed and what is still blocked instead of pretending that runtime scheduling, polling, or event-loop work should be pulled forward into Phase 6.
@@ -75,6 +76,7 @@ What is now landed is the smallest shared consumer contract:
 
 What is still missing is actual runtime execution behavior:
 
+- no shared loader-plan projection yet exists for `samples/zigux/runtime_atomic64.zig` or `samples/zigux/runtime_trace_events.zig`, so half of the current Phase 9 starters still stop before the shared `zigux/kernel/runtime_loader.zig` request contract
 - no real runtime loader owns thread creation, task scheduling, polling, or event-loop behavior
 - no shared runtime command or environment control surface records whether bring-up is selected by command name, argv policy, or environment-derived activation cues
 - no path here claims module registration parity, live init invocation, or live exit teardown
@@ -117,4 +119,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-If a future runtime lane reopens this blocker, keep the next step narrow: extend the shared `zigux/kernel/runtime_loader.zig` request surface only where a new runtime starter can reuse it, or add one explicit command or environment activation field once the separate Phase 8 tooling posture gives that control surface a real owner, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that boundary.
+If a future runtime lane reopens this blocker, keep the next step narrow: add one shared loader-plan projection for either `samples/zigux/runtime_atomic64.zig` or `samples/zigux/runtime_trace_events.zig` so another existing runtime starter can reuse `zigux/kernel/runtime_loader.zig` without adding execution behavior, or add one explicit command or environment activation field once the separate Phase 8 tooling posture gives that control surface a real owner, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that boundary.
