@@ -83,6 +83,23 @@ pub const MergeableReceiveBufferPlan = struct {
     uses_page_pool: bool,
 };
 
+pub const ReceiveQueueRefillPath = enum {
+    mergeable_allocation,
+    recycled_room,
+};
+
+pub const ReceiveQueueRefillSummary = struct {
+    anchor: []const u8,
+    planned_queue_pairs: u16,
+    rx_queue_count: u16,
+    refill_path: ReceiveQueueRefillPath,
+    keeps_aligned_room: bool,
+    room: u32,
+    recycled_room: u32,
+    requested_len: u32,
+    requested_alloc_len: u32,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -229,6 +246,21 @@ pub const VirtioNetProbeLab = struct {
         };
         self.last_mergeable_buffer_plan = plan;
         return plan;
+    }
+
+    pub fn summarizeReceiveQueueRefill(self: *Self) !ReceiveQueueRefillSummary {
+        const plan = self.last_mergeable_buffer_plan orelse return error.MergeableBufferPlanUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .planned_queue_pairs = plan.planned_queue_pairs,
+            .rx_queue_count = plan.rx_queue_count,
+            .refill_path = if (plan.uses_recycled_room) .recycled_room else .mergeable_allocation,
+            .keeps_aligned_room = plan.room > 0 and !plan.uses_recycled_room,
+            .room = plan.room,
+            .recycled_room = if (plan.uses_recycled_room) plan.page_size - plan.requested_len else 0,
+            .requested_len = plan.requested_len,
+            .requested_alloc_len = plan.requested_alloc_len,
+        };
     }
 
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
