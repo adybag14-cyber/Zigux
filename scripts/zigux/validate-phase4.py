@@ -164,7 +164,7 @@ required_phase4_matrix_markers = [
     'samples/zigux/kprobe_example.zig',
     'samples/zigux/test_fsmount.zig',
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
-    'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains unlanded and no hard timing threshold is approved before a bounded Zig sample lands',
+    'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
 ]
 roadmap_gap_expectations = {
@@ -175,7 +175,7 @@ roadmap_gap_expectations = {
     },
     'samples/zigux/test_fsmount.zig': {
         'current_repo_state': 'not present on `master`; the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
-        'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains unlanded and no hard timing threshold is approved before a bounded Zig sample lands',
+        'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
         'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
     },
     'perf baselines and thresholds for the two shipped rollback gates': {
