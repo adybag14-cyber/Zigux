@@ -57,10 +57,10 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("d0e4d331195eac3610783d42f59e58891076f24a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("1aea0cfe827c1faffd20bbbee6e1f183f139b28d", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
@@ -76,7 +76,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
-    try std.testing.expect(manifest.gaps.len >= 13);
+    try std.testing.expect(manifest.gaps.len >= 14);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -89,7 +89,8 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     var saw_mmio_slice_note = false;
     var saw_mmio_landed_helper = false;
     var saw_mmio_queue_helper = false;
-    var saw_mmio_queue_notify_ready_next = false;
+    var saw_mmio_queue_notify_helper = false;
+    var saw_mmio_queue_address_ready_next = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -139,7 +140,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             saw_mmio_slice_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-slice.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-register surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-notify surface") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
@@ -159,19 +160,27 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-notify-helper")) {
-            saw_mmio_queue_notify_ready_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_mmio_queue_notify_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-notify snapshot helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notify bookkeeping") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-address-helper")) {
+            saw_mmio_queue_address_ready_next = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "legacy PFN") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DESC, AVAIL, and USED") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-register helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-notify helpers") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -179,7 +188,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 11);
+    try std.testing.expect(starter_landed_count >= 12);
     try std.testing.expect(ready_next_count >= 1);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_ring_helper);
@@ -187,7 +196,8 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expect(saw_mmio_slice_note);
     try std.testing.expect(saw_mmio_landed_helper);
     try std.testing.expect(saw_mmio_queue_helper);
-    try std.testing.expect(saw_mmio_queue_notify_ready_next);
+    try std.testing.expect(saw_mmio_queue_notify_helper);
+    try std.testing.expect(saw_mmio_queue_address_ready_next);
     try std.testing.expect(saw_mmio_survey_gate);
     try std.testing.expect(saw_mmio_survey_note);
     try std.testing.expect(saw_mmio_blocker);
