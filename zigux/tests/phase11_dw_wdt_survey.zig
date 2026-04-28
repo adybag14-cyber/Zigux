@@ -39,21 +39,13 @@ fn findGap(manifest: Manifest, id: []const u8) ?Gap {
     return null;
 }
 
-fn stripReadyNextPrefix(why_now: []const u8) []const u8 {
-    const prefix = "The next honest bounded step is ";
-    if (std.mem.startsWith(u8, why_now, prefix)) {
-        return why_now[prefix.len..];
-    }
-    return why_now;
-}
-
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 dw_wdt survey manifest records the landed registration handoff and remaining platform-resource preflight" {
+test "phase11 dw_wdt survey manifest records the landed registration handoff and platform-resource preflight" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -72,7 +64,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("8266af3574ebb9103f60b2d1888a5f1e611f9ab4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("095bac327bb962d38a47555d20a2a647ef1cbd5b", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.dw_wdt_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -177,7 +169,8 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-resource-preflight")) {
             saw_resource_gap = true;
             try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "starter now includes") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timer-clock choice") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "optional APB clock presence") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "optional pretimeout-IRQ wiring") != null);
@@ -188,6 +181,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Platform-driver registration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-resource preflight") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "suspend and resume handling") != null);
         }
 
@@ -196,8 +190,8 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
@@ -255,7 +249,7 @@ test "phase11 dw_wdt survey keeps the watchdog header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
 }
 
-test "phase11 dw_wdt notes stay pinned to the manifest commit and ready-next wording" {
+test "phase11 dw_wdt notes stay pinned to the manifest commit and platform-resource preflight wording" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -287,8 +281,8 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and ready-next wor
     defer std.testing.allocator.free(slice_note);
 
     const manifest = parsed.value;
-    const ready_next_gap = findGap(manifest, "phase11-dw-wdt-platform-resource-preflight").?;
-    try std.testing.expectEqualStrings("ready_next", ready_next_gap.status);
+    const preflight_gap = findGap(manifest, "phase11-dw-wdt-platform-resource-preflight").?;
+    try std.testing.expectEqualStrings("starter_landed", preflight_gap.status);
 
     const commit_marker = try std.fmt.allocPrint(
         std.testing.allocator,
@@ -297,8 +291,10 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and ready-next wor
     );
     defer std.testing.allocator.free(commit_marker);
 
-    const ready_next_marker = stripReadyNextPrefix(ready_next_gap.why_now);
+    const preflight_marker = "timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring";
     try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, ready_next_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, ready_next_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, preflight_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, preflight_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked on platform-driver scaffold work") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked on platform-driver scaffold work") != null);
 }
