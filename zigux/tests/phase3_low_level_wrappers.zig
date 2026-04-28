@@ -1,5 +1,8 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const layout_assert = @import("layout_assert");
+const panic_policy = @import("panic_policy");
+const allocator_policy = @import("allocator_policy");
 const atomic = @import("atomic_helpers");
 const barrier = @import("barrier_helpers");
 const mmio = @import("mmio_helpers");
@@ -44,6 +47,35 @@ test "phase3 low-level wrapper ABI range shape stays stable" {
             @compileError("MmioRange.stride offset drifted");
         }
     }
+}
+
+test "phase3 low-level wrappers keep policy helpers inside the documented ABI surface" {
+    comptime {
+        layout_assert.assertSize(abi.BoundaryHeader, 8);
+        layout_assert.assertAlign(abi.BoundaryHeader, 4);
+        layout_assert.assertOffset(abi.InteropPolicy, "panic_mode", 0);
+        layout_assert.assertOffset(abi.InteropPolicy, "allocator_mode", 1);
+        layout_assert.assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
+    }
+
+    try std.testing.expectEqual(panic_policy.Action.abort_now, panic_policy.actionFor(.abort));
+    try std.testing.expectEqual(panic_policy.Action.bug_check, panic_policy.actionFor(.bug));
+    try std.testing.expectEqual(panic_policy.Action.warn_and_return, panic_policy.actionFor(.warn));
+    try std.testing.expect(!panic_policy.canReturn(.abort));
+    try std.testing.expect(!panic_policy.canReturn(.bug));
+    try std.testing.expect(panic_policy.canReturn(.warn));
+
+    try std.testing.expectEqual(allocator_policy.InitFlow.caller_prepared, allocator_policy.initFlowFor(.caller_provided));
+    try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned, allocator_policy.initFlowFor(.kernel_heap));
+    try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned_with_reset, allocator_policy.initFlowFor(.arena));
+    try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));
+    try std.testing.expect(!allocator_policy.requiresExplicitCaller(.kernel_heap));
+    try std.testing.expect(!allocator_policy.requiresExplicitCaller(.arena));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallback(.caller_provided));
+    try std.testing.expect(allocator_policy.permitsGlobalFallback(.kernel_heap));
+    try std.testing.expect(allocator_policy.permitsGlobalFallback(.arena));
+    try std.testing.expect(!allocator_policy.requiresResetOnInit(.kernel_heap));
+    try std.testing.expect(allocator_policy.requiresResetOnInit(.arena));
 }
 
 test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {
