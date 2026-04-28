@@ -13,6 +13,7 @@ The current helper stays intentionally narrow:
 - adds one in-memory `add_rule_path_beneath()` planner that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` release responsibility without touching live rule insertion or inode ownership
 - adds one in-memory `add_rule_net_port()` planner that reuses the bounded add-rule validation and makes the copied net-port attrs plus final `landlock_append_net_rule()` handoff explicit without touching live socket, ruleset, or domain state
 - adds one in-memory ruleset-FD creation handoff planner that keeps the fixed `anon_inode_getfd("[landlock-ruleset]", ..., O_RDWR | O_CLOEXEC)` label or flag discipline plus the `landlock_put_ruleset()` failure release responsibility explicit without touching live file operations wiring or FD ownership
+- adds one in-memory `fop_ruleset_release()` planner that keeps the `filp->private_data` ruleset handoff, the matching `landlock_put_ruleset()` release, and the zero return contract explicit without touching live file operations wiring or FD ownership
 
 This slice does not claim anonymous-fd creation, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
