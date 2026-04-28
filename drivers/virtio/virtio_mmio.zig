@@ -17,6 +17,7 @@ pub const Register = enum(u32) {
     queue_num_max = 0x034,
     queue_num = 0x038,
     queue_ready = 0x044,
+    queue_notify = 0x050,
     interrupt_status = 0x060,
     interrupt_ack = 0x064,
     status = 0x070,
@@ -45,6 +46,15 @@ pub const QueueRegisterSummary = struct {
     selected_queue_size_max: u16,
     selected_queue_size: u16,
     selected_queue_ready: bool,
+};
+
+pub const QueueNotifySummary = struct {
+    anchor: []const u8,
+    selected_queue: u32,
+    notified_queue: u32,
+    queue_size: u16,
+    queue_ready_before_notify: bool,
+    notification_count: usize,
 };
 
 pub const StatusSummary = struct {
@@ -85,6 +95,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
     config_generation: u32 = 0,
     interrupt_status: u32 = 0,
     reset_count: usize = 0,
+    notification_count: usize = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -180,6 +191,24 @@ pub const VirtioMmioRegisterWindowLab = struct {
         return self.queueRegisterSummary();
     }
 
+    pub fn notifySelectedQueue(self: *Self) !QueueNotifySummary {
+        const queue_index = try checkedQueue(self.selected_queue);
+        const queue_state = self.queues[queue_index];
+
+        if (queue_state.size == 0) return error.QueueNotifyRequiresConfiguredSize;
+        if (!queue_state.ready) return error.QueueNotifyRequiresReadyQueue;
+
+        self.notification_count += 1;
+        return .{
+            .anchor = descriptor().anchor,
+            .selected_queue = self.selected_queue,
+            .notified_queue = self.selected_queue,
+            .queue_size = queue_state.size,
+            .queue_ready_before_notify = queue_state.ready,
+            .notification_count = self.notification_count,
+        };
+    }
+
     pub fn queueRegisterSummary(self: *const Self) !QueueRegisterSummary {
         const queue_state = self.queues[try checkedQueue(self.selected_queue)];
         return .{
@@ -200,6 +229,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
     pub fn reset(self: *Self) StatusSummary {
         self.status = 0;
         self.selected_queue = 0;
+        self.notification_count = 0;
         for (&self.queues) |*queue_state| {
             queue_state.size = 0;
             queue_state.ready = false;
@@ -278,6 +308,7 @@ test "register enum keeps the bounded mmio offsets reviewable" {
     try std.testing.expectEqual(@as(u32, 0x024), @intFromEnum(Register.driver_features_sel));
     try std.testing.expectEqual(@as(u32, 0x030), @intFromEnum(Register.queue_sel));
     try std.testing.expectEqual(@as(u32, 0x044), @intFromEnum(Register.queue_ready));
+    try std.testing.expectEqual(@as(u32, 0x050), @intFromEnum(Register.queue_notify));
     try std.testing.expectEqual(@as(u32, 0x064), @intFromEnum(Register.interrupt_ack));
     try std.testing.expectEqual(@as(u32, 0x0fc), @intFromEnum(Register.config_generation));
 }
