@@ -66,13 +66,13 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 
 ## Recorded gap vs roadmap
 
-The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
+The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, attribute order, dispatch, parse failures, and teardown
-- the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
+- the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, and attribute-array order visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
-This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle, attribute-order, and non-goal cues reviewers should check before approving future edits.
+This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle, attribute-order, and non-goal cues reviewers should check before approving future edits, without reopening the closed Phase 5 sample-delivery gap.
 
 ## Review gates for this survey
 
@@ -94,4 +94,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping this landed Phase 5 sample distinct from the later Phase 9 runtime starters.
+Leave this narrow kobject-survey lane parked unless fresh repo inspection shows one more directly coupled wording drift in the landed sample-backed review surface, while keeping this Phase 5 idiom distinct from the later Phase 9 runtime starters.
