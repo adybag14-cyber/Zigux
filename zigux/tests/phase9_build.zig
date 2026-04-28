@@ -263,7 +263,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
-    test_step.dependOn(&run_runtime_kretprobe-loader_tests.step);
+    test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
