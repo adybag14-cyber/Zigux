@@ -47,7 +47,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_embedded_pattern = false;
@@ -64,6 +64,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_snapshot = false;
     var saw_capacity = false;
     var saw_storage_contract = false;
+    var saw_transfer_counts = false;
     var saw_preview_truncation = false;
     var saw_focus_list = false;
     var saw_lifecycle = false;
@@ -135,6 +136,13 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_storage_contract = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "fixed embedded 32-byte ring buffer") != null);
         }
+        if (std.mem.eql(u8, check.id, "transfer-count-contract")) {
+            saw_transfer_counts = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initial string copy count is 5") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "first drain count is 5") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "second drain count is 2") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "requeue count is 2") != null);
+        }
         if (std.mem.eql(u8, check.id, "preview-truncation")) {
             saw_preview_truncation = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "length-8 preview yields exactly [2,3,4,5,6,7,8,9]") != null);
@@ -174,6 +182,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
+    try std.testing.expect(saw_transfer_counts);
     try std.testing.expect(saw_preview_truncation);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
