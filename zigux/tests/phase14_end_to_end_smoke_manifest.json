@@ -52,7 +52,7 @@
     {
       "lane_key": "P14-L14",
       "anchor": "kernel/rcu/tree.c",
-      "surveyed_commit": "0855a2fc20664cd4a138379d7731edf8183d74e6",
+      "surveyed_commit": "4e45e5a392cca82429228d42d89c480fd413042b",
       "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-rcu-tree-survey.md",
       "ready_next_gap": "",
