@@ -10,6 +10,7 @@ KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_CASES = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json'
 CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
 CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
+GENKSYMS_BRIDGE_CASES = GENKSYMS_BRIDGE_DIR / 'cases.json'
 
 
 def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -217,6 +218,120 @@ def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
     return issues
 
 
+def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
+    data = json.loads(case_manifest.read_text(encoding='utf-8'))
+    issues: list[str] = []
+
+    if not isinstance(data, dict):
+        return ['genksyms_bridge:manifest:expected_object']
+
+    expected_top_level = {'cases'}
+    unexpected_top_level = sorted(set(data) - expected_top_level)
+    for name in unexpected_top_level:
+        issues.append(f'genksyms_bridge:manifest:unexpected_top_level:{name}')
+
+    cases = data.get('cases')
+    if not isinstance(cases, list):
+        issues.append('genksyms_bridge:manifest:cases:expected_list')
+        return issues
+    if not cases:
+        issues.append('genksyms_bridge:manifest:cases:empty')
+        return issues
+
+    expected_cases = {
+        'minimal': 'minimal_expected.json',
+        'debug_reference_types': 'debug_reference_types_expected.json',
+        'short_inline_reference_dump_types': 'short_inline_reference_dump_types_expected.json',
+        'long_options': 'long_options_expected.json',
+        'abbreviated_long_options': 'abbreviated_long_options_expected.json',
+        'quiet_overrides_warning': 'quiet_overrides_warning_expected.json',
+        'explicit_option_terminator': 'explicit_option_terminator_expected.json',
+        'positional_passthrough': 'positional_passthrough_expected.json',
+        'lone_dash_passthrough': 'lone_dash_passthrough_expected.json',
+        'explicit_terminator_positional_passthrough': 'explicit_terminator_positional_passthrough_expected.json',
+        'help': 'help_expected.json',
+        'version': 'version_expected.json',
+        'invalid_option': 'invalid_option_expected.json',
+        'missing_reference_argument': 'missing_reference_argument_expected.json',
+        'unsupported_long_option': 'unsupported_long_option_expected.json',
+        'ambiguous_abbreviated_long_option': 'ambiguous_abbreviated_long_option_expected.json',
+        'unexpected_long_option_argument': 'unexpected_long_option_argument_expected.json',
+        'abbreviated_unexpected_long_option_argument': 'abbreviated_unexpected_long_option_argument_expected.json',
+        'missing_long_reference_argument': 'missing_long_reference_argument_expected.json',
+        'abbreviated_missing_long_reference_argument': 'abbreviated_missing_long_reference_argument_expected.json',
+        'missing_long_dump_types_argument': 'missing_long_dump_types_argument_expected.json',
+    }
+    process_json_cases = {
+        'help',
+        'version',
+        'invalid_option',
+        'missing_reference_argument',
+        'unsupported_long_option',
+        'ambiguous_abbreviated_long_option',
+        'unexpected_long_option_argument',
+        'abbreviated_unexpected_long_option_argument',
+        'missing_long_reference_argument',
+        'abbreviated_missing_long_reference_argument',
+        'missing_long_dump_types_argument',
+    }
+    normalize_stderr_cases = {
+        'invalid_option',
+        'missing_reference_argument',
+        'unsupported_long_option',
+        'ambiguous_abbreviated_long_option',
+        'unexpected_long_option_argument',
+        'abbreviated_unexpected_long_option_argument',
+        'missing_long_reference_argument',
+        'abbreviated_missing_long_reference_argument',
+        'missing_long_dump_types_argument',
+    }
+
+    seen_names: set[str] = set()
+    for case in cases:
+        if not isinstance(case, dict):
+            issues.append('genksyms_bridge:manifest:case:expected_object')
+            continue
+
+        name = case.get('name')
+        if not name:
+            issues.append('genksyms_bridge:missing_name')
+            continue
+        if name in seen_names:
+            issues.append(f'genksyms_bridge:duplicate_name:{name}')
+            continue
+        seen_names.add(name)
+
+        argv = case.get('argv')
+        if not isinstance(argv, list):
+            issues.append(f'genksyms_bridge:{name}:argv:expected_list')
+
+        expected = case.get('expected')
+        expected_file = expected_cases.get(name)
+        if expected_file is None:
+            issues.append(f'genksyms_bridge:unexpected_name:{name}')
+        elif expected != expected_file:
+            issues.append(f'genksyms_bridge:{name}:expected={expected!r},expected_file={expected_file!r}')
+
+        expected_mode = 'process_json' if name in process_json_cases else 'stdout_json'
+        actual_mode = case.get('mode', 'stdout_json')
+        if actual_mode != expected_mode:
+            issues.append(f'genksyms_bridge:{name}:mode={actual_mode!r},expected_mode={expected_mode!r}')
+
+        expected_normalize = name in normalize_stderr_cases
+        actual_normalize = case.get('normalize_stderr', False)
+        if actual_normalize != expected_normalize:
+            issues.append(
+                f'genksyms_bridge:{name}:normalize_stderr={actual_normalize!r},expected_normalize_stderr={expected_normalize!r}'
+            )
+
+    missing_names = sorted(set(expected_cases) - seen_names)
+    for name in missing_names:
+        issues.append(f'genksyms_bridge:missing_name:{name}')
+    if len(cases) != len(expected_cases):
+        issues.append(f'genksyms_bridge:count={len(cases)},expected={len(expected_cases)}')
+    return issues
+
+
 def supported_conf_modes(conf_bridge: Path) -> set[str]:
     source = conf_bridge.read_text(encoding='utf-8')
     match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
@@ -353,6 +468,15 @@ if fixdep_case_issues:
     for item in fixdep_case_issues:
         print(item)
     print('MISSING_PHASE2_FIXDEP_CASES_END')
+    sys.exit(1)
+
+genksyms_bridge_case_issues = validate_expected_genksyms_bridge_cases(GENKSYMS_BRIDGE_CASES)
+if genksyms_bridge_case_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_GENKSYMS_BRIDGE_CASES_START')
+    for item in genksyms_bridge_case_issues:
+        print(item)
+    print('MISSING_PHASE2_GENKSYMS_BRIDGE_CASES_END')
     sys.exit(1)
 
 kconfig_bridge_issues = validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json', CONF_BRIDGE)
