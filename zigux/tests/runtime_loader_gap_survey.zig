@@ -106,43 +106,32 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(std.mem.indexOf(u8, manifest.anchor, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.phase6_leaf_helper_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.runtime_sample_count);
-    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.runtime_loader_plan_count);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.runtime_loader_plan_count);
     try std.testing.expect(manifest.survey_summary.shared_runtime_loader_present);
     try std.testing.expect(manifest.survey_summary.allocator_policy_present);
     try std.testing.expect(manifest.survey_summary.shared_init_exit_contract_present);
     try std.testing.expect(!manifest.survey_summary.shared_command_environment_control_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.runtime_loader_plans.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", manifest.runtime_samples[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.runtime_samples[3]);
-    try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", manifest.runtime_loader_plans[0]);
-    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[1]);
-    try std.testing.expectEqualStrings("runtime-loader-gap-note", manifest.delivery_evidence_catalog[0].id);
-    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.delivery_evidence_catalog[0].path);
-    try std.testing.expectEqualStrings("runtime-loader-freeze-map", manifest.delivery_evidence_catalog[2].id);
-    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.delivery_evidence_catalog[2].path);
-    try std.testing.expectEqualStrings("runtime-loader-gap-manifest", manifest.delivery_evidence_catalog[3].id);
-    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.delivery_evidence_catalog[3].path);
-    try std.testing.expectEqualStrings("shared-runtime-loader-contract", manifest.delivery_evidence_catalog[6].id);
-    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.delivery_evidence_catalog[6].path);
-    try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.ownership_map[0].surface);
-    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.ownership_map[2].surface);
-    try std.testing.expectEqualStrings("zigux/tests/runtime_loader_gap_manifest.json", manifest.ownership_map[3].surface);
-    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.ownership_map[6].surface);
-    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.ownership_map[8].surface);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", manifest.runtime_loader_plans[0]);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", manifest.runtime_loader_plans[1]);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[2]);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_manifest_catalog = false;
     var saw_freeze_map_doc = false;
     var saw_shared_contract = false;
+    var saw_atomic64_loader_plan = false;
     var saw_bitmap_loader_plan = false;
     var saw_kretprobe_loader_plan = false;
 
@@ -168,6 +157,11 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             saw_shared_contract = true;
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared request contract") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "atomic64-loader-plan")) {
+            saw_atomic64_loader_plan = true;
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "atomic64 loader-plan projection") != null);
         }
         if (std.mem.eql(u8, entry.id, "bitmap-loader-plan")) {
             saw_bitmap_loader_plan = true;
@@ -198,6 +192,9 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         }
         if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared request contract") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64_loader.zig")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "atomic64 loader-plan projection") != null);
         }
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_bitmap_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "bitmap loader-plan projection") != null);
@@ -303,6 +300,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(saw_manifest_catalog);
     try std.testing.expect(saw_freeze_map_doc);
     try std.testing.expect(saw_shared_contract);
+    try std.testing.expect(saw_atomic64_loader_plan);
     try std.testing.expect(saw_bitmap_loader_plan);
     try std.testing.expect(saw_kretprobe_loader_plan);
     try std.testing.expect(saw_build);
@@ -393,6 +391,14 @@ test "runtime loader gap survey proves the shared request surface and existing l
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const atomic64_loader = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_atomic64_loader.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_loader);
+
     const bitmap_loader = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -413,7 +419,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "zigux/kernel/runtime_loader.zig",
-        16 * 1024,
+        24 * 1024,
     );
     defer std.testing.allocator.free(runtime_loader_file);
 
@@ -452,10 +458,20 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "activation_env",
     };
 
+    try expectContainsAll(atomic64_loader, &shared_loader_surface);
     try expectContainsAll(bitmap_loader, &shared_loader_surface);
     try expectContainsAll(kretprobe_loader, &shared_loader_surface);
+    try expectContainsNone(atomic64_loader, &absent_command_env_surface);
     try expectContainsNone(bitmap_loader, &absent_command_env_surface);
     try expectContainsNone(kretprobe_loader, &absent_command_env_surface);
+
+    try expectContainsAll(atomic64_loader, &.{
+        ".atomic64 = .{",
+        "counter_snapshot = plan.summary.counter_snapshot",
+        "init_runs = plan.summary.init_runs",
+        "selftest_runs = plan.summary.selftest_runs",
+        "exit_runs = plan.summary.exit_runs",
+    });
     try expectContainsNone(runtime_loader_file, &absent_command_env_surface);
     try expectContainsAll(runtime_loader_file, &.{
         "pub const AllocatorHandoff = struct",
