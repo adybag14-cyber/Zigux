@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-enforcement-refresh`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, and the real current enforcement state on `master`
-- survey provenance refreshed against verified `master` head `783e573845f21769925870e53a591e48878bb7f0`
+- survey provenance refreshed against verified `master` head `040884eb7ae838156e6a1f6cb4026b4cd22b5d51`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -23,9 +23,27 @@ This document records the bounded Phase 15 governance lane around `Documentation
 
 The roadmap's Phase 15 work is about governance, not another burst of deep-core implementation. The live repo now carries much more than the original freeze-map starter: the parity scorecard, Architecture Council review-process note, retained stay-in-C closeout rule, reopen-trigger catalog, and indefinite-C policy note are all already landed.
 
-That makes the freeze-map governance slice slightly stale again. Its focused note and manifest still describe an older maintenance snapshot where the dedicated Phase 15 build was blocked by truncated governance tests, even though current `master` now ships a working local Phase 15 governance bundle and the shared bootstrap workflow now replays that bundle too.
+That still leaves room for packet drift. This focused note and manifest were carrying an older maintenance snapshot that treated the broader shared Phase 15 replay as clean on `master`, even though the live head now only proves the narrower freeze-map governance packet locally while the shared `phase15_build.zig` replay is currently red because neighboring Phase 15 packets have drifted.
 
 The honest bounded step is therefore maintenance, not expansion: refresh the freeze-map-specific lane record so it matches current repo reality, and keep the current blocker posture explicit while the central policy note carries the same retained stay-in-C closeout and reopen posture as the later governance artifacts.
+
+## Roadmap versus repo reality
+
+The roadmap and the live repo still agree on the Phase 15 deep-core freeze set.
+
+- roadmap freeze-in-C anchors: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`
+- live `Documentation/zigux/freeze-map.md` freeze-in-C anchors: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`
+- roadmap study-only anchors: `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`
+- live `Documentation/zigux/freeze-map.md` study-only anchors: `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`
+
+Current repo reality also still supports the same blocker posture rather than a status-change-ready one:
+
+- `kernel/sched/core.c`: the Phase 15 scorecard still records `blocked_no_bounded_scheduler_seam`, and the repo still has no narrower scheduler seam packet or Architecture Council decision record
+- `mm/page_alloc.c`: the Phase 15 scorecard still records `blocked_no_bounded_allocator_seam`, and the repo still has no narrower allocator seam packet or Architecture Council decision record
+- `kernel/rcu/tree.c`: the existing `Documentation/zigux/phase14-rcu-tree-survey.md` packet still keeps the follow-up wider than the allowed seam, and the Phase 15 scorecard still records `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
+- `net/core/skbuff.c`: the existing `Documentation/zigux/phase14-skbuff-bridge-survey.md` packet still keeps the follow-up wider than the allowed packet-lifetime boundary, and the Phase 15 scorecard still records `blocked_packet_lifetime_boundary_still_too_wide`
+
+That means the honest current comparison is stable: no roadmap freeze-map delta needs to be opened, and no deep-core blocker has moved from governance-ready into status-change-ready.
 
 ## Landed governance rules
 
@@ -42,6 +60,7 @@ The honest bounded step is therefore maintenance, not expansion: refresh the fre
 - `mm/page_alloc.c` remains blocked because the repo still has no bounded allocator seam
 - `kernel/rcu/tree.c` remains blocked because the published Phase 14 follow-up is still wider than the allowed RCU seam
 - `net/core/skbuff.c` remains blocked because the published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary
+- no Architecture Council decision record currently claims a freeze-map status change for any of those four anchors
 - the freeze-map anchor set therefore stays unchanged on current `master`
 
 ## Recorded gaps
@@ -55,9 +74,10 @@ The current lane state is:
 - landed `phase15-stay-in-c-closeout-sync`
 - landed `phase15-governance-family-alignment`
 - landed `phase15-governance-packet-drift-gate`
+- landed `phase15-roadmap-vs-repo-reality-survey`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family and the already-landed broader governance artifacts. What remains blocked is any deep-core status change, not the governance scaffolding itself.
+This keeps the lane tight: Zigux now has a reviewable governance rule for the freeze map that matches the current roadmap freeze list, the current repo evidence packet family, and the already-landed broader stay-in-C governance artifacts. What remains blocked is any deep-core status change, and the wider shared Phase 15 replay drift still belongs to neighboring maintenance packets rather than a freeze-map status change.
 
 ## Non-goals
 
@@ -77,17 +97,18 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- verified remote `master` head for this check: `783e573845f21769925870e53a591e48878bb7f0`
+- verified remote `master` head for this check: `040884eb7ae838156e6a1f6cb4026b4cd22b5d51`
 - the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, retained stay-in-C closeout state, reopen-trigger language, and the no-silent-exception rule
 - the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, and an explicit current lane owner for blocked evidence packets
 - the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
+- the current roadmap-versus-repo comparison remains stable: the freeze and study-only lists in `Documentation/zigux/freeze-map.md` still match the roadmap, and the scorecard plus the existing Phase 14 RCU or skbuff survey packets still back the same four deep-core blockers
 - the dedicated local replay surface is present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run can still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
 - the shared bootstrap workflow now invokes the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle is no longer maintainer-run only
-- focused replay against current `master` shows the local governance bundle is runnable:
+- focused replay against current `master` shows the narrower freeze-map governance packet is runnable, while the wider shared Phase 15 bundle is currently drifted:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
-  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` succeeded with `9/9` steps and `11/11` tests passed
-  - `make -C zigux phase15` succeeded with the attached Zig toolchain
-- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, a clean local Phase 15 governance build, shared bootstrap workflow coverage for the current Phase 15 gate, and one explicit checklist gate that keeps the governance packet aligned during maintenance edits
+  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` currently fails on current `master` because `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` hit `error.StreamTooLong` while reading `Documentation/zigux/README.md`, and `phase15_architecture_council_review_process.zig` still expects the older docs-root phrase `Phase 15 notes`
+  - `make -C zigux phase15` currently fails for the same shared Phase 15 replay drift because it delegates to `zigux/tests/phase15_build.zig`
+- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that keeps the governance packet aligned during maintenance edits, and one still-open neighboring maintenance drift in the broader shared Phase 15 packet family
 
 ## Exact blocker record
 
@@ -95,9 +116,9 @@ This slice does not claim:
 - `freeze-map-review-hook-present`: yes
 - `phase15-local-entrypoint-present`: yes
 - `phase15-shared-ci-enforcement-present`: yes
-- `phase15-build-clean-on-current-master`: yes
-- `phase15-build-failure-cause`: none observed in the local replay against current `master`
-- next repair step inside this lane family: wait for new deep-core evidence or a named reopen trigger, because the remaining freeze-map governance work is blocker posture maintenance rather than missing replay coverage
+- `phase15-build-clean-on-current-master`: no
+- `phase15-build-failure-cause`: `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` currently exceed their `Documentation/zigux/README.md` read limits, and `phase15_architecture_council_review_process.zig` still expects the older docs-root phrase `Phase 15 notes`
+- next repair step inside this lane family: leave the deep-core blocker posture parked here and let a neighboring Phase 15 maintenance lane decide whether to narrow the docs-root drift or increase those shared read limits
 
 ## Next bounded step
 
