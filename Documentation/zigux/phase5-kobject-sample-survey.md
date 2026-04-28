@@ -54,6 +54,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
 - non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
 - `exit()` clears the tracked values, removes the active attribute count, and keeps the pre-registration and post-`exit()` show or store rejection boundaries explicit
+- post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected
 
 ## Contributor refresh prompts for the landed sample
 
