@@ -1,7 +1,7 @@
 const std = @import("std");
 const sample = @import("runtime_trace_events_sample");
 
-test "runtime trace-events diff gate replays the Linux sample's concrete main-thread payload literals through the diagnostics summary" {
+test "runtime trace-events diff gate replays the Linux sample's concrete main-thread payload literals and random-string choice through the diagnostics summary" {
     var module = sample.RuntimeTraceEventsSample{};
     try module.init();
 
@@ -20,6 +20,8 @@ test "runtime trace-events diff gate replays the Linux sample's concrete main-th
     try std.testing.expect(replay.saw_rel_loc_payload);
     try std.testing.expect(replay.saw_conditional_path);
     try std.testing.expectEqualStrings(payload.foo_bar_message, replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings(payload.random_choice_message, replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Gandalf", payload.random_choice_message);
     try std.testing.expectEqualStrings(payload.template_message, replay.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings(payload.conditional_message, replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings(payload.template_cond_message, replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
@@ -86,6 +88,7 @@ test "runtime trace-events diff gate keeps the selftest family order and replay 
     try std.testing.expectEqual(@as(usize, 8), replay.total_events);
     try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);
     try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", replay.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
