@@ -177,6 +177,22 @@ fn expectByteValues(actual: []const u8, expected: []const u64) !void {
     }
 }
 
+test "phase 1 bitmap allocation helpers keep ownership and zeroing explicit" {
+    const allocator = std.testing.allocator;
+    const nbits = find_bit.bits_per_long + 5;
+
+    var allocated: ?[]bitmap.Word = try bitmap.bitmapAlloc(allocator, nbits);
+    try std.testing.expectEqual(bitmap.bitsToWords(nbits), allocated.?.len);
+    bitmap.fill(allocated.?, nbits);
+    bitmap.bitmapFree(allocator, &allocated);
+    try std.testing.expectEqual(@as(?[]bitmap.Word, null), allocated);
+
+    var zeroed: ?[]bitmap.Word = try bitmap.bitmapZalloc(allocator, nbits);
+    defer bitmap.bitmapFree(allocator, &zeroed);
+    try std.testing.expectEqual(bitmap.bitsToWords(nbits), zeroed.?.len);
+    try std.testing.expect(bitmap.empty(zeroed.?, nbits));
+}
+
 test "phase 1 helper modules import cleanly" {
     _ = argv_split;
     _ = bitmap;
