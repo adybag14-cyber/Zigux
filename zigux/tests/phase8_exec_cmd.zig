@@ -22,6 +22,15 @@ test "phase 8 exec-cmd starter slice covers path resolution and null-terminated 
     defer std.testing.allocator.free(resolved);
     try std.testing.expectEqualStrings("/custom/perf", resolved);
 
+    const explicit_empty = try exec_cmd.getArgvExecPath(
+        std.testing.allocator,
+        config,
+        "",
+        "/ignored",
+    );
+    defer std.testing.allocator.free(explicit_empty);
+    try std.testing.expectEqualStrings("", explicit_empty);
+
     const search_path = try exec_cmd.buildSearchPath(
         std.testing.allocator,
         "/repo",
@@ -84,6 +93,36 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
         updated,
     );
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+
+    var explicit_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer explicit_empty_env.deinit();
+
+    var explicit_empty_state = exec_cmd.ExecCmdState{};
+    defer explicit_empty_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&explicit_empty_env, config);
+    try exec_cmd.setArgvExecPath(
+        std.testing.allocator,
+        &explicit_empty_env,
+        &explicit_empty_state,
+        config,
+        "",
+    );
+    try exec_cmd.setArgv0Path(std.testing.allocator, &explicit_empty_state, "scripts");
+    try explicit_empty_env.set("PATH", "/usr/bin");
+
+    const explicit_empty_path = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &explicit_empty_env,
+        explicit_empty_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(explicit_empty_path);
+
+    try std.testing.expectEqualStrings("", explicit_empty_env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings("/repo/scripts:/usr/bin", explicit_empty_path);
+    try std.testing.expectEqualStrings(explicit_empty_path, explicit_empty_env.get("PATH").?);
 
     var inherited_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
     defer inherited_empty_env.deinit();
