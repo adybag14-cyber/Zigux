@@ -134,6 +134,11 @@ fn isHexValue(raw_value: []const u8) bool {
     return true;
 }
 
+fn isMalformedQuotedString(raw_value: []const u8) bool {
+    if (raw_value.len == 0) return false;
+    return (raw_value[0] == '"') != (raw_value[raw_value.len - 1] == '"');
+}
+
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
     errdefer entries.deinit(allocator);
@@ -169,6 +174,10 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         const eq_index = std.mem.indexOfScalar(u8, line, '=') orelse continue;
         const name = line[0..eq_index];
         const raw_value = line[eq_index + 1 ..];
+
+        // Match upstream confdata's invalid-string handling closely enough for the
+        // bounded bridge: a one-sided quoted string is treated as malformed and skipped.
+        if (isMalformedQuotedString(raw_value)) continue;
 
         const kind: EntryKind = if (std.mem.eql(u8, raw_value, "y") or std.mem.eql(u8, raw_value, "m") or std.mem.eql(u8, raw_value, "n"))
             .tristate
@@ -447,7 +456,7 @@ test "confdata bridge keeps empty quoted strings as string values" {
     try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
 }
 
-test "confdata bridge keeps malformed quoted strings as fallback values" {
+test "confdata bridge skips malformed quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
         \\CONFIG_BROKEN="zigux
@@ -456,13 +465,12 @@ test "confdata bridge keeps malformed quoted strings as fallback values" {
     );
     defer deinitSummary(allocator, &summary);
 
-    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
     try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
-    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
-    try std.testing.expectEqualStrings("\"zigux", summary.entries[0].value);
-    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
-    try std.testing.expectEqualStrings("ok", summary.entries[1].value);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_LABEL", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("ok", summary.entries[0].value);
 }
 
 test "confdata bridge ignores non-CONFIG lines" {
