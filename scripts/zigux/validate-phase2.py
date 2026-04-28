@@ -137,6 +137,11 @@ def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
             'expected': 'sample_escaped_space_expected.txt',
             'expected_exit_code': 0,
         },
+        'sample_concatenated': {
+            'depfile': 'sample_concatenated.d',
+            'expected': 'sample_concatenated_expected.txt',
+            'expected_exit_code': 0,
+        },
         'sample_comment_only': {
             'depfile': 'sample_comment_only.d',
             'expected': 'sample_comment_only_expected.txt',
@@ -440,5 +445,5 @@ if missing_markers:
 
 print('PHASE2_VALIDATION=pass')
 print(f'PHASE2_REQUIRED_FILE_COUNT={len(required_files)}')
-print('PHASE2_FIXDEP_CASE_COUNT=5')
+print(f'PHASE2_FIXDEP_CASE_COUNT={len(json.loads(FIXDEP_CASES.read_text(encoding="utf-8")))}')
 print(f'PHASE2_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_script_markers)}')
