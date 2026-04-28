@@ -11,6 +11,7 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'freeze-map.md',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'scripts' / 'zigux' / 'validate-phase6.py',
     ROOT / 'zigux' / 'tests' / 'README.md',
 ]
 
@@ -54,6 +55,8 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'Validate Phase 6 leaf helper gates',
+    'make -C zigux phase6-validate',
     'Run Phase 6 leaf helper tests',
     'zigux/tests/phase6_build.zig',
     'Run Phase 7 runtime helper tests',
