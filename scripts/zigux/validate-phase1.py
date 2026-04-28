@@ -133,7 +133,7 @@ required_find_bit_manifest_markers = [
     '"find_bit.tail_and_clamped_next"',
     '"find_bit.tail_and_mixed_first"',
     '"find_bit.tail_and_mixed_next"',
-    'tail mask keeps the in-range shared bit for and scans',
+    'mixed-tail case where one shared bit remains in range while another lives past nbits.',
 ]
 required_string_helper_markers = [
     'pub fn strim(buf: []u8) []u8 {',
@@ -144,21 +144,35 @@ required_string_helper_markers = [
 ]
 required_string_test_markers = [
     'test "phase 1 string replaceChar stops at embedded NUL"',
+    'fixture.string.remove_spaces_nul',
+    'fixture.string.remove_spaces_nul_bytes',
+    "string.removeSpaces(remove_nul_buffer[0 .. remove_nul_buffer.len - 1])",
     "string.replaceChar(&replace_buffer, '-', '_')",
     "&[_]u8{ 'a', '_', 0, '-', 'z' }",
+]
+required_string_fixture_markers = [
+    '"remove_spaces_nul"',
+    '"remove_spaces_nul_bytes"',
+    '[97,98,0,0,32,120]',
+]
+required_string_harness_markers = [
+    "char remove_nul_buf[] = {'a', ' ', 'b', 0, ' ', 'x'};",
+    'remove_spaces(remove_nul_buf);',
+    '\\"remove_spaces_nul\\":',
+    '\\"remove_spaces_nul_bytes\\":',
 ]
 required_string_manifest_markers = [
     '"tools/lib/string.zig"',
     '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
-    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"skip trim remove and replace spaces work in place\\""',
-    '"alias_unit_test_contract": "Direct Zig unit coverage exercises the strim and strreplace wrapper aliases alongside trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior that keeps strreplace from mutating trailing bytes past the first terminator."',
+    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim stop at the first embedded NUL\\""',
+    '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by stopping at the first embedded NUL before trailing-whitespace trimming or wrapper-alias return slices can drift into later bytes."',
 ]
 required_string_closure_markers = [
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
-    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior at the first terminator',
+    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string skip_spaces, remove_spaces, strim, strreplace, and memchr_inv aliases stay aligned with skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv, including the embedded-NUL stop behavior that keeps remove_spaces and strreplace from touching trailing bytes past the first terminator',
 ]
 
 missing_markers = []
@@ -195,6 +209,12 @@ for marker in required_string_helper_markers:
 for marker in required_string_test_markers:
     if marker not in test_root:
         missing_markers.append(f'string_test:{marker}')
+for marker in required_string_fixture_markers:
+    if marker not in find_bit_fixture:
+        missing_markers.append(f'string_fixture:{marker}')
+for marker in required_string_harness_markers:
+    if marker not in find_bit_harness:
+        missing_markers.append(f'string_harness:{marker}')
 for marker in required_string_manifest_markers:
     if marker not in find_bit_manifest:
         missing_markers.append(f'string_manifest:{marker}')
@@ -214,5 +234,5 @@ print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_string_test_markers) + len(required_string_manifest_markers) + len(required_string_closure_markers)}'
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_string_closure_markers)}'
 )
