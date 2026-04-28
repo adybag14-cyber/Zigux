@@ -14,7 +14,7 @@ Current Phase 2 use
 - `zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt` anchors the escaped-whitespace dependency-token path so `fixdep.zig` must preserve `\\ ` and `\\t` separators the same way as the C tool.
 - `zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` and `sample_comment_only_expected.stderr.txt` anchor the bounded no-target failure shape, keeping the `fixdep: parse error; no targets found` path reviewable against both stdout and stderr artifacts.
 - `zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` and `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency failure shape, including the preserved stdout prefix and C-style open-file stderr message.
-- `scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`.
+- `scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`, and it now also treats any unexpected stderr from success-path cases as a gate failure so quiet parity cannot drift silently.
 - `zigux/tests/fixtures/genksyms_bridge/*.json` capture bounded wrapper-first `genksyms` invocation planning for committed flag combinations.
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json` anchors the smallest wrapper-first `genksyms` invocation claim.
 - `scripts/zigux/check-genksyms-bridge.py` compares those committed JSON fixtures against both a bounded C harness and `scripts/zigux/genksyms.zig`.
