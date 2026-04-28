@@ -183,7 +183,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
 
     const policy_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "Documentation/zigux/phase15-indefinite_c_policy.md",
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
         std.testing.allocator,
         .limited(24 * 1024),
     );
