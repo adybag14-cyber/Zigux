@@ -103,6 +103,7 @@ Phase 8 flow
 
 Phase 9 flow
 - `validate-phase9.py` keeps the shared Phase 9 runtime bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase9_build.zig`, the trace-events freeze-map boundary packet, and the shared runtime-loader release-discipline evidence.
+- the same Phase 9 flow also keeps the roadmap's shipped selftest-hook markers and bounded lifecycle-parity posture explicit across the runtime starter surveys, manifests, and shared `zigux/tests/phase9_build.zig` replay instead of implying a ready loadable-module path.
 - `make -C zigux phase9-validate` is the fail-fast bundle check for the current runtime atomic64, bitmap, trace-events, kretprobe, and shared loader-gap packet.
 - `make -C zigux phase9` keeps that same runtime lane reviewable through one shared bundle instead of ad hoc slice-local checks.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/review-checklist.md` carry the shared Phase 9 loader-handoff release-discipline evidence for the current runtime bundle.
