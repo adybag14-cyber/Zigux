@@ -84,7 +84,7 @@ FORBIDDEN_BUILD_MARKERS = [
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
 MANIFEST_SPECS = {
-    "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 10, [], ["phase11-gpio-wdt-platform-registration"]),
+    "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 12, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L06", "drivers/watchdog/bcm2835_wdt.c", 12, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L10", "drivers/watchdog/dw_wdt.c", 11, ["phase11-dw-wdt-platform-resource-preflight"], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L14", "drivers/tty/hvc/hvc_console.c", 8, [], []),
@@ -283,7 +283,7 @@ for marker in [
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
 
-if starter_total != 43:
+if starter_total != 45:
     missing.append(f"phase11_bundle:starter_total={starter_total}")
 if ready_total != 2:
     missing.append(f"phase11_bundle:ready_total={ready_total}")
