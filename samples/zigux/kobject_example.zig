@@ -28,10 +28,13 @@ pub const RenderedAttribute = struct {
     len: usize,
 };
 
+pub const AttributeMode = u16;
+
 pub const ReplaySummary = struct {
     anchor: []const u8,
     directory_name: []const u8,
     ordered_attr_names: [3][]const u8,
+    ordered_attr_modes: [3]AttributeMode,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
     attr_count: usize,
@@ -75,6 +78,10 @@ pub const KobjectExampleSample = struct {
 
     pub fn attrNames() [3][]const u8 {
         return .{ "foo", "baz", "bar" };
+    }
+
+    pub fn attrModes() [3]AttributeMode {
+        return .{ 0o664, 0o664, 0o664 };
     }
 
     pub fn stage(self: *const Self) SampleStage {
@@ -156,6 +163,7 @@ pub const KobjectExampleSample = struct {
             .anchor = descriptor().anchor,
             .directory_name = directoryName(),
             .ordered_attr_names = attrNames(),
+            .ordered_attr_modes = attrModes(),
             .stage_before_replay = .initialized,
             .stage_after_replay = self.stage(),
             .attr_count = self.activeAttrCount(),
@@ -205,6 +213,9 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
     try std.testing.expectEqualStrings("baz", replay.ordered_attr_names[1]);
     try std.testing.expectEqualStrings("bar", replay.ordered_attr_names[2]);
+    try std.testing.expectEqual(@as(AttributeMode, 0o664), replay.ordered_attr_modes[0]);
+    try std.testing.expectEqual(@as(AttributeMode, 0o664), replay.ordered_attr_modes[1]);
+    try std.testing.expectEqual(@as(AttributeMode, 0o664), replay.ordered_attr_modes[2]);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.registered, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
