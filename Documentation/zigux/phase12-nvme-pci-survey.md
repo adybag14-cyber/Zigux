@@ -20,7 +20,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 
 The Phase 12 roadmap explicitly names `drivers/nvme/host/pci.c` as a complex production-driver target, and the live repo now has a first bounded `drivers/nvme/host/pci.zig` starter.
 
-That starter is real progress, but it is still only a narrow queue planner. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
+That starter is real progress, but it is still only a narrow queue-and-data-pointer planning slice. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
 
 This survey keeps that difference explicit so the lane does not overclaim production-driver progress.
 
