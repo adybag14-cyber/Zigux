@@ -75,7 +75,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader bindin
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings("77787e76a385b8c7258ef85c96a785d22ed8e879", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b8d59685e5772a0476af3fd95f1319247e5f6096", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -225,6 +225,7 @@ test "phase 9 runtime kretprobe docs keep the lifecycle-summary surface explicit
     defer std.testing.allocator.free(module_doc);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`b8d59685e5772a0476af3fd95f1319247e5f6096`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "lifecycle stage") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`init_runs`, `selftest_runs`, `exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "active-instance state") != null);
@@ -234,6 +235,7 @@ test "phase 9 runtime kretprobe docs keep the lifecycle-summary surface explicit
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "shared runtime-loader request surface") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`b8d59685e5772a0476af3fd95f1319247e5f6096`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "lifecycle stage") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`, `selftest_runs`, `exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "active-instance state") != null);
