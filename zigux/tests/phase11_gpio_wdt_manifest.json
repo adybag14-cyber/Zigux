@@ -5,7 +5,8 @@
   "anchor": "drivers/watchdog/gpio_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
-    "zigux/tests/"
+    "zigux/tests/",
+    "Documentation/zigux/"
   ],
   "survey_summary": {
     "gpio_wdt_c_lines": 194,
@@ -14,7 +15,8 @@
     "preexisting_gpio_wdt_zig_present": true,
     "preexisting_gpio_wdt_test_present": true,
     "preexisting_phase11_survey_note_present": true,
-    "preexisting_phase11_module_note_present": true
+    "preexisting_phase11_module_note_present": true,
+    "preexisting_phase11_validation_matrix_present": true
   },
   "gaps": [
     {
@@ -58,6 +60,13 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-slice.md",
       "why_now": "A bounded slice note records exactly what the gpio_wdt starter, probe-summary helper, stop-policy helper, and registration handoff summary cover so later Phase 11 work can extend the model without reopening the starter contract."
+    },
+    {
+      "id": "phase11-gpio-wdt-validation-matrix",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
+      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the metadata-only registration handoff surface, and the focused survey command that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
