@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L10",
   "phase": "Phase 11",
-  "surveyed_commit": "8266af3574ebb9103f60b2d1888a5f1e611f9ab4",
+  "surveyed_commit": "095bac327bb962d38a47555d20a2a647ef1cbd5b",
   "anchor": "drivers/watchdog/dw_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -41,7 +41,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-survey.md",
-      "why_now": "The survey note now anchors the live dw_wdt lane to `master` `8266af3574ebb9103f60b2d1888a5f1e611f9ab4` so later runs can extend the same Phase 11 slice without rediscovering whether the registration handoff already landed."
+      "why_now": "The survey note now anchors the live dw_wdt lane to `master` `095bac327bb962d38a47555d20a2a647ef1cbd5b` so later runs can extend the same Phase 11 slice without rediscovering whether the platform-resource preflight already landed."
     },
     {
       "id": "phase11-dw-wdt-driver-starter",
@@ -87,17 +87,17 @@
     },
     {
       "id": "phase11-dw-wdt-platform-resource-preflight",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/dw_wdt.zig",
-      "why_now": "The next honest bounded step is a tiny platform-resource preflight around timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring before any live devm calls or watchdog registration work lands."
+      "why_now": "The starter now includes a tiny platform-resource preflight around timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring before any live devm calls or watchdog registration work lands."
     },
     {
       "id": "phase11-dw-wdt-platform-and-pm",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "Platform-driver registration, clock and reset acquisition, IRQ registration, suspend and resume handling, debugfs support, devicetree TOP arrays, and live MMIO validation remain blocked until the lane grows the registration-facing handoff plus a hardware-validation plan."
+      "why_now": "Platform-driver registration, live clock and reset acquisition, IRQ registration, suspend and resume handling, debugfs support, devicetree TOP arrays, and live MMIO validation remain blocked until the lane grows beyond the landed registration handoff and platform-resource preflight into a hardware-validation plan."
     }
   ]
 }
