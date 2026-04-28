@@ -25,6 +25,7 @@ Current bootstrap helpers
 - `validate-phase7.py`
 - `validate-phase8.py`
 - `validate-phase9.py`
+- `validate-phase10.py`
 - `validate-phase10-closure.py`
 - `validate-phase11.py`
 - `check-phase12-build-inventory.py`
@@ -94,3 +95,9 @@ Phase 9 flow
 - `make -C zigux phase9` keeps that same runtime lane reviewable through one shared bundle instead of ad hoc slice-local checks.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/review-checklist.md` carry the shared Phase 9 loader-handoff release-discipline evidence for the current runtime bundle.
 - `zigux/tests/runtime_loader_gap_manifest.json` keeps the manifest-backed catalog and ownership map for the shared runtime-loader evidence packet, so reviewers can see which file owns the survey note, checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` replay path before the lane widens again.
+
+Phase 10 flow
+- `validate-phase10.py` keeps the current virtio_input registration boundary explicit before replay by checking the published Phase 10 notes, the workflow wiring, `zigux/Makefile`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_input_manifest.json`.
+- `make -C zigux phase10-validate` is now the fail-fast bundle check for both the shared Phase 10 closure packet and the narrower virtio_input registration guard.
+- the Phase 10 validator keeps `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` aligned with the manifest-backed ready-next `phase10-virtio-input-registration-preflight-helper` and the blocked registration-lifecycle contract.
+- this keeps the current input lane honest while ABS_MT_SLOT remains the single ready-next helper step before any wider `input_register_device()` claim.
