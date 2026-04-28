@@ -73,6 +73,14 @@ pub const ConfigGenerationSummary = struct {
     change_pending: bool,
 };
 
+pub const DriverBindingSummary = struct {
+    anchor: []const u8,
+    driver_attached: bool,
+    config_changed_handler_present: bool,
+    change_pending: bool,
+    delivery_count: usize,
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
@@ -109,6 +117,7 @@ pub const VirtioCoreLabDevice = struct {
     config_change_delivery_count: usize = 0,
     config_generation: u32 = 0,
     last_observed_generation: u32 = 0,
+    config_changed_handler_present: bool = false,
     transport_accepts_features: bool = true,
     registered_queue_count: usize = 0,
     reset_count: usize = 0,
@@ -143,6 +152,7 @@ pub const VirtioCoreLabDevice = struct {
         self.config_change_delivery_count = 0;
         self.config_generation = 0;
         self.last_observed_generation = 0;
+        self.config_changed_handler_present = false;
         self.registered_queue_count = 0;
         self.reset_count += 1;
     }
@@ -386,6 +396,11 @@ pub const VirtioCoreLabDevice = struct {
         self.flushPendingConfigChange();
     }
 
+    pub fn setConfigChangedHandlerPresent(self: *Self, present: bool) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_changed_handler_present = present;
+    }
+
     pub fn noteConfigChanged(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
         self.config_generation +%= 1;
@@ -419,6 +434,16 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn driverBindingSummary(self: *const Self) DriverBindingSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_attached = self.hasStatus(DeviceStatus.driver),
+            .config_changed_handler_present = self.config_changed_handler_present,
+            .change_pending = self.config_change_pending,
+            .delivery_count = self.config_change_delivery_count,
+        };
+    }
+
     pub fn registeredQueueCount(self: *const Self) usize {
         return self.registered_queue_count;
     }
@@ -429,8 +454,10 @@ pub const VirtioCoreLabDevice = struct {
             return;
         }
 
-        self.config_change_pending = false;
-        self.config_change_delivery_count += 1;
+        if (self.config_changed_handler_present) {
+            self.config_change_pending = false;
+            self.config_change_delivery_count += 1;
+        }
     }
 
     fn flushPendingConfigChange(self: *Self) void {
