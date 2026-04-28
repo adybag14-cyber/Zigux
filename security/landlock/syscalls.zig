@@ -32,6 +32,7 @@ pub const ModuleDescriptor = struct {
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
     provides_ruleset_fd_creation_planning: bool,
+    provides_ruleset_release_planning: bool,
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
     provides_net_port_handoff_planning: bool,
@@ -162,6 +163,18 @@ pub const CreateRulesetFdPlan = struct {
     releases_ruleset_on_fd_failure: bool,
 };
 
+pub const RulesetReleaseRequest = struct {
+    file_present: bool = true,
+    ruleset_present: bool = true,
+};
+
+pub const RulesetReleasePlan = struct {
+    anchor: []const u8,
+    reads_file_private_data: bool,
+    invokes_landlock_put_ruleset: bool,
+    returns_zero: bool,
+};
+
 pub const PathFdRequest = struct {
     fd_present: bool = true,
     is_ruleset_fd: bool = false,
@@ -219,6 +232,7 @@ pub const SyscallsHelperLab = struct {
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
             .provides_ruleset_fd_creation_planning = true,
+            .provides_ruleset_release_planning = true,
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
             .provides_net_port_handoff_planning = true,
@@ -427,6 +441,22 @@ pub const SyscallsHelperLab = struct {
             .invokes_anon_inode_getfd = true,
             .transfers_ruleset_to_fd_on_success = true,
             .releases_ruleset_on_fd_failure = true,
+        };
+    }
+
+    pub fn planFopRulesetRelease(request: RulesetReleaseRequest) !RulesetReleasePlan {
+        if (!request.file_present) {
+            return error.MissingFile;
+        }
+        if (!request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .reads_file_private_data = true,
+            .invokes_landlock_put_ruleset = true,
+            .returns_zero = true,
         };
     }
 
