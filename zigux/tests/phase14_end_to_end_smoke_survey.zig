@@ -41,6 +41,8 @@ const AnchorPacket = struct {
 const CompileShard = struct {
     artifact_name: []const u8,
     root_source_file: []const u8,
+    coverage_mode: []const u8,
+    dedicated_step: []const u8,
     bridge_import: []const u8,
     bridge_source_file: []const u8,
 };
@@ -97,7 +99,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("d78223d3f1a386521769795b1cff384d83cb6a3a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b9ee21faa08430c19e03f5628009a9c35b0cfe5c", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -140,18 +142,28 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
 
     try std.testing.expectEqualStrings("phase14-workqueue-bridge-tests", manifest.compile_shards[0].artifact_name);
     try std.testing.expectEqualStrings("phase14_workqueue_bridge.zig", manifest.compile_shards[0].root_source_file);
+    try std.testing.expectEqualStrings("full_bundle_only", manifest.compile_shards[0].coverage_mode);
+    try std.testing.expectEqualStrings("", manifest.compile_shards[0].dedicated_step);
     try std.testing.expectEqualStrings("workqueue_bridge", manifest.compile_shards[0].bridge_import);
     try std.testing.expectEqualStrings("../../kernel/workqueue_bridge.zig", manifest.compile_shards[0].bridge_source_file);
     try std.testing.expectEqualStrings("phase14-skbuff-bridge-tests", manifest.compile_shards[1].artifact_name);
     try std.testing.expectEqualStrings("phase14_skbuff_bridge.zig", manifest.compile_shards[1].root_source_file);
+    try std.testing.expectEqualStrings("full_bundle_only", manifest.compile_shards[1].coverage_mode);
+    try std.testing.expectEqualStrings("", manifest.compile_shards[1].dedicated_step);
     try std.testing.expectEqualStrings("skbuff_bridge", manifest.compile_shards[1].bridge_import);
     try std.testing.expectEqualStrings("../../net/core/skbuff_bridge.zig", manifest.compile_shards[1].bridge_source_file);
     try std.testing.expectEqualStrings("phase14-ring-buffer-survey-tests", manifest.compile_shards[2].artifact_name);
     try std.testing.expectEqualStrings("phase14_ring_buffer_survey.zig", manifest.compile_shards[2].root_source_file);
+    try std.testing.expectEqualStrings("full_bundle_only", manifest.compile_shards[2].coverage_mode);
+    try std.testing.expectEqualStrings("", manifest.compile_shards[2].dedicated_step);
     try std.testing.expectEqualStrings("phase14-rcu-tree-survey-tests", manifest.compile_shards[3].artifact_name);
     try std.testing.expectEqualStrings("phase14_rcu_tree_survey.zig", manifest.compile_shards[3].root_source_file);
+    try std.testing.expectEqualStrings("full_bundle_only", manifest.compile_shards[3].coverage_mode);
+    try std.testing.expectEqualStrings("", manifest.compile_shards[3].dedicated_step);
     try std.testing.expectEqualStrings("phase14-end-to-end-smoke-tests", manifest.compile_shards[4].artifact_name);
     try std.testing.expectEqualStrings("phase14_end_to_end_smoke_survey.zig", manifest.compile_shards[4].root_source_file);
+    try std.testing.expectEqualStrings("focused_and_full_bundle", manifest.compile_shards[4].coverage_mode);
+    try std.testing.expectEqualStrings("phase14-smoke", manifest.compile_shards[4].dedicated_step);
 }
 
 test "phase14 shared smoke survey matches the live anchor packets and shared gate wiring" {
@@ -184,6 +196,13 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, build_file, shard.artifact_name) != null);
         try std.testing.expect(std.mem.indexOf(u8, build_file, shard.root_source_file) != null);
+        if (std.mem.eql(u8, shard.coverage_mode, "focused_and_full_bundle")) {
+            try std.testing.expect(shard.dedicated_step.len > 0);
+            try std.testing.expect(std.mem.indexOf(u8, build_file, shard.dedicated_step) != null);
+        } else {
+            try std.testing.expectEqualStrings("full_bundle_only", shard.coverage_mode);
+            try std.testing.expectEqualStrings("", shard.dedicated_step);
+        }
         if (shard.bridge_import.len > 0) {
             try std.testing.expect(std.mem.indexOf(u8, build_file, shard.bridge_import) != null);
             try std.testing.expect(std.mem.indexOf(u8, build_file, shard.bridge_source_file) != null);
@@ -261,10 +280,20 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_SMOKE_VALIDATOR=present") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_COMPILE_ARTIFACT_COUNT=5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_COUNT=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
+    for (smoke_manifest.value.compile_shards) |shard| {
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.artifact_name) != null);
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.coverage_mode) != null);
+        if (shard.dedicated_step.len > 0) {
+            try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.dedicated_step) != null);
+        }
+    }
 
     for (smoke_manifest.value.anchor_packets) |packet| {
         const anchor_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
