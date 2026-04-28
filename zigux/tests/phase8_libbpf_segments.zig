@@ -90,6 +90,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     var saw_cpu_mask_segment = false;
     var saw_fdinfo_helper_segment = false;
     var saw_file_path_handle_segment = false;
+    var saw_interrupt_routing_segment = false;
     var saw_type_names_segment = false;
 
     for (manifest.segments, 0..) |segment, i| {
@@ -157,6 +158,18 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try expectContains(segment.why_now, "pinned-object reopen flows");
             try expectContains(segment.why_now, "fd ownership");
         }
+        if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
+            saw_interrupt_routing_segment = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expectEqualStrings("interrupt_routing_boundary", segment.kind);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", segment.zigux_destination);
+            try std.testing.expectEqual(@as(usize, 2), segment.anchor_ranges.len);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:14049-14110", segment.anchor_ranges[0]);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:14429-14480", segment.anchor_ranges[1]);
+            try expectContains(segment.why_now, "online CPU filtering");
+            try expectContains(segment.why_now, "perf-event-array map updates");
+            try expectContains(segment.why_now, "interrupt-routing contract");
+        }
 
         for (manifest.segments[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, segment.id, other.id));
@@ -173,5 +186,6 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(saw_cpu_mask_segment);
     try std.testing.expect(saw_fdinfo_helper_segment);
     try std.testing.expect(saw_file_path_handle_segment);
+    try std.testing.expect(saw_interrupt_routing_segment);
     try std.testing.expect(saw_type_names_segment);
 }
