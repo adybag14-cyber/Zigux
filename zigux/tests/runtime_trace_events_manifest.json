@@ -1,12 +1,14 @@
 {
   "lane_key": "P9-L09",
   "phase": "Phase 9",
-  "surveyed_commit": "442addb6738c6994a0ade80e09cbedc43b1c9eb9",
+  "surveyed_commit": "8f1c853bbcdf4320164e0622ac77fe9d9fb8bc49",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
     "samples/zigux/runtime_*"
   ],
+  "sample_path": "samples/zigux/runtime_trace_events.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
     "preexisting_runtime_trace_events_test_files": 3,
@@ -16,6 +18,49 @@
     "preexisting_runtime_trace_events_doc_present": true,
     "preexisting_runtime_trace_events_summary_surface_present": true
   },
+  "review_prompts": [
+    "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit instead of implying a live trace-events loader or ring-buffer parity",
+    "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, payload-summary visibility, and the frozen runtime-substrate boundary",
+    "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
+    "broader runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring stay blocked until a separate runtime-substrate lane lands a real handoff"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-contract",
+      "kind": "review_surface",
+      "expected": "the runtime sample advertises name runtime_trace_events, anchor samples/trace_events/trace-events-sample.c, requires_runtime_substrate true, and provides_selftest_hook true"
+    },
+    {
+      "id": "diagnostics-summary-surface",
+      "kind": "summary_contract",
+      "expected": "RuntimeTraceEventsSummary keeps lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals machine-checkable"
+    },
+    {
+      "id": "main-thread-payload-surface",
+      "kind": "payload_contract",
+      "expected": "emitMainIteration replays bounded foo_bar, template, conditional, template-print, and relative-location payload literals plus the exported iter=%d format template through the summary surface"
+    },
+    {
+      "id": "function-callback-balance",
+      "kind": "registration_contract",
+      "expected": "registerFunctionThread, emitFunctionIteration, and unregisterFunctionThread keep registration depth, function-callback labels, underflow protection, and callback replay visibility explicit without claiming scheduler-backed thread parity"
+    },
+    {
+      "id": "selftest-family-order",
+      "kind": "selftest_contract",
+      "expected": "runSelftest returns five event families in order: foo_bar, template, conditional, relative_location, and function_callback while keeping the 6 main-thread, 2 function-thread, and 8 total-event replay counts explicit"
+    },
+    {
+      "id": "freeze-map-boundary",
+      "kind": "governance_surface",
+      "expected": "the survey packet keeps Documentation/zigux/freeze-map.md and the study-only kernel/trace/ring_buffer.c boundary explicit, with no parity scorecard entry or Architecture Council status-change request attached to this lane"
+    },
+    {
+      "id": "loader-free-blocker",
+      "kind": "runtime_substrate_boundary",
+      "expected": "samples/zigux/runtime_trace_events_loader.zig and any phase9-runtime-trace-events-loader-tests target stay absent while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked"
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
@@ -66,5 +111,14 @@
       "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
       "why_now": "A loadable module entry point, runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint registration parity still depend on runtime substrate pieces that the repo has not started yet."
     }
+  ],
+  "non_goals": [
+    "a loadable Zigux trace-events runtime module",
+    "runtime task ownership or event-loop substrate parity",
+    "polling-backed wake or dispatch behavior",
+    "runtime trace registration or unregister parity with the Linux sample",
+    "parity or ownership for kernel/trace/ring_buffer.c",
+    "generated tracepoint macro parity for trace-events-sample.h",
+    "full ftrace selftest execution inside Zigux"
   ]
 }
