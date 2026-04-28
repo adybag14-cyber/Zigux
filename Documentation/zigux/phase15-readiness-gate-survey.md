@@ -7,7 +7,7 @@ This document records the bounded Phase 15 readiness lane for surveying the rema
 - `PHASE15_STATUS=readiness_gate_survey_landed`
 - `PHASE15_SLICE=tranche-readiness-gap-survey`
 - scope: one readiness survey note, one dedicated manifest and Zig test, one shared `phase15_build.zig` follow-up, one shared bootstrap-workflow replay step, and the later handoff-and-next-step packet that together keep the roadmap requirements, bootstrap ledger anchor, current repo evidence, and remaining blocked readiness gaps reviewable in one place
-- survey provenance refreshed against verified `master` head `0875a574c226ed5091e06e3e9e59c64ed9e5bf37`
+- survey provenance refreshed against verified `master` head `d5cc3e9fa1b0c69ab8e1787db6bc2a6b58f7a129`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
