@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_EXPORT_UAPI_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_build.zig"
+ABI_POLICY_UNSAFE_BUILD_FILE_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -42,6 +43,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/unsafe/narrow.zig",
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     "zigux/tests/phase3_low_level_wrappers.zig",
+    ABI_POLICY_UNSAFE_BUILD_FILE_REL,
+    "zigux/tests/phase3_policy_unsafe.zig",
     "zigux/tests/phase3_abi.zig",
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
     "zigux/tests/phase3_export_uapi.zig",
@@ -58,6 +61,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
     "PHASE3_MMIO_SCOPE=range-read32-write32",
@@ -163,7 +167,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     if not script_path.exists():
         return
     if script_path.read_text(encoding="utf-8") != render_wrapper_stub():
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
 
 
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -194,6 +198,15 @@ def validate_export_uapi_focused_build(root: Path, issues: list[str]) -> None:
         return
     if not _has_build_step(build_file, "phase3-export-uapi-test"):
         issues.append(f"abi:missing_build_step:{ABI_EXPORT_UAPI_BUILD_FILE_REL}:phase3-export-uapi-test")
+
+
+def validate_policy_unsafe_focused_build(root: Path, issues: list[str]) -> None:
+    build_file = root / ABI_POLICY_UNSAFE_BUILD_FILE_REL
+    if not build_file.exists():
+        issues.append(f"abi:missing_file:{ABI_POLICY_UNSAFE_BUILD_FILE_REL}")
+        return
+    if not _has_build_step(build_file, "phase3-policy-unsafe-test"):
+        issues.append(f"abi:missing_build_step:{ABI_POLICY_UNSAFE_BUILD_FILE_REL}:phase3-policy-unsafe-test")
 
 
 def validate_runner_metadata(slices: list[object], issues: list[str]) -> None:
@@ -257,6 +270,7 @@ def validate_slices(
     validate_buildSteps(root, slices, issues)
     validate_abi_focused_build(root, issues)
     validate_export_uapi_focused_build(root, issues)
+    validate_policy_unsafe_focused_build(root, issues)
     validate_runner_metadata(slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
     if check_artifact_diff:
@@ -299,6 +313,12 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (paths.tests_dir / "phase3_policy_unsafe_build.zig").write_text(
+            'const phase3_policy_unsafe_step = b.step("phase3-policy-unsafe-test", "Run focused Phase 3 policy and unsafe substrate tests");\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").writeText = None
         (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
             'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
@@ -307,7 +327,7 @@ def run_self_test() -> int:
 
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-5])
+        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-7])
         abi_manifest_path.write_text(
             json.dumps(
                 {
@@ -324,6 +344,8 @@ def run_self_test() -> int:
         abi_issues: list[str] = []
         validate_manifest(root, abi_manifest_path, "abi", abi_issues)
         assert abi_issues == [
+            "abi:manifest_missing_required_file=zigux/tests/phase3_policy_unsafe.zig",
+            "abi:manifest_missing_required_file=zigux/tests/phase3_abi.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi_build.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_abi_dump.zig",
