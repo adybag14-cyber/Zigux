@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- scope: survey manifest, dedicated survey and diff gates, the bounded loader-handoff scaffold, the landed shared loader-request binding, shared Phase 9 build wiring, and the lane-level note that now records the remaining broader runtime-control blocker
+- scope: survey manifest, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit no-substrate rollback evidence, the landed shared loader-request binding, shared Phase 9 build wiring, and the lane-level note that now records the remaining broader runtime-control blocker
 - product boundary:
   - `samples/zigux/runtime_kretprobe_loader.zig`
   - `zigux/tests/runtime_kretprobe_manifest.json`
@@ -30,6 +30,7 @@ The live repo now has a bounded `runtime_kretprobe` starter, dedicated module te
 - the live repo now ships `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, a shared loader-request binding in `zigux/kernel/runtime_loader.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
 - the bounded starter now keeps per-instance private entry timestamps explicit under concurrent active probes, matching the Linux anchor's `struct my_data` shape more closely without claiming real `kretprobe_instance` substrate support.
 - the bounded starter now exposes a stable `RuntimeKretprobeSummary` surface for lifecycle stage, `init_runs`, `selftest_runs`, `exit_runs`, active-instance state, and the latest bounded probe results, so selftest and post-exit review does not depend on reading sample internals directly.
+- the loader scaffold now also makes the no-substrate rollback path explicit: `releaseSharedRuntimeLoadWithoutSubstrate()` returns the shared runtime-loader request surface in `released_without_substrate` state, so the current fallback path is reviewable without implying live `register_kretprobe()` or `unregister_kretprobe()` execution.
 - broader shared runtime-loader controls are still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, loader-handoff behavior, and a machine-checkable shared request shape rather than claiming real module registration parity.
 
 ## Recorded gaps
@@ -46,6 +47,8 @@ The survey manifest now records:
 - the still-blocked `runtime-kretprobe-shared-loader-controls`
 
 This keeps the lane concrete without pretending that Zigux already has real `register_kretprobe()` substrate support or the broader shared runtime-loader controls needed for execution.
+
+The manifest-backed review prompts for this lane now also keep one rollback question explicit: does the current packet still name the no-substrate fallback path, or did a code change silently turn the bounded handoff into an implied live loader?
 
 ## Gates
 
