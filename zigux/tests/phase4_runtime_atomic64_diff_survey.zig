@@ -103,6 +103,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest-family") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-selftest replay") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-runtime-atomic64-sample-starter")) {
@@ -110,6 +111,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest-hook replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-selftest replay") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-shared-build-entrypoint")) {
@@ -142,6 +144,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "full wider atomic64_test.c surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf threshold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-selftest replay") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
