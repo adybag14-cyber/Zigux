@@ -217,6 +217,37 @@ test "runtime bitmap sample selftest keeps the bounded review contract explicit"
     try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
 }
 
+test "runtime bitmap sample keeps post-selftest mutation replay explicit" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+    _ = try module.runSelftest();
+
+    try module.clearRange(bitmap_view.bits_per_long, 2);
+    try module.setRange(9, 4);
+
+    const summary_after_mutation = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(u32, 0), summary_after_mutation.first_set);
+    try std.testing.expectEqual(@as(u32, 1), summary_after_mutation.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), summary_after_mutation.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary_after_mutation.nbits);
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(module.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expect(!module.isSet(bitmap_view.bits_per_long));
+
+    var mirror = RuntimeBitmapSample{};
+    try mirror.initWithSetBits(&.{});
+    try mirror.copyFrom(&module);
+
+    const mirror_summary = mirror.summary();
+    try std.testing.expectEqual(summary_after_mutation.first_set, mirror_summary.first_set);
+    try std.testing.expectEqual(summary_after_mutation.first_zero, mirror_summary.first_zero);
+    try std.testing.expectEqual(summary_after_mutation.weight, mirror_summary.weight);
+    try std.testing.expect(mirror.isSet(12));
+    try std.testing.expect(mirror.isSet(bitmap_view.bits_per_long + 6));
+    try std.testing.expect(!mirror.isSet(bitmap_view.bits_per_long));
+}
+
 test "runtime bitmap sample keeps exit lifecycle and post-exit snapshot explicit" {
     var module = RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
