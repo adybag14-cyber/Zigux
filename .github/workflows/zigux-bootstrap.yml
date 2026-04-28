@@ -134,7 +134,7 @@ jobs:
       - name: Check bounded kconfig bridge parity
         run: python3 scripts/zigux/check-kconfig-bridge.py
 
-      - name: Check bounded mk_elfconfig artifact parity
+      - name: Check bounded mk_elfconfig artifact parity and determinism
         run: python3 scripts/zigux/check-mk-elfconfig-diff.py
 
       - name: Check discovered Phase 3 parity
