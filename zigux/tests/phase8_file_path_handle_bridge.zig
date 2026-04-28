@@ -15,6 +15,17 @@ test "phase 8 file-path-handle bridge builds proc fdinfo paths without widening 
     try std.testing.expectError(error.InvalidFd, file_path_handle_bridge.buildFdinfoPath(&buffer, 4321, -3));
 }
 
+test "phase 8 file-path-handle bridge keeps the current-process fdinfo helper bounded" {
+    var actual: [64]u8 = undefined;
+    var expected: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        try std.fmt.bufPrint(&expected, "/proc/{d}/fdinfo/{d}", .{ std.os.linux.getpid(), 12 }),
+        try file_path_handle_bridge.buildCurrentProcessFdinfoPath(&actual, 12),
+    );
+    try std.testing.expectError(error.InvalidFd, file_path_handle_bridge.buildCurrentProcessFdinfoPath(&actual, -2));
+}
+
 test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
     const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_type:\t3\n" ++

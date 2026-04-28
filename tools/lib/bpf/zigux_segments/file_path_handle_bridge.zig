@@ -86,6 +86,11 @@ pub fn buildFdinfoPath(buffer: []u8, pid: u32, fd: i32) FilePathHandleBridgeErro
     return std.fmt.bufPrint(buffer, "/proc/{d}/fdinfo/{d}", .{ pid, fd }) catch |err| noSpaceToPathTooLong(err);
 }
 
+pub fn buildCurrentProcessFdinfoPath(buffer: []u8, fd: i32) FilePathHandleBridgeError![]u8 {
+    const pid = std.math.cast(u32, std.os.linux.getpid()) orelse return error.InvalidPid;
+    return buildFdinfoPath(buffer, pid, fd);
+}
+
 pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {
     var info = FdInfoMapInfo{
         .map_type = 0,
@@ -138,6 +143,17 @@ test "buildFdinfoPath keeps invalid pid fd and buffer exhaustion explicit" {
     try std.testing.expectError(error.InvalidPid, buildFdinfoPath(&short_buffer, 0, 4));
     try std.testing.expectError(error.InvalidFd, buildFdinfoPath(&short_buffer, 7, -1));
     try std.testing.expectError(error.PathTooLong, buildFdinfoPath(&short_buffer, 1234, 56));
+}
+
+test "buildCurrentProcessFdinfoPath matches the live libbpf current-process anchor" {
+    var actual: [64]u8 = undefined;
+    var expected: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        try std.fmt.bufPrint(&expected, "/proc/{d}/fdinfo/{d}", .{ std.os.linux.getpid(), 11 }),
+        try buildCurrentProcessFdinfoPath(&actual, 11),
+    );
+    try std.testing.expectError(error.InvalidFd, buildCurrentProcessFdinfoPath(&actual, -1));
 }
 
 test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {

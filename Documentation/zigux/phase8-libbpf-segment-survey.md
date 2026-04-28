@@ -71,7 +71,7 @@ The current starter implementation stays deliberately bounded:
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
-- `file_path_handle_bridge.zig` ports the pure `/proc/<pid>/fdinfo/<fd>` path construction and bounded `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` text parsing from `bpf_get_map_info_from_fdinfo()`
+- `file_path_handle_bridge.zig` ports the pure `/proc/<pid>/fdinfo/<fd>` path construction, a current-process convenience wrapper that mirrors libbpf's `getpid()`-based anchor, and bounded `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` text parsing from `bpf_get_map_info_from_fdinfo()`
 - the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines and keeps duplicate or malformed fields explicit for callers instead of silently guessing
 - the new helper still does not claim `fopen()`, `fgets()`, `fclose()`, pinned-object reopen flows, or token creation lifecycle parity
 
@@ -94,7 +94,7 @@ The current tests check:
 - default and caller-provided pin roots join cleanly with map names
 - `.` characters inside pin roots and map names sanitize to `_` the same way bpffs pin-name helpers do in libbpf
 - buffer exhaustion during pin-path assembly stays explicit
-- proc fdinfo paths format cleanly for representative pid and fd pairs without widening into direct file reads
+- proc fdinfo paths format cleanly for representative pid and fd pairs, including the current-process `getpid()` convenience path, without widening into direct file reads
 - bounded fdinfo map metadata parsing accepts reordered lines and explicit `map_flags` bases while rejecting duplicates, malformed values, and missing required fields
 
 ## Gates
