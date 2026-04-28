@@ -1,18 +1,18 @@
 {
-  "lane_key": "P5-L22",
+  "lane_key": "P5-L10",
   "phase": "Phase 5",
-  "surveyed_commit": "382535b72d78cd6897d45e624103be6e4c15aae2",
+  "surveyed_commit": "2b5f92f6cf683de6fb54a81fb5374c78e9e2d9f5",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact registration, Linux foo/baz/bar attribute order, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
+    "the manifest and survey test still describe the exact registration, Linux foo/baz/bar attribute order, shared 0664 attribute mode pattern, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
     "the sample-backed survey note and shared review checklist still name the manifest-backed survey, sample-backed survey note, and phase5_build.zig entrypoint as part of the shipped kobject review surface",
     "the manifest prompts keep the unnamed attribute group shape plus the pre-registration and post-exit init/register/show/store rejection boundaries explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration, attribute-order, and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "ownership checks keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show/store access until registerAttributes claims ownership",
-    "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
+    "docs and tests keep the post-exit init/register/show/store boundary explicit while still keeping sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
     {
@@ -24,6 +24,11 @@
       "id": "attribute-order",
       "kind": "anchor_shape",
       "expected": "the replay summary keeps the Linux attribute array order foo, baz, bar explicit"
+    },
+    {
+      "id": "attribute-mode",
+      "kind": "anchor_shape",
+      "expected": "the replay summary keeps the Linux foo, baz, and bar attribute mode pattern explicit as 0664 for all three attributes"
     },
     {
       "id": "registration-step",
@@ -53,7 +58,7 @@
     {
       "id": "exit-boundary",
       "kind": "ownership_lifetime",
-      "expected": "exit clears the tracked values, removes the active attribute count, and rejects later init, registerAttributes, show, or store calls"
+      "expected": "exit clears the tracked values, removes the active attribute count, and rejects later init, registerAttributes, showValue, or storeValue calls"
     }
   ],
   "non_goals": [
