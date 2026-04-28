@@ -92,6 +92,13 @@
       "why_now": "The live helper now records bounded config-generation increments, the last observed generation, and pending-generation visibility beside the existing config-change bookkeeping, making one more core-local review surface concrete before any ring, MMIO, probe, or remove work."
     },
     {
+      "id": "phase10-config-delivery-disposition-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The live helper now records whether __virtio_config_changed() deferred delivery, invoked a present config_changed handler, or ignored the change because no handler was bound, which makes the last config-change branch outcome reviewable without claiming probe, remove, or transport-backed lifecycle parity."
+    },
+    {
       "id": "phase10-core-probe-remove-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "lab_driver_starter",
