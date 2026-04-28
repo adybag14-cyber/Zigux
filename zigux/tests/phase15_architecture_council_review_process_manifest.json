@@ -5,6 +5,19 @@
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
+  "approval_evidence_fields": [
+    "requested decision bucket",
+    "decision record ID",
+    "no Architecture Council approval claim"
+  ],
+  "approval_evidence_paths": [
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+    "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+    "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md"
+  ],
   "ownership_evidence_fields": [
     "owner",
     "rollback owner",
@@ -18,6 +31,13 @@
     "indefinite-C policy link or applicability note",
     "reopen triggers",
     "parity scorecard link or blocker record"
+  ],
+  "ownership_evidence_paths": [
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+    "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+    "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+    "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md"
   ],
   "trigger_conditions": [
     "freeze-map list change",
