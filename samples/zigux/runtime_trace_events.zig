@@ -24,6 +24,7 @@ pub const ModuleDescriptor = struct {
 
 pub const MainThreadPayload = struct {
     foo_bar_message: []const u8,
+    random_choice_message: []const u8,
     template_message: []const u8,
     conditional_message: []const u8,
     template_cond_message: []const u8,
@@ -39,6 +40,13 @@ pub const FunctionThreadPayload = struct {
 
 const main_thread_events_per_iteration: usize = 6;
 const function_thread_events_per_iteration: usize = 2;
+const random_strings = [_][]const u8{
+    "Mother Goose",
+    "Snoopy",
+    "Gandalf",
+    "Frodo",
+    "One ring to rule them all",
+};
 
 pub const EmissionSummary = struct {
     anchor: []const u8,
@@ -67,6 +75,7 @@ pub const RuntimeTraceEventsSummary = struct {
     saw_rel_loc_payload: bool,
     saw_conditional_path: bool,
     last_main_foo_bar_message: ?[]const u8,
+    last_main_random_choice_message: ?[]const u8,
     last_main_template_message: ?[]const u8,
     last_main_conditional_message: ?[]const u8,
     last_main_template_cond_message: ?[]const u8,
@@ -127,6 +136,7 @@ pub const RuntimeTraceEventsSample = struct {
             .saw_rel_loc_payload = self.saw_rel_loc_payload,
             .saw_conditional_path = self.saw_conditional_path,
             .last_main_foo_bar_message = if (self.last_main_payload) |payload| payload.foo_bar_message else null,
+            .last_main_random_choice_message = if (self.last_main_payload) |payload| payload.random_choice_message else null,
             .last_main_template_message = if (self.last_main_payload) |payload| payload.template_message else null,
             .last_main_conditional_message = if (self.last_main_payload) |payload| payload.conditional_message else null,
             .last_main_template_cond_message = if (self.last_main_payload) |payload| payload.template_cond_message else null,
@@ -174,6 +184,11 @@ pub const RuntimeTraceEventsSample = struct {
         self.registration_depth -= 1;
     }
 
+    fn randomStringForCount(count: i32) []const u8 {
+        const len: i32 = @mod(count, @as(i32, @intCast(random_strings.len)));
+        return random_strings[@as(usize, @intCast(len))];
+    }
+
     pub fn emitMainIteration(self: *Self, count: i32) !usize {
         try self.ensureMutable();
 
@@ -184,6 +199,7 @@ pub const RuntimeTraceEventsSample = struct {
         self.saw_conditional_path = true;
         self.last_main_payload = .{
             .foo_bar_message = "hello",
+            .random_choice_message = randomStringForCount(count),
             .template_message = "HELLO",
             .conditional_message = "Some times print",
             .template_cond_message = "prints other times",
