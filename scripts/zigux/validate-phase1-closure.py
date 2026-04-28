@@ -59,7 +59,7 @@ required_closure_markers = [
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`',
-    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, skipSpaces, removeSpaces, and replaceChar',
+    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string skip_spaces, remove_spaces, strim, strreplace, and memchr_inv aliases stay aligned with skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv, including the embedded-NUL stop behavior that keeps remove_spaces and strreplace from touching trailing bytes past the first terminator',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -210,7 +210,7 @@ if string_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps me
     missing_markers.append('manifest:string.unit_test_contract')
 if string_review.get('alias_unit_test_anchor') != 'tools/lib/string.zig:test "skip trim remove and replace spaces work in place"':
     missing_markers.append('manifest:string.alias_unit_test_anchor')
-if string_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage exercises the strim and strreplace wrapper aliases alongside trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior that keeps strreplace from mutating trailing bytes past the first terminator.':
+if string_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage exercises the skip_spaces, remove_spaces, strim, strreplace, and memchr_inv aliases alongside skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv, including the embedded-NUL stop behavior that keeps remove_spaces and strreplace from touching trailing bytes past the first terminator.':
     missing_markers.append('manifest:string.alias_unit_test_contract')
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
