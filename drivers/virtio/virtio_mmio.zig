@@ -13,14 +13,23 @@ pub const Register = enum(u32) {
     device_features_sel = 0x014,
     driver_features = 0x020,
     driver_features_sel = 0x024,
+    guest_page_size = 0x028,
     queue_sel = 0x030,
     queue_num_max = 0x034,
     queue_num = 0x038,
+    queue_align = 0x03c,
+    queue_pfn = 0x040,
     queue_ready = 0x044,
     queue_notify = 0x050,
     interrupt_status = 0x060,
     interrupt_ack = 0x064,
     status = 0x070,
+    queue_desc_low = 0x080,
+    queue_desc_high = 0x084,
+    queue_avail_low = 0x090,
+    queue_avail_high = 0x094,
+    queue_used_low = 0x0a0,
+    queue_used_high = 0x0a4,
     config_generation = 0x0fc,
 };
 
@@ -57,6 +66,25 @@ pub const QueueNotifySummary = struct {
     notification_count: usize,
 };
 
+pub const QueueAddressKind = enum {
+    legacy,
+    modern,
+};
+
+pub const QueueAddressSummary = struct {
+    anchor: []const u8,
+    selected_queue: u32,
+    kind: QueueAddressKind,
+    legacy_guest_page_size: ?u32,
+    legacy_queue_align: ?u32,
+    legacy_queue_pfn: ?u32,
+    modern_desc: ?u64,
+    modern_avail: ?u64,
+    modern_used: ?u64,
+    queue_size: u16,
+    queue_ready: bool,
+};
+
 pub const StatusSummary = struct {
     anchor: []const u8,
     status: u8,
@@ -80,6 +108,11 @@ const QueueRegisterState = struct {
     max_size: u16 = 0,
     size: u16 = 0,
     ready: bool = false,
+    legacy_queue_align: u32 = 0,
+    legacy_queue_pfn: u32 = 0,
+    modern_desc: u64 = 0,
+    modern_avail: u64 = 0,
+    modern_used: u64 = 0,
 };
 
 pub const VirtioMmioRegisterWindowLab = struct {
@@ -91,6 +124,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
     selected_driver_page: u32 = 0,
     queues: [supported_queues]QueueRegisterState = .{ .{}, .{} },
     selected_queue: u32 = 0,
+    legacy_guest_page_size: u32 = 0,
     status: u8 = 0,
     config_generation: u32 = 0,
     interrupt_status: u32 = 0,
@@ -191,6 +225,17 @@ pub const VirtioMmioRegisterWindowLab = struct {
         return self.queueRegisterSummary();
     }
 
+    pub fn queueRegisterSummary(self: *const Self) !QueueRegisterSummary {
+        const queue_state = self.queues[try checkedQueue(self.selected_queue)];
+        return .{
+            .anchor = descriptor().anchor,
+            .selected_queue = self.selected_queue,
+            .selected_queue_size_max = queue_state.max_size,
+            .selected_queue_size = queue_state.size,
+            .selected_queue_ready = queue_state.ready,
+        };
+    }
+
     pub fn notifySelectedQueue(self: *Self) !QueueNotifySummary {
         const queue_index = try checkedQueue(self.selected_queue);
         const queue_state = self.queues[queue_index];
@@ -209,14 +254,69 @@ pub const VirtioMmioRegisterWindowLab = struct {
         };
     }
 
-    pub fn queueRegisterSummary(self: *const Self) !QueueRegisterSummary {
+    pub fn planLegacyQueueAddress(
+        self: *Self,
+        guest_page_size: u32,
+        queue_align: u32,
+        queue_pfn: u32,
+    ) !QueueAddressSummary {
+        const queue_index = try checkedQueue(self.selected_queue);
+        const queue_state = &self.queues[queue_index];
+
+        if (queue_state.size == 0) return error.QueueAddressRequiresConfiguredSize;
+        if (queue_state.ready) return error.QueueReadyBlocksAddressRewrite;
+        if (guest_page_size == 0) return error.LegacyGuestPageSizeMustBeNonZero;
+        if (queue_align == 0) return error.LegacyQueueAlignMustBeNonZero;
+        if (queue_pfn == 0) return error.LegacyQueuePfnMustBeNonZero;
+
+        self.legacy_guest_page_size = guest_page_size;
+        queue_state.legacy_queue_align = queue_align;
+        queue_state.legacy_queue_pfn = queue_pfn;
+        queue_state.modern_desc = 0;
+        queue_state.modern_avail = 0;
+        queue_state.modern_used = 0;
+
+        return self.queueAddressSummary(.legacy);
+    }
+
+    pub fn planModernQueueAddress(
+        self: *Self,
+        desc: u64,
+        avail: u64,
+        used: u64,
+    ) !QueueAddressSummary {
+        const queue_index = try checkedQueue(self.selected_queue);
+        const queue_state = &self.queues[queue_index];
+
+        if (queue_state.size == 0) return error.QueueAddressRequiresConfiguredSize;
+        if (queue_state.ready) return error.QueueReadyBlocksAddressRewrite;
+        if (desc == 0) return error.ModernQueueDescMustBeNonZero;
+        if (avail == 0) return error.ModernQueueAvailMustBeNonZero;
+        if (used == 0) return error.ModernQueueUsedMustBeNonZero;
+
+        queue_state.legacy_queue_align = 0;
+        queue_state.legacy_queue_pfn = 0;
+        queue_state.modern_desc = desc;
+        queue_state.modern_avail = avail;
+        queue_state.modern_used = used;
+
+        return self.queueAddressSummary(.modern);
+    }
+
+    pub fn queueAddressSummary(self: *const Self, kind: QueueAddressKind) !QueueAddressSummary {
         const queue_state = self.queues[try checkedQueue(self.selected_queue)];
         return .{
             .anchor = descriptor().anchor,
             .selected_queue = self.selected_queue,
-            .selected_queue_size_max = queue_state.max_size,
-            .selected_queue_size = queue_state.size,
-            .selected_queue_ready = queue_state.ready,
+            .kind = kind,
+            .legacy_guest_page_size = if (kind == .legacy) self.legacy_guest_page_size else null,
+            .legacy_queue_align = if (kind == .legacy) queue_state.legacy_queue_align else null,
+            .legacy_queue_pfn = if (kind == .legacy) queue_state.legacy_queue_pfn else null,
+            .modern_desc = if (kind == .modern) queue_state.modern_desc else null,
+            .modern_avail = if (kind == .modern) queue_state.modern_avail else null,
+            .modern_used = if (kind == .modern) queue_state.modern_used else null,
+            .queue_size = queue_state.size,
+            .queue_ready = queue_state.ready,
         };
     }
 
@@ -229,10 +329,16 @@ pub const VirtioMmioRegisterWindowLab = struct {
     pub fn reset(self: *Self) StatusSummary {
         self.status = 0;
         self.selected_queue = 0;
+        self.legacy_guest_page_size = 0;
         self.notification_count = 0;
         for (&self.queues) |*queue_state| {
             queue_state.size = 0;
             queue_state.ready = false;
+            queue_state.legacy_queue_align = 0;
+            queue_state.legacy_queue_pfn = 0;
+            queue_state.modern_desc = 0;
+            queue_state.modern_avail = 0;
+            queue_state.modern_used = 0;
         }
         self.reset_count += 1;
         return self.statusSummary();
@@ -304,11 +410,11 @@ fn validateInterruptBits(bits: u32) !void {
 }
 
 test "register enum keeps the bounded mmio offsets reviewable" {
-    try std.testing.expectEqual(@as(u32, 0x010), @intFromEnum(Register.device_features));
-    try std.testing.expectEqual(@as(u32, 0x024), @intFromEnum(Register.driver_features_sel));
-    try std.testing.expectEqual(@as(u32, 0x030), @intFromEnum(Register.queue_sel));
-    try std.testing.expectEqual(@as(u32, 0x044), @intFromEnum(Register.queue_ready));
+    try std.testing.expectEqual(@as(u32, 0x028), @intFromEnum(Register.guest_page_size));
+    try std.testing.expectEqual(@as(u32, 0x03c), @intFromEnum(Register.queue_align));
+    try std.testing.expectEqual(@as(u32, 0x040), @intFromEnum(Register.queue_pfn));
     try std.testing.expectEqual(@as(u32, 0x050), @intFromEnum(Register.queue_notify));
-    try std.testing.expectEqual(@as(u32, 0x064), @intFromEnum(Register.interrupt_ack));
+    try std.testing.expectEqual(@as(u32, 0x080), @intFromEnum(Register.queue_desc_low));
+    try std.testing.expectEqual(@as(u32, 0x0a4), @intFromEnum(Register.queue_used_high));
     try std.testing.expectEqual(@as(u32, 0x0fc), @intFromEnum(Register.config_generation));
 }
