@@ -2,7 +2,7 @@ PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-abi phase3-interop phase3
 PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-bitmap-diff phase4
 PHONY += phase6-validate phase6-test phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-perf phase6
-PHONY += phase7-test phase7
+PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-validate phase8-test phase8
 PHONY += phase9-validate phase9-test phase9
 PHONY += phase10-validate phase10-test phase10
@@ -100,10 +100,14 @@ phase6-hexdump-perf:
 
 phase6: phase6-validate phase6-test
 
+phase7-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py
+
 phase7-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig
 
-phase7: phase7-test
+phase7: phase7-validate phase7-test
 
 phase8-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
