@@ -4,6 +4,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // Helper tests import the shipped Phase 7 leaf modules explicitly.
     const string_helpers_module = b.createModule(.{
         .root_source_file = b.path("../../lib/string_helpers.zig"),
         .target = target,
@@ -40,6 +41,7 @@ pub fn build(b: *std.Build) void {
     });
     argv_split_root_module.addImport("argv_split", argv_split_module);
 
+    // Survey tests stay self-contained and read their manifest JSON from repo-root paths.
     const argv_split_survey_root_module = b.createModule(.{
         .root_source_file = b.path("phase7_argv_split_survey.zig"),
         .target = target,
