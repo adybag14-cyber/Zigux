@@ -358,6 +358,6 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_raw_fallback_catalog);
     try std.testing.expect(saw_probe_snapshot);
-    try std.testing.expect(saw_host_limitSummary);
+    try std.testing.expect(saw_host_limit_summary);
     try std.testing.expect(saw_blocker);
 }
