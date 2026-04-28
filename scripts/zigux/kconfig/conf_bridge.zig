@@ -4,6 +4,7 @@ const Io = std.Io;
 pub const Mode = enum {
     olddefconfig,
     oldconfig,
+    listnewconfig,
     yes2modconfig,
     mod2yesconfig,
     defconfig,
@@ -29,6 +30,7 @@ pub const Mode = enum {
         return switch (self) {
             .olddefconfig => "--olddefconfig",
             .oldconfig => "--oldconfig",
+            .listnewconfig => "--listnewconfig",
             .yes2modconfig => "--yes2modconfig",
             .mod2yesconfig => "--mod2yesconfig",
             .defconfig => "--defconfig",
@@ -47,6 +49,7 @@ pub const Mode = enum {
         return switch (self) {
             .olddefconfig => "olddefconfig",
             .oldconfig => "oldconfig",
+            .listnewconfig => "listnewconfig",
             .yes2modconfig => "yes2modconfig",
             .mod2yesconfig => "mod2yesconfig",
             .defconfig => "defconfig",
@@ -189,6 +192,44 @@ test "conf bridge emits olddefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"olddefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--olddefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\".config\"") != null);
+}
+
+test "conf bridge emits listnewconfig argv and env" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 144), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .listnewconfig,
+        .kconfig = "Kconfig",
+        .config = "pending/.config",
+        .arch = "s390",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"listnewconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--listnewconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"pending/.config\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"s390\"") != null);
 }
 
 test "conf bridge emits syncconfig auto files" {
