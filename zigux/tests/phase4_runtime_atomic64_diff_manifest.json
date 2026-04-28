@@ -1,14 +1,14 @@
 {
   "lane_key": "P4-L01",
   "phase": "Phase 4",
-  "surveyed_commit": "a92dedede4388d547f584d1f13b2a73237d4b8e8",
+  "surveyed_commit": "c5e4b230582aa802127d96e4bf11ba03aa82381f",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/atomic64_diff.zig"
   ],
   "survey_summary": {
     "atomic64_test_c_lines": 277,
-    "runtime_atomic64_diff_lines": 259,
+    "runtime_atomic64_diff_lines": 326,
     "runtime_atomic64_diff_present": true,
     "phase4_build_present": true,
     "runtime_atomic64_sample_present": true,
