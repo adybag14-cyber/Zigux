@@ -442,4 +442,18 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" 
     try std.testing.expectEqualStrings("weak_handler", filename_state.names.items[1]);
     try std.testing.expectEqual(@as(u8, 'W'), filename_state.symbol_types.items[1]);
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), filename_state.starts.items[1]);
+
+    var missing_state = CallbackState.init();
+    defer missing_state.deinit(std.testing.allocator);
+
+    const missing_result = try kallsyms.kallsymsParse(
+        std.testing.allocator,
+        io,
+        "missing-kallsyms.map",
+        &missing_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, -1), missing_result);
+    try std.testing.expectEqual(@as(usize, 0), missing_state.names.items.len);
 }
