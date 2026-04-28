@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "2df6754190ab411701d6892741e2fd4d2d750c4a",
+  "surveyed_commit": "5dab7ee45d2664801211fb9e2ccba28e1a127071",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -18,7 +18,7 @@
   },
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded in-memory counter starter rather than implying a loadable module",
-    "the manifest, survey gate, direct phase9-runtime-atomic64-sample-tests leg, module tests, diff gate, loader scaffold, and sample-backed notes still describe the exact lifecycle, swap, compare-swap, guard-return, loader handoff, and post-selftest replay contract run through phase9_build.zig",
+    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, direct phase9-runtime-atomic64-sample-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter"
@@ -78,6 +78,110 @@
       "id": "diff-swap-and-guard-cases",
       "kind": "differential_validation",
       "expected": "the diff gate replays wide-value exchange, cmpxchg success and mismatch, add_unless, inc_not_zero, dec_if_positive, single-shot lifecycle, and post-selftest replay expectations from lib/atomic64_test.c"
+    }
+  ],
+  "delivery_evidence_catalog": [
+    {
+      "id": "runtime-atomic64-survey-note",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+      "role": "records the roadmap anchor, shipped starter scope, explicit ownership packet, and remaining shared-loader blocker without implying loadable-module parity"
+    },
+    {
+      "id": "runtime-atomic64-manifest",
+      "kind": "manifest",
+      "path": "zigux/tests/runtime_atomic64_manifest.json",
+      "role": "holds the manifest-backed exact checks, delivery catalog, and ownership map for the current runtime atomic64 packet"
+    },
+    {
+      "id": "runtime-atomic64-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_atomic64_survey.zig",
+      "role": "machine-checks the manifest-backed ownership packet, exact checks, and adjacent blocked shared-loader note"
+    },
+    {
+      "id": "runtime-atomic64-module-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_atomic64_module.zig",
+      "role": "owns the starter-facing lifecycle, selftest, and guard-path replay for the bounded runtime atomic64 sample"
+    },
+    {
+      "id": "runtime-atomic64-diff-gate",
+      "kind": "differential_validation",
+      "path": "zigux/tests/runtime_atomic64_diff.zig",
+      "role": "owns the bounded differential replay for arithmetic, bitwise, swap, compare-swap, and guard-return expectations from lib/atomic64_test.c"
+    },
+    {
+      "id": "phase9-atomic64-build-gate",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "role": "keeps the direct phase9-runtime-atomic64-sample-tests leg and the surrounding atomic64 survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint"
+    },
+    {
+      "id": "runtime-atomic64-sample",
+      "kind": "sample_starter",
+      "path": "samples/zigux/runtime_atomic64.zig",
+      "role": "owns the bounded in-memory atomic64 starter contract, lifecycle staging, and selftest-hook metadata"
+    },
+    {
+      "id": "runtime-atomic64-loader-scaffold",
+      "kind": "runtime_substrate_scaffold",
+      "path": "samples/zigux/runtime_atomic64_loader.zig",
+      "role": "owns the entry and exit symbol names, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary for the sample-side loader projection"
+    },
+    {
+      "id": "runtime-atomic64-shared-loader-binding",
+      "kind": "runtime_substrate",
+      "path": "zigux/kernel/runtime_loader.zig",
+      "role": "owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols"
+    },
+    {
+      "id": "runtime-loader-gap-note",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "role": "owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps the atomic64 packet pre-execution"
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+      "owns": "the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording"
+    },
+    {
+      "surface": "zigux/tests/runtime_atomic64_manifest.json",
+      "owns": "the manifest-backed exact checks, delivery catalog, and ownership map for the current runtime atomic64 packet"
+    },
+    {
+      "surface": "zigux/tests/runtime_atomic64_survey.zig",
+      "owns": "the machine-checkable replay of the manifest-backed ownership packet, exact checks, and adjacent blocked shared-loader note"
+    },
+    {
+      "surface": "zigux/tests/runtime_atomic64_module.zig",
+      "owns": "the bounded starter lifecycle, selftest, and guard-path replay surface"
+    },
+    {
+      "surface": "zigux/tests/runtime_atomic64_diff.zig",
+      "owns": "the bounded differential replay for arithmetic, bitwise, swap, compare-swap, and guard-return expectations"
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "owns": "the shared Phase 9 runtime entrypoint that replays the direct atomic64 sample leg plus the survey, module, diff, loader, and shared-loader checks"
+    },
+    {
+      "surface": "samples/zigux/runtime_atomic64.zig",
+      "owns": "the bounded in-memory atomic64 starter contract, lifecycle staging, and selftest-hook metadata"
+    },
+    {
+      "surface": "samples/zigux/runtime_atomic64_loader.zig",
+      "owns": "the sample-side loader projection, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary"
+    },
+    {
+      "surface": "zigux/kernel/runtime_loader.zig",
+      "owns": "the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "owns": "the blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps the atomic64 packet pre-execution"
     }
   ],
   "gaps": [
