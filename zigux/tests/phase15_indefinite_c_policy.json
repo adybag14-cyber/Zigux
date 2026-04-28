@@ -136,7 +136,7 @@
       "id": "phase15-indefinite-c-maintenance-handoff",
       "status": "starter_landed",
       "kind": "handoff",
-      "zigux_destination": "Documentation/zigux/phase15-indefinite_c_policy.md",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
       "why_now": "The parked indefinite-C policy lane now needs the same machine-checkable maintenance-mode handoff already recorded on the other Phase 15 governance surfaces so future-target wording cannot drift silently."
     },
     {
