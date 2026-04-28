@@ -20,6 +20,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_pin_path.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
+  - `zigux/tests/phase8_libbpf_segments_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -101,7 +102,10 @@ The current tests check:
 1. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig`
 
-2. run the convenience target
+2. run the focused libbpf survey replay
+- `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
+
+3. run the convenience target
 - `make -C zigux phase8`
 
 ## Non-goals
