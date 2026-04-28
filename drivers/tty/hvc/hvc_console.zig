@@ -104,6 +104,37 @@ pub const TtyRegistrationHandoffSnapshot = struct {
     host_io_pending: bool,
 };
 
+pub const KhvcdPollingContractRequest = struct {
+    close: CloseRequest = .{},
+    notifier_add_pending: bool = false,
+    notifier_del_pending: bool = false,
+    notifier_hangup_pending: bool = false,
+    read_poll_pending: bool = false,
+    write_poll_pending: bool = false,
+};
+
+pub const KhvcdPollingContractSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    tty_registration_pending: bool,
+    khvcd_polling_pending: bool,
+    notifier_driven_wakeup: bool,
+    poll_driven_wakeup: bool,
+    khvcd_wakeup_required: bool,
+    reschedule_required: bool,
+    notifier_add_pending: bool,
+    notifier_del_pending: bool,
+    notifier_hangup_pending: bool,
+    read_poll_pending: bool,
+    write_poll_pending: bool,
+    teardown_host_io_pending: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -213,6 +244,42 @@ pub const HvcConsoleLab = struct {
             .khvcd_polling_pending = true,
             .notifier_callbacks_pending = true,
             .host_io_pending = true,
+        };
+    }
+
+    pub fn summarizeKhvcdPollingContract(
+        self: *const Self,
+        request: KhvcdPollingContractRequest,
+    ) !KhvcdPollingContractSnapshot {
+        const handoff = try self.summarizeTtyRegistrationHandoff(request.close);
+        const notifier_driven_wakeup = request.notifier_add_pending or
+            request.notifier_del_pending or
+            request.notifier_hangup_pending;
+        const poll_driven_wakeup = request.read_poll_pending or request.write_poll_pending;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = handoff.slot_index,
+            .vtermno = handoff.vtermno,
+            .adapter_present = handoff.adapter_present,
+            .final_close_wait_required = handoff.final_close_wait_required,
+            .clears_port_initialized_on_final_close = handoff.clears_port_initialized_on_final_close,
+            .keeps_console_binding = handoff.keeps_console_binding,
+            .tty_registration_pending = handoff.tty_registration_pending,
+            .khvcd_polling_pending = handoff.khvcd_polling_pending,
+            .notifier_driven_wakeup = notifier_driven_wakeup,
+            .poll_driven_wakeup = poll_driven_wakeup,
+            .khvcd_wakeup_required = handoff.khvcd_kick_on_open or
+                handoff.khvcd_kick_on_unthrottle or
+                notifier_driven_wakeup or
+                poll_driven_wakeup,
+            .reschedule_required = poll_driven_wakeup,
+            .notifier_add_pending = request.notifier_add_pending,
+            .notifier_del_pending = request.notifier_del_pending,
+            .notifier_hangup_pending = request.notifier_hangup_pending,
+            .read_poll_pending = request.read_poll_pending,
+            .write_poll_pending = request.write_poll_pending,
+            .teardown_host_io_pending = handoff.host_io_pending or poll_driven_wakeup,
         };
     }
 
