@@ -12,6 +12,7 @@ The starter stays intentionally narrow:
 - captures one probe snapshot of `virtscsi_probe()` config fields such as `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, and `max_sectors`, plus the derived control, event, default-request, and poll-request queue layout
 - records one host-limit summary that clamps `cmd_per_lun` against a synthetic `can_queue` and captures the derived `max_target`, `max_lun`, `max_sectors`, and `nr_hw_queues` values before any `Scsi_Host` registration work
 - records one `io_queues` and blk-mq queue-map summary that keeps the bounded default, read, and poll queue counts plus their queue offsets in memory before any live `map_queues` callback, CPU-affinity wiring, or blk-mq submission path is attempted
+- derives one recovery-time blk-mq queue-map restore summary from the frozen queue layout so the bounded default, read, and poll map counts plus their offsets remain reviewable across transport reset without claiming a live `map_queues` callback or CPU-affinity restore
 
 This slice does not claim DMA mapping, scatter-gather command assembly, `Scsi_Host` registration, blk-mq submission, event-work recycling, TMF handling, hotplug, or live transport reset recovery.
 
