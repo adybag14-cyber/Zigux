@@ -47,10 +47,13 @@ The current tests check:
 - Linux-style hyphen range expansion and validation-only counting
 - descending-range and unparseable-suffix early stop behavior
 - memory-size suffix scaling with accurate parse-stop reporting
-- rejection of explicit leading-plus numeric inputs so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
+- rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination
+
+Review note:
+- this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
 
 ## Non-goals
 
