@@ -2,8 +2,10 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const atomic = @import("atomic_helpers");
 const barrier = @import("barrier_helpers");
+const export_shim = @import("export_shim");
 const mmio = @import("mmio_helpers");
 const narrow = @import("narrow_unsafe");
+const uapi_version = @import("uapi_version");
 
 test "phase3 low-level wrappers stay inside the documented ABI surface" {
     var value: u32 = 5;
@@ -58,4 +60,22 @@ test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" 
     try std.testing.expect(!narrow.permitsRawPointerBridge(.none));
     try std.testing.expect(!narrow.permitsRawPointerBridge(.volatile_mmio));
     try std.testing.expect(narrow.permitsRawPointerBridge(.raw_pointer_bridge));
+}
+
+test "phase3 focused boundary gate keeps export shim status encoding explicit" {
+    const success = export_shim.ok(.kernel);
+    try std.testing.expect(export_shim.isOk(success));
+    try std.testing.expectEqual(@as(i32, 0), success.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.kernel)), success.facility);
+    try std.testing.expectEqual(@as(u16, 0), success.flags);
+
+    const failure = export_shim.errno(-22, .helpers);
+    try std.testing.expect(!export_shim.isOk(failure));
+    try std.testing.expectEqual(@as(i32, -22), failure.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(abi.Facility.helpers)), failure.facility);
+    try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), failure.flags);
+}
+
+test "phase3 focused boundary gate keeps UAPI version pinned to the ABI version" {
+    try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);
 }
