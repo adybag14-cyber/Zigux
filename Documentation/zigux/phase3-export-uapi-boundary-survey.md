@@ -35,6 +35,7 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - that shim now delegates shared boundary-header construction and compatibility checks through `zigux/uapi/version.zig` instead of keeping header handling fully local
 - `zigux/uapi/version.zig` now exports `abi_version`, `Header`, `boundaryHeader`, and `isCompatible`
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
+- `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header and reject undersized or version-mismatched headers identically
 
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
