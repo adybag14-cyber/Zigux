@@ -83,6 +83,15 @@ pub const CollectExeclArgsError = error{
     TooManyArguments,
 };
 
+pub const DeferredExecCall = struct {
+    argv: []const ?[]const u8,
+
+    pub fn deinit(self: *DeferredExecCall, allocator: std.mem.Allocator) void {
+        allocator.free(self.argv);
+        self.* = undefined;
+    }
+};
+
 pub fn isAbsolutePath(path: []const u8) bool {
     return path.len != 0 and path[0] == '/';
 }
@@ -355,6 +364,24 @@ pub fn collectExeclArgs(
     return error.MissingNullTerminator;
 }
 
+pub fn buildDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) (CollectExeclArgsError || std.mem.Allocator.Error)!DeferredExecCall {
+    const collected = try collectExeclArgs(allocator, cmd, argv_tail);
+    defer allocator.free(collected);
+
+    var argv = try allocator.alloc(?[]const u8, collected.len + 1);
+    argv[0] = config.exec_name;
+    for (collected, 0..) |arg, index| {
+        argv[index + 1] = arg;
+    }
+
+    return .{ .argv = argv };
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -532,6 +559,30 @@ test "collectExeclArgs requires the C helper's trailing null terminator" {
             &[_]?[]const u8{ "-a", "--stdio" },
         ),
     );
+}
+
+test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
 }
 
 test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
