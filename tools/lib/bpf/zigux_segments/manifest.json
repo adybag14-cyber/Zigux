@@ -113,6 +113,18 @@
       "why_now": "After the fdinfo pathname and text parser helper lands, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
     },
     {
+      "id": "P8-L13-S10",
+      "slug": "perf-buffer-online-cpu-routing",
+      "status": "deferred_high_risk",
+      "kind": "interrupt_routing_boundary",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:14049-14110",
+        "tools/lib/bpf/libbpf.c:14429-14480"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+      "why_now": "The remaining cpu-mask-adjacent perf-buffer path is the smallest libbpf surface that still crosses live /sys cpu-mask file reads, cached possible-cpu counts, online CPU filtering, perf-event-array map updates, epoll registration, and the interrupt-routing contract for perf-buffer delivery, so roadmap discipline says keep it explicit as a deferred boundary instead of quietly treating the landed parser helper as broader routing parity."
+    },
+    {
       "id": "P8-L13-S05",
       "slug": "skeleton-population",
       "status": "blocked_on_object_model",
