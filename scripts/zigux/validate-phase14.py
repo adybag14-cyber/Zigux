@@ -272,6 +272,40 @@ if smoke_shard_commands != expected_smoke_shard_commands:
 compile_shards = manifest.get("compile_shards")
 if compile_shards != EXPECTED_COMPILE_SHARDS:
     missing.append("manifest:compile_shards")
+elif isinstance(compile_shards, list):
+    focused_shard_count = sum(
+        1
+        for shard in compile_shards
+        if isinstance(shard, dict) and shard.get("coverage_mode") == "focused_and_full_bundle"
+    )
+    full_bundle_only_count = sum(
+        1
+        for shard in compile_shards
+        if isinstance(shard, dict) and shard.get("coverage_mode") == "full_bundle_only"
+    )
+    dedicated_step_count = sum(
+        1
+        for shard in compile_shards
+        if isinstance(shard, dict) and bool(shard.get("dedicated_step"))
+    )
+    if len(compile_shards) != 5:
+        missing.append(f"manifest:compile_artifact_count={len(compile_shards)}")
+    if focused_shard_count != 1:
+        missing.append(f"manifest:focused_shard_count={focused_shard_count}")
+    if full_bundle_only_count != 4:
+        missing.append(f"manifest:full_bundle_only_artifact_count={full_bundle_only_count}")
+    if dedicated_step_count != focused_shard_count:
+        missing.append(f"manifest:dedicated_step_count={dedicated_step_count}")
+    if f"PHASE14_COMPILE_ARTIFACT_COUNT={len(compile_shards)}" not in smoke_note_text:
+        missing.append("smoke_note:compile_artifact_count")
+    if f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}" not in smoke_note_text:
+        missing.append("smoke_note:focused_shard_count")
+    if f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}" not in smoke_note_text:
+        missing.append("smoke_note:full_bundle_only_artifact_count")
+    if "only the shared smoke survey has a dedicated shard today" not in smoke_note_text:
+        missing.append("smoke_note:focused_shard_boundary")
+    if "four anchor-local artifacts still replay only through the broader `test` bundle" not in smoke_note_text:
+        missing.append("smoke_note:full_bundle_boundary")
 
 summary = manifest.get("survey_summary")
 if not isinstance(summary, dict):
@@ -323,6 +357,8 @@ if build_text.count('b.step("phase14-smoke"') != 1:
     missing.append("build:focused_smoke_step")
 if build_text.count('b.step("test"') != 1:
     missing.append("build:test_bundle_step")
+if build_text.count('phase14-smoke", "Run Phase 14 shared smoke survey only') != 1:
+    missing.append("build:focused_smoke_step_label")
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
