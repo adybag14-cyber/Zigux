@@ -318,7 +318,6 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").writeText = None
         (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
             'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
@@ -327,7 +326,7 @@ def run_self_test() -> int:
 
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-7])
+        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-8])
         abi_manifest_path.write_text(
             json.dumps(
                 {
@@ -344,6 +343,7 @@ def run_self_test() -> int:
         abi_issues: list[str] = []
         validate_manifest(root, abi_manifest_path, "abi", abi_issues)
         assert abi_issues == [
+            "abi:manifest_missing_required_file=zigux/tests/phase3_policy_unsafe_build.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_policy_unsafe.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_abi.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi_build.zig",
@@ -422,7 +422,7 @@ def main() -> int:
 
     slices = select_slices(discover_phase3_slices(), args.slug)
     if not slices:
-        raise SystemExit("no Phase 3 slices discovered")
+        raise SystemExit("no Phase 3 slugs discovered")
 
     issues = validate_slices(
         ROOT,
