@@ -181,17 +181,19 @@ required_base64_markers = [
 
 required_base64_perf_markers = [
     'phase6-base64-perf',
-    'fixtures.perf_cases',
-    'fixtures.fillPerfPayload(input[0..case.size]);',
+    'const perf_cases = [_]PerfCase{',
+    'prng.random().bytes(input[0..case.size]);',
     'encode_ns_per_op',
     'decode_ns_per_op',
-    'try std.testing.expectEqualSlices(u8, input[0..case.size], decoded[0..decoded_len]);',
+    'try std.testing.expectEqualSlices(u8, input[0..case.size], helper_decoded[0..decoded_len]);',
+    'try std.testing.expect(encode_slowdown_pct <= case.max_encode_slowdown_pct);',
+    'try std.testing.expect(decode_slowdown_pct <= case.max_decode_slowdown_pct);',
 ]
 
 required_bsearch_markers = [
     'phase 6 bsearch supports string keys against sorted records',
-    'phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection',
-    'phase 6 bsearch keeps representative lookup work inside a binary-search budget',
+    'phase 6 bsearch treats duplicate keys as found-or-null without claiming stable duplicate selection',
+    'phase 6 bsearch keeps representative average and worst-case lookup work inside a binary-search budget',
     'compareU32Counted',
 ]
 
@@ -200,8 +202,11 @@ required_bsearch_perf_markers = [
     '.{ .label = "256", .len = 256, .reps = 2_000 }',
     '.{ .label = "4096", .len = 4096, .reps = 500 }',
     'avg_compare_calls',
+    'max_compare_calls',
+    'max_compare_budget',
     'std.math.log2_int_ceil',
     'try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));',
+    'try std.testing.expect(worst_compare_calls <= max_compare_budget);',
 ]
 
 required_checksum_perf_markers = [
@@ -239,7 +244,7 @@ required_slice_markers = {
         'zigux/tests/fixtures/phase6_base64_vectors.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-base64-perf',
-        'fixture-backed perf corpus owned by `zigux/tests/fixtures/phase6_base64_vectors.zig`',
+        'a deterministic 64-byte and 1-kibibyte encode/decode timing harness that compares the helper against the padded `std.base64.standard` reference path and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets while rechecking round-trip correctness',
     ],
     'phase6-bsearch-slice.md': [
         'PHASE6_STATUS=active',
@@ -248,9 +253,9 @@ required_slice_markers = {
         'make -C zigux phase6-bsearch-perf',
         'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
         'duplicate-key found-or-null parity without claiming stable duplicate selection',
-        'representative lookup work stays inside a bounded binary-search comparison budget',
+        'representative average and worst-case lookup work both stay inside a bounded binary-search comparison budget',
         'representative external C-vs-Zig parity spot check',
-        'replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices',
+        'replayable perf-sanity harness reports lookup cost plus average and worst-case comparator work for representative sorted slices',
     ],
     'phase6-checksum-slice.md': [
         'PHASE6_STATUS=active',
