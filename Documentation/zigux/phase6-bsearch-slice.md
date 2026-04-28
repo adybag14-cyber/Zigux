@@ -34,6 +34,9 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 3. replay the bounded perf-sanity harness when reviewing lookup-cost drift
 - `make -C zigux phase6-bsearch-perf`
 
+4. replay the representative external C-vs-Zig parity spot check when portability-sensitive behavior is under review
+- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
+
 ## Current parity surface
 
 The current bsearch helper surface exercised by this slice covers:
@@ -52,6 +55,7 @@ The current tests check:
 - duplicate-key found-or-null parity without claiming stable duplicate selection
 - representative lookup work stays inside a bounded binary-search comparison budget
 - a replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices
+- a representative external C-vs-Zig parity replay covers integer hits and misses, singleton and empty-slice behavior, duplicate hits, heterogeneous string-key lookup, and mutable-pointer write-through behavior
 
 ## Non-goals
 
@@ -63,4 +67,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the Phase 6 bsearch lane parked unless fresh repo inspection shows a concrete regression in the helper, its parity tests, or the bounded perf-sanity harness. There is no richer upstream `bsearch` fixture family to port right now, so the next honest follow-up would be a newly observed drift rather than speculative fixture growth.
+Leave the Phase 6 bsearch lane parked unless fresh repo inspection shows a concrete regression in the helper, its Zig parity tests, the bounded perf-sanity harness, or the representative external C-vs-Zig parity replay. There is no richer upstream `bsearch` fixture family to port right now, so the next honest follow-up would be a newly observed drift rather than speculative fixture growth.
