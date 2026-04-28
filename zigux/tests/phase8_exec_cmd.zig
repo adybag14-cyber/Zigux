@@ -152,6 +152,16 @@ test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it ma
             different_pwd_identity,
         ),
     );
+    try std.testing.expect(!exec_cmd.samePathIdentity(cwd_identity, null));
+    try std.testing.expectEqualStrings(
+        "/repo",
+        exec_cmd.choosePwdCwdFromIdentities(
+            "/repo",
+            "/logical/repo",
+            cwd_identity,
+            null,
+        ),
+    );
 }
 
 test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" {
