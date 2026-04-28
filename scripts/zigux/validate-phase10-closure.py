@@ -379,8 +379,8 @@ if blocked_transport_gaps != expected_blocked_transport_gaps:
     missing_markers.append("manifest:blocked_transport_gaps:mismatch")
 for gap in core_manifest.get("gaps", []):
     if isinstance(gap, dict) and gap.get("id") == "phase10-config-generation-summary-helper":
-        if gap.get("status") != "ready_next":
-            missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:ready_next")
+        if gap.get("status") != "starter_landed":
+            missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:starter_landed")
 for gap in ring_manifest.get("gaps", []):
     if isinstance(gap, dict):
         why_now = gap.get("why_now")
@@ -417,8 +417,8 @@ def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
     return False
 
 
-if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper", "ready_next"):
-    missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:ready_next")
+if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:starter_landed")
 if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:starter_landed")
 if not has_gap_status(ring_manifest, "phase10-mmio-queue-register-helper", "ready_next"):
