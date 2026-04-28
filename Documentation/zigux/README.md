@@ -136,3 +136,20 @@ Phase 12 notes
 - `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche instead of leaving it discoverable only through the deeper survey note.
 - the same top-level Phase 12 packet now also needs to keep the libbpf rollback and reversible-delivery lab visible: `Documentation/zigux/phase12-libbpf-segment-survey.md` records the bounded survey gate, reviewability gate, rollback owner, fallback path, and reversible-delivery drill around the helper-first `tools/lib/bpf/zigux_segments/` footing without overstating the still-blocked skeleton, object-loader, relocation, or syscall-backed surfaces.
 - the current shared rollback-lab replay has already advanced beyond the committed fast-inventory snapshot: the live `zig build test --build-file zigux/tests/phase12_build.zig --summary all` replay now reaches `Build Summary: 17/17 steps succeeded; 47/47 tests passed`, while `zigux/tests/fixtures/phase12_build_inventory.json` still records `35/35`, so this docs index keeps the new lab state explicit without reopening the shared fixture or validator lane here.
+
+Phase 13 notes
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-libfs-slice.md`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-devres-slice.md`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- the active Phase 13 shared-helper packet now keeps the roadmap-to-repo path for `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` visible from the top-level docs index instead of leaving the shared traceability and release-discipline reading buried only in the deeper notes.
+- `zigux/tests/phase13_build.zig`, `make -C zigux phase13`, `Documentation/zigux/phase13-roadmap-traceability.md`, and `Documentation/zigux/phase13-release-notes-survey.md` now expose the same shared tranche entrypoints and release-facing readout, so this docs index stays aligned with the validator-first replay path already used elsewhere in the Phase 13 packet.
+- all four roadmap anchors now carry manifest-backed survey packets, while the adjacent notifier-list reviewability packet stays explicit as supporting shared-helper evidence rather than a fifth roadmap anchor.
+- the same top-level Phase 13 packet still keeps the helper-only `devres` boundary honest: live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state remain intentionally blocked even though `lib/devres.c` is now manifest-backed.
