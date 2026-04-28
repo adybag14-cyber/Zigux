@@ -198,8 +198,8 @@ required_bsearch_perf_markers = [
 
 required_checksum_perf_markers = [
     'phase6-checksum-perf',
-    '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0 }',
-    '.{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678 }',
+    'fixtures.perf_cases',
+    'fixtures.fillPerfPayload(payload);',
     'referencePartial',
     'ns_per_byte',
     'try std.testing.expect(elapsed > 0);',
