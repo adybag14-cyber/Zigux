@@ -15,6 +15,7 @@ This document records the shared boot/runtime loader gap that still separates th
   - `zigux/tests/runtime_loader_gap_survey.zig`
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
+  - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
   - `zigux/helpers/allocator_policy.zig`
@@ -31,7 +32,7 @@ The live repo already reflects that split:
 
 - the full bounded Phase 6 leaf-helper set is landed
 - four Phase 9 runtime starter samples are landed under `samples/zigux/runtime_*`
-- two sample-side loader plans are landed under `samples/zigux/runtime_*_loader.zig`
+- three sample-side loader plans are landed under `samples/zigux/runtime_*_loader.zig`
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
 
 This survey keeps the lane honest by recording what is now landed and what is still blocked instead of pretending that runtime scheduling, polling, or event-loop work should be pulled forward into Phase 6.
@@ -55,6 +56,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, and shared request surface
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
 - `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, command-name, and init or exit handoff fields
+- `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection into the shared runtime request surface
 - `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection into the shared runtime request surface
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection into the shared runtime request surface
 
@@ -62,6 +64,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 
 The current runtime pilot surface already exposes reviewable loader inputs:
 
+- `samples/zigux/runtime_atomic64_loader.zig` records explicit entry and exit symbol names, `requires_runtime_substrate`, `provides_selftest_hook`, and a bounded handoff stage
 - `samples/zigux/runtime_bitmap_loader.zig` records explicit entry and exit symbol names, `requires_runtime_substrate`, `provides_selftest_hook`, and a bounded handoff stage
 - `samples/zigux/runtime_kretprobe_loader.zig` records the same loader-shape inputs for the kretprobe starter
 - `zigux/helpers/allocator_policy.zig` already records the explicit caller-vs-fallback allocator posture that a future runtime loader must consume rather than bypass
@@ -69,9 +72,9 @@ The current runtime pilot surface already exposes reviewable loader inputs:
 What is now landed is the smallest shared consumer contract:
 
 - `zigux/kernel/runtime_loader.zig` defines a common loader-stage vocabulary for shared runtime handoff
-- the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for either bitmap or kretprobe facts
+- the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for either atomic64, bitmap, or kretprobe facts
 - the shared request also consumes `zigux/helpers/allocator_policy.zig` through an explicit allocator-handoff record instead of leaving allocator posture in prose
-- the bitmap and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`
+- the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`
 
 What is still missing is actual runtime execution behavior:
 
