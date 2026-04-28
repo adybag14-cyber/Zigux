@@ -57,7 +57,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
 5. bounded mk_elfconfig artifact parity
-- `python3 scripts/zigux/check-mk_elfconfig-diff.py`
+- `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 
 6. bounded kconfig bridge parity
 - `python3 scripts/zigux/check-kconfig-bridge.py`
