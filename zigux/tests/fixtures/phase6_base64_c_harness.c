@@ -343,7 +343,7 @@ int main(void)
         const int written = base64_encode(c->input, (int)c->input_len, encoded, c->padding, c->variant);
         printf("enc\t%s\t%d\t", variant_name(c->variant), c->padding ? 1 : 0);
         print_hex(c->input, c->input_len);
-        putchar('\n');
+        putchar('\t');
         print_hex((const unsigned char *)encoded, (size_t)written);
         putchar('\n');
     }
