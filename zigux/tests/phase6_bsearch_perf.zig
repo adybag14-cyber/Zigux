@@ -20,8 +20,16 @@ pub fn main(init: std.process.Init) !void {
     for (perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
-            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2}\n",
-            .{ case.label, case.len, case.reps, result.ns_per_lookup, result.avg_compare_calls },
+            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={}\n",
+            .{
+                case.label,
+                case.len,
+                case.reps,
+                result.ns_per_lookup,
+                result.avg_compare_calls,
+                result.max_compare_calls,
+                result.max_compare_budget,
+            },
         );
     }
 }
@@ -29,6 +37,8 @@ pub fn main(init: std.process.Init) !void {
 const PerfResult = struct {
     ns_per_lookup: u64,
     avg_compare_calls: f64,
+    max_compare_calls: usize,
+    max_compare_budget: usize,
 };
 
 fn compareCounted(key: *const u32, item: *const u32) i32 {
@@ -72,6 +82,7 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     }
 
     var total_compare_calls: usize = 0;
+    var worst_compare_calls: usize = 0;
     const total_lookups = case.reps * query_count;
     const started_at = benchTime(io);
 
@@ -80,6 +91,7 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
             compare_calls = 0;
             const found = bsearch.searchIndex(u32, u32, &query, values, compareCounted);
             total_compare_calls += compare_calls;
+            worst_compare_calls = @max(worst_compare_calls, compare_calls);
 
             if (expected_hit) {
                 try std.testing.expect(found != null);
@@ -95,9 +107,12 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         @as(f64, @floatFromInt(total_lookups));
 
     try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));
+    try std.testing.expect(worst_compare_calls <= max_compare_budget);
 
     return .{
         .ns_per_lookup = @max(@as(u64, @intCast(@divFloor(elapsed, @as(i96, @intCast(total_lookups))))), 1),
         .avg_compare_calls = avg_compare_calls,
+        .max_compare_calls = worst_compare_calls,
+        .max_compare_budget = max_compare_budget,
     };
 }
