@@ -111,11 +111,11 @@ EXPECTED_BUILD_TEST_NAMES = [
     "phase14-end-to-end-smoke-tests",
 ]
 
-EXPECTED_ANCHOR_ORDER = [
-    "kernel/workqueue.c",
-    "net/core/skbuff.c",
-    "kernel/trace/ring_buffer.c",
-    "kernel/rcu/tree.c",
+EXPECTED_ANCHOR_LANES = [
+    ("P14-L01", "kernel/workqueue.c"),
+    ("P14-L11", "net/core/skbuff.c"),
+    ("P14-L06", "kernel/trace/ring_buffer.c"),
+    ("P14-L14", "kernel/rcu/tree.c"),
 ]
 
 
@@ -187,12 +187,22 @@ anchor_packets = manifest.get("anchor_packets")
 if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
     missing.append("manifest:anchor_packets")
 else:
-    for anchor, packet in zip(EXPECTED_ANCHOR_ORDER, anchor_packets):
+    for (lane_key, anchor), packet in zip(EXPECTED_ANCHOR_LANES, anchor_packets):
         if not isinstance(packet, dict):
-            missing.append(f"manifest:anchor_packet:{anchor}")
+            missing.append(f"manifest:anchor_packet:{lane_key}")
             continue
+        if packet.get("lane_key") != lane_key:
+            missing.append(f'manifest:{lane_key}:lane_key={packet.get("lane_key")}')
         if packet.get("anchor") != anchor:
-            missing.append(f'manifest:{anchor}:anchor={packet.get("anchor")}')
+            missing.append(f'manifest:{lane_key}:anchor={packet.get("anchor")}')
+
+smoke_note_text = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+if isinstance(anchor_packets, list):
+    for packet in anchor_packets:
+        if isinstance(packet, dict):
+            lane_key = packet.get("lane_key")
+            if isinstance(lane_key, str) and lane_key not in smoke_note_text:
+                missing.append(f"smoke_note:lane_key:{lane_key}")
 
 smoke_commands = manifest.get("smoke_commands")
 expected_smoke_commands = [
@@ -245,15 +255,17 @@ depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
 if len(depend_steps) != 5:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
 
-for manifest_path, anchor in [
-    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "kernel/workqueue.c"),
-    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "net/core/skbuff.c"),
-    ("zigux/tests/phase14_ring_buffer_manifest.json", "kernel/trace/ring_buffer.c"),
-    ("zigux/tests/phase14_rcu_tree_manifest.json", "kernel/rcu/tree.c"),
+for manifest_path, lane_key, anchor in [
+    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
+    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "P14-L11", "net/core/skbuff.c"),
+    ("zigux/tests/phase14_ring_buffer_manifest.json", "P14-L06", "kernel/trace/ring_buffer.c"),
+    ("zigux/tests/phase14_rcu_tree_manifest.json", "P14-L14", "kernel/rcu/tree.c"),
 ]:
     anchor_manifest = load_json(manifest_path)
     if anchor_manifest.get("phase") != "Phase 14":
         missing.append(f"{manifest_path}:phase")
+    if anchor_manifest.get("lane_key") != lane_key:
+        missing.append(f"{manifest_path}:lane_key")
     if anchor_manifest.get("anchor") != anchor:
         missing.append(f"{manifest_path}:anchor")
 
