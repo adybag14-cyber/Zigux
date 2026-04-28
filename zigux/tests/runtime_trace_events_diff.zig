@@ -12,6 +12,8 @@ test "runtime trace-events diff gate replays the Linux sample's concrete main-th
     const replay = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.initialized, replay.stage);
     try std.testing.expectEqual(@as(usize, 1), replay.main_iterations);
+    try std.testing.expectEqual(@as(usize, 6), replay.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), replay.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 6), replay.total_events);
     try std.testing.expectEqual(@as(i32, 7), replay.last_main_count);
     try std.testing.expect(replay.saw_vararg_payload);
@@ -42,6 +44,8 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     const payload = module.last_function_payload orelse return error.ExpectedFunctionPayload;
     const replay = module.summary();
     try std.testing.expectEqual(@as(usize, 1), replay.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 0), replay.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), replay.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 2), replay.total_events);
     try std.testing.expectEqual(@as(i32, 9), replay.last_fn_count);
     try std.testing.expectEqual(@as(usize, 2), replay.registration_depth);
@@ -77,6 +81,8 @@ test "runtime trace-events diff gate keeps the selftest family order and replay 
     try std.testing.expectEqual(@as(usize, 0), replay.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), replay.main_iterations);
     try std.testing.expectEqual(@as(usize, 1), replay.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 6), replay.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), replay.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), replay.total_events);
     try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);
     try std.testing.expectEqualStrings("hello", replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
