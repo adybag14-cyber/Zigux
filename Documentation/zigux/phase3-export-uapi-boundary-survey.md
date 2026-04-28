@@ -39,6 +39,15 @@ The current tree already carries the first bounded export and UAPI boundary surf
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
 
+## Ledger Alignment
+
+This landed boundary step still belongs to the same bounded Phase 3 ABI substrate family recorded in
+`zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`.
+
+- the original substrate ledger entry already named `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` as part of the permanent Phase 3 boundary
+- current `master` now adds focused replay evidence for that same boundary through `zigux/tests/phase3_export_uapi_build.zig` and `zigux/tests/phase3_export_uapi.zig`
+- `zigux/tests/fixtures/phase3_abi_manifest.json` now carries those focused replay paths inside the same ABI substrate packet rather than presenting them as a broader UAPI tranche
+
 ## Current Boundary Gap
 
 The current gap is no longer the absence of an export shim.
