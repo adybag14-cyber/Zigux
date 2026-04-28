@@ -21,6 +21,7 @@ pub fn build(b: *std.Build) void {
         .root_module = base64_root_module,
     });
     const run_base64_tests = b.addRunArtifact(base64_tests);
+    run_base64_tests.skip_foreign_checks = true;
 
     const base64_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_base64_perf.zig"),
@@ -34,6 +35,7 @@ pub fn build(b: *std.Build) void {
         .root_module = base64_perf_root_module,
     });
     const run_base64_perf = b.addRunArtifact(base64_perf);
+    run_base64_perf.skip_foreign_checks = true;
 
     const bsearch_module = b.createModule(.{
         .root_source_file = b.path("../../lib/bsearch.zig"),
@@ -52,6 +54,7 @@ pub fn build(b: *std.Build) void {
         .root_module = bsearch_root_module,
     });
     const run_bsearch_tests = b.addRunArtifact(bsearch_tests);
+    run_bsearch_tests.skip_foreign_checks = true;
 
     const bsearch_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_bsearch_perf.zig"),
@@ -65,6 +68,7 @@ pub fn build(b: *std.Build) void {
         .root_module = bsearch_perf_root_module,
     });
     const run_bsearch_perf = b.addRunArtifact(bsearch_perf);
+    run_bsearch_perf.skip_foreign_checks = true;
 
     const checksum_module = b.createModule(.{
         .root_source_file = b.path("../../lib/checksum.zig"),
@@ -83,6 +87,7 @@ pub fn build(b: *std.Build) void {
         .root_module = checksum_root_module,
     });
     const run_checksum_tests = b.addRunArtifact(checksum_tests);
+    run_checksum_tests.skip_foreign_checks = true;
 
     const checksum_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_checksum_perf.zig"),
@@ -96,6 +101,7 @@ pub fn build(b: *std.Build) void {
         .root_module = checksum_perf_root_module,
     });
     const run_checksum_perf = b.addRunArtifact(checksum_perf);
+    run_checksum_perf.skip_foreign_checks = true;
 
     const hexdump_module = b.createModule(.{
         .root_source_file = b.path("../../lib/hexdump.zig"),
@@ -120,6 +126,7 @@ pub fn build(b: *std.Build) void {
         .root_module = hexdump_root_module,
     });
     const run_hexdump_tests = b.addRunArtifact(hexdump_tests);
+    run_hexdump_tests.skip_foreign_checks = true;
 
     const hexdump_perf_root_module = b.createModule(.{
         .root_source_file = b.path("phase6_hexdump_perf.zig"),
@@ -134,6 +141,7 @@ pub fn build(b: *std.Build) void {
         .root_module = hexdump_perf_root_module,
     });
     const run_hexdump_perf = b.addRunArtifact(hexdump_perf);
+    run_hexdump_perf.skip_foreign_checks = true;
 
     const test_step = b.step("test", "Run Phase 6 leaf helper tests");
     test_step.dependOn(&run_base64_tests.step);
