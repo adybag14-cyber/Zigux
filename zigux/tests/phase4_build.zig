@@ -46,6 +46,13 @@ pub fn build(b: *std.Build) void {
     });
     const run_atomic64_diff_survey_tests = b.addRunArtifact(atomic64_diff_survey_tests);
 
+    const atomic64_step = b.step(
+        "phase4-runtime-atomic64-diff",
+        "Run the bounded Phase 4 runtime atomic64 diff gate and its survey evidence",
+    );
+    atomic64_step.dependOn(&run_atomic64_diff_tests.step);
+    atomic64_step.dependOn(&run_atomic64_diff_survey_tests.step);
+
     const bitmap_diff_tests = b.addTest(.{
         .name = "phase4-bitmap-diff-tests",
         .root_module = bitmap_diff_module,
