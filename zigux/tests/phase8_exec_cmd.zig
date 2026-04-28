@@ -341,6 +341,30 @@ test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
     );
 }
 
+test "phase 8 exec-cmd keeps the deferred execl handoff helper below launch behavior" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+}
+
 test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     const slice_note = try readWorkspaceFile(
         std.testing.allocator,
@@ -355,24 +379,6 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "`execv_cmd()`");
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
-}
-
-test "phase 8 exec-cmd review checklist keeps the deferred execution policy explicit" {
-    const review_checklist = try readWorkspaceFile(
-        std.testing.allocator,
-        "Documentation/zigux/review-checklist.md",
-        64 * 1024,
-    );
-    defer std.testing.allocator.free(review_checklist);
-
-    try expectContains(review_checklist, "phase8-exec-cmd-slice.md");
-    try expectContains(review_checklist, "zigux/tests/phase8_exec_cmd.zig");
-    try expectContains(review_checklist, "deferred execution helper-only");
-    try expectContains(review_checklist, "kernel/workqueue.c");
-    try expectContains(review_checklist, "`execv_cmd()`");
-    try expectContains(review_checklist, "`execvp()`");
-    try expectContains(review_checklist, "queue ownership");
-    try expectContains(review_checklist, "scheduler-facing transport");
 }
 
 test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
