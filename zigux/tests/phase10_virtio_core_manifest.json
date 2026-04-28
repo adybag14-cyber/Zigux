@@ -1,7 +1,7 @@
 {
-  "lane_key": "P10-L04",
+  "lane_key": "P10-L01",
   "phase": "Phase 10",
-  "surveyed_commit": "39ba8d682c7309198f7caf1590bffed85dc016d7",
+  "surveyed_commit": "9f47d4dbed0d88369fcc47af39bf72c49d47ecbc",
   "anchor": "drivers/virtio/virtio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -86,17 +86,17 @@
     },
     {
       "id": "phase10-config-generation-summary-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "After the landed config-change and driver-binding bookkeeping, the next honest core-local follow-up is one tiny config-generation summary or counter helper before any ring, MMIO, probe, or remove work."
+      "why_now": "The live helper now records bounded config-generation increments, the last observed generation, and pending-generation visibility beside the existing config-change bookkeeping, making one more core-local review surface concrete before any ring, MMIO, probe, or remove work."
     },
     {
       "id": "phase10-core-probe-remove-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "Broader virtio.c parity still mixes probe, remove, reset, and transport-backed device lifecycle paths, which remain too wide to claim before one smaller config-generation summary lands and gets reviewed."
+      "why_now": "Broader virtio.c parity still mixes probe, remove, reset, and transport-backed device lifecycle paths, which remain too wide to claim even after the landed config-generation summary helper because that broader lifecycle still crosses risky transport state."
     }
   ]
 }
