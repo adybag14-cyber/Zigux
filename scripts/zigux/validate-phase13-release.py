@@ -167,7 +167,7 @@ if len(depend_steps) != 7:
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
-    ("zigux/tests/phase13_devres_manifest.json", "P13-L01", "lib/devres.c"),
+    ("zigux/tests/phase13_devres_manifest.json", "P13-L10", "lib/devres.c"),
     ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
     ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L13", "security/landlock/syscalls.c"),
 ]:
