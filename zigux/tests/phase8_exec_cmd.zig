@@ -324,3 +324,38 @@ test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
         ),
     );
 }
+
+test "phase 8 exec-cmd models the deferred execl handoff without claiming launch behavior" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("perf", deferred.program);
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        exec_cmd.buildDeferredExeclCall(
+            std.testing.allocator,
+            config,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
+}

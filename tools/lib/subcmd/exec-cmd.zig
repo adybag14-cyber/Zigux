@@ -77,6 +77,16 @@ pub const FileIdentity = struct {
 
 pub const PathIdentity = FileIdentity;
 
+pub const DeferredExecCall = struct {
+    program: []const u8,
+    argv: []const ?[]const u8,
+
+    pub fn deinit(self: *DeferredExecCall, allocator: std.mem.Allocator) void {
+        allocator.free(self.argv);
+        self.* = undefined;
+    }
+};
+
 pub const max_execl_slots: usize = 32;
 pub const CollectExeclArgsError = error{
     MissingNullTerminator,
@@ -355,6 +365,25 @@ pub fn collectExeclArgs(
     return error.MissingNullTerminator;
 }
 
+pub fn buildDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) (CollectExeclArgsError || std.mem.Allocator.Error)!DeferredExecCall {
+    const collected = try collectExeclArgs(allocator, cmd, argv_tail);
+    defer allocator.free(collected);
+
+    var argv = try allocator.alloc(?[]const u8, collected.len + 1);
+    argv[0] = config.exec_name;
+    @memcpy(argv[1..], collected);
+
+    return .{
+        .program = config.exec_name,
+        .argv = argv,
+    };
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -528,6 +557,41 @@ test "collectExeclArgs requires the C helper's trailing null terminator" {
         error.MissingNullTerminator,
         collectExeclArgs(
             std.testing.allocator,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
+}
+
+test "buildDeferredExeclCall models the pure execvp handoff without launching" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("perf", deferred.program);
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        buildDeferredExeclCall(
+            std.testing.allocator,
+            config,
             "record",
             &[_]?[]const u8{ "-a", "--stdio" },
         ),
