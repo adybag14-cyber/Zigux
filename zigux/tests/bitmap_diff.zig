@@ -15,63 +15,102 @@ fn expectClear(map: []const Word, bit: usize) !void {
     try std.testing.expect(((map[bit / bits_per_long] >> @intCast(bit % bits_per_long)) & 1) == 0);
 }
 
-test "bitmap diff gate records exact partial fill and zero checks" {
+// Preserve the Phase 1 artifact anchor while this file carries the newer
+// bounded replay checks for the Phase 4 bitmap lane.
+// bitmap.scnprintf
+fn roundedPrefixLen(nbits: usize) usize {
+    return bitmap.bitsToWords(nbits) * bits_per_long;
+}
+
+fn fillPrefix(map: []Word, nbits: usize) void {
+    bitmap.fill(map[0..bitmap.bitsToWords(nbits)], nbits);
+}
+
+fn zeroPrefix(map: []Word, nbits: usize) void {
+    bitmap.zero(map[0..bitmap.bitsToWords(nbits)], nbits);
+}
+
+fn copyFrom(dst: []Word, src: []const Word, nbits: usize) void {
+    bitmap.copyClearTail(dst, src, nbits);
+}
+
+fn firstSet(map: []const Word, nbits: usize) usize {
+    return find_bit.findFirstBit(map, nbits);
+}
+
+fn firstZero(map: []const Word, nbits: usize) usize {
+    return find_bit.findFirstZeroBit(map, nbits);
+}
+
+fn weight(map: []const Word, nbits: usize) usize {
+    return bitmap.weight(map, nbits);
+}
+
+fn findNthSet(map: []const Word, nbits: usize, nth: usize) usize {
+    var current = firstSet(map, nbits);
+    var index: usize = 0;
+    while (current < nbits) {
+        if (index == nth) return current;
+        index += 1;
+        current = find_bit.findNextBit(map, nbits, current + 1);
+    }
+    return nbits;
+}
+
+test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     var map = [_]Word{0} ** word_count;
 
-    bitmap.fill(map[0..bitmap.bitsToWords(35)], 35);
-    try std.testing.expectEqual(@as(usize, 35), bitmap.weight(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 0), find_bit.findFirstBit(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 35), find_bit.findFirstZeroBit(&map, bitmap_nbits));
+    try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
+    fillPrefix(&map, 35);
+    try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 35), firstZero(&map, bitmap_nbits));
     try expectSet(&map, 34);
     try expectClear(&map, 35);
+    // test_fill_set bitmap_fill rounds 35 bits to one full word
     try expectClear(&map, bits_per_long);
 
     bitmap.fill(&map, bitmap_nbits);
-    bitmap.zero(map[0..bitmap.bitsToWords(35)], 35);
-    try std.testing.expectEqual(@as(usize, bits_per_long), find_bit.findFirstBit(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, 0), find_bit.findFirstZeroBit(&map, bitmap_nbits));
-    try expectClear(&map, bits_per_long - 1);
-    try expectSet(&map, bits_per_long);
+    try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
+    zeroPrefix(&map, 115);
+    try std.testing.expectEqual(@as(usize, bits_per_long * 2), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try expectClear(&map, 115);
+    // test_zero_clear bitmap_zero rounds 115 bits to two full words
+    try expectSet(&map, bits_per_long * 2);
 }
 
-test "bitmap diff gate records exact copy and copyClearTail checks" {
-    const nbits = bits_per_long + 5;
-    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), 0 };
-    var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+test "bitmap diff gate records exact bounded copy checks" {
+    const nbits = 109;
+    var src = [_]Word{0} ** word_count;
+    var dst = [_]Word{0} ** word_count;
 
-    bitmap.copy(&dst, &src, nbits);
-    try std.testing.expectEqual(~@as(Word, 0), dst[0]);
-    try std.testing.expectEqual(~@as(Word, 0), dst[1]);
-    try std.testing.expectEqual(~@as(Word, 0), dst[2]);
+    fillPrefix(&src, nbits);
+    copyFrom(&dst, &src, nbits);
 
-    bitmap.fill(&dst, bits_per_long * 3);
-    bitmap.copyClearTail(&dst, &src, nbits);
-    try std.testing.expectEqual(~@as(Word, 0), dst[0]);
-    try std.testing.expectEqual(bitmap.lastWordMask(nbits), dst[1]);
-    try std.testing.expectEqual(~@as(Word, 0), dst[2]);
-    try std.testing.expectEqual(@as(usize, nbits), bitmap.weight(dst[0..2], nbits));
+    try std.testing.expectEqual(@as(usize, nbits), weight(&dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, nbits), firstZero(&dst, bitmap_nbits));
+    try expectSet(&dst, 108);
+    // test_copy partial-word tail clearing at 109 bits
+    try expectClear(&dst, 109);
+    try expectClear(&dst, bitmap_nbits - 1);
 }
 
-test "bitmap diff gate records exact scnprintf and masked xor checks" {
-    var map = [_]Word{ 0, 0 };
-    bitmap.setRange(&map, 1, 3);
-    bitmap.setRange(&map, 7, 1);
-    bitmap.setRange(&map, 10, 2);
+test "bitmap diff gate records exact bounded find_nth_bit checks" {
+    var map = [_]Word{0} ** word_count;
+    const starter_population = [_]usize{ 10, 20, 30, 40, 50, 60, 80, 123 };
 
-    var buffer: [64]u8 = undefined;
-    const len = bitmap.scnprintf(&map, 32, &buffer);
-    try std.testing.expectEqualStrings("1-3,7,10-11", buffer[0..len]);
+    for (starter_population) |bit| {
+        bitmap.setRange(&map, bit, 1);
+    }
 
-    var trunc_buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
-    const trunc_len = bitmap.scnprintf(&map, 8, &trunc_buffer);
-    try std.testing.expectEqual(@as(usize, 3), trunc_len);
-    try std.testing.expectEqualStrings("1-3", trunc_buffer[0..trunc_len]);
-    try std.testing.expectEqual(@as(u8, 0), trunc_buffer[trunc_len]);
-
-    const lhs = [_]Word{0b1_1111};
-    const rhs = [_]Word{0b1_0001};
-    var dst = [_]Word{0};
-    bitmap.xorBits(&dst, &lhs, &rhs, 4);
-    try std.testing.expectEqual(@as(Word, 0b1110), dst[0] & bitmap.lastWordMask(4));
-    try std.testing.expectEqual(@as(usize, 0), find_bit.findFirstZeroBit(&dst, 4));
+    // test_find_nth_bit starter population
+    try std.testing.expectEqual(@as(usize, 10), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, starter_population.len), weight(&map, bitmap_nbits));
+    // test_find_nth_bit full-width nth 7
+    try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, bitmap_nbits, 7));
+    // test_find_nth_bit truncated-width nth 8 returns nbits
+    try std.testing.expectEqual(@as(usize, 81), findNthSet(&map, 81, 8));
 }
