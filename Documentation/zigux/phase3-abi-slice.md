@@ -6,8 +6,8 @@ This document starts the first bounded Phase 3 slice for Zigux.
 
 - `PHASE3_STATUS=active`
 - `PHASE3_SLICE=abi-substrate-skeleton`
-- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only`
-- `PHASE3_UAPI_SCOPE=version-only`
+- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header`
+- `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
@@ -98,8 +98,8 @@ Low-level wrapper survey:
 ## Boundary
 
 Current repo-backed boundary survey:
-- export shim reality today: `zigux/kernel/export_shim.zig` is still a narrow explicit-status helper, and its boundary-header construction stays local to the shim's own tests instead of widening the public export surface
-- UAPI reality today: `zigux/uapi/` currently exposes only `version.zig`, which is enough for the bounded ABI substrate but is intentionally short of the roadmap's eventual broader UAPI shim destination
+- export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, but it now delegates boundary-header construction and compatibility checks through the shared UAPI surface instead of keeping a local test-only copy
+- UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor and compatibility check, which is still bounded but makes the public boundary less ad hoc than a version constant alone
 
 This slice does not claim:
 
