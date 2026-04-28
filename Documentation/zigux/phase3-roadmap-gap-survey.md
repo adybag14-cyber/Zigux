@@ -46,6 +46,7 @@ The current tree already carries the bounded ABI substrate and the first reusabl
 - `zigux/kernel/export_shim.zig` keeps the export status surface explicit, and it now also keeps the shared boundary-header constructor and compatibility path reviewable without widening into a broader export namespace
 - `zigux/uapi/version.zig` keeps one minimal UAPI surface aligned to the ABI version, and it now also exposes the shared boundary-header constructor and compatibility check without widening into a broader UAPI shim family
 - `zigux/helpers/layout_assert.zig`, `panic_policy.zig`, `allocator_policy.zig`, `atomic.zig`, `barrier.zig`, and `mmio.zig` cover the low-level policy and wrapper packet
+- `zigux/tests/phase3_low_level_wrappers.zig` plus `zigux/tests/phase3_low_level_wrappers_build.zig` now keep that atomic, barrier, and MMIO packet reviewable on its own focused replay path, including the scoped MMIO entry points routed back through the declared narrow unsafe layer
 - `zigux/unsafe/narrow.zig` keeps the unsafe boundary narrow and named
 - `zigux/helpers/bitmap_view.zig` and `zigux/helpers/cpumask_view.zig` provide the first roadmap-backed reusable interop seam
 
@@ -83,6 +84,7 @@ The live Phase 3 tree has also grown a long `chrdev_*` planning ladder.
 That growth is real repo state, but it exceeds the small named anchor set in the roadmap and should be treated as adjacent exploratory surface, not as proof that the core Phase 3 roadmap contract is complete. The current repo reality is therefore:
 
 - the ABI substrate is real
+- the low-level wrapper packet is real and now has its own focused replay gate
 - the export shim is real but still intentionally narrow
 - the current UAPI boundary is real but still version-and-boundary-header only
 - bitmap and cpumask interop are real
