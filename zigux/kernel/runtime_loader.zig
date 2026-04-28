@@ -10,8 +10,16 @@ pub const LoaderStage = enum(u8) {
 };
 
 pub const LoaderLane = enum(u8) {
+    atomic64,
     bitmap,
     kretprobe,
+};
+
+pub const Atomic64Payload = struct {
+    counter_snapshot: i64,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
 };
 
 pub const AllocatorHandoff = struct {
@@ -55,6 +63,7 @@ pub const KretprobePayload = struct {
 };
 
 pub const LoaderPayload = union(LoaderLane) {
+    atomic64: Atomic64Payload,
     bitmap: BitmapPayload,
     kretprobe: KretprobePayload,
 };
@@ -230,6 +239,58 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     try std.testing.expectEqual(@as(u32, 4), released.payload.bitmap.weight);
 }
 
+test "runtime loader request keeps atomic64 handoff state explicit" {
+    const request = RuntimeLoadRequest{
+        .module_name = "runtime_atomic64",
+        .command_name = null,
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .atomic64 = .{
+                .counter_snapshot = 0x1111_2222_3333_4444,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+
+    try std.testing.expectEqual(LoaderLane.atomic64, request.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);
+    try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expect(request.keepsInitExitContractExplicit());
+    try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+    try std.testing.expectEqual(@as(i64, 0x1111_2222_3333_4444), request.payload.atomic64.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), request.payload.atomic64.selftest_runs);
+
+    const waiting = request.waitingOnRuntimeSubstrate();
+    try std.testing.expectEqual(LoaderLane.atomic64, waiting.lane());
+    try std.testing.expect(waiting.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(!waiting.isReleasedWithoutSubstrate());
+    try std.testing.expect(waiting.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expectEqual(@as(i64, 0x1111_2222_3333_4444), waiting.payload.atomic64.counter_snapshot);
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expectEqual(LoaderLane.atomic64, released.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), released.command_name);
+    try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expect(released.keepsInitExitContractExplicit());
+    try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
+    try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    try std.testing.expectEqual(@as(i64, 0x1111_2222_3333_4444), released.payload.atomic64.counter_snapshot);
+}
+
 test "runtime loader request keeps kretprobe handoff state explicit" {
     const request = RuntimeLoadRequest{
         .module_name = "runtime_kretprobe",
@@ -371,11 +432,11 @@ test "runtime loader request rejects implicit init-exit and stage handoff contra
         .handoff_stage = .idle,
         .allocator_handoff = allocatorHandoffFor(.kernel_heap),
         .payload = .{
-            .bitmap = .{
-                .first_set = 0,
-                .first_zero = 1,
-                .weight = 1,
-                .nbits = 64,
+            .atomic64 = .{
+                .counter_snapshot = 1,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
             },
         },
     }).waitingOnRuntimeSubstrate();
