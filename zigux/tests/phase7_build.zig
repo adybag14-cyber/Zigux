@@ -112,7 +112,7 @@ pub fn build(b: *std.Build) void {
         .name = "phase7-argv-split-survey-tests",
         .root_module = argv_split_survey_root_module,
     });
-    const run_argv_split_survey_tests = b.addRunArtifact(argv_split_tests);
+    const run_argv_split_survey_tests = b.addRunArtifact(argv_split_survey_tests);
 
     const rbtree_tests = b.addTest(.{
         .name = "phase7-rbtree-tests",
