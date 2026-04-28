@@ -18,6 +18,38 @@ test "phase 8 file-path-handle bridge builds proc fdinfo paths without widening 
     try std.testing.expectError(error.PathTooLong, file_path_handle_bridge.buildFdinfoPath(&short_buffer, 4321, 9));
 }
 
+test "phase 8 file-path-handle bridge plans token preparation without claiming live bpffs io" {
+    const prevented = file_path_handle_bridge.planTokenPreparation("");
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationDisposition.prevented,
+        prevented.disposition,
+    );
+    try std.testing.expectEqualStrings("", prevented.bpffs_path);
+    try std.testing.expectEqual(@as(?file_path_handle_bridge.TokenPreparationLogLevel, null), prevented.log_level);
+    try std.testing.expect(!prevented.requiresBpffsOpen());
+    try std.testing.expect(!prevented.requiresTokenCreate());
+
+    const optional = file_path_handle_bridge.planTokenPreparation(null);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationDisposition.optional_probe,
+        optional.disposition,
+    );
+    try std.testing.expectEqualStrings(file_path_handle_bridge.default_bpf_fs_path, optional.bpffs_path);
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.debug, optional.log_level.?);
+    try std.testing.expect(optional.requiresBpffsOpen());
+    try std.testing.expect(optional.requiresTokenCreate());
+
+    const mandatory = file_path_handle_bridge.planTokenPreparation("/custom/bpffs");
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationDisposition.mandatory_probe,
+        mandatory.disposition,
+    );
+    try std.testing.expectEqualStrings("/custom/bpffs", mandatory.bpffs_path);
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.warn, mandatory.log_level.?);
+    try std.testing.expect(mandatory.requiresBpffsOpen());
+    try std.testing.expect(mandatory.requiresTokenCreate());
+}
+
 test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
     const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
         "pos:\t0\n" ++
