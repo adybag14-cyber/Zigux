@@ -265,6 +265,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
         );
         defer allocator.free(survey_note);
         try std.testing.expect(std.mem.indexOf(u8, survey_note, packet.anchor) != null);
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, packet.lane_key) != null);
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, packet.surveyed_commit) != null);
         if (packet.ready_next_gap.len > 0) {
             try std.testing.expect(std.mem.indexOf(u8, survey_note, "Next bounded step") != null);
