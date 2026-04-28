@@ -124,6 +124,56 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
+fn countLinesInRepoFile(io: std.Io, path: []const u8, max_bytes: usize) !usize {
+    const file_bytes = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        path,
+        std.testing.allocator,
+        .limited(max_bytes),
+    );
+    defer std.testing.allocator.free(file_bytes);
+
+    if (file_bytes.len == 0) return 0;
+
+    var line_count = std.mem.count(u8, file_bytes, "\n");
+    if (file_bytes[file_bytes.len - 1] != '\n') line_count += 1;
+    return line_count;
+}
+
+fn formatLineCountWithCommas(buf: []u8, line_count: usize) ![]const u8 {
+    var raw_buf: [32]u8 = undefined;
+    const raw = try std.fmt.bufPrint(&raw_buf, "{d}", .{line_count});
+    const comma_count = if (raw.len == 0) 0 else (raw.len - 1) / 3;
+    const needed = raw.len + comma_count;
+    if (buf.len < needed) return error.NoSpaceLeft;
+
+    var read_index: usize = raw.len;
+    var write_index: usize = needed;
+    var group_size: usize = 0;
+    while (read_index > 0) {
+        read_index -= 1;
+        write_index -= 1;
+        buf[write_index] = raw[read_index];
+        group_size += 1;
+
+        if (group_size == 3 and read_index > 0) {
+            write_index -= 1;
+            buf[write_index] = ',';
+            group_size = 0;
+        }
+    }
+
+    return buf[0..needed];
+}
+
+fn expectDocMentionsExactLineCount(doc: []const u8, path: []const u8, line_count: usize) !void {
+    var count_buf: [32]u8 = undefined;
+    const formatted_line_count = try formatLineCountWithCommas(&count_buf, line_count);
+
+    try std.testing.expect(std.mem.indexOf(u8, doc, path) != null);
+    try std.testing.expect(std.mem.indexOf(u8, doc, formatted_line_count) != null);
+}
+
 test "phase 15 parity scorecard manifest records all freeze-map anchors and decision-record templates" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -198,6 +248,11 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[7]);
     try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
+    const sched_core_lines = try countLinesInRepoFile(io_instance.io(), "kernel/sched/core.c", 1024 * 1024);
+    const page_alloc_lines = try countLinesInRepoFile(io_instance.io(), "mm/page_alloc.c", 1024 * 1024);
+    const rcu_tree_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree.c", 1024 * 1024);
+    const skbuff_lines = try countLinesInRepoFile(io_instance.io(), "net/core/skbuff.c", 1024 * 1024);
+
     var saw_sched = false;
     var saw_page_alloc = false;
     var saw_rcu = false;
@@ -228,26 +283,28 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
 
         if (std.mem.eql(u8, anchor.path, "kernel/sched/core.c")) {
             saw_sched = true;
-            try std.testing.expect(anchor.line_count >= 11000);
+            try std.testing.expectEqual(sched_core_lines, anchor.line_count);
             try std.testing.expect(!anchor.phase14_evidence_present);
             try std.testing.expectEqualStrings("Architecture Council", anchor.lane_owner);
             try std.testing.expect(std.mem.indexOf(u8, anchor.evidence_thresholds[1], "hotplug") != null);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md", anchor.evidence_archive.decision_record_path);
         } else if (std.mem.eql(u8, anchor.path, "mm/page_alloc.c")) {
             saw_page_alloc = true;
-            try std.testing.expect(anchor.line_count >= 7700);
+            try std.testing.expectEqual(page_alloc_lines, anchor.line_count);
             try std.testing.expect(!anchor.phase14_evidence_present);
             try std.testing.expectEqualStrings("Architecture Council", anchor.lane_owner);
             try std.testing.expect(std.mem.indexOf(u8, anchor.evidence_thresholds[1], "watermarks") != null);
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md", anchor.evidence_archive.decision_record_path);
         } else if (std.mem.eql(u8, anchor.path, "kernel/rcu/tree.c")) {
             saw_rcu = true;
+            try std.testing.expectEqual(rcu_tree_lines, anchor.line_count);
             try std.testing.expect(anchor.phase14_evidence_present);
             try std.testing.expectEqualStrings("ABI and Runtime Team", anchor.lane_owner);
             try std.testing.expect(std.mem.indexOf(u8, anchor.evidence_thresholds[1], "expedited-GP") != null);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", anchor.evidence_archive.linked_evidence[0]);
         } else if (std.mem.eql(u8, anchor.path, "net/core/skbuff.c")) {
             saw_skbuff = true;
+            try std.testing.expectEqual(skbuff_lines, anchor.line_count);
             try std.testing.expect(anchor.phase14_evidence_present);
             try std.testing.expectEqualStrings("Shared Subsystems Pod", anchor.lane_owner);
             try std.testing.expect(std.mem.indexOf(u8, anchor.evidence_thresholds[1], "segmentation") != null);
@@ -388,7 +445,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_archive_reporting);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
-    try std.testing.expect(saw_anchor_owner_tracking);
+    try std.testing.expect(saw_anchor_ownerTracking);
     try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
@@ -452,6 +509,15 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const sched_core_lines = try countLinesInRepoFile(io_instance.io(), "kernel/sched/core.c", 1024 * 1024);
+    const page_alloc_lines = try countLinesInRepoFile(io_instance.io(), "mm/page_alloc.c", 1024 * 1024);
+    const rcu_tree_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree.c", 1024 * 1024);
+    const rcu_tree_plugin_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree_plugin.h", 512 * 1024);
+    const rcu_tree_exp_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree_exp.h", 512 * 1024);
+    const rcu_tree_nocb_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree_nocb.h", 512 * 1024);
+    const skbuff_lines = try countLinesInRepoFile(io_instance.io(), "net/core/skbuff.c", 1024 * 1024);
+    const skbuff_header_lines = try countLinesInRepoFile(io_instance.io(), "include/linux/skbuff.h", 1024 * 1024);
+
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
@@ -473,6 +539,14 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence archive path") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "latest blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "benchmark notes") != null);
+    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/sched/core.c", sched_core_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "mm/page_alloc.c", page_alloc_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree.c", rcu_tree_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree_plugin.h", rcu_tree_plugin_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree_exp.h", rcu_tree_exp_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree_nocb.h", rcu_tree_nocb_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "net/core/skbuff.c", skbuff_lines);
+    try expectDocMentionsExactLineCount(scorecard_doc, "include/linux/skbuff.h", skbuff_header_lines);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay command") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-anchor-owner-tracking") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
