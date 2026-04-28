@@ -43,6 +43,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - external parity: `scripts/zigux/check-phase6-bsearch-c-parity.py`
 - fixtures: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
+- `make -C zigux phase6-bsearch-perf` now replays representative 256-item and 4096-item lookup batches, reports `ns_per_lookup`, `avg_compare_calls`, `max_compare_calls`, and `max_compare_budget`, and fails if either the average or worst-case comparator work exceeds the current binary-search budget.
 
 ### checksum
 
