@@ -77,10 +77,10 @@ This keeps the closure packet aligned with the roadmap's real Phase 10 requireme
 
 The current Phase 10 parity scoreboard only counts the bounded `drivers/virtio/*.zig` lane plus its dedicated `zigux/tests/phase10_*` manifests, survey gates, and closure packet.
 
-This means the already-landed `samples/zigux/` reference samples from Phase 5 and the `samples/zigux/runtime_*` starter surfaces from Phase 9 remain separate evidence families:
+This means the already-landed `samples/zigux/` reference samples from Phase 5 and the current manifest-backed Phase 9 runtime loader-gap ownership packet remain separate evidence families:
 
 - `samples/zigux/` and `zigux/tests/phase5_build.zig` stay in the reviewable-sample lane
-- `samples/zigux/`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `zigux/tests/phase9_build.zig` stay in the bounded runtime-starter lane
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` stay in the bounded runtime-starter lane
 - neither evidence family advances the Phase 10 virtio driver scoreboard unless a future roadmap-backed lane explicitly republishes the same behavior inside the Phase 10 driver-local evidence set
 
 This keeps the current parity readout honest: the shipped samples and runtime starters still matter for review, but they do not count as Phase 10 virtio driver parity evidence.
