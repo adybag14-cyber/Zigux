@@ -37,6 +37,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-ring-survey-note`
 - the landed `phase10-virtqueue-shape-helper`
 - the landed `phase10-used-buffer-polling-helper`
+- the landed `phase10-callback-disable-helper`
 - the landed `phase10-callback-enable-helper`
 - the landed `phase10-callback-delay-helper`
 - the landed `phase10-notify-prepare-helper`
