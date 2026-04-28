@@ -1,8 +1,18 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "2521496aeecede51ed8d7d81820b9cf70a527ceb",
+  "surveyed_commit": "040884eb7ae838156e6a1f6cb4026b4cd22b5d51",
   "anchor": "Documentation/zigux/freeze-map.md",
+  "roadmap_freeze_in_c_targets": [
+    "kernel/sched/core.c",
+    "mm/page_alloc.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c"
+  ],
+  "roadmap_study_only_targets": [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c"
+  ],
   "freeze_in_c_targets": [
     "kernel/sched/core.c",
     "mm/page_alloc.c",
@@ -12,6 +22,18 @@
   "study_only_targets": [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c"
+  ],
+  "repo_reality_evidence_paths": [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase14-rcu-tree-survey.md",
+    "Documentation/zigux/phase14-skbuff-bridge-survey.md"
+  ],
+  "current_blockers": [
+    "kernel/sched/core.c: blocked_no_bounded_scheduler_seam",
+    "mm/page_alloc.c: blocked_no_bounded_allocator_seam",
+    "kernel/rcu/tree.c: blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
+    "net/core/skbuff.c: blocked_packet_lifetime_boundary_still_too_wide"
   ],
   "governance_requirements": [
     {
@@ -68,7 +90,7 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now needs to reflect current Phase 15 repo reality instead of preserving the older maintenance snapshot that still described the local Phase 15 governance build as broken."
+      "why_now": "The freeze-map-specific lane note now needs to reflect current Phase 15 repo reality instead of preserving the older maintenance snapshot that treated the wider shared Phase 15 replay as clean when the current head only proves the narrower freeze-map packet locally."
     },
     {
       "id": "phase15-build-gate",
@@ -104,6 +126,13 @@
       "kind": "review_gate",
       "zigux_destination": "Documentation/zigux/review-checklist.md",
       "why_now": "The live Phase 15 governance packet now spans the root freeze map, freeze-map governance note, review-process note, and parity scorecard, so the shared review checklist needs one explicit drift gate that keeps the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and maintenance-mode handoff aligned during maintenance edits."
+    },
+    {
+      "id": "phase15-roadmap-vs-repo-reality-survey",
+      "status": "starter_landed",
+      "kind": "survey_alignment",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "This lane now needs one explicit roadmap-versus-repo-reality comparison so the freeze-map packet says plainly that the roadmap lists still match the live freeze map and that the same four deep-core blockers remain backed by current Phase 15 and Phase 14 evidence."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
