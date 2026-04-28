@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'validate-phase6.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase6-base64-c-parity.py',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'Documentation' / 'zigux' / 'README.md',
     ROOT / 'Documentation' / 'zigux' / 'phase6-base64-slice.md',
@@ -17,7 +18,9 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'phase6_base64.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_base64_perf.zig',
+    ROOT / 'zigux' / 'tests' / 'phase6_base64_c_parity.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_base64_vectors.zig',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_base64_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum.zig',
@@ -115,8 +118,9 @@ required_doc_readme_markers = [
     'make -C zigux phase6',
     'make -C zigux phase6-validate',
     'make -C zigux phase6-base64-perf',
+    'python3 scripts/zigux/check-phase6-base64-c-parity.py',
     'make -C zigux phase6-hexdump-perf',
-    'external C-vs-Zig fixture',
+    'generated fixture flow',
     'python3 scripts/zigux/validate-phase6.py',
 ]
 
@@ -199,6 +203,9 @@ required_slice_markers = {
     'phase6-base64-slice.md': [
         'PHASE6_STATUS=active',
         'lib/base64.zig',
+        'python3 scripts/zigux/check-phase6-base64-c-parity.py',
+        'zigux/tests/phase6_base64_c_parity.zig',
+        'zigux/tests/fixtures/phase6_base64_c_harness.c',
         'zigux/tests/fixtures/phase6_base64_vectors.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-base64-perf',
