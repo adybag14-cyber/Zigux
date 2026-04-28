@@ -25,7 +25,7 @@ The schedule prompt for this lane mixes a `Phase 6` label with a runtime allocat
 
 Phase 6 stays limited to low-risk leaf helpers such as `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`. Runtime pilot modules do not appear until Phase 9, where the roadmap explicitly calls for `zigux/tests/runtime_*` plus `samples/zigux/runtime_*`.
 
-The roadmap's first command and environment plumbing surfaces also sit outside this runtime lane. Those controls belong to `Phase 8`, where the product plan points at `tools/lib/subcmd/exec-cmd.c` and `tools/lib/subcmd/help.c` rather than any Phase 6 helper or already-landed Phase 9 runtime starter.
+The roadmap's first command and environment plumbing surfaces also sit outside this runtime lane. Those controls belong to `Phase 8`, where the product plan points at `tools/lib/subcmd/exec-cmd.c` and `tools/lib/subcmd/help.c`, and the live repo now carries those same control-plane seams in `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` rather than in any Phase 6 helper or already-landed Phase 9 runtime starter.
 
 The live repo already reflects that split:
 
@@ -35,6 +35,12 @@ The live repo already reflects that split:
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
 
 This survey keeps the lane honest by recording what is now landed and what is still blocked instead of pretending that runtime scheduling, polling, or event-loop work should be pulled forward into Phase 6.
+
+The live Phase 8 tooling anchors now make that split concrete:
+
+- `tools/lib/subcmd/exec-cmd.zig` already owns command-name extraction through `ExtractArgv0Result.command_name`, explicit exec-path environment handling through `Config.exec_path_env` and `PERF_EXEC_PATH`, plus `PATH` rewrite behavior for the current tooling surface
+- `tools/lib/subcmd/help.zig` already owns PATH-derived command discovery and terminal environment cues through the `LINES` and `COLUMNS` handling used by the pretty-print planner
+- `zigux/kernel/runtime_loader.zig` still exposes none of `command_name`, `argv_policy`, `activation_env`, `PERF_EXEC_PATH`, `PATH`, `LINES`, or `COLUMNS`, which keeps the current runtime-loader packet pre-execution and separate from the Phase 8 control plane
 
 The freeze map also keeps the adjacent scheduler substrate boundary explicit. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this shared runtime-loader packet may record request-shape and blocker evidence, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
 
@@ -76,7 +82,7 @@ What is now landed is the smallest shared consumer contract:
 What is still missing is actual runtime execution behavior:
 
 - no real runtime loader owns thread creation, task scheduling, polling, or event-loop behavior
-- no shared runtime command or environment control surface records whether bring-up is selected by command name, argv policy, or environment-derived activation cues
+- no shared runtime command or environment control surface records whether bring-up is selected by command name, argv policy, `PERF_EXEC_PATH` or `PATH` routing, or terminal or environment-derived activation cues such as `LINES` and `COLUMNS`
 - no path here claims module registration parity, live init invocation, or live exit teardown
 - no path here claims workqueue parity, scheduler-facing runtime transport ownership, or a freeze-map status change for `kernel/workqueue.c` without an explicit Architecture Council decision
 
@@ -87,7 +93,7 @@ That means the current runtime surface is now a bounded shared request contract,
 The roadmap boundary matters here:
 
 - `Phase 6` is still a leaf-helper phase and should not absorb runtime allocator or boot/init work
-- `Phase 8` owns the first repo-level command and environment plumbing surfaces under `tools/lib/subcmd/*.zig`, so this survey records their absence from the runtime path instead of inventing a parallel control stack
+- `Phase 8` owns the first repo-level command and environment plumbing surfaces under `tools/lib/subcmd/*.zig`, and the live repo now shows that ownership concretely in `tools/lib/subcmd/exec-cmd.zig` plus `tools/lib/subcmd/help.zig`, so this survey records their absence from the runtime path instead of inventing a parallel control stack
 - `Phase 9` is the first runtime-module phase, so this survey is recorded there even though the scheduled lane key is `P6-L01`
 
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
@@ -110,11 +116,11 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 This slice does not yet claim:
 
 - a loadable runtime module path
-- command-name, argv-policy, or environment-derived activation controls
+- command-name, argv-policy, `PERF_EXEC_PATH` or `PATH` routing, `LINES` or `COLUMNS` terminal cues, or other environment-derived activation controls
 - allocator ownership changes beyond the shared handoff contract built from `zigux/helpers/allocator_policy.zig`
 - parity or ownership for `kernel/workqueue.c`
 - Phase 6 runtime implementation progress
 
 ## Next bounded step
 
-If a future runtime lane reopens this blocker, keep the next step narrow: extend the shared `zigux/kernel/runtime_loader.zig` request surface only where a new runtime starter can reuse it, or add one explicit command or environment activation field once the separate Phase 8 tooling posture gives that control surface a real owner, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that boundary.
+If a future runtime lane reopens this blocker, keep the next step narrow: extend the shared `zigux/kernel/runtime_loader.zig` request surface only where a new runtime starter can reuse it, or add one explicit command or environment activation field once the separate Phase 8 tooling posture in `tools/lib/subcmd/exec-cmd.zig` or `tools/lib/subcmd/help.zig` gives that control surface a real owner, while keeping `kernel/workqueue.c` in study-only status unless the Architecture Council explicitly reopens that boundary.
