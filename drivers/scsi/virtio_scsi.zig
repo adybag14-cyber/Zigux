@@ -82,6 +82,20 @@ pub const RecoveryQueuePlan = struct {
     requires_request_queue_restore: bool,
 };
 
+pub const RecoveryIoQueueMapSummary = struct {
+    anchor: []const u8,
+    nr_maps: u16,
+    default_queue_count: u16,
+    read_queue_count: u16,
+    poll_queue_count: u16,
+    default_queue_offset: u16,
+    read_queue_offset: u16,
+    poll_queue_offset: u16,
+    requires_blk_mq_map_restore: bool,
+    requires_virtio_affinity_restore: bool,
+    requires_poll_map_restore: bool,
+};
+
 pub const ProbeRequest = struct {
     num_queues: u16,
     requested_poll_queues: u16 = 0,
@@ -350,6 +364,31 @@ pub const VirtioScsiQueueLab = struct {
             .requires_control_queue_restore = true,
             .requires_event_queue_refill = true,
             .requires_request_queue_restore = true,
+        };
+    }
+
+    pub fn recoveryIoQueueMapSummary(self: *const Self) !RecoveryIoQueueMapSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        const default_queue_offset: u16 = 0;
+        const read_queue_offset = layout.default_queues;
+        const poll_queue_offset = layout.default_queues;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .nr_maps = if (layout.poll_queues == 0) 1 else 3,
+            .default_queue_count = layout.default_queues,
+            .read_queue_count = layout.read_queues,
+            .poll_queue_count = layout.poll_queues,
+            .default_queue_offset = default_queue_offset,
+            .read_queue_offset = read_queue_offset,
+            .poll_queue_offset = poll_queue_offset,
+            .requires_blk_mq_map_restore = true,
+            .requires_virtio_affinity_restore = layout.default_queues > 0,
+            .requires_poll_map_restore = layout.poll_queues > 0,
         };
     }
 
