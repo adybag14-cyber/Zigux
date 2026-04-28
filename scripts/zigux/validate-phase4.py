@@ -91,10 +91,12 @@ REQUIRED_WORKFLOW_MARKERS = [
 REQUIRED_DOC_MARKERS = [
     'Current Phase 4 use',
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
     'scripts/zigux/validate-phase4.py',
+    'Documentation/zigux/artifact-diff.md',
     'Documentation/zigux/phase4-validation-matrix.md',
     'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
     'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
@@ -127,6 +129,7 @@ REQUIRED_TESTS_README_MARKERS = [
 
 REQUIRED_SCRIPT_README_MARKERS = [
     'artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'make -C zigux phase4-validate',
     'validate-phase4.py',
     'Phase 4 flow',
@@ -140,6 +143,7 @@ REQUIRED_DOC_README_MARKERS = [
     'Phase 4 notes',
     'make -C zigux phase4-validate',
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'validate-phase4.py',
     'phase4-validation-matrix.md',
     'Validate Phase 4 diff gates',
@@ -150,11 +154,8 @@ REQUIRED_DOC_README_MARKERS = [
 
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
-    'deterministic_preflight_required_for_host_side_diff_tools',
     'python3 scripts/zigux/check-artifact-diff-contract.py',
-    'Phase 4 external CLI-contract replay for host-side tools',
-    'deterministic_cli_contract_required_for_host_side_diff_tools',
-    'outward `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code replay for one stable pass case plus one missing-file failure shape',
+    'deterministic_preflight_required_for_host_side_diff_tools',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'bitmap_diff.zig',
@@ -220,7 +221,7 @@ REQUIRED_RUNTIME_ATOMIC64_MARKERS = [
     'addUnlessCounter',
     'incNotZeroCounter',
     'decIfPositiveCounter',
-    'add_unless, and inc_not_zero expectations',
+    'add_unless, inc_not_zero, and dec_if_positive expectations',
     'checked_guard_paths',
     'error.InvalidLifecycleTransition, module.incNotZeroCounter()',
     'runtime atomic64 diff gate keeps post-selftest replay explicit',
