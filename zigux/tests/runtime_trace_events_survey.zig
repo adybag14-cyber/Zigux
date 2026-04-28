@@ -19,14 +19,25 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const ExactCheck = struct {
+    id: []const u8,
+    kind: []const u8,
+    expected: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    sample_path: []const u8,
+    validation_entrypoint: []const u8,
     survey_summary: SurveySummary,
+    review_prompts: []const []const u8,
+    exact_checks: []const ExactCheck,
     gaps: []const Gap,
+    non_goals: []const []const u8,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -70,10 +81,12 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings("442addb6738c6994a0ade80e09cbedc43b1c9eb9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("8f1c853bbcdf4320164e0622ac77fe9d9fb8bc49", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.sample_path);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.validation_entrypoint);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
@@ -81,15 +94,90 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_summary_surface_present);
+    try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 5);
+    try std.testing.expectEqual(@as(usize, 7), manifest.non_goals.len);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_loader_free_prompt = false;
+    var saw_freeze_map_prompt = false;
+    var saw_descriptor_contract = false;
+    var saw_summary_surface = false;
+    var saw_main_payload_surface = false;
+    var saw_function_balance = false;
+    var saw_selftest_family_order = false;
+    var saw_freeze_map_boundary_check = false;
+    var saw_loader_free_blocker_check = false;
     var saw_sample_module = false;
     var saw_diff_gate = false;
     var saw_freeze_map_boundary = false;
+
+    for (manifest.review_prompts) |prompt| {
+        try std.testing.expect(prompt.len > 0);
+        if (std.mem.indexOf(u8, prompt, "loader-free blocker") != null) {
+            saw_loader_free_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "`kernel/trace/ring_buffer.c`") != null) {
+            saw_freeze_map_prompt = true;
+        }
+    }
+
+    for (manifest.exact_checks, 0..) |check, i| {
+        try std.testing.expect(check.id.len > 0);
+        try std.testing.expect(check.kind.len > 0);
+        try std.testing.expect(check.expected.len > 0);
+
+        if (std.mem.eql(u8, check.id, "descriptor-contract")) {
+            saw_descriptor_contract = true;
+            try std.testing.expectEqualStrings("review_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime_trace_events") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "provides_selftest_hook true") != null);
+        }
+        if (std.mem.eql(u8, check.id, "diagnostics-summary-surface")) {
+            saw_summary_surface = true;
+            try std.testing.expectEqualStrings("summary_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "RuntimeTraceEventsSummary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "explicit main-thread and function-thread event totals") != null);
+        }
+        if (std.mem.eql(u8, check.id, "main-thread-payload-surface")) {
+            saw_main_payload_surface = true;
+            try std.testing.expectEqualStrings("payload_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo_bar") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=%d") != null);
+        }
+        if (std.mem.eql(u8, check.id, "function-callback-balance")) {
+            saw_function_balance = true;
+            try std.testing.expectEqualStrings("registration_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registration depth") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "underflow protection") != null);
+        }
+        if (std.mem.eql(u8, check.id, "selftest-family-order")) {
+            saw_selftest_family_order = true;
+            try std.testing.expectEqualStrings("selftest_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative_location") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "8 total-event") != null);
+        }
+        if (std.mem.eql(u8, check.id, "freeze-map-boundary")) {
+            saw_freeze_map_boundary_check = true;
+            try std.testing.expectEqualStrings("governance_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "Documentation/zigux/freeze-map.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "Architecture Council") != null);
+        }
+        if (std.mem.eql(u8, check.id, "loader-free-blocker")) {
+            saw_loader_free_blocker_check = true;
+            try std.testing.expectEqualStrings("runtime_substrate_boundary", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime_trace_events_loader.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-trace-events-loader-tests") != null);
+        }
+
+        for (manifest.exact_checks[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, check.id, other.id));
+        }
+    }
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -160,6 +248,15 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(starter_landed_count >= 5);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 2);
+    try std.testing.expect(saw_loader_free_prompt);
+    try std.testing.expect(saw_freeze_map_prompt);
+    try std.testing.expect(saw_descriptor_contract);
+    try std.testing.expect(saw_summary_surface);
+    try std.testing.expect(saw_main_payload_surface);
+    try std.testing.expect(saw_function_balance);
+    try std.testing.expect(saw_selftest_family_order);
+    try std.testing.expect(saw_freeze_map_boundary_check);
+    try std.testing.expect(saw_loader_free_blocker_check);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_freeze_map_boundary);
