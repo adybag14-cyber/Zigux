@@ -1,0 +1,62 @@
+{
+  "lane_key": "P4-L01",
+  "phase": "Phase 4",
+  "surveyed_commit": "a92dedede4388d547f584d1f13b2a73237d4b8e8",
+  "anchor": "lib/atomic64_test.c",
+  "roadmap_destinations": [
+    "zigux/tests/atomic64_diff.zig"
+  ],
+  "survey_summary": {
+    "atomic64_test_c_lines": 277,
+    "runtime_atomic64_diff_lines": 259,
+    "runtime_atomic64_diff_present": true,
+    "phase4_build_present": true,
+    "runtime_atomic64_sample_present": true,
+    "phase4_validation_matrix_present": true,
+    "tests_readme_runtime_atomic64_diff_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase4-runtime-atomic64-diff-gate",
+      "status": "starter_landed",
+      "kind": "bounded_gate",
+      "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
+      "why_now": "The live Phase 4 gate already replays bounded exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family lifecycle expectations from lib/atomic64_test.c, so the survey should treat that shipped runtime_* path as the current product truth instead of inventing a second parallel gate."
+    },
+    {
+      "id": "phase4-runtime-atomic64-sample-starter",
+      "status": "starter_landed",
+      "kind": "runtime_starter",
+      "zigux_destination": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "The shipped diff gate already depends on the bounded runtime_atomic64 sample starter for lifecycle and selftest-hook replay, so the survey needs to record that live Phase 4 evidence is currently riding through the Phase 9-style runtime starter rather than a standalone atomic64_diff module."
+    },
+    {
+      "id": "phase4-shared-build-entrypoint",
+      "status": "starter_landed",
+      "kind": "shared_replay",
+      "zigux_destination": "zigux/tests/phase4_build.zig",
+      "why_now": "The shared phase4_build.zig entrypoint already keeps the runtime atomic64 gate and the bitmap gate in the same replay path, which is the current measurable rollback surface for local and CI runs."
+    },
+    {
+      "id": "phase4-validation-matrix-note",
+      "status": "starter_landed",
+      "kind": "ownership_note",
+      "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+      "why_now": "The validation matrix already names the rollback owner, threshold posture, and reversible-delivery evidence for the live runtime atomic64 gate, so the atomic64 survey should point at that published ownership note instead of repeating it loosely."
+    },
+    {
+      "id": "phase4-roadmap-path-alignment",
+      "status": "ready_next",
+      "kind": "roadmap_gap",
+      "zigux_destination": "zigux/tests/atomic64_diff.zig",
+      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, but the shipped tree uses zigux/tests/runtime_atomic64_diff.zig. The next bounded step is to choose one canonical path and update the roadmap-facing note in the same change before anyone claims a broader atomic64 diff surface."
+    },
+    {
+      "id": "phase4-broader-atomic64-surface",
+      "status": "blocked_on_broader_atomic64_surface",
+      "kind": "coverage_gap",
+      "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
+      "why_now": "The live gate is still a bounded rollback-readiness slice. It covers exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family lifecycle checks, but it does not claim the full wider atomic64_test.c surface or any approved perf threshold yet."
+    }
+  ]
+}
