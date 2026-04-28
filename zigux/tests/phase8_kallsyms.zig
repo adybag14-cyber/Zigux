@@ -380,6 +380,14 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" 
             }
             return 0;
         }
+
+        fn collectWithoutStop(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            self.symbol_types.append(std.testing.allocator, symbol_type) catch return -97;
+            self.starts.append(std.testing.allocator, start) catch return -96;
+            return 0;
+        }
     };
 
     var temp_dir = std.testing.tmpDir(.{});
@@ -456,4 +464,45 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" 
 
     try std.testing.expectEqual(@as(i32, -1), missing_result);
     try std.testing.expectEqual(@as(usize, 0), missing_state.names.items.len);
+
+    const too_long_name = "b" ** (kallsyms.KSYM_NAME_LEN + 21);
+    const oversized_contents = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}\n",
+        .{too_long_name},
+    );
+    defer std.testing.allocator.free(oversized_contents);
+
+    {
+        const file = try temp_dir.dir.createFile(io, "oversized-kallsyms.map", .{ .read = true, .truncate = true });
+        defer file.close(io);
+        var writer_buffer: [640]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(oversized_contents);
+        try writer.interface.flush();
+    }
+
+    const oversized_filename = try std.fs.path.join(
+        std.testing.allocator,
+        &.{ ".zig-cache", "tmp", temp_dir.sub_path[0..], "oversized-kallsyms.map" },
+    );
+    defer std.testing.allocator.free(oversized_filename);
+
+    var oversized_state = CallbackState.init();
+    defer oversized_state.deinit(std.testing.allocator);
+
+    const oversized_result = try kallsyms.kallsymsParse(
+        std.testing.allocator,
+        io,
+        oversized_filename,
+        &oversized_state,
+        CallbackState.collectWithoutStop,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), oversized_result);
+    try std.testing.expectEqual(@as(usize, 1), oversized_state.names.items.len);
+    try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), oversized_state.names.items[0].len);
+    try std.testing.expect(std.mem.allEqual(u8, oversized_state.names.items[0], 'b'));
+    try std.testing.expectEqual(@as(u8, 'T'), oversized_state.symbol_types.items[0]);
+    try std.testing.expectEqual(@as(u64, 1), oversized_state.starts.items[0]);
 }
