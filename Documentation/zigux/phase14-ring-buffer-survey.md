@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
-- survey provenance refreshed against verified `master` head `99cd3249c4bab05b74227ed7ca3869284e818588`
+- survey provenance refreshed against verified `master` head `8a1e67b3a9ae6e02a3ae710ade159721573b5a27`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -81,6 +81,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - Non-consuming iteration stays tied to the same boundary. `ring_buffer_read_start()` allocates an iterator, increments `resize_disabled`, takes `reader_lock` plus `cpu_buffer->lock`, and resets the iterator against the live reader state, so even the supposedly observational path still pins resize behavior and shares the same reader serialization contract.
 - The design docs back up that code-level coupling. `Documentation/trace/ring-buffer-design.rst` says no two readers may run at the same time and describes the dedicated reader page swapping with the head page, which matches the implementation detail that consuming and non-consuming readers still revolve around one C-owned reader-page choreography instead of a wrapper-first helper surface.
 
+## Read-page extraction audit
+
+- `ring_buffer_read_page()` is still a stay-in-C extraction boundary, not a helper seam. It rejects mismatched CPUs, undersized reads, missing read pages, and caller pages whose `order` no longer matches `buffer->subbuf_order`, then enters under `reader_lock` and pulls the active reader state from `rb_get_reader_page()`.
+- The copy-versus-swap split stays coupled to the live reader contract. The function forces a memcpy path whenever the reader already consumed part of the page, the caller did not provide enough room for the remaining committed bytes, the writer is still on the reader page, or the buffer is mapped or remote. Only the clean full-page path is allowed to swap pages.
+- The `full` mode confirms this is not a loose wrapper API. If the page was already partially read, the remaining committed bytes do not fit, or `commit_page` is still the reader page, `ring_buffer_read_page()` returns `-1` instead of pretending a full handoff is available.
+- The swap path also carries reader-visible accounting. When the page can be handed off whole, the function swaps the caller-provided page into the ring, preserves `real_end` for the committed payload length, appends missed-event metadata when there is room, and zeroes the unread tail before returning, so extraction, loss publication, and exported page shape still move together.
+- The `resize_disabled` story still belongs to the surrounding C-owned mapping contract, not a new Zig bridge. `ring_buffer_read_page()` forces memcpy whenever the buffer is mapped, and the earlier mapping audit already shows that mapped readers pin `resize_disabled` through `ring_buffer_map()`, which keeps read-page extraction tied to the same tracefs lifetime rules instead of opening a separate wrapper-first path.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -96,7 +104,8 @@ The current lane state is:
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
 - landed `phase14-ring-buffer-reader-page-consume-followup`
-- ready-next `phase14-ring-buffer-read-page-extraction-followup`
+- landed `phase14-ring-buffer-read-page-extraction-followup`
+- ready-next `phase14-ring-buffer-read-page-allocation-contract-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -123,4 +132,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only read-page extraction follow-up next, limited to `ring_buffer_read_page()`, partial-copy versus page-swap behavior, and the `resize_disabled` handoff before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only allocation-contract follow-up next, limited to `ring_buffer_alloc_read_page()`, `ring_buffer_free_read_page()`, caller-owned wake or sleep responsibility, and the sub-buffer order or reuse checks before anyone proposes `kernel/trace/ring_buffer.zig`.
