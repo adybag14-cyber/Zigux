@@ -6,8 +6,9 @@ This document captures the bounded Phase 9 follow-up after the landed bitmap and
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=shared-runtime-loader-substrate-plan`
-- scope: shared request shape, shared loader-stage vocabulary, bitmap and kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
+- scope: shared request shape, shared loader-stage vocabulary, bitmap and kretprobe handoff alignment, the freeze-map boundary around scheduler-facing follow-up, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
 - product boundary:
+  - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `zigux/kernel/runtime_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -38,6 +39,15 @@ The main differences are lane-specific payload details:
 
 - bitmap needs a bounded bitmap summary that can seed first-set, first-zero, weight, and bit-count review
 - kretprobe needs explicit `register_kretprobe` and `unregister_kretprobe` naming plus symbol, `maxactive`, and private-data-size handoff facts
+
+## Freeze-map and study boundary
+
+This shared loader substrate is still adjacent to the roadmap's deeper runtime and scheduler-facing follow-up, so the current governance packet now keeps `Documentation/zigux/freeze-map.md` explicit beside the shared handoff note.
+
+- `kernel/workqueue.c` remains `Study / Boundary Only`
+- any status change for that scheduler-facing boundary still requires an Architecture Council decision
+- the current Phase 9 loader substrate note does not carry a parity scorecard entry or an Architecture Council status-change request for `kernel/workqueue.c`
+- accepted work in this slice stays limited to shared request-shape evidence, bounded handoff vocabulary, and explicit non-goals rather than worker-pool, queue-ownership, or live runtime execution claims
 
 ## Landed first shared substrate
 
@@ -72,6 +82,7 @@ The first shared substrate implementation is now ready because:
 - bitmap and kretprobe can both export a common request shape without losing their current lane-specific facts
 - the shared Phase 9 build can run focused tests for that common request shape
 - the code still makes it impossible to confuse a bounded handoff with a real loadable runtime module
+- the note keeps `kernel/workqueue.c` in `Study / Boundary Only` posture instead of silently widening the shared handoff into scheduler-facing ownership
 - the trace-events lane remains free to adopt the same request shape later without forcing the first implementation to solve thread creation or tracepoint registration
 
 ## Non-goals
@@ -81,10 +92,11 @@ This slice should not yet claim:
 - a working runtime module loader
 - `module_init` or `module_exit` parity
 - real `register_kretprobe()` execution
+- a `kernel/workqueue.c` status change or scheduler-facing worker-pool ownership claim
 - tracepoint registration parity
 - thread creation or scheduling parity
 - a completed `runtime_trace_events_loader.zig` implementation
 
 ## Next bounded step
 
-If this lane reopens, keep it narrow: either let another runtime starter adopt the same shared request surface, or add one explicitly owned command or environment activation field after the Phase 8 tooling posture provides a truthful control-plane source.
+If this lane reopens, keep it narrow: either let another runtime starter adopt the same shared request surface, or add one explicitly owned command or environment activation field after the Phase 8 tooling posture provides a truthful control-plane source while keeping `Documentation/zigux/freeze-map.md` and the `kernel/workqueue.c` study boundary explicit.
