@@ -54,6 +54,7 @@ phase4_gate_expectations = {
         'owner': 'Shared Subsystems Pod',
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
+        'exact_checks': '`bitmap_fill(..., 35)` rounds to one full word, `bitmap_zero(..., 115)` rounds to two full words, full-width `bitmap_fill(..., 1024)` and `bitmap_zero(..., 1024)` keep the endpoints honest, `bitmap_scnprintf()` preserves both the full `1-3,7,10-11` summary and the truncated `1-3` rendering, `bitmap_copy()` replays the 109-bit partial-tail and 97-bit aligned-copy cases while `bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract, and `find_nth_bit()` records both the full-width nth-7 and nth-8 outcomes plus the reduced-width `64 * 3 - 1` cutoff that still returns bit 123 for nth 6 and the cutoff width for nth 7',
         'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
         'gate_scope': 'bounded bitmap range, rounded-prefix, summary, exact nth-lookup, and copy-behavior replay',
@@ -190,6 +191,7 @@ required_bitmap_diff_markers = [
     'test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations"',
     'test_fill_set bitmap_fill rounds 35 bits to one full word',
     'test_zero_clear bitmap_zero rounds 115 bits to two full words',
+    'test "bitmap diff gate records exact full-width fill and zero endpoints"',
     'test_find_nth_bit starter population',
     'test "bitmap diff gate records exact bounded copy checks"',
     'test_copy partial-word tail clearing at 109 bits',
@@ -278,6 +280,11 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
     if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
         missing.append(
             f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}"
+        )
+    exact_checks = expectation.get('exact_checks')
+    if exact_checks is not None and f"- exact bounded checks: {exact_checks}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:exact_checks:{gate_name}:{exact_checks}"
         )
     if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
         missing.append(
