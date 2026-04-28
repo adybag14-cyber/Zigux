@@ -79,6 +79,23 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
         'test "phase3 allocator policy stays explicit"',
     ),
+    "zigux/helpers/atomic.zig": (
+        "pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
+        "pub fn compareExchange(",
+        'test "phase3 atomic wrappers behave predictably"',
+    ),
+    "zigux/helpers/barrier.zig": (
+        "pub fn acquire() void {",
+        "pub fn release() void {",
+        "pub fn full() void {",
+        'test "phase3 barrier wrappers stay local to each barrier probe"',
+    ),
+    "zigux/helpers/mmio.zig": (
+        "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {",
+        "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
+        "pub fn write32(base_addr: usize, offset: usize, value: u32) void {",
+        'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
+    ),
     "zigux/unsafe/narrow.zig": (
         "pub const UnsafeScopeTag = enum(u8) {",
         "raw_pointer_bridge = 2,",
@@ -337,7 +354,7 @@ def run_self_test() -> int:
         for rel in ABI_REQUIRED_MANIFEST_FILES:
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text("// abi boundary\n", encoding="utf-8", newline="\n")
+            target.writeText("// abi boundary\n", encoding="utf-8", newline="\n")
 
         (root / "zigux" / "helpers" / "layout_assert.zig").write_text(
             'test "phase3 layout assertions cover canonical bindings" {\n'
@@ -366,6 +383,53 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (root / "zigux" / "helpers" / "atomic.zig").write_text(
+            "const std = @import(\"std\");\n\n"
+            "pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn compareExchange(\n"
+            "    comptime T: type,\n"
+            "    ptr: *T,\n"
+            "    expected_value: T,\n"
+            "    new_value: T,\n"
+            "    comptime success_order: std.builtin.AtomicOrder,\n"
+            "    comptime failure_order: std.builtin.AtomicOrder,\n"
+            ") ?T {\n"
+            "    _ = .{ T, ptr, expected_value, new_value, success_order, failure_order };\n"
+            "    return null;\n"
+            "}\n\n"
+            'test "phase3 atomic wrappers behave predictably" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "zigux" / "helpers" / "barrier.zig").write_text(
+            "pub fn acquire() void {}\n"
+            "pub fn release() void {}\n"
+            "pub fn full() void {}\n\n"
+            'test "phase3 barrier wrappers stay local to each barrier probe" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "zigux" / "helpers" / "mmio.zig").write_text(
+            "const abi = @import(\"abi_bindings\");\n"
+            "const narrow = @import(\"narrow_unsafe\");\n\n"
+            "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {\n"
+            "    _ = .{ base_addr, length, stride };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {\n"
+            "    _ = .{ scope, base_addr, offset };\n"
+            "    return 0;\n"
+            "}\n\n"
+            "pub fn write32(base_addr: usize, offset: usize, value: u32) void {\n"
+            "    _ = .{ base_addr, offset, value };\n"
+            "}\n\n"
+            'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
         (root / "zigux" / "unsafe" / "narrow.zig").write_text(
             "pub const UnsafeScopeTag = enum(u8) {\n"
             "    none = 0,\n"
@@ -383,17 +447,17 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
+        (paths.tests_dir / "phase3_export_uapi_build.zig").writeText(
             'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");\n',
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_policy_unsafe_build.zig").write_text(
+        (paths.tests_dir / "phase3_policy_unsafe_build.zig").writeText(
             'const phase3_policy_unsafe_step = b.step("phase3-policy-unsafe-test", "Run focused Phase 3 policy and unsafe substrate tests");\n',
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
+        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").writeText(
             'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
             newline="\n",
@@ -402,7 +466,7 @@ def run_self_test() -> int:
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
         partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-8])
-        abi_manifest_path.write_text(
+        abi_manifest_path.writeText(
             json.dumps(
                 {
                     "phase": "Phase 3",
@@ -428,7 +492,7 @@ def run_self_test() -> int:
             "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
         ]
 
-        abi_manifest_path.write_text(
+        abi_manifest_path.writeText(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "abi-slice", "files": list(ABI_REQUIRED_MANIFEST_FILES), "file_count": len(ABI_REQUIRED_MANIFEST_FILES)}),
             encoding="utf-8",
             newline="\n",
@@ -436,7 +500,7 @@ def run_self_test() -> int:
         assert validate_manifest(root, abi_manifest_path, "abi", []) is not None
 
         abi_doc_path = root / "tmp" / "phase3-abi-slice.md"
-        abi_doc_path.write_text(
+        abi_doc_path.writeText(
             "\n".join([
                 "PHASE3_STATUS=ready",
                 "PHASE3_SLICE=abi-slice",
@@ -451,7 +515,7 @@ def run_self_test() -> int:
         )
         assert validate_slices(root, []) == []
 
-        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
+        (root / "zigux" / "helpers" / "panic_policy.zig").writeText(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
@@ -465,7 +529,7 @@ def run_self_test() -> int:
         assert drift_issues == [
             'abi:missing_source_marker=zigux/helpers/panic_policy.zig:test "phase3 panic policy stays explicit"',
         ]
-        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
+        (root / "zigux" / "helpers" / "panic_policy.zig").writeText(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
@@ -474,9 +538,30 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (root / "zigux" / "helpers" / "barrier.zig").writeText(
+            "pub fn acquire() void {}\n"
+            "pub fn release() void {}\n"
+            "pub fn full() void {}\n\n"
+            'test "phase3 barrier wrappers drifted" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        barrier_drift_issues: list[str] = []
+        validate_source_markers(root, "abi", barrier_drift_issues)
+        assert barrier_drift_issues == [
+            'abi:missing_source_marker=zigux/helpers/barrier.zig:test "phase3 barrier wrappers stay local to each barrier probe"',
+        ]
+        (root / "zigux" / "helpers" / "barrier.zig").writeText(
+            "pub fn acquire() void {}\n"
+            "pub fn release() void {}\n"
+            "pub fn full() void {}\n\n"
+            'test "phase3 barrier wrappers stay local to each barrier probe" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
 
         manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+        (paths.docs_dir / "phase3-alpha-slice.md").writeText(
             "\n".join([
                 "PHASE3_STATUS=ready",
                 "PHASE3_SLICE=alpha-slice",
@@ -488,11 +573,11 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+        (paths.scripts_dir / "check-phase3-alpha.py").writeText(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").writeText("// alpha\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").writeText("{}\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_c_harness.c").writeText("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_manifest.json").writeText(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "alpha-slice", "files": [manifest_rel], "file_count": 1}),
             encoding="utf-8",
             newline="\n",
