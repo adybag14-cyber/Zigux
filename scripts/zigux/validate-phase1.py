@@ -43,6 +43,7 @@ if missing:
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 string_root = (ROOT / 'tools' / 'lib' / 'string.zig').read_text(encoding='utf-8')
+rbtree_root = (ROOT / 'tools' / 'lib' / 'rbtree.zig').read_text(encoding='utf-8')
 test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
 bitmap_diff_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig').read_text(encoding='utf-8')
 bitmap_diff_build_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig').read_text(encoding='utf-8')
@@ -174,6 +175,38 @@ required_string_closure_markers = [
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'PHASE1_STRING_ALIAS_UNIT_REVIEW=string skip_spaces, remove_spaces, strim, strreplace, and memchr_inv aliases stay aligned with skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv, including the embedded-NUL stop behavior that keeps remove_spaces and strreplace from touching trailing bytes past the first terminator',
 ]
+required_rbtree_helper_markers = [
+    'pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
+    'pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
+    'pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {',
+    'pub fn iterateMatches(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {',
+    'pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {',
+    'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree cached root keeps leftmost in sync across add erase and replace"',
+]
+required_rbtree_manifest_markers = [
+    '"tools/lib/rbtree.zig"',
+    '"summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks."',
+    '"unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree findAdd keeps the first duplicate and inserts new keys\\""',
+    '"unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree."',
+    '"search_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree nextMatch walks the duplicate range in order\\""',
+    '"search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key."',
+    '"cached_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree cached root keeps leftmost in sync across add erase and replace\\""',
+    '"cached_unit_test_contract": "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root."',
+]
+required_rbtree_closure_markers = [
+    'tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.',
+    'tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.',
+    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `find()`, `findFirst()`, and `nextMatch()` aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.',
+    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `RootCached` leftmost tracking aligned so cached insert, erase, and replace helpers continue to expose the same first node as the underlying tree root.',
+    'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
+    'rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`',
+    'rbtree cached-root unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root keeps leftmost in sync across add erase and replace"`',
+    'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
+    'PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree',
+    'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node',
+    'PHASE1_RBTREE_CACHED_UNIT_REVIEW=rbtree RootCached leftmost tracking stays aligned across addCached, eraseCached, and replaceNodeCached so the cached first node matches the underlying tree root',
+]
 
 missing_markers = []
 for marker in required_ledger_markers:
@@ -206,6 +239,9 @@ for marker in required_find_bit_manifest_markers:
 for marker in required_string_helper_markers:
     if marker not in string_root:
         missing_markers.append(f'string_helper:{marker}')
+for marker in required_rbtree_helper_markers:
+    if marker not in rbtree_root:
+        missing_markers.append(f'rbtree_helper:{marker}')
 for marker in required_string_test_markers:
     if marker not in test_root:
         missing_markers.append(f'string_test:{marker}')
@@ -218,9 +254,15 @@ for marker in required_string_harness_markers:
 for marker in required_string_manifest_markers:
     if marker not in find_bit_manifest:
         missing_markers.append(f'string_manifest:{marker}')
+for marker in required_rbtree_manifest_markers:
+    if marker not in find_bit_manifest:
+        missing_markers.append(f'rbtree_manifest:{marker}')
 for marker in required_string_closure_markers:
     if marker not in phase1_closure:
         missing_markers.append(f'string_closure:{marker}')
+for marker in required_rbtree_closure_markers:
+    if marker not in phase1_closure:
+        missing_markers.append(f'rbtree_closure:{marker}')
 
 if missing_markers:
     print('PHASE1_VALIDATION=fail')
@@ -234,5 +276,5 @@ print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_string_closure_markers)}'
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
 )
