@@ -149,3 +149,44 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_live_loader_binding);
     try std.testing.expect(saw_shared_loader_controls_blocker);
 }
+
+test "phase 9 runtime bitmap docs keep the samples path distinct from Phase 5 idiom guidance" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(readme);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "They are not part of the four Phase 5 approved reference-sample idioms") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_bitmap.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_bitmap_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "not approved Phase 5 reference idioms") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "samples/zigux/runtime_*") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Phase 9 runtime pilot rather than a Phase 5 approved reference idiom") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/runtime_bitmap.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/runtime_bitmap_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "runtime `trace-events` and `kretprobe` families") != null);
+}
