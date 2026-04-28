@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L12",
   "phase": "Phase 15",
-  "surveyed_commit": "65cb45dda5ca7fc760207a4ca711397bc7894e9e",
+  "surveyed_commit": "cbcc511944ba62eb6b0a6d73a0a041a6c2d38089",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -154,6 +154,13 @@
       "kind": "policy_gate",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "A freeze-map anchor that stays in C now has to link the dedicated indefinite-C policy note or say plainly why the packet is not yet entering that policy posture, so the review-process packet cannot drift away from the roadmap's long-term in-C policy surface."
+    },
+    {
+      "id": "phase15-review-checklist-roadmap-phase-rationale-sync",
+      "status": "starter_landed",
+      "kind": "governance_sync",
+      "zigux_destination": "Documentation/zigux/review-checklist.md",
+      "why_now": "The shared review checklist now also has to keep the current roadmap phase and written rationale explicit, so those roadmap-backed review-process requirements do not live only in the survey note and manifest."
     },
     {
       "id": "phase15-review-process-roadmap-handoff-evidence",
