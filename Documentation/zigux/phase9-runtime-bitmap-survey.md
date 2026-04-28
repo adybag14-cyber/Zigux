@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-survey`
-- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
+- scope: survey manifest, dedicated runtime survey gate, direct `phase9-runtime-bitmap-sample-tests` shared-build leg, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -35,6 +35,7 @@ The live repo originally needed a survey-shaped review anchor that could record 
 Against the Phase 9 roadmap requirements, the current runtime bitmap lane now records:
 
 - a landed sample-backed runtime starter with selftest-hook metadata under `samples/zigux/runtime_bitmap.zig`
+- a landed direct `phase9-runtime-bitmap-sample-tests` shared-build leg in `zigux/tests/phase9_build.zig` so the sample file's own lifecycle and summary replay now runs as first-class shared build evidence
 - a landed sample-side loader scaffold in `samples/zigux/runtime_bitmap_loader.zig`
 - a landed dedicated module gate in `zigux/tests/runtime_bitmap_module.zig`
 - a landed dedicated differential gate in `zigux/tests/runtime_bitmap_diff.zig`
@@ -81,7 +82,7 @@ When a contributor updates `samples/zigux/runtime_bitmap.zig` or its directly co
 
 The manifest now records:
 
-- the landed `phase9-build-gate`
+- the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg
 - the landed `runtime-bitmap-survey-gate`
 - the landed `runtime-bitmap-sample-module` starter
 - the landed `runtime-bitmap-module-tests`
@@ -90,12 +91,13 @@ The manifest now records:
 - the landed `runtime-bitmap-live-loader-binding`
 - the still-blocked `runtime-bitmap-shared-loader-controls`
 
-This keeps the survey useful after the first starter, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime bitmap module or the full shared runtime control surface needed for real execution.
+This keeps the survey useful after the first starter, direct sample-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime bitmap module or the full shared runtime control surface needed for real execution.
 
 ## Gates
 
 1. run the dedicated Phase 9 survey gate
 - `zig build test --build-file zigux/tests/phase9_build.zig`
+- this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` leg alongside the bitmap survey, module, diff, loader, and shared runtime-loader checks
 
 2. run the convenience target
 - `make -C zigux phase9`
