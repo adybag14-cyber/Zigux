@@ -1,12 +1,14 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "8275d09b3fdb3b8954fb0fe5bada7d247ebfba04",
+  "surveyed_commit": "2df6754190ab411701d6892741e2fd4d2d750c4a",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
     "samples/zigux/runtime_*"
   ],
+  "sample_path": "samples/zigux/runtime_atomic64.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
   "survey_summary": {
     "atomic64_test_c_lines": 277,
     "preexisting_runtime_test_files": 3,
@@ -14,20 +16,84 @@
     "preexisting_phase9_build_present": true,
     "preexisting_phase9_doc_present": true
   },
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded in-memory counter starter rather than implying a loadable module",
+    "the manifest, survey gate, direct phase9-runtime-atomic64-sample-tests leg, module tests, diff gate, loader scaffold, and sample-backed notes still describe the exact lifecycle, swap, compare-swap, guard-return, loader handoff, and post-selftest replay contract run through phase9_build.zig",
+    "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
+    "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
+    "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-contract",
+      "kind": "review_surface",
+      "expected": "the runtime sample advertises name runtime_atomic64, anchor lib/atomic64_test.c, requires_runtime_substrate true, and provides_selftest_hook true"
+    },
+    {
+      "id": "initial-lifecycle-and-summary",
+      "kind": "lifecycle_contract",
+      "expected": "init seeds the 64-bit counter, keeps stage initialized, records init_runs 1, and runSelftest is rejected while the sample is still cold"
+    },
+    {
+      "id": "bitwise-surface",
+      "kind": "mutation_contract",
+      "expected": "orCounter, andCounter, xorCounter, andNotCounter, and addCounter keep previous and final values explicit on the bounded in-memory counter path"
+    },
+    {
+      "id": "swap-and-compare-swap-surface",
+      "kind": "returning_contract",
+      "expected": "swapCounter returns the prior 64-bit value and compareSwapCounter keeps both the success store path and the mismatch previous-value path explicit"
+    },
+    {
+      "id": "guard-return-surface",
+      "kind": "guard_contract",
+      "expected": "addUnlessCounter, incNotZeroCounter, and decIfPositiveCounter keep both changed and blocked return paths explicit while storage remains bounded to the in-memory starter"
+    },
+    {
+      "id": "selftest-surface",
+      "kind": "selftest_contract",
+      "expected": "runSelftest moves the sample to selftest_complete, records exactly five operation families in order: arithmetic, bitwise, returning_ops, swap_ops, and guard_ops, and keeps checked_returning_paths plus checked_guard_paths true"
+    },
+    {
+      "id": "post-selftest-replay",
+      "kind": "selftest_lifecycle",
+      "expected": "after runSelftest reaches selftest_complete, bitwise, swap, compare-swap, add_unless, inc_not_zero, and dec_if_positive replay still stays explicit before exit"
+    },
+    {
+      "id": "exit-and-lifecycle-guards",
+      "kind": "ownership_lifetime",
+      "expected": "exit moves the sample to exited and later init, runSelftest, exit, swapCounter, compareSwapCounter, addUnlessCounter, incNotZeroCounter, and decIfPositiveCounter fail with InvalidLifecycleTransition"
+    },
+    {
+      "id": "loader-request-surface",
+      "kind": "runtime_loader_contract",
+      "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, kernel_heap allocator flow, and the four-field atomic64 payload summary machine-checkable through the shared runtime-loader request surface"
+    },
+    {
+      "id": "diff-add-and-bitwise-cases",
+      "kind": "differential_validation",
+      "expected": "the diff gate replays the onestwos add path plus the bounded or, and, xor, and andnot families from lib/atomic64_test.c against the in-memory starter"
+    },
+    {
+      "id": "diff-swap-and-guard-cases",
+      "kind": "differential_validation",
+      "expected": "the diff gate replays wide-value exchange, cmpxchg success and mismatch, add_unless, inc_not_zero, dec_if_positive, single-shot lifecycle, and post-selftest replay expectations from lib/atomic64_test.c"
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The dedicated Phase 9 build step is the smallest honest review gate for runtime pilot-module work."
+      "why_now": "The existing Phase 9 build step is the narrowest honest place to keep runtime atomic64 reviewable, and it now runs the direct `phase9-runtime-atomic64-sample-tests` leg so the bounded sample contract stays first-class beside the survey, module, diff, loader, and shared loader checks."
     },
     {
       "id": "runtime-atomic64-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The survey gate keeps the roadmap anchor and remaining runtime-substrate blockers explicit while the lane is still narrow."
+      "why_now": "An atomic64-specific survey gate keeps the lib/atomic64_test.c anchor, the landed sample, module, diff, and shared loader-request surfaces, plus the remaining shared runtime-control blocker, explicit while the pilot surface stays small."
     },
     {
       "id": "runtime-atomic64-sample-module",
@@ -51,11 +117,31 @@
       "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for arithmetic, bitwise (`or`, `and`, `xor`, and `andnot`), wide-value exchange and cmpxchg behavior, bounded guard paths (`add_unless`, `inc_not_zero`, and `dec_if_positive`), plus selftest-family coverage before any broader runtime substrate work."
     },
     {
-      "id": "runtime-atomic64-substrate-handoff",
-      "status": "blocked_on_runtime_substrate",
+      "id": "runtime-atomic64-loader-scaffold",
+      "status": "starter_landed",
+      "kind": "runtime_substrate_scaffold",
+      "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
+      "why_now": "A tiny sample-side loader scaffold makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, handoff-stage checks, a no-substrate release path, and an atomic64 summary payload that now feeds the shared runtime-loader request surface."
+    },
+    {
+      "id": "runtime-atomic64-live-loader-binding",
+      "status": "starter_landed",
       "kind": "runtime_substrate",
-      "zigux_destination": "samples/zigux/runtime_*",
-      "why_now": "A future loadable handoff inside the runtime sample family still depends on runtime substrate pieces that the repo has not started yet."
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "The shared runtime-loader request surface now consumes the atomic64 loader handoff directly through `zigux/kernel/runtime_loader.zig`, keeping allocator posture, staged entry and exit symbols, and atomic64 payload facts machine-checkable before any real runtime execution path exists."
+    },
+    {
+      "id": "runtime-atomic64-shared-loader-controls",
+      "status": "blocked_on_runtime_substrate",
+      "kind": "runtime_control_surface",
+      "zigux_destination": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+      "why_now": "The atomic64 pilot still depends on the broader shared runtime-loader control surface tracked by the runtime loader gap survey: command-name, argv-policy, and environment-derived activation handling are still absent, so the pilot remains pre-execution."
     }
+  ],
+  "non_goals": [
+    "a loadable Zigux runtime atomic64 module",
+    "true runtime execution or lifecycle parity through a shared loader path",
+    "the full lib/atomic64_test.c surface beyond the bounded starter and diff cases",
+    "shared runtime-loader command-name, argv-policy, or environment activation controls"
   ]
 }
