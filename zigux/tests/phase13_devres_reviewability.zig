@@ -33,6 +33,8 @@ const Manifest = struct {
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
+        std.mem.eql(u8, status, "blocked_on_dma_state") or
+        std.mem.eql(u8, status, "blocked_on_scatterlist_state") or
         std.mem.eql(u8, status, "blocked_on_device_tree_state") or
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
@@ -56,7 +58,7 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0d796d2d0bfe4d85c0b15fe27a6f4dfc626e0288", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("8d5b5b18ae2628a05b3437ef124a2fc57f9672a2", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -66,7 +68,7 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -87,6 +89,8 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
+    var blocked_dma_count: usize = 0;
+    var blocked_scatterlist_count: usize = 0;
     var blocked_device_tree_count: usize = 0;
     var blocked_arch_memtype_count: usize = 0;
     var saw_build_gate = false;
@@ -103,6 +107,8 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     var saw_arch_phys_wc = false;
     var saw_arch_io_memtype = false;
     var saw_live_mmio_blocker = false;
+    var saw_dma_blocker = false;
+    var saw_scatterlist_blocker = false;
     var saw_device_tree_blocker = false;
     var saw_arch_memtype_blocker = false;
 
@@ -116,6 +122,10 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
             starter_landed_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_live_mmio_state")) {
             blocked_live_mmio_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_dma_state")) {
+            blocked_dma_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_scatterlist_state")) {
+            blocked_scatterlist_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_device_tree_state")) {
             blocked_device_tree_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_arch_memtype_state")) {
@@ -210,6 +220,22 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devres_add") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ioremap") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-live-dma-mappings")) {
+            saw_dma_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_dma_state", gap.status);
+            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_alloc_coherent") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dma_map_resource") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dma_map_sgtable") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-live-scatterlist-ownership")) {
+            saw_scatterlist_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_scatterlist_state", gap.status);
+            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct scatterlist") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg_table") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg_*") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-device-tree-walk")) {
             saw_device_tree_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_device_tree_state", gap.status);
@@ -232,6 +258,8 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
 
     try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_live_mmio_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_device_tree_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_arch_memtype_count);
     try std.testing.expect(saw_build_gate);
@@ -248,6 +276,8 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     try std.testing.expect(saw_arch_phys_wc);
     try std.testing.expect(saw_arch_io_memtype);
     try std.testing.expect(saw_live_mmio_blocker);
+    try std.testing.expect(saw_dma_blocker);
+    try std.testing.expect(saw_scatterlist_blocker);
     try std.testing.expect(saw_device_tree_blocker);
     try std.testing.expect(saw_arch_memtype_blocker);
 }
