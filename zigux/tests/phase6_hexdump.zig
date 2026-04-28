@@ -95,6 +95,33 @@ test "phase 6 hexdump exposes append-style whole-buffer encoding" {
     try std.testing.expectEqualSlices(u8, "####", rest);
 }
 
+test "phase 6 hexdump directly covers nibble, byte-pack, and decode helpers" {
+    try std.testing.expectEqual(@as(u8, 'b'), hexdump.hexAscHi(0xbe));
+    try std.testing.expectEqual(@as(u8, 'e'), hexdump.hexAscLo(0xbe));
+    try std.testing.expectEqual(@as(u8, 'B'), hexdump.hexAscUpperHi(0xbe));
+    try std.testing.expectEqual(@as(u8, 'E'), hexdump.hexAscUpperLo(0xbe));
+
+    var lower: [4]u8 = [_]u8{'#'} ** 4;
+    const lower_rest = try hexdump.hexBytePack(lower[0..], 0xbe);
+    try std.testing.expectEqual(@as(usize, 2), lower_rest.len);
+    try std.testing.expectEqualSlices(u8, "be", lower[0..2]);
+
+    var upper: [4]u8 = [_]u8{'#'} ** 4;
+    const upper_rest = try hexdump.hexBytePackUpper(upper[0..], 0xbe);
+    try std.testing.expectEqual(@as(usize, 2), upper_rest.len);
+    try std.testing.expectEqualSlices(u8, "BE", upper[0..2]);
+
+    var short: [1]u8 = undefined;
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePack(short[0..], 0xbe));
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePackUpper(short[0..], 0xbe));
+
+    var decoded: [4]u8 = undefined;
+    try hexdump.hex2bin(decoded[0..], "Be32dB7b");
+    try std.testing.expectEqualSlices(u8, test_data_b[0..4], decoded[0..]);
+    try std.testing.expectError(hexdump.HexError.InvalidSourceLength, hexdump.hex2bin(decoded[0..], "abc"));
+    try std.testing.expectError(hexdump.HexError.InvalidHexDigit, hexdump.hex2bin(decoded[0..], "zz00zz00"));
+}
+
 test "phase 6 hexdump replays serialized fixture vectors" {
     for (fixtures.parity_cases) |case| {
         try assertParityCase(case.len, case.rowsize, case.groupsize, case.ascii);
