@@ -10,7 +10,7 @@
   ],
   "survey_summary": {
     "syscalls_c_lines": 592,
-    "landlock_security_file_count": 31,
+    "landlock_security_file_count": 35,
     "preexisting_phase13_build_present": true,
     "preexisting_phase13_make_target_present": true,
     "preexisting_syscalls_zig_present": true,
