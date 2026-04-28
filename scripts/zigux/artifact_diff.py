@@ -158,10 +158,28 @@ def run_self_test() -> int:
         assert not matched
         assert str(invalid_json) in details['expected_json_error']
         assert 'line 2 column 1' not in details['expected_json_error']
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={invalid_json}',
+            f'ACTUAL={json_a}',
+            f"EXPECTED_JSON_ERROR={details['expected_json_error']}",
+        ]
 
         matched, details = compare_artifacts('json', json_a, invalid_json)
         assert not matched
         assert str(invalid_json) in details['actual_json_error']
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={json_a}',
+            f'ACTUAL={invalid_json}',
+            f"ACTUAL_JSON_ERROR={details['actual_json_error']}",
+        ]
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
@@ -176,6 +194,21 @@ def run_self_test() -> int:
             f'EXPECTED={blob_a}',
             f'ACTUAL={blob_b}',
             f"SHA256={details['expected_sha256']}",
+        ]
+
+        blob_b.write_bytes(b'zigux-artifact-DRIFT')
+        matched, details = compare_artifacts('sha256', blob_a, blob_b)
+        assert not matched
+        assert details['expected_sha256'] != details['actual_sha256']
+        exit_code, lines = capture_emit_result(matched, details)
+        assert exit_code == 1
+        assert lines == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=sha256',
+            f'EXPECTED={blob_a}',
+            f'ACTUAL={blob_b}',
+            f"EXPECTED_SHA256={details['expected_sha256']}",
+            f"ACTUAL_SHA256={details['actual_sha256']}",
         ]
 
         matched, details = compare_artifacts('text', missing, text_a)
