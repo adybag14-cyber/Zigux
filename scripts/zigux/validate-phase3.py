@@ -41,6 +41,10 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/unsafe/narrow.zig",
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
 )
 ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
@@ -284,6 +288,29 @@ def run_self_test() -> int:
 
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-4])
+        abi_manifest_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "abi-slice",
+                    "files": partial_abi_manifest_files,
+                    "file_count": len(partial_abi_manifest_files),
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_issues: list[str] = []
+        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
+        assert abi_issues == [
+            "abi:manifest_missing_required_file=zigux/tests/phase3_abi.zig",
+            "abi:manifest_missing_required_file=zigux/tests/phase3_abi_dump.zig",
+            "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/expected.json",
+            "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+        ]
+
         abi_manifest_path.write_text(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "abi-slice", "files": list(ABI_REQUIRED_MANIFEST_FILES), "file_count": len(ABI_REQUIRED_MANIFEST_FILES)}),
             encoding="utf-8",
