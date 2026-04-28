@@ -22,9 +22,9 @@ pub fn main(init: std.process.Init) !void {
 
     for (fixtures.variant_cases) |case| {
         const variant = fixtureVariant(case.variant_name);
-        const written = try base64.encode(encode_buf[0..], &fixtures.variant_sample, case.padding, variant);
+        const written = try base64.encode(encode_buf[0..], case.input, case.padding, variant);
         try writer.print("enc\t{s}\t{}\t", .{ case.variant_name, @intFromBool(case.padding) });
-        try writeHex(writer, &fixtures.variant_sample);
+        try writeHex(writer, case.input);
         try writer.writeAll("\t");
         try writeHex(writer, encode_buf[0..written]);
         try writer.writeAll("\n");
