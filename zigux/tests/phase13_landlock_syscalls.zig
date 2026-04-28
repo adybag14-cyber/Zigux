@@ -75,7 +75,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
@@ -93,6 +93,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_path_beneath_handoff = false;
     var saw_net_port_handoff = false;
     var saw_ruleset_fd_creation_handoff = false;
+    var saw_ruleset_release_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -179,13 +180,20 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anon_inode_getfd()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_put_ruleset()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-release-followup")) {
+            saw_ruleset_release_handoff = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fop_ruleset_release()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "private_data") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -193,12 +201,13 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_add_rule);
+    try std.testing.expect(saw_addRule);
     try std.testing.expect(saw_fd_followup);
     try std.testing.expect(saw_path_followup);
     try std.testing.expect(saw_path_beneath_handoff);
     try std.testing.expect(saw_net_port_handoff);
     try std.testing.expect(saw_ruleset_fd_creation_handoff);
+    try std.testing.expect(saw_ruleset_release_handoff);
 }
 
 test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
@@ -212,6 +221,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_creation_planning);
+    try std.testing.expect(descriptor.provides_ruleset_release_planning);
     try std.testing.expect(descriptor.provides_path_fd_planning);
     try std.testing.expect(descriptor.provides_path_beneath_handoff_planning);
     try std.testing.expect(descriptor.provides_net_port_handoff_planning);
@@ -434,6 +444,24 @@ test "phase13 landlock syscalls create_ruleset_fd planning rejects missing rules
     }));
     try std.testing.expectError(error.InvalidRulesetFdFlags, syscalls.SyscallsHelperLab.planCreateRulesetFd(.{
         .flags = syscalls.open_rdwr,
+    }));
+}
+
+test "phase13 landlock syscalls fop_ruleset_release planning keeps private-data release and zero return explicit" {
+    const plan = try syscalls.SyscallsHelperLab.planFopRulesetRelease(.{});
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expect(plan.reads_file_private_data);
+    try std.testing.expect(plan.invokes_landlock_put_ruleset);
+    try std.testing.expect(plan.returns_zero);
+}
+
+test "phase13 landlock syscalls fop_ruleset_release planning rejects missing file or ruleset state" {
+    try std.testing.expectError(error.MissingFile, syscalls.SyscallsHelperLab.planFopRulesetRelease(.{
+        .file_present = false,
+    }));
+    try std.testing.expectError(error.MissingRuleset, syscalls.SyscallsHelperLab.planFopRulesetRelease(.{
+        .ruleset_present = false,
     }));
 }
 
