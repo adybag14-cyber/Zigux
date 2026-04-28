@@ -1,0 +1,70 @@
+{
+  "lane_key": "P5-L17",
+  "phase": "Phase 7",
+  "surveyed_commit": "49760085b479c32864eb6ab5dc9a03b36b2f1ea7",
+  "anchor": "lib/string_helpers.c",
+  "roadmap_destinations": [
+    "lib/string_helpers.zig",
+    "samples/zigux/string_helpers_sample.zig"
+  ],
+  "survey_summary": {
+    "string_helpers_c_lines": 1047,
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_fixture_modules": 1,
+    "preexisting_phase7_build_present": true,
+    "preexisting_phase7_doc_present": true,
+    "preexisting_phase7_helper_present": true,
+    "preexisting_phase7_sample_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase7-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_build.zig",
+      "why_now": "The shared Phase 7 build step is still the narrowest honest review gate for keeping the string helper bundle, including the bounded sample replay, inside one existing helper lane."
+    },
+    {
+      "id": "phase7-string-helpers-helper",
+      "status": "starter_landed",
+      "kind": "runtime_leaf_helper",
+      "zigux_destination": "lib/string_helpers.zig",
+      "why_now": "The roadmap names lib/string_helpers.zig directly, and the current helper already covers the bounded newline matching, formatter, and escape surface that the sample replays."
+    },
+    {
+      "id": "phase7-string-helpers-dedicated-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers.zig",
+      "why_now": "The dedicated Phase 7 test file keeps the helper-only surface reviewable around sysfs matching, table scans, replacement, padding, bounded termination, case conversion, size formatting, unescape, and escape behavior."
+    },
+    {
+      "id": "phase7-string-helpers-shared-fixtures",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+      "why_now": "The shared fixture layer keeps the current deterministic escape and unescape vectors reviewable from one committed source instead of scattering them across inline assertions."
+    },
+    {
+      "id": "phase7-string-helpers-sample-replay",
+      "status": "starter_landed",
+      "kind": "reference_sample",
+      "zigux_destination": "samples/zigux/string_helpers_sample.zig",
+      "why_now": "The bounded non-runtime sample makes the already-landed helper contract easier to review by replaying descriptor, lifecycle, newline matching, size rendering, and deterministic escape behavior without widening helper semantics."
+    },
+    {
+      "id": "phase7-string-helpers-sample-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_sample_survey.zig",
+      "why_now": "A manifest-backed survey gate keeps the helper, shared fixtures, sample replay, and shared Phase 7 build entrypoint aligned so the new sample does not land as an undocumented side path."
+    },
+    {
+      "id": "phase7-string-helpers-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase7-string-helpers-slice.md",
+      "why_now": "The slice note now needs to name the bounded sample-backed review packet so future Phase 7 follow-up does not treat the sample as either a hidden sidecar or a new Phase 5 anchor."
+    }
+  ]
+}
