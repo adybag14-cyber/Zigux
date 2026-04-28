@@ -36,12 +36,14 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - concrete function-callback payload labels for the current bounded replay path
 - dedicated Phase 9 module and diff tests that assert those lifecycle, registration, diagnostics-summary, explicit per-thread event-total, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate, with the diff gate now cross-checking the stable replay summary against the concrete main-thread and function-thread payload labels instead of treating raw payload structs as the only machine-checkable source
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+- no `samples/zigux/runtime_trace_events_loader.zig` handoff exists yet, and the shared `zigux/tests/phase9_build.zig` bundle intentionally carries no trace-events loader target while scheduler-facing runtime substrate work stays blocked
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - a kernel-loadable Zigux trace-events module
+- a partial or placeholder `samples/zigux/runtime_trace_events_loader.zig` handoff before the blocked scheduler-facing runtime substrate exists
 - `CREATE_TRACE_POINTS` or tracepoint macro parity
 - runtime task ownership or event-loop substrate parity
 - polling-backed wake or dispatch behavior
