@@ -191,6 +191,9 @@ jobs:
       - name: Validate Phase 8 tooling gates
         run: make -C zigux phase8-validate
 
+      - name: Run focused Phase 8 libbpf segment survey tests
+        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
+
       - name: Run Phase 8 tooling tests
         run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
