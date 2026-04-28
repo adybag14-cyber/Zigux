@@ -388,6 +388,7 @@ def validate_kconfig_checker_confdata_gate(checker_script: Path) -> list[str]:
     return issues
 
 required_files = [
+    ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
     ROOT / 'scripts' / 'zigux' / 'genksyms.zig',
@@ -502,6 +503,7 @@ ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encodin
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
 artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
+makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 
 required_ledger_markers = [
     'feat(tools/lib): add phase-1 memory and formatting helper ports',
@@ -520,6 +522,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-kconfig-bridge.py',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/check-mk-elfconfig-diff.py',
+    'python3 scripts/zigux/artifact_diff.py --self-test',
     'zig test scripts/zigux/fixdep.zig',
     'zig test scripts/zigux/genksyms.zig',
     'zig test scripts/zigux/genksyms_crc.zig',
@@ -528,6 +531,7 @@ required_workflow_markers = [
     'zig test scripts/zigux/mk_elfconfig.zig',
 ]
 required_doc_markers = [
+    'python3 scripts/zigux/artifact_diff.py --self-test',
     'fixdep',
     'sample_multi_target_expected.txt',
     'sample_escaped_space_expected.txt',
@@ -542,6 +546,7 @@ required_doc_markers = [
     'elf32_expected.json',
 ]
 required_script_markers = [
+    'artifact_diff.py --self-test',
     'check-fixdep-diff.py',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
@@ -553,6 +558,11 @@ required_script_markers = [
     'kconfig/confdata_bridge.zig',
     'check-mk-elfconfig-diff.py',
     'mk_elfconfig.zig',
+]
+
+required_makefile_markers = [
+    'phase2-validate:',
+    'scripts/zigux/artifact_diff.py --self-test',
 ]
 
 missing_markers = []
@@ -568,6 +578,9 @@ for marker in required_doc_markers:
 for marker in required_script_markers:
     if marker not in script_readme:
         missing_markers.append(f'scripts:{marker}')
+for marker in required_makefile_markers:
+    if marker not in makefile:
+        missing_markers.append(f'make:{marker}')
 
 if missing_markers:
     print('PHASE2_VALIDATION=fail')
@@ -580,4 +593,4 @@ if missing_markers:
 print('PHASE2_VALIDATION=pass')
 print(f'PHASE2_REQUIRED_FILE_COUNT={len(required_files)}')
 print(f'PHASE2_FIXDEP_CASE_COUNT={len(json.loads(FIXDEP_CASES.read_text(encoding="utf-8")))}')
-print(f'PHASE2_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_script_markers)}')
+print(f'PHASE2_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_doc_markers) + len(required_script_markers) + len(required_makefile_markers)}')
