@@ -50,7 +50,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
     try std.testing.expectEqualStrings("62207c4108fc2658728a26341e2b533bde0c97d3", manifest.surveyed_commit);
@@ -69,6 +69,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder
     var blocked_count: usize = 0;
     var saw_ring_helper = false;
     var saw_used_buffer_polling = false;
+    var saw_callback_disable_helper = false;
     var saw_callback_enable_helper = false;
     var saw_callback_delay_helper = false;
     var saw_notify_prepare_helper = false;
@@ -103,6 +104,14 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newly consumed chains") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-callback-disable-helper")) {
+            saw_callback_disable_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback disable helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "follow-up poll") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-callback-enable-helper")) {
@@ -173,6 +182,7 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder
     try std.testing.expect(saw_core_progress_note);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_used_buffer_polling);
+    try std.testing.expect(saw_callback_disable_helper);
     try std.testing.expect(saw_callback_enable_helper);
     try std.testing.expect(saw_callback_delay_helper);
     try std.testing.expect(saw_notify_prepare_helper);
