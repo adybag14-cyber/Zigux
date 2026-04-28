@@ -46,6 +46,14 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-ring-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -63,6 +71,10 @@ test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.gaps.len >= 7);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-register-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
