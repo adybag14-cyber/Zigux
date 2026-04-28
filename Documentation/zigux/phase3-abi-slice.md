@@ -6,12 +6,13 @@ This document starts the first bounded Phase 3 slice for Zigux.
 
 - `PHASE3_STATUS=active`
 - `PHASE3_SLICE=abi-substrate-skeleton`
-- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only`
-- `PHASE3_UAPI_SCOPE=version-only`
+- `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
+- `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-only`
+- `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
 - `PHASE3_MMIO_SCOPE=range-read32-write32`
@@ -54,12 +55,16 @@ It is a small substrate that makes future ports measurable:
 3. run Zig substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
-4. replay the focused low-level wrapper gate
+4. replay the focused export-shim and UAPI smoke gate
+- `zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
+
+5. replay the focused low-level wrapper gate
 - `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+- `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 
 ## Interop rules
@@ -98,8 +103,9 @@ Low-level wrapper survey:
 ## Boundary
 
 Current repo-backed boundary survey:
-- export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, delegates boundary-header construction and compatibility checks through the shared UAPI surface, and now normalizes status records so callers do not have to trust ad hoc flag-setting before decoding success versus failure
+- export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, and it now exposes a small local boundary-header and compatibility surface without widening the public export namespace further
 - UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor and compatibility check, which is still bounded but makes the public boundary less ad hoc than a version constant alone
+- focused replay gate: `zigux/tests/phase3_export_uapi.zig` now keeps that export-shim and UAPI version contract on its own compile-and-test path instead of leaving it visible only through the much broader `phase3_abi.zig` bundle
 
 This slice does not claim:
 
