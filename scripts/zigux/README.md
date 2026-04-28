@@ -107,6 +107,7 @@ Phase 9 flow
 - `make -C zigux phase9-validate` is the fail-fast bundle check for the current runtime atomic64, bitmap, trace-events, kretprobe, and shared loader-gap packet.
 - `make -C zigux phase9` keeps that same runtime lane reviewable through one shared bundle instead of ad hoc slice-local checks.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/review-checklist.md` carry the shared Phase 9 loader-handoff release-discipline evidence for the current runtime bundle.
+- `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` now keeps the adjacent `Documentation/zigux/freeze-map.md` boundary explicit for the shared request-shape note, so `kernel/workqueue.c` stays `Study / Boundary Only` while the current loader substrate remains a bounded handoff surface rather than a scheduler-facing status change.
 - `zigux/tests/runtime_loader_gap_manifest.json` keeps the manifest-backed catalog and ownership map for the shared runtime-loader evidence packet, so reviewers can see which file owns the survey note, the review checklist, the shared request contract, the sample-side loader plans, and the shared `phase9_build.zig` replay path before the lane widens again.
 
 Phase 10 flow
