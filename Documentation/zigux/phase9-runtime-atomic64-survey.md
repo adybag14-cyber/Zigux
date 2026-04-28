@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
-- scope: survey manifest, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` shared-build leg, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
+- scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` shared-build leg, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -17,6 +17,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
+  - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
 
 ## Why this slice exists
 
@@ -46,9 +47,24 @@ Against the Phase 9 roadmap requirements, the current runtime atomic64 lane now 
 
 This keeps the survey honest about the difference between the shipped in-memory pilot and the still-missing loadable runtime substrate.
 
+## Delivery ownership map
+
+The manifest-backed ownership packet for this slice now keeps the current delivery surfaces explicit:
+
+- `Documentation/zigux/phase9-runtime-atomic64-survey.md` owns the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording
+- `zigux/tests/runtime_atomic64_manifest.json` owns the exact checks plus the delivery catalog and ownership map for the current runtime atomic64 packet
+- `zigux/tests/runtime_atomic64_survey.zig` owns the machine-checkable replay of that ownership packet and the adjacent blocked shared-loader note
+- `zigux/tests/runtime_atomic64_module.zig` owns the bounded starter lifecycle, selftest, and guard-path replay surface
+- `zigux/tests/runtime_atomic64_diff.zig` owns the bounded differential replay for arithmetic, bitwise, swap, compare-swap, and guard-return expectations
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 replay entrypoint for the direct atomic64 sample leg plus the survey, module, diff, loader, and shared-loader checks
+- `samples/zigux/runtime_atomic64.zig` owns the bounded in-memory atomic64 starter contract, lifecycle staging, and selftest-hook metadata
+- `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
+- `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this atomic64 packet pre-execution
+
 ## Recorded gaps
 
-The manifest now records:
+The manifest now records both the ownership packet and the current gap posture:
 
 - the landed `phase9-build-gate`, including the direct `phase9-runtime-atomic64-sample-tests` shared-build leg
 - the landed `runtime-atomic64-survey-gate`
@@ -59,7 +75,7 @@ The manifest now records:
 - the landed `runtime-atomic64-live-loader-binding`
 - the still-blocked `runtime-atomic64-shared-loader-controls`
 
-This keeps the survey useful after the first starter, direct sample-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime module or the full shared runtime control surface needed for real execution.
+This keeps the survey useful after the first starter, direct sample-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime module or the full shared runtime control surface needed for real execution. It also keeps ownership for the shipped evidence packet explicit so the survey note, manifest, survey gate, module gate, diff gate, sample-side loader, shared loader contract, and shared Phase 9 replay entrypoint cannot drift independently by eye.
 
 ## Gates
 
