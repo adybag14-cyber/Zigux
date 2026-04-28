@@ -85,10 +85,11 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-tree-search-followup`
 - landed `phase13-landlock-tree-link-followup`
 - landed `phase13-landlock-rule-materialization-followup`
+- landed `phase13-landlock-rule-release-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 Traceability summary:
-- this anchor is roadmap-aligned and manifest-backed, with the current repo explicitly separating the helper-only in-memory lab from the still-blocked live Landlock tree-state and ownership work.
+- this anchor is roadmap-aligned and manifest-backed, with the current repo explicitly separating the helper-only in-memory lab from the still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work.
 
 ### `security/landlock/syscalls.c`
 
