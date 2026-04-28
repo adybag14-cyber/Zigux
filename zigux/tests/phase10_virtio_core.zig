@@ -330,3 +330,72 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(!summary.change_pending);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 }
+
+test "phase10 virtio core records config generation while change delivery is deferred" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 6, 13 });
+
+    device.acknowledge();
+    try device.attachDriver();
+
+    var summary = device.configGenerationSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.last_observed_generation);
+    try std.testing.expect(!summary.pending_generation);
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expect(!summary.change_pending);
+
+    try device.disableConfigDriver();
+    try device.noteConfigChanged();
+
+    summary = device.configGenerationSummary();
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.last_observed_generation);
+    try std.testing.expect(summary.pending_generation);
+    try std.testing.expect(summary.driver_disabled);
+    try std.testing.expect(summary.change_pending);
+}
+
+test "phase10 virtio core observes config generation after deferred and immediate changes" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 7, 15 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.disableConfigCore();
+    try device.noteConfigChanged();
+
+    var summary = device.observeConfigGeneration();
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 1), summary.last_observed_generation);
+    try std.testing.expect(!summary.pending_generation);
+    try std.testing.expect(!summary.core_enabled);
+    try std.testing.expect(summary.change_pending);
+
+    try device.enableConfigCore();
+    summary = device.configGenerationSummary();
+    try std.testing.expectEqual(@as(usize, 1), device.configChangeSummary().delivery_count);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 1), summary.last_observed_generation);
+    try std.testing.expect(!summary.pending_generation);
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expect(!summary.change_pending);
+
+    try device.noteConfigChanged();
+    summary = device.configGenerationSummary();
+    try std.testing.expectEqual(@as(u32, 2), summary.generation);
+    try std.testing.expectEqual(@as(u32, 1), summary.last_observed_generation);
+    try std.testing.expect(summary.pending_generation);
+    try std.testing.expect(!summary.change_pending);
+
+    summary = device.observeConfigGeneration();
+    try std.testing.expectEqual(@as(u32, 2), summary.generation);
+    try std.testing.expectEqual(@as(u32, 2), summary.last_observed_generation);
+    try std.testing.expect(!summary.pending_generation);
+
+    device.reset();
+    summary = device.configGenerationSummary();
+    try std.testing.expectEqual(@as(u32, 0), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.last_observed_generation);
+    try std.testing.expect(!summary.pending_generation);
+}
