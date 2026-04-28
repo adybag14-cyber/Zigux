@@ -76,7 +76,9 @@ RELEASE_MARKERS = [
     "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
-    "PHASE14_COMPILE_SHARD_COUNT=5",
+    "PHASE14_COMPILE_ARTIFACT_COUNT=5",
+    "PHASE14_FOCUSED_SHARD_COUNT=1",
+    "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "scripts/zigux/validate-phase14.py",
@@ -123,30 +125,40 @@ EXPECTED_COMPILE_SHARDS = [
     {
         "artifact_name": "phase14-workqueue-bridge-tests",
         "root_source_file": "phase14_workqueue_bridge.zig",
+        "coverage_mode": "full_bundle_only",
+        "dedicated_step": "",
         "bridge_import": "workqueue_bridge",
         "bridge_source_file": "../../kernel/workqueue_bridge.zig",
     },
     {
         "artifact_name": "phase14-skbuff-bridge-tests",
         "root_source_file": "phase14_skbuff_bridge.zig",
+        "coverage_mode": "full_bundle_only",
+        "dedicated_step": "",
         "bridge_import": "skbuff_bridge",
         "bridge_source_file": "../../net/core/skbuff_bridge.zig",
     },
     {
         "artifact_name": "phase14-ring-buffer-survey-tests",
         "root_source_file": "phase14_ring_buffer_survey.zig",
+        "coverage_mode": "full_bundle_only",
+        "dedicated_step": "",
         "bridge_import": "",
         "bridge_source_file": "",
     },
     {
         "artifact_name": "phase14-rcu-tree-survey-tests",
         "root_source_file": "phase14_rcu_tree_survey.zig",
+        "coverage_mode": "full_bundle_only",
+        "dedicated_step": "",
         "bridge_import": "",
         "bridge_source_file": "",
     },
     {
         "artifact_name": "phase14-end-to-end-smoke-tests",
         "root_source_file": "phase14_end_to_end_smoke_survey.zig",
+        "coverage_mode": "focused_and_full_bundle",
+        "dedicated_step": "phase14-smoke",
         "bridge_import": "",
         "bridge_source_file": "",
     },
@@ -199,6 +211,8 @@ if manifest.get("lane_key") != "P14-L03":
     missing.append(f'manifest:lane_key={manifest.get("lane_key")}')
 if manifest.get("phase") != "Phase 14":
     missing.append(f'manifest:phase={manifest.get("phase")}')
+if manifest.get("surveyed_commit") != "b9ee21faa08430c19e03f5628009a9c35b0cfe5c":
+    missing.append(f'manifest:surveyed_commit={manifest.get("surveyed_commit")}')
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
 if not isinstance(shared_smoke_surfaces, list):
@@ -305,6 +319,10 @@ for shard in EXPECTED_COMPILE_SHARDS:
         missing.append(f"build:compile_shard:bridge_import:{bridge_import}")
     if bridge_source_file and bridge_source_file not in build_text:
         missing.append(f"build:compile_shard:bridge_source_file:{bridge_source_file}")
+if build_text.count('b.step("phase14-smoke"') != 1:
+    missing.append("build:focused_smoke_step")
+if build_text.count('b.step("test"') != 1:
+    missing.append("build:test_bundle_step")
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
