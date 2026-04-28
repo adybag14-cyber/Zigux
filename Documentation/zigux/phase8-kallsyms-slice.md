@@ -16,7 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
 
-The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was overlong symbol handling: `kallsyms.c` keeps parsing and passes a bounded name buffer onward, while the Zig starter still raised an explicit length error instead of preserving that output-stable parser flow.
+The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local review drift was explicit proof for overlong symbol handling in the chunk-reconstructed and direct-wrapper paths: `kallsyms.c` keeps parsing and passes a bounded name buffer onward, so the Zig starter needs those higher-level routes covered explicitly rather than only relying on the line parser's truncation behavior.
 
 ## Gates
 
@@ -52,7 +52,7 @@ The current tests check:
 - split records also preserve callback-stop behavior unchanged when a failing symbol spans buffered chunk boundaries in the dedicated Phase 8 gate
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrappers preserve both the cwd-based filename contract and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
-- oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing so the starter slice now matches the C helper's bounded callback contract instead of failing early
+- oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked and direct-wrapper routes, so the starter slice now matches the C helper's bounded callback contract instead of failing early
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
 ## Non-goals
