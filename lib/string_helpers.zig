@@ -294,7 +294,7 @@ pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8
             continue;
         }
 
-        if (!(is_append and in_dict) and isAscii(ch} and (flags & ESCAPE_NA) != 0) {
+        if (!(is_append and in_dict) and isAscii(ch) and (flags & ESCAPE_NA) != 0) {
             escapePassthrough(ch, dst, &dst_index);
             continue;
         }
