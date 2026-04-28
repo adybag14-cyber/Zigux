@@ -54,15 +54,23 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+    return std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "tools/lib/bpf/zigux_segments/manifest.json",
+        path,
+        allocator,
+        .limited(limit),
+    );
+}
+
+test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
+    const manifest_json = try readWorkspaceFile(
         std.testing.allocator,
-        .limited(64 * 1024),
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        64 * 1024,
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -188,4 +196,42 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(saw_file_path_handle_segment);
     try std.testing.expect(saw_interrupt_routing_segment);
     try std.testing.expect(saw_type_names_segment);
+}
+
+test "phase 8 libbpf segment evidence still matches the live irq and cpumask anchors" {
+    const libbpf_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/libbpf.c",
+        1024 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_c);
+
+    try expectContains(libbpf_c, "pb->cpu_cnt = libbpf_num_possible_cpus();");
+    try expectContains(libbpf_c, "err = parse_cpu_mask_file(online_cpus_file, &online, &n);");
+    try expectContains(libbpf_c, "if (p->cpu_cnt <= 0 && (cpu >= n || !online[cpu]))");
+    try expectContains(libbpf_c, "int parse_cpu_mask_file(const char *fcpu, bool **mask, int *mask_sz)");
+    try expectContains(libbpf_c, "int libbpf_num_possible_cpus(void)");
+}
+
+test "phase 8 docs keep the deferred irq routing boundary explicit" {
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const cpu_mask_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_note);
+
+    try expectContains(survey_note, "perf-buffer-online-cpu-routing");
+    try expectContains(survey_note, "online CPU filtering");
+    try expectContains(survey_note, "interrupt-routing-sensitive boundary");
+    try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
+    try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
+    try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
 }
