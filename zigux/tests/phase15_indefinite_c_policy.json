@@ -27,8 +27,10 @@
     },
     {
       "id": "indefinite-c-recordkeeping",
-      "summary": "The review record must preserve the shared review-packet fields, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
+      "summary": "The review record must preserve the shared review-packet fields, roadmap phase, replay command, retained closeout state, and linked scorecard/archive evidence for a stay-in-C outcome.",
       "required_terms": [
+        "Linux anchor path",
+        "current roadmap phase",
         "current status bucket",
         "requested decision bucket",
         "decision record ID",
@@ -36,9 +38,11 @@
         "rollback owner",
         "validation gate summary",
         "benchmark notes",
-        "latest blocker disposition",
         "evidence archive path",
+        "replay command",
+        "latest blocker disposition",
         "retained discussion state",
+        "reopen triggers",
         "parity scorecard link or blocker record",
         "explicit non-goals",
         "written rationale"
