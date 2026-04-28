@@ -87,6 +87,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     checksum_root_module.addImport("checksum", checksum_module);
+    checksum_root_module.addImport("phase6_checksum_vectors", checksum_vectors_module);
 
     const checksum_tests = b.addTest(.{
         .name = "phase6-checksum-tests",
