@@ -79,7 +79,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(manifest.survey_summary.nvme_pci_slice_note_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -100,11 +100,14 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP-versus-SGL selection summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "page-gap forcing") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "average-segment threshold preference") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "recovery-replay summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`master` snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-pointer-selection-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus pointer-selection starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-recovery-replay-helper`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus pointer-selection plus recovery-replay starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pointer-selection helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recovery-replay helper") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -119,6 +122,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     var saw_survey_note = false;
     var saw_prp_shape = false;
     var saw_pointer_selection = false;
+    var saw_recovery_replay = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -213,13 +217,22 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "threshold preference") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-recovery-replay-helper")) {
+            saw_recovery_replay = true;
+            try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cached PRP-shape and pointer-selection plans") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "I/O queues were dropped by reset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue numbering restarts") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-live-queue-and-dma")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Host Memory Buffer") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pointer-selection helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recovery-replay helpers") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -227,7 +240,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -240,5 +253,6 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_prp_shape);
     try std.testing.expect(saw_pointer_selection);
+    try std.testing.expect(saw_recovery_replay);
     try std.testing.expect(saw_blocker);
 }
