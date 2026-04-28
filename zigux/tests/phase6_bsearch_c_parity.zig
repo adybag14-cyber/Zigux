@@ -29,7 +29,9 @@ pub fn main(init: std.process.Init) !void {
     const writer = &stdout.interface;
 
     const values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
-    const duplicates = [_]u32{ 2, 7, 7, 7, 12, 18 };
+    const duplicate_at_beginning = [_]u32{ 7, 7, 7, 12, 18, 24 };
+    const duplicate_in_middle = [_]u32{ 2, 7, 7, 7, 12, 18 };
+    const duplicate_at_end = [_]u32{ 2, 7, 12, 18, 18, 18 };
     const singleton = [_]u32{21};
     const empty = [_]u32{};
     const symbols = [_]Symbol{
@@ -48,7 +50,9 @@ pub fn main(init: std.process.Init) !void {
     try writeIndexCase(writer, "singleton-hit", 21, bsearch.searchIndex(u32, u32, &@as(u32, 21), singleton[0..], compareU32));
     try writeIndexCase(writer, "singleton-miss", 20, bsearch.searchIndex(u32, u32, &@as(u32, 20), singleton[0..], compareU32));
     try writeIndexCase(writer, "empty-miss", 21, bsearch.searchIndex(u32, u32, &@as(u32, 21), empty[0..], compareU32));
-    try writeDuplicateCase(writer, 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicates[0..], compareU32));
+    try writeDuplicateCase(writer, "duplicate-hit-begin", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_at_beginning[0..], compareU32));
+    try writeDuplicateCase(writer, "duplicate-hit-middle", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_in_middle[0..], compareU32));
+    try writeDuplicateCase(writer, "duplicate-hit-end", 18, bsearch.searchIndex(u32, u32, &@as(u32, 18), duplicate_at_end[0..], compareU32));
 
     const kmalloc = bsearch.search([]const u8, Symbol, &@as([]const u8, "kmalloc"), symbols[0..], compareSymbolName);
     if (kmalloc) |item| {
@@ -84,10 +88,10 @@ fn writeIndexCase(writer: *std.Io.Writer, label: []const u8, key: u32, index: ?u
     }
 }
 
-fn writeDuplicateCase(writer: *std.Io.Writer, key: u32, index: ?usize) !void {
+fn writeDuplicateCase(writer: *std.Io.Writer, label: []const u8, key: u32, index: ?usize) !void {
     if (index != null) {
-        try writer.print("duplicate-hit\t{}\tfound\n", .{key});
+        try writer.print("{s}\t{}\tfound\n", .{ label, key });
     } else {
-        try writer.print("duplicate-hit\t{}\tnull\n", .{key});
+        try writer.print("{s}\t{}\tnull\n", .{ label, key });
     }
 }
