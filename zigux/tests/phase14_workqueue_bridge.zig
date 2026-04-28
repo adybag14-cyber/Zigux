@@ -245,7 +245,7 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 13), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "drain_workqueue()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueLab.nextAuditFocus(), "__cancel_work_sync()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__cancel_work_sync()") != null);
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
     try std.testing.expectEqualStrings("max-active-ordering-gate", audit.checkpoints[2].id);
