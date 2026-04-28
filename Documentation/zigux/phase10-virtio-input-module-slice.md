@@ -11,6 +11,7 @@ The starter stays intentionally narrow:
 - models the fixed two-queue plan used by the Linux driver: events and status
 - caps prequeued event buffers to the static 64-entry event pool used by the C driver
 - keeps status sending in-memory only and suppresses `EV_MSC` plus `MSC_TIMESTAMP` loops when multitouch forwarding is enabled
+- exposes a reset-local teardown observation summary so queue, status, config, and ABS staging cleanup stays reviewable while init-time identity strings remain intact
 
 This slice does not claim MMIO transport work, DMA-facing queue plumbing, input core capability registration, transport-backed config reads, or probe and remove lifecycle parity yet.
 
