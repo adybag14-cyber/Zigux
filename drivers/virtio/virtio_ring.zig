@@ -180,6 +180,10 @@ pub const VirtioRingLab = struct {
         slot.avail_idx_shadow +%= 1;
         slot.outstanding_chain_count += 1;
         slot.num_added += 1;
+        if (slot.num_added == std.math.maxInt(u16)) {
+            slot.notification_count += 1;
+            slot.num_added = 0;
+        }
     }
 
     pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {
