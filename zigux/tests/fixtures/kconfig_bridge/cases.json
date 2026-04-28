@@ -148,6 +148,11 @@
       "expected": "escaped_control_sequences_expected.json"
     },
     {
+      "name": "escaped_low_control_bytes",
+      "input": "escaped_low_control_bytes.config",
+      "expected": "escaped_low_control_bytes_expected.json"
+    },
+    {
       "name": "escaped_strings",
       "input": "escaped_strings.config",
       "expected": "escaped_strings_expected.json"
