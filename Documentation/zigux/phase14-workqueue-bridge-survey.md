@@ -6,6 +6,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=workqueue-flush-color-audit`
+- `PHASE14_SURVEYED_COMMIT=1b346dbd77659625fedfdc2a45f5016e391043f8`
 - scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new flush-color, barrier-insertion, and in-flight release checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
