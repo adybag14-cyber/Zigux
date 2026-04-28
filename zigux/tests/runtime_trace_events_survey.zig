@@ -19,6 +19,18 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    role: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    owns: []const u8,
+};
+
 const ExactCheck = struct {
     id: []const u8,
     kind: []const u8,
@@ -35,6 +47,8 @@ const Manifest = struct {
     validation_entrypoint: []const u8,
     survey_summary: SurveySummary,
     review_prompts: []const []const u8,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     exact_checks: []const ExactCheck,
     gaps: []const Gap,
     non_goals: []const []const u8,
@@ -81,7 +95,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings("8f1c853bbcdf4320164e0622ac77fe9d9fb8bc49", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("9f47d4dbed0d88369fcc47af39bf72c49d47ecbc", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -94,7 +108,9 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_summary_surface_present);
-    try std.testing.expectEqual(@as(usize, 4), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 5);
     try std.testing.expectEqual(@as(usize, 7), manifest.non_goals.len);
@@ -105,6 +121,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var blocked_count: usize = 0;
     var saw_loader_free_prompt = false;
     var saw_freeze_map_prompt = false;
+    var saw_ownership_prompt = false;
     var saw_descriptor_contract = false;
     var saw_summary_surface = false;
     var saw_main_payload_surface = false;
@@ -115,14 +132,73 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var saw_sample_module = false;
     var saw_diff_gate = false;
     var saw_freeze_map_boundary = false;
+    var saw_manifest_catalog = false;
+    var saw_shared_build_catalog = false;
+    var saw_freeze_map_catalog = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "loader-free blocker") != null) {
             saw_loader_free_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "delivery catalog and ownership map") != null) {
+            saw_ownership_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "`kernel/trace/ring_buffer.c`") != null) {
             saw_freeze_map_prompt = true;
+        }
+    }
+
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.kind.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+
+        if (std.mem.eql(u8, entry.id, "runtime-trace-events-manifest")) {
+            saw_manifest_catalog = true;
+            try std.testing.expectEqualStrings("manifest", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_manifest.json", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "delivery catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "phase9-trace-events-build-gate")) {
+            saw_shared_build_catalog = true;
+            try std.testing.expectEqualStrings("validation", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared Phase 9 runtime bundle entrypoint") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-trace-events-freeze-map")) {
+            saw_freeze_map_catalog = true;
+            try std.testing.expectEqualStrings("governance", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "`kernel/trace/ring_buffer.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "Architecture Council") != null);
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+        }
+    }
+
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.owns.len > 0);
+
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_manifest.json")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "delivery catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/freeze-map.md")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "`kernel/trace/ring_buffer.c`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "Architecture Council") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared Phase 9 runtime bundle entrypoint") != null);
+        }
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
         }
     }
 
@@ -249,7 +325,11 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 2);
     try std.testing.expect(saw_loader_free_prompt);
+    try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_freeze_map_prompt);
+    try std.testing.expect(saw_manifest_catalog);
+    try std.testing.expect(saw_shared_build_catalog);
+    try std.testing.expect(saw_freeze_map_catalog);
     try std.testing.expect(saw_descriptor_contract);
     try std.testing.expect(saw_summary_surface);
     try std.testing.expect(saw_main_payload_surface);
@@ -298,6 +378,10 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "provides_selftest_hook = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "lifecycle parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime_trace_events_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Delivery ownership map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "manifest-backed delivery catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_trace_events_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
