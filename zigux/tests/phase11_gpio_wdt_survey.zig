@@ -49,10 +49,10 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("3103a2e543ccd94822276b2892f6a9d24f025ca9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0d1e336cf006e5477fc18df7df0f91520aebd647", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase11_test_files);
@@ -61,7 +61,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_gpio_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_module_note_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -72,6 +72,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     var saw_slice_note = false;
     var saw_stop_followup = false;
     var saw_handoff_followup = false;
+    var saw_plan_followup = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -138,6 +139,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-registration-plan-followup")) {
+            saw_plan_followup = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation focus") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-platform-registration")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt.zig", gap.zigux_destination);
@@ -150,7 +159,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_doc_gate);
@@ -159,5 +168,6 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_stop_followup);
     try std.testing.expect(saw_handoff_followup);
+    try std.testing.expect(saw_plan_followup);
     try std.testing.expect(saw_blocker);
 }
