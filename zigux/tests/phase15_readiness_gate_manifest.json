@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L01",
   "phase": "Phase 15",
-  "surveyed_commit": "783e573845f21769925870e53a591e48878bb7f0",
+  "surveyed_commit": "cf4eadbd1a016d92648979ffc8aecb4c1276843b",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -21,6 +21,7 @@
     "review_process_present": true,
     "parity_scorecard_present": true,
     "indefinite_c_policy_present": true,
+    "handoff_next_steps_present": true,
     "phase15_build_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
@@ -35,5 +36,5 @@
       "why_now": "The live repo still lacks evidence strong enough to move kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, or net/core/skbuff.c out of the freeze-in-C posture."
     }
   ],
-  "next_step": "Keep the tranche in maintenance mode and wait for new deep-core evidence that changes a current blocker disposition."
+  "next_step": "Keep the tranche in maintenance mode and wait for new deep-core evidence that changes a current blocker disposition, a named reopen trigger that now fits the retained stay-in-C packet, or a synchronized drift between the readiness and handoff surveys."
 }
