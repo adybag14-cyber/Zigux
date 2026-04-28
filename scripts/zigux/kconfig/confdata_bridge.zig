@@ -389,6 +389,24 @@ test "confdata bridge keeps empty quoted strings as string values" {
     try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
 }
 
+test "confdata bridge keeps malformed quoted strings as fallback values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_BROKEN="zigux
+        \\CONFIG_LABEL="ok"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("\"zigux", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("ok", summary.entries[1].value);
+}
+
 test "confdata bridge ignores non-CONFIG lines" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
