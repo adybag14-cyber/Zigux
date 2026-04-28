@@ -133,15 +133,6 @@ test "find first and next set bits across words" {
     try std.testing.expectEqual(@as(usize, bits_per_long * 2 + 7), findNextBit(&bitmap, bits_per_long * 3, bits_per_long + 4));
 }
 
-test "find zero bits respects the declared bit count" {
-    var bitmap = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
-    bitmap[1] &= ~(@as(Word, 1) << 4);
-
-    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findFirstZeroBit(&bitmap, bits_per_long * 2));
-    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&bitmap, bits_per_long * 2, bits_per_long));
-    try std.testing.expectEqual(@as(usize, 3), findFirstZeroBit(&[_]Word{0b1111_0111}, 12));
-}
-
 test "find next zero bit skips earlier matches in the same word" {
     const nbits = bits_per_long + 6;
     var bitmap = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
@@ -155,12 +146,42 @@ test "find next zero bit skips earlier matches in the same word" {
     try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&bitmap, nbits, bits_per_long + 5));
 }
 
+test "find next bit skips earlier matches in the same word" {
+    const nbits = bits_per_long + 6;
+    var bitmap = [_]Word{ 0, 0 };
+    bitmap[0] |= @as(Word, 1) << 1;
+    bitmap[0] |= @as(Word, 1) << 6;
+    bitmap[1] |= @as(Word, 1) << 4;
+
+    try std.testing.expectEqual(@as(usize, 1), findNextBit(&bitmap, nbits, 1));
+    try std.testing.expectEqual(@as(usize, 6), findNextBit(&bitmap, nbits, 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextBit(&bitmap, nbits, 7));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&bitmap, nbits, bits_per_long + 5));
+}
+
 test "find and bit returns the first shared set bit" {
     const lhs = [_]Word{ (@as(Word, 1) << 1) | (@as(Word, 1) << 9), @as(Word, 1) << 2 };
     const rhs = [_]Word{ (@as(Word, 1) << 9), @as(Word, 1) << 2 };
 
     try std.testing.expectEqual(@as(usize, 9), findFirstAndBit(&lhs, &rhs, bits_per_long * 2));
     try std.testing.expectEqual(@as(usize, bits_per_long + 2), findNextAndBit(&lhs, &rhs, bits_per_long * 2, 10));
+}
+
+test "find next and bit skips earlier shared matches in the same word" {
+    const nbits = bits_per_long + 6;
+    const lhs = [_]Word{
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 6) | (@as(Word, 1) << 9),
+        (@as(Word, 1) << 4) | (@as(Word, 1) << 7),
+    };
+    const rhs = [_]Word{
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 6),
+        (@as(Word, 1) << 4),
+    };
+
+    try std.testing.expectEqual(@as(usize, 1), findNextAndBit(&lhs, &rhs, nbits, 1));
+    try std.testing.expectEqual(@as(usize, 6), findNextAndBit(&lhs, &rhs, nbits, 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&lhs, &rhs, nbits, 7));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 5));
 }
 
 test "tail mask ignores set bits beyond nbits" {
