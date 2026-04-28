@@ -60,20 +60,28 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     var module = sample.KobjectExampleSample{};
 
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
+    try std.testing.expect(!module.attributesAreAccessible());
     try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
 
     try module.init();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+    try std.testing.expect(!module.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
     try module.registerAttributes();
+    try std.testing.expect(module.attributesAreAccessible());
     try std.testing.expectEqual(@as(usize, 3), module.activeAttrCount());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
 
     try module.exit();
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    try std.testing.expect(!module.attributesAreAccessible());
     try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
     try std.testing.expectEqual(@as(i32, 0), module.foo);
     try std.testing.expectEqual(@as(i32, 0), module.baz);
