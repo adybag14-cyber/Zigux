@@ -55,19 +55,34 @@ Traceability summary:
 Current repo evidence:
 - implementation anchor: `lib/devres.zig`
 - dedicated tests: `zigux/tests/phase13_devres.zig`
+- reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
+- manifest: `zigux/tests/phase13_devres_manifest.json`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-devres-slice.md`
+- survey note: `Documentation/zigux/phase13-devres-survey.md`
 
-Current lane state visible in the repo:
-- the helper slice is real and reviewable through the shared Phase 13 build
-- the slice note records the current helper-first boundary around managed ioremap lifetime planning, resource-backed ioremap planning, `devm_of_iomap()`, `devm_arch_phys_wc_add()`, and `devm_arch_io_reserve_memtype_wc()`
-
-Current traceability gap:
-- unlike `libfs` and the two Landlock anchors, `devres` does not yet have a committed Phase 13 manifest-backed survey packet in `zigux/tests/` and `Documentation/zigux/`
-- that means the roadmap anchor is present in code, tests, and one slice note, but not yet in the same manifest-backed traceability shape as the other active Phase 13 slices
+Current lane state recorded in the manifest:
+- landed `phase13-build-gate`
+- landed `phase13-make-target`
+- landed `phase13-devres-starter`
+- landed `phase13-devres-tests`
+- landed `phase13-devres-slice-note`
+- landed `phase13-devres-reviewability-gate`
+- landed `phase13-devres-survey-note`
+- landed `phase13-devres-managed-ioremap-lifetime`
+- landed `phase13-devres-managed-resource-planner`
+- landed `phase13-devres-devicetree-iomap-planner`
+- landed `phase13-devres-ioport-lifetime-planner`
+- landed `phase13-devres-arch-phys-wc-token-planner`
+- landed `phase13-devres-arch-io-memtype-planner`
+- blocked `phase13-devres-live-mmio-side-effects`
+- blocked `phase13-devres-live-dma-mappings`
+- blocked `phase13-devres-live-scatterlist-ownership`
+- blocked `phase13-devres-live-device-tree-walk`
+- blocked `phase13-devres-live-arch-memtype-state`
 
 Traceability summary:
-- `devres` is landed as a helper slice, but it is currently the asymmetric Phase 13 anchor and the clearest candidate for the next manifest-backed survey follow-up if this lane reopens.
+- `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence, so it is no longer the asymmetric Phase 13 anchor even though its live MMIO, device-tree, DMA, scatterlist, and arch-memtype behavior remain intentionally out of scope.
 
 ### `security/landlock/ruleset.c`
 
@@ -116,18 +131,18 @@ Traceability summary:
 ## Phase 13 traceability status
 
 What is fully traceable today:
-- the roadmap-to-repo path for `libfs`, `landlock/ruleset`, and `landlock/syscalls`
+- the roadmap-to-repo path for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
 - the shared Phase 13 tranche entrypoints through `zigux/tests/phase13_build.zig` and `make -C zigux phase13`
-- the current ready-next and blocked follow-ups for the three manifest-backed anchors
+- the current landed versus blocked follow-ups for all four manifest-backed roadmap anchors
 
 What is additionally reviewable today without being a new roadmap anchor:
 - the shared `phase13_notifier_list_reviewability` packet records how the existing Phase 3 `list` and `hlist` ABI footholds, the current `list_view` and `hlist_view` helpers, and the chrdev-local notifier planner relate to the still-missing generic notifier ABI and helper surface
 - this packet lives in `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, and `Documentation/zigux/phase13-notifier-list-survey.md`
 - it should be read as Phase 13 reviewability evidence around preexisting shared-helper surfaces, not as a fifth roadmap anchor beside `libfs`, `devres`, or the two Landlock slices
 
-What is still asymmetric today:
-- `lib/devres.c` is represented by real helper code, real tests, and a slice note, but not yet by a committed manifest-backed survey packet like the other active Phase 13 anchors
+What stays intentionally blocked today:
+- `lib/devres.c` still keeps live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state out of scope even though its helper-first survey packet is now manifest-backed
 
 ## Next bounded step
 
-If the Phase 13 traceability lane reopens, the next honest follow-up is to give `lib/devres.c` the same manifest-backed survey shape already used by `libfs`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c`, without widening into new helper behavior.
+If the Phase 13 traceability lane reopens, the next honest follow-up is to keep this note aligned with the shared release-discipline packet and any future manifest-backed status changes inside the four roadmap anchors, without widening into new helper behavior.
