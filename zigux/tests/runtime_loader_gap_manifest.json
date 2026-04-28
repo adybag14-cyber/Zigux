@@ -3,11 +3,10 @@
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
   "roadmap_command_environment_phase": "Phase 8",
-  "surveyed_commit": "955fffd690d9b7e39b3712d27d8d6fab069fcb05",
+  "surveyed_commit": "d839457a2f2dbdc7b53711401741b5e88541c818",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
-    "phase8_command_environment_surface_count": 2,
     "runtime_sample_count": 4,
     "runtime_loader_plan_count": 2,
     "shared_runtime_loader_present": true,
@@ -30,10 +29,6 @@
   "runtime_loader_plans": [
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig"
-  ],
-  "phase8_command_environment_surfaces": [
-    "tools/lib/subcmd/exec-cmd.zig",
-    "tools/lib/subcmd/help.zig"
   ],
   "delivery_evidence_catalog": [
     {
@@ -64,7 +59,7 @@
       "id": "runtime-loader-gap-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_loader_gap_survey.zig",
-      "role": "machine-checks the manifest, the blocker note, the shared request contract, and the still-absent command or environment control surface"
+      "role": "machine-checks the manifest, the blocker note, the shared request contract, the new shared command_name field, and the still-absent argv or environment control surface"
     },
     {
       "id": "phase9-build-gate",
@@ -76,7 +71,7 @@
       "id": "shared-runtime-loader-contract",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
-      "role": "owns the shared request contract plus allocator and init or exit handoff fields"
+      "role": "owns the shared request contract plus allocator, command-name, and init or exit handoff fields"
     },
     {
       "id": "bitmap-loader-plan",
@@ -118,7 +113,7 @@
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "shared request contract plus allocator and init or exit handoff fields"
+      "owns": "shared request contract plus allocator, command-name, and init or exit handoff fields"
     },
     {
       "surface": "samples/zigux/runtime_bitmap_loader.zig",
@@ -142,7 +137,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_loader_gap_survey.zig",
-      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, the landed shared runtime-loader seam, and the still-absent command or environment controls explicit on current master."
+      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, the landed shared runtime-loader seam, the new shared command_name field, and the still-absent argv or environment controls explicit on current master."
     },
     {
       "id": "runtime-loader-gap-note",
@@ -177,7 +172,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_control_surface",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The roadmap's first command and environment plumbing surfaces already live in the Phase 8 tooling anchors `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig`, where command-name extraction, `PERF_EXEC_PATH` or `PATH` routing, and `LINES` or `COLUMNS` environment handling are explicit, but the current runtime starter family still has no shared runtime control surface that records command-name, argv-policy, or environment-derived activation handling."
+      "why_now": "The roadmap's first command and environment plumbing surfaces live in Phase 8 tooling, and the shared runtime loader now carries a shared command_name field, but argv-policy and environment-derived activation handling still remain blocked."
     },
     {
       "id": "runtime-loader-allocator-handoff",
