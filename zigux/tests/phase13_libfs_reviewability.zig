@@ -62,7 +62,7 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
     try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
