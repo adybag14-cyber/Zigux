@@ -300,6 +300,29 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 }
 
+test "phase10 virtio core does not fabricate config delivery when driver re-enables without pending change" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 3, 9 });
+
+    device.acknowledge();
+    try device.attachDriver();
+
+    var summary = device.configChangeSummary();
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expect(!summary.change_pending);
+
+    try device.disableConfigDriver();
+    summary = device.configChangeSummary();
+    try std.testing.expect(summary.driver_disabled);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expect(!summary.change_pending);
+
+    try device.enableConfigDriver();
+    summary = device.configChangeSummary();
+    try std.testing.expect(!summary.driver_disabled);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expect(!summary.change_pending);
+}
+
 test "phase10 virtio core keeps config changes pending while the core path is disabled and clears them on reset" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 11 });
 
@@ -329,6 +352,29 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+}
+
+test "phase10 virtio core does not fabricate config delivery when core re-enables without pending change" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 11 });
+
+    device.acknowledge();
+    try device.attachDriver();
+
+    var summary = device.configChangeSummary();
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expect(!summary.change_pending);
+
+    try device.disableConfigCore();
+    summary = device.configChangeSummary();
+    try std.testing.expect(!summary.core_enabled);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expect(!summary.change_pending);
+
+    try device.enableConfigCore();
+    summary = device.configChangeSummary();
+    try std.testing.expect(summary.core_enabled);
+    try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expect(!summary.change_pending);
 }
 
 test "phase10 virtio core records config generation while change delivery is deferred" {
