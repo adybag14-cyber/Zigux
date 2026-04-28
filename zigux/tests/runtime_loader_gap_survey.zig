@@ -116,7 +116,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("lib/base64.zig", manifest.phase6_leaf_helpers[0]);
     try std.testing.expectEqualStrings("lib/hexdump.zig", manifest.phase6_leaf_helpers[3]);
@@ -162,16 +162,19 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             saw_atomic64_loader_plan = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "atomic64 loader-plan projection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "without-substrate rollback path") != null);
         }
         if (std.mem.eql(u8, entry.id, "bitmap-loader-plan")) {
             saw_bitmap_loader_plan = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "bitmap loader-plan projection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "without-substrate rollback path") != null);
         }
         if (std.mem.eql(u8, entry.id, "kretprobe-loader-plan")) {
             saw_kretprobe_loader_plan = true;
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "kretprobe loader-plan projection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "without-substrate rollback path") != null);
         }
 
         for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
@@ -195,12 +198,15 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         }
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "atomic64 loader-plan projection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "without-substrate rollback path") != null);
         }
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_bitmap_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "bitmap loader-plan projection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "without-substrate rollback path") != null);
         }
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe_loader.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "kretprobe loader-plan projection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "without-substrate rollback path") != null);
         }
 
         for (manifest.ownership_map[i + 1 ..]) |other| {
@@ -213,6 +219,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     var saw_note = false;
     var saw_review_checklist = false;
     var saw_plan_inputs = false;
+    var saw_without_substrate_rollback = false;
     var saw_workqueue_freeze_blocker = false;
     var saw_command_env_blocker = false;
     var saw_allocator_blocker = false;
@@ -258,6 +265,15 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expectEqualStrings("samples/zigux/runtime_*_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "entry and exit symbol names") != null);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-loader-without-substrate-rollback")) {
+            saw_without_substrate_rollback = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_*_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without-substrate rollback path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "waiting_on_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "released_without_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fallback posture") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-loader-workqueue-freeze-map-boundary")) {
             saw_workqueue_freeze_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
@@ -295,7 +311,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), landed_count);
+    try std.testing.expectEqual(@as(usize, 8), landed_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_manifest_catalog);
     try std.testing.expect(saw_freeze_map_doc);
@@ -308,6 +324,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_review_checklist);
     try std.testing.expect(saw_plan_inputs);
+    try std.testing.expect(saw_without_substrate_rollback);
     try std.testing.expect(saw_workqueue_freeze_blocker);
     try std.testing.expect(saw_command_env_blocker);
     try std.testing.expect(saw_allocator_blocker);
@@ -364,6 +381,9 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "atomic64 loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bitmap loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kretprobe loader-plan projection") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback-without-substrate path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "released_without_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
 }
