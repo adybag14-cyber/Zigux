@@ -8,6 +8,18 @@ pub const FdInfoMapInfo = struct {
     map_flags: u32,
 };
 
+pub const ReuseProbeExpectation = struct {
+    map_type: u32,
+    key_size: u32,
+    value_size: u32,
+    max_entries: u32,
+    map_flags: u32,
+};
+
+pub const bpf_map_type_devmap: u32 = 14;
+pub const bpf_map_type_devmap_hash: u32 = 25;
+pub const bpf_f_rdonly_prog: u32 = 1 << 7;
+
 pub const FilePathHandleBridgeError = error{
     PathTooLong,
     InvalidPid,
@@ -119,6 +131,24 @@ pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInf
     return info;
 }
 
+fn normalizedReuseFlags(info: FdInfoMapInfo) u32 {
+    return switch (info.map_type) {
+        bpf_map_type_devmap, bpf_map_type_devmap_hash => info.map_flags & ~bpf_f_rdonly_prog,
+        else => info.map_flags,
+    };
+}
+
+pub fn isReuseCompatibleWithinFdinfo(
+    fdinfo_info: FdInfoMapInfo,
+    expectation: ReuseProbeExpectation,
+) bool {
+    return fdinfo_info.map_type == expectation.map_type and
+        fdinfo_info.key_size == expectation.key_size and
+        fdinfo_info.value_size == expectation.value_size and
+        fdinfo_info.max_entries == expectation.max_entries and
+        normalizedReuseFlags(fdinfo_info) == expectation.map_flags;
+}
+
 test "buildFdinfoPath keeps the proc fdinfo pathname helper explicit" {
     var buffer: [64]u8 = undefined;
 
@@ -197,4 +227,70 @@ test "parseMapInfoFromFdinfo keeps malformed duplicates and missing fields expli
             "value_size:\t8\n" ++
             "max_entries:\t16\n",
     ));
+}
+
+test "isReuseCompatibleWithinFdinfo mirrors the devmap read-only-prog flag exception" {
+    const devmap_fdinfo = FdInfoMapInfo{
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 64,
+        .map_flags = bpf_f_rdonly_prog | 0x20,
+    };
+
+    try std.testing.expect(isReuseCompatibleWithinFdinfo(devmap_fdinfo, .{
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 64,
+        .map_flags = 0x20,
+    }));
+
+    const devmap_hash_fdinfo = FdInfoMapInfo{
+        .map_type = bpf_map_type_devmap_hash,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = bpf_f_rdonly_prog | 0x8,
+    };
+
+    try std.testing.expect(isReuseCompatibleWithinFdinfo(devmap_hash_fdinfo, .{
+        .map_type = bpf_map_type_devmap_hash,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0x8,
+    }));
+}
+
+test "isReuseCompatibleWithinFdinfo keeps non-devmap flag drift and shape mismatches explicit" {
+    const base = FdInfoMapInfo{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 128,
+        .map_flags = 0x20,
+    };
+
+    try std.testing.expect(isReuseCompatibleWithinFdinfo(base, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 128,
+        .map_flags = 0x20,
+    }));
+    try std.testing.expect(!isReuseCompatibleWithinFdinfo(base, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 128,
+        .map_flags = 0x40,
+    }));
+    try std.testing.expect(!isReuseCompatibleWithinFdinfo(base, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 16,
+        .max_entries = 128,
+        .map_flags = 0x20,
+    }));
 }
