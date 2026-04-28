@@ -18,7 +18,7 @@
   },
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded two-word bitmap backing used by the sample",
-    "the manifest, survey gate, module tests, diff gate, and sample-backed survey note still describe the exact lifecycle, summary, range-mutation, copy, and diff-case contract run through phase9_build.zig",
+    "the manifest, survey gate, direct phase9-runtime-bitmap-sample-tests leg, module tests, diff gate, and sample-backed survey note still describe the exact lifecycle, summary, range-mutation, copy, and diff-case contract run through phase9_build.zig",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_bitmap_module.zig and runtime_bitmap_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime bitmap starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter"
@@ -81,7 +81,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step is the narrowest honest place to widen runtime pilot coverage from atomic64 into bitmap without inventing a broader runtime substrate."
+      "why_now": "The existing Phase 9 build step is the narrowest honest place to widen runtime pilot coverage from atomic64 into bitmap without inventing a broader runtime substrate, and it now runs the direct `phase9-runtime-bitmap-sample-tests` leg so the bounded sample contract stays first-class beside the survey, module, diff, and loader checks."
     },
     {
       "id": "runtime-bitmap-survey-gate",
