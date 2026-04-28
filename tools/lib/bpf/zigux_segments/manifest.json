@@ -95,10 +95,11 @@
       "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
-        "tools/lib/bpf/libbpf.c:4956-4987"
+        "tools/lib/bpf/libbpf.c:4956-4987",
+        "tools/lib/bpf/libbpf.c:4976-4994"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The proc fdinfo path construction and map-info text parsing inside bpf_get_map_info_from_fdinfo() can land as a pure helper without claiming procfs fopen or fclose behavior, pinned-map reuse, or token lifecycle parity."
+      "why_now": "The proc fdinfo path construction, bounded map-info text parsing, and reused-map-name chooser inside bpf_map__reuse_fd() can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
     },
     {
       "id": "P8-L13-S09",
@@ -110,7 +111,7 @@
         "tools/lib/bpf/libbpf.c:5255-5286"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "After the fdinfo pathname and text parser helper lands, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
+      "why_now": "After the fdinfo pathname, reused-map-name chooser, token-preparation planner, and text parser helpers land, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
     },
     {
       "id": "P8-L13-S10",
