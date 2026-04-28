@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus five landed helper-first starter slices
+- scope: segment manifest plus five landed helper-first starter slices and one explicit deferred interrupt-routing boundary
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -37,7 +37,7 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 
 ## Segment catalog
 
-The manifest currently records nine bounded segments:
+The manifest currently records ten bounded segments:
 
 - `logging-version-and-errno`
 - `pin-path-helpers`
@@ -45,11 +45,12 @@ The manifest currently records nine bounded segments:
 - `type-name-helpers`
 - `fdinfo-map-info-helpers`
 - `file-path-and-handle-bridge`
+- `perf-buffer-online-cpu-routing`
 - `skeleton-population`
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `fdinfo-map-info-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`. The new helper keeps `bpf_get_map_info_from_fdinfo()` bounded to `/proc/<pid>/fdinfo/<fd>` path construction and fdinfo text parsing only. `file-path-and-handle-bridge` stays deferred as the remaining resource-boundary cluster around `bpf_object_prepare_token()` and `bpf_object__reuse_map()`, because it still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flows, and fd close or ownership semantics without yet requiring full ELF or skeleton parity. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
+`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `fdinfo-map-info-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`. The new helper keeps `bpf_get_map_info_from_fdinfo()` bounded to `/proc/<pid>/fdinfo/<fd>` path construction and fdinfo text parsing only. `file-path-and-handle-bridge` stays deferred as the remaining resource-boundary cluster around `bpf_object_prepare_token()` and `bpf_object__reuse_map()`, because it still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flows, and fd close or ownership semantics without yet requiring full ELF or skeleton parity. The new `perf-buffer-online-cpu-routing` segment stays separately deferred next to the landed cpu-mask helper because `perf_buffer__new()` still combines `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts, online CPU filtering, per-CPU perf-event-array map updates, and epoll-backed perf FD registration into one interrupt-routing-sensitive boundary. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
 
 ## Current landed segment progress
 
@@ -59,6 +60,7 @@ The current starter implementation stays deliberately bounded:
 - the segment now includes an injected chunk-reader interface for sysfs-style buffered input without claiming direct file-descriptor parity
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
 - delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
+- the survey now keeps the separate `perf-buffer-online-cpu-routing` boundary explicit so the landed parser helper is not mistaken for online CPU selection or perf-event routing parity
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
 - `type_names.zig` ports the exported attach, link, map, and program type string tables as pure dense lookups over the current `tools/include/uapi/linux/bpf.h` ordinal space
 - the type-name helper keeps unknown negative and oversized ordinals returning `null`, matching libbpf's bounded helper behavior without widening into name-to-type parsing or object lifecycle state
@@ -80,6 +82,7 @@ The current tests check:
 - the bounded set-bit counter matches the parsed mask contents
 - empty and malformed ranges report explicit errors
 - reader contract failures stay explicit instead of silently truncating input
+- the manifest-backed survey now rejects dropping the deferred perf-buffer online-CPU routing boundary from the segment catalog
 - every exported attach, link, map, and program type-name table entry stays reachable through the paired helper
 - representative late ordinals from `tools/include/uapi/linux/bpf.h` still resolve to the shipped type-name strings
 - out-of-range negative and oversized type ordinals are rejected cleanly
@@ -107,6 +110,7 @@ This survey slice does not yet claim:
 
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
 - `parse_cpu_mask_file()` parity or direct file reads
+- `perf_buffer__new()` online CPU filtering, perf-event-array population, epoll registration, or interrupt-routing parity
 - direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
 - direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifecycle parity
 - BTF relocation parity
@@ -116,4 +120,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Treat the Phase 8 helper-first entry as substantively landed for now: keep the shared Phase 8 gate honest, leave the remaining file-path-and-handle bridge segment explicitly deferred around token and pinned-map handle lifecycle work, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded helper if fresh repo reality exposes one that stays smaller and lower risk than that remaining resource-boundary cluster and the currently blocked object-model or loader-facing work.
+Treat the Phase 8 helper-first entry as substantively landed for now: keep the shared Phase 8 gate honest, leave both the remaining file-path-and-handle bridge segment and the separate perf-buffer online-CPU routing boundary explicitly deferred, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded helper if fresh repo reality exposes one that stays smaller and lower risk than those remaining resource or routing boundaries and the currently blocked object-model or loader-facing work.
