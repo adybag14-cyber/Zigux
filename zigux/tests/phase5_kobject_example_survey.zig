@@ -131,7 +131,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_order_prompt);
     try std.testing.expect(saw_mode_prompt);
     try std.testing.expect(saw_docs_prompt);
-    try std.testing.expect(saw_groupBoundaryPrompt);
+    try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_order);
