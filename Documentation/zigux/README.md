@@ -27,6 +27,8 @@ Phase 2 notes
 Phase 3 notes
 - `Documentation/zigux/phase3-roadmap-gap-survey.md` now maps the original Phase 3 roadmap anchors `rust/exports.c`, `lib/bitmap.c`, `lib/rbtree.c`, and `lib/cpumask.c` to the live ABI substrate, the current export shim and current `zigux/uapi/version.zig` boundary, and the current interop slices, so reviewers can see in one place which anchors are already covered, which adjacent helpers are real repo state, and which roadmap-backed gap is still open.
 - `scripts/zigux/validate-phase3-roadmap-gap-survey.py`, `make -C zigux phase3-validate`, and the bootstrap workflow now keep that survey note explicit, including the narrow export shim and current `zigux/uapi/version.zig` boundary, the current `rbtree` gap, and the note that the longer `chrdev_*` planning ladder should not be mistaken for roadmap closure.
+- `Documentation/zigux/phase3-export-uapi-boundary-survey.md` now records the narrower export-shim and UAPI boundary reality inside the same Phase 3 substrate: `zigux/kernel/export_shim.zig` remains an explicit-status-only helper, `zigux/uapi/` remains version-only through `zigux/uapi/version.zig`, and the broader curated UAPI surface is still intentionally deferred.
+- `scripts/zigux/validate-phase3-export-uapi-survey.py` and `make -C zigux phase3-validate` now keep that dedicated export-shim and UAPI boundary survey packet explicit alongside the broader roadmap-gap note.
 
 Phase 5 notes
 - `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay plus non-destructive snapshot checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
