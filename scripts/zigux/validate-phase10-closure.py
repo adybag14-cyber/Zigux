@@ -164,7 +164,7 @@ required_ring_survey_markers = [
     "phase10-mmio-queue-register-helper",
 ]
 required_ring_survey_test_markers = [
-    'test "phase10 virtio ring survey manifest records the live MMIO follow-up ladder" {',
+    'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO follow-up ladder" {',
 ]
 forbidden_stale_ring_markers = [
     "remaining queue-wrapper gap",
