@@ -105,6 +105,9 @@ static void run_bitmap_section(void)
 	unsigned long partial_lhs[1] = {0x1fUL};
 	unsigned long partial_rhs[1] = {0x11UL};
 	unsigned long partial_dst[1] = {0};
+	unsigned long copy_nbits = BITS_PER_LONG + 45;
+	unsigned long copy_src[3] = {0, 0, 0};
+	unsigned long copy_dst[3] = {~0UL, ~0UL, ~0UL};
 	unsigned long empty_map[1] = {0};
 	char buffer[64] = {0};
 	char trunc_buffer[4] = {0};
@@ -131,6 +134,9 @@ static void run_bitmap_section(void)
 	unsigned long partial_xor_masked_values[1] = {
 		partial_dst[0] & BITMAP_LAST_WORD_MASK(4)
 	};
+	bitmap_set(copy_src, 0, copy_nbits);
+	bitmap_copy(copy_dst, copy_src, copy_nbits);
+	unsigned long copy_values[3] = {copy_dst[0], copy_dst[1], copy_dst[2]};
 	size_t empty_len = bitmap_scnprintf(empty_map, 8, empty_buffer, sizeof(empty_buffer));
 	unsigned long empty_bytes[4] = {
 		(unsigned char)empty_buffer[0],
@@ -166,6 +172,8 @@ static void run_bitmap_section(void)
 	printf("\"andnot_values\":"); emit_word_array(andnot_values, 2); printf(",");
 	printf("\"or_values\":"); emit_word_array(or_values, 2); printf(",");
 	printf("\"xor_values\":"); emit_word_array(xor_values, 2); printf(",");
+	printf("\"copy_nbits\":%lu,", copy_nbits);
+	printf("\"copy_values\":"); emit_word_array(copy_values, 3); printf(",");
 	printf("\"partial_xor_nbits\":4,");
 	printf("\"partial_xor_masked_values\":"); emit_word_array(partial_xor_masked_values, 1); printf(",");
 	printf("\"scnprintf_empty_len\":%zu,", empty_len);
@@ -176,7 +184,7 @@ static void run_bitmap_section(void)
 	printf("\"range_after_set\":"); emit_word_array(range_after_set, 3); printf(",");
 	printf("\"range_after_clear\":"); emit_word_array(range_after_clear, 3); printf(",");
 	printf("\"full_after_fill\":%s,", full_result ? "true" : "false");
-	printf("\"empty_after_zero\":%s,", empty_result ? "true" : "false");
+	printf("\"empty_after_zero\":%s", empty_result ? "true" : "false");
 	printf("\"scnprintf_trunc_len\":%zu,", trunc_len);
 	printf("\"scnprintf_trunc\":\"%s\"", trunc_buffer);
 	printf("}");
