@@ -66,6 +66,25 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
     "PHASE3_MMIO_SCOPE=range-read32-write32",
 )
+ABI_REQUIRED_SOURCE_MARKERS = {
+    "zigux/helpers/layout_assert.zig": (
+        'test "phase3 layout assertions cover canonical bindings"',
+        'assertOffset(abi.InteropPolicy, "unsafe_scope", 2);',
+    ),
+    "zigux/helpers/panic_policy.zig": (
+        "pub fn actionFor(mode: abi.PanicMode) Action {",
+        'test "phase3 panic policy stays explicit"',
+    ),
+    "zigux/helpers/allocator_policy.zig": (
+        "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
+        'test "phase3 allocator policy stays explicit"',
+    ),
+    "zigux/unsafe/narrow.zig": (
+        "pub const UnsafeScopeTag = enum(u8) {",
+        "raw_pointer_bridge = 2,",
+        'test "phase3 narrow unsafe scope stays explicit"',
+    ),
+}
 LIST_HLIST_REQUIRED_DOC_MARKERS = (
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug list-hlist",
     "PHASE3_LIST_HLIST_BOUNDARY=descriptor-only-no-container-of-no-lockless-no-rcu-no-notifier-chains",
@@ -82,6 +101,10 @@ def _required_doc_markers_for_slug(slug: str) -> tuple[str, ...]:
     if slug == "list-hlist":
         return LIST_HLIST_REQUIRED_DOC_MARKERS
     return ()
+
+
+def _required_source_markers_for_slug(slug: str) -> dict[str, tuple[str, ...]]:
+    return ABI_REQUIRED_SOURCE_MARKERS if slug == "abi" else {}
 
 
 def _has_build_step(build_file: Path, step_name: str) -> bool:
@@ -168,6 +191,19 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
         return
     if script_path.read_text(encoding="utf-8") != render_wrapper_stub():
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
+
+
+def validate_source_markers(root: Path, slug: str, issues: list[str]) -> None:
+    for rel, markers in _required_source_markers_for_slug(slug).items():
+        path = root / rel
+        try:
+            content = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            issues.append(f"{slug}:missing_source_file={rel}")
+            continue
+        for marker in markers:
+            if marker not in content:
+                issues.append(f"{slug}:missing_source_marker={rel}:{marker}")
 
 
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -266,6 +302,7 @@ def validate_slices(
         manifest = validate_manifest(root, entry.manifest_path, entry.slug, issues)
         validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
+        validate_source_markers(root, entry.slug, issues)
     validate_buildSteps = validate_build_steps
     validate_buildSteps(root, slices, issues)
     validate_abi_focused_build(root, issues)
@@ -301,6 +338,44 @@ def run_self_test() -> int:
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("// abi boundary\n", encoding="utf-8", newline="\n")
+
+        (root / "zigux" / "helpers" / "layout_assert.zig").write_text(
+            'test "phase3 layout assertions cover canonical bindings" {\n'
+            '    comptime {\n'
+            '        assertOffset(abi.InteropPolicy, "unsafe_scope", 2);\n'
+            "    }\n"
+            "}\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
+            "pub fn actionFor(mode: abi.PanicMode) Action {\n"
+            "    _ = mode;\n"
+            "    return .abort_now;\n"
+            "}\n\n"
+            'test "phase3 panic policy stays explicit" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "zigux" / "helpers" / "allocator_policy.zig").write_text(
+            "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {\n"
+            "    _ = mode;\n"
+            "    return .caller_prepared;\n"
+            "}\n\n"
+            'test "phase3 allocator policy stays explicit" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "zigux" / "unsafe" / "narrow.zig").write_text(
+            "pub const UnsafeScopeTag = enum(u8) {\n"
+            "    none = 0,\n"
+            "    volatile_mmio = 1,\n"
+            "    raw_pointer_bridge = 2,\n"
+            "};\n\n"
+            'test "phase3 narrow unsafe scope stays explicit" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
 
         (paths.tests_dir / "build.zig").write_text(
             'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n'
@@ -375,6 +450,30 @@ def run_self_test() -> int:
             newline="\n",
         )
         assert validate_slices(root, []) == []
+
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
+            "pub fn actionFor(mode: abi.PanicMode) Action {\n"
+            "    _ = mode;\n"
+            "    return .abort_now;\n"
+            "}\n\n"
+            'test "phase3 panic modes drifted" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        drift_issues: list[str] = []
+        validate_source_markers(root, "abi", drift_issues)
+        assert drift_issues == [
+            'abi:missing_source_marker=zigux/helpers/panic_policy.zig:test "phase3 panic policy stays explicit"',
+        ]
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
+            "pub fn actionFor(mode: abi.PanicMode) Action {\n"
+            "    _ = mode;\n"
+            "    return .abort_now;\n"
+            "}\n\n"
+            'test "phase3 panic policy stays explicit" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
 
         manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
