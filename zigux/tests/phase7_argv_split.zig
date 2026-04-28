@@ -51,6 +51,19 @@ test "phase 7 argvSplitWithArgc reports the split length through the optional ou
     try std.testing.expectEqual(argc, split.argv.len);
 }
 
+test "phase 7 blank argvSplit input reuses the empty exported argv view" {
+    var buffer: [4]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argv_split.argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    defer split.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
 test "phase 7 argvSplit deinit leaves exported argv views empty and null terminated" {
     var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
 
