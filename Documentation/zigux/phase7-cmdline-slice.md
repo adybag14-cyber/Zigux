@@ -46,6 +46,7 @@ The current tests check:
 - signed integer parsing and comma handling
 - Linux-style hyphen range expansion and validation-only counting
 - descending-range and unparseable-suffix early stop behavior
+- malformed token classification and malformed range counting ported from the in-tree `lib/tests/cmdline_kunit.c` corpus
 - memory-size suffix scaling with accurate parse-stop reporting
 - rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
 - exact bare-option matching for comma-delimited flags
