@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
-- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus a bounded setup-path wrapper that consumes stat-identity proof, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice plus a bounded setup-path wrapper that consumes stat-identity proof, null-terminated command-vector preparation, pure `execl_cmd()`-style argv collection, and one pure deferred-exec handoff carrier only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
@@ -47,6 +47,7 @@ The current parked slice covers:
 - `setupPathWithPwd()` as the bounded wrapper that applies that stat-backed `PWD` proof directly to `setupPath()` before relative search-path normalization
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
 - a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, its required trailing null terminator, and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
+- `buildDeferredExeclCall()` plus the tiny `DeferredExecCall` carrier so the `execl_cmd()` path can now hand off one fully prepared future `execvp()` argv packet without launching a process, waiting for completion, or claiming any queue ownership
 
 The current tests check:
 
@@ -59,12 +60,14 @@ The current tests check:
 - `setupPathWithPwd()` reuses the logical `PWD` only when the injected stat identities match and otherwise falls back to the physical cwd before rebuilding `PATH`
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, rejects a missing terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
+- the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
 
 ## Non-goals
 
 This slice still does not claim:
 
 - direct `execvp()` parity or process-launch behavior
+- process waiting, retry scheduling, or queue ownership
 - deferred execution ownership, queueing, or scheduler-facing transport behavior
 - any handoff into `kernel/workqueue.c` or other Phase 14 boundary-study ownership
 - direct OS environment reads or writes
@@ -73,4 +76,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, and the empty explicit exec-path sentinel is already covered too, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, deferred execution, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, while the deferred `execl_cmd()` handoff now has a pure launch-free carrier too, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
