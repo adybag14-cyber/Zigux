@@ -223,6 +223,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_main_payload_surface = true;
             try std.testing.expectEqualStrings("payload_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo_bar") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "count % 5 array-shape details") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=%d") != null);
         }
         if (std.mem.eql(u8, check.id, "function-callback-balance")) {
@@ -264,9 +265,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
         } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
-            // Sample-side starter surfaces stay under samples.
         } else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {
-            // Governance-only blockers may live in the lane survey note.
         } else {
             try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
@@ -346,28 +345,13 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const freeze_map = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/freeze-map.md",
-        16 * 1024,
-    );
+    const freeze_map = try readWorkspaceFile(io_instance.io(), std.testing.allocator, "Documentation/zigux/freeze-map.md", 16 * 1024);
     defer std.testing.allocator.free(freeze_map);
 
-    const survey_doc = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/phase9-runtime-trace-events-survey.md",
-        16 * 1024,
-    );
+    const survey_doc = try readWorkspaceFile(io_instance.io(), std.testing.allocator, "Documentation/zigux/phase9-runtime-trace-events-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_doc);
 
-    const module_doc = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
-        16 * 1024,
-    );
+    const module_doc = try readWorkspaceFile(io_instance.io(), std.testing.allocator, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md", 16 * 1024);
     defer std.testing.allocator.free(module_doc);
 
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Study / Boundary Only") != null);
@@ -385,6 +369,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "array-shape replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "failed-exit rollback proof") != null);
@@ -409,6 +394,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit per-thread event-total") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "array-shape replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "phase9-runtime-trace-events-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "failed-exit rollback proof") != null);
@@ -442,21 +428,12 @@ test "phase 9 runtime trace-events blocker stays loader-free until the scheduler
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const phase9_build = try readWorkspaceFile(
-        io_instance.io(),
-        std.testing.allocator,
-        "zigux/tests/phase9_build.zig",
-        32 * 1024,
-    );
+    const phase9_build = try readWorkspaceFile(io_instance.io(), std.testing.allocator, "zigux/tests/phase9_build.zig", 32 * 1024);
     defer std.testing.allocator.free(phase9_build);
 
     try std.testing.expectError(
         error.FileNotFound,
-        std.Io.Dir.cwd().openFile(
-            io_instance.io(),
-            "samples/zigux/runtime_trace_events_loader.zig",
-            .{},
-        ),
+        std.Io.Dir.cwd().openFile(io_instance.io(), "samples/zigux/runtime_trace_events_loader.zig", .{}),
     );
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") == null);
