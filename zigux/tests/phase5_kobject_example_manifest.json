@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L10",
+  "lane_key": "P5-L22",
   "phase": "Phase 5",
   "surveyed_commit": "2b5f92f6cf683de6fb54a81fb5374c78e9e2d9f5",
   "anchor": "samples/kobject/kobject-example.c",
@@ -58,7 +58,7 @@
     {
       "id": "exit-boundary",
       "kind": "ownership_lifetime",
-      "expected": "exit clears the tracked values, removes the active attribute count, and rejects later init, registerAttributes, showValue, or storeValue calls"
+      "expected": "exit clears the tracked values, removes the active attribute count, and rejects later show or store calls"
     }
   ],
   "non_goals": [
