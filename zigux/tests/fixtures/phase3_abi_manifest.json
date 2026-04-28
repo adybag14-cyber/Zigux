@@ -15,6 +15,8 @@
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
+    "zigux/tests/phase3_policy_unsafe_build.zig",
+    "zigux/tests/phase3_policy_unsafe.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_abi.zig",
@@ -30,5 +32,5 @@
     "Documentation/zigux/phase3-abi-slice.md",
     "zigux/tests/build.zig"
   ],
-  "file_count": 26
+  "file_count": 28
 }
