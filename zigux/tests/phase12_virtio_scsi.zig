@@ -111,6 +111,48 @@ test "phase12 virtio scsi recovery queue plan mirrors the frozen topology" {
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueuePlan());
 }
 
+test "phase12 virtio scsi recovery io queue map summary mirrors the frozen topology" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
+
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryIoQueueMapSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 3), summary.nr_maps);
+    try std.testing.expectEqual(@as(u16, 4), summary.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.read_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.default_queue_offset);
+    try std.testing.expectEqual(@as(u16, 4), summary.read_queue_offset);
+    try std.testing.expectEqual(@as(u16, 4), summary.poll_queue_offset);
+    try std.testing.expect(summary.requires_blk_mq_map_restore);
+    try std.testing.expect(summary.requires_virtio_affinity_restore);
+    try std.testing.expect(summary.requires_poll_map_restore);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
+}
+
+test "phase12 virtio scsi recovery io queue map summary collapses without poll queues" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(2, 0);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryIoQueueMapSummary();
+    try std.testing.expectEqual(@as(u16, 1), summary.nr_maps);
+    try std.testing.expectEqual(@as(u16, 2), summary.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.read_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.default_queue_offset);
+    try std.testing.expectEqual(@as(u16, 2), summary.read_queue_offset);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queue_offset);
+    try std.testing.expect(summary.requires_blk_mq_map_restore);
+    try std.testing.expect(summary.requires_virtio_affinity_restore);
+    try std.testing.expect(!summary.requires_poll_map_restore);
+}
+
 test "phase12 virtio scsi rejects invalid freeze restore sequencing" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
 
