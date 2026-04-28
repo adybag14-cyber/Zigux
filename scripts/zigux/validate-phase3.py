@@ -25,6 +25,7 @@ from phase3_check_lib import (
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
+ABI_EXPORT_UAPI_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_build.zig"
 ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
@@ -41,18 +42,21 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/unsafe/narrow.zig",
     ABI_LOW_LEVEL_BUILD_FILE_REL,
     "zigux/tests/phase3_low_level_wrappers.zig",
+    ABI_EXPORT_UAPI_BUILD_FILE_REL,
+    "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
 )
 ABI_REQUIRED_DOC_MARKERS = (
-    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header",
+    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-only",
+    "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
@@ -175,11 +179,17 @@ def validate_build_steps(root: Path, slices: list[object], issues: list[str]) ->
 
 
 def validate_abi_focused_build(root: Path, issues: list[str]) -> None:
-    build_file = root / ABI_LOW_LEVEL_BUILD_FILE_REL
-    if not build_file.exists():
+    export_uapi_build = root / ABI_EXPORT_UAPI_BUILD_FILE_REL
+    if not export_uapi_build.exists():
+        issues.append(f"abi:missing_file:{ABI_EXPORT_UAPI_BUILD_FILE_REL}")
+    elif not _has_build_step(export_uapi_build, "phase3-export-uapi-test"):
+        issues.append(f"abi:missing_build_step:{ABI_EXPORT_UAPI_BUILD_FILE_REL}:phase3-export-uapi-test")
+
+    low_level_build = root / ABI_LOW_LEVEL_BUILD_FILE_REL
+    if not low_level_build.exists():
         issues.append(f"abi:missing_file:{ABI_LOW_LEVEL_BUILD_FILE_REL}")
         return
-    if not _has_build_step(build_file, "phase3-low-level-wrappers-test"):
+    if not _has_build_step(low_level_build, "phase3-low-level-wrappers-test"):
         issues.append(f"abi:missing_build_step:{ABI_LOW_LEVEL_BUILD_FILE_REL}:phase3-low-level-wrappers-test")
 
 
@@ -280,6 +290,11 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
+            'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run focused Phase 3 export/uapi tests");\n',
+            encoding="utf-8",
+            newline="\n",
+        )
         (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
             'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
             encoding="utf-8",
@@ -288,7 +303,7 @@ def run_self_test() -> int:
 
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-4])
+        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-6])
         abi_manifest_path.write_text(
             json.dumps(
                 {
@@ -305,6 +320,8 @@ def run_self_test() -> int:
         abi_issues: list[str] = []
         validate_manifest(root, abi_manifest_path, "abi", abi_issues)
         assert abi_issues == [
+            "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi_build.zig",
+            "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_abi.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_abi_dump.zig",
             "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/expected.json",
@@ -380,7 +397,7 @@ def main() -> int:
 
     slices = select_slices(discover_phase3_slices(), args.slug)
     if not slices:
-        raise SystemExit("no Phase 3 slices discovered")
+        raise SystemExit("no Phase 3 slugs discovered")
 
     issues = validate_slices(
         ROOT,
