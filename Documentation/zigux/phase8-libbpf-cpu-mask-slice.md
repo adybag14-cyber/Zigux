@@ -44,6 +44,7 @@ The current tests check:
 
 - mixed single-value and ranged fragments
 - newline-terminated and repeated-delimiter inputs
+- carriage-return drift stays rejected so the landed Zig helper keeps matching the live `parse_cpu_mask_str()` delimiter boundary instead of silently widening beyond commas and `\n`
 - chunked reader input that splits ranges and delimiters across buffer boundaries
 - sparse masks with unset gaps preserved
 - explicit error handling for empty and malformed ranges
