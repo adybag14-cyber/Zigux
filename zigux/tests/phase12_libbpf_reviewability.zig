@@ -1,6 +1,7 @@
 const std = @import("std");
 const cpu_mask = @import("cpu_mask");
 const bpf_type_names = @import("bpf_type_names");
+const file_path_handle_bridge = @import("file_path_handle_bridge");
 const logging = @import("logging");
 const pin_path = @import("pin_path");
 
@@ -69,6 +70,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_cpu_mask = false;
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
+    var saw_landed_file_path_handle_bridge = false;
     var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
 
@@ -104,6 +106,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_pin_path = true;
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-handle-helper-foundation")) {
+            saw_landed_file_path_handle_bridge = true;
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
             saw_blocked_skeleton = true;
             try std.testing.expect(!exists);
@@ -119,6 +125,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_cpu_mask);
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
+    try std.testing.expect(saw_landed_file_path_handle_bridge);
     try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
 }
@@ -126,12 +133,25 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
 test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
     const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,3");
     defer parsed.deinit(std.testing.allocator);
+    const fdinfo_map_info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_type:\t2\n" ++
+            "key_size:\t8\n" ++
+            "value_size:\t16\n" ++
+            "max_entries:\t64\n" ++
+            "map_flags:\t0x400\n",
+    );
+    var fdinfo_path_buffer: [32]u8 = undefined;
     var path_buffer: [64]u8 = undefined;
     var error_buffer: [64]u8 = undefined;
 
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(parsed.values));
     try std.testing.expectEqualStrings("xdp", bpf_type_names.libbpfBpfAttachTypeStr(37).?);
     try std.testing.expectEqualStrings("ringbuf", bpf_type_names.libbpfBpfMapTypeStr(27).?);
+    try std.testing.expectEqual(@as(u32, 2), fdinfo_map_info.map_type);
+    try std.testing.expectEqualStrings(
+        "/proc/321/fdinfo/7",
+        try file_path_handle_bridge.buildFdinfoPath(&fdinfo_path_buffer, 321, 7),
+    );
     try std.testing.expectEqualStrings("v1.8", logging.libbpfVersionString());
     try std.testing.expectEqualStrings(
         "Internal error in libbpf",
@@ -175,6 +195,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var saw_logging = false;
     var saw_pin_path = false;
     var saw_cpu_mask = false;
+    var saw_fdinfo_map_info = false;
     var saw_skeleton = false;
     var saw_object_loader = false;
     var saw_relocation = false;
@@ -194,6 +215,11 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         }
         if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
             saw_cpu_mask = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
+            saw_fdinfo_map_info = true;
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expect(exists);
         }
@@ -217,6 +243,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     try std.testing.expect(saw_logging);
     try std.testing.expect(saw_pin_path);
     try std.testing.expect(saw_cpu_mask);
+    try std.testing.expect(saw_fdinfo_map_info);
     try std.testing.expect(saw_skeleton);
     try std.testing.expect(saw_object_loader);
     try std.testing.expect(saw_relocation);
