@@ -48,6 +48,8 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_REVIEW=find_bit baseline set, zero, shared-bit, and tail-clamped scans ignore bits beyond nbits while preserving the in-range mixed-tail match',
     'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`',
     'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit same-word zero-scan start masking keeps inclusive starts honest, skips earlier zero matches after the search advances, and still clamps tail results to nbits',
+    'find_bit set unit-test anchor: `tools/lib/find_bit.zig:test "find next bit skips earlier matches in the same word"`',
+    'PHASE1_FIND_BIT_SET_UNIT_REVIEW=find_bit same-word set-scan start masking keeps inclusive starts honest, skips earlier same-word set matches after the search advances, and still clamps tail results to nbits',
     'find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`',
     'PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
@@ -171,6 +173,10 @@ if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "find
     missing_markers.append('manifest:find_bit.unit_test_anchor')
 if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to nbits.':
     missing_markers.append('manifest:find_bit.unit_test_contract')
+if find_bit_review.get('set_unit_test_anchor') != 'tools/lib/find_bit.zig:test "find next bit skips earlier matches in the same word"':
+    missing_markers.append('manifest:find_bit.set_unit_test_anchor')
+if find_bit_review.get('set_unit_test_contract') != 'Direct Zig unit coverage keeps same-word set-scan start masking aligned so inclusive starts can return the current set bit, later starts skip earlier same-word matches, and tail scans still clamp to nbits.':
+    missing_markers.append('manifest:find_bit.set_unit_test_contract')
 if find_bit_review.get('boundary_unit_test_anchor') != 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"':
     missing_markers.append('manifest:find_bit.boundary_unit_test_anchor')
 if find_bit_review.get('boundary_unit_test_contract') != 'Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.':
