@@ -107,6 +107,14 @@ test "bitmap diff gate records exact bounded copy checks" {
     // test_copy partial-word tail clearing at 109 bits
     copyFrom(&dst, &src, 109);
     try std.testing.expectEqual(@as(usize, 109), weight(dst[0..bitmap.bitsToWords(109)], 109));
+    try std.testing.expectEqual(bitmap.lastWordMask(109), dst[1]);
+    try std.testing.expectEqual(~@as(Word, 0), dst[2]);
+
+    bitmap.fill(&dst, bits_per_long * 3);
+    // test_copy word-aligned tail carry at 97 bits
+    copyFrom(&dst, &src, 97);
+    try std.testing.expectEqual(@as(usize, 109), weight(dst[0..bitmap.bitsToWords(109)], 109));
+    try std.testing.expectEqual(bitmap.lastWordMask(109), dst[1]);
     try std.testing.expectEqual(~@as(Word, 0), dst[2]);
 
     bitmap.fill(&dst, bits_per_long * 3);
