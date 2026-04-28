@@ -72,7 +72,7 @@ Current Phase 3 use
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery dump.
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_DELIVERY_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_DELIVERY/expected.json` anchors the bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY parity claim.
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-DELIVERY` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY dump.
-- `zigux/tests/fixtures/phase3_chrdev_notify_ack_DELIVERY_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_DELIVERY_window/expected.json` anchors the bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY window parity claim.
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_DELIVERY_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_WINDOW_DELIVERY_window/expected.json` anchors the bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY window parity claim.
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-DELIVERY-window` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window DELIVERY window dump.
 
 Current Phase 4 use
@@ -84,6 +84,7 @@ Current Phase 4 use
 - `zigux/tests/bitmap_diff.zig` anchors the bounded bitmap rollback-readiness parity checks.
 - `zigux/tests/phase4_build.zig` keeps the two Phase 4 diff gates on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
 - `scripts/zigux/validate-phase4.py` keeps that shared self-test, the Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
+- `Documentation/zigux/artifact-diff.md` stays as the bounded artifact-policy note for that same rollback-readiness packet, so the Phase 4 validator keeps this document self-referenced alongside the live gate surface.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, lab/CI replay matrix, and the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate.
 
 
