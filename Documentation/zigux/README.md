@@ -50,10 +50,12 @@ Phase 4 notes
 - `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, the shared `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` build entries plus the dedicated `phase4-runtime-atomic64-diff` and `phase4-bitmap-diff` local replay steps that keep each shipped gate measurable, and the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate.
 
 Phase 6 notes
+- `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `Documentation/zigux/phase6-base64-slice.md`
 - `Documentation/zigux/phase6-bsearch-slice.md`
 - `Documentation/zigux/phase6-checksum-slice.md`
 - `Documentation/zigux/phase6-hexdump-slice.md`
+- `Documentation/zigux/phase6-helper-parity-catalog.md` records the exact current helper, test, fixture, perf, and shared-gate inventory for the roadmap-backed base64, bsearch, checksum, and hexdump packet, so reviewability drift shows up as one bounded catalog mismatch instead of ad hoc Phase 6 folklore.
 - `python3 scripts/zigux/validate-phase6.py` and `make -C zigux phase6-validate` now fail fast if the shared Phase 6 leaf-helper bundle drifts out of sync across `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the published slice notes.
 - `zigux/tests/phase6_build.zig` and `make -C zigux phase6` now gate the current base64, bsearch, checksum, and hexdump helper bundle together, so new helper slices should only land when that shared lane stays green as one unit.
 - `make -C zigux phase6-base64-perf` now replays the bounded base64 perf sanity harness so the current leaf-helper lane keeps its representative encode and decode timing step visible while reviewers decide whether the landed external parity spot check is enough to leave `lib/base64.zig` parked.
