@@ -41,6 +41,11 @@
       "expected": "positional_passthrough_expected.json"
     },
     {
+      "name": "lone_dash_passthrough",
+      "argv": ["-", "-d", "tail"],
+      "expected": "lone_dash_passthrough_expected.json"
+    },
+    {
       "name": "explicit_terminator_positional_passthrough",
       "argv": ["leftover.c", "-d", "--", "tail.h"],
       "expected": "explicit_terminator_positional_passthrough_expected.json"
