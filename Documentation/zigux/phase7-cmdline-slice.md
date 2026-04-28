@@ -47,6 +47,7 @@ The current tests check:
 - Linux-style hyphen range expansion and validation-only counting
 - descending-range early stop behavior
 - memory-size suffix scaling with accurate parse-stop reporting
+- explicit leading-plus numeric parsing for `get_option()` and `memparse()`
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination
