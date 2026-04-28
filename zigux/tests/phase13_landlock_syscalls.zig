@@ -30,6 +30,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const expected_surveyed_commit = "05a762ea272fa488b877178987418c54c030b239";
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -52,21 +54,6 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
-    try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("05a762ea272fa488b877178987418c54c030b239", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
-    try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
-    try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_syscalls_zig_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
-
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase13-landlock-syscalls-survey.md",
@@ -75,7 +62,22 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
+    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 13", manifest.phase);
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
+    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
+    try std.testing.expectEqual(@as(usize, 35), manifest.survey_summary.landlock_security_file_count);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_syscalls_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
