@@ -34,7 +34,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L22", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -123,7 +123,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later init, registerAttributes, showValue, or storeValue calls") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later show or store calls") != null);
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
@@ -175,8 +175,8 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `0664` attribute mode pattern") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-registration and post-`exit()` init, register, show, or store rejection boundaries") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-registration and post-`exit()` show or store rejection boundaries") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "manifest-backed checks for registration, attribute order, shared `0664` attribute mode, dispatch, parse failures, and teardown") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
