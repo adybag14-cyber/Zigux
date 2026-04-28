@@ -46,6 +46,15 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const LifecycleSummary = struct {
+    stage: SampleStage,
+    init_run_count: usize,
+    replay_run_count: usize,
+    exit_run_count: usize,
+    registration_depth: usize,
+    total_event_calls: usize,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -92,6 +101,17 @@ pub const TraceEventsReferenceSample = struct {
 
     pub fn formattedMessage(self: *const Self) []const u8 {
         return self.message_buffer[0..self.message_len];
+    }
+
+    pub fn lifecycleSummary(self: *const Self) LifecycleSummary {
+        return .{
+            .stage = self.stage(),
+            .init_run_count = self.init_runs,
+            .replay_run_count = self.replay_runs,
+            .exit_run_count = self.exit_runs,
+            .registration_depth = self.registration_depth,
+            .total_event_calls = self.total_event_calls,
+        };
     }
 
     pub fn init(self: *Self) !void {
@@ -251,6 +271,13 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
+    const lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.replay_complete, lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), lifecycle.total_event_calls);
 }
 
 test "trace-events sample replays every modulo-selected string and formatted message" {

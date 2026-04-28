@@ -43,13 +43,14 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_docs_prompt = false;
     var saw_payload_prompt = false;
+    var saw_lifecycle_prompt = false;
     var saw_callback_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_message_check = false;
@@ -58,6 +59,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_rel_loc_check = false;
     var saw_vararg_check = false;
     var saw_counts_check = false;
+    var saw_lifecycle_check = false;
     var saw_focus_check = false;
     var saw_callback_balance_check = false;
     var saw_single_registration_check = false;
@@ -84,6 +86,13 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "callback-path") != null)
         {
             saw_payload_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "lifecycle summary") != null and
+            std.mem.indexOf(u8, prompt, "init or replay or exit counts") != null and
+            std.mem.indexOf(u8, prompt, "registration depth") != null and
+            std.mem.indexOf(u8, prompt, "private field access") != null)
+        {
+            saw_lifecycle_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "single live") != null and
             std.mem.indexOf(u8, prompt, "register-then-unregister") != null and
@@ -148,6 +157,15 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "six") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "eight") != null);
         }
+        if (std.mem.eql(u8, check.id, "lifecycle-summary-counts")) {
+            saw_lifecycle_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "replay_complete") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,1,0") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero registration depth") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "eight total event calls") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "exited") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,1,1") != null);
+        }
         if (std.mem.eql(u8, check.id, "checked-focus-order")) {
             saw_focus_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
@@ -180,6 +198,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_payload_prompt);
+    try std.testing.expect(saw_lifecycle_prompt);
     try std.testing.expect(saw_callback_prompt);
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_sync_prompt);
@@ -190,6 +209,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
+    try std.testing.expect(saw_lifecycle_check);
     try std.testing.expect(saw_focus_check);
     try std.testing.expect(saw_callback_balance_check);
     try std.testing.expect(saw_single_registration_check);
@@ -240,6 +260,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Mother Goose") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "One ring to rule them all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "counts `0` through `4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`lifecycleSummary()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "private field access") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`checked_focus`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`payload_shape`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`ownership_and_lifetime`") != null);
