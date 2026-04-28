@@ -173,6 +173,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             saw_diff_sparse_copy_case = true;
             try std.testing.expectEqualStrings("differential_validation", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "bits 10, 20, 30, 40, 50, 60, 80, and 123") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "nthSetBit") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "weight 109") != null);
         }
 
