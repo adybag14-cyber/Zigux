@@ -82,6 +82,17 @@ test "runtime bitmap sample keeps bounded errors explicit" {
     try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 1));
 }
 
+test "runtime bitmap sample keeps sparse nth-set-bit replay explicit" {
+    var module = sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 10, 20, 30, 40, 50, 60, 80, 123 });
+
+    const expected = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
+    for (expected, 0..) |bit, index| {
+        try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
+    }
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
+}
+
 test "runtime bitmap sample keeps zero-length mutations and invalid copy sources explicit" {
     var module = sample.RuntimeBitmapSample{};
     try module.initWithSetBits(&.{ 2, 7 });
