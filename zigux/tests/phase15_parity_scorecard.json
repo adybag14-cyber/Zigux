@@ -223,4 +223,60 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "Phase 15 needed a reviewable scorecard that records council inputs, evidence thresholds, validation gates, rollback ownership, and the evidence-archive reporting block for every active freeze-in-C anchor."
+    },
+    {
+      "id": "phase15-council-review-gate",
+      "status": "starter_landed",
+      "kind": "review_process",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The Architecture Council review process now requires one decision record with the lane owner, evidence archive path, rollback owner, and latest blocker disposition before a frozen anchor can enter active status review."
+    },
+    {
+      "id": "phase15-parity-scorecard-manifest",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "The manifest keeps the four deep-core anchors and their governance requirements machine-checkable instead of leaving them as prose only."
+    },
+    {
+      "id": "phase15-parity-scorecard-test",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+      "why_now": "A dedicated Phase 15 test gate is the smallest honest way to enforce that every freeze-map anchor carries current governance evidence without inventing implementation progress."
+    },
+    {
+      "id": "phase15-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_build.zig",
+      "why_now": "A shared Phase 15 build step keeps the scorecard replayable as a bounded governance lane."
+    },
+    {
+      "id": "phase15-make-target",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/Makefile",
+      "why_now": "A make target keeps the Phase 15 scorecard runnable with the same discipline as other bounded tranche lanes."
+    },
+    {
+      "id": "phase15-evidence-archive-reporting",
+      "status": "starter_landed",
+      "kind": "reporting",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The scorecard now reserves one per-anchor evidence-archive report with a decision record path, linked evidence, benchmark-notes status, replay command, and latest blocker disposition."
+    },
+    {
+      "id": "phase15-decision-record-template-followup",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-evidence-archives/",
+      "why_now": "The scorecard now ships reserved per-anchor decision-record templates under the evidence-archive paths so packet headings exist without implying Architecture Council approval."
+    },
+    {
+      "id": "phase15-template-field-sync-followup",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+      "why_now": "The scorecard test now keeps the shared review-process packet fields and the per-anchor template headings aligned so governance wording cannot drift silently."
     },{
