@@ -33,7 +33,7 @@ Phase 3 notes
 - `scripts/zigux/validate-phase3.py`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and `make -C zigux phase3-validate` now keep that focused Phase 3 policy-and-unsafe packet explicit instead of leaving the helper family implied only by the broader ABI substrate bundle.
 
 Phase 5 notes
-- `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay, preview-truncation, fixed embedded-storage, and non-destructive snapshot checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
+- `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay, non-destructive snapshot, preview-truncation, fixed embedded backing, and lifecycle-boundary checks, and the remaining non-goals around procfs, user-copy, locking, and module registration parity.
 - the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
 - `Documentation/zigux/phase5-kobject-sample-survey.md` now records the landed `samples/zigux/kobject_example.zig` reference sample, its exact registration, Linux `foo`/`baz`/`bar` attribute-order, and attribute-roundtrip checks, and the remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration.
 - the same kobject survey note now doubles as the sample-backed contributor guide for the landed kobject slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync.
