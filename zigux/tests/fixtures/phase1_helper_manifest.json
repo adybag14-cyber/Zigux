@@ -70,7 +70,9 @@
       "unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
       "unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.",
       "search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree nextMatch walks the duplicate range in order\"",
-      "search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key."
+      "search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.",
+      "cached_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree cached root keeps leftmost in sync across add erase and replace\"",
+      "cached_unit_test_contract": "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root."
     },
     "tools/lib/string.zig": {
       "fixture": "zigux/tests/fixtures/phase1_helpers.json",
