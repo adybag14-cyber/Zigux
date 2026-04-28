@@ -122,7 +122,7 @@ required_closure_markers = [
     "zigux/tests/phase10_virtio_mmio.zig",
     "Documentation/zigux/review-checklist.md",
     "phase10-mmio-queue-notify-helper",
-    "phase10-mmio-queue-register-helper",
+    "phase10-mmio-queue-address-helper",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
@@ -375,7 +375,7 @@ else:
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-preflight-helper",
-    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-notify-helper",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-address-helper",
 }
 if ready_transport_followups != expected_ready_transport_followups:
     missing_markers.append("manifest:ready_transport_followups:mismatch")
@@ -437,8 +437,10 @@ if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecyc
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
 if not has_gap_status(mmio_manifest, "phase10-mmio-queue-register-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-register-helper:starter_landed")
-if not has_gap_status(mmio_manifest, "phase10-mmio-queue-notify-helper", "ready_next"):
-    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-notify-helper:ready_next")
+if not has_gap_status(mmio_manifest, "phase10-mmio-queue-notify-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-notify-helper:starter_landed")
+if not has_gap_status(mmio_manifest, "phase10-mmio-queue-address-helper", "ready_next"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-address-helper:ready_next")
 if not has_gap_status(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
 
