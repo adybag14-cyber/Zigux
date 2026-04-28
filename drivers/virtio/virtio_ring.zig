@@ -81,6 +81,19 @@ pub const CallbackDisableSummary = struct {
     should_poll: bool,
 };
 
+pub const DelayedCallbackSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    callback_enabled: bool,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+    delay_budget_count: u16,
+    delayed_event_target_idx: u16,
+    pending_used_chain_count: u16,
+    should_poll: bool,
+};
+
 pub const QueueResetSummary = struct {
     anchor: []const u8,
     queue_index: u16,
@@ -95,17 +108,13 @@ pub const QueueResetSummary = struct {
     notification_count: usize,
 };
 
-pub const DelayedCallbackSummary = struct {
+pub const QueueResetGuardSummary = struct {
     anchor: []const u8,
     queue_index: u16,
-    callback_enabled: bool,
-    last_used_idx: u16,
-    last_polled_used_idx: u16,
     outstanding_chain_count: u16,
-    delay_budget_count: u16,
-    delayed_event_target_idx: u16,
     pending_used_chain_count: u16,
-    should_poll: bool,
+    unpublished_chain_count: u16,
+    reset_allowed: bool,
 };
 
 pub const VirtioRingLab = struct {
@@ -309,6 +318,11 @@ pub const VirtioRingLab = struct {
     pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {
         const slot = try self.checkedQueueSlot(queue_index);
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        if (slot.outstanding_chain_count != 0 or pending_used_chain_count != 0 or slot.num_added != 0) {
+            return error.QueueResetRequiresDrainedQueue;
+        }
+        const descriptor_count = slot.descriptor_count;
+        const layout = slot.layout;
 
         slot.avail_idx_shadow = 0;
         slot.last_used_idx = 0;
@@ -321,8 +335,8 @@ pub const VirtioRingLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .queue_index = queue_index,
-            .descriptor_count = slot.descriptor_count,
-            .layout = slot.layout,
+            .descriptor_count = descriptor_count,
+            .layout = layout,
             .callback_enabled = slot.callback_enabled,
             .avail_idx_shadow = slot.avail_idx_shadow,
             .last_used_idx = slot.last_used_idx,
@@ -330,6 +344,22 @@ pub const VirtioRingLab = struct {
             .outstanding_chain_count = slot.outstanding_chain_count,
             .pending_used_chain_count = pending_used_chain_count,
             .notification_count = slot.notification_count,
+        };
+    }
+
+    pub fn resetGuardSummary(self: *const Self, queue_index: u16) !QueueResetGuardSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .pending_used_chain_count = pending_used_chain_count,
+            .unpublished_chain_count = slot.num_added,
+            .reset_allowed = slot.outstanding_chain_count == 0 and pending_used_chain_count == 0 and slot.num_added == 0,
         };
     }
 
