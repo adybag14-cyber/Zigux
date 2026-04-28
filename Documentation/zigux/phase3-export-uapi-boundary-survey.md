@@ -32,7 +32,7 @@ It does require the live repo to say clearly what is already part of the permane
 The current tree already carries the first bounded export and UAPI boundary surface:
 
 - `zigux/kernel/export_shim.zig` exposes explicit `ok`, `errno`, `isOk`, `normalize`, `header`, and `isCompatibleHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types
-- that shim now delegates shared boundary-header construction and compatibility checks through `zigux/uapi/version.zig` instead of keeping header handling fully local
+- the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
 - `zigux/uapi/version.zig` now exports `abi_version`, `Header`, `boundaryHeader`, and `isCompatible`
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
 - `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header and reject undersized or version-mismatched headers identically
