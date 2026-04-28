@@ -3,6 +3,7 @@ const std = @import("std");
 pub const supported_feature_pages: usize = 2;
 pub const supported_interrupt_bits: u32 = 0x3;
 pub const supported_queues: usize = 2;
+pub const supported_config_window_bytes: usize = 16;
 
 pub const Register = enum(u32) {
     magic_value = 0x000,
@@ -31,6 +32,7 @@ pub const Register = enum(u32) {
     queue_used_low = 0x0a0,
     queue_used_high = 0x0a4,
     config_generation = 0x0fc,
+    config = 0x100,
 };
 
 pub const ModuleDescriptor = struct {
@@ -85,6 +87,20 @@ pub const QueueAddressSummary = struct {
     queue_ready: bool,
 };
 
+pub const ConfigWindowWidth = enum(u8) {
+    byte = 1,
+    half = 2,
+    word = 4,
+};
+
+pub const ConfigWindowSummary = struct {
+    anchor: []const u8,
+    offset: u32,
+    width: ConfigWindowWidth,
+    generation: u32,
+    value: u32,
+};
+
 pub const StatusSummary = struct {
     anchor: []const u8,
     status: u8,
@@ -123,6 +139,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
     selected_device_page: u32 = 0,
     selected_driver_page: u32 = 0,
     queues: [supported_queues]QueueRegisterState = .{ .{}, .{} },
+    config_window: [supported_config_window_bytes]u8 = [_]u8{0} ** supported_config_window_bytes,
     selected_queue: u32 = 0,
     legacy_guest_page_size: u32 = 0,
     status: u8 = 0,
@@ -164,6 +181,17 @@ pub const VirtioMmioRegisterWindowLab = struct {
             .queues = queue_states,
             .config_generation = config_generation,
         };
+    }
+
+    pub fn initWithQueueMaximumsAndConfigWindow(
+        device_feature_pages: [supported_feature_pages]u32,
+        config_generation: u32,
+        queue_maximums: [supported_queues]u16,
+        config_window: [supported_config_window_bytes]u8,
+    ) Self {
+        var self = initWithQueueMaximums(device_feature_pages, config_generation, queue_maximums);
+        self.config_window = config_window;
+        return self;
     }
 
     pub fn selectDeviceFeaturePage(self: *Self, page: u32) !void {
@@ -320,6 +348,28 @@ pub const VirtioMmioRegisterWindowLab = struct {
         };
     }
 
+    pub fn snapshotConfigWindow(
+        self: *const Self,
+        offset: u32,
+        width: ConfigWindowWidth,
+    ) !ConfigWindowSummary {
+        const config_offset = try checkedConfigWindow(offset, width);
+        const width_bytes = @intFromEnum(width);
+        var value: u32 = 0;
+
+        for (0..width_bytes) |index| {
+            value |= @as(u32, self.config_window[config_offset + index]) << @intCast(index * 8);
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .offset = offset,
+            .width = width,
+            .generation = self.config_generation,
+            .value = value,
+        };
+    }
+
     pub fn setStatus(self: *Self, status: u8) !StatusSummary {
         if (status == 0) return error.ResetRequiresDedicatedPath;
         self.status = status;
@@ -409,6 +459,14 @@ fn validateInterruptBits(bits: u32) !void {
     if ((bits & ~supported_interrupt_bits) != 0) return error.UnsupportedInterruptBits;
 }
 
+fn checkedConfigWindow(offset: u32, width: ConfigWindowWidth) !usize {
+    const config_offset: usize = @intCast(offset);
+    const width_bytes: usize = @intFromEnum(width);
+    const end = config_offset +| width_bytes;
+    if (end > supported_config_window_bytes) return error.ConfigWindowOutOfRange;
+    return config_offset;
+}
+
 test "register enum keeps the bounded mmio offsets reviewable" {
     try std.testing.expectEqual(@as(u32, 0x028), @intFromEnum(Register.guest_page_size));
     try std.testing.expectEqual(@as(u32, 0x03c), @intFromEnum(Register.queue_align));
@@ -417,4 +475,5 @@ test "register enum keeps the bounded mmio offsets reviewable" {
     try std.testing.expectEqual(@as(u32, 0x080), @intFromEnum(Register.queue_desc_low));
     try std.testing.expectEqual(@as(u32, 0x0a4), @intFromEnum(Register.queue_used_high));
     try std.testing.expectEqual(@as(u32, 0x0fc), @intFromEnum(Register.config_generation));
+    try std.testing.expectEqual(@as(u32, 0x100), @intFromEnum(Register.config));
 }
