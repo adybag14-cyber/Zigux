@@ -63,6 +63,14 @@ pub const escape_cases = [_]EscapeCase{
         .expected = "\\n\\\\\\0",
     },
     .{
+        .name = "special-character escaping",
+        .input = "\"\x07\x1b\\",
+        .flags = 1 << 1,
+        .only = null,
+        .expected_len = 8,
+        .expected = "\\\"\\a\\e\\\\",
+    },
+    .{
         .name = "dictionary-limited space escaping",
         .input = "A\n\tZ",
         .flags = 1 << 0,
