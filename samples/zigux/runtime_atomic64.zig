@@ -47,6 +47,11 @@ pub const AddResult = struct {
     final: i64,
 };
 
+pub const BitwiseResult = struct {
+    previous: i64,
+    final: i64,
+};
+
 pub const AddUnlessResult = struct {
     previous: i64,
     changed: bool,
@@ -132,6 +137,46 @@ pub const RuntimeAtomic64Sample = struct {
             .initialized, .selftest_complete => blk: {
                 const previous = atomic.fetchAdd(i64, &self.counter, addend, .seq_cst);
                 break :blk .{ .previous = previous, .final = previous + addend };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn orCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchOr(i64, &self.counter, mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous | mask };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn andCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchAnd(i64, &self.counter, mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous & mask };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn xorCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchXor(i64, &self.counter, mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous ^ mask };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn andNotCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchAnd(i64, &self.counter, ~mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous & ~mask };
             },
             else => error.InvalidLifecycleTransition,
         };
