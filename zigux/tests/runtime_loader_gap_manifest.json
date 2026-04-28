@@ -60,7 +60,7 @@
       "id": "runtime-loader-gap-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_loader_gap_survey.zig",
-      "role": "machine-checks the manifest, the blocker note, the shared request contract, the new shared command_name field, and the still-absent argv or environment control surface"
+      "role": "machine-checks the manifest, the blocker note, the shared request contract, the explicit without-substrate rollback path, the new shared command_name field, and the still-absent argv or environment control surface"
     },
     {
       "id": "phase9-build-gate",
@@ -78,19 +78,19 @@
       "id": "atomic64-loader-plan",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_atomic64_loader.zig",
-      "role": "owns the atomic64 loader-plan projection into the shared runtime request surface"
+      "role": "owns the atomic64 loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
     },
     {
       "id": "bitmap-loader-plan",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_bitmap_loader.zig",
-      "role": "owns the bitmap loader-plan projection into the shared runtime request surface"
+      "role": "owns the bitmap loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
     },
     {
       "id": "kretprobe-loader-plan",
       "kind": "runtime_loader_scaffold",
       "path": "samples/zigux/runtime_kretprobe_loader.zig",
-      "role": "owns the kretprobe loader-plan projection into the shared runtime request surface"
+      "role": "owns the kretprobe loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
     }
   ],
   "ownership_map": [
@@ -112,7 +112,7 @@
     },
     {
       "surface": "zigux/tests/runtime_loader_gap_survey.zig",
-      "owns": "machine-checkable replay of the manifest, note, and shared request surface"
+      "owns": "machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture"
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
@@ -124,15 +124,15 @@
     },
     {
       "surface": "samples/zigux/runtime_atomic64_loader.zig",
-      "owns": "atomic64 loader-plan projection into the shared runtime request surface"
+      "owns": "atomic64 loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
     },
     {
       "surface": "samples/zigux/runtime_bitmap_loader.zig",
-      "owns": "bitmap loader-plan projection into the shared runtime request surface"
+      "owns": "bitmap loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
     },
     {
       "surface": "samples/zigux/runtime_kretprobe_loader.zig",
-      "owns": "kretprobe loader-plan projection into the shared runtime request surface"
+      "owns": "kretprobe loader-plan projection plus the without-substrate rollback path into the shared runtime request surface"
     }
   ],
   "gaps": [
@@ -170,6 +170,13 @@
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
       "why_now": "The atomic64, bitmap, and kretprobe starter lanes now publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+    },
+    {
+      "id": "runtime-loader-without-substrate-rollback",
+      "status": "starter_landed",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_*_loader.zig",
+      "why_now": "Each landed sample-side loader already carries an explicit without-substrate rollback path that releases the shared request from waiting_on_runtime_substrate to released_without_substrate, so the validation packet should catalog that fallback posture instead of leaving it implicit in loader-local tests."
     },
     {
       "id": "runtime-loader-workqueue-freeze-map-boundary",
