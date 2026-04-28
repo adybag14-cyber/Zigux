@@ -94,6 +94,23 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
+test "bitmap diff gate records exact full-width fill and zero endpoints" {
+    var map = [_]Word{0} ** word_count;
+
+    bitmap.fill(&map, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, bitmap_nbits), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(bitmap_nbits, firstZero(&map, bitmap_nbits));
+    try expectSet(&map, 0);
+    try expectSet(&map, bitmap_nbits - 1);
+
+    bitmap.zero(&map, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 0), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(bitmap_nbits, firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try expectClear(&map, 0);
+    try expectClear(&map, bitmap_nbits - 1);
+}
+
 test "bitmap diff gate records exact bounded copy checks" {
     var src = [_]Word{ 0, 0, 0 };
     var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
