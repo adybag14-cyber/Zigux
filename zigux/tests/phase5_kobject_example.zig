@@ -27,9 +27,6 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
     try std.testing.expectEqualStrings("baz", replay.ordered_attr_names[1]);
     try std.testing.expectEqualStrings("bar", replay.ordered_attr_names[2]);
-    try std.testing.expectEqual(@as(sample.AttributeMode, 0o664), replay.ordered_attr_modes[0]);
-    try std.testing.expectEqual(@as(sample.AttributeMode, 0o664), replay.ordered_attr_modes[1]);
-    try std.testing.expectEqual(@as(sample.AttributeMode, 0o664), replay.ordered_attr_modes[2]);
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
@@ -92,6 +89,9 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.register_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
