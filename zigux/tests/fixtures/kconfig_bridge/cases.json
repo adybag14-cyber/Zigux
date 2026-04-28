@@ -176,6 +176,11 @@
       "name": "signed_numeric_kinds",
       "input": "signed_numeric_kinds.config",
       "expected": "signed_numeric_kinds_expected.json"
+    },
+    {
+      "name": "duplicate_assignments",
+      "input": "duplicate_assignments.config",
+      "expected": "duplicate_assignments_expected.json"
     }
   ]
 }
