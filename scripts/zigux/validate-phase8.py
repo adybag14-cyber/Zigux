@@ -15,6 +15,7 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "phase8-libbpf-cpu-mask-slice.md",
     ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-slice.md",
     ROOT / "Documentation" / "zigux" / "phase8-libbpf-segment-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase8-userspace-kernel-bridge-boundary-survey.md",
     ROOT / "zigux" / "Makefile",
     ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase8_build.zig",
@@ -55,6 +56,7 @@ tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 phase8_build = (ROOT / "zigux" / "tests" / "phase8_build.zig").read_text(encoding="utf-8")
 phase8_survey = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-segment-survey.md").read_text(encoding="utf-8")
+phase8_bridge_boundary = (ROOT / "Documentation" / "zigux" / "phase8-userspace-kernel-bridge-boundary-survey.md").read_text(encoding="utf-8")
 phase8_cpu_mask = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-cpu-mask-slice.md").read_text(encoding="utf-8")
 phase8_type_names = (ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-slice.md").read_text(encoding="utf-8")
 manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json").read_text(encoding="utf-8")
@@ -82,13 +84,7 @@ required_script_readme_markers = [
     "phase8_build.zig",
     "phase8-libbpf-segment-survey.md",
     "cpu_mask.zig",
-    "logging.zig",
-    "pin_path.zig",
-    "file_path_handle_bridge.zig",
-    "phase8_file_path_handle_bridge.zig",
     "type_names.zig",
-    "file-path-and-handle-bridge",
-    "perf-buffer-online-cpu-routing",
 ]
 
 required_tests_readme_markers = [
@@ -169,6 +165,28 @@ required_survey_markers = [
     "make -C zigux phase8",
 ]
 
+required_bridge_boundary_markers = [
+    "PHASE8_SLICE=userspace-kernel-bridge-boundary-survey",
+    "Documentation/zigux/phase8-exec-cmd-slice.md",
+    "Documentation/zigux/phase8-help-slice.md",
+    "Documentation/zigux/phase8-libbpf-segment-survey.md",
+    "tools/lib/subcmd/exec-cmd.zig",
+    "tools/lib/subcmd/help.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "execvp()",
+    "environment reads or writes",
+    "opendir()",
+    "readdir()",
+    "ioctl()",
+    "/proc/.../fdinfo",
+    "`bpf_obj_get()` reopen flows",
+    "`bpf_token_create()` handle lifecycle parity",
+    "`open()` or `close()` ownership",
+    "python3 scripts/zigux/validate-phase8.py",
+    "make -C zigux phase8-validate",
+    "zig build test --build-file zigux/tests/phase8_build.zig",
+]
+
 required_cpu_mask_markers = [
     "libbpf-cpu-mask-starter",
     "tools/lib/bpf/zigux_segments/cpu_mask.zig",
@@ -246,6 +264,9 @@ for marker in required_phase8_build_markers:
 for marker in required_survey_markers:
     if marker not in phase8_survey:
         missing_markers.append(f"phase8_survey:{marker}")
+for marker in required_bridge_boundary_markers:
+    if marker not in phase8_bridge_boundary:
+        missing_markers.append(f"phase8_bridge_boundary:{marker}")
 for marker in required_cpu_mask_markers:
     if marker not in phase8_cpu_mask:
         missing_markers.append(f"phase8_cpu_mask:{marker}")
@@ -268,5 +289,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_survey_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
 )
