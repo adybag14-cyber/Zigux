@@ -228,3 +228,34 @@ test "phase12 virtio scsi host limit summary falls back to request queues and de
     try std.testing.expectEqual(@as(u32, virtio_scsi.default_max_sectors), summary.max_sectors);
     try std.testing.expectEqual(@as(u16, 3), summary.nr_hw_queues);
 }
+
+test "phase12 virtio scsi io queue map summary mirrors default and poll offsets" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureIoQueueMapSummary(8, 3);
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 3), summary.nr_maps);
+    try std.testing.expectEqual(@as(u16, 5), summary.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.read_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), summary.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.default_queue_offset);
+    try std.testing.expectEqual(@as(u16, 5), summary.read_queue_offset);
+    try std.testing.expectEqual(@as(u16, 5), summary.poll_queue_offset);
+    try std.testing.expect(summary.default_queues_use_virtio_affinity);
+    try std.testing.expect(summary.poll_queues_use_blk_mq_mapping);
+}
+
+test "phase12 virtio scsi io queue map summary collapses to one map without polling queues" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const summary = try lab.captureIoQueueMapSummary(2, 0);
+
+    try std.testing.expectEqual(@as(u16, 1), summary.nr_maps);
+    try std.testing.expectEqual(@as(u16, 2), summary.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.read_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.default_queue_offset);
+    try std.testing.expectEqual(@as(u16, 2), summary.read_queue_offset);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queue_offset);
+    try std.testing.expect(summary.default_queues_use_virtio_affinity);
+    try std.testing.expect(!summary.poll_queues_use_blk_mq_mapping);
+}
