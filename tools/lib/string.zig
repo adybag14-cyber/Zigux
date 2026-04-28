@@ -185,6 +185,8 @@ test "strtobool accepts common Linux forms" {
     try std.testing.expect(!(try strtobool("0")));
     try std.testing.expect(!(try strtobool("of")));
     try std.testing.expectError(error.Invalid, strtobool("maybe"));
+    try std.testing.expectError(error.Invalid, strtobool(""));
+    try std.testing.expectError(error.Invalid, strtobool(null));
 }
 
 test "strlcpy copies and returns the source length" {
@@ -192,6 +194,10 @@ test "strlcpy copies and returns the source length" {
     try std.testing.expectEqual(@as(usize, 5), strlcpy(&dst, "hello"));
     try std.testing.expectEqualSlices(u8, "hel", dst[0..3]);
     try std.testing.expectEqual(@as(u8, 0), dst[3]);
+
+    var untouched = [_]u8{0xaa};
+    try std.testing.expectEqual(@as(usize, 5), strlcpy(untouched[0..0], "hello"));
+    try std.testing.expectEqual(@as(u8, 0xaa), untouched[0]);
 }
 
 test "skip trim remove and replace spaces work in place" {
@@ -201,8 +207,16 @@ test "skip trim remove and replace spaces work in place" {
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
 
+    var whitespace_only_buf = [_]u8{ ' ', '\t', '\n' };
+    try std.testing.expectEqualStrings("", trimSpaces(&whitespace_only_buf));
+    try std.testing.expectEqual(@as(u8, 0), whitespace_only_buf[0]);
+
     var strim_buf = [_]u8{ ' ', 'o', 'k', ' ', '\n', 0 };
     try std.testing.expectEqualStrings("ok", strim(&strim_buf));
+
+    var strim_cstr_buf = [_]u8{ ' ', 'o', 'k', 0, ' ', 'x' };
+    try std.testing.expectEqualStrings("ok", strim(&strim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, ' ', 'x' }, &strim_cstr_buf);
 
     var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
