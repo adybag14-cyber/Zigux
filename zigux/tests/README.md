@@ -54,6 +54,7 @@ Key entrypoints
 - `zigux/tests/phase8_cpu_mask.zig`
 - `zigux/tests/phase8_logging.zig`
 - `zigux/tests/phase8_pin_path.zig`
+- `zigux/tests/phase8_file_path_handle_bridge.zig`
 - `zigux/tests/phase8_libbpf_segments.zig`
 - `zigux/tests/phase8_bpf_type_names.zig`
 - `zigux/tests/phase9_build.zig`
@@ -107,6 +108,7 @@ Guidance
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
 - keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
 - keep the Phase 7 handoff explicit: the helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`, while `zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`
+- keep the current Phase 8 tooling packet reviewable through `zigux/tests/phase8_build.zig`, `scripts/zigux/validate-phase8.py`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, and `Documentation/zigux/phase8-libbpf-segment-survey.md`, including the landed `phase8_file_path_handle_bridge.zig` helper replay and the still-deferred `perf-buffer-online-cpu-routing` boundary beside `tools/lib/bpf/zigux_segments/cpu_mask.zig`
 
 Phase 10 guidance
 - keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig` and the three manifest-backed survey records instead of treating individual virtio starter files as independent closure signals
