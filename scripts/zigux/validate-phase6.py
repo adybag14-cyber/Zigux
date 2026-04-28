@@ -91,6 +91,7 @@ required_workflow_markers = [
 
 required_script_readme_markers = [
     'validate-phase6.py',
+    'check-phase6-base64-c-parity.py',
     'check-phase6-bsearch-c-parity.py',
     'Phase 6 flow',
     'make -C zigux phase6-validate',
@@ -103,7 +104,9 @@ required_tests_readme_markers = [
     'zigux/tests/phase6_build.zig',
     'zigux/tests/phase6_base64.zig',
     'zigux/tests/phase6_base64_perf.zig',
+    'zigux/tests/phase6_base64_c_parity.zig',
     'zigux/tests/fixtures/phase6_base64_vectors.zig',
+    'zigux/tests/fixtures/phase6_base64_c_harness.c',
     'zigux/tests/phase6_bsearch.zig',
     'zigux/tests/phase6_bsearch_perf.zig',
     'zigux/tests/phase6_bsearch_c_parity.zig',
@@ -140,7 +143,9 @@ required_phase6_catalog_markers = [
     'Phase 6 Helper Parity Catalog',
     'verified head:',
     'lib/base64.zig',
+    'scripts/zigux/check-phase6-base64-c-parity.py',
     'lib/bsearch.zig',
+    'scripts/zigux/check-phase6-bsearch-c-parity.py',
     'lib/checksum.zig',
     'lib/hexdump.zig',
     'zigux/tests/phase6_build.zig',
@@ -149,14 +154,6 @@ required_phase6_catalog_markers = [
     'Documentation/zigux/README.md',
     'scripts/zigux/README.md',
     'zigux/tests/README.md',
-    'Current fixture corpus determinism',
-    '22 standard encode vectors',
-    'PHASE6_BASE64_C_PARITY_CASES=70',
-    '5 compute vectors',
-    'normalizedRowsize()',
-    'normalizedGroupsizeForLen()',
-    'PHASE6_BSEARCH_C_PARITY_CASES=13',
-    'No generated Phase 6 fixture artifact is committed today',
 ]
 
 required_phase6_build_markers = [
@@ -253,8 +250,7 @@ required_slice_markers = {
         'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
         'duplicate-key found-or-null parity without claiming stable selection',
         'representative lookup work stays inside a bounded binary-search comparison budget',
-        'inline sorted integer and symbol tables keep the current lookup corpus deterministic without introducing a generated fixture file',
-        'a representative external C-vs-Zig parity replay currently replays 13 sorted lookup cases',
+        'representative external C-vs-Zig parity spot check',
         'replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices',
     ],
     'phase6-checksum-slice.md': [
