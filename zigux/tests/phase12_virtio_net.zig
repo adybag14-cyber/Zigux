@@ -48,6 +48,14 @@ test "phase12 virtio net probe snapshot plans multiqueue control and rss state" 
     try std.testing.expectEqual(@as(u16, 20), snapshot.hdr_len_bytes);
     try std.testing.expect(snapshot.uses_hash_report_header);
     try std.testing.expect(!snapshot.uses_udp_tunnel_header);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable, snapshot.receive_buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.none, snapshot.big_packet_reason);
+    try std.testing.expectEqual(
+        virtio_net.HeaderScatterPolicy.separate_header_sg,
+        snapshot.header_scatter_policy,
+    );
+    try std.testing.expectEqual(@as(u16, 0), snapshot.required_headroom_bytes);
+    try std.testing.expectEqual(virtio_net.XdpConstraint.not_requested, snapshot.xdp_constraint);
     try std.testing.expectEqual(virtio_net.RssSummary.active, snapshot.rss_summary);
     try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, snapshot.fallback_reason);
     try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
@@ -353,6 +361,85 @@ test "phase12 virtio net upgrades hdr_len shape for udp tunnel support" {
     try std.testing.expectEqual(@as(u16, 24), snapshot.hdr_len_bytes);
     try std.testing.expect(snapshot.uses_hash_report_header);
     try std.testing.expect(snapshot.uses_udp_tunnel_header);
+}
+
+test "phase12 virtio net blocks mergeable xdp when split headers stay required" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+        .xdp_requested = true,
+    });
+
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable, snapshot.receive_buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.none, snapshot.big_packet_reason);
+    try std.testing.expectEqual(
+        virtio_net.HeaderScatterPolicy.separate_header_sg,
+        snapshot.header_scatter_policy,
+    );
+    try std.testing.expectEqual(@as(u16, 0), snapshot.required_headroom_bytes);
+    try std.testing.expectEqual(
+        virtio_net.XdpConstraint.blocked_by_split_header,
+        snapshot.xdp_constraint,
+    );
+}
+
+test "phase12 virtio net readies mergeable xdp when combined header scatter is available" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_version_1,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_version_1,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+        .xdp_requested = true,
+    });
+
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable, snapshot.receive_buffer_mode);
+    try std.testing.expectEqual(
+        virtio_net.HeaderScatterPolicy.combined_header_and_data,
+        snapshot.header_scatter_policy,
+    );
+    try std.testing.expectEqual(@as(u16, 12), snapshot.required_headroom_bytes);
+    try std.testing.expectEqual(virtio_net.XdpConstraint.ready, snapshot.xdp_constraint);
+}
+
+test "phase12 virtio net flags big-packet receive planning for guest gso throughput" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_guest_tso4,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_guest_tso4,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+        .mtu = virtio_net.ethernet_default_mtu,
+        .xdp_requested = true,
+    });
+
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.big_packets, snapshot.receive_buffer_mode);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.guest_gso, snapshot.big_packet_reason);
+    try std.testing.expectEqual(
+        virtio_net.HeaderScatterPolicy.separate_header_sg,
+        snapshot.header_scatter_policy,
+    );
+    try std.testing.expectEqual(
+        virtio_net.XdpConstraint.blocked_by_big_packets,
+        snapshot.xdp_constraint,
+    );
 }
 
 test "phase12 virtio net preserves legacy header shape without mergeable or hash features" {
