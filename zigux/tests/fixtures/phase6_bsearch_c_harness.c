@@ -65,18 +65,20 @@ static void print_index_case(const char *label, uint32_t key, const uint32_t *ba
         printf("%s\t%u\tnull\n", label, key);
 }
 
-static void print_duplicate_case(uint32_t key, const uint32_t *found)
+static void print_duplicate_case(const char *label, uint32_t key, const uint32_t *found)
 {
     if (found != NULL)
-        printf("duplicate-hit\t%u\tfound\n", key);
+        printf("%s\t%u\tfound\n", label, key);
     else
-        printf("duplicate-hit\t%u\tnull\n", key);
+        printf("%s\t%u\tnull\n", label, key);
 }
 
 int main(void)
 {
     static const uint32_t values[] = { 3, 8, 13, 21, 34, 55, 89 };
-    static const uint32_t duplicates[] = { 2, 7, 7, 7, 12, 18 };
+    static const uint32_t duplicate_at_beginning[] = { 7, 7, 7, 12, 18, 24 };
+    static const uint32_t duplicate_in_middle[] = { 2, 7, 7, 7, 12, 18 };
+    static const uint32_t duplicate_at_end[] = { 2, 7, 12, 18, 18, 18 };
     static const uint32_t singleton[] = { 21 };
     static const struct symbol symbols[] = {
         { "do_exit", 0x1000u },
@@ -124,7 +126,15 @@ int main(void)
     }
     {
         const uint32_t key = 7;
-        print_duplicate_case(key, inline_bsearch(&key, duplicates, sizeof(duplicates) / sizeof(duplicates[0]), sizeof(duplicates[0]), compare_u32));
+        print_duplicate_case("duplicate-hit-begin", key, inline_bsearch(&key, duplicate_at_beginning, sizeof(duplicate_at_beginning) / sizeof(duplicate_at_beginning[0]), sizeof(duplicate_at_beginning[0]), compare_u32));
+    }
+    {
+        const uint32_t key = 7;
+        print_duplicate_case("duplicate-hit-middle", key, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));
+    }
+    {
+        const uint32_t key = 18;
+        print_duplicate_case("duplicate-hit-end", key, inline_bsearch(&key, duplicate_at_end, sizeof(duplicate_at_end) / sizeof(duplicate_at_end[0]), sizeof(duplicate_at_end[0]), compare_u32));
     }
     {
         const char key[] = "kmalloc";
