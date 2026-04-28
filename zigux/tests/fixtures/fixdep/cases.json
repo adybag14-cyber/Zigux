@@ -44,5 +44,15 @@
     "expected": "sample_missing_dep_expected.txt",
     "expected_stderr": "sample_missing_dep_expected.stderr.txt",
     "expected_exit_code": 2
+  },
+  {
+    "name": "sample_output_write",
+    "depfile": "sample.d",
+    "target": "sample_output_write.o",
+    "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample_output_write.o",
+    "expected": "sample_output_write_expected.txt",
+    "expected_stderr": "sample_output_write_expected.stderr.txt",
+    "expected_exit_code": 1,
+    "stdout_mode": "dev_full"
   }
 ]
