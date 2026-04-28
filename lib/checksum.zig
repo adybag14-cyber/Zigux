@@ -141,6 +141,16 @@ test "carry discipline matches the shared helper-local edge matrix" {
     }
 }
 
+test "kunit random-prefix parity matches the shared external checksum corpus nibble" {
+    for (fixtures.kunit_random_prefix_cases) |case| {
+        const actual_partial = partial(case.bytes, case.seed);
+
+        try std.testing.expectEqual(case.expected_partial, actual_partial);
+        try std.testing.expectEqual(case.expected_compute, fold(actual_partial));
+        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
+    }
+}
+
 test "tcpUdpNofold matches the shared pseudo-header fixture parity" {
     for (fixtures.pseudo_header_cases) |case| {
         const payload_partial = partial(case.payload, 0);
