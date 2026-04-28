@@ -26,6 +26,10 @@ fn isDelimiter(byte: u8) bool {
     return byte == ',' or byte == '\n' or byte == '\r';
 }
 
+fn isIgnoredPrefixByte(byte: u8) bool {
+    return byte == ' ' or byte == '\t' or byte == '\x0b' or byte == '\x0c';
+}
+
 fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, end: usize } {
     if (token.len == 0) {
         return error.InvalidCpuRange;
@@ -59,6 +63,7 @@ pub fn parseCpuMaskString(allocator: std.mem.Allocator, input: []const u8) !CpuM
     var cursor: usize = 0;
     while (cursor < input.len) {
         while (cursor < input.len and isDelimiter(input[cursor])) : (cursor += 1) {}
+        while (cursor < input.len and isIgnoredPrefixByte(input[cursor])) : (cursor += 1) {}
         if (cursor >= input.len) {
             break;
         }
@@ -141,8 +146,8 @@ test "parseCpuMaskString expands single CPUs and ranges into a dense bool mask" 
     try std.testing.expectEqual(@as(usize, 6), parsed.countSet());
 }
 
-test "parseCpuMaskString tolerates repeated delimiters and newline-terminated masks" {
-    const parsed = try parseCpuMaskString(std.testing.allocator, "\n0-1,,4\r\n6\n");
+test "parseCpuMaskString tolerates repeated delimiters and leading horizontal whitespace" {
+    const parsed = try parseCpuMaskString(std.testing.allocator, " \t0-1,,\t4\r\n6\n");
     defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(@as(usize, 7), parsed.values.len);
@@ -160,6 +165,7 @@ test "parseCpuMaskString rejects empty and malformed ranges" {
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "3-1"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "x"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "1-"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "0-1,4 \n"));
 }
 
 test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
@@ -181,7 +187,7 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-2,", "4\r", "\n6\n" },
+        .chunks = &.{ "0-2,", "\t4\r", "\n6\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
