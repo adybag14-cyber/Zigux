@@ -38,16 +38,31 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
 - the focused module, sample, and diff gates now prove the bounded replay counts, explicit per-thread event totals, payload literals, and failed-exit rollback proof through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
-- the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, exact checks, and non-goals so reviewers can tell which parts of the starter are shipped contract versus still-blocked runtime substrate.
+- the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, a delivery_evidence_catalog, an ownership_map, exact checks, and non-goals so reviewers can tell which parts of the starter are shipped contract versus still-blocked runtime substrate.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
 - the paired module-slice note now repeats that loader-free blocked handoff explicitly so the dedicated docs cannot drift into implying a partial loader or scheduler-facing substrate before the shared runtime handoff exists.
 - the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownership, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
 - no parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane, so the current trace-events packet remains a study-boundary note rather than a freeze-map reopen request.
 
+## Delivery ownership map
+
+The manifest-backed delivery packet now names which surface owns each part of the shipped Phase 9 trace-events review bundle:
+
+- `samples/zigux/runtime_trace_events.zig` owns the bounded trace-events starter descriptor, lifecycle surface, diagnostics summary, and shipped selftest hook
+- `zigux/tests/runtime_trace_events_module.zig` owns the dedicated lifecycle, summary-surface, and failed-exit rollback checks for the starter
+- `zigux/tests/runtime_trace_events_diff.zig` owns the bounded payload and function-callback replay checks against the Linux sample anchor
+- `zigux/tests/runtime_trace_events_survey.zig` owns the machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary
+- `zigux/tests/runtime_trace_events_manifest.json` owns the manifest-backed delivery catalog, ownership map, exact checks, and non-goal packet for this slice
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle entrypoint for the trace-events starter
+- `Documentation/zigux/phase9-runtime-trace-events-survey.md` owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the survey packet
+- `Documentation/zigux/freeze-map.md` owns the study-only `kernel/trace/ring_buffer.c` boundary and the Architecture Council reopen rule for trace-core status changes
+
 ## Recorded gaps
 
 The manifest started as a survey-only inventory and now records:
 
+- the manifest-backed `runtime-trace-events-delivery-catalog`
+- the manifest-backed `runtime-trace-events-ownership-map`
 - the landed `phase9-build-gate`
 - the landed `runtime-trace-events-survey-gate`
 - the landed `runtime-trace-events-sample-module` starter
