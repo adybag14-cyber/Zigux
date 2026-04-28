@@ -44,6 +44,7 @@ pub const SelftestSummary = struct {
 };
 
 pub const RuntimeKretprobeSummary = struct {
+    stage: ModuleStage,
     symbol_name: []const u8,
     maxactive: usize,
     active_instances: usize,
@@ -51,7 +52,9 @@ pub const RuntimeKretprobeSummary = struct {
     nmissed: usize,
     last_retval: usize,
     last_duration_ns: i64,
+    init_runs: usize,
     selftest_runs: usize,
+    exit_runs: usize,
     entry_timestamp_armed: bool,
 };
 
@@ -89,6 +92,7 @@ pub const RuntimeKretprobeSample = struct {
 
     pub fn summary(self: *const Self) RuntimeKretprobeSummary {
         return .{
+            .stage = self.stage(),
             .symbol_name = self.symbol_name,
             .maxactive = self.maxactive,
             .active_instances = self.active_instances,
@@ -96,7 +100,9 @@ pub const RuntimeKretprobeSample = struct {
             .nmissed = self.nmissed,
             .last_retval = self.last_retval,
             .last_duration_ns = self.last_duration_ns,
+            .init_runs = self.init_runs,
             .selftest_runs = self.selftest_runs,
+            .exit_runs = self.exit_runs,
             .entry_timestamp_armed = self.active_instances > 0,
         };
     }
