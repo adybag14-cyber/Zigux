@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const current_surveyed_commit = "46c0200e7a4a125223ba0b90145f914f5855a88a";
+
 const SurveySummary = struct {
     libbpf_c_lines: usize,
     preexisting_phase8_test_files: usize,
@@ -61,7 +63,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("13dfd68ad1609c7bd68240e8210121640e877698", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
@@ -271,6 +273,7 @@ test "phase12 libbpf survey note records rollback drill and reversible delivery 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "- owner: `BPF Tooling Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "- rollback owner: `BPF Tooling Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible delivery evidence: this Phase 12 packet only adds `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and this survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`phase12-libbpf-segment-survey-tests` and `phase12-libbpf-reviewability-tests` entries from `zigux/tests/phase12_build.zig`") != null);
