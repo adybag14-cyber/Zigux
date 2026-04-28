@@ -819,4 +819,43 @@ test "sameFileLocation and choosePwdCwdFromFileIdentity model the stat-backed pw
             .{ .device = 7, .inode = 44 },
         ),
     );
+    try std.testing.expect(samePathIdentity(
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 3, .inode = 44 },
+    ));
+    try std.testing.expect(!samePathIdentity(
+        .{ .device = 3, .inode = 44 },
+        .{ .device = 7, .inode = 44 },
+    ));
+    try std.testing.expect(!samePathIdentity(
+        .{ .device = 3, .inode = 44 },
+        null,
+    ));
+    try std.testing.expectEqualStrings(
+        "/logical/repo",
+        choosePwdCwdFromIdentities(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 3, .inode = 44 },
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwdFromIdentities(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            .{ .device = 7, .inode = 44 },
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwdFromIdentities(
+            "/repo",
+            "/logical/repo",
+            .{ .device = 3, .inode = 44 },
+            null,
+        ),
+    );
 }
