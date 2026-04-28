@@ -16,14 +16,25 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const ExactCheck = struct {
+    id: []const u8,
+    kind: []const u8,
+    expected: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    sample_path: []const u8,
+    validation_entrypoint: []const u8,
     survey_summary: SurveySummary,
+    review_prompts: []const []const u8,
+    exact_checks: []const ExactCheck,
     gaps: []const Gap,
+    non_goals: []const []const u8,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -61,12 +72,110 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", manifest.sample_path);
+    try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.validation_entrypoint);
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 200);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 5);
+    try std.testing.expect(manifest.review_prompts.len >= 5);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expect(manifest.gaps.len >= 7);
+    try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+
+    var saw_descriptor_contract = false;
+    var saw_initial_lifecycle = false;
+    var saw_bitwise_surface = false;
+    var saw_swap_compare_surface = false;
+    var saw_guard_surface = false;
+    var saw_selftest_surface = false;
+    var saw_post_selftest_replay = false;
+    var saw_exit_lifecycle = false;
+    var saw_loader_request_surface = false;
+    var saw_diff_add_bitwise = false;
+    var saw_diff_swap_guard = false;
+
+    for (manifest.review_prompts) |prompt| {
+        try std.testing.expect(prompt.len > 0);
+    }
+
+    for (manifest.exact_checks, 0..) |check, i| {
+        try std.testing.expect(check.id.len > 0);
+        try std.testing.expect(check.kind.len > 0);
+        try std.testing.expect(check.expected.len > 0);
+
+        if (std.mem.eql(u8, check.id, "descriptor-contract")) {
+            saw_descriptor_contract = true;
+            try std.testing.expectEqualStrings("review_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime_atomic64") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires_runtime_substrate true") != null);
+        }
+        if (std.mem.eql(u8, check.id, "initial-lifecycle-and-summary")) {
+            saw_initial_lifecycle = true;
+            try std.testing.expectEqualStrings("lifecycle_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runSelftest is rejected while the sample is still cold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "init_runs 1") != null);
+        }
+        if (std.mem.eql(u8, check.id, "bitwise-surface")) {
+            saw_bitwise_surface = true;
+            try std.testing.expectEqualStrings("mutation_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "orCounter") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "andNotCounter") != null);
+        }
+        if (std.mem.eql(u8, check.id, "swap-and-compare-swap-surface")) {
+            saw_swap_compare_surface = true;
+            try std.testing.expectEqualStrings("returning_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "swapCounter returns the prior 64-bit value") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "mismatch previous-value path") != null);
+        }
+        if (std.mem.eql(u8, check.id, "guard-return-surface")) {
+            saw_guard_surface = true;
+            try std.testing.expectEqualStrings("guard_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "addUnlessCounter") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "decIfPositiveCounter") != null);
+        }
+        if (std.mem.eql(u8, check.id, "selftest-surface")) {
+            saw_selftest_surface = true;
+            try std.testing.expectEqualStrings("selftest_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "arithmetic") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "guard_ops") != null);
+        }
+        if (std.mem.eql(u8, check.id, "post-selftest-replay")) {
+            saw_post_selftest_replay = true;
+            try std.testing.expectEqualStrings("selftest_lifecycle", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest_complete") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "dec_if_positive") != null);
+        }
+        if (std.mem.eql(u8, check.id, "exit-and-lifecycle-guards")) {
+            saw_exit_lifecycle = true;
+            try std.testing.expectEqualStrings("ownership_lifetime", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
+        }
+        if (std.mem.eql(u8, check.id, "loader-request-surface")) {
+            saw_loader_request_surface = true;
+            try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zigux_runtime_atomic64_init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_heap") != null);
+        }
+        if (std.mem.eql(u8, check.id, "diff-add-and-bitwise-cases")) {
+            saw_diff_add_bitwise = true;
+            try std.testing.expectEqualStrings("differential_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "onestwos add path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "andnot") != null);
+        }
+        if (std.mem.eql(u8, check.id, "diff-swap-and-guard-cases")) {
+            saw_diff_swap_guard = true;
+            try std.testing.expectEqualStrings("differential_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "cmpxchg success and mismatch") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "single-shot lifecycle") != null);
+        }
+
+        for (manifest.exact_checks[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, check.id, other.id));
+        }
+    }
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -74,7 +183,10 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
-    var saw_substrate_handoff = false;
+    var saw_loader_scaffold = false;
+    var saw_live_loader_binding = false;
+    var saw_shared_loader_controls_blocker = false;
+    var saw_direct_sample_build_leg = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -84,8 +196,12 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
+            // Sample-side starter and loader handoff scaffolds stay under samples.
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {
+            // Broader shared loader-control blockers may be tracked by the canonical runtime-loader gap note.
         } else {
-            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/"));
+            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -96,6 +212,13 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             blocked_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase9-build-gate")) {
+            saw_direct_sample_build_leg = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-atomic64-sample-tests") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sample contract stays first-class") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-atomic64-sample-module")) {
             saw_sample_module = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -106,10 +229,26 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "runtime-atomic64-substrate-handoff")) {
-            saw_substrate_handoff = true;
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-loader-scaffold")) {
+            saw_loader_scaffold = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no-substrate release path") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-live-loader-binding")) {
+            saw_live_loader_binding = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "allocator posture") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "atomic64 payload facts") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-shared-loader-controls")) {
+            saw_shared_loader_controls_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
-            try std.testing.expectEqualStrings("samples/zigux/runtime_*", gap.zigux_destination);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "command-name") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -119,15 +258,29 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 5);
+    try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(saw_direct_sample_build_leg);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
-    try std.testing.expect(saw_substrate_handoff);
+    try std.testing.expect(saw_loader_scaffold);
+    try std.testing.expect(saw_live_loader_binding);
+    try std.testing.expect(saw_shared_loader_controls_blocker);
+    try std.testing.expect(saw_descriptor_contract);
+    try std.testing.expect(saw_initial_lifecycle);
+    try std.testing.expect(saw_bitwise_surface);
+    try std.testing.expect(saw_swap_compare_surface);
+    try std.testing.expect(saw_guard_surface);
+    try std.testing.expect(saw_selftest_surface);
+    try std.testing.expect(saw_post_selftest_replay);
+    try std.testing.expect(saw_exit_lifecycle);
+    try std.testing.expect(saw_loader_request_surface);
+    try std.testing.expect(saw_diff_add_bitwise);
+    try std.testing.expect(saw_diff_swap_guard);
 }
 
-test "phase 9 runtime atomic64 module slice note stays aligned with the landed guard trio" {
+test "phase 9 runtime atomic64 module slice note stays aligned with the landed loader-backed review packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -142,6 +295,7 @@ test "phase 9 runtime atomic64 module slice note stays aligned with the landed g
     const required_markers = [_][]const u8{
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
+        "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
         "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker",
     };
 
@@ -154,4 +308,29 @@ test "phase 9 runtime atomic64 module slice note stays aligned with the landed g
         module_slice,
         "most likely `dec_if_positive`",
     ) == null);
+}
+
+test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and blocker explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const required_markers = [_][]const u8{
+        "direct `phase9-runtime-atomic64-sample-tests` shared-build leg",
+        "a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig`",
+        "a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+        "command-name, argv-policy, and environment-derived activation handling still have no shared owner",
+        "rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
+    };
+
+    for (required_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
+    }
 }
