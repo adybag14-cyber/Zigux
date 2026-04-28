@@ -24,7 +24,7 @@ This survey exists so the core lane no longer relies on the slice note alone whi
 
 - `drivers/virtio/virtio.c` is present on `master` at 730 lines and mixes status sequencing, feature negotiation, config-change enable and disable handling, config-change delivery gating, reset, and broader probe or remove lifecycle paths.
 - the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`.
-- the landed Zigux helper now covers bounded status sequencing, feature negotiation, queue callback bookkeeping, queue descriptor-shape metadata, config-change pending and flush bookkeeping, one bounded config-generation counter plus observation summaries, and the small driver-binding branch around `drv && drv->config_changed` in memory only.
+- the landed Zigux helper now covers bounded status sequencing, feature negotiation, queue callback bookkeeping, queue descriptor-shape metadata, config-change pending and flush bookkeeping, one bounded config-generation counter plus observation summaries, the small driver-binding branch around `drv && drv->config_changed`, and an explicit last-disposition summary for whether the most recent config change was deferred, delivered, or ignored in memory only.
 - the live repo still does not model probe or remove lifecycle parity, transport-backed reset paths, or MMIO and virtqueue setup behavior.
 - this means the virtio-core packet is now parked at a cleaner boundary, and the next honest new Phase 10 work lies in adjacent ring or MMIO wrappers rather than more core lifecycle claims.
 
@@ -42,9 +42,10 @@ The survey manifest now records:
 - the landed `phase10-config-change-bookkeeping-helper`
 - the landed `phase10-driver-binding-bookkeeping-helper`
 - the landed `phase10-config-generation-summary-helper`
+- the landed `phase10-config-delivery-disposition-helper`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
-This keeps the lane reviewable without overstating progress: the core starter is real and materially useful, but the broader lifecycle and transport-facing parts of `virtio.c` remain intentionally out of scope.
+This keeps the lane reviewable without overstating progress: the core starter is real and materially useful, including the last config-change branch outcome, but the broader lifecycle and transport-facing parts of `virtio.c` remain intentionally out of scope.
 
 ## Non-goals
 
@@ -65,4 +66,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Leave the Phase 10 virtio-core lane parked unless fresh repo inspection finds a directly coupled drift inside the landed core packet; the next new Phase 10 wrapper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
+Leave the Phase 10 virtio-core lane parked again unless fresh repo inspection finds a directly coupled drift inside the landed core packet; the next new Phase 10 wrapper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
