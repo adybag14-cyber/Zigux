@@ -147,7 +147,7 @@ This closure packet therefore records an aligned freeze-boundary reading rather 
 The exact current reading of the live repo is:
 
 - `drivers/virtio/virtio.zig` is the bounded virtio-core starter
-- `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface and its next bounded helper step
+- `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface, including the config-generation summary helper that closes the last core-local starter gap before risky lifecycle work
 - `drivers/virtio/virtio_ring.zig` is the bounded virtqueue helper starter
 - `drivers/virtio/virtio_input.zig` is the bounded input-driver starter
 - `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` now record the bounded MMIO register-window starter surface
