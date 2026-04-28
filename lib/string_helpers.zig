@@ -218,6 +218,18 @@ pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize
     return dst_index;
 }
 
+pub fn stringUnescapeInplace(buf: []u8, flags: u32) usize {
+    return stringUnescape(buf, buf, 0, flags);
+}
+
+pub fn stringUnescapeAny(src: []const u8, dst: []u8, size: usize) usize {
+    return stringUnescape(src, dst, size, UNESCAPE_ANY);
+}
+
+pub fn stringUnescapeAnyInplace(buf: []u8) usize {
+    return stringUnescapeAny(buf, buf, 0);
+}
+
 pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8) usize {
     var dst_index: usize = 0;
     const dict = only orelse "";
@@ -273,6 +285,19 @@ pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8
     }
 
     return dst_index;
+}
+
+pub fn stringEscapeMemAnyNp(src: []const u8, dst: []u8, only: ?[]const u8) usize {
+    return stringEscapeMem(src, dst, ESCAPE_ANY_NP, only);
+}
+
+pub fn stringEscapeStr(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
+    const limit = if (size == 0) dst.len else @min(size, dst.len);
+    return stringEscapeMem(cStringPrefix(src), dst[0..limit], flags, only);
+}
+
+pub fn stringEscapeStrAnyNp(src: []const u8, dst: []u8, size: usize, only: ?[]const u8) usize {
+    return stringEscapeStr(src, dst, size, ESCAPE_ANY_NP, only);
 }
 
 fn cStringPrefix(s: []const u8) []const u8 {
@@ -377,7 +402,7 @@ fn unescapeHex(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize)
 
 fn unescapeSpecial(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize) bool {
     const value: u8 = switch (src[src_index.*]) {
-        '"' => '"',
+        '\"' => '\"',
         '\\' => '\\',
         'a' => 0x07,
         'e' => 0x1b,
@@ -419,7 +444,7 @@ fn escapeSpecial(ch: u8, dst: []u8, dst_index: *usize) bool {
         '\\' => '\\',
         0x07 => 'a',
         0x1b => 'e',
-        '"' => '"',
+        '\"' => '\"',
         else => return false,
     };
     escapePassthrough('\\', dst, dst_index);
@@ -594,6 +619,24 @@ test "stringUnescape exact-fit destination still decodes an escape" {
     try std.testing.expectEqual(@as(u8, 0), out[1]);
 }
 
+test "stringUnescape wrappers preserve any-flag and inplace semantics" {
+    var any = [_]u8{0} ** 8;
+    const any_len = stringUnescapeAny("\\n\\x41", &any, any.len);
+    try std.testing.expectEqual(@as(usize, 2), any_len);
+    try std.testing.expectEqualSlices(u8, "\nA", any[0..any_len]);
+
+    var inplace = [_]u8{ '\\', '0', '4', '0', 0, '?', '?' };
+    const inplace_len = stringUnescapeAnyInplace(&inplace);
+    try std.testing.expectEqual(@as(usize, 1), inplace_len);
+    try std.testing.expectEqualSlices(u8, " ", inplace[0..inplace_len]);
+    try std.testing.expectEqual(@as(u8, 0), inplace[inplace_len]);
+
+    var flagged = [_]u8{ '\\', 'n', 0, '?', '?' };
+    const flagged_len = stringUnescapeInplace(&flagged, UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 1), flagged_len);
+    try std.testing.expectEqualSlices(u8, "\n", flagged[0..flagged_len]);
+}
+
 test "stringEscapeMem covers the bounded Linux escape classes" {
     var out = [_]u8{0} ** 64;
 
@@ -641,4 +684,21 @@ test "stringEscapeMem reports truncated output length without forcing a terminat
     const len = stringEscapeMem("\n", &out, ESCAPE_HEX, null);
     try std.testing.expectEqual(@as(usize, 4), len);
     try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
+}
+
+test "stringEscape wrappers stop at NUL and reuse ESCAPE_ANY_NP" {
+    var str_out = [_]u8{ '?', '?', '?', '?', '?', '?', '?', '?', '?' };
+    const str_len = stringEscapeStr("A\n\x00tail", &str_out, str_out.len, ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 8), str_len);
+    try std.testing.expectEqualSlices(u8, "\\x41\\x0a?", &str_out);
+
+    var any_np = [_]u8{ '?', '?', '?', '?', '?' };
+    const any_np_len = stringEscapeStrAnyNp("A\n\x00tail", &any_np, any_np.len, null);
+    try std.testing.expectEqual(@as(usize, 3), any_np_len);
+    try std.testing.expectEqualSlices(u8, "A\\n??", &any_np);
+
+    var mem_any_np = [_]u8{ '?', '?', '?', '?', '?' };
+    const mem_any_np_len = stringEscapeMemAnyNp("\n", &mem_any_np, null);
+    try std.testing.expectEqual(@as(usize, 2), mem_any_np_len);
+    try std.testing.expectEqualSlices(u8, "\\n???", &mem_any_np);
 }
