@@ -46,6 +46,23 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const ExitDisposition = enum {
+    abandoned_before_registration,
+    tore_down_registered_attributes,
+};
+
+pub const ExitSummary = struct {
+    stage_before_exit: SampleStage,
+    stage_after_exit: SampleStage,
+    active_attr_count_before_exit: usize,
+    active_attr_count_after_exit: usize,
+    attributes_were_accessible: bool,
+    init_runs: usize,
+    register_runs: usize,
+    exit_runs: usize,
+    disposition: ExitDisposition,
+};
+
 const Attribute = enum {
     foo,
     baz,
@@ -186,17 +203,33 @@ pub const KobjectExampleSample = struct {
         };
     }
 
-    pub fn exit(self: *Self) !void {
-        switch (self.stage()) {
-            .initialized, .registered => {},
+    pub fn exit(self: *Self) !ExitSummary {
+        const stage_before_exit = self.stage();
+        const active_attr_count_before_exit = self.activeAttrCount();
+        const attributes_were_accessible = self.attributesAreAccessible();
+        const disposition = switch (stage_before_exit) {
+            .initialized => ExitDisposition.abandoned_before_registration,
+            .registered => ExitDisposition.tore_down_registered_attributes,
             else => return error.InvalidLifecycleTransition,
-        }
+        };
 
         self.foo = 0;
         self.baz = 0;
         self.bar = 0;
         self.exit_runs += 1;
         self.stage_state = .exited;
+
+        return .{
+            .stage_before_exit = stage_before_exit,
+            .stage_after_exit = self.stage(),
+            .active_attr_count_before_exit = active_attr_count_before_exit,
+            .active_attr_count_after_exit = self.activeAttrCount(),
+            .attributes_were_accessible = attributes_were_accessible,
+            .init_runs = self.init_runs,
+            .register_runs = self.register_runs,
+            .exit_runs = self.exit_runs,
+            .disposition = disposition,
+        };
     }
 };
 
