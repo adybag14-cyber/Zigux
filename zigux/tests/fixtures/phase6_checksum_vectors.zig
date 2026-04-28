@@ -175,7 +175,7 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
 
 pub const perf_cases = [_]PerfCase{
     .{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },
-    .{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },
+    .{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },
 };
 
 pub fn fillPerfPayload(buffer: []u8) void {
