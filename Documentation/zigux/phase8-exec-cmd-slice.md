@@ -16,7 +16,9 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first product foothold in repo-hosted userspace-adjacent tooling.
 
-The live repo had no Zig slice under `tools/lib/subcmd/`, so the most valuable bounded step was to start `exec-cmd` with the helper-first surface that is easiest to validate without widening into process-launch side effects or unrelated `help.c` behavior.
+`exec-cmd.zig` remains the bounded helper-first port for the `exec-cmd.c` side of that roadmap target. The sibling `help.zig` slice now exists too, so this note is no longer tracking the first Zig foothold under `tools/lib/subcmd/`; it is tracking the parked `exec-cmd` subcmd slice specifically.
+
+That keeps the lane honest: `exec-cmd` now covers the smallest reviewable setup and argv-preparation surface from the C helper without widening into direct process-launch side effects or sibling `help.c` behavior.
 
 ## Gates
 
@@ -31,7 +33,7 @@ The live repo had no Zig slice under `tools/lib/subcmd/`, so the most valuable b
 
 ## Current parity surface
 
-The current starter slice covers:
+The current parked slice covers:
 
 - absolute-versus-prefixed `system_path()` resolution
 - `get_argv_exec_path()` precedence across explicit path, environment path, and configured fallback, including the C helper's preserved explicit-empty exec-path sentinel
