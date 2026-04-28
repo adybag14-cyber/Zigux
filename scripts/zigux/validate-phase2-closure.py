@@ -119,6 +119,9 @@ required_closure_markers = [
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
+    'dep parsing keeps the first source across concatenated target entries',
+    'output writer maps print and flush failures to fixdep output-write errors',
+    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target and output-write unit anchors are required for closure',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
