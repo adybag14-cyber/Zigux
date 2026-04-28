@@ -34,10 +34,10 @@ The live repo had no Zig slice under `tools/lib/subcmd/`, so the most valuable b
 The current starter slice covers:
 
 - absolute-versus-prefixed `system_path()` resolution
-- `get_argv_exec_path()` precedence across explicit path, environment path, and configured fallback
+- `get_argv_exec_path()` precedence across explicit path, environment path, and configured fallback, including the C helper's preserved explicit-empty exec-path sentinel
 - `extract_argv0_path()` splitting for directory-prefixed tool invocations
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
-- `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization, including the inherited-empty-`PATH` trailing-`:` shape from the C helper
+- `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization, including the inherited-empty-`PATH` trailing-`:` shape from the C helper and the skipped empty explicit exec-path segment when only `argv0_path` remains
 - a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
 - a tiny `FileIdentity` plus `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
@@ -45,10 +45,10 @@ The current starter slice covers:
 
 The current tests check:
 
-- path fallback precedence stays stable
+- path fallback precedence stays stable, including the explicit-empty exec-path sentinel staying distinct from the configured fallback
 - relative search-path entries become absolute against the current working directory input
 - directory-prefixed `argv[0]` values split cleanly into path and command name
-- the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge
+- the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge and the skipped empty explicit exec-path segment
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly when the optional `PWD` stat shape is missing
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
@@ -65,4 +65,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof is now covered through the injected identity helper layer, so future Phase 8 work should usually continue in sibling files instead.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof and the empty explicit exec-path sentinel are now covered through the helper-local and shared validation layers, so future Phase 8 work should usually continue in sibling files instead.
