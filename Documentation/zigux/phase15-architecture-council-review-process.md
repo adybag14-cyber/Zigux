@@ -5,9 +5,9 @@ This document records the bounded Phase 15 governance lane around the Architectu
 ## Status
 
 - `PHASE15_STATUS=review_process_slice_landed`
-- `PHASE15_SLICE=architecture-council-review-process-indefinite-c-policy-gate`
-- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also requires an explicit indefinite-C policy link or applicability note whenever a freeze-map anchor stays in C, plus one roadmap-ledger handoff note that keeps the parked future-target wording aligned with the current governance bundle
-- survey provenance refreshed against verified `master` head `65cb45dda5ca7fc760207a4ca711397bc7894e9e`
+- `PHASE15_SLICE=architecture-council-review-process-checklist-roadmap-phase-rationale-sync`
+- scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also requires the current roadmap phase and written rationale to stay explicit alongside the existing Architecture Council packet fields, indefinite-C policy link or applicability note, and roadmap-ledger handoff wording
+- survey provenance refreshed against verified `master` head `cbcc511944ba62eb6b0a6d73a0a041a6c2d38089`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -123,9 +123,10 @@ The current lane state is:
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-ownership-refresh-gate`
 - landed `phase15-indefinite-c-policy-review-gate`
+- landed `phase15-review-checklist-roadmap-phase-rationale-sync`
 - landed `phase15-review-process-roadmap-handoff-evidence`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, forces an explicit indefinite-C policy link or applicability note when a freeze-map anchor stays in C, keeps the roadmap and ledger provenance explicit in the same handoff surface, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, forces an explicit indefinite-C policy link or applicability note when a freeze-map anchor stays in C, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -146,4 +147,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The indefinite-C field-sync follow-up is already landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Keep the Phase 15 governance lane in maintenance mode. The checklist field-sync follow-up is now landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
