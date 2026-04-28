@@ -76,7 +76,9 @@ pub fn trimSpaces(buf: []u8) []u8 {
 }
 
 pub fn strim(buf: []u8) []u8 {
-    return trimSpaces(buf);
+    var end: usize = 0;
+    while (end < buf.len and buf[end] != 0) : (end += 1) {}
+    return trimSpaces(buf[0..end]);
 }
 
 pub fn removeSpaces(buf: []u8) []u8 {
@@ -197,18 +199,22 @@ test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
 
     var strim_buf = [_]u8{ ' ', 'o', 'k', ' ', '\n', 0 };
-    try std.testing.expectEqualStrings("ok", strim(strim_buf[0 .. strim_buf.len - 1]));
+    try std.testing.expectEqualStrings("ok", strim(&strim_buf));
+
+    var strim_cstr_buf = [_]u8{ ' ', 'o', 'k', 0, ' ', 'x' };
+    try std.testing.expectEqualStrings("ok", strim(&strim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, ' ', 'x' }, &strim_cstr_buf);
 
     var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
 
-    var remove_cstr_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'z' };
+    var remove_cstr_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'x' };
     try std.testing.expectEqualStrings("ab", removeSpaces(&remove_cstr_buf));
-    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 0, ' ', 'z' }, &remove_cstr_buf);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 0, ' ', 'x' }, &remove_cstr_buf);
 
-    var remove_spaces_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'z' };
+    var remove_spaces_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'x' };
     remove_spaces(&remove_spaces_buf);
-    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 0, ' ', 'z' }, &remove_spaces_buf);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 0, ' ', 'x' }, &remove_spaces_buf);
 
     var replace_buf = [_]u8{ 'a', '-', 'b' };
     try std.testing.expectEqual(@as(usize, 3), replaceChar(&replace_buf, '-', '_'));
