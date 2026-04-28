@@ -109,7 +109,7 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(20 * 1024),
+        .limited(40 * 1024),
     );
     defer std.testing.allocator.free(docs_readme);
 
