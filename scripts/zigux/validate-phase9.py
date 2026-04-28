@@ -12,11 +12,14 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
     ROOT / "zigux" / "Makefile",
     ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase9_build.zig",
+    ROOT / "zigux" / "tests" / "runtime_atomic64_manifest.json",
+    ROOT / "zigux" / "tests" / "runtime_atomic64_survey.zig",
     ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json",
     ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig",
     ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json",
@@ -41,9 +44,12 @@ tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
+atomic64_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md").read_text(encoding="utf-8")
 trace_events_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md").read_text(encoding="utf-8")
 trace_events_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md").read_text(encoding="utf-8")
 phase9_build = (ROOT / "zigux" / "tests" / "phase9_build.zig").read_text(encoding="utf-8")
+atomic64_manifest = (ROOT / "zigux" / "tests" / "runtime_atomic64_manifest.json").read_text(encoding="utf-8")
+atomic64_survey_test = (ROOT / "zigux" / "tests" / "runtime_atomic64_survey.zig").read_text(encoding="utf-8")
 loader_gap_survey_test = (ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig").read_text(encoding="utf-8")
 loader_gap_manifest = (ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json").read_text(encoding="utf-8")
 trace_events_manifest = (ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json").read_text(encoding="utf-8")
@@ -174,6 +180,53 @@ required_loader_gap_manifest_markers = [
     '"zigux_destination": "zigux/tests/phase9_build.zig"',
 ]
 
+required_atomic64_survey_markers = [
+    "manifest-backed delivery catalog and ownership map",
+    "Delivery ownership map",
+    "zigux/tests/runtime_atomic64_manifest.json",
+    "zigux/tests/runtime_atomic64_survey.zig",
+    "zigux/tests/runtime_atomic64_module.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase9_build.zig",
+    "samples/zigux/runtime_atomic64_loader.zig",
+    "zigux/kernel/runtime_loader.zig",
+    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "blocked shared command-name, argv-policy, and environment-derived activation-control posture",
+    "shared Phase 9 replay entrypoint",
+]
+
+required_atomic64_manifest_markers = [
+    '"surveyed_commit": "',
+    '"delivery_evidence_catalog": [',
+    '"id": "runtime-atomic64-manifest"',
+    '"path": "zigux/tests/runtime_atomic64_manifest.json"',
+    '"id": "phase9-atomic64-build-gate"',
+    '"path": "zigux/tests/phase9_build.zig"',
+    '"id": "runtime-atomic64-loader-scaffold"',
+    '"path": "samples/zigux/runtime_atomic64_loader.zig"',
+    '"id": "runtime-loader-gap-note"',
+    '"path": "Documentation/zigux/phase9-runtime-loader-gap-survey.md"',
+    '"ownership_map": [',
+    '"surface": "zigux/tests/runtime_atomic64_diff.zig"',
+    '"surface": "samples/zigux/runtime_atomic64.zig"',
+    '"surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md"',
+]
+
+required_atomic64_survey_test_markers = [
+    'const DeliveryEvidence = struct {',
+    'const OwnershipEntry = struct {',
+    'manifest.delivery_evidence_catalog.len',
+    'manifest.ownership_map.len',
+    'std.mem.eql(u8, entry.id, "runtime-atomic64-manifest")',
+    'std.mem.eql(u8, entry.id, "phase9-atomic64-build-gate")',
+    'std.mem.eql(u8, entry.id, "runtime-loader-gap-note")',
+    'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_atomic64_diff.zig")',
+    'std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64.zig")',
+    'std.mem.indexOf(u8, entry.role, "ownership map")',
+    'std.mem.indexOf(u8, entry.owns, "argv-policy")',
+    'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
+]
+
 required_trace_events_survey_markers = [
     "Documentation/zigux/freeze-map.md",
     "`kernel/trace/ring_buffer.c`",
@@ -267,6 +320,15 @@ for marker in required_loader_gap_survey_test_markers:
 for marker in required_loader_gap_manifest_markers:
     if marker not in loader_gap_manifest:
         missing_markers.append(f"loader_gap_manifest:{marker}")
+for marker in required_atomic64_survey_markers:
+    if marker not in atomic64_survey:
+        missing_markers.append(f"atomic64_survey:{marker}")
+for marker in required_atomic64_manifest_markers:
+    if marker not in atomic64_manifest:
+        missing_markers.append(f"atomic64_manifest:{marker}")
+for marker in required_atomic64_survey_test_markers:
+    if marker not in atomic64_survey_test:
+        missing_markers.append(f"atomic64_survey_test:{marker}")
 for marker in required_trace_events_survey_markers:
     if marker not in trace_events_survey:
         missing_markers.append(f"trace_events_survey:{marker}")
@@ -292,5 +354,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
 )
