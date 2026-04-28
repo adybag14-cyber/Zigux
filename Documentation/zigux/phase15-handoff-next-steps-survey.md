@@ -7,7 +7,7 @@ This document records the bounded Phase 15 handoff lane for synthesizing the rem
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
 - scope: one dedicated handoff note, one manifest, one Zig test, one shared `phase15_build.zig` follow-up, and one docs-index refresh that keep the roadmap contract, the bootstrap ledger anchor, the current governance packet, the open handoff gaps, and the parked next steps reviewable in one place
-- survey provenance refreshed against verified `master` head `e25bb70f4208335f510cbf160c10f2bc218b14ee`
+- survey provenance refreshed against verified `master` head `dbe902b91dc839d26bbe8a98af1a170efcd8e4c7`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
