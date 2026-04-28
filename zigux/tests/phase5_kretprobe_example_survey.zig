@@ -36,6 +36,10 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
+    for (manifest.surveyed_commit) |byte| {
+        try std.testing.expect(std.ascii.isLower(byte) or std.ascii.isDigit(byte));
+    }
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
@@ -187,6 +191,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact surveyed commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "in-memory-only") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "runtime parity is still out of scope") != null);
 }
