@@ -286,7 +286,6 @@ def run_self_test() -> int:
         for rel in ABI_REQUIRED_MANIFEST_FILES:
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.writeText = None
             target.write_text("// abi boundary\n", encoding="utf-8", newline="\n")
 
         (paths.tests_dir / "build.zig").write_text(
