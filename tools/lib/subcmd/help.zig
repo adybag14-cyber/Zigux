@@ -714,19 +714,172 @@ test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" 
         .{ .name = "zigux-run", .is_executable = true },
         .{ .name = "perf-report", .is_executable = true },
     };
+    const other_entries = [_]DirectoryEntry{
+        .{ .name = "zigux-trace", .is_executable = true },
+        .{ .name = "zigux-report.exe", .is_executable = true },
+    };
 
-[... ELLIPSIZATION ...]e and environment-driven column selection through the injected terminal helper
-- pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
-- section-level output stays testable without `printf()` by rendering the same `available <title> in '<path>'` and `$PATH` headings, underline lengths, shared column width, section spacing, and empty-section suppression that `list_commands()` uses in `help.c`
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &.{} },
+            .{ .path = "/opt/zigux/bin", .entries = &exec_entries },
+            .{ .path = "/usr/bin", .entries = &other_entries },
+        },
+    };
 
-## Non-goals
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
 
-This slice does not yet claim:
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        "zigux-",
+        "/opt/zigux/bin",
+        ":/opt/zigux/bin:/usr/bin:",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
 
-- `opendir()` or `readdir()` parity for command discovery
-- direct `ioctl()`-backed terminal probing
-- direct environment reads or a full `cmd_help()`-adjacent CLI surface
+    try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
+    try std.testing.expectEqualStrings("run", main_cmds.names.items[0].name);
+    try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
+    try std.testing.expectEqualStrings("report", other_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("trace", other_cmds.names.items[1].name);
+}
 
-## Next bounded step
+test "writePrettyPrintStringListForTerminal keeps column-major pretty-printing pure and testable" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("annotate", 8);
+    try cmds.addCmdName("bench", 5);
+    try cmds.addCmdName("diff", 4);
+    try cmds.addCmdName("report", 6);
+    try cmds.addCmdName("stat", 4);
+    cmds.sort();
 
-Park the bounded `help.zig` lane unless a fresh helper-only parity gap appears; the section renderer now has explicit coverage for both shared-width output and empty-section suppression, so the next honest follow-up should only reopen this lane for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writePrettyPrintStringListForTerminal(
+        &rendered.writer,
+        cmds,
+        cmds.longestNameLen(),
+        "31",
+        "24",
+        .{
+            .rows = 25,
+            .cols = 80,
+        },
+    );
+
+    try std.testing.expectEqualStrings(
+        "  annotate report\n" ++
+            "  bench    stat\n" ++
+            "  diff\n",
+        rendered.writer.buffered(),
+    );
+}
+
+test "writeCommandSectionsForTerminal keeps list_commands formatting pure and shared-width aware" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("report", 6);
+    try main_cmds.addCmdName("stat", 4);
+    main_cmds.sort();
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("trace", 5);
+    other_cmds.sort();
+
+    try std.testing.expectEqual(@as(usize, 6), longestNameLenAcrossLists(main_cmds, other_cmds));
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "/x",
+        main_cmds,
+        other_cmds,
+        null,
+        "24",
+        null,
+    );
+
+    const main_rule = [_]u8{'-'} ** 22;
+    const other_rule = [_]u8{'-'} ** 43;
+    const expected = std.fmt.comptimePrint(
+        "available perf in '/x'\n{s}\n" ++
+            "  report stat\n" ++
+            "\n" ++
+            "perf available from elsewhere on your $PATH\n{s}\n" ++
+            "  trace\n" ++
+            "\n",
+        .{ main_rule[0..], other_rule[0..] },
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
+}
+
+test "writeCommandSectionsForTerminal suppresses empty sections without stray headings or blank lines" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    {
+        var other_cmds = CmdNames.init(std.testing.allocator);
+        defer other_cmds.deinit();
+        try other_cmds.addCmdName("trace", 5);
+        try other_cmds.addCmdName("version", 7);
+        other_cmds.sort();
+
+        var rendered_other_only: std.Io.Writer.Allocating = .init(std.testing.allocator);
+        defer rendered_other_only.deinit();
+
+        try writeCommandSectionsForTerminal(
+            &rendered_other_only.writer,
+            "perf",
+            "/ignored",
+            main_cmds,
+            other_cmds,
+            null,
+            "18",
+            null,
+        );
+
+        const other_rule = [_]u8{'-'} ** 43;
+        const expected_other_only = std.fmt.comptimePrint(
+            "perf available from elsewhere on your $PATH\n{s}\n" ++
+                "  trace   version\n" ++
+                "\n",
+            .{other_rule[0..]},
+        );
+
+        try std.testing.expectEqualStrings(expected_other_only, rendered_other_only.writer.buffered());
+    }
+
+    {
+        var other_cmds = CmdNames.init(std.testing.allocator);
+        defer other_cmds.deinit();
+
+        var rendered_empty: std.Io.Writer.Allocating = .init(std.testing.allocator);
+        defer rendered_empty.deinit();
+
+        try writeCommandSectionsForTerminal(
+            &rendered_empty.writer,
+            "perf",
+            "/ignored",
+            main_cmds,
+            other_cmds,
+            null,
+            "18",
+            null,
+        );
+
+        try std.testing.expectEqualStrings("", rendered_empty.writer.buffered());
+    }
+}
