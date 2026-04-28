@@ -204,6 +204,10 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, nth_nbits, 7));
     // test_find_nth_bit truncated-width nth 8 returns nbits
     try std.testing.expectEqual(nth_nbits, findNthSet(&map, nth_nbits, 8));
+    // test_find_nth_bit reduced-width cutoff still keeps bit 123 visible for nth 7
+    try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, nth_nbits - 1, 7));
+    // test_find_nth_bit reduced-width nth 8 returns the cutoff width
+    try std.testing.expectEqual(nth_nbits - 1, findNthSet(&map, nth_nbits - 1, 8));
 
     var truncated = map;
     truncated[1] &= ~(@as(Word, 1) << 16);
