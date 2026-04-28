@@ -129,22 +129,19 @@ required_doc_readme_markers = [
     'python3 scripts/zigux/validate-phase6.py',
 ]
 
-required_catalog_markers = [
+required_phase6_catalog_markers = [
     'Phase 6 Helper Parity Catalog',
+    'verified head:',
     'lib/base64.zig',
-    'zigux/tests/phase6_base64_perf.zig',
-    'zigux/tests/fixtures/phase6_base64_vectors.zig',
     'lib/bsearch.zig',
-    'zigux/tests/phase6_bsearch_perf.zig',
     'lib/checksum.zig',
-    'zigux/tests/fixtures/phase6_checksum_vectors.zig',
-    'zigux/tests/phase6_checksum_perf.zig',
     'lib/hexdump.zig',
-    'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
-    'zigux/tests/phase6_hexdump_perf.zig',
     'zigux/tests/phase6_build.zig',
     'scripts/zigux/validate-phase6.py',
-    'make -C zigux phase6-validate',
+    '.github/workflows/zigux-bootstrap.yml',
+    'Documentation/zigux/README.md',
+    'scripts/zigux/README.md',
+    'zigux/tests/README.md',
 ]
 
 required_phase6_build_markers = [
@@ -278,7 +275,7 @@ for marker in required_tests_readme_markers:
 for marker in required_doc_readme_markers:
     if marker not in doc_readme:
         missing_markers.append(f'doc_readme:{marker}')
-for marker in required_catalog_markers:
+for marker in required_phase6_catalog_markers:
     if marker not in phase6_catalog:
         missing_markers.append(f'phase6_catalog:{marker}')
 for marker in required_phase6_build_markers:
@@ -325,5 +322,5 @@ print('PHASE6_VALIDATION=pass')
 print(f'PHASE6_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE6_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_catalog_markers) + len(required_phase6_build_markers) + len(required_base64_markers) + len(required_base64_perf_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_catalog_markers) + len(required_phase6_build_markers) + len(required_base64_markers) + len(required_base64_perf_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
 )
