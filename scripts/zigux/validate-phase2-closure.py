@@ -109,6 +109,9 @@ required_closure_markers = [
     'PHASE2_STATUS=closed',
     'PHASE2_TOOL_COUNT=6',
     'PHASE2_CROSS_TARGET_COUNT=3',
+    'PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py',
+    'PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts',
+    'PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors',
     'PHASE2_FIXDEP_CASE_COUNT=7',
     'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
@@ -118,10 +121,12 @@ required_closure_markers = [
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
+    'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-kconfig-bridge.py',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/validate-phase2-closure.py',
+    'zig test scripts/zigux/fixdep.zig',
     'zig test scripts/zigux/genksyms.zig',
     'zig test scripts/zigux/kconfig/conf_bridge.zig',
     'zig test scripts/zigux/kconfig/confdata_bridge.zig',
@@ -149,9 +154,12 @@ required_doc_markers = [
 ]
 required_makefile_markers = [
     'phase2-validate:',
+    'phase2-tools:',
     'phase2-kconfig:',
     'phase2-cross:',
+    'check-fixdep-diff.py',
     'check-genksyms-bridge.py',
+    '$(ZIG) test scripts/zigux/fixdep.zig',
     '$(ZIG) test scripts/zigux/genksyms.zig',
 ]
 
