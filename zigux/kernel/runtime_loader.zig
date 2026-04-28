@@ -61,6 +61,7 @@ pub const LoaderPayload = union(LoaderLane) {
 
 pub const RuntimeLoadRequest = struct {
     module_name: []const u8,
+    command_name: ?[]const u8,
     anchor: []const u8,
     entry_symbol: []const u8,
     exit_symbol: []const u8,
@@ -88,6 +89,10 @@ pub const RuntimeLoadRequest = struct {
         return released;
     }
 
+    pub fn keepsCommandNameExplicit(self: RuntimeLoadRequest) bool {
+        return if (self.command_name) |command_name| command_name.len > 0 else true;
+    }
+
     pub fn keepsInitExitContractExplicit(self: RuntimeLoadRequest) bool {
         return self.module_name.len > 0 and
             self.anchor.len > 0 and
@@ -109,7 +114,8 @@ pub const RuntimeLoadRequest = struct {
     }
 
     pub fn keepsSharedHandoffContractExplicit(self: RuntimeLoadRequest) bool {
-        return self.keepsInitExitContractExplicit() and
+        return self.keepsCommandNameExplicit() and
+            self.keepsInitExitContractExplicit() and
             self.keepsStageConsistentWithRuntimeSubstrate() and
             self.keepsAllocatorInitFlowConsistent();
     }
@@ -167,6 +173,7 @@ test "runtime loader allocator handoff stays internally consistent across all al
 test "runtime loader request keeps bitmap handoff state explicit" {
     const request = RuntimeLoadRequest{
         .module_name = "runtime_bitmap",
+        .command_name = null,
         .anchor = "lib/test_bitmap.c",
         .entry_symbol = "zigux_runtime_bitmap_init",
         .exit_symbol = "zigux_runtime_bitmap_exit",
@@ -185,7 +192,9 @@ test "runtime loader request keeps bitmap handoff state explicit" {
     };
 
     try std.testing.expectEqual(LoaderLane.bitmap, request.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
@@ -194,8 +203,10 @@ test "runtime loader request keeps bitmap handoff state explicit" {
 
     const released = request.releasedWithoutSubstrate();
     try std.testing.expectEqual(LoaderLane.bitmap, released.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), released.command_name);
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
@@ -206,6 +217,7 @@ test "runtime loader request keeps bitmap handoff state explicit" {
 test "runtime loader request keeps kretprobe handoff state explicit" {
     const request = RuntimeLoadRequest{
         .module_name = "runtime_kretprobe",
+        .command_name = null,
         .anchor = "samples/kprobes/kretprobe_example.c",
         .entry_symbol = "zigux_runtime_kretprobe_init",
         .exit_symbol = "zigux_runtime_kretprobe_exit",
@@ -232,9 +244,11 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     };
 
     try std.testing.expectEqual(LoaderLane.kretprobe, request.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);
     try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
     try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.nmissed);
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
@@ -242,8 +256,10 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
 
     const released = request.releasedWithoutSubstrate();
     try std.testing.expectEqual(LoaderLane.kretprobe, released.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), released.command_name);
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
@@ -254,6 +270,7 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
 test "runtime loader request rejects implicit init-exit and stage handoff contracts" {
     const missing_exit = RuntimeLoadRequest{
         .module_name = "runtime_bitmap",
+        .command_name = null,
         .anchor = "lib/test_bitmap.c",
         .entry_symbol = "zigux_runtime_bitmap_init",
         .exit_symbol = "",
@@ -276,6 +293,7 @@ test "runtime loader request rejects implicit init-exit and stage handoff contra
 
     const wrong_stage = RuntimeLoadRequest{
         .module_name = "runtime_bitmap",
+        .command_name = null,
         .anchor = "lib/test_bitmap.c",
         .entry_symbol = "zigux_runtime_bitmap_init",
         .exit_symbol = "zigux_runtime_bitmap_exit",
@@ -295,4 +313,27 @@ test "runtime loader request rejects implicit init-exit and stage handoff contra
     try std.testing.expect(wrong_stage.keepsInitExitContractExplicit());
     try std.testing.expect(!wrong_stage.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(!wrong_stage.keepsSharedHandoffContractExplicit());
+
+    const empty_command_name = RuntimeLoadRequest{
+        .module_name = "runtime_bitmap",
+        .command_name = "",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = .waiting_on_runtime_substrate,
+        .allocator_handoff = allocatorHandoffFor(.kernel_heap),
+        .payload = .{
+            .bitmap = .{
+                .first_set = 0,
+                .first_zero = 1,
+                .weight = 4,
+                .nbits = 128,
+            },
+        },
+    };
+    try std.testing.expect(!empty_command_name.keepsCommandNameExplicit());
+    try std.testing.expect(empty_command_name.keepsInitExitContractExplicit());
+    try std.testing.expect(!empty_command_name.keepsSharedHandoffContractExplicit());
 }
