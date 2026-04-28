@@ -54,7 +54,7 @@ The current tests check:
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful lookups
 - mutable-pointer parity when searching mutable storage
-- duplicate-key found-or-null parity without claiming stable duplicate selection
+- duplicate-key found-or-null parity without claiming stable selection
 - representative lookup work stays inside a bounded binary-search comparison budget
 - inline sorted integer and symbol tables keep the current lookup corpus deterministic without introducing a generated fixture file
 - a replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices
