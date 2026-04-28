@@ -4,9 +4,9 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `0d796d2d0bfe4d85c0b15fe27a6f4dfc626e0288`
+- reviewed against live `master` `4f10e66841f76ca3db7f662c43f0b6b3dc05f1ba`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
-- `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
+- `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the `devm_ioremap_uc()` and `devm_ioremap_wc()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, but until this packet landed the MMIO safety posture was not recorded in the same manifest-backed survey shape as the other active Phase 13 anchors
 - `zigux/Makefile` and `zigux/tests/phase13_build.zig` already expose the shared Phase 13 replay entrypoints that this survey now joins
 
@@ -20,6 +20,7 @@ What is landed today:
 
 - managed `__devm_ioremap()` lifetime planning, including retained release records on success and free-on-failure cleanup when mapping returns `NULL`
 - the `devm_ioremap_uc()` wrapper path and exact `devm_iounmap()` pointer-match release behavior
+- the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
 - managed `__devm_ioremap_resource()` planning around memory-resource validation, inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
 - the adjacent `devm_ioremap_resource_wc()` wrapper path without widening into live write-combined mappings
 - `devm_of_iomap()` planning around translated resource selection, optional size reporting, and delegation into the managed-resource planner without walking a live device tree
