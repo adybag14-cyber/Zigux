@@ -411,6 +411,11 @@ pub fn erase(node: *Node, root: *Root) void {
     }
 }
 
+pub fn eraseInit(node: *Node, root: *Root) void {
+    erase(node, root);
+    clearNode(node);
+}
+
 pub fn first(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return minimum(node);
@@ -589,6 +594,51 @@ test "rbtree erase and replace keep traversal consistent" {
     }
 
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
+}
+
+test "rbtree eraseInit detaches erased nodes from later traversal" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    eraseInit(&entries[0].node, &root);
+
+    try std.testing.expect(emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), next(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), prev(&entries[0].node));
+
+    var order: [3]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 15, 20 }, order[0..count]);
 }
 
 test "rbtree find helpers return duplicate-key ranges" {
