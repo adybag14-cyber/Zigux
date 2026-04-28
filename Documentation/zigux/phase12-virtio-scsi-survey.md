@@ -54,6 +54,14 @@ The survey manifest now records:
 
 This keeps the lane explicit without overstating progress: Zigux now has a bounded virtio_scsi queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters plus an exact raw fallback evidence packet, but it still does not claim command submission, event completion, TMF flow, SCSI-host registration, PM callback wiring, or DMA-backed virtqueue ownership.
 
+## Rollback And Reversible Delivery
+
+- owner: `Storage Driver Lane`
+- rollback owner: `Storage Driver Lane`
+- fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth, keep the already-landed `drivers/scsi/virtio_scsi.zig` queue-layout and bounded helper packet additive-only, and drop the `phase12-virtio-scsi-tests` plus `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig` if the shared Phase 12 packet needs to retreat.
+- reversible delivery evidence: this Phase 12 packet is bounded to one additive starter, one direct test, one manifest-backed survey gate, one raw GitHub fallback catalog, and shared build wiring around preexisting Phase 10 virtio foundations, so the review surface can be removed without inventing a second SCSI runtime path or mutating the Linux anchor.
+- rollback drill: run `make -C zigux phase12-validate`; if the virtio-scsi packet is the only failing slice, repair `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, or the bounded `zigux/tests/phase12_virtio_scsi{,_survey}.zig` packet first, otherwise remove the `phase12-virtio-scsi-tests` and `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/scsi/virtio_scsi.c` and the already-landed bounded Zig helpers unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+
 ## Non-goals
 
 This survey slice does not claim:
