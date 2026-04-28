@@ -56,11 +56,12 @@ The current tests check:
 - incremental partial-sum chaining across even and odd fragment boundaries
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
+- a tiny external KUnit random-prefix nibble that replays precomputed folded results from the upstream fixed-random checksum corpus with the corresponding imported initial seed
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte for a fixture-backed deterministic packet matrix
 - that perf harness also compares the helper against its own widened-accumulator reference path and rejects regressions that exceed the fixture-backed slowdown budget for the current packet sizes
 
-The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place, now also owns the deterministic perf corpus plus relative slowdown ceilings consumed by `zigux/tests/phase6_checksum_perf.zig`, and borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
+The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place, now also owns the deterministic perf corpus plus relative slowdown ceilings consumed by `zigux/tests/phase6_checksum_perf.zig`, and borrows a small carry-discipline shape plus one imported random-prefix parity nibble from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
 
 ## Non-goals
 
@@ -72,4 +73,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Checksum now has a small KUnit-inspired carry-discipline foothold alongside the existing compute, composition, seeded-partial, pseudo-header, and relative perf-gate surfaces. The next honest decision is whether that evidence is now enough to park this Phase 6 leaf-helper lane unless a future external parity artifact becomes clearly worthwhile.
+Checksum now has a small KUnit-inspired carry-discipline foothold plus one imported random-prefix parity nibble alongside the existing compute, composition, seeded-partial, pseudo-header, and relative perf-gate surfaces. The next honest decision is whether that evidence is now enough to park this Phase 6 leaf-helper lane unless a future external parity artifact becomes clearly worthwhile.
