@@ -45,6 +45,7 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 - owner: `Shared Subsystems Pod`
 - rollback owner: `Shared Subsystems Pod`
 - fallback path: keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses
+- exact bounded checks: `bitmap_fill(..., 35)` rounds to one full word, `bitmap_zero(..., 115)` rounds to two full words, full-width `bitmap_fill(..., 1024)` and `bitmap_zero(..., 1024)` keep the endpoints honest, `bitmap_scnprintf()` preserves both the full `1-3,7,10-11` summary and the truncated `1-3` rendering, `bitmap_copy()` replays the 109-bit partial-tail and 97-bit aligned-copy cases while `bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract, and `find_nth_bit()` records both the full-width nth-7 and nth-8 outcomes plus the reduced-width `64 * 3 - 1` cutoff that still returns bit 123 for nth 6 and the cutoff width for nth 7
 - perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, summary, exact nth-lookup, and copy-behavior checkpoints
 
 ## Lab And CI Matrix
