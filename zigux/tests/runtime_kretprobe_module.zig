@@ -14,6 +14,13 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
     var module = sample.RuntimeKretprobeSample{};
 
     try std.testing.expectEqual(sample.ModuleStage.cold, module.stage());
+    const cold_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.cold, cold_summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.active_instances);
+    try std.testing.expect(!cold_summary.entry_timestamp_armed);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(1, 10));
     try std.testing.expectError(error.InvalidSymbolName, module.retargetSymbol(""));
 
@@ -23,6 +30,15 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
     try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, module.maxactive);
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, initialized_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
+    try std.testing.expectEqualStrings("do_sys_openat2", initialized_summary.symbol_name);
+    try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, initialized_summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.active_instances);
+    try std.testing.expect(!initialized_summary.entry_timestamp_armed);
 
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
@@ -38,10 +54,29 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
 
     try module.recordMissedInstance();
     try std.testing.expectEqual(@as(usize, 1), module.nmissed);
+    const ready_to_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, ready_to_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), ready_to_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), ready_to_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), ready_to_exit.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), ready_to_exit.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), ready_to_exit.nmissed);
+    try std.testing.expectEqual(@as(usize, 37), ready_to_exit.last_retval);
+    try std.testing.expectEqual(@as(i64, 45), ready_to_exit.last_duration_ns);
 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 37), exited_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 45), exited_summary.last_duration_ns);
+    try std.testing.expect(!exited_summary.entry_timestamp_armed);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 200));
 }
 
@@ -84,9 +119,31 @@ test "runtime kretprobe sample keeps selftest and outstanding-instance paths exp
     try std.testing.expectEqual(@as(usize, 1), summary.nmissed);
     try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, summary.maxactive);
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    const selftest_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, selftest_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_summary.exit_runs);
+    try std.testing.expectEqualStrings(sample.RuntimeKretprobeSample.default_symbol_name, selftest_summary.symbol_name);
+    try std.testing.expectEqual(sample.RuntimeKretprobeSample.default_maxactive, selftest_summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), selftest_summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), selftest_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest_summary.last_duration_ns);
+    try std.testing.expect(!selftest_summary.entry_timestamp_armed);
 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited_summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), exited_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), exited_summary.last_duration_ns);
+    try std.testing.expect(!exited_summary.entry_timestamp_armed);
 
     var outstanding = sample.RuntimeKretprobeSample{};
     try outstanding.init();
