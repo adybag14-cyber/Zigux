@@ -48,9 +48,9 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P7-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("f9fcf27e2eab45ae770e523aa5e2e0b1e9cff2fd", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2109f2238e9ddb6ad4354319525d475f62a70e44", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
@@ -84,6 +84,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/rbtree.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "duplicate-range iterator access") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-survey-gate")) {
