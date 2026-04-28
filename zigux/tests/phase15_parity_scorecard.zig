@@ -36,6 +36,7 @@ const RepoEvidence = struct {
     phase15_scorecard_manifest_present: bool,
     phase15_build_present: bool,
     phase15_make_target_present: bool,
+    phase15_workflow_replay_present: bool,
 };
 
 const ReviewProcess = struct {
@@ -54,6 +55,18 @@ const HandoffEvidence = struct {
     maintenance_mode_next_step: []const u8,
 };
 
+const ScorecardMetrics = struct {
+    freeze_in_c_anchor_count: usize,
+    anchors_with_phase14_survey_evidence: usize,
+    reserved_evidence_archive_templates: usize,
+    required_review_process_record_fields: usize,
+    reopen_trigger_catalog_entries: usize,
+    repo_evidence_checks_green: usize,
+    landed_scorecard_gaps: usize,
+    blocked_scorecard_gaps: usize,
+    replay_surfaces_available: usize,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -68,6 +81,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     review_process: ReviewProcess,
     handoff_evidence: HandoffEvidence,
+    scorecard_metrics: ScorecardMetrics,
     anchors: []const AnchorScorecard,
     repo_evidence: RepoEvidence,
     gaps: []const Gap,
@@ -155,6 +169,15 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
+    try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.freeze_in_c_anchor_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
+    try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.reserved_evidence_archive_templates);
+    try std.testing.expectEqual(@as(usize, 8), manifest.scorecard_metrics.required_review_process_record_fields);
+    try std.testing.expectEqual(@as(usize, 3), manifest.scorecard_metrics.reopen_trigger_catalog_entries);
+    try std.testing.expectEqual(@as(usize, 15), manifest.scorecard_metrics.repo_evidence_checks_green);
+    try std.testing.expectEqual(@as(usize, 17), manifest.scorecard_metrics.landed_scorecard_gaps);
+    try std.testing.expectEqual(@as(usize, 1), manifest.scorecard_metrics.blocked_scorecard_gaps);
+    try std.testing.expectEqual(@as(usize, 3), manifest.scorecard_metrics.replay_surfaces_available);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
     try std.testing.expect(manifest.repo_evidence.review_checklist_present);
@@ -170,6 +193,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_workflow_replay_present);
     try std.testing.expectEqualStrings("retained discussion state", manifest.review_process.required_record_fields[6]);
     try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[7]);
     try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
@@ -433,6 +457,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Current Maintenance-Mode Handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Coverage Summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Full-Parity Blockers and Long-Term Governance") != null);
@@ -454,6 +479,13 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-maintenance-mode-handoff-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "freeze-in-C anchors tracked: `4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "anchors with Phase 14 survey evidence linked: `2 / 4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "repo evidence checks currently green: `15 / 15`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "landed scorecard gaps: `17 / 18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "blocked scorecard gaps: `1 / 18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay surfaces currently recorded: `3 / 3`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
