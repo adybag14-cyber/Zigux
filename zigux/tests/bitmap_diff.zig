@@ -100,6 +100,32 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
+test "bitmap diff gate records exact cross-boundary set and clear checks" {
+    var map = [_]Word{0} ** word_count;
+
+    bitmap.setRange(&map, 0, 64);
+    // test_fill_set bitmap_set crosses the 79..97 window without disturbing the gap
+    bitmap.setRange(&map, 79, 19);
+    try expectPrintedList(&map, bitmap_nbits, "0-63,79-97");
+    try std.testing.expectEqual(@as(usize, 83), weight(&map, bitmap_nbits));
+    try expectSet(&map, 63);
+    try expectClear(&map, 64);
+    try expectSet(&map, 79);
+    try expectSet(&map, 97);
+    try expectClear(&map, 98);
+
+    bitmap.fill(&map, bitmap_nbits);
+    // test_zero_clear bitmap_clear crosses the 79..97 window without disturbing the prefix
+    bitmap.setRange(&map, 0, 79);
+    bitmap.clearRange(&map, 79, 19);
+    try expectPrintedList(&map, bitmap_nbits, "0-78,98-1023");
+    try std.testing.expectEqual(bitmap_nbits - 19, weight(&map, bitmap_nbits));
+    try expectSet(&map, 78);
+    try expectClear(&map, 79);
+    try expectClear(&map, 97);
+    try expectSet(&map, 98);
+}
+
 test "bitmap diff gate records exact full-width fill and zero endpoints" {
     var map = [_]Word{0} ** word_count;
 
