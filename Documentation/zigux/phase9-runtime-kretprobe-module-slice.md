@@ -27,7 +27,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 
 - module descriptor metadata naming the `samples/kprobes/kretprobe_example.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
-- a retargetable symbol-name starter that defaults to `kernel_clone`, matching the Linux sample's module parameter and the fixed `KSYM_NAME_LEN` buffer ceiling
+- a retargetable symbol-name starter that defaults to `kernel_clone`, matches the Linux sample's module parameter, and now rejects retargets at or above the fixed `KSYM_NAME_LEN`-style 512-byte ceiling
 - bounded entry-handler skip behavior for kernel-thread-like contexts, bounded per-instance private entry-timestamp tracking across concurrent active probes, return-value and duration bookkeeping, and explicit `nmissed` tracking
 - a stable `RuntimeKretprobeSummary` view exposing lifecycle stage, `init_runs`, `selftest_runs`, `exit_runs`, active-instance state, and the latest bounded probe results without requiring direct field access on the sample
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
