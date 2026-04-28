@@ -1,12 +1,14 @@
 {
   "lane_key": "P9-L05",
   "phase": "Phase 9",
-  "surveyed_commit": "10656285a884a5cf191c2db6c52b70bed0c9de0e",
+  "surveyed_commit": "c0ef030998fa54977d63c2451824cf4a40451a8b",
   "anchor": "lib/test_bitmap.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
     "samples/zigux/runtime_*"
   ],
+  "sample_path": "samples/zigux/runtime_bitmap.zig",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
   "survey_summary": {
     "test_bitmap_c_lines": 1567,
     "preexisting_runtime_bitmap_test_files": 3,
@@ -14,6 +16,65 @@
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_bitmap_doc_present": true
   },
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded two-word bitmap backing used by the sample",
+    "the manifest, survey gate, module tests, diff gate, and sample-backed survey note still describe the exact lifecycle, summary, range-mutation, copy, and diff-case contract run through phase9_build.zig",
+    "sample-behavior changes update the manifest-backed exact checks alongside runtime_bitmap_module.zig and runtime_bitmap_diff.zig instead of leaving reviewers to infer the new contract from code alone",
+    "the review packet keeps the Phase 9 runtime bitmap starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
+    "docs and tests still keep real runtime execution, shared loader controls, and full lib/test_bitmap.c parity out of scope for this bounded runtime starter"
+  ],
+  "exact_checks": [
+    {
+      "id": "descriptor-contract",
+      "kind": "review_surface",
+      "expected": "the runtime sample advertises name runtime_bitmap, anchor lib/test_bitmap.c, requires_runtime_substrate true, and provides_selftest_hook true"
+    },
+    {
+      "id": "initial-summary",
+      "kind": "summary_contract",
+      "expected": "initializing bits 0, 5, 64, and 70 yields first_set 0, first_zero 1, weight 4, and nbits equal to the bounded two-word bitmap width"
+    },
+    {
+      "id": "range-mutation-and-copy",
+      "kind": "mutation_contract",
+      "expected": "clearing bits 64 and 65 then setting range 9 through 12 yields weight 7, keeps bit 70 set, sets bit 12, and copyFrom preserves that summary on an initialized mirror sample"
+    },
+    {
+      "id": "selftest-surface",
+      "kind": "selftest_contract",
+      "expected": "runSelftest moves the sample to selftest_complete, records exactly four operation families in order: clear_set, copy, parse_and_print, and iteration_and_ranges, and leaves the summary unchanged"
+    },
+    {
+      "id": "exit-and-lifecycle-guards",
+      "kind": "ownership_lifetime",
+      "expected": "exit moves the sample to exited, keeps the final bitmap snapshot reviewable, and later setRange, runSelftest, exit, or re-init calls fail with InvalidLifecycleTransition"
+    },
+    {
+      "id": "bounds-errors",
+      "kind": "input_validation",
+      "expected": "out-of-bounds init, setRange, and clearRange requests stay explicit BitRangeOutOfBounds errors at the bitmap tail"
+    },
+    {
+      "id": "zero-length-and-source-guards",
+      "kind": "helper_contract",
+      "expected": "zero-length setRange and clearRange leave the bitmap summary unchanged, and copyFrom rejects cold or exited sources with InvalidSourceLifecycle"
+    },
+    {
+      "id": "diff-fill-set-case",
+      "kind": "differential_validation",
+      "expected": "the diff gate replays a 9-bit fill-from-zero case with first_set 0, first_zero 9, weight 9, bits 0 and 8 set, and later bits clear"
+    },
+    {
+      "id": "diff-clear-cutout-case",
+      "kind": "differential_validation",
+      "expected": "the diff gate replays a full-set then clearRange(79, 19) cutout with first_zero 79, weight bitmap_nbits minus 19, and bits 79 through 97 cleared while 98 and the last bit stay set"
+    },
+    {
+      "id": "diff-find-nth-and-copy-case",
+      "kind": "differential_validation",
+      "expected": "the diff gate replays a sparse population at bits 10, 20, 30, 40, 50, 60, 80, and 123 plus a 109-bit copy case whose copied summary is first_set 0, first_zero 109, and weight 109"
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
@@ -71,5 +132,11 @@
       "zigux_destination": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
       "why_now": "The bitmap pilot still depends on the broader shared runtime-loader control surface tracked by the runtime loader gap survey: command-name, argv-policy, and environment-derived activation handling are still absent, so the pilot remains pre-execution."
     }
+  ],
+  "non_goals": [
+    "a loadable Zigux runtime bitmap module",
+    "true runtime execution or lifecycle parity through a shared loader path",
+    "the full lib/test_bitmap.c surface beyond the bounded starter and diff cases",
+    "shared runtime-loader command-name, argv-policy, or environment activation controls"
   ]
 }
