@@ -401,7 +401,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(20 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(docs_readme);
 
