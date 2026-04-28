@@ -200,6 +200,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "lifecycle parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime_trace_events_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
@@ -216,6 +218,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit per-thread event-total") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
