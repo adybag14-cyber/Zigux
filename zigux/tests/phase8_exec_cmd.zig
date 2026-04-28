@@ -84,6 +84,34 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
         updated,
     );
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+
+    var inherited_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer inherited_empty_env.deinit();
+
+    var inherited_empty_state = exec_cmd.ExecCmdState{};
+    defer inherited_empty_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&inherited_empty_env, config);
+    try exec_cmd.setArgvExecPath(
+        std.testing.allocator,
+        &inherited_empty_env,
+        &inherited_empty_state,
+        config,
+        "tools/bin",
+    );
+    try inherited_empty_env.set("PATH", "");
+
+    const inherited_empty = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &inherited_empty_env,
+        inherited_empty_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_empty);
+
+    try std.testing.expectEqualStrings("/repo/tools/bin:", inherited_empty);
+    try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
 }
 
 test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
