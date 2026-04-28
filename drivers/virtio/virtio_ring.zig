@@ -79,6 +79,20 @@ pub const DelayedCallbackSummary = struct {
     should_poll: bool,
 };
 
+pub const QueueResetSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    layout: QueueLayout,
+    callback_enabled: bool,
+    avail_idx_shadow: u16,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+    pending_used_chain_count: u16,
+    notification_count: usize,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -244,6 +258,35 @@ pub const VirtioRingLab = struct {
             .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
+        };
+    }
+
+    pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        const descriptor_count = slot.descriptor_count;
+        const layout = slot.layout;
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+
+        slot.avail_idx_shadow = 0;
+        slot.last_used_idx = 0;
+        slot.last_polled_used_idx = 0;
+        slot.callback_enabled = true;
+        slot.outstanding_chain_count = 0;
+        slot.num_added = 0;
+        slot.notification_count = 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = descriptor_count,
+            .layout = layout,
+            .callback_enabled = slot.callback_enabled,
+            .avail_idx_shadow = slot.avail_idx_shadow,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = slot.last_polled_used_idx,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .pending_used_chain_count = pending_used_chain_count,
+            .notification_count = slot.notification_count,
         };
     }
 
