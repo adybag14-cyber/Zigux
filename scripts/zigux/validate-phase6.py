@@ -16,6 +16,8 @@ required_files = [
     ROOT / 'zigux' / 'Makefile',
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'phase6_base64.zig',
+    ROOT / 'zigux' / 'tests' / 'phase6_base64_perf.zig',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_base64_vectors.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_checksum.zig',
@@ -43,6 +45,8 @@ script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='u
 tests_readme = (ROOT / 'zigux' / 'tests' / 'README.md').read_text(encoding='utf-8')
 doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 phase6_build = (ROOT / 'zigux' / 'tests' / 'phase6_build.zig').read_text(encoding='utf-8')
+phase6_base64 = (ROOT / 'zigux' / 'tests' / 'phase6_base64.zig').read_text(encoding='utf-8')
+phase6_base64_perf = (ROOT / 'zigux' / 'tests' / 'phase6_base64_perf.zig').read_text(encoding='utf-8')
 phase6_bsearch = (ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig').read_text(encoding='utf-8')
 phase6_bsearch_perf = (ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig').read_text(encoding='utf-8')
 phase6_hexdump = (ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig').read_text(encoding='utf-8')
@@ -60,6 +64,8 @@ required_make_markers = [
     'scripts/zigux/validate-phase6.py',
     'phase6-test:',
     'zigux/tests/phase6_build.zig',
+    'phase6-base64-perf:',
+    'base64-perf --build-file zigux/tests/phase6_build.zig',
     'phase6-bsearch-perf:',
     'bsearch-perf --build-file zigux/tests/phase6_build.zig',
     'phase6-checksum-perf:',
@@ -86,6 +92,8 @@ required_script_readme_markers = [
 required_tests_readme_markers = [
     'zigux/tests/phase6_build.zig',
     'zigux/tests/phase6_base64.zig',
+    'zigux/tests/phase6_base64_perf.zig',
+    'zigux/tests/fixtures/phase6_base64_vectors.zig',
     'zigux/tests/phase6_bsearch.zig',
     'zigux/tests/phase6_bsearch_perf.zig',
     'zigux/tests/phase6_checksum.zig',
@@ -116,6 +124,7 @@ required_phase6_build_markers = [
     '../../lib/checksum.zig',
     '../../lib/hexdump.zig',
     'phase6_base64.zig',
+    'phase6_base64_perf.zig',
     'phase6_bsearch.zig',
     'phase6_bsearch_perf.zig',
     'phase6_checksum.zig',
@@ -123,9 +132,26 @@ required_phase6_build_markers = [
     'phase6_hexdump.zig',
     'phase6_hexdump_perf.zig',
     'Run Phase 6 leaf helper tests',
+    'Run the Phase 6 base64 performance sanity harness',
     'Run the Phase 6 bsearch performance sanity harness',
     'Run the Phase 6 checksum performance sanity harness',
     'Run the Phase 6 hexdump performance sanity harness',
+]
+
+required_base64_markers = [
+    'fixtures/phase6_base64_vectors.zig',
+    'phase 6 base64 standard encode parity matches kernel vectors',
+    'phase 6 base64 exact-fit buffers work across fixture vectors',
+    'phase 6 base64 decode rejects invalid kernel-style vectors',
+]
+
+required_base64_perf_markers = [
+    'phase6-base64-perf',
+    '.{ .label = "64B", .size = 64, .reps = 20_000 }',
+    '.{ .label = "1KB", .size = 1024, .reps = 4_000 }',
+    'encode_ns_per_op',
+    'decode_ns_per_op',
+    'try std.testing.expectEqualSlices(u8, input[0..case.size], decoded[0..decoded_len]);',
 ]
 
 required_bsearch_markers = [
@@ -171,7 +197,9 @@ required_slice_markers = {
     'phase6-base64-slice.md': [
         'PHASE6_STATUS=active',
         'lib/base64.zig',
+        'zigux/tests/fixtures/phase6_base64_vectors.zig',
         'zigux/tests/phase6_build.zig',
+        'make -C zigux phase6-base64-perf',
     ],
     'phase6-bsearch-slice.md': [
         'PHASE6_STATUS=active',
@@ -221,6 +249,12 @@ for marker in required_doc_readme_markers:
 for marker in required_phase6_build_markers:
     if marker not in phase6_build:
         missing_markers.append(f'phase6_build:{marker}')
+for marker in required_base64_markers:
+    if marker not in phase6_base64:
+        missing_markers.append(f'phase6_base64:{marker}')
+for marker in required_base64_perf_markers:
+    if marker not in phase6_base64_perf:
+        missing_markers.append(f'phase6_base64_perf:{marker}')
 for marker in required_bsearch_markers:
     if marker not in phase6_bsearch:
         missing_markers.append(f'phase6_bsearch:{marker}')
@@ -256,5 +290,5 @@ print('PHASE6_VALIDATION=pass')
 print(f'PHASE6_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE6_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase6_build_markers) + len(required_base64_markers) + len(required_base64_perf_markers) + len(required_bsearch_markers) + len(required_bsearch_perf_markers) + len(required_checksum_perf_markers) + len(required_hexdump_perf_markers) + len(required_hexdump_markers) + sum(len(markers) for markers in required_slice_markers.values())}"
 )
