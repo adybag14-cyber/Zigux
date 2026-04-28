@@ -26,6 +26,7 @@ pub const ModuleDescriptor = struct {
     provides_queue_family_planner: bool,
     provides_probe_config_snapshot: bool,
     provides_host_limit_summary: bool,
+    provides_queue_depth_summary: bool,
     touches_live_dma: bool,
     touches_scsi_host: bool,
     touches_transport_reset: bool,
@@ -146,6 +147,21 @@ pub const HostLimitSummary = struct {
     nr_hw_queues: u16,
 };
 
+pub const QueueDepthRequest = struct {
+    host_limit: HostLimitRequest,
+    requested_depth: u32,
+};
+
+pub const QueueDepthSummary = struct {
+    anchor: []const u8,
+    requested_depth: u32,
+    effective_can_queue: u32,
+    effective_cmd_per_lun: u32,
+    clamped_queue_depth: u32,
+    tracks_queue_depth: bool,
+    uses_change_queue_depth: bool,
+};
+
 pub const IoQueueMapSummary = struct {
     anchor: []const u8,
     nr_maps: u16,
@@ -177,6 +193,7 @@ pub const VirtioScsiQueueLab = struct {
             .provides_queue_family_planner = true,
             .provides_probe_config_snapshot = true,
             .provides_host_limit_summary = true,
+            .provides_queue_depth_summary = true,
             .touches_live_dma = false,
             .touches_scsi_host = false,
             .touches_transport_reset = true,
@@ -293,6 +310,20 @@ pub const VirtioScsiQueueLab = struct {
         };
         self.last_host_limit_summary = summary;
         return summary;
+    }
+
+    pub fn captureQueueDepthSummary(self: *Self, request: QueueDepthRequest) !QueueDepthSummary {
+        const host_limit = try self.captureHostLimitSummary(request.host_limit);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_depth = request.requested_depth,
+            .effective_can_queue = host_limit.effective_can_queue,
+            .effective_cmd_per_lun = host_limit.effective_cmd_per_lun,
+            .clamped_queue_depth = @min(request.requested_depth, host_limit.effective_cmd_per_lun),
+            .tracks_queue_depth = true,
+            .uses_change_queue_depth = true,
+        };
     }
 
     pub fn captureIoQueueMapSummary(
