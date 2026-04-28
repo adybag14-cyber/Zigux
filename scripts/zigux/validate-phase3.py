@@ -365,7 +365,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "helpers" / "panic_policy.zig").writeText(
+        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
@@ -577,7 +577,7 @@ def run_self_test() -> int:
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+        (fixture_dir / "phase3_alpha_manifest.json").writeText(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "alpha-slice", "files": [manifest_rel], "file_count": 1}),
             encoding="utf-8",
             newline="\n",
