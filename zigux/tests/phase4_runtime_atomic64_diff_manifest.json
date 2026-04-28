@@ -1,7 +1,7 @@
 {
   "lane_key": "P4-L01",
   "phase": "Phase 4",
-  "surveyed_commit": "c5e4b230582aa802127d96e4bf11ba03aa82381f",
+  "surveyed_commit": "17a6bf2191c78d16ea1dd978bfaec907775595ad",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/atomic64_diff.zig"
@@ -21,14 +21,14 @@
       "status": "starter_landed",
       "kind": "bounded_gate",
       "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
-      "why_now": "The live Phase 4 gate already replays bounded exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family lifecycle expectations from lib/atomic64_test.c, so the survey should treat that shipped runtime_* path as the current product truth instead of inventing a second parallel gate."
+      "why_now": "The live Phase 4 gate already replays bounded exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, selftest-family lifecycle, and post-selftest replay expectations from lib/atomic64_test.c, so the survey should treat that shipped runtime_* path as the current product truth instead of inventing a second parallel gate."
     },
     {
       "id": "phase4-runtime-atomic64-sample-starter",
       "status": "starter_landed",
       "kind": "runtime_starter",
       "zigux_destination": "samples/zigux/runtime_atomic64.zig",
-      "why_now": "The shipped diff gate already depends on the bounded runtime_atomic64 sample starter for lifecycle and selftest-hook replay, so the survey needs to record that live Phase 4 evidence is currently riding through the Phase 9-style runtime starter rather than a standalone atomic64_diff module."
+      "why_now": "The shipped diff gate already depends on the bounded runtime_atomic64 sample starter for lifecycle, selftest-hook replay, and post-selftest replay, so the survey needs to record that live Phase 4 evidence is currently riding through the Phase 9-style runtime starter rather than a standalone atomic64_diff module."
     },
     {
       "id": "phase4-shared-build-entrypoint",
@@ -56,7 +56,7 @@
       "status": "blocked_on_broader_atomic64_surface",
       "kind": "coverage_gap",
       "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
-      "why_now": "The live gate is still a bounded rollback-readiness slice. It covers exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family lifecycle checks, but it does not claim the full wider atomic64_test.c surface or any approved perf threshold yet."
+      "why_now": "The live gate is still a bounded rollback-readiness slice. It covers exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, selftest-family lifecycle, and post-selftest replay checks, but it does not claim the full wider atomic64_test.c surface or any approved perf threshold yet."
     }
   ]
 }
