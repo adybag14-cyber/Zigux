@@ -63,6 +63,7 @@ pub const RuntimeKretprobeSample = struct {
 
     pub const default_symbol_name = "kernel_clone";
     pub const default_maxactive: usize = 20;
+    pub const max_symbol_name_len: usize = 512;
 
     stage_state: ModuleStage = .cold,
     symbol_name: []const u8 = default_symbol_name,
@@ -123,6 +124,7 @@ pub const RuntimeKretprobeSample = struct {
     pub fn retargetSymbol(self: *Self, symbol_name: []const u8) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         if (symbol_name.len == 0) return error.InvalidSymbolName;
+        if (symbol_name.len >= max_symbol_name_len) return error.SymbolNameTooLong;
 
         self.symbol_name = symbol_name;
     }
@@ -130,6 +132,7 @@ pub const RuntimeKretprobeSample = struct {
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
         if (self.symbol_name.len == 0) return error.InvalidSymbolName;
+        if (self.symbol_name.len >= max_symbol_name_len) return error.SymbolNameTooLong;
         if (self.maxactive == 0 or self.maxactive > default_maxactive) return error.InvalidMaxactive;
 
         self.active_instances = 0;
