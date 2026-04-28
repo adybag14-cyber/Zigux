@@ -326,6 +326,22 @@ test "bin2hexUpper emits uppercase hex text" {
     try std.testing.expectEqualSlices(u8, "BE32DB7B", text);
 }
 
+test "hexBytePack helpers emit expected text and reject short buffers" {
+    var lower: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    const lower_rest = try hexBytePack(lower[0..], 0xbe);
+    try std.testing.expectEqual(@as(usize, 2), lower_rest.len);
+    try std.testing.expectEqualSlices(u8, "be", lower[0..2]);
+
+    var upper: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    const upper_rest = try hexBytePackUpper(upper[0..], 0xbe);
+    try std.testing.expectEqual(@as(usize, 2), upper_rest.len);
+    try std.testing.expectEqualSlices(u8, "BE", upper[0..2]);
+
+    var short: [1]u8 = undefined;
+    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePack(short[0..], 0xbe));
+    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(short[0..], 0xbe));
+}
+
 test "hex2bin rejects invalid length and bad digits" {
     var decoded: [2]u8 = undefined;
     try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "abc"));
