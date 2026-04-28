@@ -4,6 +4,7 @@ Zigux uses committed artifacts only when they anchor a bounded parity claim.
 
 Current Phase 1 use
 - `zigux/tests/fixtures/phase1_helpers.json` is generated from the in-tree C helper implementations.
+- `scripts/zigux/validate-phase1.py` now also checks that `phase1_helpers.json` keeps the exact committed top-level helper sections and evidence-key shape, so stale expected-output drift fails before the parity replay runs.
 - `scripts/zigux/check-phase1-parity.py` rebuilds that artifact, compares it against the committed JSON, and reruns the bounded C harness to prove repeat-run JSON determinism before the Phase 1 parity lane passes.
 - `scripts/zigux/artifact_diff.py` is the shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`.
 
