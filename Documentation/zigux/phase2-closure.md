@@ -50,14 +50,15 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_FIXDEP_CASE_COUNT=7`
 - `PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`
 
-3. bounded genksyms CRC artifact parity
+3. bounded genksyms CRC artifact parity and determinism
 - `python3 scripts/zigux/check-genksyms-crc-diff.py`
 
 4. bounded genksyms wrapper-first bridge parity
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
-5. bounded mk_elfconfig artifact parity
+5. bounded mk_elfconfig artifact parity and determinism
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py`
+- repeat-run determinism is required for both the bounded C tool and the Zig tool before closure evidence stays green
 
 6. bounded kconfig bridge parity
 - `python3 scripts/zigux/check-kconfig-bridge.py`
@@ -80,7 +81,10 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py`
 - `PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors`
+- `PHASE2_GENKSYMS_CRC_DETERMINISM=check-genksyms-crc-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
+- `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py`
+- `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
