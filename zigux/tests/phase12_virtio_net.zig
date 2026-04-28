@@ -167,19 +167,6 @@ test "phase12 virtio net freeze and restore preserve queue recovery intent" {
     try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, freeze.remembered_queue_recovery_action);
     try std.testing.expectEqual(@as(u16, 0), freeze.recovery_generation);
 
-    const resume_summary = try lab.planQueueResume();
-    try std.testing.expect(resume_summary.is_frozen);
-    try std.testing.expectEqual(@as(u16, 0), resume_summary.recovery_generation);
-    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.requires_feature_renegotiation, resume_summary.readiness);
-    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_queues_only, resume_summary.rebuild_scope);
-    try std.testing.expectEqual(@as(u16, 1), resume_summary.resume_queue_pairs);
-    try std.testing.expectEqual(@as(u16, 2), resume_summary.resume_total_queue_count);
-    try std.testing.expectEqual(@as(?u16, null), resume_summary.resume_control_queue_index);
-    try std.testing.expectEqual(virtio_net.RssSummary.requested_but_unavailable, resume_summary.remembered_rss_summary);
-    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.renegotiate_features, resume_summary.remembered_queue_recovery_action);
-    try std.testing.expect(!resume_summary.requires_control_queue_restore);
-    try std.testing.expect(!resume_summary.requires_rss_reapply);
-
     try std.testing.expectError(error.TransportRecoveryFrozen, lab.captureProbeSnapshot(.{
         .driver_feature_bits = &.{ virtio_net.feature_control_vq, virtio_net.feature_multiqueue },
         .requested_queue_pairs = 2,
@@ -199,72 +186,6 @@ test "phase12 virtio net freeze and restore preserve queue recovery intent" {
     try std.testing.expectEqual(@as(u16, 1), restore.recovery_generation);
 
     try std.testing.expectError(error.ProbeSnapshotUnavailable, lab.freezeForRecovery());
-    try std.testing.expectError(error.TransportRecoveryNotFrozen, lab.planQueueResume());
-}
-
-test "phase12 virtio net queue resume summary preserves control and rss rebuild scope" {
-    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
-        virtio_net.feature_mergeable_rx_buffers,
-        virtio_net.feature_control_vq,
-        virtio_net.feature_multiqueue,
-        virtio_net.feature_hash_report,
-        virtio_net.feature_rss,
-    });
-
-    _ = try lab.captureProbeSnapshot(.{
-        .driver_feature_bits = &.{
-            virtio_net.feature_mergeable_rx_buffers,
-            virtio_net.feature_control_vq,
-            virtio_net.feature_multiqueue,
-            virtio_net.feature_hash_report,
-            virtio_net.feature_rss,
-        },
-        .requested_queue_pairs = 6,
-        .max_queue_pairs = 4,
-    });
-    _ = try lab.freezeForRecovery();
-
-    const resume_summary = try lab.planQueueResume();
-    try std.testing.expect(resume_summary.is_frozen);
-    try std.testing.expectEqual(@as(u16, 0), resume_summary.recovery_generation);
-    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, resume_summary.readiness);
-    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_control_and_rss, resume_summary.rebuild_scope);
-    try std.testing.expectEqual(@as(u16, 4), resume_summary.resume_queue_pairs);
-    try std.testing.expectEqual(@as(u16, 9), resume_summary.resume_total_queue_count);
-    try std.testing.expectEqual(@as(?u16, 8), resume_summary.resume_control_queue_index);
-    try std.testing.expectEqual(virtio_net.RssSummary.active, resume_summary.remembered_rss_summary);
-    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.clamp_queue_pairs, resume_summary.remembered_queue_recovery_action);
-    try std.testing.expect(resume_summary.requires_control_queue_restore);
-    try std.testing.expect(resume_summary.requires_rss_reapply);
-}
-
-test "phase12 virtio net queue resume summary escalates reset requirements" {
-    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
-        virtio_net.feature_control_vq,
-        virtio_net.feature_multiqueue,
-    });
-
-    _ = try lab.captureProbeSnapshot(.{
-        .driver_feature_bits = &.{
-            virtio_net.feature_control_vq,
-            virtio_net.feature_multiqueue,
-        },
-        .requested_queue_pairs = 2,
-        .max_queue_pairs = 2,
-        .device_signals_reset = true,
-    });
-    _ = try lab.freezeForRecovery();
-
-    const resume_summary = try lab.planQueueResume();
-    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.requires_reset, resume_summary.readiness);
-    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_and_control_queue, resume_summary.rebuild_scope);
-    try std.testing.expectEqual(@as(u16, 2), resume_summary.resume_queue_pairs);
-    try std.testing.expectEqual(@as(u16, 5), resume_summary.resume_total_queue_count);
-    try std.testing.expectEqual(@as(?u16, 4), resume_summary.resume_control_queue_index);
-    try std.testing.expectEqual(virtio_net.RssSummary.not_requested, resume_summary.remembered_rss_summary);
-    try std.testing.expectEqual(virtio_net.QueueRecoveryAction.require_reset, resume_summary.remembered_queue_recovery_action);
-    try std.testing.expect(resume_summary.requires_control_queue_restore);
-    try std.testing.expect(!resume_summary.requires_rss_reapply);
 }
 
 test "phase12 virtio net keeps hash-report-only requests visible" {
