@@ -252,6 +252,32 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
 
+test "trace-events sample replays every modulo-selected string and formatted message" {
+    const expected_strings = [_][]const u8{
+        "Mother Goose",
+        "Snoopy",
+        "Gandalf",
+        "Frodo",
+        "One ring to rule them all",
+    };
+
+    for (expected_strings, 0..) |expected_string, count| {
+        var sample = TraceEventsReferenceSample{};
+        var message_buffer: [16]u8 = undefined;
+        try sample.init();
+        try sample.replayMainIteration(@intCast(count));
+
+        try std.testing.expectEqualStrings(expected_string, sample.selected_string);
+        try std.testing.expectEqualStrings(
+            try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
+            sample.formattedMessage(),
+        );
+        try std.testing.expect(sample.saw_vararg_payload);
+        try std.testing.expect(sample.saw_rel_loc_payload);
+        try std.testing.expect(sample.saw_conditional_path);
+    }
+}
+
 test "trace-events sample rejects every mutable entry point after exit" {
     var sample = TraceEventsReferenceSample{};
 
