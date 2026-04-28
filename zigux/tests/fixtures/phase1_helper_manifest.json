@@ -77,6 +77,7 @@
         "string.strtobool_on",
         "string.strtobool_zero",
         "string.strtobool_off",
+        "string.strtobool_invalid",
         "string.strlcpy_len",
         "string.strlcpy_buffer",
         "string.skip_spaces",
@@ -87,7 +88,7 @@
         "string.memchr_inv_index",
         "string.memchr_inv_none"
       ],
-      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing, bounded strlcpy truncation, in-place whitespace and replacement helpers, and first-mismatch memchrInv detection.",
+      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, bounded strlcpy truncation, in-place whitespace and replacement helpers, and first-mismatch memchrInv detection.",
       "unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"",
       "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
       "alias_unit_test_anchor": "tools/lib/string.zig:test \"skip trim remove and replace spaces work in place\"",
