@@ -63,6 +63,16 @@ pub const ConfigChangeSummary = struct {
     delivery_count: usize,
 };
 
+pub const ConfigGenerationSummary = struct {
+    anchor: []const u8,
+    generation: u32,
+    last_observed_generation: u32,
+    pending_generation: bool,
+    core_enabled: bool,
+    driver_disabled: bool,
+    change_pending: bool,
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
@@ -97,6 +107,8 @@ pub const VirtioCoreLabDevice = struct {
     config_driver_disabled: bool = false,
     config_change_pending: bool = false,
     config_change_delivery_count: usize = 0,
+    config_generation: u32 = 0,
+    last_observed_generation: u32 = 0,
     transport_accepts_features: bool = true,
     registered_queue_count: usize = 0,
     reset_count: usize = 0,
@@ -129,6 +141,8 @@ pub const VirtioCoreLabDevice = struct {
         self.config_driver_disabled = false;
         self.config_change_pending = false;
         self.config_change_delivery_count = 0;
+        self.config_generation = 0;
+        self.last_observed_generation = 0;
         self.registered_queue_count = 0;
         self.reset_count += 1;
     }
@@ -374,6 +388,7 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn noteConfigChanged(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_generation +%= 1;
         self.handleConfigChanged();
     }
 
@@ -384,6 +399,23 @@ pub const VirtioCoreLabDevice = struct {
             .driver_disabled = self.config_driver_disabled,
             .change_pending = self.config_change_pending,
             .delivery_count = self.config_change_delivery_count,
+        };
+    }
+
+    pub fn observeConfigGeneration(self: *Self) ConfigGenerationSummary {
+        self.last_observed_generation = self.config_generation;
+        return self.configGenerationSummary();
+    }
+
+    pub fn configGenerationSummary(self: *const Self) ConfigGenerationSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .generation = self.config_generation,
+            .last_observed_generation = self.last_observed_generation,
+            .pending_generation = self.last_observed_generation != self.config_generation,
+            .core_enabled = self.config_core_enabled,
+            .driver_disabled = self.config_driver_disabled,
+            .change_pending = self.config_change_pending,
         };
     }
 
