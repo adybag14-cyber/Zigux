@@ -117,6 +117,7 @@ Phase 10 notes
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
 - `Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig` remains intentionally absent.
+- `python3 scripts/zigux/validate-phase10.py` now keeps the narrower virtio_input packet aligned, so the Phase 10 docs, helper, tests, and survey manifest all keep the same registration-preflight helper and registration-lifecycle blocker posture.
 - `python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the three manifest-backed survey records, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.
 - `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, ring, input, and MMIO-survey evidence bundle together, so new Phase 10 work stays reviewable as one bounded lab tranche instead of widening into ad hoc transport claims.
 
