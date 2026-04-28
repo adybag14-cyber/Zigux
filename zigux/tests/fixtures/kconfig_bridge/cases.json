@@ -171,6 +171,11 @@
       "name": "numeric_kinds",
       "input": "numeric_kinds.config",
       "expected": "numeric_kinds_expected.json"
+    },
+    {
+      "name": "signed_numeric_kinds",
+      "input": "signed_numeric_kinds.config",
+      "expected": "signed_numeric_kinds_expected.json"
     }
   ]
 }
