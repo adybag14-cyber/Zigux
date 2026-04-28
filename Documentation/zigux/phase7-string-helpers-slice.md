@@ -43,6 +43,8 @@ The current starter slice covers:
 - `match_string()`
 - `__sysfs_match_string()`
 - `strreplace()`
+- `skip_spaces()`
+- `strim()`
 - `memcpy_and_pad()`
 - `string_is_terminated()`
 - `string_upper()`
@@ -63,6 +65,7 @@ The current tests check:
 - bounded null-sentinel string table matching
 - Linux-style `n = -1` string table scans that stop at the first NULL entry
 - in-place replacement behavior that stops at the first NUL
+- leading-whitespace skipping and in-place leading/trailing trimming that stop at the first NUL and preserve bytes beyond the terminator
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
