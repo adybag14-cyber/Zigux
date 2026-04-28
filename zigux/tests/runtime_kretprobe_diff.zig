@@ -52,3 +52,10 @@ test "runtime kretprobe diff gate keeps per-instance private entry timestamps ex
     try std.testing.expectEqual(@as(usize, 0), module.active_instances);
     try std.testing.expect(!module.summary().entry_timestamp_armed);
 }
+
+test "runtime kretprobe diff gate keeps the fixed Linux symbol-name buffer explicit" {
+    const too_long_symbol = [_]u8{'z'} ** sample.RuntimeKretprobeSample.max_symbol_name_len;
+    var module = sample.RuntimeKretprobeSample{};
+
+    try std.testing.expectError(error.SymbolNameTooLong, module.retargetSymbol(too_long_symbol[0..]));
+}
