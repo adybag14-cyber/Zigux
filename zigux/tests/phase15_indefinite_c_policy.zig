@@ -61,14 +61,14 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.indefinite_c_requirements.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff.replay_commands.len);
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase15_build.zig", manifest.handoff.replay_commands[0]);
     try std.testing.expectEqualStrings("make -C zigux phase15", manifest.handoff.replay_commands[1]);
     try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
     try std.testing.expectEqualStrings("wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice", manifest.handoff.next_step);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.supporting_artifacts[3]);
@@ -81,6 +81,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     var saw_allowed_work = false;
     var saw_exception_path = false;
     var saw_reopen_gate = false;
+    var saw_reopen_evidence_matrix = false;
     var saw_reopen_trigger_catalog = false;
     var saw_current_gap_requirement = false;
     var saw_maintenance_handoff = false;
@@ -132,6 +133,12 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", requirement.required_terms[2]);
             try std.testing.expectEqualStrings("ownership_or_validation_changed", requirement.required_terms[3]);
             try std.testing.expectEqualStrings("trigger-specific evidence refresh", requirement.required_terms[4]);
+        } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-evidence-matrix")) {
+            saw_reopen_evidence_matrix = true;
+            try std.testing.expectEqual(@as(usize, 3), requirement.required_terms.len);
+            try std.testing.expectEqualStrings("trigger-specific refreshed evidence by path", requirement.required_terms[0]);
+            try std.testing.expectEqualStrings("current blocker disposition", requirement.required_terms[1]);
+            try std.testing.expectEqualStrings("if multiple triggers are cited together, each trigger's minimum evidence must stay explicit", requirement.required_terms[2]);
         } else if (std.mem.eql(u8, requirement.id, "indefinite-c-reopen-trigger-catalog")) {
             saw_reopen_trigger_catalog = true;
             try std.testing.expectEqualStrings("narrower_followup_answers_blocker", requirement.required_terms[0]);
@@ -153,6 +160,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expect(saw_allowed_work);
     try std.testing.expect(saw_exception_path);
     try std.testing.expect(saw_reopen_gate);
+    try std.testing.expect(saw_reopen_evidence_matrix);
     try std.testing.expect(saw_reopen_trigger_catalog);
     try std.testing.expect(saw_current_gap_requirement);
 
@@ -185,7 +193,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
 
     try std.testing.expect(saw_maintenance_handoff);
     try std.testing.expect(saw_current_gap_survey);
-    try std.testing.expectEqual(@as(usize, 7), landed_count);
+    try std.testing.expectEqual(@as(usize, 8), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
 }
 
@@ -217,6 +225,14 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     );
     defer std.testing.allocator.free(review_process);
 
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     const scorecard = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-parity-scorecard.md",
@@ -230,6 +246,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Allowed work after an indefinite-C outcome") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Exception posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen conditions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen Evidence Matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Current Policy Gap") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Maintenance-Mode Handoff") != null);
@@ -240,6 +257,9 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "named reopen-trigger catalog item") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "new bounded seam inventory") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "trigger-specific evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "trigger-specific refreshed evidence by path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "current blocker disposition") != null);
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "If multiple triggers are cited together") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "updated validation plan and rollback owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "refreshed linked evidence in the evidence archive") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "refreshed lane-owner, rollback-owner, or validation-gate evidence") != null);
@@ -261,6 +281,9 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "product source of truth") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "retained discussion state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "trigger-specific refreshed evidence by path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard, "retired_from_active_discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard, "narrower_followup_answers_blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "fresh linked evidence") != null);
 }

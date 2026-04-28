@@ -114,6 +114,16 @@ Each trigger keeps its own minimum evidence:
 
 If none of those trigger-specific reopen conditions is met, the anchor remains in C and the review closes with the existing blocker still recorded.
 
+## Reopen Evidence Matrix
+
+Every reopen request must do more than repeat a catalog trigger name. The packet must point reviewers at the trigger-specific refreshed evidence by path and restate the current blocker disposition that the new evidence is trying to change.
+
+- `narrower_followup_answers_blocker`: cite the new narrower seam inventory, the updated validation plan, the rollback owner for that narrower seam, and the still-blocked boundary that remains in C unless the reopen request is approved
+- `evidence_packet_stale_or_contradictory`: cite the exact linked evidence that went stale or contradictory, the refreshed blocker disposition, and the replacement validation or benchmark record that now reflects current repo truth
+- `ownership_or_validation_changed`: cite the old and new owner or validation records, refresh the lane owner and rollback owner when ownership changed, and name the validation-gate or replay-command change that invalidated the closed packet
+
+If multiple triggers are cited together, each trigger's minimum evidence must stay explicit in the same reopen packet instead of collapsing into one vague exception claim.
+
 ## Reopen Trigger Catalog
 
 The bounded reopen-trigger catalog for a retained stay-in-C packet is:
@@ -143,6 +153,7 @@ The current lane state is:
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
 - landed `phase15-indefinite-c-current-gap-survey`
+- landed `phase15-indefinite-c-reopen-evidence-matrix`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane narrow. Zigux gains a dedicated, reviewable Phase 15 policy for code that remains in C indefinitely, but it still does not claim Architecture Council approval for any status change or any new deep-core Zig ownership.

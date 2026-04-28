@@ -80,6 +80,15 @@
       ]
     },
     {
+      "id": "indefinite-c-reopen-evidence-matrix",
+      "summary": "Each reopen trigger must point to the trigger-specific refreshed evidence by path and restate the blocker posture the new packet is trying to change.",
+      "required_terms": [
+        "trigger-specific refreshed evidence by path",
+        "current blocker disposition",
+        "if multiple triggers are cited together, each trigger's minimum evidence must stay explicit"
+      ]
+    },
+    {
       "id": "indefinite-c-reopen-trigger-catalog",
       "summary": "A retained stay-in-C packet must reuse the shared reopen-trigger catalog so later reviews do not drift in vocabulary.",
       "required_terms": [
@@ -158,6 +167,13 @@
       "kind": "survey",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
       "why_now": "The dedicated indefinite-C policy packet now needs one explicit current-gap survey that keeps the local closure visible in the docs root and the shared replay path, so the remaining work stays scoped to the deep-core blocker posture rather than another missing policy artifact."
+    },
+    {
+      "id": "phase15-indefinite-c-reopen-evidence-matrix",
+      "status": "starter_landed",
+      "kind": "policy",
+      "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
+      "why_now": "The stay-in-C exception path now needs one explicit trigger-to-evidence rule so reopen requests cite the right refreshed packet evidence by path instead of relying on vague trigger names alone."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
