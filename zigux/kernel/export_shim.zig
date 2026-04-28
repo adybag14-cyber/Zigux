@@ -1,8 +1,13 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const uapi_version = @import("uapi_version");
 
-fn header(flags: u16) abi.BoundaryHeader {
-    return abi.defaultHeader(flags);
+pub fn header(flags: u16) abi.BoundaryHeader {
+    return uapi_version.boundaryHeader(flags);
+}
+
+pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {
+    return uapi_version.isCompatible(boundary_header);
 }
 
 pub fn ok(facility: abi.Facility) abi.ExportStatus {
@@ -42,4 +47,6 @@ test "phase3 export shim keeps failure encoding explicit" {
     try std.testing.expectEqual(@as(u32, @sizeOf(abi.BoundaryHeader)), hdr.size);
     try std.testing.expectEqual(abi.ABI_VERSION, hdr.abi_version);
     try std.testing.expectEqual(@as(u16, 0x10), hdr.flags);
+    try std.testing.expect(isCompatibleHeader(hdr));
+    try std.testing.expectEqual(hdr, uapi_version.boundaryHeader(0x10));
 }
