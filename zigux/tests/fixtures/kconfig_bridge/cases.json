@@ -41,6 +41,14 @@
       "expected": "listnewconfig_expected.json"
     },
     {
+      "name": "helpnewconfig",
+      "mode": "helpnewconfig",
+      "kconfig": "Kconfig",
+      "config": "help/.config",
+      "arch": "powerpc64le",
+      "expected": "helpnewconfig_expected.json"
+    },
+    {
       "name": "allnoconfig",
       "mode": "allnoconfig",
       "kconfig": "Kconfig",
