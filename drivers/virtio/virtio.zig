@@ -55,12 +55,21 @@ pub const DeviceIdentitySummary = struct {
     modalias: []const u8,
 };
 
+pub const ConfigChangeDisposition = enum {
+    none,
+    deferred_until_enabled,
+    delivered_to_handler,
+    ignored_without_handler,
+};
+
 pub const ConfigChangeSummary = struct {
     anchor: []const u8,
     core_enabled: bool,
     driver_disabled: bool,
     change_pending: bool,
+    handler_present: bool,
     delivery_count: usize,
+    last_disposition: ConfigChangeDisposition,
 };
 
 pub const ConfigGenerationSummary = struct {
@@ -115,6 +124,7 @@ pub const VirtioCoreLabDevice = struct {
     config_driver_disabled: bool = false,
     config_change_pending: bool = false,
     config_change_delivery_count: usize = 0,
+    last_config_change_disposition: ConfigChangeDisposition = .none,
     config_generation: u32 = 0,
     last_observed_generation: u32 = 0,
     config_changed_handler_present: bool = false,
@@ -150,6 +160,7 @@ pub const VirtioCoreLabDevice = struct {
         self.config_driver_disabled = false;
         self.config_change_pending = false;
         self.config_change_delivery_count = 0;
+        self.last_config_change_disposition = .none;
         self.config_generation = 0;
         self.last_observed_generation = 0;
         self.config_changed_handler_present = false;
@@ -413,7 +424,9 @@ pub const VirtioCoreLabDevice = struct {
             .core_enabled = self.config_core_enabled,
             .driver_disabled = self.config_driver_disabled,
             .change_pending = self.config_change_pending,
+            .handler_present = self.config_changed_handler_present,
             .delivery_count = self.config_change_delivery_count,
+            .last_disposition = self.last_config_change_disposition,
         };
     }
 
@@ -451,13 +464,19 @@ pub const VirtioCoreLabDevice = struct {
     fn handleConfigChanged(self: *Self) void {
         if (!self.config_core_enabled or self.config_driver_disabled) {
             self.config_change_pending = true;
+            self.last_config_change_disposition = .deferred_until_enabled;
             return;
         }
 
         if (self.config_changed_handler_present) {
             self.config_change_pending = false;
             self.config_change_delivery_count += 1;
+            self.last_config_change_disposition = .delivered_to_handler;
+            return;
         }
+
+        self.config_change_pending = false;
+        self.last_config_change_disposition = .ignored_without_handler;
     }
 
     fn flushPendingConfigChange(self: *Self) void {
