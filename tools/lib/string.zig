@@ -50,6 +50,10 @@ pub fn skipSpaces(str: []const u8) []const u8 {
     return str[idx..];
 }
 
+pub fn skip_spaces(str: []const u8) []const u8 {
+    return skipSpaces(str);
+}
+
 pub fn trimSpaces(buf: []u8) []u8 {
     if (buf.len == 0) {
         return buf[0..0];
@@ -94,6 +98,10 @@ pub fn removeSpaces(buf: []u8) []u8 {
     }
 
     return buf[0..write_idx];
+}
+
+pub fn remove_spaces(buf: []u8) void {
+    _ = removeSpaces(buf);
 }
 
 pub fn replaceChar(buf: []u8, old: u8, new: u8) usize {
@@ -162,6 +170,10 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     return null;
 }
 
+pub fn memchr_inv(buf: []const u8, value: u8) ?usize {
+    return memchrInv(buf, value);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -179,6 +191,7 @@ test "strlcpy copies and returns the source length" {
 
 test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualStrings("hello", skipSpaces("   hello"));
+    try std.testing.expectEqualStrings("hello", skip_spaces("   hello"));
 
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
@@ -192,6 +205,10 @@ test "skip trim remove and replace spaces work in place" {
     var remove_cstr_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'z' };
     try std.testing.expectEqualStrings("ab", removeSpaces(&remove_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 0, ' ', 'z' }, &remove_cstr_buf);
+
+    var remove_spaces_buf = [_]u8{ 'a', ' ', 'b', 0, ' ', 'z' };
+    remove_spaces(&remove_spaces_buf);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', 'b', 0, 0, ' ', 'z' }, &remove_spaces_buf);
 
     var replace_buf = [_]u8{ 'a', '-', 'b' };
     try std.testing.expectEqual(@as(usize, 3), replaceChar(&replace_buf, '-', '_'));
@@ -213,6 +230,7 @@ test "memdup and memchrInv preserve byte content" {
 
     try std.testing.expectEqualStrings("zigux", duplicated);
     try std.testing.expectEqual(@as(?usize, 4), memchrInv("aaaaXaaa", 'a'));
+    try std.testing.expectEqual(@as(?usize, 4), memchr_inv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
 }
 
