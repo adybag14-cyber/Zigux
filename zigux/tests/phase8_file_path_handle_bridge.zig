@@ -39,3 +39,33 @@ test "phase 8 file-path-handle bridge keeps missing fdinfo fields explicit" {
             "map_flags:\t0x20\n",
     ));
 }
+
+test "phase 8 file-path-handle bridge keeps fdinfo-only reuse checks bounded and devmap-aware" {
+    try std.testing.expect(file_path_handle_bridge.isReuseCompatibleWithinFdinfo(.{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 32,
+        .map_flags = file_path_handle_bridge.bpf_f_rdonly_prog | 0x2,
+    }, .{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 32,
+        .map_flags = 0x2,
+    }));
+
+    try std.testing.expect(!file_path_handle_bridge.isReuseCompatibleWithinFdinfo(.{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 32,
+        .map_flags = file_path_handle_bridge.bpf_f_rdonly_prog | 0x2,
+    }, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 32,
+        .map_flags = 0x2,
+    }));
+}
