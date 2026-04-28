@@ -2,9 +2,11 @@
 
 This lane stays inside Phase 13 shared-helper reviewability and does not claim a new generic notifier helper.
 
+The Phase 13 roadmap names `fs/libfs.c`, `lib/devres.c`, and the Landlock slices as the tranche's concrete anchors. This notifier/list packet is roadmap-adjacent reviewability evidence only: it explains how preexisting shared list surfaces relate to the still-missing generic notifier surface without promoting notifier/list interop to a new named anchor.
+
 Current repo state on `master`:
 
-- reviewed against live `master` `3d734fefe5c64e29bed0dc38d69f64cae45be7ba`
+- reviewed against live `master` `05a762ea272fa488b877178987418c54c030b239`
 - `zigux/bindings/abi.zig` already exposes `ListHeadRef` and `HListHeadRef`, so list-shaped interop has a reusable ABI foothold
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already summarize bounded `list_head` and `hlist_head` traversal without touching live mutation
 - `zigux/tests/build.zig` already replays those list helpers under the Phase 3 helper bundle
@@ -15,7 +17,7 @@ Current repo state on `master`:
 
 Why this matters for Phase 13:
 
-- the roadmap treats Phase 13 as the shared helper tranche, so list and notifier surfaces belong here only if they stay bounded and helper-first
+- the roadmap treats Phase 13 as the shared helper tranche, but its named anchors are still `libfs`, `devres`, and Landlock, so notifier/list evidence belongs here only as a bounded helper-first interop note
 - the current list side is reusable enough to survey today, and there is now concrete driver-local evidence that notifier callbacks can coexist with `list_head` linkage without yet implying a shared helper contract
 - the generic header anchor narrows the remaining gap: upstream C already exposes a reusable `notifier_block` contract, but Zigux still lacks the tiny read-only ABI and helper surfaces that would make that contract reviewable on the Zig side
 - that mismatch means later helper work such as list-backed cursor or chain bookkeeping can accidentally overstate notifier readiness unless the gap is recorded explicitly
