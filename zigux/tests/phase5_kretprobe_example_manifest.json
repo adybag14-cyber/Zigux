@@ -1,12 +1,13 @@
 {
   "lane_key": "P5-L14",
   "phase": "Phase 5",
-  "surveyed_commit": "08cdfd65024fced143db1ba414423846810e02c8",
+  "surveyed_commit": "e1648c230e624814891a1ce76a29c05fe32686a0",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "sample_path": "samples/zigux/kretprobe_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the manifest keeps surveyed_commit pinned to the exact inspected master head instead of a floating branch label so reviewability stays tied to one bounded repo state",
     "the manifest and survey test still describe the exact skip, pre-init retargeting, timestamp-order boundary, return-value, duration, and missed-summary contract run through phase5_build.zig",
     "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still keep the landed Phase 5 kretprobe slice tied to the shared phase5_build.zig entrypoint and distinct from the separate Phase 9 runtime starter",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
