@@ -105,6 +105,8 @@ required_doc_markers = [
     'Documentation/zigux/phase4-validation-matrix.md',
     'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
     'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
+    '`EXPECTED_JSON_ERROR=`',
+    '`ACTUAL_JSON_ERROR=`',
 ]
 required_doc_marker_groups = [
     (
@@ -188,6 +190,8 @@ required_artifact_diff_markers = [
     "print('ARTIFACT_DIFF_SELF_TEST=pass')",
     "details['expected_sha256'] = expected_value",
     "details['expected_exists'] = expected.exists()",
+    "print(f\"EXPECTED_JSON_ERROR={details['expected_json_error']}\")",
+    "print(f\"ACTUAL_JSON_ERROR={details['actual_json_error']}\")",
 ]
 required_phase4_build_markers = [
     'runtime_atomic64_diff.zig',
