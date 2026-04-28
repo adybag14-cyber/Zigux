@@ -123,3 +123,32 @@ test "phase 5 bytestream fifo sample makes ownership and lifetime boundaries exp
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
+
+test "phase 5 bytestream fifo reset clears queue state without restarting lifecycle bookkeeping" {
+    var module = sample.BytestreamFifoSample{};
+
+    try module.init();
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expect(module.pushByte(7));
+    module.reset();
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.count());
+    try std.testing.expectEqual(@as(?u8, null), module.peekByte());
+
+    _ = try module.runAnchorReplay();
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
+    module.reset();
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 0), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.count());
+
+    try module.exit();
+    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    module.reset();
+    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.count());
+}
