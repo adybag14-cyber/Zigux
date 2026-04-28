@@ -21,8 +21,8 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
 - lane key: `P14-L06`
-- surveyed commit: `8a1e67b3a9ae6e02a3ae710ade159721573b5a27`
-- ready-next gap: `phase14-ring-buffer-read-page-allocation-contract-followup`
+- surveyed commit: `d78223d3f1a386521769795b1cff384d83cb6a3a`
+- ready-next gap: none currently recorded
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
 - retained-in-C boundary: reserve or commit publication, reader-page handoff, wakeup or watermark publication, mapped-reader limitations, `ring_buffer_read_page()` extraction behavior, and the read-page allocation or reuse contract still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
 
@@ -40,7 +40,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-- lane key: `P14-L13`
+- lane key: `P14-L14`
 - surveyed commit: `0855a2fc20664cd4a138379d7731edf8183d74e6`
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
 - retained-in-C boundary: grace-period sequence publication, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, and memory-ordering guarantees.
