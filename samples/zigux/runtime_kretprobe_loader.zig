@@ -189,6 +189,10 @@ test "runtime kretprobe loader emits the shared runtime-loader request shape" {
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.kretprobe, request.lane());
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
+    try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, request.allocator_handoff.init_flow);
+    try std.testing.expect(request.allocator_handoff.initializes_owned_state);
+    try std.testing.expect(!request.allocator_handoff.requires_reset_on_init);
     try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
     try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.selftest_runs);
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
@@ -208,6 +212,10 @@ test "runtime kretprobe loader can release the shared runtime-loader request wit
     try std.testing.expectEqual(runtime_loader.LoaderLane.kretprobe, released.lane());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
+    try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, released.allocator_handoff.init_flow);
+    try std.testing.expect(released.allocator_handoff.initializes_owned_state);
+    try std.testing.expect(!released.allocator_handoff.requires_reset_on_init);
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
     try std.testing.expectEqualStrings("register_kretprobe", released.payload.kretprobe.register_api);
     try std.testing.expectEqualStrings("unregister_kretprobe", released.payload.kretprobe.unregister_api);

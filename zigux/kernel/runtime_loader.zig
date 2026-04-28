@@ -21,6 +21,15 @@ pub const AllocatorHandoff = struct {
     permits_global_fallback: bool,
     initializes_owned_state: bool,
     requires_reset_on_init: bool,
+
+    pub fn keepsInitFlowConsistent(self: AllocatorHandoff) bool {
+        const expected = allocatorHandoffFor(self.mode);
+        return self.init_flow == expected.init_flow and
+            self.requires_explicit_caller == expected.requires_explicit_caller and
+            self.permits_global_fallback == expected.permits_global_fallback and
+            self.initializes_owned_state == expected.initializes_owned_state and
+            self.requires_reset_on_init == expected.requires_reset_on_init;
+    }
 };
 
 pub const BitmapPayload = struct {
@@ -78,6 +87,10 @@ pub const RuntimeLoadRequest = struct {
         released.handoff_stage = .released_without_substrate;
         return released;
     }
+
+    pub fn keepsAllocatorInitFlowConsistent(self: RuntimeLoadRequest) bool {
+        return self.allocator_handoff.keepsInitFlowConsistent();
+    }
 };
 
 pub fn allocatorHandoffFor(mode: abi.AllocatorMode) AllocatorHandoff {
@@ -100,6 +113,33 @@ test "runtime loader allocator handoff keeps policy fields machine-checkable" {
     try std.testing.expect(handoff.permits_global_fallback);
     try std.testing.expect(handoff.initializes_owned_state);
     try std.testing.expect(!handoff.requires_reset_on_init);
+    try std.testing.expect(handoff.keepsInitFlowConsistent());
+}
+
+test "runtime loader allocator handoff stays internally consistent across all allocator modes" {
+    const caller = allocatorHandoffFor(.caller_provided);
+    try std.testing.expectEqual(allocator_policy.InitFlow.caller_prepared, caller.init_flow);
+    try std.testing.expect(caller.requires_explicit_caller);
+    try std.testing.expect(!caller.permits_global_fallback);
+    try std.testing.expect(!caller.initializes_owned_state);
+    try std.testing.expect(!caller.requires_reset_on_init);
+    try std.testing.expect(caller.keepsInitFlowConsistent());
+
+    const heap = allocatorHandoffFor(.kernel_heap);
+    try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned, heap.init_flow);
+    try std.testing.expect(!heap.requires_explicit_caller);
+    try std.testing.expect(heap.permits_global_fallback);
+    try std.testing.expect(heap.initializes_owned_state);
+    try std.testing.expect(!heap.requires_reset_on_init);
+    try std.testing.expect(heap.keepsInitFlowConsistent());
+
+    const arena = allocatorHandoffFor(.arena);
+    try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned_with_reset, arena.init_flow);
+    try std.testing.expect(!arena.requires_explicit_caller);
+    try std.testing.expect(arena.permits_global_fallback);
+    try std.testing.expect(arena.initializes_owned_state);
+    try std.testing.expect(arena.requires_reset_on_init);
+    try std.testing.expect(arena.keepsInitFlowConsistent());
 }
 
 test "runtime loader request keeps bitmap handoff state explicit" {
@@ -124,12 +164,14 @@ test "runtime loader request keeps bitmap handoff state explicit" {
 
     try std.testing.expectEqual(LoaderLane.bitmap, request.lane());
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expectEqual(@as(u32, 4), request.payload.bitmap.weight);
 
     const released = request.releasedWithoutSubstrate();
     try std.testing.expectEqual(LoaderLane.bitmap, released.lane());
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expectEqual(@as(u32, 4), released.payload.bitmap.weight);
 }
 
@@ -165,10 +207,12 @@ test "runtime loader request keeps kretprobe handoff state explicit" {
     try std.testing.expectEqualStrings("register_kretprobe", request.payload.kretprobe.register_api);
     try std.testing.expectEqual(@as(usize, 1), request.payload.kretprobe.nmissed);
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
+    try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
 
     const released = request.releasedWithoutSubstrate();
     try std.testing.expectEqual(LoaderLane.kretprobe, released.lane());
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
+    try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expectEqualStrings("register_kretprobe", released.payload.kretprobe.register_api);
 }
