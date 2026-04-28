@@ -98,7 +98,7 @@ Low-level wrapper survey:
 ## Boundary
 
 Current repo-backed boundary survey:
-- export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, but it now delegates boundary-header construction and compatibility checks through the shared UAPI surface instead of keeping a local test-only copy
+- export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, delegates boundary-header construction and compatibility checks through the shared UAPI surface, and now normalizes status records so callers do not have to trust ad hoc flag-setting before decoding success versus failure
 - UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor and compatibility check, which is still bounded but makes the public boundary less ad hoc than a version constant alone
 
 This slice does not claim:
