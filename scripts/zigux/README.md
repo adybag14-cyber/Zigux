@@ -40,7 +40,7 @@ Current bootstrap helpers
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
-- `check-mk-elfconfig-diff.py`
+- `check-mk_elfconfig-diff.py`
 
 Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
@@ -82,7 +82,7 @@ Phase 3 flow
 Phase 4 flow
 - `artifact_diff.py --self-test` now runs as part of `make -C zigux phase4-validate` so the shared text, JSON, SHA-256, and missing-file comparison paths stay live before the rollback-readiness checks run.
 - `validate-phase4.py` checks that the bounded Phase 4 differential gates, that shared artifact-diff self-test, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
-- `zigux/tests/phase4_build.zig` runs the live `runtime_atomic64_diff.zig` and `bitmap_diff.zig` rollback-readiness gates together instead of letting one of them drift out of the regular validation path.
+- `zigux/tests/phase4_build.zig` runs the live `runtime_atomic64_diff.zig`, `phase4_runtime_atomic64_diff_survey.zig`, and `bitmap_diff.zig` rollback-readiness evidence together through the shared `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` entries instead of letting the shared diff gates or the survey-backed atomic64 replay drift out of the regular validation path.
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, exact workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, the shared `phase4-runtime-atomic64-diff-tests` plus `phase4-bitmap-diff-tests` replay anchors, the dedicated `phase4-runtime-atomic64-diff` and `phase4-bitmap-diff` local replay steps, and the reversible-delivery evidence that ties each shipped Phase 4 gate back to its current C anchor if the shared entrypoint has to drop that Zig gate.
 
 Phase 6 flow
