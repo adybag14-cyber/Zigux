@@ -5,7 +5,6 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import sys
 import tempfile
 
 
@@ -14,7 +13,10 @@ def read_text(path: Path) -> str:
 
 
 def canonical_json(path: Path):
-    return json.loads(read_text(path))
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f'{path}:{exc.lineno}:{exc.colno}: {exc.msg}') from exc
 
 
 def sha256_digest(path: Path) -> str:
@@ -37,8 +39,16 @@ def compare_artifacts(mode: str, expected: Path, actual: Path) -> tuple[bool, di
         expected_value = read_text(expected)
         actual_value = read_text(actual)
     elif mode == 'json':
-        expected_value = canonical_json(expected)
-        actual_value = canonical_json(actual)
+        try:
+            expected_value = canonical_json(expected)
+        except ValueError as exc:
+            details['expected_json_error'] = str(exc)
+            return False, details
+        try:
+            actual_value = canonical_json(actual)
+        except ValueError as exc:
+            details['actual_json_error'] = str(exc)
+            return False, details
     else:
         expected_value = sha256_digest(expected)
         actual_value = sha256_digest(actual)
@@ -63,6 +73,10 @@ def emit_result(matched: bool, details: dict[str, object]) -> int:
             print(f"EXPECTED_EXISTS={details['expected_exists']}")
         if 'actual_exists' in details:
             print(f"ACTUAL_EXISTS={details['actual_exists']}")
+        if 'expected_json_error' in details:
+            print(f"EXPECTED_JSON_ERROR={details['expected_json_error']}")
+        if 'actual_json_error' in details:
+            print(f"ACTUAL_JSON_ERROR={details['actual_json_error']}")
         if 'expected_sha256' in details:
             print(f"EXPECTED_SHA256={details['expected_sha256']}")
         if 'actual_sha256' in details:
@@ -85,6 +99,7 @@ def run_self_test() -> int:
         text_b = tmp_dir / 'text-b.txt'
         json_a = tmp_dir / 'json-a.json'
         json_b = tmp_dir / 'json-b.json'
+        invalid_json = tmp_dir / 'json-invalid.json'
         blob_a = tmp_dir / 'blob-a.bin'
         blob_b = tmp_dir / 'blob-b.bin'
         missing = tmp_dir / 'missing.txt'
@@ -104,6 +119,16 @@ def run_self_test() -> int:
         matched, details = compare_artifacts('json', json_a, json_b)
         assert matched
         assert details['mode'] == 'json'
+
+        invalid_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
+        matched, details = compare_artifacts('json', invalid_json, json_a)
+        assert not matched
+        assert str(invalid_json) in details['expected_json_error']
+        assert 'line 2 column 1' not in details['expected_json_error']
+
+        matched, details = compare_artifacts('json', json_a, invalid_json)
+        assert not matched
+        assert str(invalid_json) in details['actual_json_error']
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
