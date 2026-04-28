@@ -161,3 +161,20 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(saw_config_generation_helper);
     try std.testing.expect(saw_blocker);
 }
+
+test "phase10 virtio core survey note records the current inspected head and parked posture" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-core-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed inspected `master` head: `42809b6eace69a1f8ec5a60ea39ca3ef6379182c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the next honest new Phase 10 work lies in adjacent ring or MMIO wrappers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Leave the Phase 10 virtio-core lane parked") != null);
+}
