@@ -108,6 +108,9 @@ static void run_bitmap_section(void)
 	unsigned long partial_rhs[1] = {0x11UL};
 	unsigned long partial_dst[1] = {0};
 	unsigned long empty_map[1] = {0};
+	unsigned long alloc_nbits = BITS_PER_LONG + 5;
+	unsigned long *alloc_map;
+	unsigned long *zero_map;
 	char buffer[64] = {0};
 	char trunc_buffer[4] = {0};
 	char empty_buffer[4] = {0xaa, 0xaa, 0xaa, 0xaa};
@@ -144,6 +147,12 @@ static void run_bitmap_section(void)
 		(unsigned char)empty_buffer[2],
 		(unsigned char)empty_buffer[3],
 	};
+	alloc_map = bitmap_alloc(alloc_nbits, 0);
+	bitmap_zero(alloc_map, alloc_nbits);
+	bitmap_set(alloc_map, 0, alloc_nbits);
+	unsigned long alloc_values[2] = {alloc_map[0], alloc_map[1]};
+	zero_map = bitmap_zalloc(alloc_nbits);
+	unsigned long zalloc_values[2] = {zero_map[0], zero_map[1]};
 	bitmap_set(range_map, 1, 3);
 	bitmap_set(range_map, BITS_PER_LONG + 2, 2);
 	unsigned long range_after_set[3] = {range_map[0], range_map[1], range_map[2]};
@@ -178,6 +187,10 @@ static void run_bitmap_section(void)
 	printf("\"partial_xor_masked_values\":"); emit_word_array(partial_xor_masked_values, 1); printf(",");
 	printf("\"scnprintf_empty_len\":%zu,", empty_len);
 	printf("\"scnprintf_empty_bytes\":"); emit_word_array(empty_bytes, 4); printf(",");
+	printf("\"alloc_nbits\":%lu,", alloc_nbits);
+	printf("\"alloc_values\":"); emit_word_array(alloc_values, 2); printf(",");
+	printf("\"zalloc_nbits\":%lu,", alloc_nbits);
+	printf("\"zalloc_values\":"); emit_word_array(zalloc_values, 2); printf(",");
 	printf("\"equal\":%s,", equal_result ? "true" : "false");
 	printf("\"intersects\":%s,", intersects_result ? "true" : "false");
 	printf("\"subset\":%s,", subset_result ? "true" : "false");
@@ -188,6 +201,8 @@ static void run_bitmap_section(void)
 	printf("\"scnprintf_trunc_len\":%zu,", trunc_len);
 	printf("\"scnprintf_trunc\":\"%s\"", trunc_buffer);
 	printf("}");
+	bitmap_free(alloc_map);
+	bitmap_free(zero_map);
 }
 
 static void run_string_section(void)
