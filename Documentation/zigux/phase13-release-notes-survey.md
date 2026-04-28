@@ -68,7 +68,18 @@ The current Phase 13 release-facing reading is:
 - `PHASE13_VALIDATE_ENTRYPOINT=make -C zigux phase13-validate`
 - `PHASE13_SHARED_BUILD_PRESENT=yes`
 - `PHASE13_SHARED_MAKE_TARGET_PRESENT=yes`
+- `PHASE13_SHARED_REPLAY_STEP_COUNT=7`
 - `PHASE13_RELEASE_CLOSED=no`
+
+The current shared replay inventory is:
+
+- `phase13-libfs-tests`
+- `phase13-devres-tests`
+- `phase13-landlock-ruleset-tests`
+- `phase13-landlock-syscalls-tests`
+- `phase13-libfs-reviewability-tests`
+- `phase13-devres-reviewability-tests`
+- `phase13-notifier-list-reviewability-tests`
 
 The adjacent notifier-list reviewability packet remains useful release evidence, but it is not counted as a fifth roadmap anchor:
 
