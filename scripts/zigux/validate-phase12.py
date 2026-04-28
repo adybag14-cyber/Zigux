@@ -187,12 +187,7 @@ MANIFEST_SPECS = {
         "expected_status_totals": {"starter_landed": 11, "blocked_on_object_model": 1, "deferred_high_risk": 2},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
         "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        "survey_count_markers": [
-            ("starter_landed_count", "starter_landed"),
-            ("ready_next_count", "ready_next"),
-            ("blocked_count", "blocked_on_object_model"),
-            ("deferred_count", "deferred_high_risk"),
-        ],
+        "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model"), ("deferred_count", "deferred_high_risk")],
     },
 }
 
