@@ -267,7 +267,9 @@ test "phase10 virtio core delivers config changes immediately when core and driv
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(summary.handler_present);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.delivered_to_handler, summary.last_disposition);
 }
 
 test "phase10 virtio core keeps config changes pending while the driver path is disabled and flushes on enable" {
@@ -283,13 +285,17 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(summary.driver_disabled);
     try std.testing.expect(summary.change_pending);
+    try std.testing.expect(summary.handler_present);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.deferred_until_enabled, summary.last_disposition);
 
     try device.enableConfigDriver();
     summary = device.configChangeSummary();
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(summary.handler_present);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.delivered_to_handler, summary.last_disposition);
 
     try device.disableConfigDriver();
     try device.noteConfigChanged();
@@ -299,7 +305,9 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(!summary.handler_present);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 }
 
 test "phase10 virtio core does not fabricate config delivery when driver re-enables without pending change" {
@@ -311,18 +319,22 @@ test "phase10 virtio core does not fabricate config delivery when driver re-enab
     var summary = device.configChangeSummary();
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(!summary.handler_present);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 
     try device.disableConfigDriver();
     summary = device.configChangeSummary();
     try std.testing.expect(summary.driver_disabled);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 
     try device.enableConfigDriver();
     summary = device.configChangeSummary();
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 }
 
 test "phase10 virtio core records bounded driver binding around config_changed" {
@@ -366,13 +378,17 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(!summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(summary.change_pending);
+    try std.testing.expect(summary.handler_present);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.deferred_until_enabled, summary.last_disposition);
 
     try device.enableConfigCore();
     summary = device.configChangeSummary();
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(summary.handler_present);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.delivered_to_handler, summary.last_disposition);
 
     try device.disableConfigCore();
     try device.noteConfigChanged();
@@ -382,7 +398,9 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(!summary.handler_present);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 }
 
 test "phase10 virtio core does not fabricate config delivery when core re-enables without pending change" {
@@ -394,18 +412,22 @@ test "phase10 virtio core does not fabricate config delivery when core re-enable
     var summary = device.configChangeSummary();
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(!summary.handler_present);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 
     try device.disableConfigCore();
     summary = device.configChangeSummary();
     try std.testing.expect(!summary.core_enabled);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 
     try device.enableConfigCore();
     summary = device.configChangeSummary();
     try std.testing.expect(summary.core_enabled);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, summary.last_disposition);
 }
 
 test "phase10 virtio core keeps enabled config changes inert without a config_changed handler" {
@@ -424,7 +446,9 @@ test "phase10 virtio core keeps enabled config changes inert without a config_ch
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expect(!summary.handler_present);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.ignored_without_handler, summary.last_disposition);
 }
 
 test "phase10 virtio core records config generation while change delivery is deferred" {
