@@ -6,6 +6,7 @@ const max_file_bytes: usize = 1024 * 1024;
 const FixdepError = error{
     NoTargets,
     ReadDependencyFile,
+    OutputWrite,
 };
 
 fn isIdentByte(ch: u8) bool {
@@ -51,6 +52,37 @@ fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
     try stderr.writeAll("\n");
     try stderr.flush();
     std.process.exit(2);
+}
+
+fn OutputWriter(comptime WriterType: type) type {
+    return struct {
+        inner: WriterType,
+
+        fn init(inner: WriterType) @This() {
+            return .{ .inner = inner };
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) FixdepError!void {
+            self.inner.print(fmt, args) catch return error.OutputWrite;
+        }
+
+        fn flush(self: *@This()) FixdepError!void {
+            self.inner.flush() catch return error.OutputWrite;
+        }
+    };
+}
+
+fn flushOutput(writer: anytype) FixdepError!void {
+    writer.flush() catch return error.OutputWrite;
+}
+
+fn emitOutputWriteError(io: std.Io) !noreturn {
+    var stderr_buffer: [128]u8 = undefined;
+    var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try stderr.writeAll("fixdep: not all data was written to the output\n");
+    try stderr.flush();
+    std.process.exit(1);
 }
 
 const Processor = struct {
@@ -302,16 +334,21 @@ pub fn main(init: std.process.Init) !void {
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
-    const stdout = &stdout_writer.interface;
+    const stdout_interface = &stdout_writer.interface;
+    var stdout = OutputWriter(@TypeOf(stdout_interface)).init(stdout_interface);
 
-    runFixdep(arena, io, stdout, args[1], args[2], args[3]) catch |err| switch (err) {
+    runFixdep(arena, io, &stdout, args[1], args[2], args[3]) catch |err| switch (err) {
         error.NoTargets => {
             try stdout.flush();
             try emitNoTargetsParseError(io);
         },
+        error.OutputWrite => try emitOutputWriteError(io),
         else => return err,
     };
-    try stdout.flush();
+    flushOutput(&stdout) catch |err| switch (err) {
+        error.OutputWrite => try emitOutputWriteError(io),
+        else => return err,
+    };
 }
 
 test "config parsing trims _MODULE and deduplicates symbols" {
@@ -448,4 +485,22 @@ test "ignored and no-parse file classification matches fixdep rules" {
 test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
+}
+
+test "output writer maps print and flush failures to fixdep output-write errors" {
+    const FailingWriter = struct {
+        fn print(_: *@This(), comptime _: []const u8, _: anytype) error{NoSpaceLeft}!void {
+            return error.NoSpaceLeft;
+        }
+
+        fn flush(_: *@This()) error{NoSpaceLeft}!void {
+            return error.NoSpaceLeft;
+        }
+    };
+
+    var inner = FailingWriter{};
+    var writer = OutputWriter(*FailingWriter).init(&inner);
+
+    try std.testing.expectError(error.OutputWrite, writer.print("savedcmd_sample := cmd\n", .{}));
+    try std.testing.expectError(error.OutputWrite, writer.flush());
 }
