@@ -161,7 +161,7 @@ fn bitmapScnprintfBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn findBitBench() struct { next_checksum: u64, family_checksum: u64 } {
+fn findBitBench() struct { next_checksum: u64, family_checksum: u64, tail_window_checksum: u64 } {
     var map = [_]find_bit.Word{0} ** find_bit.bitsToWords(4096);
     map[0] |= (@as(find_bit.Word, 1) << 3);
     map[7] |= (@as(find_bit.Word, 1) << 9);
@@ -183,6 +183,8 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64 } {
         (@as(find_bit.Word, 1) << 2),
     };
 
+    var tail_set = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 10) };
+    var tail_zero = [_]find_bit.Word{ full, find_bit.lastWordMask(tail_nbits) };
     const tail_and_lhs = [_]find_bit.Word{
         0,
         (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 9),
@@ -194,6 +196,7 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64 } {
 
     var next_checksum: u64 = 0;
     var family_checksum: u64 = 0;
+    var tail_window_checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_find_bit) : (idx += 1) {
         const start = idx % 1024;
@@ -205,11 +208,27 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64 } {
         family_checksum +%= @intCast(find_bit.findNextZeroBit(&zero_map, find_bit.bits_per_long * zero_map.len, (idx % 9) + 1));
         family_checksum +%= @intCast(find_bit.findFirstAndBit(&and_lhs, &and_rhs, find_bit.bits_per_long * and_lhs.len));
         family_checksum +%= @intCast(find_bit.findNextAndBit(&tail_and_lhs, &tail_and_rhs, tail_nbits, find_bit.bits_per_long + (idx % 5)));
+
+        if ((idx & 1) == 0) {
+            tail_set[1] |= @as(find_bit.Word, 1) << 3;
+            tail_zero[1] &= ~(@as(find_bit.Word, 1) << 2);
+        } else {
+            tail_set[1] &= ~(@as(find_bit.Word, 1) << 3);
+            tail_zero[1] |= @as(find_bit.Word, 1) << 2;
+        }
+
+        tail_window_checksum +%= @intCast(find_bit.findFirstBit(&tail_set, tail_nbits));
+        tail_window_checksum +%= @intCast(find_bit.findNextBit(&tail_set, tail_nbits, find_bit.bits_per_long + (idx % 5)));
+        tail_window_checksum +%= @intCast(find_bit.findFirstZeroBit(&tail_zero, tail_nbits));
+        tail_window_checksum +%= @intCast(find_bit.findNextZeroBit(&tail_zero, tail_nbits, find_bit.bits_per_long + (idx % 5)));
+        tail_window_checksum +%= @intCast(find_bit.findFirstAndBit(&tail_and_lhs, &tail_and_rhs, tail_nbits));
+        tail_window_checksum +%= @intCast(find_bit.findNextAndBit(&tail_and_lhs, &tail_and_rhs, tail_nbits, find_bit.bits_per_long + (idx % 5)));
     }
 
     return .{
         .next_checksum = next_checksum,
         .family_checksum = family_checksum,
+        .tail_window_checksum = tail_window_checksum,
     };
 }
 
@@ -390,6 +409,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(bitmap_scnprintf_result.checksum != 0);
     std.debug.assert(find_bit_result.next_checksum != 0);
     std.debug.assert(find_bit_result.family_checksum != 0);
+    std.debug.assert(find_bit_result.tail_window_checksum != 0);
     std.debug.assert(find_zero_bit_result.checksum != 0);
     std.debug.assert(find_and_bit_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
@@ -409,6 +429,7 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.next_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM={d}\n", .{find_bit_result.family_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM={d}\n", .{find_bit_result.tail_window_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS={d}\n", .{iterations_find_zero_bit});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM={d}\n", .{find_zero_bit_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS={d}\n", .{iterations_find_and_bit});
