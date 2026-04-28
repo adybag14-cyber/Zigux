@@ -35,6 +35,13 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const BuildInventory = struct {
+    build_test_names: []const []const u8,
+    shared_test_depend_steps: []const []const u8,
+    forbidden_markers: []const []const u8,
+    dedicated_survey_replays: []const []const u8,
+};
+
 const WatchdogInfoLayout = extern struct {
     options: u32,
     firmware_version: u32,
@@ -72,7 +79,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
-    try std.testing.expectEqualStrings("3c9a84c4c5a4414a4eef3d78d1a092432a3ab5c9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f6d08dffc98ed9422cee8c05a4cb5d1808cd146e", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.phase11_build_inventory_present);
@@ -254,6 +261,14 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(phase11_build_inventory);
+    const parsed_inventory = try std.json.parseFromSlice(
+        BuildInventory,
+        std.testing.allocator,
+        phase11_build_inventory,
+        .{},
+    );
+    defer parsed_inventory.deinit();
+    const inventory = parsed_inventory.value;
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/linux/watchdog.h") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct watchdog_info") != null);
@@ -301,8 +316,17 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_resize = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".has_notifier_hangup = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_validation_matrix, "dedicated survey replay still passes separately") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase11_build_inventory, "phase11-hvc-console-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase11_build_inventory, "zigux/tests/phase11_hvc_console_survey.zig") != null);
+    try std.testing.expectEqual(@as(usize, 8), inventory.build_test_names.len);
+    try std.testing.expectEqual(@as(usize, 8), inventory.shared_test_depend_steps.len);
+    try std.testing.expectEqual(@as(usize, 2), inventory.forbidden_markers.len);
+    try std.testing.expectEqual(@as(usize, 1), inventory.dedicated_survey_replays.len);
+    try std.testing.expectEqualStrings("phase11-uapi-header-parity-survey-tests", inventory.build_test_names[6]);
+    try std.testing.expectEqualStrings("phase11-hvc-console-tests", inventory.build_test_names[7]);
+    try std.testing.expectEqualStrings("run_phase11_uapi_header_parity_survey_tests", inventory.shared_test_depend_steps[6]);
+    try std.testing.expectEqualStrings("run_phase11_hvc_console_tests", inventory.shared_test_depend_steps[7]);
+    try std.testing.expectEqualStrings("phase11_hvc_console_survey_tests", inventory.forbidden_markers[0]);
+    try std.testing.expectEqualStrings("run_phase11_hvc_console_survey_tests.step", inventory.forbidden_markers[1]);
+    try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", inventory.dedicated_survey_replays[0]);
 }
 
 test "phase11 shared header parity survey keeps the hvc snapshot aligned with the bounded header mirror" {
