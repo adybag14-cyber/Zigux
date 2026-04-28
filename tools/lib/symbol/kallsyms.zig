@@ -431,6 +431,42 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
     try std.testing.expectEqualStrings("startup_64", parsed.items[0].name);
     try std.testing.expectEqualStrings("data_symbol", parsed.items[1].name);
     try std.testing.expectEqual(@as(u8, 'd'), parsed.items[1].symbol_type);
+
+    const too_long_name = "a" ** (KSYM_NAME_LEN + 17);
+    const oversized_line = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}",
+        .{too_long_name},
+    );
+    defer std.testing.allocator.free(oversized_line);
+
+    const split_index = 9 + (KSYM_NAME_LEN / 2);
+    var oversized_state = ChunkFixtureState{
+        .chunks = &[_][]const u8{
+            oversized_line[0..split_index],
+            oversized_line[split_index..],
+        },
+    };
+
+    var oversized = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (oversized.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        oversized.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedChunked(
+        std.testing.allocator,
+        &oversized_state,
+        nextFixtureChunk,
+        &oversized,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 1), oversized.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), oversized.items[0].name.len);
+    try std.testing.expect(std.mem.allEqual(u8, oversized.items[0].name, 'a'));
 }
 
 test "forEachParsedReader and path reuse the same malformed-line skipping semantics" {
@@ -473,9 +509,241 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
 
     const contents =
         "ffffffff81000000 T startup_64\r\n" ++
-            "bad line\n" ++
-            "ffffffff81000400 w weak_tail\n";
+        "bad line\n" ++
+        "ffffffff81000400 w weak_tail\n";
 
     var stream = SliceReader{ .bytes = contents };
+    var scratch_buffer: [11]u8 = undefined;
+    var from_reader = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (from_reader.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        from_reader.deinit(std.testing.allocator);
+    }
 
-[TRUNCATED]
+    try forEachParsedReader(
+        std.testing.allocator,
+        &stream,
+        &scratch_buffer,
+        &from_reader,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), from_reader.items.len);
+    try std.testing.expectEqualStrings("startup_64", from_reader.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", from_reader.items[1].name);
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    var from_path = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (from_path.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        from_path.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedPath(
+        std.testing.allocator,
+        io,
+        temp_dir.dir,
+        "kallsyms.map",
+        &scratch_buffer,
+        &from_path,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), from_path.items.len);
+    try std.testing.expectEqualStrings("startup_64", from_path.items[0].name);
+    try std.testing.expectEqualStrings("weak_tail", from_path.items[1].name);
+    try std.testing.expectEqual(@as(u8, 'w'), from_path.items[1].symbol_type);
+
+    var empty_stream = SliceReader{
+        .bytes = "ffffffff81000000 T startup_64\n",
+    };
+    var empty_scratch_buffer: [0]u8 = .{};
+
+    try std.testing.expectError(
+        error.EmptyScratchBuffer,
+        forEachParsedReader(
+            std.testing.allocator,
+            &empty_stream,
+            &empty_scratch_buffer,
+            &from_path,
+            Fixture.collect,
+        ),
+    );
+}
+
+test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded names" {
+    const CallbackState = struct {
+        names: std.ArrayList([]u8),
+        symbol_types: std.ArrayList(u8),
+        starts: std.ArrayList(u64),
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+                .symbol_types = std.ArrayList(u8).empty,
+                .starts = std.ArrayList(u64).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| {
+                allocator.free(name);
+            }
+            self.names.deinit(allocator);
+            self.symbol_types.deinit(allocator);
+            self.starts.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            self.symbol_types.append(std.testing.allocator, symbol_type) catch return -97;
+            self.starts.append(std.testing.allocator, start) catch return -96;
+            if (symbol_type == 'W') {
+                return 23;
+            }
+            return 0;
+        }
+
+        fn collectWithoutStop(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            self.symbol_types.append(std.testing.allocator, symbol_type) catch return -97;
+            self.starts.append(std.testing.allocator, start) catch return -96;
+            return 0;
+        }
+    };
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(
+            "ffffffff81000000 T startup_64\n" ++
+                "garbage\n" ++
+                "ffffffff81000200 W weak_handler\n" ++
+                "ffffffff81000300 t ignored_after_stop\n",
+        );
+        try writer.interface.flush();
+    }
+
+    var callback_state = CallbackState.init();
+    defer callback_state.deinit(std.testing.allocator);
+
+    const result = try kallsymsParseInDir(
+        std.testing.allocator,
+        io,
+        temp_dir.dir,
+        "kallsyms.map",
+        &callback_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), result);
+    try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), callback_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), callback_state.starts.items[1]);
+
+    const filename = try std.fs.path.join(
+        std.testing.allocator,
+        &.{ ".zig-cache", "tmp", temp_dir.sub_path[0..], "kallsyms.map" },
+    );
+    defer std.testing.allocator.free(filename);
+
+    var filename_state = CallbackState.init();
+    defer filename_state.deinit(std.testing.allocator);
+
+    const filename_result = try kallsymsParse(
+        std.testing.allocator,
+        io,
+        filename,
+        &filename_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), filename_result);
+    try std.testing.expectEqual(@as(usize, 2), filename_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", filename_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", filename_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), filename_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), filename_state.starts.items[1]);
+
+    var missing_state = CallbackState.init();
+    defer missing_state.deinit(std.testing.allocator);
+
+    const missing_result = try kallsymsParse(
+        std.testing.allocator,
+        io,
+        "missing-kallsyms.map",
+        &missing_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, -1), missing_result);
+    try std.testing.expectEqual(@as(usize, 0), missing_state.names.items.len);
+
+    const too_long_name = "b" ** (KSYM_NAME_LEN + 21);
+    const oversized_contents = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}\n",
+        .{too_long_name},
+    );
+    defer std.testing.allocator.free(oversized_contents);
+
+    {
+        const file = try temp_dir.dir.createFile(io, "oversized-kallsyms.map", .{ .read = true, .truncate = true });
+        defer file.close(io);
+        var writer_buffer: [640]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(oversized_contents);
+        try writer.interface.flush();
+    }
+
+    const oversized_filename = try std.fs.path.join(
+        std.testing.allocator,
+        &.{ ".zig-cache", "tmp", temp_dir.sub_path[0..], "oversized-kallsyms.map" },
+    );
+    defer std.testing.allocator.free(oversized_filename);
+
+    var oversized_state = CallbackState.init();
+    defer oversized_state.deinit(std.testing.allocator);
+
+    const oversized_result = try kallsymsParse(
+        std.testing.allocator,
+        io,
+        oversized_filename,
+        &oversized_state,
+        CallbackState.collectWithoutStop,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), oversized_result);
+    try std.testing.expectEqual(@as(usize, 1), oversized_state.names.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), oversized_state.names.items[0].len);
+    try std.testing.expect(std.mem.allEqual(u8, oversized_state.names.items[0], 'b'));
+    try std.testing.expectEqual(@as(u8, 'T'), oversized_state.symbol_types.items[0]);
+    try std.testing.expectEqual(@as(u64, 1), oversized_state.starts.items[0]);
+}
