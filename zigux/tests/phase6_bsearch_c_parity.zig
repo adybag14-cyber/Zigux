@@ -48,7 +48,7 @@ pub fn main(init: std.process.Init) !void {
     try writeIndexCase(writer, "singleton-hit", 21, bsearch.searchIndex(u32, u32, &@as(u32, 21), singleton[0..], compareU32));
     try writeIndexCase(writer, "singleton-miss", 20, bsearch.searchIndex(u32, u32, &@as(u32, 20), singleton[0..], compareU32));
     try writeIndexCase(writer, "empty-miss", 21, bsearch.searchIndex(u32, u32, &@as(u32, 21), empty[0..], compareU32));
-    try writeIndexCase(writer, "duplicate-hit", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicates[0..], compareU32));
+    try writeDuplicateCase(writer, 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicates[0..], compareU32));
 
     const kmalloc = bsearch.search([]const u8, Symbol, &@as([]const u8, "kmalloc"), symbols[0..], compareSymbolName);
     if (kmalloc) |item| {
@@ -81,5 +81,13 @@ fn writeIndexCase(writer: *std.Io.Writer, label: []const u8, key: u32, index: ?u
         try writer.print("{s}\t{}\t{}\n", .{ label, key, found });
     } else {
         try writer.print("{s}\t{}\tnull\n", .{ label, key });
+    }
+}
+
+fn writeDuplicateCase(writer: *std.Io.Writer, key: u32, index: ?usize) !void {
+    if (index != null) {
+        try writer.print("duplicate-hit\t{}\tfound\n", .{key});
+    } else {
+        try writer.print("duplicate-hit\t{}\tnull\n", .{key});
     }
 }
