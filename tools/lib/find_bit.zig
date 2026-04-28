@@ -146,6 +146,22 @@ test "find next bit skips earlier matches in the same word" {
     try std.testing.expectEqual(@as(usize, nbits), findNextBit(&bitmap, nbits, bits_per_long + 5));
 }
 
+test "find next and bit skips earlier shared matches in the same word" {
+    const nbits = bits_per_long + 6;
+    const lhs = [_]Word{
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 6),
+        @as(Word, 1) << 4,
+    };
+    const rhs = [_]Word{
+        (@as(Word, 1) << 6) | (@as(Word, 1) << 9),
+        @as(Word, 1) << 4,
+    };
+
+    try std.testing.expectEqual(@as(usize, 6), findNextAndBit(&lhs, &rhs, nbits, 6));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&lhs, &rhs, nbits, 7));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 5));
+}
+
 test "find zero bits respects the declared bit count" {
     var bitmap = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
     bitmap[1] &= ~(@as(Word, 1) << 4);
