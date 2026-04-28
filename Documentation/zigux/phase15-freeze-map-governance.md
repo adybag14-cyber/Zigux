@@ -106,7 +106,7 @@ This slice does not claim:
 - the shared bootstrap workflow now invokes the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle is no longer maintainer-run only
 - focused replay against current `master` shows the narrower freeze-map governance packet is runnable, while the wider shared Phase 15 bundle is currently drifted:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
-  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` currently fails on current `master` because `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` still hit `error.StreamTooLong` while reading `Documentation/zigux/README.md`
+  - `zig build test --build-file zigux/tests/phase15_build.zig --summary all` currently fails on current `master` because `phase15_architecture_council_review_process.zig` and `phase15_handoff_next_steps.zig` still hit `error.StreamTooLong` while reading `Documentation/zigux/README.md`; the remaining shared replay drift is in those two narrower readers, not in `phase15_parity_scorecard.zig`
   - `make -C zigux phase15` currently fails for the same shared Phase 15 replay drift because it delegates to `zigux/tests/phase15_build.zig`
 - current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that keeps the governance packet aligned during maintenance edits, and one still-open neighboring maintenance drift in the broader shared Phase 15 packet family
 
@@ -117,7 +117,7 @@ This slice does not claim:
 - `phase15-local-entrypoint-present`: yes
 - `phase15-shared-ci-enforcement-present`: yes
 - `phase15-build-clean-on-current-master`: no
-- `phase15-build-failure-cause`: `phase15_parity_scorecard.zig` and `phase15_handoff_next_steps.zig` currently exceed their `Documentation/zigux/README.md` read limits
+- `phase15-build-failure-cause`: `phase15_architecture_council_review_process.zig` and `phase15_handoff_next_steps.zig` currently exceed their `Documentation/zigux/README.md` read limits
 - next repair step inside this lane family: leave the deep-core blocker posture parked here and let a neighboring Phase 15 maintenance lane decide whether to increase those shared README read limits
 
 ## Next bounded step
