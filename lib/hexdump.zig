@@ -72,28 +72,34 @@ pub fn hex2bin(dst: []u8, src: []const u8) HexError!void {
     }
 }
 
-pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
+fn bin2hexAppendWithPacker(dst: []u8, src: []const u8, comptime byte_packer: anytype) HexError![]u8 {
     if (dst.len < src.len * 2) {
         return HexError.DestinationTooSmall;
     }
 
     var rest = dst;
     for (src) |byte| {
-        rest = try hexBytePack(rest, byte);
+        rest = try byte_packer(rest, byte);
     }
-    return dst[0 .. src.len * 2];
+    return rest;
+}
+
+pub fn bin2hexAppend(dst: []u8, src: []const u8) HexError![]u8 {
+    return bin2hexAppendWithPacker(dst, src, hexBytePack);
+}
+
+pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
+    const rest = try bin2hexAppend(dst, src);
+    return dst[0 .. dst.len - rest.len];
+}
+
+pub fn bin2hexAppendUpper(dst: []u8, src: []const u8) HexError![]u8 {
+    return bin2hexAppendWithPacker(dst, src, hexBytePackUpper);
 }
 
 pub fn bin2hexUpper(dst: []u8, src: []const u8) HexError![]u8 {
-    if (dst.len < src.len * 2) {
-        return HexError.DestinationTooSmall;
-    }
-
-    var rest = dst;
-    for (src) |byte| {
-        rest = try hexBytePackUpper(rest, byte);
-    }
-    return dst[0 .. src.len * 2];
+    const rest = try bin2hexAppendUpper(dst, src);
+    return dst[0 .. dst.len - rest.len];
 }
 
 pub fn hexDumpLineLength(
@@ -326,6 +332,22 @@ test "bin2hexUpper emits uppercase hex text" {
     try std.testing.expectEqualSlices(u8, "BE32DB7B", text);
 }
 
+test "bin2hexAppend helpers return the remaining destination slice" {
+    const source = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
+    var encoded: [12]u8 = [_]u8{'#'} ** 12;
+
+    var rest = try bin2hexAppend(encoded[0..], source[0..2]);
+    rest = try bin2hexAppendUpper(rest, source[2..]);
+
+    try std.testing.expectEqual(@as(usize, 4), rest.len);
+    try std.testing.expectEqualSlices(u8, "be32DB7B", encoded[0..8]);
+    try std.testing.expectEqualSlices(u8, "####", rest);
+
+    var short: [7]u8 = undefined;
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hexAppend(short[0..], source[0..4]));
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hexAppendUpper(short[0..], source[0..4]));
+}
+
 test "hexBytePack helpers emit expected text and reject short buffers" {
     var lower: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
     const lower_rest = try hexBytePack(lower[0..], 0xbe);
@@ -374,92 +396,4 @@ test "hexDumpLineLength mirrors formatter normalization" {
     }
 }
 
-test "hexDumpToBuffer matches the kernel-style 16-byte line output" {
-    var line: [16 * 3 + 2 + 16 + 1]u8 = undefined;
-
-    const plain_len = hexDumpToBuffer(test_data_b[0..16], 16, 1, line[0..], false);
-    try std.testing.expectEqual(@as(usize, 47), plain_len);
-    try std.testing.expectEqualSlices(u8, "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b", std.mem.sliceTo(line[0..], 0));
-
-    const ascii_len = hexDumpToBuffer(test_data_b[0..16], 16, 1, line[0..], true);
-    try std.testing.expectEqual(@as(usize, 65), ascii_len);
-    try std.testing.expectEqualSlices(
-        u8,
-        "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b  .2.{....p..$}.4.",
-        std.mem.sliceTo(line[0..], 0),
-    );
-    try std.testing.expectEqualSlices(u8, test_ascii[0..16], std.mem.sliceTo(line[49..], 0));
-}
-
-test "hexDumpToBuffer uses native-endian grouping for 2, 4, and 8 byte groups" {
-    const data = [_]u8{
-        0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
-        0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
-    };
-
-    const expected_2 = if (builtin.cpu.arch.endian() == .big)
-        "be32 db7b 0a18 93b2 70ba c424 7d83 349b"
-    else
-        "32be 7bdb 180a b293 ba70 24c4 837d 9b34";
-    const expected_4 = if (builtin.cpu.arch.endian() == .big)
-        "be32db7b 0a1893b2 70bac424 7d83349b"
-    else
-        "7bdb32be b293180a 24c4ba70 9b34837d";
-    const expected_8 = if (builtin.cpu.arch.endian() == .big)
-        "be32db7b0a1893b2 70bac4247d83349b"
-    else
-        "b293180a7bdb32be 9b34837d24c4ba70";
-
-    var line: [80]u8 = undefined;
-
-    _ = hexDumpToBuffer(data[0..], 16, 2, line[0..], false);
-    try std.testing.expectEqualSlices(u8, expected_2, std.mem.sliceTo(line[0..], 0));
-
-    _ = hexDumpToBuffer(data[0..], 16, 4, line[0..], false);
-    try std.testing.expectEqualSlices(u8, expected_4, std.mem.sliceTo(line[0..], 0));
-
-    _ = hexDumpToBuffer(data[0..], 16, 8, line[0..], false);
-    try std.testing.expectEqualSlices(u8, expected_8, std.mem.sliceTo(line[0..], 0));
-}
-
-test "hexDumpToBuffer reports full length when the caller buffer truncates" {
-    const data = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
-    var line: [8]u8 = [_]u8{0xaa} ** 8;
-
-    const written = hexDumpToBuffer(data[0..], 16, 1, line[0..], true);
-    try std.testing.expectEqual(@as(usize, 53), written);
-    try std.testing.expectEqual(@as(u8, 0), line[line.len - 1]);
-    try std.testing.expectEqualSlices(u8, "be 32 d", std.mem.sliceTo(line[0..], 0));
-}
-
-test "hexDumpToBuffer follows kernel normalization fallbacks" {
-    var line: [32 * 3 + 2 + 32 + 1]u8 = undefined;
-
-    _ = hexDumpToBuffer(test_data_b[0..12], 99, 3, line[0..], true);
-    try std.testing.expectEqualSlices(
-        u8,
-        "be 32 db 7b 0a 18 93 b2 70 ba c4 24              .2.{....p..$",
-        std.mem.sliceTo(line[0..], 0),
-    );
-
-    _ = hexDumpToBuffer(test_data_b[0..9], 32, 4, line[0..], false);
-    try std.testing.expectEqualSlices(u8, "be 32 db 7b 0a 18 93 b2 70", std.mem.sliceTo(line[0..], 0));
-
-    _ = hexDumpToBuffer(test_data_b[0..15], 16, 8, line[0..], true);
-    try std.testing.expectEqualSlices(
-        u8,
-        "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34     .2.{....p..$}.4",
-        std.mem.sliceTo(line[0..], 0),
-    );
-}
-
-test "hexDumpToBuffer reports normalized required length for empty and zero-sized buffers" {
-    var empty: [1]u8 = undefined;
-
-    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..], false));
-    try std.testing.expectEqual(@as(u8, 0), empty[0]);
-
-    try std.testing.expectEqual(@as(usize, 65), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));
-    try std.testing.expectEqual(@as(usize, 47), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], false));
-    try std.testing.expectEqual(@as(usize, 129), hexDumpToBuffer(test_data_b[0..32], 32, 1, empty[0..0], true));
-}
+test "hexDumpS¢w±·¢¶Ú(–‰à

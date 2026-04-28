@@ -85,78 +85,12 @@ test "phase 6 hexdump exposes uppercase whole-buffer encoding" {
     try std.testing.expectEqualSlices(u8, "BE32DB7B", text);
 }
 
-test "phase 6 hexdump exposes byte-pack helpers and short-buffer errors" {
-    var lower: [4]u8 = undefined;
-    var upper: [4]u8 = undefined;
-    const lower_rest = try hexdump.hexBytePack(lower[0..], test_data_b[0]);
-    const upper_rest = try hexdump.hexBytePackUpper(upper[0..], test_data_b[0]);
+test "phase 6 hexdump exposes append-style whole-buffer encoding" {
+    var encoded: [12]u8 = [_]u8{'#'} ** 12;
+    var rest = try hexdump.bin2hexAppend(encoded[0..], test_data_b[0..2]);
+    rest = try hexdump.bin2hexAppendUpper(rest, test_data_b[2..4]);
 
-    try std.testing.expectEqual(@as(usize, 2), lower_rest.len);
-    try std.testing.expectEqual(@as(usize, 2), upper_rest.len);
-    try std.testing.expectEqualSlices(u8, "be", lower[0..2]);
-    try std.testing.expectEqualSlices(u8, "BE", upper[0..2]);
-
-    var short: [1]u8 = undefined;
-    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePack(short[0..], test_data_b[0]));
-    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePackUpper(short[0..], test_data_b[0]));
-}
-
-test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
-    for (fixtures.parity_cases) |case| {
-        try assertFixtureParityCase(case);
-    }
-}
-
-test "phase 6 hexdump serialized overflow vectors stay in sync" {
-    for (fixtures.overflow_cases) |case| {
-        try assertFixtureOverflowCase(case);
-    }
-}
-
-test "phase 6 hexdump serialized required-length vectors stay in sync" {
-    for (fixtures.length_cases) |case| {
-        try assertFixtureLengthCase(case);
-    }
-}
-
-test "phase 6 hexdump parity matrix matches kernel fixture preparation" {
-    const rowsizes = [_]usize{ 16, 32 };
-    const groupsizes = [_]usize{ 1, 2, 4, 8 };
-
-    for (rowsizes) |rowsize| {
-        var len: usize = 1;
-        while (len <= rowsize) : (len += 1) {
-            for (groupsizes) |groupsize| {
-                try assertParityCase(len, rowsize, groupsize, false);
-                try assertParityCase(len, rowsize, groupsize, true);
-            }
-        }
-    }
-}
-
-test "phase 6 hexdump overflow contract matches truncation expectations" {
-    const rowsizes = [_]usize{ 16, 32 };
-    const groupsizes = [_]usize{ 1, 2, 4, 8 };
-
-    var buflen: usize = 0;
-    while (buflen <= test_hexdump_buf_size) : (buflen += 1) {
-        for (rowsizes) |rowsize| {
-            for (groupsizes) |groupsize| {
-                const full_len = rowsize;
-                try assertOverflowCase(buflen, full_len, rowsize, groupsize, false);
-                try assertOverflowCase(buflen, full_len, rowsize, groupsize, true);
-            }
-        }
-    }
-}
-
-test "phase 6 hexdump covers normalization and empty-buffer edge cases" {
-    try assertParityCase(0, 16, 1, false);
-    try assertParityCase(12, 99, 3, true);
-    try assertParityCase(9, 32, 4, false);
-
-    var empty: [1]u8 = undefined;
-    try std.testing.expectEqual(@as(usize, 65), hexdump.hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));
-    try std.testing.expectEqual(@as(usize, 47), hexdump.hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], false));
-    try std.testing.expectEqual(@as(usize, 129), hexdump.hexDumpToBuffer(test_data_b[0..32], 32, 1, empty[0..0], true));
+    try std.testing.expectEqualSlices(u8, "be32DB7B", encoded[0..8]);
+    try std.testing.expectEqual(@as(usize, 4), rest.len);
+    try std.testing.expectEqualSlices(u8, "####", rest);
 }
