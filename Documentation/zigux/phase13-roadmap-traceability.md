@@ -141,7 +141,10 @@ What is additionally reviewable today without being a new roadmap anchor:
 - it should be read as Phase 13 reviewability evidence around preexisting shared-helper surfaces, not as a fifth roadmap anchor beside `libfs`, `devres`, or the two Landlock slices
 
 What stays intentionally blocked today:
+- `fs/libfs.c` still keeps the ready-next dcache-cursor reposition bookkeeping step separate from the blocked dcache-cursor helpers and inode or pseudofs lifecycle work, so the current helper packet does not overstate broader inode-state handling
 - `lib/devres.c` still keeps live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state out of scope even though its helper-first survey packet is now manifest-backed
+- `security/landlock/ruleset.c` still keeps live Landlock tree-state ownership, rule-release ownership, and hierarchy-lifetime behavior outside the current in-memory helper lab even though the ruleset anchor is manifest-backed
+- `security/landlock/syscalls.c` still keeps live path import, credential mutation, and enforcement claims out of scope even though the syscall helper slice already records the current bounded handoff planning
 
 ## Next bounded step
 
