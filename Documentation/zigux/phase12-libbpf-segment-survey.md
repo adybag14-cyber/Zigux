@@ -20,9 +20,9 @@ The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other
 
 That matters because the live repo already has real helper-first progress under `tools/lib/bpf/zigux_segments/`: a segment catalog, dense type-name tables, a CPU-mask helper with the deferred chunk-reader path for sysfs-style buffered input, a bounded logging helper, bounded bpffs pin-path helpers, and a bounded proc-fdinfo path or map-info parser helper. Those are useful footholds, but they still need a current Phase 12 survey checkpoint that explains how the earlier helper work fits the modern roadmap instead of leaving libbpf stranded in older Phase 8 wording or stale Phase 12 reviewability assumptions.
 
-The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
+The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and keeps the blocked-risk split current instead of drifting behind the live tree.
 
-This checkpoint has now been re-verified against current `master` head `13dfd68ad1609c7bd68240e8210121640e877698`, with the same landed helper set and the same three-way split still holding between the skeleton blocker, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
+This checkpoint has now been re-verified against current `master` head `46c0200e7a4a125223ba0b90145f914f5855a88a`, with the same landed helper set and the same three-way split still holding between the skeleton blocker, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
 
 ## Survey findings
 
