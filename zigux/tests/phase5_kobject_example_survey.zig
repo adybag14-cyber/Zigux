@@ -44,16 +44,18 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_order_prompt = false;
     var saw_docs_prompt = false;
     var saw_group_boundary_prompt = false;
+    var saw_pre_registration_prompt = false;
     var saw_directory = false;
     var saw_order = false;
+    var saw_pre_registration = false;
     var saw_dispatch = false;
     var saw_exit = false;
 
@@ -72,9 +74,15 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             saw_docs_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group") != null and
+            std.mem.indexOf(u8, prompt, "pre-registration") != null and
             std.mem.indexOf(u8, prompt, "post-exit") != null)
         {
             saw_group_boundary_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "initialized-but-not-registered stage") != null and
+            std.mem.indexOf(u8, prompt, "registerAttributes claims ownership") != null)
+        {
+            saw_pre_registration_prompt = true;
         }
     }
 
@@ -90,6 +98,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "attribute-order")) {
             saw_order = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "foo, baz, bar") != null);
+        }
+        if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
+            saw_pre_registration = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "active attribute count at zero") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "registerAttributes claims ownership") != null);
         }
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
@@ -109,8 +122,10 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_order_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
+    try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_order);
+    try std.testing.expect(saw_pre_registration);
     try std.testing.expect(saw_dispatch);
     try std.testing.expect(saw_exit);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "sysfs file creation parity"));
@@ -142,6 +157,8 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-registration and post-`exit()` show or store rejection boundaries") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
