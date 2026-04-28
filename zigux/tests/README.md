@@ -81,6 +81,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase7.py`
 - `scripts/zigux/validate-phase8.py`
 - `scripts/zigux/validate-phase9.py`
+- `scripts/zigux/validate-phase10.py`
 - `scripts/zigux/validate-phase10-closure.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
@@ -110,3 +111,4 @@ Guidance
 Phase 10 guidance
 - keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig` and the three manifest-backed survey records instead of treating individual virtio starter files as independent closure signals
 - if the Phase 10 evidence bundle changes, update `zigux/tests/phase10_closure_manifest.json` and `Documentation/zigux/phase10-closure-evidence.md` together so the shared closure gate stays truthful about what is implemented versus still survey-backed
+- keep `scripts/zigux/validate-phase10.py` aligned with `zigux/tests/phase10_virtio_input_manifest.json` and `zigux/tests/phase10_virtio_input_survey.zig` so the registration-preflight helper stays the only ready-next step and the registration-lifecycle blocker stays explicit
