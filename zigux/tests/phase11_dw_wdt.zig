@@ -204,6 +204,47 @@ test "phase11 dw_wdt registration handoff imports running state before registrat
     try std.testing.expect(handoff.register_device_requested);
 }
 
+test "phase11 dw_wdt platform resource preflight keeps clock choice and optional resources reviewable" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const preflight = watchdog.platformResourcePreflightSummary(.{
+        .timer_clock_selection = .named_tclk,
+        .has_apb_clock = true,
+        .has_pretimeout_irq = true,
+    });
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", preflight.anchor);
+    try std.testing.expectEqual(dw_wdt.TimerClockSelection.named_tclk, preflight.timer_clock_selection);
+    try std.testing.expectEqual(@as(u32, 65_536), preflight.timer_clock_rate_hz);
+    try std.testing.expect(preflight.timer_clock_ready);
+    try std.testing.expect(preflight.apb_clock_optional);
+    try std.testing.expect(preflight.apb_clock_present);
+    try std.testing.expect(preflight.reset_control_optional);
+    try std.testing.expect(preflight.reset_control_shared);
+    try std.testing.expect(preflight.reset_control_available);
+    try std.testing.expect(preflight.pretimeout_irq_optional);
+    try std.testing.expect(preflight.pretimeout_irq_present);
+    try std.testing.expect(preflight.pretimeout_irq_shared_rising);
+}
+
+test "phase11 dw_wdt platform resource preflight records fallback timer clock and absent optional resources" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(32_768, false);
+    const preflight = watchdog.platformResourcePreflightSummary(.{
+        .timer_clock_selection = .unnamed_default,
+        .has_apb_clock = false,
+        .has_pretimeout_irq = false,
+    });
+    try std.testing.expectEqual(dw_wdt.TimerClockSelection.unnamed_default, preflight.timer_clock_selection);
+    try std.testing.expectEqual(@as(u32, 32_768), preflight.timer_clock_rate_hz);
+    try std.testing.expect(preflight.timer_clock_ready);
+    try std.testing.expect(preflight.apb_clock_optional);
+    try std.testing.expect(!preflight.apb_clock_present);
+    try std.testing.expect(preflight.reset_control_optional);
+    try std.testing.expect(preflight.reset_control_shared);
+    try std.testing.expect(!preflight.reset_control_available);
+    try std.testing.expect(preflight.pretimeout_irq_optional);
+    try std.testing.expect(!preflight.pretimeout_irq_present);
+    try std.testing.expect(!preflight.pretimeout_irq_shared_rising);
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
