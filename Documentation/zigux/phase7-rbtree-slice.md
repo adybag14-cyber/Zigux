@@ -61,6 +61,7 @@ The current starter slice covers:
 - `rb_find()` via `find()`
 - `rb_find_first()` via `findFirst()`
 - `rb_next_match()` via `nextMatch()`
+- duplicate-range iterator helper via `iterateMatches()`
 - `rb_find_add()` via `findAdd()`
 - `rb_erase()` via `erase()`
 - `rb_erase_init()`-style detached-node reset via `eraseInit()`
@@ -77,7 +78,7 @@ The current tests check:
 - committed C-vs-Zig parity for ordered insert, standalone erase traversal, erase-plus-replace traversal, reverse traversal, duplicate-range lookup order, and postorder traversal
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
-- duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
+- duplicate-key lookup ranges via `findFirst()`, `nextMatch()`, and `iterateMatches()`
 - duplicate-aware find-or-insert behavior via `findAdd()`
 - erase-and-replace consistency after structural updates
 - erase-and-detach reuse semantics via `eraseInit()`
