@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
-- scope: lifecycle starter, bitmap range mutation, ordered sparse-bit replay, copy behavior, bounded differential coverage, dedicated Phase 9 test wiring, and lane-local manifest closure only
+- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 test wiring, and lane-local manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -26,12 +26,12 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 
 - module descriptor metadata naming the `lib/test_bitmap.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
-- a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, ordered `nthSetBit()` sparse replay, `copyFrom`, source-lifecycle guard behavior, and a direct post-selftest mutation replay proof that stays reviewable before exit
+- a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, `copyFrom`, source-lifecycle guard behavior, and a direct post-selftest mutation replay proof that stays reviewable before exit
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, pins the full `first_set`, `first_zero`, `weight`, and `nbits` handoff summary, and emits both waiting and released shared runtime-loader request shapes for the no-substrate path without claiming a real module loader
 - a shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig` that now consumes the bitmap handoff shape, allocator posture, and staged entry or exit symbols without claiming live execution
-- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate, including direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs
 
 ## Non-goals
 
