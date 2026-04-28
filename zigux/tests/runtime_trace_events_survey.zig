@@ -143,6 +143,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-substrate-handoff")) {
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "loadable module entry point") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime task ownership") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling and event-loop substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "thread creation") != null);
@@ -207,6 +208,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling-backed wake or dispatch behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "module entry") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tracepoint-registration lifecycle wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md") != null);
@@ -225,6 +227,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "real kernel thread scheduling or timeout behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "Documentation/zigux/freeze-map.md") != null);
