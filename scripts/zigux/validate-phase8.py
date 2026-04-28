@@ -82,7 +82,13 @@ required_script_readme_markers = [
     "phase8_build.zig",
     "phase8-libbpf-segment-survey.md",
     "cpu_mask.zig",
+    "logging.zig",
+    "pin_path.zig",
+    "file_path_handle_bridge.zig",
+    "phase8_file_path_handle_bridge.zig",
     "type_names.zig",
+    "file-path-and-handle-bridge",
+    "perf-buffer-online-cpu-routing",
 ]
 
 required_tests_readme_markers = [
