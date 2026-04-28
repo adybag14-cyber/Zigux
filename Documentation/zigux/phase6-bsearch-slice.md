@@ -36,6 +36,8 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 4. replay the representative external C-vs-Zig parity spot check when portability-sensitive behavior is under review
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
+- `zigux/tests/phase6_bsearch_c_parity.zig`
+- `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
 
 ## Current parity surface
 
