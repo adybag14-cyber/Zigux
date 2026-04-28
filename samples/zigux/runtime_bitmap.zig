@@ -133,6 +133,17 @@ pub const RuntimeBitmapSample = struct {
         return bitmap_view.testBit(view, bit);
     }
 
+    pub fn nthSetBit(self: *const Self, ordinal: u32) ?u32 {
+        var seen: u32 = 0;
+        var bit: u32 = 0;
+        while (bit < bitmap_nbits) : (bit += 1) {
+            if (!self.isSet(bit)) continue;
+            if (seen == ordinal) return bit;
+            seen += 1;
+        }
+        return null;
+    }
+
     pub fn summary(self: *const Self) RuntimeBitmapSummary {
         const view = bitmap_view.viewFromWords(self.words[0..], bitmap_nbits);
         const bounded = bitmap_view.summarize(view);
@@ -183,6 +194,17 @@ test "runtime bitmap sample keeps bounded view summaries stable" {
     try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
     try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+}
+
+test "runtime bitmap sample exposes ordered set-bit replay for sparse populations" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 10, 20, 30, 40, 50, 60, 80, 123 });
+
+    const expected = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
+    for (expected, 0..) |bit, index| {
+        try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
+    }
+    try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
 }
 
 test "runtime bitmap sample selftest keeps the bounded review contract explicit" {
