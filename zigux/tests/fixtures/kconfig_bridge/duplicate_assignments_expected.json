@@ -1,0 +1,1 @@
+{"counts":{"set":2,"unset":1},"entries":[{"name":"CONFIG_ALPHA","kind":"tristate","value":"m"},{"name":"CONFIG_BETA","kind":"tristate","value":"y"},{"name":"CONFIG_COUNT","kind":"unset","value":"n"}]}
