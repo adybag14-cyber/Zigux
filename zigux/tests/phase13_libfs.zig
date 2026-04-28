@@ -300,6 +300,22 @@ test "phase13 libfs transaction staging planner rejects oversize, duplicate writ
     try std.testing.expectError(error.TransactionTooLarge, libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1));
 }
 
+test "phase13 libfs transaction planners keep the get-versus-set boundary explicit at page size" {
+    const max_get = libfs.LibFsHelperLab.simpleTransactionGetPlan(false, libfs.simple_transaction_limit - 1, true, 0);
+    try std.testing.expectEqual(libfs.TransactionAcquireMode.ready, max_get.mode);
+    try std.testing.expectEqual(libfs.simple_transaction_limit - 1, max_get.requested_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit - 1, max_get.copied_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, max_get.staging_capacity);
+    try std.testing.expect(max_get.reserves_private_data);
+    try std.testing.expect(max_get.requires_release);
+    try std.testing.expect(!max_get.keeps_private_data_on_failure);
+
+    const max_set = try libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, max_set.published_size);
+    try std.testing.expect(max_set.uses_release_barrier);
+    try std.testing.expect(max_set.becomes_readable);
+}
+
 test "phase13 libfs transaction read planning stays pure around private-data presence" {
     const closed = libfs.LibFsHelperLab.simpleTransactionReadPlan(false, 64);
     try std.testing.expectEqualStrings("fs/libfs.c", closed.anchor);
