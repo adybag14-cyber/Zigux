@@ -264,3 +264,27 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
 }
+
+test "runtime atomic64 diff gate keeps lifecycle transitions single-shot" {
+    var cold_module = sample.RuntimeAtomic64Sample{};
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.exit());
+
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(7);
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init(11));
+
+    _ = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init(13));
+
+    try module.exit();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init(17));
+    try std.testing.expectEqual(@as(i64, 7), module.snapshotCounter());
+}
