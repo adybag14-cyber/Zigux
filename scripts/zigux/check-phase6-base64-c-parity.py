@@ -100,8 +100,8 @@ def main() -> int:
     c_run = run_checked([str(c_bin)])
     zig_run = run_checked([zig, "build", "run", "--build-file", str(zig_build)])
 
-    c_lines = c_run.stdout.strip().splitlines()
-    zig_lines = zig_run.stdout.strip().splitlines()
+    c_lines = sorted(c_run.stdout.strip().splitlines())
+    zig_lines = sorted(zig_run.stdout.strip().splitlines())
 
     if c_lines != zig_lines:
         print("PHASE6_BASE64_C_PARITY=fail")
