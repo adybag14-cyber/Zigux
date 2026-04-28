@@ -76,6 +76,7 @@ RELEASE_MARKERS = [
     "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
+    "PHASE14_COMPILE_SHARD_COUNT=5",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "scripts/zigux/validate-phase14.py",
@@ -116,6 +117,39 @@ EXPECTED_ANCHOR_LANES = [
     ("P14-L11", "net/core/skbuff.c"),
     ("P14-L06", "kernel/trace/ring_buffer.c"),
     ("P14-L14", "kernel/rcu/tree.c"),
+]
+
+EXPECTED_COMPILE_SHARDS = [
+    {
+        "artifact_name": "phase14-workqueue-bridge-tests",
+        "root_source_file": "phase14_workqueue_bridge.zig",
+        "bridge_import": "workqueue_bridge",
+        "bridge_source_file": "../../kernel/workqueue_bridge.zig",
+    },
+    {
+        "artifact_name": "phase14-skbuff-bridge-tests",
+        "root_source_file": "phase14_skbuff_bridge.zig",
+        "bridge_import": "skbuff_bridge",
+        "bridge_source_file": "../../net/core/skbuff_bridge.zig",
+    },
+    {
+        "artifact_name": "phase14-ring-buffer-survey-tests",
+        "root_source_file": "phase14_ring_buffer_survey.zig",
+        "bridge_import": "",
+        "bridge_source_file": "",
+    },
+    {
+        "artifact_name": "phase14-rcu-tree-survey-tests",
+        "root_source_file": "phase14_rcu_tree_survey.zig",
+        "bridge_import": "",
+        "bridge_source_file": "",
+    },
+    {
+        "artifact_name": "phase14-end-to-end-smoke-tests",
+        "root_source_file": "phase14_end_to_end_smoke_survey.zig",
+        "bridge_import": "",
+        "bridge_source_file": "",
+    },
 ]
 
 
@@ -221,6 +255,10 @@ expected_smoke_shard_commands = [
 if smoke_shard_commands != expected_smoke_shard_commands:
     missing.append("manifest:smoke_shard_commands")
 
+compile_shards = manifest.get("compile_shards")
+if compile_shards != EXPECTED_COMPILE_SHARDS:
+    missing.append("manifest:compile_shards")
+
 summary = manifest.get("survey_summary")
 if not isinstance(summary, dict):
     missing.append("manifest:survey_summary")
@@ -254,6 +292,19 @@ if build_names != EXPECTED_BUILD_TEST_NAMES:
 depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
 if len(depend_steps) != 5:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
+for shard in EXPECTED_COMPILE_SHARDS:
+    artifact_name = shard["artifact_name"]
+    root_source_file = shard["root_source_file"]
+    bridge_import = shard["bridge_import"]
+    bridge_source_file = shard["bridge_source_file"]
+    if artifact_name not in build_text:
+        missing.append(f"build:compile_shard:artifact_name:{artifact_name}")
+    if root_source_file not in build_text:
+        missing.append(f"build:compile_shard:root_source_file:{root_source_file}")
+    if bridge_import and bridge_import not in build_text:
+        missing.append(f"build:compile_shard:bridge_import:{bridge_import}")
+    if bridge_source_file and bridge_source_file not in build_text:
+        missing.append(f"build:compile_shard:bridge_source_file:{bridge_source_file}")
 
 for manifest_path, lane_key, anchor in [
     ("zigux/tests/phase14_workqueue_bridge_manifest.json", "P14-L01", "kernel/workqueue.c"),
@@ -268,6 +319,28 @@ for manifest_path, lane_key, anchor in [
         missing.append(f"{manifest_path}:lane_key")
     if anchor_manifest.get("anchor") != anchor:
         missing.append(f"{manifest_path}:anchor")
+    if isinstance(anchor_packets, list):
+        matching_shared_packet = next(
+            (
+                packet
+                for packet in anchor_packets
+                if isinstance(packet, dict) and packet.get("manifest_path") == manifest_path
+            ),
+            None,
+        )
+        if isinstance(matching_shared_packet, dict) and matching_shared_packet.get("surveyed_commit") != anchor_manifest.get("surveyed_commit"):
+            missing.append(f"{manifest_path}:surveyed_commit")
+        if isinstance(matching_shared_packet, dict):
+            ready_next_gap = matching_shared_packet.get("ready_next_gap")
+            if isinstance(ready_next_gap, str) and ready_next_gap:
+                if not any(
+                    isinstance(gap, dict)
+                    and gap.get("id") == ready_next_gap
+                    and gap.get("status") == "ready_next"
+                    for gap in anchor_manifest.get("gaps", [])
+                    if isinstance(anchor_manifest.get("gaps"), list)
+                ):
+                    missing.append(f"{manifest_path}:ready_next_gap")
 
 if missing:
     print("PHASE14_VALIDATION=fail")
