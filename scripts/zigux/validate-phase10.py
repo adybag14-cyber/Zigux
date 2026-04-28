@@ -53,7 +53,7 @@ SCRIPT_README_MARKERS = [
     "phase10-virtio-input-slice.md",
     "phase10-virtio-input-survey.md",
     "blocked registration-lifecycle contract",
-    "registration-preflight helper remains the single ready-next step",
+    "queue-callback preflight helper remains the single ready-next step",
 ]
 
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -64,7 +64,7 @@ TESTS_README_MARKERS = [
     "scripts/zigux/validate-phase10.py",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_input_survey.zig",
-    "registration-preflight helper",
+    "queue-callback preflight helper",
     "registration-lifecycle blocker",
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
 ]
@@ -79,35 +79,38 @@ DOC_README_MARKERS = [
     "make -C zigux phase10-validate",
     "phase10-virtio-input-slice.md",
     "phase10-virtio-input-survey.md",
-    "registration-preflight helper",
+    "queue-callback preflight helper",
     "registration-lifecycle blocker",
 ]
 
 SLICE_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
     "make -C zigux phase10-validate",
-    "registration-preflight helper",
-    "input-device registration work",
+    "registration-preflight summary",
+    "queue-callback preflight helper",
 ]
 
 SURVEY_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
     "make -C zigux phase10-validate",
     "phase10-virtio-input-registration-preflight-helper",
+    "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-registration-lifecycle",
 ]
 
 MODULE_SLICE_MARKERS = [
-    "registration-preflight helper",
+    "queue-callback preflight helper",
     "input core capability registration",
 ]
 
 HELPER_MARKERS = [
     "pub const MultitouchSlotPlanSummary = struct {",
     "pub const TeardownPlanSummary = struct {",
+    "pub const RegistrationPreflightSummary = struct {",
     "pub fn capabilitySetupSummary(self: *const Self) !CapabilitySetupSummary {",
     "pub fn multitouchSlotPlanSummary(self: *const Self) !MultitouchSlotPlanSummary {",
     "pub fn teardownPlanSummary(self: *const Self) TeardownPlanSummary {",
+    "pub fn registrationPreflightSummary(self: *const Self) !RegistrationPreflightSummary {",
     "pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {",
     "pub fn reset(self: *Self) void {",
 ]
@@ -116,6 +119,8 @@ TEST_MARKERS = [
     'test "phase10 virtio input stages capability setup from config bitmaps and ABS metadata" {',
     'test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {',
     'test "phase10 virtio input teardown summary keeps reset cleanup and identity preservation explicit" {',
+    'test "phase10 virtio input records registration preflight once identity and capability intent are staged" {',
+    'test "phase10 virtio input registration preflight requires multitouch slot intent when multitouch is enabled" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
 ]
 
@@ -126,6 +131,7 @@ SURVEY_TEST_MARKERS = [
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-teardown-observation-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-preflight-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
 
@@ -217,7 +223,8 @@ else:
         "phase10-virtio-input-capability-setup-helper": "starter_landed",
         "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
         "phase10-virtio-input-teardown-observation-helper": "starter_landed",
-        "phase10-virtio-input-registration-preflight-helper": "ready_next",
+        "phase10-virtio-input-registration-preflight-helper": "starter_landed",
+        "phase10-virtio-input-queue-callback-preflight-helper": "ready_next",
         "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
     }
     starter_count = 0
@@ -238,7 +245,7 @@ else:
         missing.append(f"manifest:ready_next_count={ready_count}")
     if blocked_count != 1:
         missing.append(f"manifest:blocked_count={blocked_count}")
-    if starter_count < 11:
+    if starter_count < 12:
         missing.append(f"manifest:starter_count={starter_count}")
 
     for gap_id, status in expected_statuses.items():
@@ -249,13 +256,21 @@ else:
         if gap.get("status") != status:
             missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
 
-    ready_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
+    preflight_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
+    if preflight_gap is not None:
+        why_now = str(preflight_gap.get("why_now", ""))
+        if "slot-init intent" not in why_now:
+            missing.append("manifest:preflight_gap:slot_init_intent")
+        if "input_register_device()" not in why_now:
+            missing.append("manifest:preflight_gap:input_register_device()")
+
+    ready_gap = find_gap(manifest, "phase10-virtio-input-queue-callback-preflight-helper")
     if ready_gap is not None:
         why_now = str(ready_gap.get("why_now", ""))
-        if "ABS_MT_SLOT" not in why_now:
-            missing.append("manifest:ready_gap:ABS_MT_SLOT")
-        if "input_register_device()" not in why_now:
-            missing.append("manifest:ready_gap:input_register_device()")
+        if "event queue is filled" not in why_now:
+            missing.append("manifest:ready_gap:event_queue")
+        if "status queue is configured" not in why_now:
+            missing.append("manifest:ready_gap:status_queue")
 
     blocked_gap = find_gap(manifest, "phase10-virtio-input-registration-lifecycle")
     if blocked_gap is not None:
