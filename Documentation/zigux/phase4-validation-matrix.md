@@ -7,6 +7,7 @@ This document records the live Phase 4 differential-validation ownership and rep
 - `PHASE4_STATUS=differential_validation_matrix_landed`
 - scope: keep the currently shipped Phase 4 rollback-readiness gates reviewable, name the rollback owners for each bounded gate, and make the current CI and local replay paths explicit
 - current repo reality:
+  - `scripts/zigux/artifact_diff.py`
   - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/bitmap_diff.zig`
   - `zigux/tests/phase4_build.zig`
@@ -28,6 +29,15 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 Without that record, Phase 4 validation existed in code but not yet as a product-facing ownership note.
 
 ## Gate Ownership
+
+### `scripts/zigux/artifact_diff.py --self-test`
+
+- anchor: `scripts/zigux/` host-side diff and layout tooling
+- phase bucket: `Phase 4 deterministic artifact-diff preflight for host-side tools`
+- owner: `Validation and Perf Team`
+- rollback owner: `Validation and Perf Team`
+- fallback path: keep the shared self-test wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the host-side diff tooling is aligned
+- perf threshold status: deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload
 
 ### `zigux/tests/runtime_atomic64_diff.zig`
 
@@ -53,6 +63,7 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 
 | lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | reversible delivery evidence | threshold posture |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `scripts/zigux/artifact_diff.py --self-test` | deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the shared self-test before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` replay when the helper changes | `scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks | `deterministic_preflight_required_for_host_side_diff_tools` |
 | `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 add, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay | `ABI and Runtime Team` | `ABI and Runtime Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, which call `make -C zigux phase4-validate` then `make -C zigux phase4-test` in `.github/workflows/zigux-bootstrap.yml` | `make -C zigux phase4-validate`, then `make -C zigux phase4-test`, which runs the shared `phase4-runtime-atomic64-diff-tests` entry in `zigux/tests/phase4_build.zig`; an isolated `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` replay remains optional when that dedicated step exists locally | `lib/atomic64_test.c` stays the source of truth, and removing `runtime_atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move while the existing Phase 9 runtime atomic64 starter remains the forward path | `threshold_pending_until_runtime_atomic64_scope_widens` |
 | `zigux/tests/bitmap_diff.zig` | bounded bitmap range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, which call `make -C zigux phase4-validate` then `make -C zigux phase4-test` in `.github/workflows/zigux-bootstrap.yml` | `make -C zigux phase4-validate`, then `make -C zigux phase4-test`, which runs the shared `phase4-bitmap-diff-tests` entry in `zigux/tests/phase4_build.zig` | `lib/test_bitmap.c` stays the source of truth, and removing `bitmap_diff.zig` from the shared `phase4_build.zig` entrypoint falls back to the existing broad bitmap parity checks | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
 
@@ -68,6 +79,7 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 
 - Phase 4 remains a rollback-readiness lane first, not a performance-claim lane
 - any future hard timing threshold must name the benchmark command, acceptable limit, owner, and rollback owner in this record before the lane claims perf coverage
+- if the shared `artifact_diff.py --self-test` surface changes, update this matrix in the same change so the roadmap's deterministic host-tool preflight stays explicit
 - any future broad `atomic64_diff.zig` return should replace the current runtime atomic64 path here instead of sitting beside it as a duplicate gate
 - if either gate regresses, the rollback owner must keep the current C anchor and the existing Phase 4 documentation truthful while the Zig replay gate is repaired or removed from the shared entrypoint
 - if the workflow step names or shared `phase4_build.zig` test names change, update this matrix in the same change so the local lab and CI replay paths stay measurable instead of falling back to generic wording
