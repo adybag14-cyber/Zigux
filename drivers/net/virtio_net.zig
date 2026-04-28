@@ -40,6 +40,7 @@ pub const RecoveryState = enum {
 
 pub const QueueRecoveryAction = enum {
     none,
+    clamp_queue_pairs,
     degrade_to_single_queue,
     renegotiate_features,
     require_reset,
@@ -301,7 +302,7 @@ pub const VirtioNetProbeLab = struct {
             .reset_required => .require_reset,
             .renegotiate_features => .renegotiate_features,
             .stable => if (planned_queue_pairs < requested_queue_pairs)
-                .degrade_to_single_queue
+                if (planned_queue_pairs <= 1) .degrade_to_single_queue else .clamp_queue_pairs
             else
                 .none,
         };
