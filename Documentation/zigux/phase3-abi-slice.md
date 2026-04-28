@@ -16,7 +16,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
-- `PHASE3_MMIO_SCOPE=range-read32-write32-plus-scoped-read32-write32`
+- `PHASE3_MMIO_SCOPE=range-read32-write32`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
