@@ -40,7 +40,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
-- lane key: `P14-L14`
+- lane key: `P14-L16`
 - surveyed commit: `4e45e5a392cca82429228d42d89c480fd413042b`
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
 - retained-in-C boundary: grace-period sequence publication, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, and memory-ordering guarantees.
@@ -55,7 +55,7 @@ The three anchor packets above are also carried together by the Phase 14 shared 
 - shared replay: `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - convenience target: `make -C zigux phase14`
 
-That shared packet matters because it proves the ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, ready-next versus blocked posture, and stay-in-C decisions instead of drifting independently.
+That shared packet matters because it proves the ring-buffer, skbuff, and RCU anchor notes still agree on their exact surveyed commits, lane keys, ready-next versus blocked posture, and stay-in-C decisions instead of drifting independently.
 
 ## What this lane does not claim
 
