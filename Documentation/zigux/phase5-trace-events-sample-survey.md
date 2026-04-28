@@ -40,7 +40,7 @@ The repo now carries that bounded sample in `samples/zigux/trace_events_sample.z
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
-- it models only the bounded array payload, selected string, public main-path and callback-path iteration cues, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one balanced register-or-unregister callback idiom in memory
+- it models only the bounded array payload, selected string, public main-path and callback-path iteration cues, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one single-live register-then-unregister callback idiom in memory
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready trace-events module
@@ -57,6 +57,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 - the replay records six main-thread event calls and two function-callback event calls for a total of eight bounded tracepoint-family calls
 - the replay summary keeps the exact `checked_focus` order `payload_shape`, `string_selection`, `formatted_message`, `conditional_event_families`, `function_callback_registration`, and `ownership_and_lifetime` so the approved review surface stays visible without reading private sample state
 - the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes
+- the in-memory callback lane rejects a second `registerFunctionCallback()` call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero
 - after `exit()` the sample rejects later `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` calls
 
 ## Contributor refresh prompts for the landed sample
@@ -69,7 +70,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - do the sample self-check and the manifest-backed exact-check packet still keep the full modulo-selected string cycle explicit across counts `0` through `4` instead of only one reviewed string case?
 - do the sample self-check and `zigux/tests/phase5_trace_events_sample.zig` still assert the exact `checked_focus` list and order instead of only its length?
 - does the in-memory replay still keep the array payload, selected string, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
-- does function-callback replay stay a balanced register-then-unregister idiom rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
+- does function-callback replay stay a single-live register-then-unregister idiom, including rejection of a second `registerFunctionCallback()` call while one callback is already registered, rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - after `exit()`, do `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` all stay rejected so the teardown boundary is fully reviewable instead of only partially implied?
 - do the sample-backed survey note and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact replay contract?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
