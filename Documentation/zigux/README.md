@@ -67,6 +67,7 @@ Phase 7 notes
 - `Documentation/zigux/phase7-rbtree-slice.md`
 - `zigux/tests/phase7_build.zig` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together, so Phase 7 helper work should stay reviewable through that shared lane instead of adding ad hoc per-slice CI steps.
 - the Phase 7 helper bundle is now parked end-to-end: cmdline, argv-split, rbtree, and the bounded string-helpers slice all carry their current dedicated proofs through the shared `phase7_build.zig` gate, so future work here should reopen only for a concrete newly observed parity gap rather than for more speculative fixture expansion.
+- the Phase 7 string-helpers slice is intentionally helper-only under `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`; current `master` ships no `samples/zigux/*string*` reference sample, so sample-root follow-up should not treat that absence as a missing Phase 5 port.
 
 Phase 8 notes
 - `Documentation/zigux/phase8-exec-cmd-slice.md`
