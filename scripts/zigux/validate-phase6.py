@@ -114,7 +114,9 @@ required_doc_readme_markers = [
     'zigux/tests/phase6_build.zig',
     'make -C zigux phase6',
     'make -C zigux phase6-validate',
+    'make -C zigux phase6-base64-perf',
     'make -C zigux phase6-hexdump-perf',
+    'external C-vs-Zig fixture',
     'python3 scripts/zigux/validate-phase6.py',
 ]
 
