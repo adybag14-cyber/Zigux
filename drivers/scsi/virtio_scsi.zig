@@ -132,12 +132,26 @@ pub const HostLimitSummary = struct {
     nr_hw_queues: u16,
 };
 
+pub const IoQueueMapSummary = struct {
+    anchor: []const u8,
+    nr_maps: u16,
+    default_queue_count: u16,
+    read_queue_count: u16,
+    poll_queue_count: u16,
+    default_queue_offset: u16,
+    read_queue_offset: u16,
+    poll_queue_offset: u16,
+    default_queues_use_virtio_affinity: bool,
+    poll_queues_use_blk_mq_mapping: bool,
+};
+
 pub const VirtioScsiQueueLab = struct {
     const Self = @This();
 
     last_layout: ?QueueLayoutSummary = null,
     last_probe_snapshot: ?ProbeSnapshot = null,
     last_host_limit_summary: ?HostLimitSummary = null,
+    last_io_queue_map_summary: ?IoQueueMapSummary = null,
     frozen_layout: ?QueueLayoutSummary = null,
     transport_frozen: bool = false,
     recovery_generation: u16 = 0,
@@ -267,6 +281,32 @@ pub const VirtioScsiQueueLab = struct {
         return summary;
     }
 
+    pub fn captureIoQueueMapSummary(
+        self: *Self,
+        request_queues: u16,
+        requested_poll_queues: u16,
+    ) !IoQueueMapSummary {
+        const layout = try self.planQueueLayout(request_queues, requested_poll_queues);
+        const default_queue_offset: u16 = 0;
+        const read_queue_offset = layout.default_queues;
+        const poll_queue_offset = layout.default_queues;
+
+        const summary = IoQueueMapSummary{
+            .anchor = descriptor().anchor,
+            .nr_maps = if (layout.poll_queues == 0) 1 else 3,
+            .default_queue_count = layout.default_queues,
+            .read_queue_count = layout.read_queues,
+            .poll_queue_count = layout.poll_queues,
+            .default_queue_offset = default_queue_offset,
+            .read_queue_offset = read_queue_offset,
+            .poll_queue_offset = poll_queue_offset,
+            .default_queues_use_virtio_affinity = layout.default_queues > 0,
+            .poll_queues_use_blk_mq_mapping = layout.poll_queues > 0,
+        };
+        self.last_io_queue_map_summary = summary;
+        return summary;
+    }
+
     pub fn freezeForTransportReset(self: *Self) !RecoverySummary {
         if (self.transport_frozen) {
             return error.TransportAlreadyFrozen;
@@ -324,6 +364,7 @@ pub const VirtioScsiQueueLab = struct {
         self.last_layout = null;
         self.last_probe_snapshot = null;
         self.last_host_limit_summary = null;
+        self.last_io_queue_map_summary = null;
         self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
 
         return .{
@@ -349,4 +390,4 @@ pub const VirtioScsiQueueLab = struct {
         const value = @as(u64, lhs) + rhs;
         return std.math.cast(u32, value) orelse error.QueueCountOverflow;
     }
-};
+}
