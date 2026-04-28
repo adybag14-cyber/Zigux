@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "ff0895938d77dec1332e24475f4f1bbe0fe9ba7d",
+  "surveyed_commit": "19eab53eea820198e7f14d9a44e64db35276a7f4",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -74,7 +74,7 @@
       "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The landed queue-recovery follow-up now records one explicit queue recovery action alongside the probe snapshot so `virtnet_probe()` planning can distinguish stable single-queue fallback, feature renegotiation, and reset-required handling before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "The landed queue-recovery follow-up now records one explicit queue recovery action alongside the probe snapshot so `virtnet_probe()` planning can distinguish bounded queue-pair clamps, stable single-queue fallback, feature renegotiation, and reset-required handling before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-hdr-len-followup",
@@ -89,6 +89,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
       "why_now": "The new queue-recovery summary freezes the last in-memory queue topology and recovery posture, blocks fresh probe snapshots while recovery is in flight, and clears stale planning state after restore so the lane can replay reset or renegotiation intent without claiming DMA-backed queue setup."
+    },
+    {
+      "id": "phase12-virtio-net-queue-resume-summary",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The new queue-resume summary keeps one bounded recovery-facing handoff after freeze by reporting whether the remembered queue plan can resume immediately, needs feature renegotiation, or needs reset, plus whether data queues, the control queue, and RSS state must be rebuilt before any live queue activation."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
