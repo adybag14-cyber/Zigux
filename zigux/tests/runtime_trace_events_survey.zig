@@ -211,6 +211,9 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "module entry") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tracepoint-registration lifecycle wiring") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/zigux/runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "trace-events loader test target") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "partial loader or scheduler-facing substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Study / Boundary Only") != null);
@@ -228,6 +231,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "real kernel thread scheduling or timeout behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "samples/zigux/runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "no trace-events loader target") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "Documentation/zigux/freeze-map.md") != null);
