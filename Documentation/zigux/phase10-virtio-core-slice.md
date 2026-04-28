@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-lab-starter`
-- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, registration identity bookkeeping, config-change and config-generation bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
+- scope: status sequencing, bounded feature negotiation, queue callback bookkeeping, registration identity bookkeeping, config-change, driver-binding, and config-generation bookkeeping, dedicated Phase 10 test wiring, and a lab-only review note only
 - product boundary:
   - `drivers/virtio/virtio.zig`
   - `zigux/tests/phase10_virtio_core.zig`
@@ -17,7 +17,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 The Phase 10 roadmap explicitly names `drivers/virtio/virtio.c` as the first virtio-core anchor and calls for lab-only validation before any deeper queue, transport, or MMIO work.
 
-This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, registration identity bookkeeping, transport refusal handling, config-change bookkeeping, and one bounded config-generation observation surface.
+This lane started from an empty `drivers/virtio/*.zig` footing. The live repo now carries the smallest honest core step: a lab-only state model for reset, `ACKNOWLEDGE`, `DRIVER`, `FEATURES_OK`, and `DRIVER_OK` sequencing plus bounded offered-feature checks, registration identity bookkeeping, transport refusal handling, config-change bookkeeping, the `drv && drv->config_changed` driver-binding branch, and one bounded config-generation observation surface.
 
 ## Landed starter surface
 
@@ -32,6 +32,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
 - registration identity bookkeeping for the `register_virtio_device()` and `virtio_uevent()` path, including the bounded `virtio%u` device name and modalias string
 - config-change enable, disable, pending, flush, and reset bookkeeping that stays entirely in memory while making the later `virtio_config_enable()` and `virtio_config_disable()` review surface concrete
+- driver-binding bookkeeping that records whether the bound driver exposes `config_changed` before the lab helper reports in-memory delivery
 - bounded config-generation summaries that record generation, last observed generation, and pending observation state without pretending to read transport MMIO registers
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
