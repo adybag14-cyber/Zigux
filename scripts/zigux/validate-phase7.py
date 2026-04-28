@@ -132,21 +132,21 @@ required_doc_readme_markers = [
 ]
 
 required_phase7_build_markers = [
+    "fn createImportedTestRoot(",
+    "fn createStandaloneTestRoot(",
+    "fn addTestRun(",
     "../../lib/string_helpers.zig",
     "../../lib/cmdline.zig",
     "../../lib/argv_split.zig",
     "../../lib/rbtree.zig",
     "phase7_string_helpers.zig",
-    'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
     "phase7_cmdline.zig",
-    'cmdline_root_module.addImport("cmdline", cmdline_module);',
     "phase7_argv_split.zig",
-    'argv_split_root_module.addImport("argv_split", argv_split_module);',
     "phase7_argv_split_survey.zig",
-    "Survey tests stay self-contained and read their manifest JSON from repo-root paths.",
     "phase7_rbtree.zig",
-    'rbtree_root_module.addImport("rbtree", rbtree_module);',
     "phase7_rbtree_survey.zig",
+    'root_module.addImport(import_name, imported_module);',
+    "Helper tests keep the shipped lib imports explicit, while survey tests stay standalone.",
     "phase7-string-helpers-tests",
     "phase7-cmdline-tests",
     "phase7-argv-split-tests",
@@ -185,11 +185,11 @@ expected_phase7_build_paths = {
     "phase7_rbtree_survey.zig",
 }
 
-expected_phase7_import_lines = {
-    'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
-    'cmdline_root_module.addImport("cmdline", cmdline_module);',
-    'argv_split_root_module.addImport("argv_split", argv_split_module);',
-    'rbtree_root_module.addImport("rbtree", rbtree_module);',
+expected_phase7_import_calls = {
+    "string_helpers": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_string_helpers\\.zig",\s*"string_helpers",\s*"\.\./\.\./lib/string_helpers\\.zig",',
+    "cmdline": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_cmdline\\.zig",\s*"cmdline",\s*"\.\./\.\./lib/cmdline\\.zig",',
+    "argv_split": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_argv_split\\.zig",\s*"argv_split",\s*"\.\./\.\./lib/argv_split\\.zig",',
+    "rbtree": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\\.zig",\s*"rbtree",\s*"\.\./\.\./lib/rbtree\\.zig",',
 }
 
 expected_phase7_run_labels = {
@@ -259,12 +259,16 @@ if missing_build_inputs:
     print("PHASE7_BUILD_INPUTS_MISSING_END")
     sys.exit(1)
 
-missing_imports = sorted(line for line in expected_phase7_import_lines if line not in phase7_build)
+missing_imports = sorted(
+    name
+    for name, pattern in expected_phase7_import_calls.items()
+    if not re.search(pattern, phase7_build, re.S)
+)
 if missing_imports:
     print("PHASE7_VALIDATION=fail")
     print("PHASE7_BUILD_IMPORT_DRIFT_START")
-    for line in missing_imports:
-        print(line)
+    for name in missing_imports:
+        print(name)
     print("PHASE7_BUILD_IMPORT_DRIFT_END")
     sys.exit(1)
 
