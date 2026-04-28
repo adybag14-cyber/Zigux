@@ -98,7 +98,7 @@ Unsafe policy:
 - raw pointer and volatile access stay inside `zigux/unsafe/narrow.zig` and `zigux/helpers/mmio.zig`
 - `zigux/unsafe/narrow.zig` now mirrors that boundary with a local `UnsafeScopeTag` for `none`, `volatile_mmio`, and `raw_pointer_bridge`, plus explicit permit helpers and Zig tests
 - new unsafe entry points must be justified and reviewed as boundary expansion
-- focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps panic, allocator, and narrow-unsafe alignment on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
+- focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps panic, allocator, interop-policy unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
 
 Low-level wrapper survey:
 - atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
