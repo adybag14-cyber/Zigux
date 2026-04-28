@@ -47,7 +47,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_embedded_pattern = false;
@@ -63,6 +63,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_snapshot = false;
     var saw_capacity = false;
     var saw_storage_contract = false;
+    var saw_preview_truncation = false;
     var saw_focus_list = false;
     var saw_lifecycle = false;
     var saw_lifecycle_guards = false;
@@ -127,6 +128,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_storage_contract = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "fixed embedded 32-byte ring buffer") != null);
         }
+        if (std.mem.eql(u8, check.id, "preview-truncation")) {
+            saw_preview_truncation = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "length-8 preview yields exactly [2,3,4,5,6,7,8,9]") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "queue length at 10") != null);
+        }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires init before replay") != null);
@@ -160,6 +166,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
+    try std.testing.expect(saw_preview_truncation);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(saw_lifecycle_guards);
@@ -196,6 +203,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wraparound requeue, skip, and peek") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_kretprobe_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "preview truncation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
 
