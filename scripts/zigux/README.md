@@ -140,3 +140,9 @@ Phase 13 flow
 - `make -C zigux phase13-validate` is the fail-fast bundle check for the current shared-helper tranche before the shared Zig replay runs.
 - `make -C zigux phase13` routes through the validator before the shared replay and keeps that same Phase 13 tranche reviewable through one validator-first path instead of ad hoc slice-local commands.
 - the current shared packet now carries four manifest-backed roadmap-anchor surveys, and `Documentation/zigux/phase13-devres-survey.md` plus `zigux/tests/phase13_devres_reviewability.zig` keep the helper-only MMIO or resource-planner surface explicit while still blocking live DMA-backed mappings and scatterlist ownership.
+
+Phase 14 flow
+- `validate-phase14.py` keeps the shared Phase 14 smoke packet aligned before replay by checking `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, and the four anchor-local Phase 14 manifests.
+- `make -C zigux phase14-validate` is the fail-fast validator for that shared Phase 14 smoke packet before the broader replay runs.
+- `make -C zigux phase14-smoke` is the focused smoke-shard replay contract for the shared packet, while `zigux/tests/phase14_build.zig` still carries the broader anchor-local replay bundle.
+- `make -C zigux phase14` and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` keep the same stay-in-C boundary bundle reviewable without implying new workqueue, skbuff, ring-buffer, or RCU bridge delivery.
