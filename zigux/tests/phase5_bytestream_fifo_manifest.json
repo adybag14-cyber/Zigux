@@ -37,6 +37,11 @@
       "expected": "next two bytes drained are 0 and 1, and those same bytes are re-enqueued at the tail"
     },
     {
+      "id": "transfer-count-contract",
+      "kind": "wraparound_replay",
+      "expected": "the initial string copy count is 5, the first drain count is 5, the second drain count is 2, and the requeue count is 2 so the Linux-style kfifo_in and kfifo_out transfer sizes stay explicit in the replay contract"
+    },
+    {
       "id": "skip-and-peek",
       "kind": "queue_state",
       "expected": "skipping the next byte removes 2 and peeking afterward observes 3 without draining it"
