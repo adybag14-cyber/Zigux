@@ -406,6 +406,8 @@ required_doc_markers = [
     'fixdep',
     'sample_multi_target_expected.txt',
     'sample_escaped_space_expected.txt',
+    'sample_concatenated_expected.txt',
+    'sample_output_write_expected.stderr.txt',
     'genksyms',
     'zigux/tests/fixtures/genksyms_bridge/minimal_expected.json',
     'genksyms_crc',
