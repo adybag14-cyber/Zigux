@@ -24,6 +24,29 @@ const Handoff = struct {
     next_step: []const u8,
 };
 
+fn expectTemplateEvidence(
+    io: std.Io,
+    path: []const u8,
+    lane_owner: []const u8,
+    rollback_owner: []const u8,
+) !void {
+    const template_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        path,
+        std.testing.allocator,
+        .limited(12 * 1024),
+    );
+    defer std.testing.allocator.free(template_doc);
+
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "requested decision bucket: `pending_no_request`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "decision record ID: `pending_no_architecture_council_request`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "no Architecture Council approval claim") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, lane_owner) != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, rollback_owner) != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "retired_from_active_discussion") != null);
+    try std.testing.expect(std.mem.indexOf(u8, template_doc, "ownership_or_validation_changed") != null);
+}
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -31,7 +54,10 @@ const Manifest = struct {
     roadmap_requirement: []const u8,
     anchor: []const u8,
     current_approval_state: []const u8,
+    approval_evidence_fields: []const []const u8,
+    approval_evidence_paths: []const []const u8,
     ownership_evidence_fields: []const []const u8,
+    ownership_evidence_paths: []const []const u8,
     trigger_conditions: []const []const u8,
     required_review_packet_fields: []const []const u8,
     reopen_trigger_catalog: []const []const u8,
@@ -72,6 +98,9 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
     try std.testing.expectEqual(@as(usize, 12), manifest.ownership_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.approval_evidence_fields.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.approval_evidence_paths.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
     try std.testing.expectEqual(@as(usize, 19), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
@@ -80,11 +109,17 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
     try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
+    try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
+    try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
+    try std.testing.expectEqualStrings("no Architecture Council approval claim", manifest.approval_evidence_fields[2]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.approval_evidence_paths[0]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.approval_evidence_paths[1]);
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
     try std.testing.expectEqualStrings("retained discussion state", manifest.ownership_evidence_fields[7]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.ownership_evidence_fields[8]);
     try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.ownership_evidence_fields[9]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.ownership_evidence_paths[0]);
     try std.testing.expectEqualStrings("freeze-map list change", manifest.trigger_conditions[0]);
     try std.testing.expectEqualStrings("freeze-map status-bucket change", manifest.trigger_conditions[1]);
     try std.testing.expectEqualStrings("linux anchor path", manifest.required_review_packet_fields[0]);
@@ -131,6 +166,14 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "deep-core blocker posture") != null);
+
+    for (manifest.approval_evidence_paths) |path| {
+        try std.testing.expect(std.mem.startsWith(u8, path, "Documentation/zigux/"));
+    }
+
+    for (manifest.ownership_evidence_paths) |path| {
+        try std.testing.expect(std.mem.startsWith(u8, path, "Documentation/zigux/"));
+    }
 
     var landed_count: usize = 0;
     for (manifest.gaps, 0..) |gap, i| {
@@ -188,6 +231,12 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "retired_from_active_discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "no Architecture Council approval is currently recorded") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "current approval evidence is explicit negative evidence rather than silence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "requested decision bucket: pending_no_request") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "decision record ID: pending_no_architecture_council_request") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "no Architecture Council approval claim") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "current ownership evidence is explicit in both the scorecard and the anchor templates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-evidence-archives/") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "ownership_or_validation_changed") != null);
@@ -219,4 +268,28 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "deep-core blocker posture") != null);
+    try expectTemplateEvidence(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+        "Architecture Council",
+        "Architecture Council + PMO / Release Management",
+    );
+    try expectTemplateEvidence(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+        "Architecture Council",
+        "Architecture Council + Validation and Perf Team",
+    );
+    try expectTemplateEvidence(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+        "ABI and Runtime Team",
+        "Architecture Council + ABI and Runtime Team",
+    );
+    try expectTemplateEvidence(
+        io_instance.io(),
+        "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+        "Shared Subsystems Pod",
+        "Architecture Council + Shared Subsystems Pod",
+    );
 }
