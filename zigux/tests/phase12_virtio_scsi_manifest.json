@@ -33,7 +33,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "The shared Phase 12 build gate now carries both the existing virtio_scsi survey and the queue-layout plus host-limit tests so this complex-driver lane stays reviewable without widening into runtime transport code."
+      "why_now": "The shared Phase 12 build gate now carries both the existing virtio_scsi survey and the queue-layout, host-limit, plus io-queue-map tests so this complex-driver lane stays reviewable without widening into runtime transport code."
     },
     {
       "id": "phase12-make-target",
@@ -68,7 +68,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner, recovery helper, probe snapshot, and host-limit summary against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner, recovery helper, probe snapshot, host-limit summary, and io-queue-map summaries against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
@@ -89,7 +89,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-slice.md",
-      "why_now": "The slice note records exactly what the queue-layout, probe snapshot, and host-limit summary starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
+      "why_now": "The slice note records exactly what the queue-layout, probe snapshot, host-limit summary, and io-queue-map starters cover so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
     },
     {
       "id": "phase12-virtio-scsi-raw-github-fallback-catalog",
@@ -113,11 +113,18 @@
       "why_now": "The landed host-limit summary helper now takes the probe snapshot one step farther by clamping cmd_per_lun against a synthetic `can_queue` and recording the derived `max_target`, `max_lun`, `max_sectors`, and `nr_hw_queues` values before any `scsi_host_alloc()`, `scsi_add_host()`, `scsi_scan_host()`, blk-mq mapping, or DMA-backed request flow is attempted."
     },
     {
+      "id": "phase12-virtio-scsi-io-queue-map-summary-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The landed io-queue-map summary helpers now keep the bounded default, read, and poll map counts, queue offsets, virtio-affinity intent, and poll-map restore pressure reviewable before any live `map_queues` callback, CPU-affinity wiring, blk-mq submission, or DMA-backed request flow is attempted."
+    },
+    {
       "id": "phase12-virtio-scsi-runtime-queues-and-scan",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
-      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), blk-mq queue mapping, PM freeze or restore wiring, and DMA-backed request flow remain blocked even though the smaller probe snapshot and host-limit summary helper is now landed."
+      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), live blk-mq queue mapping callbacks, PM freeze or restore wiring, and DMA-backed request flow remain blocked even though the smaller probe snapshot, host-limit summary, and io-queue-map helpers are now landed."
     }
   ]
 }
