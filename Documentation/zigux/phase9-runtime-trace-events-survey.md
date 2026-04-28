@@ -38,6 +38,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
 - the focused module, sample, and diff gates now prove the bounded replay counts, explicit per-thread event totals, payload literals, and failed-exit rollback proof through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
+- the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, exact checks, and non-goals so reviewers can tell which parts of the starter are shipped contract versus still-blocked runtime substrate.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
 - the paired module-slice note now repeats that loader-free blocked handoff explicitly so the dedicated docs cannot drift into implying a partial loader or scheduler-facing substrate before the shared runtime handoff exists.
 - the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownership, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
@@ -54,6 +55,9 @@ The manifest started as a survey-only inventory and now records:
 - the landed `runtime-trace-events-diff-gate`
 - the blocked `runtime-trace-events-freeze-map-boundary`
 - the still-blocked runtime substrate handoff
+- review prompts that keep the bounded summary surface, loader-free blocker, and freeze-map boundary explicit
+- exact checks for the descriptor contract, diagnostics summary, main-thread payload replay, function-callback registration balance, selftest family order, governance boundary, and loader-free blocker
+- non-goals that keep loadable-module, event-loop, ring-buffer, macro-generation, and full selftest parity claims out of scope
 
 This keeps the survey useful after the first starter slice lands without pretending that Zigux already has a loadable trace-events runtime module.
 
