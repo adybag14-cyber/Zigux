@@ -21,5 +21,21 @@ test "phase3 export shim and uapi stay aligned" {
     try std.testing.expect(export_shim.isCompatibleHeader(header));
     try std.testing.expect(uapi_version.isCompatible(header));
 
+    const undersized_header: abi.BoundaryHeader = .{
+        .size = @sizeOf(abi.BoundaryHeader) - 1,
+        .abi_version = abi.ABI_VERSION,
+        .flags = 0,
+    };
+    try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));
+    try std.testing.expect(!uapi_version.isCompatible(undersized_header));
+
+    const mismatched_version_header: abi.BoundaryHeader = .{
+        .size = @sizeOf(abi.BoundaryHeader),
+        .abi_version = abi.ABI_VERSION + 1,
+        .flags = 0,
+    };
+    try std.testing.expect(!export_shim.isCompatibleHeader(mismatched_version_header));
+    try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));
+
     try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);
 }
