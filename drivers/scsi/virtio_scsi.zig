@@ -390,4 +390,4 @@ pub const VirtioScsiQueueLab = struct {
         const value = @as(u64, lhs) + rhs;
         return std.math.cast(u32, value) orelse error.QueueCountOverflow;
     }
-}
+};
