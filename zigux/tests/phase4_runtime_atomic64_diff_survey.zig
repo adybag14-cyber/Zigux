@@ -4,6 +4,7 @@ const SurveySummary = struct {
     atomic64_test_c_lines: usize,
     runtime_atomic64_diff_lines: usize,
     runtime_atomic64_diff_present: bool,
+    post_selftest_replay_present: bool,
     phase4_build_present: bool,
     runtime_atomic64_sample_present: bool,
     phase4_validation_matrix_present: bool,
@@ -67,6 +68,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 250);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_lines >= 200);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_present);
+    try std.testing.expect(manifest.survey_summary.post_selftest_replay_present);
     try std.testing.expect(manifest.survey_summary.phase4_build_present);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_sample_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
