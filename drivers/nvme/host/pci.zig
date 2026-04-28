@@ -37,6 +37,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_lab_queue_planner: bool,
     provides_prp_shape_helper: bool,
+    provides_pointer_selection_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -122,6 +123,7 @@ pub const NvmePciQueueLab = struct {
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
             .provides_prp_shape_helper = true,
+            .provides_pointer_selection_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -377,4 +379,4 @@ pub const NvmePciQueueLab = struct {
         const rounded = @as(u64, value) + divisor - 1;
         return std.math.cast(u32, rounded / divisor) orelse error.QueueBytesOverflow;
     }
-};
+}
