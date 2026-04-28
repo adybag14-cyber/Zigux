@@ -85,6 +85,18 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
+## Fixdep Evidence
+
+The bounded `fixdep` closure packet remains closed because both the shared artifact lane and the helper-local unit lane cover the published edge cases:
+
+- shared fixture packet:
+  `sample_expected.txt`, `sample_multi_target_expected.txt`, `sample_escaped_space_expected.txt`, `sample_concatenated_expected.txt`, `sample_comment_only_expected.stderr.txt`, `sample_missing_dep_expected.stderr.txt`, `sample_output_write_expected.stderr.txt`
+- helper-local anchors in `scripts/zigux/fixdep.zig`:
+  `dep parsing keeps the first source across concatenated target entries`
+  `output writer maps print and flush failures to fixdep output-write errors`
+
+- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target and output-write unit anchors are required for closure`
+
 ## Linux-Style Entry Point
 
 The bounded Phase 2 entry point is:
