@@ -67,16 +67,16 @@ test "phase 7 getOption keeps bare 0x in octal-style zero parsing" {
     try std.testing.expectEqualStrings("x,tail", rest);
 }
 
-test "phase 7 numeric helpers accept an explicit leading plus sign" {
+test "phase 7 numeric helpers reject an explicit leading plus sign to match simple_strtoull parity" {
     var rest: []const u8 = "+7,panic";
     var value: i32 = -1;
-    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&rest, &value));
-    try std.testing.expectEqual(@as(i32, 7), value);
-    try std.testing.expectEqualStrings("panic", rest);
+    try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&rest, &value));
+    try std.testing.expectEqual(@as(i32, -1), value);
+    try std.testing.expectEqualStrings("+7,panic", rest);
 
     var index: usize = 0;
-    try std.testing.expectEqual(@as(u64, 32 * 1024), cmdline.memparse("+32K", &index));
-    try std.testing.expectEqual(@as(usize, 4), index);
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+32K", &index));
+    try std.testing.expectEqual(@as(usize, 0), index);
 }
 
 test "phase 7 nextArg matches serialized edge fixtures" {
