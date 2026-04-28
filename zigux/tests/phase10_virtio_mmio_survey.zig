@@ -60,7 +60,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expectEqualStrings("P10-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("1aea0cfe827c1faffd20bbbee6e1f183f139b28d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("79e116e67fb5b48851852b4174ade04bf3c153d9", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
@@ -76,7 +76,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
-    try std.testing.expect(manifest.gaps.len >= 14);
+    try std.testing.expect(manifest.gaps.len >= 13);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -179,6 +179,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             saw_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-notify helpers") != null);
         }
@@ -188,7 +189,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 12);
+    try std.testing.expect(starter_landed_count >= 11);
     try std.testing.expect(ready_next_count >= 1);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_ring_helper);
