@@ -117,9 +117,16 @@ test "phase 7 parseIntArray keeps the counted get_options contract explicit" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 1, 2, 3, 5 }, ints);
 }
 
+test "phase 7 parseIntArray stops at the first NUL and truncates wide values" {
+    const ints = try string_helpers.parseIntArray(std.testing.allocator, "4294967297\x00,3");
+    defer std.testing.allocator.free(ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 1 }, ints);
+}
+
 test "phase 7 parseIntArray reports missing integer input" {
     try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, ""));
-    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "+,7"));
+    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "words only"));
 }
 
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {

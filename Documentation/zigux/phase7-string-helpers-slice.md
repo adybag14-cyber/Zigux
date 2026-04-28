@@ -7,7 +7,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, and one allocator-explicit `parse_int_array()` bridge landed; parked unless a new `string_helpers.c` parity issue appears
+- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, and a small allocator-backed `parse_int_array()` starter landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
@@ -50,7 +50,6 @@ The current starter slice covers:
 - `string_upper()`
 - `string_lower()`
 - `string_get_size()` over the bounded SI and binary formatting subset
-- `parse_int_array()` through an allocator-explicit counted-array wrapper that reuses the existing `get_options()` Zig port
 - `string_unescape()`
 - `string_unescape_inplace()`
 - `string_unescape_any()`
@@ -59,6 +58,7 @@ The current starter slice covers:
 - `string_escape_mem_any_np()`
 - `string_escape_str()`
 - `string_escape_str_any_np()`
+- `parse_int_array()` over the bounded allocator-backed starter path
 
 The current tests check:
 
@@ -72,7 +72,6 @@ The current tests check:
 - bounded ASCII case conversion that stops at the first NUL
 - deterministic SI and binary `string_get_size()` formatting with a block-size multiplier
 - `STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`
-- allocator-explicit `parseIntArray()` output that preserves the Linux counted-array shape from `get_options()` while returning `error.NoEntry` when no integers can be parsed
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays the landed escape-space, special, null, octal, hex, dictionary-limited, and passthrough-filter cases from one reviewable source
 - in-place unescape behavior and bounded destination termination
@@ -82,15 +81,16 @@ The current tests check:
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset through the shared fixture table
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
 - shared wrapper proofs that `string_escape_mem_any_np()`, `string_escape_str()`, and `string_escape_str_any_np()` reuse the bounded `ESCAPE_ANY_NP` policy and stop at the first C-string terminator instead of walking tail bytes
+- allocator-backed `parse_int_array()` coverage that preserves Linux's count-prefixed output layout, reuses the existing `get_options()` base and sign semantics, stops at the first C-string terminator, truncates wide values to `i32`, and returns a no-entry error when the input contains no parseable integers
 
 ## Non-goals
 
 This slice does not yet claim:
 
-- user-buffer handling parity for `parse_int_array_user()`
-- integer parsing beyond the current counted-array bridge over the existing `get_options()` helper
+- integer parsing beyond the current formatter and escape surface
+- parity for `parse_int_array_user()`
 - allocation-backed duplication helpers
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen inside the existing helper-and-gate surface. The remaining `string_helpers.c` work now trends toward user-buffer handling or broader allocation-backed helpers, which is a poorer fit for this parked Phase 7 leaf-helper lane.
+Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded formatter, escape, and `parse_int_array()` starter surface, such as a tightly scoped follow-up on one remaining allocation-backed helper or a dedicated `parse_int_array_user()` review slice that is still clearly Phase 7-sized.

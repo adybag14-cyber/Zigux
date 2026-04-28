@@ -24,6 +24,7 @@ pub const STRING_UNITS_2: u32 = 1;
 pub const STRING_UNITS_MASK: u32 = 1 << 0;
 pub const STRING_UNITS_NO_SPACE: u32 = 1 << 30;
 pub const STRING_UNITS_NO_BYTES: u32 = 1 << 31;
+
 pub const ParseIntArrayError = std.mem.Allocator.Error || error{NoEntry};
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
@@ -185,8 +186,9 @@ pub fn stringGetSize(size_in: u64, blk_size_in: u64, units: u32, buf: []u8) usiz
 }
 
 pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArrayError![]i32 {
+    const input = cStringPrefix(buf);
     var count_buf = [_]i32{0};
-    _ = cmdline.getOptions(buf, 0, &count_buf);
+    _ = cmdline.getOptions(input, 0, &count_buf);
     if (count_buf[0] <= 0) {
         return error.NoEntry;
     }
@@ -195,7 +197,7 @@ pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArra
     const ints = try allocator.alloc(i32, count + 1);
     errdefer allocator.free(ints);
     @memset(ints, 0);
-    _ = cmdline.getOptions(buf, ints.len, ints);
+    _ = cmdline.getOptions(input, ints.len, ints);
     return ints;
 }
 
@@ -292,7 +294,7 @@ pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8
             continue;
         }
 
-        if (!(is_append and in_dict) and isAscii(ch) and (flags & ESCAPE_NA) != 0) {
+        if (!(is_append and in_dict) and isAscii(ch} and (flags & ESCAPE_NA) != 0) {
             escapePassthrough(ch, dst, &dst_index);
             continue;
         }
@@ -646,7 +648,14 @@ test "parseIntArray reuses cmdline parsing semantics for bases and negatives" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 16, 7, -2 }, ints);
 }
 
-test "parseIntArray returns NoEntry when no integers can be parsed" {
+test "parseIntArray truncates wide values and stops at the first NUL" {
+    const ints = try parseIntArray(std.testing.allocator, "4294967297\x00,3");
+    defer std.testing.allocator.free(ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 1 }, ints);
+}
+
+test "parseIntArray returns NoEntry when nothing parseable is present" {
     try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, ""));
     try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, "+,7"));
 }
