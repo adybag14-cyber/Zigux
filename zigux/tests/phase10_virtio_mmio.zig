@@ -98,13 +98,40 @@ test "phase10 virtio mmio snapshots queue notify without claiming side effects" 
 
     notify = try window.notifySelectedQueue();
     try std.testing.expectEqual(@as(usize, 2), notify.notification_count);
+}
 
-    _ = window.reset();
-    _ = try window.writeSelectedQueueSize(8);
+test "phase10 virtio mmio plans queue address windows without claiming queue setup" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximums(
+        .{ 0, 0 },
+        0,
+        .{ 8, 16 },
+    );
+
+    try std.testing.expectError(error.QueueAddressRequiresConfiguredSize, window.planLegacyQueueAddress(4096, 4096, 0x1234));
+
+    _ = try window.selectQueue(1);
+    _ = try window.writeSelectedQueueSize(12);
+
+    const legacy = try window.planLegacyQueueAddress(4096, 4096, 0x1234);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", legacy.anchor);
+    try std.testing.expectEqual(@as(u32, 1), legacy.selected_queue);
+    try std.testing.expectEqual(virtio_mmio.QueueAddressKind.legacy, legacy.kind);
+    try std.testing.expectEqual(@as(?u32, 4096), legacy.legacy_guest_page_size);
+    try std.testing.expectEqual(@as(?u32, 4096), legacy.legacy_queue_align);
+    try std.testing.expectEqual(@as(?u32, 0x1234), legacy.legacy_queue_pfn);
+    try std.testing.expectEqual(@as(?u64, null), legacy.modern_desc);
+    try std.testing.expectEqual(@as(u16, 12), legacy.queue_size);
+    try std.testing.expect(!legacy.queue_ready);
+
+    const modern = try window.planModernQueueAddress(0x1000, 0x2000, 0x3000);
+    try std.testing.expectEqual(virtio_mmio.QueueAddressKind.modern, modern.kind);
+    try std.testing.expectEqual(@as(?u32, null), modern.legacy_guest_page_size);
+    try std.testing.expectEqual(@as(?u64, 0x1000), modern.modern_desc);
+    try std.testing.expectEqual(@as(?u64, 0x2000), modern.modern_avail);
+    try std.testing.expectEqual(@as(?u64, 0x3000), modern.modern_used);
+
     _ = try window.writeSelectedQueueReady(true);
-    notify = try window.notifySelectedQueue();
-    try std.testing.expectEqual(@as(u32, 0), notify.selected_queue);
-    try std.testing.expectEqual(@as(usize, 1), notify.notification_count);
+    try std.testing.expectError(error.QueueReadyBlocksAddressRewrite, window.planModernQueueAddress(0x4000, 0x5000, 0x6000));
 }
 
 test "phase10 virtio mmio keeps status writes separate from reset" {
@@ -116,6 +143,7 @@ test "phase10 virtio mmio keeps status writes separate from reset" {
 
     _ = try window.selectQueue(1);
     _ = try window.writeSelectedQueueSize(16);
+    _ = try window.planModernQueueAddress(0x1000, 0x2000, 0x3000);
     _ = try window.writeSelectedQueueReady(true);
     _ = try window.notifySelectedQueue();
     try std.testing.expectError(error.ResetRequiresDedicatedPath, window.setStatus(0));
@@ -135,6 +163,7 @@ test "phase10 virtio mmio keeps status writes separate from reset" {
     try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
     try std.testing.expect(!queue.selected_queue_ready);
     try std.testing.expectError(error.QueueNotifyRequiresConfiguredSize, window.notifySelectedQueue());
+    try std.testing.expectError(error.QueueAddressRequiresConfiguredSize, window.planModernQueueAddress(0x4000, 0x5000, 0x6000));
 }
 
 test "phase10 virtio mmio tracks config generation changes without config-space IO" {
