@@ -46,6 +46,20 @@ const WinsizeLayout = extern struct {
     ws_ypixel: u16,
 };
 
+const HvcStructOpaque = opaque {};
+
+const HvOpsLayout = extern struct {
+    get_chars: ?*const fn (u32, [*]u8, usize) callconv(.c) isize,
+    put_chars: ?*const fn (u32, [*]const u8, usize) callconv(.c) isize,
+    flush: ?*const fn (u32, bool) callconv(.c) c_int,
+    notifier_add: ?*const fn (*HvcStructOpaque, c_int) callconv(.c) c_int,
+    notifier_del: ?*const fn (*HvcStructOpaque, c_int) callconv(.c) void,
+    notifier_hangup: ?*const fn (*HvcStructOpaque, c_int) callconv(.c) void,
+    tiocmget: ?*const fn (*HvcStructOpaque) callconv(.c) c_int,
+    tiocmset: ?*const fn (*HvcStructOpaque, c_uint, c_uint) callconv(.c) c_int,
+    dtr_rts: ?*const fn (*HvcStructOpaque, bool) callconv(.c) void,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next");
@@ -69,7 +83,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
-    try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
+    try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h and drivers/tty/hvc/hvc_console.h", manifest.anchor);
     try std.testing.expectEqualStrings("8f990e14912a7c5889bcf0b87314bf49052e2cef", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -82,7 +96,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expect(manifest.survey_summary.dw_wdt_manifest_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_manifest_present);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -93,6 +107,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     var saw_hvc_snapshot_check = false;
     var saw_watchdog_layout_checkpoint = false;
     var saw_winsize_layout_checkpoint = false;
+    var saw_hv_ops_layout_checkpoint = false;
     var saw_phase3_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -159,6 +174,14 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ws_row/ws_col/ws_xpixel/ws_ypixel offsets") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-hv-ops-layout-assert")) {
+            saw_hv_ops_layout_checkpoint = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_uapi_header_parity_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct hv_ops") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pointer-table order") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-phase3-interop-followup")) {
             saw_phase3_followup = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-uapi-header-parity-survey.md", gap.zigux_destination);
@@ -172,7 +195,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_gate);
@@ -181,6 +204,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expect(saw_hvc_snapshot_check);
     try std.testing.expect(saw_watchdog_layout_checkpoint);
     try std.testing.expect(saw_winsize_layout_checkpoint);
+    try std.testing.expect(saw_hv_ops_layout_checkpoint);
     try std.testing.expect(saw_phase3_followup);
 }
 
@@ -248,6 +272,10 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "size 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "alignment 2") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "offsets 0, 2, 4, and 6") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct hv_ops") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "size 72") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "alignment 8") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "offsets 0, 8, 16, 24, 32, 40, 48, 56, and 64") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct hvc_struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 interop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared struct layouts") != null);
@@ -322,5 +350,21 @@ test "phase11 shared header parity survey keeps a bounded winsize layout proof" 
         layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
         layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
         layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
+    }
+}
+
+test "phase11 shared header parity survey keeps a bounded hv_ops layout proof" {
+    comptime {
+        layout_assert.assertSize(HvOpsLayout, 72);
+        layout_assert.assertAlign(HvOpsLayout, 8);
+        layout_assert.assertOffset(HvOpsLayout, "get_chars", 0);
+        layout_assert.assertOffset(HvOpsLayout, "put_chars", 8);
+        layout_assert.assertOffset(HvOpsLayout, "flush", 16);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_add", 24);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_del", 32);
+        layout_assert.assertOffset(HvOpsLayout, "notifier_hangup", 40);
+        layout_assert.assertOffset(HvOpsLayout, "tiocmget", 48);
+        layout_assert.assertOffset(HvOpsLayout, "tiocmset", 56);
+        layout_assert.assertOffset(HvOpsLayout, "dtr_rts", 64);
     }
 }
