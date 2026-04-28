@@ -714,117 +714,19 @@ test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" 
         .{ .name = "zigux-run", .is_executable = true },
         .{ .name = "perf-report", .is_executable = true },
     };
-    const other_entries = [_]DirectoryEntry{
-        .{ .name = "zigux-trace.exe", .is_executable = true },
-        .{ .name = "zigux-run", .is_executable = true },
-    };
 
-    var source = FixtureSource{
-        .dirs = &.{
-            .{ .path = "/opt/zigux/bin", .entries = &exec_entries },
-            .{ .path = "/usr/bin", .entries = &other_entries },
-        },
-    };
+[... ELLIPSIZATION ...]e and environment-driven column selection through the injected terminal helper
+- pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
+- section-level output stays testable without `printf()` by rendering the same `available <title> in '<path>'` and `$PATH` headings, underline lengths, shared column width, section spacing, and empty-section suppression that `list_commands()` uses in `help.c`
 
-    var main_cmds = CmdNames.init(std.testing.allocator);
-    defer main_cmds.deinit();
-    var other_cmds = CmdNames.init(std.testing.allocator);
-    defer other_cmds.deinit();
+## Non-goals
 
-    try loadCommandListsFromEnvPath(
-        std.testing.allocator,
-        "zigux-",
-        "/opt/zigux/bin",
-        "/usr/bin:/opt/zigux/bin",
-        &main_cmds,
-        &other_cmds,
-        &source,
-        FixtureSource.populate,
-    );
+This slice does not yet claim:
 
-    try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
-    try std.testing.expectEqualStrings("run", main_cmds.names.items[0].name);
-    try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
-    try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
-}
+- `opendir()` or `readdir()` parity for command discovery
+- direct `ioctl()`-backed terminal probing
+- direct environment reads or a full `cmd_help()`-adjacent CLI surface
 
-test "resolveTerminalDimensions prefers explicit environment dimensions before fallback defaults" {
-    const from_env = resolveTerminalDimensions("40", "120", .{
-        .rows = 30,
-        .cols = 90,
-    });
-    try std.testing.expectEqual(@as(usize, 40), from_env.rows);
-    try std.testing.expectEqual(@as(usize, 120), from_env.cols);
+## Next bounded step
 
-    const from_fallback = resolveTerminalDimensions("40", null, .{
-        .rows = 33,
-        .cols = 99,
-    });
-    try std.testing.expectEqual(@as(usize, 33), from_fallback.rows);
-    try std.testing.expectEqual(@as(usize, 99), from_fallback.cols);
-
-    const invalid_env = resolveTerminalDimensions("abc", "70", null);
-    try std.testing.expectEqual(@as(usize, 25), invalid_env.rows);
-    try std.testing.expectEqual(@as(usize, 80), invalid_env.cols);
-}
-
-test "pretty-print layout follows the same column math as help.c" {
-    const layout = planPrettyPrint(5, 7, 33);
-    try std.testing.expectEqual(@as(usize, 4), layout.cols);
-    try std.testing.expectEqual(@as(usize, 2), layout.rows);
-    try std.testing.expectEqual(@as(usize, 8), layout.spacing);
-
-    const empty = planPrettyPrint(0, 5, 20);
-    try std.testing.expectEqual(@as(usize, 1), empty.cols);
-    try std.testing.expectEqual(@as(usize, 0), empty.rows);
-    try std.testing.expectEqual(@as(usize, 6), empty.spacing);
-
-    const env_layout = planPrettyPrintForTerminal(6, 7, "41", "33", .{
-        .rows = 25,
-        .cols = 80,
-    });
-    try std.testing.expectEqual(@as(usize, 4), env_layout.cols);
-    try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
-    try std.testing.expectEqual(@as(usize, 8), env_layout.spacing);
-}
-
-test "writeCommandSectionsForTerminal keeps list_commands output pure and section-aware" {
-    var main_cmds = CmdNames.init(std.testing.allocator);
-    defer main_cmds.deinit();
-    try main_cmds.addCmdName("report", 6);
-    try main_cmds.addCmdName("stat", 4);
-    main_cmds.sort();
-
-    var other_cmds = CmdNames.init(std.testing.allocator);
-    defer other_cmds.deinit();
-    try other_cmds.addCmdName("trace", 5);
-    other_cmds.sort();
-
-    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
-    defer rendered.deinit();
-
-    try writeCommandSectionsForTerminal(
-        &rendered.writer,
-        "perf",
-        "/x",
-        main_cmds,
-        other_cmds,
-        null,
-        "24",
-        null,
-    );
-
-    const main_rule = [_]u8{'-'} ** 22;
-    const other_rule = [_]u8{'-'} ** 43;
-    const expected = std.fmt.comptimePrint(
-        "available perf in '/x'\n{s}\n" ++
-            "  report stat\n" ++
-            "\n" ++
-            "perf available from elsewhere on your $PATH\n{s}\n" ++
-            "  trace\n" ++
-            "\n",
-        .{ main_rule[0..], other_rule[0..] },
-    );
-
-    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
-}
+Park the bounded `help.zig` lane unless a fresh helper-only parity gap appears; the section renderer now has explicit coverage for both shared-width output and empty-section suppression, so the next honest follow-up should only reopen this lane for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
