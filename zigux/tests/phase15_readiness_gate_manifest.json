@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L01",
   "phase": "Phase 15",
-  "surveyed_commit": "cdf383232e3e457496e49a630ee20f3df86bae86",
+  "surveyed_commit": "0875a574c226ed5091e06e3e9e59c64ed9e5bf37",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -25,17 +25,10 @@
     "phase15_build_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
-    "phase15_replay_green_on_current_master": false,
+    "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
   },
   "remaining_gaps": [
-    {
-      "id": "phase15-shared-replay-drift-blocker",
-      "status": "blocked_on_current_master_replay_drift",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase15_build.zig",
-      "why_now": "The live Phase 15 bundle still fails on current master because phase15_architecture_council_review_process.zig and phase15_handoff_next_steps.zig hit error.StreamTooLong while reading Documentation/zigux/README.md."
-    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -44,5 +37,5 @@
       "why_now": "The live repo still lacks evidence strong enough to move kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, or net/core/skbuff.c out of the freeze-in-C posture."
     }
   ],
-  "next_step": "Keep the tranche in maintenance mode while a neighboring Phase 15 maintenance lane repairs the Documentation/zigux/README.md read limits in phase15_architecture_council_review_process.zig and phase15_handoff_next_steps.zig, then rerun the full Phase 15 build and confirm that the deep-core blocker posture is the only remaining readiness gap."
+  "next_step": "Keep the tranche in maintenance mode with the shared Phase 15 replay treated as recovered on current master, and reopen this readiness packet only if the replay drifts again or the deep-core blocker posture changes enough to justify a narrower follow-up."
 }
