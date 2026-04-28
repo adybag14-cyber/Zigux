@@ -130,6 +130,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
             try std.testing.expectEqualStrings("Documentation/zigux/phase4-validation-matrix.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback owner") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "threshold posture") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-roadmap-path-alignment")) {
@@ -147,6 +148,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "full wider atomic64_test.c surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf threshold") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "post-selftest replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
