@@ -4,11 +4,19 @@ const virtio = @import("virtio");
 pub const feature_mergeable_rx_buffers: u16 = 15;
 pub const feature_control_vq: u16 = 17;
 pub const feature_multiqueue: u16 = 22;
+pub const feature_any_layout: u16 = 27;
 pub const feature_version_1: u16 = 32;
+pub const feature_guest_tso4: u16 = 7;
+pub const feature_guest_tso6: u16 = 8;
+pub const feature_guest_ecn: u16 = 9;
+pub const feature_guest_ufo: u16 = 10;
 pub const feature_hash_report: u16 = 57;
 pub const feature_rss: u16 = 60;
+pub const feature_guest_uso4: u16 = 54;
+pub const feature_guest_uso6: u16 = 55;
 pub const feature_guest_udp_tunnel_gso: u16 = 65;
 pub const feature_host_udp_tunnel_gso: u16 = 67;
+pub const ethernet_default_mtu: u16 = 1500;
 
 pub const RecoveryAction = enum {
     freeze,
@@ -61,12 +69,38 @@ pub const HeaderShape = enum {
     hash_report_tunnel,
 };
 
+pub const ReceiveBufferMode = enum {
+    small,
+    mergeable,
+    big_packets,
+};
+
+pub const BigPacketReason = enum {
+    none,
+    mtu_above_default,
+    guest_gso,
+};
+
+pub const HeaderScatterPolicy = enum {
+    separate_header_sg,
+    combined_header_and_data,
+};
+
+pub const XdpConstraint = enum {
+    not_requested,
+    ready,
+    blocked_by_big_packets,
+    blocked_by_split_header,
+};
+
 pub const ProbeRequest = struct {
     driver_feature_bits: []const u16,
     requested_queue_pairs: u16,
     max_queue_pairs: u16,
+    mtu: u16 = ethernet_default_mtu,
     transport_accepts_features: bool = true,
     device_signals_reset: bool = false,
+    xdp_requested: bool = false,
 };
 
 pub const ProbeSnapshot = struct {
@@ -87,6 +121,11 @@ pub const ProbeSnapshot = struct {
     hdr_len_bytes: u16,
     uses_hash_report_header: bool,
     uses_udp_tunnel_header: bool,
+    receive_buffer_mode: ReceiveBufferMode,
+    big_packet_reason: BigPacketReason,
+    header_scatter_policy: HeaderScatterPolicy,
+    required_headroom_bytes: u16,
+    xdp_constraint: XdpConstraint,
     rss_summary: RssSummary,
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
@@ -185,7 +224,14 @@ pub const VirtioNetProbeLab = struct {
         const has_rss = try self.core.hasNegotiatedFeature(feature_rss);
         const has_hash_report = try self.core.hasNegotiatedFeature(feature_hash_report);
         const mergeable_rx_buffers = try self.core.hasNegotiatedFeature(feature_mergeable_rx_buffers);
+        const has_any_layout = try self.core.hasNegotiatedFeature(feature_any_layout);
         const has_version_1 = try self.core.hasNegotiatedFeature(feature_version_1);
+        const has_guest_tso4 = try self.core.hasNegotiatedFeature(feature_guest_tso4);
+        const has_guest_tso6 = try self.core.hasNegotiatedFeature(feature_guest_tso6);
+        const has_guest_ecn = try self.core.hasNegotiatedFeature(feature_guest_ecn);
+        const has_guest_ufo = try self.core.hasNegotiatedFeature(feature_guest_ufo);
+        const has_guest_uso4 = try self.core.hasNegotiatedFeature(feature_guest_uso4);
+        const has_guest_uso6 = try self.core.hasNegotiatedFeature(feature_guest_uso6);
         const has_guest_udp_tunnel_gso = try self.core.hasNegotiatedFeature(feature_guest_udp_tunnel_gso);
         const has_host_udp_tunnel_gso = try self.core.hasNegotiatedFeature(feature_host_udp_tunnel_gso);
         const requested_rss = featureRequested(request.driver_feature_bits, feature_rss);
@@ -238,6 +284,23 @@ pub const VirtioNetProbeLab = struct {
             has_guest_udp_tunnel_gso,
             has_host_udp_tunnel_gso,
         );
+        const guest_gso = has_guest_tso4 or has_guest_tso6 or has_guest_ecn or has_guest_ufo or
+            (has_guest_uso4 and has_guest_uso6);
+        const receive_buffer_mode = summarizeReceiveBufferMode(
+            mergeable_rx_buffers,
+            request.mtu,
+            guest_gso,
+        );
+        const header_scatter = summarizeHeaderScatter(
+            has_any_layout or has_version_1,
+            header_shape.hdr_len_bytes,
+        );
+        const xdp_constraint = summarizeXdpConstraint(
+            request.xdp_requested,
+            receive_buffer_mode,
+            mergeable_rx_buffers,
+            header_scatter.policy,
+        );
 
         const snapshot = ProbeSnapshot{
             .anchor = descriptor().anchor,
@@ -257,6 +320,11 @@ pub const VirtioNetProbeLab = struct {
             .hdr_len_bytes = header_shape.hdr_len_bytes,
             .uses_hash_report_header = header_shape.uses_hash_report_header,
             .uses_udp_tunnel_header = header_shape.uses_udp_tunnel_header,
+            .receive_buffer_mode = receive_buffer_mode.mode,
+            .big_packet_reason = receive_buffer_mode.big_packet_reason,
+            .header_scatter_policy = header_scatter.policy,
+            .required_headroom_bytes = header_scatter.required_headroom_bytes,
+            .xdp_constraint = xdp_constraint,
             .rss_summary = rss_summary,
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
@@ -407,6 +475,16 @@ pub const VirtioNetProbeLab = struct {
         uses_udp_tunnel_header: bool,
     };
 
+    const ReceiveBufferSummary = struct {
+        mode: ReceiveBufferMode,
+        big_packet_reason: BigPacketReason,
+    };
+
+    const HeaderScatterSummary = struct {
+        policy: HeaderScatterPolicy,
+        required_headroom_bytes: u16,
+    };
+
     fn summarizeHeaderShape(
         mergeable_rx_buffers: bool,
         has_hash_report: bool,
@@ -447,5 +525,68 @@ pub const VirtioNetProbeLab = struct {
             .uses_hash_report_header = false,
             .uses_udp_tunnel_header = false,
         };
+    }
+
+    fn summarizeReceiveBufferMode(
+        mergeable_rx_buffers: bool,
+        mtu: u16,
+        guest_gso: bool,
+    ) ReceiveBufferSummary {
+        if (mergeable_rx_buffers) {
+            return .{
+                .mode = .mergeable,
+                .big_packet_reason = .none,
+            };
+        }
+
+        if (mtu > ethernet_default_mtu) {
+            return .{
+                .mode = .big_packets,
+                .big_packet_reason = .mtu_above_default,
+            };
+        }
+
+        if (guest_gso) {
+            return .{
+                .mode = .big_packets,
+                .big_packet_reason = .guest_gso,
+            };
+        }
+
+        return .{
+            .mode = .small,
+            .big_packet_reason = .none,
+        };
+    }
+
+    fn summarizeHeaderScatter(
+        any_header_sg: bool,
+        hdr_len_bytes: u16,
+    ) HeaderScatterSummary {
+        if (any_header_sg) {
+            return .{
+                .policy = .combined_header_and_data,
+                .required_headroom_bytes = hdr_len_bytes,
+            };
+        }
+
+        return .{
+            .policy = .separate_header_sg,
+            .required_headroom_bytes = 0,
+        };
+    }
+
+    fn summarizeXdpConstraint(
+        xdp_requested: bool,
+        receive_buffer_mode: ReceiveBufferSummary,
+        mergeable_rx_buffers: bool,
+        header_scatter_policy: HeaderScatterPolicy,
+    ) XdpConstraint {
+        if (!xdp_requested) return .not_requested;
+        if (receive_buffer_mode.mode == .big_packets) return .blocked_by_big_packets;
+        if (mergeable_rx_buffers and header_scatter_policy == .separate_header_sg) {
+            return .blocked_by_split_header;
+        }
+        return .ready;
     }
 };
