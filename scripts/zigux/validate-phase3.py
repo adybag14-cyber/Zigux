@@ -47,8 +47,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
 )
 ABI_REQUIRED_DOC_MARKERS = (
-    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-only",
-    "PHASE3_UAPI_SCOPE=version-only",
+    "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header",
+    "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
