@@ -12,6 +12,7 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-substrate-plan.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
@@ -44,6 +45,7 @@ tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
+loader_substrate_plan = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-substrate-plan.md").read_text(encoding="utf-8")
 atomic64_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md").read_text(encoding="utf-8")
 trace_events_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md").read_text(encoding="utf-8")
 trace_events_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md").read_text(encoding="utf-8")
@@ -77,10 +79,13 @@ required_script_readme_markers = [
     "make -C zigux phase9-validate",
     "phase9_build.zig",
     "phase9-runtime-loader-gap-survey.md",
+    "phase9-runtime-loader-substrate-plan.md",
     "review-checklist.md",
     "manifest-backed catalog and ownership map",
     "selftest-hook markers",
     "bounded lifecycle-parity posture",
+    "kernel/workqueue.c",
+    "Study / Boundary Only",
 ]
 
 required_tests_readme_markers = [
@@ -100,7 +105,9 @@ required_tests_readme_markers = [
 required_doc_readme_markers = [
     "Phase 9 notes",
     "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
     "Documentation/zigux/review-checklist.md",
+    "kernel/workqueue.c` stays `Study / Boundary Only`",
     "the `Documentation/zigux/phase9-runtime-trace-events-{survey,module-slice}.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` bundle now keeps the `Documentation/zigux/freeze-map.md` boundary explicit",
     "python3 scripts/zigux/validate-phase9.py",
     "make -C zigux phase9-validate",
@@ -122,6 +129,7 @@ required_review_checklist_markers = [
     "if the change is a Phase 9 runtime slice, do the shipped sample, manifest-backed survey, and shared `phase9_build.zig` evidence still keep the roadmap's selftest-hook markers and bounded lifecycle-parity posture explicit instead of implying a loadable module path that the runtime substrate does not support yet?",
     "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
+    "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     "if a Phase 9 runtime trace-events change touches the frozen trace-core boundary, do `Documentation/zigux/freeze-map.md`, the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `kernel/trace/ring_buffer.c` as `Study / Boundary Only` and require an Architecture Council decision before any status change?",
     "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
     "if unsafe code exists, is it narrow, visible, and review-owned?",
@@ -145,6 +153,16 @@ required_loader_gap_survey_markers = [
     "command or environment control surface",
     "allocator-handoff contract",
     "pre-execution",
+]
+
+required_loader_substrate_plan_markers = [
+    "Documentation/zigux/freeze-map.md",
+    "`kernel/workqueue.c`",
+    "Study / Boundary Only",
+    "Architecture Council decision",
+    "does not carry a parity scorecard entry or an Architecture Council status-change request for `kernel/workqueue.c`",
+    "scheduler-facing ownership",
+    "shared request shape",
 ]
 
 required_phase9_build_markers = [
@@ -320,6 +338,9 @@ for marker in required_review_checklist_markers:
 for marker in required_loader_gap_survey_markers:
     if marker not in loader_gap_survey:
         missing_markers.append(f"loader_gap_survey:{marker}")
+for marker in required_loader_substrate_plan_markers:
+    if marker not in loader_substrate_plan:
+        missing_markers.append(f"loader_substrate_plan:{marker}")
 for marker in required_phase9_build_markers:
     if marker not in phase9_build:
         missing_markers.append(f"phase9_build:{marker}")
@@ -366,5 +387,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_loader_substrate_plan_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
 )
