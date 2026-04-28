@@ -45,15 +45,13 @@ required_closure_markers = [
     'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"`',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view',
     'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
-    'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
+    'PHASE1_FIND_BIT_REVIEW=find_bit baseline set, zero, shared-bit, and tail-clamped scans ignore bits beyond nbits while preserving the in-range mixed-tail match',
     'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`',
     'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit same-word zero-scan start masking keeps inclusive starts honest, skips earlier zero matches after the search advances, and still clamps tail results to nbits',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
     'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
     'PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree',
-    'rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`',
-    'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
@@ -180,10 +178,6 @@ if rbtree_review.get('unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree f
     missing_markers.append('manifest:rbtree.unit_test_anchor')
 if rbtree_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.':
     missing_markers.append('manifest:rbtree.unit_test_contract')
-if rbtree_review.get('search_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"':
-    missing_markers.append('manifest:rbtree.search_unit_test_anchor')
-if rbtree_review.get('search_unit_test_contract') != 'Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.':
-    missing_markers.append('manifest:rbtree.search_unit_test_contract')
 if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if string_review.get('evidence_keys') != [

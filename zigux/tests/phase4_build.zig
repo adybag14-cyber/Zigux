@@ -24,11 +24,24 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     atomic64_diff_module.addImport("runtime_atomic64_sample", runtime_atomic64_sample_module);
+    const find_bit_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/find_bit.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bitmap.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_module.addImport("find_bit", find_bit_module);
     const bitmap_diff_module = b.createModule(.{
         .root_source_file = b.path("bitmap_diff.zig"),
         .target = target,
         .optimize = optimize,
     });
+    bitmap_diff_module.addImport("bitmap", bitmap_module);
+    bitmap_diff_module.addImport("find_bit", find_bit_module);
 
     const atomic64_diff_tests = b.addTest(.{
         .name = "phase4-runtime-atomic64-diff-tests",

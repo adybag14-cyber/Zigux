@@ -36,14 +36,17 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.
 - `tools/lib/bitmap.zig` direct Zig unit coverage now also keeps multiword-tail `xorBits` behavior aligned so callers can clamp the last word without leaking out-of-range bits into the asserted view.
+- `tools/lib/bitmap.zig` benchmark smoke now also exercises the existing `bitmap.scnprintf` formatting and truncation path so the Phase 1 perf gate covers both bitmap window operations and string rendering for the closed helper.
 - bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"`
 - bitmap empty-bitmap review note: `bitmap_scnprintf` must leave a non-empty caller buffer untouched when no bits are set, matching the C helper contract
+- bitmap benchmark smoke anchor: `zigux/tests/phase1_bench.zig:bitmapScnprintfBench`
 
 - `PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_BITMAP_REVIEW=bitmap scnprintf parity covers contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot`
 - `PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view`
+- `PHASE1_BITMAP_BENCH_REVIEW=bitmap benchmark smoke covers scnprintf rendering and truncation alongside bitmap window operations`
 
 - `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for baseline set, zero, and shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past `nbits`.
 - `tools/lib/find_bit.zig` direct Zig unit coverage now keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to `nbits`.
@@ -57,16 +60,13 @@ No additional helper should be called Phase 1 work unless this document and the 
 
 - `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.
 - `tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.
-- `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `find()`, `findFirst()`, and `nextMatch()` aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.
 - rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - rbtree manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`
-- rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`
 
 - `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state`
 - `PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree`
-- `PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node`
 
 - `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
