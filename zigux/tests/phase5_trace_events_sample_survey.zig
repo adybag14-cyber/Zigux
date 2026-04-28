@@ -63,6 +63,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_single_registration_check = false;
     var saw_exit_check = false;
     var saw_exit_prompt = false;
+    var saw_sync_prompt = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
@@ -95,6 +96,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "unregisterFunctionCallback") != null)
         {
             saw_exit_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "sample-behavior changes") != null and
+            std.mem.indexOf(u8, prompt, "manifest-backed replay contract") != null and
+            std.mem.indexOf(u8, prompt, "infer the new boundary from code alone") != null)
+        {
+            saw_sync_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "CREATE_TRACE_POINTS") != null and
             std.mem.indexOf(u8, prompt, "tracepoint macros") != null)
@@ -175,6 +182,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_payload_prompt);
     try std.testing.expect(saw_callback_prompt);
     try std.testing.expect(saw_exit_prompt);
+    try std.testing.expect(saw_sync_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_message_check);
     try std.testing.expect(saw_modulo_cycle_check);
@@ -231,6 +239,12 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unregisterFunctionCallback()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Mother Goose") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "One ring to rule them all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "counts `0` through `4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`checked_focus`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`payload_shape`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`ownership_and_lifetime`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptor, manifest-backed survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "infer the new boundary from code alone") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/trace_events_sample.zig") != null);
@@ -239,6 +253,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "in-memory-only") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "runtime parity is still out of scope") != null);
 }
