@@ -269,8 +269,8 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \"bridge\""
-        \\CONFIG_PATH="drivers\\zigux"
+        \\CONFIG_BANNER="zigux \\\"bridge\\\""
+        \\CONFIG_PATH="drivers\\\\zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -370,4 +370,25 @@ test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
     try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
     try std.testing.expectEqual(EntryKind.hex, summary.entries[3].kind);
     try std.testing.expectEqual(EntryKind.value, summary.entries[4].kind);
+}
+
+test "confdata bridge recognizes explicit plus-signed integers and hex values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_POSITIVE_DECIMAL=+42
+        \\CONFIG_POSITIVE_HEX=+0x2A
+        \\CONFIG_POSITIVE_UPPER_HEX=+0XFF
+        \\CONFIG_RAW=plus_alpha
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 4), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("+42", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("+0x2A", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("+0XFF", summary.entries[2].value);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[3].kind);
 }
