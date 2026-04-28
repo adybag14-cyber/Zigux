@@ -45,10 +45,10 @@ PHASE4_GATE_EXPECTATIONS = {
             'bit 123 for nth 6',
             'cutoff width for nth 7',
         ],
-        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
+        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
-        'gate_scope': 'bounded bitmap range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior replay',
-        'threshold_scope': 'range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
+        'gate_scope': 'bounded bitmap range, rounded-prefix, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior replay',
+        'threshold_scope': 'range, rounded-prefix, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
         'local_replay_markers': [
             'phase4-bitmap-diff-tests',
         ],
