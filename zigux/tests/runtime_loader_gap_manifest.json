@@ -3,12 +3,13 @@
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
   "roadmap_command_environment_phase": "Phase 8",
-  "surveyed_commit": "d839457a2f2dbdc7b53711401741b5e88541c818",
+  "surveyed_commit": "79ac74588fb8e1eea489facad20c16d7279f8a07",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
     "runtime_loader_plan_count": 2,
+    "runtime_loader_projection_gap_count": 2,
     "shared_runtime_loader_present": true,
     "allocator_policy_present": true,
     "shared_init_exit_contract_present": true,
@@ -159,6 +160,20 @@
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
       "why_now": "The bitmap and kretprobe starter lanes already publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+    },
+    {
+      "id": "runtime-loader-atomic64-plan-bridge",
+      "status": "blocked_on_loader_projection",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "The shared runtime survey already counts `samples/zigux/runtime_atomic64.zig` as a Phase 9 starter, but there is still no sibling loader-plan bridge that projects its module facts into `zigux/kernel/runtime_loader.zig`, so the boot/runtime gap remains only partially bridged."
+    },
+    {
+      "id": "runtime-loader-trace-events-plan-bridge",
+      "status": "blocked_on_loader_projection",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_trace_events.zig",
+      "why_now": "The shared runtime survey already counts `samples/zigux/runtime_trace_events.zig` as a Phase 9 starter, but there is still no sibling loader-plan bridge that projects its module facts into `zigux/kernel/runtime_loader.zig`, so the boot/runtime gap remains only partially bridged."
     },
     {
       "id": "runtime-loader-workqueue-freeze-map-boundary",
