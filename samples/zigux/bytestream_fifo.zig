@@ -39,6 +39,8 @@ pub const ReplaySummary = struct {
     second_out: [2]u8,
     skipped_byte: u8,
     peek_value: u8,
+    preview_len: usize,
+    preview_prefix: [8]u8,
     snapshot_len: usize,
     snapshot_before_final_drain: [fifo_capacity]u8,
     fill_start: u8,
@@ -180,6 +182,9 @@ pub const BytestreamFifoSample = struct {
 
         const peek_value = self.peekByte() orelse return error.UnexpectedPeekOnEmpty;
 
+        var preview_prefix: [8]u8 = [_]u8{0} ** 8;
+        const preview_len = self.snapshotInto(preview_prefix[0..]);
+
         var snapshot_before_final_drain: [capacity]u8 = [_]u8{0} ** capacity;
         const snapshot_len = self.snapshotInto(snapshot_before_final_drain[0..]);
         if (snapshot_len != self.count()) return error.UnexpectedSnapshotLength;
@@ -198,6 +203,8 @@ pub const BytestreamFifoSample = struct {
             .second_out = second_out,
             .skipped_byte = skipped,
             .peek_value = peek_value,
+            .preview_len = preview_len,
+            .preview_prefix = preview_prefix,
             .snapshot_len = snapshot_len,
             .snapshot_before_final_drain = snapshot_before_final_drain,
             .fill_start = 20,
@@ -269,6 +276,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
+    try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
+    try std.testing.expectEqualSlices(u8, expected_anchor_result[0..8], replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.snapshot_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_before_final_drain[0..]);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
