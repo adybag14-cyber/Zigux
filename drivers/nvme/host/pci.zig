@@ -379,4 +379,4 @@ pub const NvmePciQueueLab = struct {
         const rounded = @as(u64, value) + divisor - 1;
         return std.math.cast(u32, rounded / divisor) orelse error.QueueBytesOverflow;
     }
-}
+};
