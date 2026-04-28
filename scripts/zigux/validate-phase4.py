@@ -21,6 +21,10 @@ PHASE4_GATE_EXPECTATIONS = {
             'phase4-runtime-atomic64-diff-tests',
             'phase4-runtime-atomic64-diff-survey-tests',
         ],
+        'local_replay_commands': [
+            'make -C zigux phase4-runtime-atomic64-diff',
+            'zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig',
+        ],
         'reversible_delivery': '`lib/atomic64_test.c` stays the source of truth, and removing `runtime_atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move while the existing Phase 9 runtime atomic64 starter remains the forward path',
     },
     'bitmap_diff.zig': {
@@ -52,6 +56,10 @@ PHASE4_GATE_EXPECTATIONS = {
         'local_replay_markers': [
             'phase4-bitmap-diff-tests',
         ],
+        'local_replay_commands': [
+            'make -C zigux phase4-bitmap-diff',
+            'zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig',
+        ],
         'reversible_delivery': '`lib/test_bitmap.c` stays the source of truth, and removing `bitmap_diff.zig` from the shared `phase4_build.zig` entrypoint falls back to the existing broad bitmap parity checks',
     },
 }
@@ -70,12 +78,14 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MAKE_MARKERS = [
-    'PHONY += phase4-validate phase4-test phase4',
+    'PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-bitmap-diff phase4',
     'phase4-validate:',
     'scripts/zigux/artifact_diff.py --self-test',
     'scripts/zigux/validate-phase4.py',
     'scripts/zigux/validate-phase4.py --self-test',
     'phase4-test:',
+    'phase4-runtime-atomic64-diff:',
+    'phase4-bitmap-diff:',
     'zigux/tests/phase4_build.zig',
 ]
 
@@ -174,7 +184,7 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
 ROADMAP_GAP_EXPECTATIONS = {
     'samples/zigux/kprobe_example.zig': {
         'current_repo_state': 'not present on `master`; the current anchor remains `samples/kprobes/kprobe_example.c` through `samples/kprobes/Makefile` and `CONFIG_SAMPLE_KPROBES`',
-        'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`; no hard timing threshold is approved before a bounded Zig sample lands',
+        'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
         'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
     },
     'samples/zigux/test_fsmount.zig': {
@@ -331,6 +341,11 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
             missing.append(
                 f"phase4_matrix:local_replay_test:{gate_name}:{local_replay_marker}"
             )
+    for local_replay_command in expectation.get('local_replay_commands', []):
+        if local_replay_command not in row:
+            missing.append(
+                f"phase4_matrix:local_replay_command:{gate_name}:{local_replay_command}"
+            )
     if expectation['reversible_delivery'] not in row:
         missing.append(
             f"phase4_matrix:reversible_delivery:{gate_name}:{expectation['reversible_delivery']}"
@@ -475,6 +490,7 @@ def build_phase4_matrix_fixture() -> str:
         '- the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned',
         '- one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head',
         '- the survey-backed atomic64 replay that keeps the current roadmap-path and broader-surface gaps measurable inside the shared Phase 4 build',
+        '- one isolated bitmap replay command that can be run without depending on the atomic64 lane or the shared `phase4-test` bundle on the same head',
         '',
         '## Gate Ownership',
         '',
@@ -523,12 +539,14 @@ def build_phase4_matrix_fixture() -> str:
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         lines.append(
-            '| `zigux/tests/{gate}` | {purpose} | `{owner}` | `{rollback_owner}` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests` | `make -C zigux phase4-validate`, `make -C zigux phase4-test`, and `{local_replay}` | {reversible_delivery} | `{threshold_posture}` |'.format(
+            '| `zigux/tests/{gate}` | {purpose} | `{owner}` | `{rollback_owner}` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests` | `make -C zigux phase4-validate`, then `make -C zigux phase4-test`, which runs the shared {local_replay}; `make -C zigux {isolated_make}` and direct `zig build {isolated_make} --build-file zigux/tests/phase4_build.zig` replays remain available when only the {isolated_label} gate needs isolation | {reversible_delivery} | `{threshold_posture}` |'.format(
                 gate=gate_name,
                 purpose=expectation['gate_scope'],
                 owner=expectation['owner'],
                 rollback_owner=expectation['rollback_owner'],
-                local_replay=' and '.join(expectation['local_replay_markers']),
+                local_replay=' and '.join(f'`{marker}`' for marker in expectation['local_replay_markers']),
+                isolated_make=expectation['local_replay_commands'][0].split()[-1],
+                isolated_label='atomic64' if gate_name == 'runtime_atomic64_diff.zig' else 'bitmap',
                 reversible_delivery=expectation['reversible_delivery'],
                 threshold_posture=expectation['threshold_posture'],
             )
@@ -620,6 +638,7 @@ def required_marker_count() -> int:
         + sum(
             len(expectation.get('exact_check_markers', []))
             + len(expectation.get('local_replay_markers', []))
+            + len(expectation.get('local_replay_commands', []))
             for expectation in PHASE4_GATE_EXPECTATIONS.values()
         )
     )
