@@ -37,6 +37,9 @@ pub const FunctionThreadPayload = struct {
     template_message: []const u8,
 };
 
+const main_thread_events_per_iteration: usize = 6;
+const function_thread_events_per_iteration: usize = 2;
+
 pub const EmissionSummary = struct {
     anchor: []const u8,
     event_families: []const EventFamily,
@@ -52,6 +55,8 @@ pub const RuntimeTraceEventsSummary = struct {
     registration_depth: usize,
     main_iterations: usize,
     fn_iterations: usize,
+    main_thread_events: usize,
+    fn_thread_events: usize,
     total_events: usize,
     init_runs: usize,
     selftest_runs: usize,
@@ -110,6 +115,8 @@ pub const RuntimeTraceEventsSample = struct {
             .registration_depth = self.registration_depth,
             .main_iterations = self.main_iterations,
             .fn_iterations = self.fn_iterations,
+            .main_thread_events = self.main_iterations * main_thread_events_per_iteration,
+            .fn_thread_events = self.fn_iterations * function_thread_events_per_iteration,
             .total_events = self.total_events,
             .init_runs = self.init_runs,
             .selftest_runs = self.selftest_runs,
@@ -184,8 +191,8 @@ pub const RuntimeTraceEventsSample = struct {
             .relative_location_message = "Hello __rel_loc",
             .format_template = "iter=%d",
         };
-        self.total_events += 6;
-        return 6;
+        self.total_events += main_thread_events_per_iteration;
+        return main_thread_events_per_iteration;
     }
 
     pub fn emitFunctionIteration(self: *Self, count: i32) !usize {
@@ -198,8 +205,8 @@ pub const RuntimeTraceEventsSample = struct {
             .foo_bar_message = "Look at me",
             .template_message = "Look at me too",
         };
-        self.total_events += 2;
-        return 2;
+        self.total_events += function_thread_events_per_iteration;
+        return function_thread_events_per_iteration;
     }
 
     pub fn runSelftest(self: *Self) !EmissionSummary {
@@ -221,8 +228,8 @@ pub const RuntimeTraceEventsSample = struct {
                 .relative_location,
                 .function_callback,
             },
-            .main_thread_events = self.main_iterations * 6,
-            .fn_thread_events = self.fn_iterations * 2,
+            .main_thread_events = self.main_iterations * main_thread_events_per_iteration,
+            .fn_thread_events = self.fn_iterations * function_thread_events_per_iteration,
             .total_events = self.total_events,
             .conditional_paths_checked = self.saw_conditional_path,
             .registration_paths_checked = true,
