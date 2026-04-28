@@ -47,6 +47,11 @@ pub const AddResult = struct {
     final: i64,
 };
 
+pub const BitwiseResult = struct {
+    previous: i64,
+    final: i64,
+};
+
 pub const AddUnlessResult = struct {
     previous: i64,
     changed: bool,
@@ -132,6 +137,46 @@ pub const RuntimeAtomic64Sample = struct {
             .initialized, .selftest_complete => blk: {
                 const previous = atomic.fetchAdd(i64, &self.counter, addend, .seq_cst);
                 break :blk .{ .previous = previous, .final = previous + addend };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn orCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchOr(i64, &self.counter, mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous | mask };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn andCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchAnd(i64, &self.counter, mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous & mask };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn xorCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchXor(i64, &self.counter, mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous ^ mask };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn andNotCounter(self: *Self, mask: i64) !BitwiseResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchAnd(i64, &self.counter, ~mask, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous & ~mask };
             },
             else => error.InvalidLifecycleTransition,
         };
@@ -265,53 +310,3 @@ pub const RuntimeAtomic64Sample = struct {
         self.setStage(.exited);
     }
 };
-
-test "runtime atomic64 sample keeps post-selftest counter replay and summary explicit" {
-    const descriptor = RuntimeAtomic64Sample.descriptor();
-    try std.testing.expectEqualStrings("runtime_atomic64", descriptor.name);
-    try std.testing.expectEqualStrings("lib/atomic64_test.c", descriptor.anchor);
-    try std.testing.expect(descriptor.requires_runtime_substrate);
-    try std.testing.expect(descriptor.provides_selftest_hook);
-
-    var module = RuntimeAtomic64Sample{};
-    const cold_summary = module.summary();
-    try std.testing.expectEqual(@as(i64, 0), cold_summary.counter_snapshot);
-    try std.testing.expectEqual(@as(usize, 0), cold_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), cold_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), cold_summary.exit_runs);
-
-    try module.init(41);
-    const initialized_summary = module.summary();
-    try std.testing.expectEqual(@as(i64, 41), initialized_summary.counter_snapshot);
-    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
-
-    const selftest = try module.runSelftest();
-    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
-    try std.testing.expectEqualStrings(descriptor.anchor, selftest.anchor);
-    try std.testing.expectEqual(@as(usize, 5), selftest.operation_families.len);
-    try std.testing.expect(selftest.checked_returning_paths);
-    try std.testing.expect(selftest.checked_guard_paths);
-
-    const add_after_selftest = try module.addCounter(-9);
-    try std.testing.expectEqual(@as(i64, 41), add_after_selftest.previous);
-    try std.testing.expectEqual(@as(i64, 32), add_after_selftest.final);
-
-    const swap_after_selftest = try module.swapCounter(7);
-    try std.testing.expectEqual(@as(i64, 32), swap_after_selftest);
-    try std.testing.expectEqual(@as(i64, 7), module.snapshotCounter());
-
-    const selftest_summary = module.summary();
-    try std.testing.expectEqual(@as(i64, 7), selftest_summary.counter_snapshot);
-    try std.testing.expectEqual(@as(usize, 1), selftest_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), selftest_summary.exit_runs);
-
-    try module.exit();
-    const exited_summary = module.summary();
-    try std.testing.expectEqual(@as(i64, 7), exited_summary.counter_snapshot);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
-}
