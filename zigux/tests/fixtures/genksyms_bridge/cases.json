@@ -200,6 +200,15 @@
       "mode": "process_json",
       "normalize_stderr": true,
       "expected": "missing_long_dump_types_argument_expected.json"
+    },
+    {
+      "name": "abbreviated_missing_long_dump_types_argument",
+      "argv": [
+        "--dump-t"
+      ],
+      "mode": "process_json",
+      "normalize_stderr": true,
+      "expected": "abbreviated_missing_long_dump_types_argument_expected.json"
     }
   ]
 }
