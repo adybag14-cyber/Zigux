@@ -533,6 +533,7 @@ required_workflow_markers = [
 required_doc_markers = [
     'python3 scripts/zigux/artifact_diff.py --self-test',
     'fixdep',
+    'repeat-run artifact determinism',
     'sample_multi_target_expected.txt',
     'sample_escaped_space_expected.txt',
     'sample_concatenated_expected.txt',
@@ -543,11 +544,14 @@ required_doc_markers = [
     'zigux/tests/fixtures/genksyms_crc/expected.json',
     'kconfig_bridge',
     'mk_elfconfig',
+    'check-mk-elfconfig-diff.py',
+    'repeat-run JSON determinism',
     'elf32_expected.json',
 ]
 required_script_markers = [
     'artifact_diff.py --self-test',
     'check-fixdep-diff.py',
+    'repeat-run artifact determinism',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py',
