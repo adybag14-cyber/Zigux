@@ -42,6 +42,7 @@ pub const PerfCase = struct {
     len: usize,
     reps: usize,
     seed: u32,
+    max_slowdown_pct: u16,
 };
 
 const ipv4_header = [_]u8{
@@ -173,8 +174,8 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
 };
 
 pub const perf_cases = [_]PerfCase{
-    .{ .label = "64", .len = 64, .reps = 20_000, .seed = 0 },
-    .{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678 },
+    .{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },
+    .{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },
 };
 
 pub fn fillPerfPayload(buffer: []u8) void {
