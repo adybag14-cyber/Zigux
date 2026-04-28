@@ -174,6 +174,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_loader_scaffold = false;
     var saw_live_loader_binding = false;
     var saw_shared_loader_controls_blocker = false;
+    var saw_direct_sample_build_leg = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -199,6 +200,13 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             blocked_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase9-build-gate")) {
+            saw_direct_sample_build_leg = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-bitmap-sample-tests") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sample contract stays first-class") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-bitmap-sample-module")) {
             saw_sample_module = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -250,9 +258,36 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_diff_fill_case);
     try std.testing.expect(saw_diff_cutout_case);
     try std.testing.expect(saw_diff_sparse_copy_case);
+    try std.testing.expect(saw_direct_sample_build_leg);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
     try std.testing.expect(saw_live_loader_binding);
     try std.testing.expect(saw_shared_loader_controls_blocker);
+}
+
+test "phase 9 runtime bitmap survey doc keeps the direct sample build leg explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const phase9_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase9_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase9_build);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` leg") != null);
 }
