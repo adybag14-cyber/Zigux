@@ -29,6 +29,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - comparison-based plain-tree lookup helpers
 - plain-tree find-or-insert helper
 - ordered erase plus direct node replacement
+- erase-and-detach ownership reset for reusable nodes
 - in-order and postorder traversal helpers
 
 ## Gates
@@ -62,6 +63,7 @@ The current starter slice covers:
 - `rb_next_match()` via `nextMatch()`
 - `rb_find_add()` via `findAdd()`
 - `rb_erase()` via `erase()`
+- `rb_erase_init()`-style detached-node reset via `eraseInit()`
 - `rb_first()`
 - `rb_last()`
 - `rb_next()`
@@ -78,6 +80,7 @@ The current tests check:
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
 - duplicate-aware find-or-insert behavior via `findAdd()`
 - erase-and-replace consistency after structural updates
+- erase-and-detach reuse semantics via `eraseInit()`
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
 - a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces
