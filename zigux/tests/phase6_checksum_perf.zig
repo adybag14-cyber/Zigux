@@ -8,13 +8,16 @@ pub fn main(init: std.process.Init) !void {
     for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
-            "phase6-checksum-perf {s} len={} reps={} ns_per_call={} ns_per_byte={d:.2} folded=0x{x:0>4} sink=0x{x:0>8}\n",
+            "phase6-checksum-perf {s} len={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} folded=0x{x:0>4} sink=0x{x:0>8}\n",
             .{
                 case.label,
                 case.len,
                 case.reps,
-                result.ns_per_call,
-                result.ns_per_byte,
+                result.helper_ns_per_call,
+                result.helper_ns_per_byte,
+                result.reference_ns_per_call,
+                result.reference_ns_per_byte,
+                result.slowdown_pct,
                 result.folded,
                 result.sink,
             },
@@ -23,8 +26,11 @@ pub fn main(init: std.process.Init) !void {
 }
 
 const PerfResult = struct {
-    ns_per_call: u64,
-    ns_per_byte: f64,
+    helper_ns_per_call: u64,
+    helper_ns_per_byte: f64,
+    reference_ns_per_call: u64,
+    reference_ns_per_byte: f64,
+    slowdown_pct: u64,
     folded: u16,
     sink: u32,
 };
@@ -52,6 +58,24 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
+fn benchHelper(payload: []const u8, reps: usize, seed: u32, io: std.Io) struct { elapsed: i96, sink: u32 } {
+    var sink: u32 = 0;
+    const started_at = benchTime(io);
+    for (0..reps) |_| {
+        sink +%= checksum.partial(payload, seed);
+    }
+    return .{ .elapsed = benchTime(io) - started_at, .sink = sink };
+}
+
+fn benchReference(payload: []const u8, reps: usize, seed: u32, io: std.Io) struct { elapsed: i96, sink: u32 } {
+    var sink: u32 = 0;
+    const started_at = benchTime(io);
+    for (0..reps) |_| {
+        sink +%= referencePartial(payload, seed);
+    }
+    return .{ .elapsed = benchTime(io) - started_at, .sink = sink };
+}
+
 fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     const allocator = std.heap.page_allocator;
     const payload = try allocator.alloc(u8, case.len);
@@ -64,26 +88,50 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     try std.testing.expectEqual(expected_partial, checksum.partial(payload, case.seed));
     try std.testing.expectEqual(expected_folded, checksum.fold(expected_partial));
 
-    var sink: u32 = 0;
-    const started_at = benchTime(io);
+    const helper_warmup = benchHelper(payload, case.reps, case.seed, io);
+    const reference_warmup = benchReference(payload, case.reps, case.seed, io);
 
-    for (0..case.reps) |_| {
-        const partial = checksum.partial(payload, case.seed);
-        sink +%= partial;
+    var helper_elapsed = helper_warmup.elapsed;
+    var reference_elapsed = reference_warmup.elapsed;
+    var sink = helper_warmup.sink;
+    const reference_sink = reference_warmup.sink;
+
+    for (0..2) |_| {
+        const helper_sample = benchHelper(payload, case.reps, case.seed, io);
+        if (helper_sample.elapsed < helper_elapsed) {
+            helper_elapsed = helper_sample.elapsed;
+            sink = helper_sample.sink;
+        }
+
+        const reference_sample = benchReference(payload, case.reps, case.seed, io);
+        if (reference_sample.elapsed < reference_elapsed) {
+            reference_elapsed = reference_sample.elapsed;
+        }
     }
 
-    const elapsed = benchTime(io) - started_at;
+    const elapsed = helper_elapsed;
     try std.testing.expect(elapsed > 0);
+    try std.testing.expect(reference_elapsed > 0);
     try std.testing.expect(sink != 0 or expected_partial == 0);
+    try std.testing.expectEqual(sink, reference_sink);
 
-    const ns_per_call = @max(@as(u64, @intCast(@divFloor(elapsed, @as(i96, @intCast(case.reps))))), 1);
+    const helper_ns_per_call = @max(@as(u64, @intCast(@divFloor(helper_elapsed, @as(i96, @intCast(case.reps))))), 1);
+    const reference_ns_per_call = @max(@as(u64, @intCast(@divFloor(reference_elapsed, @as(i96, @intCast(case.reps))))), 1);
     const total_bytes = case.reps * case.len;
-    const ns_per_byte = @as(f64, @floatFromInt(@max(@as(i96, elapsed), 1))) /
+    const helper_ns_per_byte = @as(f64, @floatFromInt(@max(@as(i96, helper_elapsed), 1))) /
         @as(f64, @floatFromInt(@max(total_bytes, 1)));
+    const reference_ns_per_byte = @as(f64, @floatFromInt(@max(@as(i96, reference_elapsed), 1))) /
+        @as(f64, @floatFromInt(@max(total_bytes, 1)));
+    const slowdown_pct = @divFloor(helper_ns_per_call * 100, reference_ns_per_call);
+
+    try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);
 
     return .{
-        .ns_per_call = ns_per_call,
-        .ns_per_byte = ns_per_byte,
+        .helper_ns_per_call = helper_ns_per_call,
+        .helper_ns_per_byte = helper_ns_per_byte,
+        .reference_ns_per_call = reference_ns_per_call,
+        .reference_ns_per_byte = reference_ns_per_byte,
+        .slowdown_pct = slowdown_pct,
         .folded = expected_folded,
         .sink = sink,
     };
