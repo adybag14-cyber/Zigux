@@ -6,10 +6,10 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 
 - `PHASE3_ROADMAP_ANCHORS=rust/exports.c,lib/bitmap.c,lib/rbtree.c,lib/cpumask.c`
 - `PHASE3_CURRENT_EXPORT_SHIM=zigux/kernel/export_shim.zig`
-- `PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-only`
+- `PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header`
 - `PHASE3_CURRENT_UAPI=zigux/uapi/version.zig`
-- `PHASE3_CURRENT_UAPI_SCOPE=version-only`
-- `PHASE3_UAPI_BOUNDARY_GAP=version-only-surface-is-still-below-full-uapi-shim-destination`
+- `PHASE3_CURRENT_UAPI_SCOPE=version-and-boundary-header`
+- `PHASE3_UAPI_BOUNDARY_GAP=version-and-boundary-header-surface-is-still-below-full-uapi-shim-destination`
 - `PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig`
 - `PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig`
 - `PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing`
@@ -43,8 +43,8 @@ The current tree already carries the bounded ABI substrate and the first reusabl
 
 - `include/zigux/abi.h` and `include/linux/zigux.h` define the curated C-facing boundary
 - `zigux/bindings/abi.zig` mirrors that boundary on the Zig side
-- `zigux/kernel/export_shim.zig` keeps the export status surface explicit, but it is still intentionally narrow and status-only
-- `zigux/uapi/version.zig` keeps one minimal UAPI surface aligned to the ABI version, but it does not yet widen into a broader UAPI shim family
+- `zigux/kernel/export_shim.zig` keeps the export status surface explicit, and it now also keeps the shared boundary-header constructor and compatibility path reviewable without widening into a broader export namespace
+- `zigux/uapi/version.zig` keeps one minimal UAPI surface aligned to the ABI version, and it now also exposes the shared boundary-header constructor and compatibility check without widening into a broader UAPI shim family
 - `zigux/helpers/layout_assert.zig`, `panic_policy.zig`, `allocator_policy.zig`, `atomic.zig`, `barrier.zig`, and `mmio.zig` cover the low-level policy and wrapper packet
 - `zigux/unsafe/narrow.zig` keeps the unsafe boundary narrow and named
 - `zigux/helpers/bitmap_view.zig` and `zigux/helpers/cpumask_view.zig` provide the first roadmap-backed reusable interop seam
@@ -73,8 +73,8 @@ Why this remains a real gap:
 There is also a smaller but still explicit boundary gap around UAPI scope:
 
 - the roadmap destination list includes `zigux/uapi/` as part of the permanent Phase 3 boundary
-- the current repo only exposes `zigux/uapi/version.zig`
-- that version-only surface is appropriate for the bounded ABI substrate, but it is not full closure of the broader UAPI destination the roadmap leaves room for later
+- the current repo still only exposes the bounded `zigux/uapi/version.zig` surface
+- that version-and-boundary-header surface is appropriate for the current ABI substrate, but it is not full closure of the broader UAPI destination the roadmap leaves room for later
 
 ## Drift Note
 
@@ -84,7 +84,7 @@ That growth is real repo state, but it exceeds the small named anchor set in the
 
 - the ABI substrate is real
 - the export shim is real but still intentionally narrow
-- the current UAPI boundary is real but still version-only
+- the current UAPI boundary is real but still version-and-boundary-header only
 - bitmap and cpumask interop are real
 - several additional interop and planning slices are real
 - the roadmap-backed `rbtree` boundary is still missing
