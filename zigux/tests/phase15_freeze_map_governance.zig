@@ -53,7 +53,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("040884eb7ae838156e6a1f6cb4026b4cd22b5d51", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("9f4c19ac36fd6bcaf184e9c528750cd7d973b5fa", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
@@ -246,8 +246,8 @@ test "phase 15 freeze-map governance note and checklist record the current block
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15_parity_scorecard.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15_handoff_next_steps.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "error.StreamTooLong") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "make -C zigux phase15` currently fails") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "shared README read limits") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "dedicated freeze-map governance-packet drift gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the freeze-map governance packet") != null);
