@@ -306,6 +306,40 @@ fn skipSpaces(s: []u8) []u8 {
     return s[index..];
 }
 
+const GetOptionCase = struct {
+    input: []const u8,
+    expected_rc: u8,
+    expected_rest: []const u8,
+};
+
+const GetOptionsCase = struct {
+    input: []const u8,
+    expected: []const i32,
+};
+
+fn expectGetOptionCase(case: GetOptionCase) !void {
+    var rest = case.input;
+    var value: i32 = -1;
+    try std.testing.expectEqual(case.expected_rc, getOption(&rest, &value));
+    try std.testing.expectEqualStrings(case.expected_rest, rest);
+}
+
+fn expectGetOptionsCase(case: GetOptionsCase) !void {
+    var parsed = [_]i32{0} ** 16;
+    _ = getOptions(case.input, parsed.len, &parsed);
+    try std.testing.expectEqualSlices(i32, case.expected, parsed[0..case.expected.len]);
+    for (parsed[case.expected.len..]) |value| {
+        try std.testing.expectEqual(@as(i32, 0), value);
+    }
+
+    var validate = [_]i32{0} ** 16;
+    _ = getOptions(case.input, 0, &validate);
+    try std.testing.expectEqual(case.expected[0], validate[0]);
+    for (validate[1..]) |value| {
+        try std.testing.expectEqual(@as(i32, 0), value);
+    }
+}
+
 test "getOption parses signed integers and updates the remaining slice" {
     var rest: []const u8 = "-5,tail";
     var value: i32 = 0;
@@ -390,3 +424,60 @@ test "numeric parsing rejects an explicit leading plus sign" {
     try std.testing.expectEqual(@as(usize, 0), mem_index);
 }
 
+test "getOption matches malformed-token classification from the Linux KUnit corpus" {
+    const cases = [_]GetOptionCase{
+        .{ .input = "\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
+        .{ .input = "", .expected_rc = 0, .expected_rest = "" },
+        .{ .input = "=", .expected_rc = 0, .expected_rest = "=" },
+        .{ .input = "\"-", .expected_rc = 0, .expected_rest = "\"-" },
+        .{ .input = ",", .expected_rc = 0, .expected_rest = "," },
+        .{ .input = "-,", .expected_rc = 0, .expected_rest = "," },
+        .{ .input = ",-", .expected_rc = 0, .expected_rest = ",-" },
+        .{ .input = "-", .expected_rc = 0, .expected_rest = "" },
+        .{ .input = "+,", .expected_rc = 0, .expected_rest = "+," },
+        .{ .input = "--", .expected_rc = 0, .expected_rest = "-" },
+        .{ .input = ",,", .expected_rc = 0, .expected_rest = ",," },
+        .{ .input = "''", .expected_rc = 0, .expected_rest = "''" },
+        .{ .input = "\"\",", .expected_rc = 0, .expected_rest = "\"\"," },
+        .{ .input = "\",\"", .expected_rc = 0, .expected_rest = "\",\"" },
+        .{ .input = "-\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
+        .{ .input = "\"", .expected_rc = 0, .expected_rest = "\"" },
+        .{ .input = "37,", .expected_rc = 2, .expected_rest = "" },
+        .{ .input = "37--", .expected_rc = 3, .expected_rest = "--" },
+        .{ .input = "\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = "-21", .expected_rc = 1, .expected_rest = "" },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionCase(case);
+    }
+}
+
+test "getOptions matches malformed-range counting from the Linux KUnit corpus" {
+    const cases = [_]GetOptionsCase{
+        .{ .input = "-7", .expected = &[_]i32{ 1, -7 } },
+        .{ .input = "--7", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "-1-2", .expected = &[_]i32{ 4, -1, 0, 1, 2 } },
+        .{ .input = "7--9", .expected = &[_]i32{ 0, 7 } },
+        .{ .input = "7-", .expected = &[_]i32{ 0, 7 } },
+        .{ .input = "-7--9", .expected = &[_]i32{ 0, -7 } },
+        .{ .input = "7-9,", .expected = &[_]i32{ 3, 7, 8, 9, 0 } },
+        .{ .input = "9-7", .expected = &[_]i32{ 0, 9 } },
+        .{ .input = "5-a", .expected = &[_]i32{ 0, 5 } },
+        .{ .input = "a-5", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "5-8", .expected = &[_]i32{ 4, 5, 6, 7, 8 } },
+        .{ .input = ",8-5", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "+,1", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "-,4", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "-3,0-1,6", .expected = &[_]i32{ 4, -3, 0, 1, 6 } },
+        .{ .input = "4,-", .expected = &[_]i32{ 1, 4 } },
+        .{ .input = " +2", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = " -9", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "0-1,-3,6", .expected = &[_]i32{ 4, 0, 1, -3, 6 } },
+        .{ .input = "- 9", .expected = &[_]i32{ 0, 0 } },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionsCase(case);
+    }
+}
