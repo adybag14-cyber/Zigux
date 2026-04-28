@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L06",
+  "lane_key": "P13-L02",
   "phase": "Phase 13",
-  "surveyed_commit": "de4608e6d7660ef469a327e5053a7a2dc932be71",
+  "surveyed_commit": "c505a7a72e5ca87017ea61d964bf8269bcecaf34",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -66,7 +66,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-libfs-survey.md",
-      "why_now": "The survey note now describes the landed helper slice truthfully and keeps the remaining transaction-read-release and deeper VFS-state gaps explicit."
+      "why_now": "The survey note now describes the landed helper slice truthfully and keeps the remaining cursor-reposition bookkeeping and deeper VFS-state gaps explicit."
     },
     {
       "id": "phase13-libfs-offset-seek-helper",
@@ -105,10 +105,17 @@
     },
     {
       "id": "phase13-libfs-dcache-cursor-reposition-bookkeeping",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is to model the post-scan cursor reposition bookkeeping around hlist_del_init() plus hlist_add_before() / hlist_add_behind() without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership."
+      "why_now": "The libfs helper lab now models the post-scan cursor reposition bookkeeping shared by dcache_readdir() and dcache_dir_lseek() around hlist_del_init() plus hlist_add_before() / hlist_add_behind() without claiming live sibling-list mutation, lock ordering, or cursor dentry ownership."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-helpers",
+      "status": "blocked_on_vfs_state",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The remaining dcache cursor helpers still depend on live cursor dentries, reschedule-aware sibling traversal, and lock ordering, so Zigux should stop at the landed precondition plus reposition bookkeeping boundary for now."
     }
   ]
 }

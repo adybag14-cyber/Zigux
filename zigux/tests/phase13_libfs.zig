@@ -11,6 +11,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
+    try std.testing.expect(descriptor.provides_directory_cursor_reposition_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
@@ -256,6 +257,45 @@ test "phase13 libfs cursor preconditions choose first-child or cursor resume wit
     try std.testing.expect(resumed.defers_cursor_reposition);
 
     try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true));
+}
+
+test "phase13 libfs cursor reposition planning models the shared del-init plus add-before and add-behind bookkeeping" {
+    const unhashed = try libfs.LibFsHelperLab.dcacheCursorRepositionPlan(false, .none);
+    try std.testing.expectEqualStrings("fs/libfs.c", unhashed.anchor);
+    try std.testing.expectEqual(libfs.CursorRepositionPlacement.none, unhashed.placement);
+    try std.testing.expect(unhashed.uses_hlist_del_init);
+    try std.testing.expect(!unhashed.reinserts_cursor);
+    try std.testing.expect(unhashed.keeps_private_data);
+    try std.testing.expect(!unhashed.releases_scan_reference);
+
+    const before = try libfs.LibFsHelperLab.dcacheCursorRepositionPlan(true, .before_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionPlacement.before_scan_result, before.placement);
+    try std.testing.expect(before.uses_hlist_del_init);
+    try std.testing.expect(before.reinserts_cursor);
+    try std.testing.expect(before.keeps_private_data);
+    try std.testing.expect(before.releases_scan_reference);
+
+    const behind = try libfs.LibFsHelperLab.dcacheCursorRepositionPlan(true, .behind_scan_result);
+    try std.testing.expectEqual(libfs.CursorRepositionPlacement.behind_scan_result, behind.placement);
+    try std.testing.expect(behind.uses_hlist_del_init);
+    try std.testing.expect(behind.reinserts_cursor);
+    try std.testing.expect(behind.keeps_private_data);
+    try std.testing.expect(behind.releases_scan_reference);
+}
+
+test "phase13 libfs cursor reposition planning rejects placement drift" {
+    try std.testing.expectError(
+        error.MissingRepositionPlacement,
+        libfs.LibFsHelperLab.dcacheCursorRepositionPlan(true, .none),
+    );
+    try std.testing.expectError(
+        error.MissingRepositionTarget,
+        libfs.LibFsHelperLab.dcacheCursorRepositionPlan(false, .before_scan_result),
+    );
+    try std.testing.expectError(
+        error.MissingRepositionTarget,
+        libfs.LibFsHelperLab.dcacheCursorRepositionPlan(false, .behind_scan_result),
+    );
 }
 
 test "phase13 libfs transaction staging planner models one-write reservation and copy-fault retention" {

@@ -13,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
     provides_directory_cursor_preconditions: bool,
+    provides_directory_cursor_reposition_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
     touches_live_dcache: bool,
@@ -126,6 +127,21 @@ pub const CursorPreconditionsPlan = struct {
     defers_cursor_reposition: bool,
 };
 
+pub const CursorRepositionPlacement = enum {
+    none,
+    before_scan_result,
+    behind_scan_result,
+};
+
+pub const CursorRepositionPlan = struct {
+    anchor: []const u8,
+    placement: CursorRepositionPlacement,
+    uses_hlist_del_init: bool,
+    reinserts_cursor: bool,
+    keeps_private_data: bool,
+    releases_scan_reference: bool,
+};
+
 pub const TransactionAcquireMode = enum {
     ready,
     request_too_large,
@@ -179,6 +195,7 @@ pub const LibFsHelperLab = struct {
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_preconditions = true,
+            .provides_directory_cursor_reposition_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
             .touches_live_dcache = false,
@@ -423,6 +440,25 @@ pub const LibFsHelperLab = struct {
             .can_scan_positives = true,
             .keeps_private_data = true,
             .defers_cursor_reposition = true,
+        };
+    }
+
+    pub fn dcacheCursorRepositionPlan(has_scan_result: bool, placement: CursorRepositionPlacement) !CursorRepositionPlan {
+        if (has_scan_result and placement == .none) {
+            return error.MissingRepositionPlacement;
+        }
+
+        if (!has_scan_result and placement != .none) {
+            return error.MissingRepositionTarget;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .placement = placement,
+            .uses_hlist_del_init = true,
+            .reinserts_cursor = has_scan_result,
+            .keeps_private_data = true,
+            .releases_scan_reference = has_scan_result,
         };
     }
 
