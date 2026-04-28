@@ -137,6 +137,18 @@ pub const PlatformResourcePreflightSummary = struct {
     pretimeout_irq_shared_rising: bool,
 };
 
+pub const LiveResourceOrderSummary = struct {
+    anchor: []const u8,
+    timer_clock_selection: TimerClockSelection,
+    acquires_timer_clock_first: bool,
+    acquires_optional_apb_after_timer: bool,
+    deasserts_shared_reset_before_registration: bool,
+    requests_optional_pretimeout_irq_before_registration: bool,
+    programs_timeout_before_registration: bool,
+    registers_watchdog_after_resources_ready: bool,
+    install_restart_handler_after_registration: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -293,6 +305,25 @@ pub const DwWdtLab = struct {
             .pretimeout_irq_optional = true,
             .pretimeout_irq_present = options.has_pretimeout_irq,
             .pretimeout_irq_shared_rising = options.has_pretimeout_irq,
+        };
+    }
+
+    pub fn liveResourceOrderSummary(
+        self: *Self,
+        options: ProbeOptions,
+        resources: PlatformResourcePreflightOptions,
+    ) !LiveResourceOrderSummary {
+        const handoff = try self.registrationHandoffSummary(resources.has_pretimeout_irq, options);
+        return .{
+            .anchor = descriptor().anchor,
+            .timer_clock_selection = resources.timer_clock_selection,
+            .acquires_timer_clock_first = true,
+            .acquires_optional_apb_after_timer = resources.has_apb_clock,
+            .deasserts_shared_reset_before_registration = self.has_reset_control,
+            .requests_optional_pretimeout_irq_before_registration = resources.has_pretimeout_irq,
+            .programs_timeout_before_registration = handoff.programs_timeout_before_registration,
+            .registers_watchdog_after_resources_ready = true,
+            .install_restart_handler_after_registration = true,
         };
     }
 
