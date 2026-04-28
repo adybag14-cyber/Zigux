@@ -71,6 +71,7 @@ The current starter implementation stays deliberately bounded:
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
 - `file_path_handle_bridge.zig` ports the pure `/proc/<pid>/fdinfo/<fd>` path construction and bounded `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` text parsing from `bpf_get_map_info_from_fdinfo()`
+- the same helper now exposes an fdinfo-only reuse-compatibility predicate for the `map_is_reuse_compat()` fallback path, including libbpf's special-case masking of `BPF_F_RDONLY_PROG` for `DEVMAP` and `DEVMAP_HASH` metadata without claiming `bpf_obj_get()`, `close()`, or `map_extra` parity
 - the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines and keeps duplicate or malformed fields explicit for callers instead of silently guessing
 - the new helper still does not claim `fopen()`, `fgets()`, `fclose()`, pinned-object reopen flows, or token creation lifecycle parity
 
@@ -95,6 +96,7 @@ The current tests check:
 - buffer exhaustion during pin-path assembly stays explicit
 - proc fdinfo paths format cleanly for representative pid and fd pairs without widening into direct file reads
 - bounded fdinfo map metadata parsing accepts reordered lines and explicit `map_flags` bases while rejecting duplicates, malformed values, and missing required fields
+- fdinfo-only reuse checks mirror libbpf's `DEVMAP` or `DEVMAP_HASH` `BPF_F_RDONLY_PROG` masking rule while keeping non-devmap flag drift and the still-deferred open or close or `map_extra` surfaces explicit
 
 ## Gates
 
