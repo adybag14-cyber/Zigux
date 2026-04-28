@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-mmio-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, a lane-level note that records what is present in the live repo plus the remaining MMIO transport gap against the roadmap, the first MMIO register-window helper, the bounded queue-register helper, and the queue-notify helper that now makes the next queue-address gap concrete
+- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, a lane-level note that records what is present in the live repo plus the remaining MMIO transport gap against the roadmap, the first MMIO register-window helper, the bounded queue-register helper, and the landed queue-notify helper that now makes the next queue-address gap concrete
 - product boundary:
   - `zigux/tests/phase10_virtio_mmio_manifest.json`
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
@@ -21,7 +21,7 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a 
 
 ## Survey findings
 
-- `drivers/virtio/virtio_mmio.c` is present on `master` at 829 lines and mixes feature negotiation, config-space reads and writes, status handling, generation checks, interrupt acknowledgement, queue selection, queue sizing, ready-state toggles, queue notify side effects, queue-address programming, virtqueue discovery, reset paths, and probe or remove lifecycle work.
+- `drivers/virtio/virtio_mmio.c` is present on `master` at 829 lines and mixes feature negotiation, config-space reads and writes, status handling, generation checks, interrupt acknowledgement, queue selection, queue sizing, ready-state toggles, queue notify side effects, virtqueue discovery, reset paths, and probe or remove lifecycle work.
 - the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, eight dedicated Phase 10 virtio test or survey files under `zigux/tests/` (`phase10_virtio_core.zig`, `phase10_virtio_core_survey.zig`, `phase10_virtio_ring.zig`, `phase10_virtio_ring_survey.zig`, `phase10_virtio_input.zig`, `phase10_virtio_input_survey.zig`, `phase10_virtio_mmio.zig`, and `phase10_virtio_mmio_survey.zig`), `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`.
 - the landed MMIO helper stays intentionally narrow: it now models MMIO register offsets, bounded feature-page selection, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, status and reset bookkeeping, config-generation tracking, and interrupt-ack bookkeeping only.
 - this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule now holds for a small but real MMIO foothold, and the next honest follow-up is a version-scoped queue-address planning helper rather than probe, remove, DMA, or broader lifecycle glue.
