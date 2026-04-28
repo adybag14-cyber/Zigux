@@ -1,4 +1,5 @@
 const std = @import("std");
+const sample = @import("runtime_trace_events_sample");
 
 const SurveySummary = struct {
     trace_events_sample_c_lines: usize,
@@ -233,6 +234,15 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane.") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "does not reopen the trace-core freeze posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "Architecture Council") != null);
+}
+
+test "phase 9 runtime trace-events survey keeps the starter descriptor blocked on runtime substrate" {
+    const descriptor = sample.RuntimeTraceEventsSample.descriptor();
+
+    try std.testing.expectEqualStrings("runtime_trace_events", descriptor.name);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
 test "phase 9 runtime trace-events blocker stays loader-free until the scheduler substrate exists" {
