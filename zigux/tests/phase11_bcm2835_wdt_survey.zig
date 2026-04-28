@@ -62,10 +62,10 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("29bb6fc1b9012dce7a764b44bcc7f2c148249ed9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("712042fdeddcdc46bc653d68c8124e68bbed4b16", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
