@@ -43,11 +43,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
+    var saw_surveyed_commit_prompt = false;
     var saw_docs_prompt = false;
     var saw_private_data_prompt = false;
     var saw_maxactive_prompt = false;
@@ -66,6 +67,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "surveyed_commit") != null and
+            std.mem.indexOf(u8, prompt, "exact inspected master head") != null and
+            std.mem.indexOf(u8, prompt, "floating branch label") != null)
+        {
+            saw_surveyed_commit_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
             std.mem.indexOf(u8, prompt, "Documentation/zigux/README.md") != null and
@@ -151,6 +158,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     }
 
     try std.testing.expect(saw_descriptor_prompt);
+    try std.testing.expect(saw_surveyed_commit_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_maxactive_prompt);
