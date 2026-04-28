@@ -146,6 +146,90 @@ def capture_run_zig(zig: str, tmp_dir: Path, actual: Path, argv: list[str], *, n
     write_process_json(actual, result, normalize_stderr=normalize_stderr)
 
 
+def fail_manifest(issues: list[str]) -> None:
+    print('GENKSYMS_BRIDGE_MANIFEST=fail')
+    print('GENKSYMS_BRIDGE_MANIFEST_ISSUES_START')
+    for issue in issues:
+        print(issue)
+    print('GENKSYMS_BRIDGE_MANIFEST_ISSUES_END')
+    raise SystemExit(1)
+
+
+def load_cases_manifest() -> list[dict[str, object]]:
+    cases_path = FIXTURE_DIR / 'cases.json'
+    try:
+        payload = json.loads(cases_path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        fail_manifest([f'cases.json:invalid_json:{exc.msg}:line={exc.lineno}:column={exc.colno}'])
+
+    issues: list[str] = []
+    if not isinstance(payload, dict):
+        fail_manifest(['cases.json:expected_top_level_object'])
+
+    cases = payload.get('cases')
+    if not isinstance(cases, list):
+        fail_manifest(['cases.json:cases:expected_list'])
+    if not cases:
+        issues.append('cases.json:cases:empty')
+
+    expected_files = {path.name for path in FIXTURE_DIR.glob('*_expected.json')}
+    referenced_expected: set[str] = set()
+    seen_names: set[str] = set()
+    seen_expected: set[str] = set()
+    valid_modes = {'stdout_json', 'process_json'}
+
+    for index, case in enumerate(cases):
+        prefix = f'cases.json:cases[{index}]'
+        if not isinstance(case, dict):
+            issues.append(f'{prefix}:expected_object')
+            continue
+
+        name = case.get('name')
+        if not isinstance(name, str) or not name:
+            issues.append(f'{prefix}:name:expected_nonempty_string')
+        elif name in seen_names:
+            issues.append(f'{prefix}:name:duplicate:{name}')
+        else:
+            seen_names.add(name)
+
+        argv = case.get('argv')
+        if not isinstance(argv, list) or any(not isinstance(item, str) for item in argv):
+            issues.append(f'{prefix}:argv:expected_string_list')
+
+        expected = case.get('expected')
+        if not isinstance(expected, str) or not expected:
+            issues.append(f'{prefix}:expected:expected_nonempty_string')
+        else:
+            if Path(expected).name != expected:
+                issues.append(f'{prefix}:expected:must_be_flat_filename:{expected}')
+            elif expected in seen_expected:
+                issues.append(f'{prefix}:expected:duplicate_reference:{expected}')
+            else:
+                seen_expected.add(expected)
+            referenced_expected.add(expected)
+            if expected not in expected_files:
+                issues.append(f'{prefix}:expected:missing_fixture:{expected}')
+
+        mode = case.get('mode', 'stdout_json')
+        if not isinstance(mode, str) or mode not in valid_modes:
+            issues.append(f'{prefix}:mode:unsupported:{mode}')
+
+        normalize_stderr = case.get('normalize_stderr')
+        if normalize_stderr is not None and not isinstance(normalize_stderr, bool):
+            issues.append(f'{prefix}:normalize_stderr:expected_bool')
+        if mode != 'process_json' and normalize_stderr:
+            issues.append(f'{prefix}:normalize_stderr:requires_process_json_mode')
+
+    orphaned_expected = sorted(expected_files - referenced_expected)
+    for name in orphaned_expected:
+        issues.append(f'cases.json:orphaned_expected:{name}')
+
+    if issues:
+        fail_manifest(issues)
+
+    return cases
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded genksyms bridge parity.')
     parser.add_argument('--cc', help='C compiler to use')
@@ -153,13 +237,13 @@ def main() -> int:
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected fixtures from the C harness')
     args = parser.parse_args()
 
+    cases = load_cases_manifest()
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
-    cases = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
 
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
-        for case in cases['cases']:
+        for case in cases:
             mode = case.get('mode', 'stdout_json')
             c_actual = tmp_dir / f"{case['name']}.c.actual.json"
             zig_actual = tmp_dir / f"{case['name']}.zig.actual.json"
