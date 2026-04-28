@@ -5,7 +5,6 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_ioremap_lifetime_planning: bool,
     provides_ioremap_uc_wrapper_planning: bool,
-    provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioport_lifetime_planning: bool,
     provides_ioremap_resource_planning: bool,
@@ -257,13 +256,41 @@ pub const DevresHelperLab = struct {
         };
     }
 
+    fn invalidManagedIoremapFailure(requested_type: IoremapType) ManagedIoremapOutcome {
+        return .{
+            .err = .{
+                .anchor = descriptor().anchor,
+                .stage = .invalid_resource,
+                .error_code = .invalid,
+                .effective_type = requested_type,
+                .requests_region = false,
+                .releases_region_on_remap_failure = false,
+            },
+        };
+    }
+
+    fn invalidDeviceTreeIomapFailure(index: usize, requested_type: IoremapType) DeviceTreeIomapOutcome {
+        return .{
+            .err = .{
+                .anchor = descriptor().anchor,
+                .stage = .address_translation,
+                .error_code = .invalid,
+                .index = index,
+                .reported_size = null,
+                .effective_type = requested_type,
+                .requests_region = false,
+                .releases_region_on_remap_failure = false,
+                .resource_stage = null,
+            },
+        };
+    }
+
     pub fn descriptor() ModuleDescriptor {
         return .{
             .name = "devres_helper_lab",
             .anchor = "lib/devres.c",
             .provides_ioremap_lifetime_planning = true,
             .provides_ioremap_uc_wrapper_planning = true,
-            .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioport_lifetime_planning = true,
             .provides_ioremap_resource_planning = true,
@@ -297,14 +324,6 @@ pub const DevresHelperLab = struct {
     pub fn planManagedIoremapAcquireUc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
         return planManagedIoremapAcquire(.{
             .kind = .uncached,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
-    }
-
-    pub fn planManagedIoremapAcquireWc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
-        return planManagedIoremapAcquire(.{
-            .kind = .write_combined,
             .release_record_allocated = input.release_record_allocated,
             .mapped_address = input.mapped_address,
         });
@@ -357,32 +376,16 @@ pub const DevresHelperLab = struct {
 
     pub fn planManagedIoremapResource(allocator: std.mem.Allocator, input: IoremapResourceInput) !ManagedIoremapOutcome {
         const resource = input.resource orelse {
-            return .{
-                .err = .{
-                    .anchor = descriptor().anchor,
-                    .stage = .invalid_resource,
-                    .error_code = .invalid,
-                    .effective_type = input.requested_type,
-                    .requests_region = false,
-                    .releases_region_on_remap_failure = false,
-                },
-            };
+            return invalidManagedIoremapFailure(input.requested_type);
         };
         if (!resource.is_memory) {
-            return .{
-                .err = .{
-                    .anchor = descriptor().anchor,
-                    .stage = .invalid_resource,
-                    .error_code = .invalid,
-                    .effective_type = input.requested_type,
-                    .requests_region = false,
-                    .releases_region_on_remap_failure = false,
-                },
-            };
+            return invalidManagedIoremapFailure(input.requested_type);
         }
 
         const effective_type = resolveIoremapType(resource, input.requested_type);
-        const size = try resourceSize(resource);
+        const size = resourceSize(resource) catch |err| switch (err) {
+            error.InvalidRange => return invalidManagedIoremapFailure(input.requested_type),
+        };
 
         if (input.fail_pretty_name_allocation) {
             return .{
@@ -442,23 +445,13 @@ pub const DevresHelperLab = struct {
 
     pub fn planDeviceTreeIomap(allocator: std.mem.Allocator, input: DeviceTreeIomapInput) !DeviceTreeIomapOutcome {
         if (input.index >= input.resources.len) {
-            return .{
-                .err = .{
-                    .anchor = descriptor().anchor,
-                    .stage = .address_translation,
-                    .error_code = .invalid,
-                    .index = input.index,
-                    .reported_size = null,
-                    .effective_type = input.requested_type,
-                    .requests_region = false,
-                    .releases_region_on_remap_failure = false,
-                    .resource_stage = null,
-                },
-            };
+            return invalidDeviceTreeIomapFailure(input.index, input.requested_type);
         }
 
         const resource = input.resources[input.index];
-        const translated_size = try resourceSize(resource);
+        const translated_size = resourceSize(resource) catch |err| switch (err) {
+            error.InvalidRange => return invalidDeviceTreeIomapFailure(input.index, input.requested_type),
+        };
         const reported_size = if (input.report_size) translated_size else null;
         const mapped_or_err = try planManagedIoremapResource(allocator, .{
             .device_name = input.device_name,

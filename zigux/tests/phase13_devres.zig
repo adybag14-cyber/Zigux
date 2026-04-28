@@ -8,7 +8,6 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
-    try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
@@ -84,35 +83,6 @@ test "phase13 devres uncached ioremap wrapper frees the release record on map fa
     });
 
     try std.testing.expectEqual(devres.ManagedIoremapKind.uncached, result.kind);
-    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
-    try std.testing.expect(!result.added_to_devres);
-    try std.testing.expect(!result.release_record_retained);
-    try std.testing.expect(result.release_record_freed);
-    try std.testing.expect(!result.should_unmap_on_detach);
-}
-
-test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {
-    const result = try devres.DevresHelperLab.planManagedIoremapAcquireWc(.{
-        .release_record_allocated = true,
-        .mapped_address = 0x2c00,
-    });
-
-    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
-    try std.testing.expectEqual(devres.ManagedIoremapKind.write_combined, result.kind);
-    try std.testing.expectEqual(@as(?usize, 0x2c00), result.mapped_address);
-    try std.testing.expect(result.added_to_devres);
-    try std.testing.expect(result.release_record_retained);
-    try std.testing.expect(!result.release_record_freed);
-    try std.testing.expect(result.should_unmap_on_detach);
-}
-
-test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {
-    const result = try devres.DevresHelperLab.planManagedIoremapAcquireWc(.{
-        .release_record_allocated = true,
-        .mapped_address = null,
-    });
-
-    try std.testing.expectEqual(devres.ManagedIoremapKind.write_combined, result.kind);
     try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
     try std.testing.expect(!result.added_to_devres);
     try std.testing.expect(!result.release_record_retained);
@@ -435,6 +405,30 @@ test "phase13 devres models pretty-name allocation failure and resource sizing" 
     }));
 }
 
+test "phase13 devres converts invalid memory ranges into structured invalid-resource failures" {
+    const outcome = try devres.DevresHelperLab.planManagedIoremapResource(std.testing.allocator, .{
+        .device_name = "uart5",
+        .resource = .{
+            .start = 0x6400,
+            .end = 0x63ff,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "regs",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(devres.ErrorStage.invalid_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(devres.IoremapType.normal, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
+    }
+}
+
 test "phase13 devres plans devm_of_iomap around translated resources and optional size reporting" {
     const resources = [_]devres.Resource{
         .{
@@ -571,6 +565,40 @@ test "phase13 devres preserves translated size when devm_of_iomap hits downstrea
             try std.testing.expect(failure.requests_region);
             try std.testing.expect(!failure.releases_region_on_remap_failure);
             try std.testing.expectEqual(@as(?devres.ErrorStage, .request_region), failure.resource_stage);
+        },
+    }
+}
+
+test "phase13 devres reports invalid translated ranges as address-translation failures" {
+    const resources = [_]devres.Resource{
+        .{
+            .start = 0xa200,
+            .end = 0xa1ff,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "broken",
+        },
+    };
+
+    const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "spi2",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(devres.DeviceTreeIomapStage.address_translation, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.invalid, failure.error_code);
+            try std.testing.expectEqual(@as(usize, 0), failure.index);
+            try std.testing.expectEqual(@as(?u64, null), failure.reported_size);
+            try std.testing.expectEqual(devres.IoremapType.normal, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+            try std.testing.expectEqual(@as(?devres.ErrorStage, null), failure.resource_stage);
         },
     }
 }
