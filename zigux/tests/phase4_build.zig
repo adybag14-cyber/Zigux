@@ -72,6 +72,11 @@ pub fn build(b: *std.Build) void {
         .root_module = bitmap_diff_module,
     });
     const run_bitmap_diff_tests = b.addRunArtifact(bitmap_diff_tests);
+    const bitmap_step = b.step(
+        "phase4-bitmap-diff",
+        "Run the bounded Phase 4 bitmap diff gate in isolation",
+    );
+    bitmap_step.dependOn(&run_bitmap_diff_tests.step);
 
     const test_step = b.step("test", "Run Phase 4 differential validation and survey tests");
     test_step.dependOn(&run_atomic64_diff_tests.step);
