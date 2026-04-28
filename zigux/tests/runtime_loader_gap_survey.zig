@@ -443,6 +443,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn keepsCommandNameExplicit",
         "pub fn isWaitingOnRuntimeSubstrate",
         "pub fn isReleasedWithoutSubstrate",
+        "pub fn waitingOnRuntimeSubstrate",
         "pub fn releasedWithoutSubstrate",
         "pub fn keepsAllocatorInitFlowConsistent",
     };
