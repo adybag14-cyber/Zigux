@@ -22,7 +22,7 @@ That matters because the live repo already has real helper-first progress under 
 
 The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
 
-This checkpoint has now been re-verified against current `master` head `1ce18b1897d996a4585c22f74da05b1103b2c617`, with the same landed helper set and the same blocked skeleton and loader split still holding.
+This checkpoint has now been re-verified against current `master` head `13dfd68ad1609c7bd68240e8210121640e877698`, with the same landed helper set and the same three-way split still holding between the skeleton blocker, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
 
 ## Survey findings
 
@@ -36,7 +36,7 @@ This checkpoint has now been re-verified against current `master` head `1ce18b18
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
 - the current Phase 12 build now re-checks the landed helper-first foundations directly by compiling `type_names.zig`, `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, and `file_path_handle_bridge.zig` through a reviewability gate and by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory.
 - the repo still has no `skeleton.zig`, `object_loader.zig`, or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
-- the current risk split is now explicit again: `skeleton.zig` remains the nearest post-helper cluster but is still blocked on the missing object model, while loader and program-load work stay deferred as the heavier follow-on after that boundary.
+- the current risk split is now explicit again: `skeleton.zig` remains the nearest post-helper cluster and is still blocked on the missing object model, `object_loader.zig` stays deferred as the heavier ELF-collection bucket that could otherwise collapse into mirror-tree sprawl, and `relocation.zig` stays deferred as the separate verifier-facing boundary for BTF fixups and load-time interactions.
 - with the bounded helper-first utility slices now landed, the next honest libbpf-facing step is to keep reviewability aligned and avoid collapsing the nearer skeleton-population blocker into the broader loader risk unless fresh repo reality changes the actual segment boundaries.
 
 ## Recorded gaps
@@ -55,9 +55,10 @@ The survey manifest now records:
 - the landed `phase12-libbpf-reviewability-gate`
 - the landed `phase12-libbpf-survey-note`
 - the still-blocked `phase12-libbpf-skeleton-population`
-- the still-blocked `phase12-libbpf-object-loader-and-program-load`
+- the still-deferred `phase12-libbpf-object-and-elf-loader`
+- the still-deferred `phase12-libbpf-btf-relocation-and-program-load`
 
-This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path, bounded logging and pin-path validation helpers, and the bounded fdinfo path or map-info parser helper, but the heavy helper consumer still stops first at the missing skeleton or object-model boundary and then well short of loader, relocation, or syscall-backed surfaces.
+This keeps the lane explicit without overstating progress: Zigux already has real libbpf helper footholds, including the deferred CPU-mask reader path, bounded logging and pin-path validation helpers, and the bounded fdinfo path or map-info parser helper, but the heavy helper consumer still stops first at the missing skeleton or object-model boundary and then well short of the separate loader, relocation, or syscall-backed surfaces.
 
 ## Rollback And Reversible Delivery
 
