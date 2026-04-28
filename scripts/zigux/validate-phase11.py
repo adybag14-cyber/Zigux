@@ -266,19 +266,19 @@ hvc_matrix_doc = text(HVC_DOC_PATHS["matrix"])
 for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
     "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
-    "The next honest bounded step inside the same Phase 11 lane is a tiny khvcd polling-contract summary",
+    "The next honest bounded step inside the same Phase 11 lane is a tiny khvcd worker-entry summary",
 ]:
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
 for marker in [
-    "PHASE11_HVC_CONSOLE_STATUS=tty_registration_handoff_landed",
+    "PHASE11_HVC_CONSOLE_STATUS=khvcd_polling_contract_landed",
     "shared replay observed on `master` currently runs `phase11-hvc-console-tests` but not `phase11-hvc-console-survey-tests`",
     "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`",
-    "`Build Summary: 17/17 steps succeeded; 41/41 tests passed`",
+    "`Build Summary: 17/17 steps succeeded; 45/45 tests passed`",
     "`run test phase11-hvc-console-tests 6 pass (6 total)`",
     "`zig test zigux/tests/phase11_hvc_console_survey.zig`",
     "`2/2 ... OK`",
-    "deepen the next bounded khvcd polling-contract summary",
+    "deepen the next bounded khvcd worker-entry summary",
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
