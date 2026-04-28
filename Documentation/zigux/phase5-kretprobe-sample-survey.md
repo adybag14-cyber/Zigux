@@ -64,6 +64,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, fixed `maxactive`, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
 - does `zigux/tests/phase5_kretprobe_example_manifest.json` still pin the exact surveyed commit for the inspected `master` head instead of a floating branch label?
 - does the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate Phase 9 runtime starter while pointing reviewers at the shared `phase5_build.zig` entrypoint?
+- does the sample keep the Linux `struct my_data`-style private entry timestamp explicit as one `i64`-sized in-memory word instead of hiding the anchor's private-data cue in unstructured state?
 - does the sample keep the Linux `maxactive = 20` budget explicit as a reviewable in-memory ceiling instead of silently drifting away from the anchor or implying runtime tuning support?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
