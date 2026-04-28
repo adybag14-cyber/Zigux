@@ -15,6 +15,7 @@
     "watchdog_core_header_present": true,
     "termios_uapi_header_present": true,
     "hvc_console_header_present": true,
+    "hvc_console_header_snapshot_present": true,
     "dw_wdt_survey_note_present": true,
     "dw_wdt_manifest_present": true,
     "hvc_console_survey_note_present": true,
@@ -48,6 +49,13 @@
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
       "why_now": "The hvc_console starter already carries a tiny header-parity snapshot for drivers/tty/hvc/hvc_console.h that mirrors MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, and exported hvc helper metadata without widening into tty registration or host-backed I/O."
+    },
+    {
+      "id": "phase11-hvc-console-header-snapshot-check",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared header-parity gate now replays the hvc_console.zig header snapshot directly so the mirrored console-limit constants, exported hvc helper surface, and hv_ops callback booleans remain machine-checked instead of living only in prose."
     },
     {
       "id": "phase11-dw-wdt-watchdog-info-layout-assert",
