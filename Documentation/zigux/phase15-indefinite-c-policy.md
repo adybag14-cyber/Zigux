@@ -6,9 +6,10 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
 - `PHASE15_SLICE=indefinite-c-policy-current-gap-survey`
-- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and one current-roadmap-gap survey refresh that records the present indefinite-C policy posture against the surrounding Phase 15 governance bundle
-- survey provenance refreshed against verified `master` head `65cb45dda5ca7fc760207a4ca711397bc7894e9e`
+- scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and one current-roadmap-gap survey refresh that records the present indefinite-C policy posture against the surrounding Phase 15 governance bundle, the docs root, and the shared replay path
+- survey provenance refreshed against verified `master` head `410ee4c7aa6bdadf6b0c3b7c51a2ac90b05c5f73`
 - product boundary:
+  - `Documentation/zigux/README.md`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
@@ -18,6 +19,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
   - `zigux/tests/phase15_indefinite_c_policy.json`
   - `zigux/tests/phase15_indefinite_c_policy.zig`
   - `zigux/tests/phase15_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -37,6 +39,10 @@ The roadmap-required indefinite-C policy bundle is already present locally:
 - the dedicated policy packet exists in `Documentation/zigux/phase15-indefinite-c-policy.md`
 - the Architecture Council review-process packet and the parity scorecard reuse the same stay-in-C fields and reopen-trigger catalog
 - the dedicated manifest and Zig test keep that policy packet machine-checkable in `zigux/tests/phase15_indefinite_c_policy.json` and `zigux/tests/phase15_indefinite_c_policy.zig`
+- `Documentation/zigux/README.md` keeps the same Phase 15 governance bundle visible at the docs root
+- `zigux/tests/phase15_build.zig` and `zigux/Makefile` keep the same bundle on the shared replay path through `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15`
+
+That keeps the current roadmap-vs-repo policy gap explicit at the docs root and the shared replay path instead of leaving the closure signal buried only in this note.
 
 That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.
 
