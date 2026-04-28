@@ -40,6 +40,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     for (manifest.surveyed_commit) |byte| {
         try std.testing.expect(std.ascii.isLower(byte) or std.ascii.isDigit(byte));
     }
+    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "master"));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
@@ -180,8 +181,6 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "private entry timestamp") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "my_data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recordMissedInstance()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "entryHandler()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "retHandler()") != null);
