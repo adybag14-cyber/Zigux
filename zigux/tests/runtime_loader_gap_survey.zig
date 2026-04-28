@@ -2,6 +2,7 @@ const std = @import("std");
 
 const SurveySummary = struct {
     phase6_leaf_helper_count: usize,
+    phase8_command_environment_surface_count: usize,
     runtime_sample_count: usize,
     runtime_loader_plan_count: usize,
     shared_runtime_loader_present: bool,
@@ -39,6 +40,7 @@ const Manifest = struct {
     anchor: []const u8,
     survey_summary: SurveySummary,
     phase6_leaf_helpers: []const []const u8,
+    phase8_command_environment_surfaces: []const []const u8,
     runtime_samples: []const []const u8,
     runtime_loader_plans: []const []const u8,
     delivery_evidence_catalog: []const DeliveryEvidence,
@@ -105,6 +107,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expect(std.mem.indexOf(u8, manifest.anchor, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.phase6_leaf_helper_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.phase8_command_environment_surface_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.runtime_sample_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.runtime_loader_plan_count);
     try std.testing.expect(manifest.survey_summary.shared_runtime_loader_present);
@@ -112,6 +115,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(manifest.survey_summary.shared_init_exit_contract_present);
     try std.testing.expect(!manifest.survey_summary.shared_command_environment_control_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.phase8_command_environment_surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.runtime_loader_plans.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.delivery_evidence_catalog.len);
@@ -124,6 +128,8 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.runtime_samples[3]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", manifest.runtime_loader_plans[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[1]);
+    try std.testing.expectEqualStrings("tools/lib/subcmd/exec-cmd.zig", manifest.phase8_command_environment_surfaces[0]);
+    try std.testing.expectEqualStrings("tools/lib/subcmd/help.zig", manifest.phase8_command_environment_surfaces[1]);
     try std.testing.expectEqualStrings("runtime-loader-gap-note", manifest.delivery_evidence_catalog[0].id);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", manifest.delivery_evidence_catalog[0].path);
     try std.testing.expectEqualStrings("runtime-loader-freeze-map", manifest.delivery_evidence_catalog[2].id);
@@ -275,7 +281,12 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             saw_command_env_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 8 tooling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tools/lib/subcmd/exec-cmd.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tools/lib/subcmd/help.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`PERF_EXEC_PATH`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`PATH`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`LINES`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`COLUMNS`") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "argv-policy") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "environment-derived activation handling") != null);
         }
@@ -341,6 +352,8 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 8") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "command and environment plumbing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tools/lib/subcmd/exec-cmd.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tools/lib/subcmd/help.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Study / Boundary Only") != null);
@@ -351,6 +364,12 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "entry and exit symbol names") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "command or environment control surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "argv policy") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ExtractArgv0Result.command_name") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Config.exec_path_env") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PERF_EXEC_PATH") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PATH") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "LINES") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "COLUMNS") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "environment-derived activation cues") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded shared runtime-loader request surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
@@ -387,7 +406,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
     });
 }
 
-test "runtime loader gap survey proves the shared request surface and existing loader controls directly" {
+test "runtime loader gap survey proves the shared request surface and the separate Phase 8 control anchors directly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -414,6 +433,22 @@ test "runtime loader gap survey proves the shared request surface and existing l
         16 * 1024,
     );
     defer std.testing.allocator.free(runtime_loader_file);
+
+    const exec_cmd = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/subcmd/exec-cmd.zig",
+        24 * 1024,
+    );
+    defer std.testing.allocator.free(exec_cmd);
+
+    const help_cmd = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/subcmd/help.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(help_cmd);
 
     const shared_loader_surface = [_][]const u8{
         "pub const LoaderStage = runtime_loader.LoaderStage;",
@@ -453,6 +488,12 @@ test "runtime loader gap survey proves the shared request surface and existing l
     try expectContainsNone(bitmap_loader, &absent_command_env_surface);
     try expectContainsNone(kretprobe_loader, &absent_command_env_surface);
     try expectContainsNone(runtime_loader_file, &absent_command_env_surface);
+    try expectContainsNone(runtime_loader_file, &.{
+        "PERF_EXEC_PATH",
+        "\"PATH\"",
+        "\"LINES\"",
+        "\"COLUMNS\"",
+    });
     try expectContainsAll(runtime_loader_file, &.{
         "pub const AllocatorHandoff = struct",
         "pub const LoaderPayload = union(LoaderLane)",
@@ -460,6 +501,20 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn allocatorHandoffFor",
     });
     try expectContainsAll(runtime_loader_file, &shared_request_surface);
+    try expectContainsAll(exec_cmd, &.{
+        "command_name",
+        "exec_path_env",
+        "\"PERF_EXEC_PATH\"",
+        "env.get(\"PATH\")",
+        "try env.set(\"PATH\", new_path);",
+    });
+    try expectContainsAll(help_cmd, &.{
+        "command_name",
+        "$PATH",
+        "env_lines",
+        "env_columns",
+        "resolveTerminalDimensions",
+    });
 
     try expectContainsAll(bitmap_loader, &.{
         "pub const RuntimeBitmapLoadPlan = struct",
