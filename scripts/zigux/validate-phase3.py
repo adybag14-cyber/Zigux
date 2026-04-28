@@ -211,7 +211,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
 
 
 def validate_source_markers(root: Path, slug: str, issues: list[str]) -> None:
-    for rel, markers in _required_source_markERS_for_slug(slug).items():
+    for rel, markers in _required_source_markers_for_slug(slug).items():
         path = root / rel
         try:
             content = path.read_text(encoding="utf-8")
