@@ -23,7 +23,7 @@ This survey exists so the lane can compare that live starter against the roadmap
 
 - `drivers/virtio/virtio_input.c` is present on `master` at 421 lines and mixes config-space selection, bitmap and ABS metadata reads, event-queue refill, status-queue sends, multitouch timestamp suppression, input-device registration, freeze or restore hooks, and teardown paths.
 - the live repo already ships `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md`.
-- the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, bounded multitouch slot planning from `ABS_MT_SLOT`, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
+- the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, bounded multitouch slot planning from `ABS_MT_SLOT`, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, a reset-local teardown observation summary, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
 - the live repo still does not model registration preflight, real event delivery, `input_register_device()` registration parity, freeze or restore parity, or transport-backed queue callbacks.
 - this means the next honest virtio_input step is one tiny in-memory registration-preflight helper, not probe, remove, MMIO, or input core lifecycle work.
 
@@ -41,6 +41,7 @@ The survey manifest now records:
 - the landed `phase10-virtio-input-survey-note`
 - the landed `phase10-virtio-input-capability-setup-helper`
 - the landed `phase10-virtio-input-multitouch-slot-helper`
+- the landed `phase10-virtio-input-teardown-observation-helper`
 - the ready-next `phase10-virtio-input-registration-preflight-helper`
 - the still-blocked `phase10-virtio-input-registration-lifecycle`
 
