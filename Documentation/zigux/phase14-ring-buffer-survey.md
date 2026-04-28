@@ -6,8 +6,9 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
+- `PHASE14_SURVEYED_COMMIT=d78223d3f1a386521769795b1cff384d83cb6a3a`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
-- survey provenance refreshed against verified `master` head `8a1e67b3a9ae6e02a3ae710ade159721573b5a27`
+- survey provenance refreshed against verified `master` head `d78223d3f1a386521769795b1cff384d83cb6a3a`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -89,6 +90,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The swap path also carries reader-visible accounting. When the page can be handed off whole, the function swaps the caller-provided page into the ring, preserves `real_end` for the committed payload length, appends missed-event metadata when there is room, and zeroes the unread tail before returning, so extraction, loss publication, and exported page shape still move together.
 - The `resize_disabled` story still belongs to the surrounding C-owned mapping contract, not a new Zig bridge. `ring_buffer_read_page()` forces memcpy whenever the buffer is mapped, and the earlier mapping audit already shows that mapped readers pin `resize_disabled` through `ring_buffer_map()`, which keeps read-page extraction tied to the same tracefs lifetime rules instead of opening a separate wrapper-first path.
 
+## Read-page allocation contract audit
+
+- `ring_buffer_alloc_read_page()` is not a generic allocator shim. It records the current `buffer->subbuf_order` into the returned wrapper, opportunistically reuses `cpu_buffer->free_page` under the per-CPU lock, and only falls back to `alloc_cpu_data()` when no cached page is available, which means the allocation path is already tied to the live per-CPU reuse contract.
+- `ring_buffer_free_read_page()` keeps that reuse contract in C. It only returns the page to `cpu_buffer->free_page` when the page is not shared anywhere else and when the wrapper's saved `order` still matches the buffer's current `subbuf_order`; otherwise it frees the backing pages outright instead of pretending the caller can safely recycle them across size changes.
+- The tracefs callers prove that this is one shared contract, not a helper seam. `tracing_buffers_read()` caches one spare page per open file, remembers both `spare_cpu` and `spare_size`, and explicitly frees and reallocates the spare page when the sub-buffer size changes before retrying `ring_buffer_read_page()`.
+- The splice path stays under the same ownership. `tracing_buffers_splice_read()` allocates a fresh read page, passes it into `ring_buffer_read_page(..., full = 1)`, and only hands the page downstream after the read succeeds, so the caller-visible lifecycle is still "allocate from the buffer contract, consume through the buffer contract, free back through the buffer contract."
+- The sleep and wake responsibility remains deliberately outside the allocator itself. `ring_buffer_read_page()` says the calling layer must decide when to sleep or wake because the ring buffer is shared across kernel contexts, and `tracing_buffers_read()` is the code that turns a negative read into `wait_on_pipe()` or `-EAGAIN`, which confirms that allocation, reuse, and wake policy still have to be reviewed as one C-owned tracefs contract.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -105,7 +114,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-extraction-followup`
-- ready-next `phase14-ring-buffer-read-page-allocation-contract-followup`
+- landed `phase14-ring-buffer-read-page-allocation-contract-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -132,4 +141,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only allocation-contract follow-up next, limited to `ring_buffer_alloc_read_page()`, `ring_buffer_free_read_page()`, caller-owned wake or sleep responsibility, and the sub-buffer order or reuse checks before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and, if this packet needs another step, keep it study-only and limited to the sub-buffer-order reconfiguration path around `ring_buffer_subbuf_order_set()`, tracefs size reconfiguration in `trace.c`, and the conditions that invalidate cached read pages before anyone proposes `kernel/trace/ring_buffer.zig`.
