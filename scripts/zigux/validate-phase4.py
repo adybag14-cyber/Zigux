@@ -139,8 +139,10 @@ REQUIRED_SCRIPT_README_MARKERS = [
     'validate-phase4.py',
     'Phase 4 flow',
     'phase4_build.zig',
+    'phase4_runtime_atomic64_diff_survey.zig',
     'phase4-validation-matrix.md',
     'phase4-runtime-atomic64-diff-survey-tests',
+    'survey-backed atomic64 replay drift out of the regular validation path',
     'reversible-delivery evidence',
 ]
 
@@ -158,7 +160,7 @@ REQUIRED_DOC_README_MARKERS = [
 
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
-    'deterministic_preflight_required_for_host_side_diff_tools',
+    'deterministic_preflight_and_cli_contract_replay_required_for_host_side_diff_tools',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'bitmap_diff.zig',
