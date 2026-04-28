@@ -6,6 +6,7 @@ const RepoEvidence = struct {
     review_process_present: bool,
     parity_scorecard_present: bool,
     indefinite_c_policy_present: bool,
+    handoff_next_steps_present: bool,
     phase15_build_present: bool,
     phase15_make_target_present: bool,
     shared_ci_phase15_present: bool,
@@ -56,7 +57,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("783e573845f21769925870e53a591e48878bb7f0", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("cf4eadbd1a016d92648979ffc8aecb4c1276843b", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -74,6 +75,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.review_process_present);
     try std.testing.expect(manifest.repo_evidence.parity_scorecard_present);
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
+    try std.testing.expect(manifest.repo_evidence.handoff_next_steps_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
@@ -133,6 +135,7 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared bootstrap workflow now runs the Phase 15 governance bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "status-change-ready") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
@@ -179,6 +182,14 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     );
     defer std.testing.allocator.free(indefinite_c_policy);
 
+    const handoff_next_steps = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(handoff_next_steps);
+
     const makefile = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/Makefile",
@@ -191,6 +202,7 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy, "## When the indefinite-C policy applies") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_next_steps, "## Maintenance Handoff Contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-test") != null);
 }
