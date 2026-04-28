@@ -1,6 +1,6 @@
 # Phase 11 UAPI And Driver-Header Parity Survey
 
-This survey note records the shared Phase 11 header boundary after re-reading `master` `8f990e14912a7c5889bcf0b87314bf49052e2cef`.
+This survey note records the shared Phase 11 header boundary after re-reading `master` `095bac327bb962d38a47555d20a2a647ef1cbd5b`.
 
 The live repo state is now:
 
@@ -9,10 +9,10 @@ The live repo state is now:
 - the shared Phase 11 header survey gate now carries one bounded `layout_assert` checkpoint for `struct watchdog_info`, pinning size 40, alignment 4, and field offsets 0, 4, and 8 for `options`, `firmware_version`, and `identity[32]` without claiming full watchdog-core ownership
 - `drivers/tty/hvc/hvc_console.zig` already carries a tiny header-parity snapshot for `drivers/tty/hvc/hvc_console.h`, covering `MAX_NR_HVC_CONSOLES`, `HVC_ALLOC_TTY_ADAPTERS`, the `hv_ops` callback shape, and the exported `hvc_*` helper metadata without claiming tty registration or host-backed I/O
 - the shared Phase 11 header survey gate now also replays that `hvc_console.zig` snapshot directly, pinning the mirrored console-limit constants, exported instantiate or alloc or remove or poll or resize surface, and the bounded `hv_ops` callback booleans so the shared note is backed by code instead of prose alone
-- that same shared gate now carries one bounded `layout_assert` checkpoint for `struct hv_ops`, pinning the pointer-table order in `drivers/tty/hvc/hvc_console.h` at size 72, alignment 8, and offsets 0, 8, 16, 24, 32, 40, 48, 56, and 64 for `get_chars`, `put_chars`, `flush`, `notifier_add`, `notifier_del`, `notifier_hangup`, `tiocmget`, `tiocmset`, and `dtr_rts` without claiming `struct hvc_struct` or tty-core ownership
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md` now keeps the shared-versus-dedicated replay contract explicit: the shared Phase 11 build runs the bounded `hvc_console` starter beside the watchdog starters and shared header survey, while the dedicated `zigux/tests/phase11_hvc_console_survey.zig` replay still stays separate so tty-facing boundary evidence does not get overstated
 - `drivers/tty/hvc/hvc_console.h` still routes its exported resize surface through `struct winsize`, so `include/uapi/asm-generic/termios.h` remains the owner of `ws_row`, `ws_col`, `ws_xpixel`, and `ws_ypixel` rather than the Phase 11 hvc starter
 - the shared Phase 11 header survey gate now also carries one bounded `layout_assert` checkpoint for `struct winsize`, pinning size 8, alignment 2, and field offsets 0, 2, 4, and 6 so the hvc resize boundary stays reviewable without claiming tty-core or `struct hvc_struct` ownership
-- `zigux/tests/phase11_build.zig` now replays a shared Phase 11 UAPI or driver-header survey gate alongside the existing starter and lane-local survey tests so boundary drift is visible in one place
+- `zigux/tests/phase11_build.zig` now replays the shared Phase 11 UAPI or driver-header survey gate alongside the watchdog starter and watchdog survey tests plus the bounded `hvc_console` starter test, while `zigux/tests/phase11_hvc_console_survey.zig` remains a dedicated replay path recorded by `zigux/tests/fixtures/phase11_build_inventory.json`
 
 This shared lane still does not claim full UAPI ownership, watchdog-core parity, tty-core parity, `struct hvc_struct` parity, or a reusable interop substrate for shared public headers.
 
