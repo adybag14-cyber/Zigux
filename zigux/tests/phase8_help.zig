@@ -161,6 +161,11 @@ test "phase 8 help raw PATH splitting keeps empty segments, custom prefixes, and
     try std.testing.expectEqualStrings("/usr/bin", split_entries.entries.items[3]);
     try std.testing.expectEqualStrings("", split_entries.entries.items[4]);
 
+    var empty_path_entries = try help.splitPathEntries(std.testing.allocator, "");
+    defer empty_path_entries.deinit();
+    try std.testing.expectEqual(@as(usize, 1), empty_path_entries.count());
+    try std.testing.expectEqualStrings("", empty_path_entries.entries.items[0]);
+
     const exec_entries = [_]help.DirectoryEntry{
         .{ .name = "zigux-stat", .is_executable = true },
         .{ .name = "zigux-report.exe", .is_executable = true },
@@ -199,6 +204,37 @@ test "phase 8 help raw PATH splitting keeps empty segments, custom prefixes, and
     try std.testing.expectEqualStrings("stat", main_cmds.names.items[1].name);
     try std.testing.expectEqual(@as(usize, 1), other_cmds.count());
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
+
+    const empty_only_entries = [_]help.DirectoryEntry{
+        .{ .name = "zigux-empty", .is_executable = true },
+    };
+
+    var empty_only_source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &empty_only_entries },
+            .{ .path = "/opt/perf/bin", .entries = &.{} },
+        },
+    };
+
+    var empty_main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer empty_main_cmds.deinit();
+    var empty_other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer empty_other_cmds.deinit();
+
+    try help.loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        "zigux-",
+        "/opt/perf/bin",
+        "",
+        &empty_main_cmds,
+        &empty_other_cmds,
+        &empty_only_source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), empty_main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 1), empty_other_cmds.count());
+    try std.testing.expectEqualStrings("empty", empty_other_cmds.names.items[0].name);
 }
 
 test "phase 8 help output emission keeps column-major pretty-printing pure and testable" {
