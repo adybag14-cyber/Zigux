@@ -348,6 +348,15 @@ test "bin2hexAppend helpers return the remaining destination slice" {
     try std.testing.expectError(HexError.DestinationTooSmall, bin2hexAppendUpper(short[0..], source[0..4]));
 }
 
+test "hexAsc helpers expose lower and upper nibble text" {
+    try std.testing.expectEqual(@as(u8, 'b'), hexAscHi(0xbe));
+    try std.testing.expectEqual(@as(u8, 'e'), hexAscLo(0xbe));
+    try std.testing.expectEqual(@as(u8, 'B'), hexAscUpperHi(0xbe));
+    try std.testing.expectEqual(@as(u8, 'E'), hexAscUpperLo(0xbe));
+    try std.testing.expectEqual(@as(u8, '0'), hexAscHi(0x0f));
+    try std.testing.expectEqual(@as(u8, 'f'), hexAscLo(0x0f));
+}
+
 test "hexBytePack helpers emit expected text and reject short buffers" {
     var lower: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
     const lower_rest = try hexBytePack(lower[0..], 0xbe);
@@ -396,4 +405,41 @@ test "hexDumpLineLength mirrors formatter normalization" {
     }
 }
 
-test "hexDumpS¢w±·¢¶Ú(–‰à
+test "hexDumpToBuffer emits grouped and ascii text" {
+    var linebuf: [160]u8 = undefined;
+
+    try std.testing.expectEqual(@as(usize, 47), hexDumpToBuffer(test_data_b[0..16], 16, 1, linebuf[0..], false));
+    try std.testing.expectEqualSlices(u8, "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b", std.mem.sliceTo(linebuf[0..], 0));
+
+    try std.testing.expectEqual(@as(usize, 65), hexDumpToBuffer(test_data_b[0..16], 16, 1, linebuf[0..], true));
+    try std.testing.expectEqualSlices(u8, "be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b  .2.{....p..$}.4.", std.mem.sliceTo(linebuf[0..], 0));
+
+    try std.testing.expectEqual(@as(usize, 39), hexDumpToBuffer(test_data_b[0..16], 16, 2, linebuf[0..], false));
+    const grouped2 = if (builtin.cpu.arch.endian() == .big)
+        "be32 db7b 0a18 93b2 70ba c424 7d83 349b"
+    else
+        "32be 7bdb 180a b293 ba70 24c4 837d 9b34";
+    try std.testing.expectEqualSlices(u8, grouped2, std.mem.sliceTo(linebuf[0..], 0));
+
+    try std.testing.expectEqual(@as(usize, 33), hexDumpToBuffer(test_data_b[0..16], 16, 8, linebuf[0..], false));
+    const grouped8 = if (builtin.cpu.arch.endian() == .big)
+        "be32db7b0a1893b2 70bac4247d83349b"
+    else
+        "b293180a7bdb32be 9b34837d24c4ba70";
+    try std.testing.expectEqualSlices(u8, grouped8, std.mem.sliceTo(linebuf[0..], 0));
+}
+
+test "hexDumpToBuffer keeps normalization and truncation contracts" {
+    try std.testing.expectEqual(@as(usize, 61), hexDumpToBuffer(test_data_b[0..12], 99, 3, &[_]u8{}, true));
+    try std.testing.expectEqual(@as(usize, 26), hexDumpToBuffer(test_data_b[0..9], 32, 4, &[_]u8{}, false));
+
+    var short_ascii: [12]u8 = [_]u8{'#'} ** 12;
+    const required_ascii = hexDumpToBuffer(test_data_b[0..15], 16, 8, short_ascii[0..], true);
+    try std.testing.expectEqual(@as(usize, 64), required_ascii);
+    try std.testing.expectEqualSlices(u8, "be 32 db 7b", std.mem.sliceTo(short_ascii[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), short_ascii[11]);
+
+    var empty: [8]u8 = [_]u8{'#'} ** 8;
+    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..], false));
+    try std.testing.expectEqual(@as(u8, 0), empty[0]);
+}
