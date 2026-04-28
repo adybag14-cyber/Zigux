@@ -85,6 +85,16 @@ pub fn build(b: *std.Build) void {
         .root_module = string_helpers_sample_module,
     });
     const run_string_helpers_sample_tests = b.addRunArtifact(string_helpers_sample_tests);
+    const string_helpers_sample_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_string_helpers_sample_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const string_helpers_sample_survey_tests = b.addTest(.{
+        .name = "phase7-string-helpers-sample-survey-tests",
+        .root_module = string_helpers_sample_survey_root_module,
+    });
+    const run_string_helpers_sample_survey_tests = b.addRunArtifact(string_helpers_sample_survey_tests);
 
     const cmdline_tests = b.addTest(.{
         .name = "phase7-cmdline-tests",
@@ -102,7 +112,7 @@ pub fn build(b: *std.Build) void {
         .name = "phase7-argv-split-survey-tests",
         .root_module = argv_split_survey_root_module,
     });
-    const run_argv_split_survey_tests = b.addRunArtifact(argv_split_survey_tests);
+    const run_argv_split_survey_tests = b.addRunArtifact(argv_split_tests);
 
     const rbtree_tests = b.addTest(.{
         .name = "phase7-rbtree-tests",
@@ -113,6 +123,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 7 runtime helper tests");
     test_step.dependOn(&run_string_helpers_tests.step);
     test_step.dependOn(&run_string_helpers_sample_tests.step);
+    test_step.dependOn(&run_string_helpers_sample_survey_tests.step);
     test_step.dependOn(&run_cmdline_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
     test_step.dependOn(&run_argv_split_survey_tests.step);
