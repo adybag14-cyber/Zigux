@@ -291,6 +291,64 @@ test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {
     try std.testing.expect(summary.initializes_slots);
 }
 
+test "phase10 virtio input teardown summary keeps reset cleanup and identity preservation explicit" {
+    var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-10", 10, null);
+    const identity_before = device.configSnapshot();
+
+    try device.configureEventQueue(16);
+    try device.configureStatusQueue(8);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    _ = try device.sendStatus(0x11, 0x01, 1);
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{0});
+    try device.configureAbsInfo(0x00, .{
+        .minimum = 0,
+        .maximum = 1024,
+        .resolution = 16,
+    });
+    device.setMultitouch(true);
+
+    var summary = device.teardownPlanSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expect(summary.ready);
+    try std.testing.expectEqual(@as(u16, 16), summary.queued_event_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.queued_status_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.suppressed_status_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.config_bitmap_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.abs_info_count);
+    try std.testing.expect(summary.multitouch_enabled);
+    try std.testing.expect(summary.clears_queue_plan_on_reset);
+    try std.testing.expect(summary.clears_status_counters_on_reset);
+    try std.testing.expect(summary.clears_config_on_reset);
+    try std.testing.expect(summary.clears_abs_info_on_reset);
+    try std.testing.expect(summary.clears_multitouch_on_reset);
+    try std.testing.expect(summary.preserves_identity_strings);
+
+    device.reset();
+
+    summary = device.teardownPlanSummary();
+    try std.testing.expect(!summary.ready);
+    try std.testing.expectEqual(@as(u16, 0), summary.queued_event_buffer_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.queued_status_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.suppressed_status_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.config_bitmap_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.abs_info_count);
+    try std.testing.expect(!summary.multitouch_enabled);
+    try std.testing.expect(summary.clears_queue_plan_on_reset);
+    try std.testing.expect(summary.clears_status_counters_on_reset);
+    try std.testing.expect(summary.clears_config_on_reset);
+    try std.testing.expect(summary.clears_abs_info_on_reset);
+    try std.testing.expect(summary.clears_multitouch_on_reset);
+    try std.testing.expect(summary.preserves_identity_strings);
+
+    const identity_after = device.configSnapshot();
+    try std.testing.expectEqualStrings(identity_before.name, identity_after.name);
+    try std.testing.expectEqualStrings(identity_before.serial, identity_after.serial);
+    try std.testing.expectEqualStrings(identity_before.phys, identity_after.phys);
+    try std.testing.expectEqual(identity_before.ids.bustype, identity_after.ids.bustype);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
