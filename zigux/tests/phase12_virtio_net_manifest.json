@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "19eab53eea820198e7f14d9a44e64db35276a7f4",
+  "surveyed_commit": "5535f26fc9b9b92751c509c5d591101994943cc3",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -96,6 +96,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
       "why_now": "The new queue-resume summary keeps one bounded recovery-facing handoff after freeze by reporting whether the remembered queue plan can resume immediately, needs feature renegotiation, or needs reset, plus whether data queues, the control queue, and RSS state must be rebuilt before any live queue activation."
+    },
+    {
+      "id": "phase12-virtio-net-receive-path-summary",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The new receive-path summary keeps one bounded throughput-facing handoff from `virtnet_probe()` by recording whether probe should expect small buffers, mergeable receive buffers, or big-packet refill pressure, whether `any_header_sg` keeps header and data combined, and whether an XDP request stays ready or blocked by split-header or big-packet constraints before any live DMA, refill, or NAPI execution."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
