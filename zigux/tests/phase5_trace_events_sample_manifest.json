@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L19",
   "phase": "Phase 5",
-  "surveyed_commit": "63217919692ba6a9cb5ecd71b151e838d4d2839c",
+  "surveyed_commit": "7ebb1b604a930f836d76306292d63f4347ba7a26",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "sample_path": "samples/zigux/trace_events_sample.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -10,7 +10,7 @@
     "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still describe the same bounded trace-events replay contract and keep this Phase 5 sample separate from the Phase 9 runtime pilot",
     "the manifest and survey test still describe the exact main-iteration, callback-iteration, vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
-    "function-callback replay stays a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
+    "function-callback replay stays a single live register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
     "after `exit()` the sample still rejects replayMainIteration, registerFunctionCallback, replayFunctionIteration, and unregisterFunctionCallback so the teardown boundary stays fully explicit",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer the new boundary from code alone",
     "docs and tests still keep CREATE_TRACE_POINTS, tracepoint macros, kernel scheduling, and module registration wiring out of scope for this Phase 5 sample"
@@ -65,6 +65,11 @@
       "id": "callback-registration-balance",
       "kind": "ownership_lifetime",
       "expected": "the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes"
+    },
+    {
+      "id": "single-registration-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "the in-memory callback lane rejects a second registerFunctionCallback call while already registered so the Phase 5 sample keeps one live callback registration before balance returns to zero"
     },
     {
       "id": "post-exit-rejection",
