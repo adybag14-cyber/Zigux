@@ -307,7 +307,7 @@ def run_self_test() -> int:
 
         abi_manifest_path = root / "tmp" / "abi_manifest.json"
         abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-4])
+        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-5])
         abi_manifest_path.write_text(
             json.dumps(
                 {
@@ -324,6 +324,7 @@ def run_self_test() -> int:
         abi_issues: list[str] = []
         validate_manifest(root, abi_manifest_path, "abi", abi_issues)
         assert abi_issues == [
+            "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi_build.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi.zig",
             "abi:manifest_missing_required_file=zigux/tests/phase3_abi_dump.zig",
             "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/expected.json",
