@@ -36,6 +36,7 @@ The current starter slice covers:
 
 - `parse_cpu_mask_str()`-adjacent parsing for `N` and `N-M` fragments
 - repeated comma and newline delimiter skipping for sysfs-style CPU mask strings
+- leading horizontal whitespace acceptance at fragment starts, matching the `sscanf()`-driven C helper without widening into broader trimming behavior
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
@@ -43,8 +44,8 @@ The current starter slice covers:
 The current tests check:
 
 - mixed single-value and ranged fragments
-- newline-terminated and repeated-delimiter inputs
-- chunked reader input that splits ranges and delimiters across buffer boundaries
+- newline-terminated, repeated-delimiter, and leading-horizontal-whitespace inputs
+- chunked reader input that splits ranges, delimiters, and leading horizontal whitespace across buffer boundaries
 - sparse masks with unset gaps preserved
 - explicit error handling for empty and malformed ranges
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
