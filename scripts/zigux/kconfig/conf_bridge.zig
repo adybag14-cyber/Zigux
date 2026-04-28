@@ -578,3 +578,42 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--savedefconfig\",\"arch/arm64/configs/minimal_defconfig\",\"Kconfig\"]") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"out/.config\"") != null);
 }
+
+test "conf bridge escapes JSON-sensitive argv and env values" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 256), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .defconfig,
+        .kconfig = "Kconfig\"main",
+        .config = "out\t/.config",
+        .arch = "arm64\nbe",
+        .mode_arg = "arch\\arm64/configs/mini\"defconfig",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "Kconfig\\\"main") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "out\\t/.config") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arm64\\nbe") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arch\\\\arm64/configs/mini\\\"defconfig") != null);
+}
