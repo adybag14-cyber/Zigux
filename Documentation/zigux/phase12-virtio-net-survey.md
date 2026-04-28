@@ -56,6 +56,14 @@ The survey manifest now records:
 
 This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter plus the bounded queue-recovery summary follow-up, the queue-resume summary follow-up, the newer header-shape follow-up, and the receive-path follow-up, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
 
+## Rollback And Reversible Delivery
+
+- owner: `Network Driver Lane`
+- rollback owner: `Network Driver Lane`
+- fallback path: keep `drivers/net/virtio_net.c` as the source of truth, keep the already-landed `drivers/net/virtio_net.zig` probe snapshot and bounded follow-up helpers additive-only, and drop the `phase12-virtio-net-tests` plus `phase12-virtio-net-survey-tests` entries from `zigux/tests/phase12_build.zig` if the shared Phase 12 packet needs to retreat.
+- reversible delivery evidence: this Phase 12 packet is bounded to one additive starter, one manifest-backed survey gate, and shared build wiring around preexisting Phase 10 virtio foundations, so the review surface can be removed without inventing a second network-driver runtime path or mutating the Linux anchor.
+- rollback drill: run `make -C zigux phase12-validate`; if the virtio-net packet is the only failing slice, repair `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, or the bounded `zigux/tests/phase12_virtio_net{,_survey}.zig` packet first, otherwise remove the `phase12-virtio-net-tests` and `phase12-virtio-net-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/net/virtio_net.c` and the already-landed bounded Zig helpers unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+
 ## Non-goals
 
 This survey slice does not claim:
