@@ -245,6 +245,57 @@ test "phase11 dw_wdt platform resource preflight records fallback timer clock an
     try std.testing.expect(!preflight.pretimeout_irq_shared_rising);
 }
 
+test "phase11 dw_wdt live resource order keeps tclk, optional pclk, reset, irq, and registration sequencing explicit" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const order = try watchdog.liveResourceOrderSummary(
+        .{
+            .requested_timeout_sec = 9,
+        },
+        .{
+            .timer_clock_selection = .named_tclk,
+            .has_apb_clock = true,
+            .has_pretimeout_irq = true,
+        },
+    );
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", order.anchor);
+    try std.testing.expectEqual(dw_wdt.TimerClockSelection.named_tclk, order.timer_clock_selection);
+    try std.testing.expect(order.acquires_timer_clock_first);
+    try std.testing.expect(order.acquires_optional_apb_after_timer);
+    try std.testing.expect(order.deasserts_shared_reset_before_registration);
+    try std.testing.expect(order.requests_optional_pretimeout_irq_before_registration);
+    try std.testing.expect(order.programs_timeout_before_registration);
+    try std.testing.expect(order.registers_watchdog_after_resources_ready);
+    try std.testing.expect(order.install_restart_handler_after_registration);
+}
+
+test "phase11 dw_wdt live resource order preserves imported running-state registration sequencing" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+
+    const order = try watchdog.liveResourceOrderSummary(
+        .{
+            .nowayout = false,
+        },
+        .{
+            .timer_clock_selection = .unnamed_default,
+            .has_apb_clock = false,
+            .has_pretimeout_irq = false,
+        },
+    );
+    try std.testing.expectEqual(dw_wdt.TimerClockSelection.unnamed_default, order.timer_clock_selection);
+    try std.testing.expect(order.acquires_timer_clock_first);
+    try std.testing.expect(!order.acquires_optional_apb_after_timer);
+    try std.testing.expect(!order.deasserts_shared_reset_before_registration);
+    try std.testing.expect(!order.requests_optional_pretimeout_irq_before_registration);
+    try std.testing.expect(!order.programs_timeout_before_registration);
+    try std.testing.expect(order.registers_watchdog_after_resources_ready);
+    try std.testing.expect(order.install_restart_handler_after_registration);
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
