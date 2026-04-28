@@ -1,6 +1,22 @@
 const std = @import("std");
 const exec_cmd = @import("exec_cmd");
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        allocator,
+        .limited(limit),
+    );
+}
+
 test "phase 8 exec-cmd module imports cleanly" {
     _ = exec_cmd;
 }
@@ -323,4 +339,20 @@ test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
             &[_]?[]const u8{ "-a", "--stdio" },
         ),
     );
+}
+
+test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
+    const slice_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "deferred execution");
+    try expectContains(slice_note, "Phase 14");
+    try expectContains(slice_note, "kernel/workqueue.c");
+    try expectContains(slice_note, "`execv_cmd()`");
+    try expectContains(slice_note, "`execvp()`");
+    try expectContains(slice_note, "scheduler-facing transport ownership");
 }
