@@ -60,6 +60,7 @@ The current tests check:
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
+- exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
 - a deterministic 64-byte and 1-kibibyte encode/decode timing harness that prints per-operation timings while rechecking round-trip correctness
 
@@ -73,4 +74,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper now needs a small external C-vs-Zig fixture layer beyond the direct shared fixture module, or whether the current parity surface plus the reviewable performance-sanity step is already sufficient for this bounded Phase 6 leaf port.
+Decide whether the helper now needs a small external C-vs-Zig fixture layer beyond the direct shared fixture module, or whether the expanded reverse-map parity surface plus the reviewable performance-sanity step is already sufficient to leave this bounded Phase 6 leaf port parked.
