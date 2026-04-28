@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
+const empty_argv_null_terminated = [_]?[*:0]const u8{null};
 
 pub const ArgvSplitResult = struct {
     storage: [:0]u8,
@@ -13,7 +14,7 @@ pub const ArgvSplitResult = struct {
         self.* = .{
             .storage = undefined,
             .argv = &.{},
-            .argv_null_terminated = &.{},
+            .argv_null_terminated = &empty_argv_null_terminated,
         };
     }
 
@@ -178,4 +179,17 @@ test "argvSplit preserves C-string termination for the final token and argv vect
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(split.cArgv()[1].?));
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+}
+
+test "ArgvSplitResult deinit leaves exported argv views empty and null terminated" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+
+    try std.testing.expectEqual(@as(usize, 2), split.argv.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+
+    split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
