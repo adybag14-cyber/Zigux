@@ -154,6 +154,13 @@ def validate_expected_fixdep_cases(case_manifest: Path) -> list[str]:
             'expected_stderr': 'sample_missing_dep_expected.stderr.txt',
             'expected_exit_code': 2,
         },
+        'sample_output_write': {
+            'depfile': 'sample.d',
+            'expected': 'sample_output_write_expected.txt',
+            'expected_stderr': 'sample_output_write_expected.stderr.txt',
+            'expected_exit_code': 1,
+            'stdout_mode': 'dev_full',
+        },
     }
 
     issues: list[str] = []
