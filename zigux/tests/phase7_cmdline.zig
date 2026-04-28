@@ -41,6 +41,18 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 3, 4, 5, 8 }, &values);
 }
 
+test "phase 7 getOptions preserves descending-range and partial-parse stop behavior" {
+    var descending = [_]i32{ 0, 0, 0, 0 };
+    const descending_rest = cmdline.getOptions("4-2,9", descending.len, &descending);
+    try std.testing.expectEqualStrings("2,9", descending_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 4, 0, 0 }, &descending);
+
+    var partial = [_]i32{ 0, 0, 0 };
+    const partial_rest = cmdline.getOptions("8,xx", partial.len, &partial);
+    try std.testing.expectEqualStrings("xx", partial_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 8, 0 }, &partial);
+}
+
 test "phase 7 memparse preserves suffix scaling and stop index semantics" {
     var index: usize = 0;
     try std.testing.expectEqual(@as(u64, 64 * 1024), cmdline.memparse("64K,panic", &index));
