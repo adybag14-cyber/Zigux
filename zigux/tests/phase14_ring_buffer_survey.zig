@@ -67,7 +67,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expectEqualStrings("P14-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
-    try std.testing.expectEqualStrings("99cd3249c4bab05b74227ed7ca3869284e818588", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("8a1e67b3a9ae6e02a3ae710ade159721573b5a27", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
@@ -82,7 +82,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -94,6 +94,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_mapped_reader_ioctl_followup = false;
     var saw_reader_page_consume_followup = false;
     var saw_read_page_extraction_followup = false;
+    var saw_read_page_allocation_contract_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -154,10 +155,19 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-read-page-extraction-followup")) {
             saw_read_page_extraction_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_read_page()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page-swap") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "resize_disabled") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-read-page-allocation-contract-followup")) {
+            saw_read_page_allocation_contract_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_alloc_read_page()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_free_read_page()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "order") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
@@ -170,7 +180,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), landed_count);
+    try std.testing.expectEqual(@as(usize, 12), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
@@ -180,6 +190,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_mapped_reader_ioctl_followup);
     try std.testing.expect(saw_reader_page_consume_followup);
     try std.testing.expect(saw_read_page_extraction_followup);
+    try std.testing.expect(saw_read_page_allocation_contract_followup);
     try std.testing.expect(saw_port_blocker);
 }
 
