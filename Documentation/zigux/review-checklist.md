@@ -18,6 +18,7 @@ Use this checklist before opening or merging Zigux product work.
 - is there a stated rollback owner and fallback path?
 - if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?
 - if the change updates an existing Phase 5 sample, do the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?
+- if the change updates the landed Phase 5 `kretprobe` or `trace-events` sample packet, does the manifest-backed survey still pin an exact surveyed commit for the inspected `master` head while keeping that Phase 5 sample visibly separate from the later Phase 9 runtime starter or pilot?
 - if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?
 - if the change is a Phase 9 runtime slice, do the module or sample note, the manifest-backed survey or loader-gap survey, and the shared `phase9_build.zig` entrypoint still agree on the same Linux anchor, bounded blocker posture, and replay scope?
 - if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?
