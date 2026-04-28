@@ -16,7 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
 
-The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsyms__parse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
+The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was overlong symbol handling: `kallsyms.c` keeps parsing and passes a bounded name buffer onward, while the Zig starter still raised an explicit length error instead of preserving that output-stable parser flow.
 
 ## Gates
 
@@ -41,7 +41,7 @@ The current starter slice covers:
 - thin reader-backed parsing that reuses the same malformed-line and callback semantics
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
 - one direct `kallsymsParse()` wrapper that accepts a plain filename plus a C-shaped callback contract while `kallsymsParseInDir()` keeps the narrower injected-dir variant available for tests and callers that need it
-- a bounded symbol-name length guard that keeps the starter parser honest
+- bounded symbol-name truncation that keeps the starter parser inside `KSYM_NAME_LEN` while preserving the same continue-parsing shape as the C helper
 
 The current tests check:
 
@@ -52,7 +52,7 @@ The current tests check:
 - split records also preserve callback-stop behavior unchanged when a failing symbol spans buffered chunk boundaries in the dedicated Phase 8 gate
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrappers preserve both the cwd-based filename contract and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
-- oversized symbol names raise an explicit bounded error instead of silently widening the lane
+- oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing so the starter slice now matches the C helper's bounded callback contract instead of failing early
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
 ## Non-goals
@@ -65,4 +65,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the `kallsyms` lane unless a fresh parity gap appears, and prefer the next Phase 8 helper-first follow-up from `tools/lib/subcmd/help.zig` or the next `tools/lib/bpf/zigux_segments/` slice.
+Park the `kallsyms` lane unless a fresh parity gap appears; the starter slice now covers bounded overlong-name handling as well as the direct wrappers, so the next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
