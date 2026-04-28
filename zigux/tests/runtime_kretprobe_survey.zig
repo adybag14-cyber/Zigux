@@ -26,6 +26,15 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+fn readWorkspaceFile(
+    io: anytype,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -148,4 +157,37 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader bindin
     try std.testing.expect(saw_loader_scaffold);
     try std.testing.expect(saw_live_loader_binding);
     try std.testing.expect(saw_shared_loader_controls_blocker);
+}
+
+test "phase 9 runtime kretprobe docs keep the lifecycle-summary surface explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_doc = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const module_doc = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(module_doc);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "lifecycle stage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`init_runs`, `selftest_runs`, `exit_runs`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "active-instance state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded probe results") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "lifecycle stage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`, `selftest_runs`, `exit_runs`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "active-instance state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded probe results") != null);
 }
