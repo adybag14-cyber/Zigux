@@ -180,14 +180,19 @@ MANIFEST_SPECS = {
     "phase12_libbpf_manifest.json": {
         "lane_key": "P12-L13",
         "anchor": "tools/lib/bpf/libbpf.c",
-        "gap_count": 13,
+        "gap_count": 14,
         "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {"zigux/Makefile"},
-        "allowed_statuses": {"starter_landed", "blocked_on_object_model"},
-        "expected_status_totals": {"starter_landed": 11, "blocked_on_object_model": 2},
+        "allowed_statuses": {"starter_landed", "blocked_on_object_model", "deferred_high_risk"},
+        "expected_status_totals": {"starter_landed": 11, "blocked_on_object_model": 1, "deferred_high_risk": 2},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
         "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model")],
+        "survey_count_markers": [
+            ("starter_landed_count", "starter_landed"),
+            ("ready_next_count", "ready_next"),
+            ("blocked_count", "blocked_on_object_model"),
+            ("deferred_count", "deferred_high_risk"),
+        ],
     },
 }
 
@@ -300,9 +305,11 @@ elif isinstance(expected_step_count, int) and isinstance(expected_test_count, in
 starter_total = 0
 blocked_dma_total = 0
 blocked_object_total = 0
+deferred_high_risk_total = 0
 expected_starter_total = 0
 expected_blocked_dma_total = 0
 expected_blocked_object_total = 0
+expected_deferred_high_risk_total = 0
 for name, spec in MANIFEST_SPECS.items():
     manifest = load_manifest(name)
     if manifest.get("phase") != "Phase 12":
@@ -344,6 +351,8 @@ for name, spec in MANIFEST_SPECS.items():
             blocked_dma_total += 1
         elif status == "blocked_on_object_model":
             blocked_object_total += 1
+        elif status == "deferred_high_risk":
+            deferred_high_risk_total += 1
 
     for status, expected_total in spec["expected_status_totals"].items():
         actual_total = manifest_status_totals.get(status, 0)
@@ -355,6 +364,8 @@ for name, spec in MANIFEST_SPECS.items():
             expected_blocked_dma_total += expected_total
         elif status == "blocked_on_object_model":
             expected_blocked_object_total += expected_total
+        elif status == "deferred_high_risk":
+            expected_deferred_high_risk_total += expected_total
 
     survey_text = text(spec["survey_path"])
     commit = str(manifest.get("surveyed_commit", ""))
@@ -457,6 +468,8 @@ if blocked_dma_total != expected_blocked_dma_total:
     missing.append(f"blocked_dma_total:{blocked_dma_total}")
 if blocked_object_total != expected_blocked_object_total:
     missing.append(f"blocked_object_total:{blocked_object_total}")
+if deferred_high_risk_total != expected_deferred_high_risk_total:
+    missing.append(f"deferred_high_risk_total:{deferred_high_risk_total}")
 
 if missing:
     print("PHASE12_VALIDATION=fail")
@@ -474,3 +487,4 @@ print(f"PHASE12_EXPECTED_SUMMARY_LINE={expected_summary_line}")
 print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE12_BLOCKED_DMA_STATUS_COUNT={blocked_dma_total}")
 print(f"PHASE12_BLOCKED_OBJECT_STATUS_COUNT={blocked_object_total}")
+print(f"PHASE12_DEFERRED_HIGH_RISK_STATUS_COUNT={deferred_high_risk_total}")
