@@ -1,7 +1,7 @@
 {
-  "lane_key": "P7-L16",
+  "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "surveyed_commit": "f9fcf27e2eab45ae770e523aa5e2e0b1e9cff2fd",
+  "surveyed_commit": "2109f2238e9ddb6ad4354319525d475f62a70e44",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -26,7 +26,7 @@
       "status": "starter_landed",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/rbtree.zig",
-      "why_now": "The roadmap names lib/rbtree.zig directly, and the current starter helper already covers initialization, balancing, replacement, erase, eraseInit ownership reset, traversal, and duplicate-key lookup semantics."
+      "why_now": "The roadmap names lib/rbtree.zig directly, and the current starter helper already covers initialization, balancing, replacement, erase, eraseInit ownership reset, traversal, duplicate-key lookup semantics, and duplicate-range iterator access."
     },
     {
       "id": "phase7-rbtree-dedicated-tests",
@@ -47,7 +47,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree_survey.zig",
-      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the remaining parity-fixture follow-up explicit without reopening tree logic."
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, current surveyed head, and landed review surfaces explicit without reopening tree logic."
     },
     {
       "id": "phase7-rbtree-parity-fixture-layer",
