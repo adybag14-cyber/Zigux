@@ -153,6 +153,77 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
 }
 
+test "phase 8 exec-cmd setupPathWithPwd reuses logical PWD only when the injected stat proof matches" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    const cwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const matching_pwd_identity = exec_cmd.FileIdentity{ .device = 11, .inode = 7 };
+    const different_pwd_identity = exec_cmd.FileIdentity{ .device = 99, .inode = 7 };
+
+    var matching_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer matching_env.deinit();
+
+    var matching_state = exec_cmd.ExecCmdState{};
+    defer matching_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&matching_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &matching_env, &matching_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &matching_state, "scripts");
+    try matching_env.set("PATH", "/usr/bin");
+
+    const matching = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &matching_env,
+        matching_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        matching_pwd_identity,
+    );
+    defer std.testing.allocator.free(matching);
+
+    try std.testing.expectEqualStrings(
+        "/logical/repo/tools/bin:/logical/repo/scripts:/usr/bin",
+        matching,
+    );
+    try std.testing.expectEqualStrings(matching, matching_env.get("PATH").?);
+
+    var different_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer different_env.deinit();
+
+    var different_state = exec_cmd.ExecCmdState{};
+    defer different_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&different_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &different_env, &different_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &different_state, "scripts");
+    try different_env.set("PATH", "/usr/bin");
+
+    const different = try exec_cmd.setupPathWithPwd(
+        std.testing.allocator,
+        &different_env,
+        different_state,
+        config,
+        "/repo",
+        "/logical/repo",
+        cwd_identity,
+        different_pwd_identity,
+    );
+    defer std.testing.allocator.free(different);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        different,
+    );
+    try std.testing.expectEqualStrings(different, different_env.get("PATH").?);
+}
+
 test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
     try std.testing.expectEqualStrings(
         "/repo",
