@@ -65,6 +65,14 @@ static void print_index_case(const char *label, uint32_t key, const uint32_t *ba
         printf("%s\t%u\tnull\n", label, key);
 }
 
+static void print_duplicate_case(uint32_t key, const uint32_t *found)
+{
+    if (found != NULL)
+        printf("duplicate-hit\t%u\tfound\n", key);
+    else
+        printf("duplicate-hit\t%u\tnull\n", key);
+}
+
 int main(void)
 {
     static const uint32_t values[] = { 3, 8, 13, 21, 34, 55, 89 };
@@ -116,7 +124,7 @@ int main(void)
     }
     {
         const uint32_t key = 7;
-        print_index_case("duplicate-hit", key, duplicates, inline_bsearch(&key, duplicates, sizeof(duplicates) / sizeof(duplicates[0]), sizeof(duplicates[0]), compare_u32));
+        print_duplicate_case(key, inline_bsearch(&key, duplicates, sizeof(duplicates) / sizeof(duplicates[0]), sizeof(duplicates[0]), compare_u32));
     }
     {
         const char key[] = "kmalloc";
