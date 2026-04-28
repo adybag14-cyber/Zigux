@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L13",
   "phase": "Phase 15",
-  "surveyed_commit": "65cb45dda5ca7fc760207a4ca711397bc7894e9e",
+  "surveyed_commit": "410ee4c7aa6bdadf6b0c3b7c51a2ac90b05c5f73",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
@@ -14,7 +14,10 @@
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/phase15-evidence-archives/"
+    "Documentation/zigux/phase15-evidence-archives/",
+    "Documentation/zigux/README.md",
+    "zigux/tests/phase15_build.zig",
+    "zigux/Makefile"
   ],
   "indefinite_c_requirements": [
     {
@@ -84,6 +87,17 @@
         "evidence_packet_stale_or_contradictory",
         "ownership_or_validation_changed"
       ]
+    },
+    {
+      "id": "indefinite-c-current-gap-survey",
+      "summary": "The current roadmap-vs-repo survey must say plainly that the policy gap is closed locally across the dedicated note, the docs root, and the shared replay path, while leaving only the deep-core blocker posture still blocked.",
+      "required_terms": [
+        "current roadmap-vs-repo policy gap",
+        "no longer a missing local governance artifact",
+        "docs root",
+        "shared replay path",
+        "deep-core blocker posture"
+      ]
     }
   ],
   "handoff": {
@@ -143,7 +157,7 @@
       "status": "starter_landed",
       "kind": "survey",
       "zigux_destination": "Documentation/zigux/phase15-indefinite-c-policy.md",
-      "why_now": "The dedicated indefinite-C policy packet now needs one explicit current-gap survey so the roadmap requirement reads as locally satisfied and any remaining work stays scoped to the deep-core blocker posture rather than another missing policy artifact."
+      "why_now": "The dedicated indefinite-C policy packet now needs one explicit current-gap survey that keeps the local closure visible in the docs root and the shared replay path, so the remaining work stays scoped to the deep-core blocker posture rather than another missing policy artifact."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
