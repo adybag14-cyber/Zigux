@@ -61,6 +61,7 @@ The exact checks now recorded in `zigux/tests/runtime_bitmap_manifest.json` and 
 - initializing bits `0`, `5`, `64`, and `70` yields `first_set = 0`, `first_zero = 1`, `weight = 4`, and `nbits` equal to the bounded two-word bitmap width
 - clearing bits `64` and `65` then setting range `9` through `12` yields `weight = 7`, keeps bit `70` set, sets bit `12`, and preserves the same summary through `copyFrom()` on an initialized mirror sample
 - `runSelftest()` moves the sample to `selftest_complete`, records exactly four operation families in order: `clear_set`, `copy`, `parse_and_print`, and `iteration_and_ranges`, and leaves the summary unchanged
+- after `runSelftest()` reaches `selftest_complete`, `clearRange(64, 2)` plus `setRange(9, 4)` still yields `first_set = 0`, `first_zero = 1`, and `weight = 7`, keeps bit `70` set, sets bit `12`, and preserves that replay through `copyFrom()` on an initialized mirror sample before exit
 - `exit()` moves the sample to `exited`, keeps the final bitmap snapshot reviewable, and later `setRange()`, `runSelftest()`, `exit()`, or re-init calls fail with `InvalidLifecycleTransition`
 - out-of-bounds init, `setRange()`, and `clearRange()` requests stay explicit `BitRangeOutOfBounds` errors at the bitmap tail
 - zero-length `setRange()` and `clearRange()` calls leave the summary unchanged, and `copyFrom()` rejects cold or exited sources with `InvalidSourceLifecycle`
@@ -74,7 +75,7 @@ The exact checks now recorded in `zigux/tests/runtime_bitmap_manifest.json` and 
 When a contributor updates `samples/zigux/runtime_bitmap.zig` or its directly coupled Phase 9 review files, keep these prompts explicit:
 
 - does the descriptor still keep the Linux anchor path explicit, leave `requires_runtime_substrate = true` while `provides_selftest_hook = true`, and still name the bounded two-word bitmap backing?
-- do `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and the loader scaffold still describe the exact lifecycle, summary, range-mutation, copy, loader handoff, and diff-case contract run through `zigux/tests/phase9_build.zig`?
+- do `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, and the loader scaffold still describe the exact lifecycle, summary, post-selftest mutation replay, copy, loader handoff, and diff-case contract run through `zigux/tests/phase9_build.zig`?
 - if the runtime bitmap sample behavior changes, is the manifest updated alongside the module and diff checks instead of leaving reviewers to infer the new contract from code alone?
 - does the review packet still keep this bounded starter visibly separate from the still-blocked shared runtime-loader control surface rather than implying a loadable module or real command-path parity?
 - do the docs and tests still say clearly that real runtime execution, shared loader controls, and full `lib/test_bitmap.c` parity remain out of scope?
