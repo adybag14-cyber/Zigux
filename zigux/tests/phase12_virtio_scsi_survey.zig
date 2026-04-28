@@ -137,7 +137,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_raw_github_fallback_catalog_present);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.raw_github_tree_fallback_count);
     try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.raw_github_file_fallback_count);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-validate:") != null);
@@ -145,10 +145,12 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot of `virtscsi_probe()` config fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "host-limit summary helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "now also lands one tiny host-limit summary helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "keeps one bounded io-queue-map plus recovery-restore summary in memory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "live `map_queues` callback or CPU-affinity wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_host_alloc()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_add_host()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`scsi_scan_host()`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, and host-limit summary starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, host-limit summary, and io-queue-map starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "5ecf3870d48d43e7a718b620b02ab9f60c0b969f") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "cf92730c0711f5d0705b5c35aa8dfbf777219bcc") != null);
@@ -218,6 +220,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     var saw_raw_fallback_catalog = false;
     var saw_probe_snapshot = false;
     var saw_host_limit_summary = false;
+    var saw_io_queue_map_summary = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -326,13 +329,23 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`nr_hw_queues`") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-io-queue-map-summary-starter")) {
+            saw_io_queue_map_summary = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "io-queue-map summary helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio-affinity intent") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live `map_queues` callback") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-queues-and-scan")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_scsi_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scsi_add_host()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary helper is now landed") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "host-limit summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "io-queue-map helpers are now landed") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -340,7 +353,7 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -354,5 +367,6 @@ test "phase12 virtio_scsi survey manifest records the landed host-limit summary 
     try std.testing.expect(saw_raw_fallback_catalog);
     try std.testing.expect(saw_probe_snapshot);
     try std.testing.expect(saw_host_limit_summary);
+    try std.testing.expect(saw_io_queue_map_summary);
     try std.testing.expect(saw_blocker);
 }
