@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L13",
   "phase": "Phase 10",
-  "surveyed_commit": "e7244910fe8004e07fd60a7b10752e05886308ef",
+  "surveyed_commit": "0626b89ccc57cd2d579344f878be4e23fd33d691",
   "anchor": "drivers/virtio/virtio_input.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -89,6 +89,13 @@
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
       "why_now": "The live repo now includes one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT`, deriving `input_mt_init_slots()`-style slot-count intent from the staged ABS metadata without claiming input-core registration or transport-backed queue callbacks."
+    },
+    {
+      "id": "phase10-virtio-input-teardown-observation-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded in-memory teardown-observation helper that reports queue, status, config, and ABS staging state together with reset-local cleanup intent while preserving identity strings, without claiming remove, freeze, restore, or transport-backed teardown callbacks."
     },
     {
       "id": "phase10-virtio-input-registration-preflight-helper",
