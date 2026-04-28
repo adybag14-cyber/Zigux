@@ -162,6 +162,64 @@ static int base64_decode(const char *src, int srclen, unsigned char *dst, bool p
     return (int)(bp - dst);
 }
 
+static int base64_decoded_length(const char *src, int srclen, bool padding, enum base64_variant variant)
+{
+    int out_len = 0;
+    const unsigned char *s = (const unsigned char *)src;
+    const int8_t *rev = base64_rev_maps[variant];
+
+    while (srclen >= 4) {
+        const int8_t a = rev[s[0]];
+        const int8_t b = rev[s[1]];
+        const int8_t c = rev[s[2]];
+        const int8_t d = rev[s[3]];
+
+        if (a < 0 || b < 0)
+            return -1;
+
+        if (c < 0 || d < 0) {
+            if (!padding || srclen != 4 || s[3] != '=')
+                return -1;
+            padding = false;
+            srclen = s[2] == '=' ? 2 : 3;
+            break;
+        }
+
+        out_len += 3;
+        s += 4;
+        srclen -= 4;
+    }
+
+    if (!srclen)
+        return out_len;
+    if (padding || srclen == 1)
+        return -1;
+
+    {
+        int32_t val;
+
+        if (rev[s[0]] < 0 || rev[s[1]] < 0)
+            return -1;
+
+        val = (rev[s[0]] << 12) | (rev[s[1]] << 6);
+        out_len += 1;
+
+        if (srclen == 2) {
+            if (val & 0x800003ff)
+                return -1;
+            return out_len;
+        }
+
+        if (rev[s[2]] < 0)
+            return -1;
+
+        val |= rev[s[2]];
+        if (val & 0x80000003)
+            return -1;
+        return out_len + 1;
+    }
+}
+
 static void print_hex(const unsigned char *buf, size_t len)
 {
     static const char *hex = "0123456789abcdef";
@@ -285,15 +343,16 @@ int main(void)
         const int written = base64_encode(c->input, (int)c->input_len, encoded, c->padding, c->variant);
         printf("enc\t%s\t%d\t", variant_name(c->variant), c->padding ? 1 : 0);
         print_hex(c->input, c->input_len);
-        putchar('\t');
+        putchar('\n');
         print_hex((const unsigned char *)encoded, (size_t)written);
         putchar('\n');
     }
 
     for (i = 0; i < sizeof(decode_cases) / sizeof(decode_cases[0]); i++) {
         const struct decode_case *c = &decode_cases[i];
+        const int bytes_result = base64_decoded_length((const char *)c->input, (int)c->input_len, c->padding, c->variant);
         const int written = base64_decode((const char *)c->input, (int)c->input_len, decoded, c->padding, c->variant);
-        printf("dec\t%s\t%d\t", variant_name(c->variant), c->padding ? 1 : 0);
+        printf("dec\t%s\t%d\t%d\t", variant_name(c->variant), c->padding ? 1 : 0, bytes_result);
         print_hex(c->input, c->input_len);
         putchar('\t');
         print_hex(decoded, written < 0 ? 0U : (size_t)written);
@@ -302,7 +361,7 @@ int main(void)
 
     for (i = 0; i < sizeof(invalid_cases) / sizeof(invalid_cases[0]); i++) {
         const struct invalid_case *c = &invalid_cases[i];
-        const int bytes_result = base64_decode((const char *)c->input, (int)c->input_len, decoded, c->padding, c->variant);
+        const int bytes_result = base64_decoded_length((const char *)c->input, (int)c->input_len, c->padding, c->variant);
         const int decode_result = base64_decode((const char *)c->input, (int)c->input_len, decoded, c->padding, c->variant);
         printf(
             "inv\t%s\t%d\t",
