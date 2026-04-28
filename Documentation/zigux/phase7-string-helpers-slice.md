@@ -25,6 +25,8 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
+
 ## Gates
 
 1. run the focused Zig Phase 7 helper tests
