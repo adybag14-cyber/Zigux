@@ -1,12 +1,13 @@
 {
-  "lane_key": "P13-L17",
+  "lane_key": "P13-L14",
   "phase": "Phase 13",
-  "surveyed_commit": "aeb279e35506501ee00fe315b73c2fe5e6720811",
+  "surveyed_commit": "3d734fefe5c64e29bed0dc38d69f64cae45be7ba",
   "anchors": [
     "include/linux/list.h",
-    "include/linux/notifier.h"
+    "include/linux/notifier.h",
+    "include/linux/acpi_amd_wbrf.h"
   ],
-  "roadmap_scope": "Phase 13 is the shared helper tranche, so this lane stays reviewability-only and records the current interop gap between the preexisting list surfaces and the still-missing generic notifier helper surface.",
+  "roadmap_scope": "Phase 13 is the shared helper tranche, so this lane stays reviewability-only and records the current interop gap between the preexisting list surfaces, the preexisting generic notifier header anchors, and the still-missing Zigux notifier ABI or helper surface.",
   "survey_summary": {
     "preexisting_phase13_build_present": true,
     "preexisting_phase3_build_present": true,
@@ -16,6 +17,7 @@
     "preexisting_hlist_view_present": true,
     "preexisting_chrdev_notify_plan_present": true,
     "preexisting_phase11_hvc_header_parity_present": true,
+    "preexisting_generic_notifier_header_anchor_present": true,
     "preexisting_generic_notifier_abi_present": false,
     "preexisting_generic_notifier_helper_present": false
   },
@@ -77,11 +79,18 @@
       "why_now": "The landed Phase 11 hvc_console header-parity surface already mirrors a driver-local anchor where struct hvc_struct carries a list_head next link while hv_ops carries notifier callbacks, which makes the current notifier-plus-list linkage reviewable without overstating it as a generic shared helper."
     },
     {
+      "id": "linux-generic-notifier-header-anchor",
+      "status": "preexisting_header_surface",
+      "kind": "generic_notifier_header_anchor",
+      "zigux_destination": "include/linux/acpi_amd_wbrf.h",
+      "why_now": "The current repo already exposes one public generic notifier consumer header that imports include/linux/notifier.h and publishes register or unregister entry points around struct notifier_block *nb, so the remaining Phase 13 gap is specifically Zigux-side ABI and helper reviewability rather than missing upstream notifier anchors."
+    },
+    {
       "id": "phase13-generic-notifier-abi-gap",
       "status": "ready_next",
       "kind": "shared_helper_gap",
       "zigux_destination": "zigux/bindings/abi.zig",
-      "why_now": "The next honest shared-helper step is a tiny generic notifier ABI surface such as notifier_block or notifier_head references that stays read-only and reviewable before any callback registration or chain execution is claimed."
+      "why_now": "The next honest shared-helper step is still a tiny generic notifier ABI surface such as notifier_block or notifier_head references that stays read-only and reviewable before any callback registration or chain execution is claimed."
     },
     {
       "id": "phase13-generic-notifier-helper-gap",
