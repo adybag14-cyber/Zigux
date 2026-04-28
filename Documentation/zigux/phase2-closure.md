@@ -57,7 +57,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
 5. bounded mk_elfconfig artifact parity
-- `python3 scripts/zigux/check-mk-elfconfig-diff.py`
+- `python3 scripts/zigux/check-mk_elfconfig-diff.py`
 
 6. bounded kconfig bridge parity
 - `python3 scripts/zigux/check-kconfig-bridge.py`
@@ -102,16 +102,17 @@ The bounded `fixdep` closure packet remains closed because both the shared artif
 The bounded `genksyms` closure packet remains closed because both the shared bridge fixtures and the helper-local unit lane cover the published getopt-style wrapper behavior:
 
 - shared fixture packet:
-  `minimal_expected.json`, `debug_reference_types_expected.json`, `short_inline_reference_dump_types_expected.json`, `long_options_expected.json`, `abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, `lone_dash_passthrough_expected.json`, `explicit_terminator_positional_passthrough_expected.json`, `help_expected.json`, `version_expected.json`, `invalid_option_expected.json`, `missing_reference_argument_expected.json`, `unsupported_long_option_expected.json`, `ambiguous_abbreviated_long_option_expected.json`, `unexpected_long_option_argument_expected.json`, `abbreviated_unexpected_long_option_argument_expected.json`, `missing_long_reference_argument_expected.json`, `abbreviated_missing_long_reference_argument_expected.json`, `missing_long_dump_types_argument_expected.json`
+  `minimal_expected.json`, `debug_reference_types_expected.json`, `short_inline_reference_dump_types_expected.json`, `long_options_expected.json`, `abbreviated_long_options_expected.json`, `quiet_overrides_warning_expected.json`, `explicit_option_terminator_expected.json`, `positional_passthrough_expected.json`, `lone_dash_passthrough_expected.json`, `explicit_terminator_positional_passthrough_expected.json`, `help_expected.json`, `version_expected.json`, `invalid_option_expected.json`, `missing_reference_argument_expected.json`, `unsupported_long_option_expected.json`, `ambiguous_abbreviated_long_option_expected.json`, `empty_long_option_name_expected.json`, `unexpected_long_option_argument_expected.json`, `abbreviated_unexpected_long_option_argument_expected.json`, `missing_long_reference_argument_expected.json`, `abbreviated_missing_long_reference_argument_expected.json`, `missing_long_dump_types_argument_expected.json`, `abbreviated_missing_long_dump_types_argument_expected.json`
 - helper-local anchors in `scripts/zigux/genksyms.zig`:
   `genksyms bridge accepts abbreviated unique long options`
   `genksyms bridge treats lone dash as positional passthrough`
   `genksyms bridge permutes prior positionals behind explicit terminator`
+  `genksyms bridge canonicalizes abbreviated dump-types missing-argument errors`
 
-- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=21`
+- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=23`
 - `PHASE2_GENKSYMS_BRIDGE_INLINE_SHORT_CASE=zigux/tests/fixtures/genksyms_bridge/short_inline_reference_dump_types_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_POSITIONAL_CASES=zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/explicit_terminator_positional_passthrough_expected.json`
-- `PHASE2_GENKSYMS_BRIDGE_EVIDENCE=artifact fixtures plus abbreviated-long, inline-short, lone-dash, and explicit-terminator unit anchors are required for closure`
+- `PHASE2_GENKSYMS_BRIDGE_EVIDENCE=artifact fixtures plus abbreviated-long, inline-short, lone-dash, explicit-terminator, empty-long-name, and abbreviated-dump-types coverage are required for closure`
 
 ## Linux-Style Entry Point
 
