@@ -23,6 +23,7 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqual(@as(i32, -1), cold_summary.last_main_count);
     try std.testing.expectEqual(@as(i32, -1), cold_summary.last_fn_count);
     try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_foo_bar_message);
+    try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_random_choice_message);
     try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_template_message);
     try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_conditional_message);
     try std.testing.expectEqual(@as(?[]const u8, null), cold_summary.last_main_template_cond_message);
@@ -56,6 +57,7 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expect(main_summary.saw_rel_loc_payload);
     try std.testing.expect(main_summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", main_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Gandalf", main_summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", main_summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", main_summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", main_summary.last_main_template_cond_message orelse return error.ExpectedMainPayload);
@@ -101,6 +103,7 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expect(selftest_summary.saw_rel_loc_payload);
     try std.testing.expect(selftest_summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", selftest_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", selftest_summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", selftest_summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", selftest_summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", selftest_summary.last_main_template_cond_message orelse return error.ExpectedMainPayload);
@@ -126,6 +129,7 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expect(exited_summary.saw_rel_loc_payload);
     try std.testing.expect(exited_summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", exited_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", exited_summary.last_main_random_choice_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", exited_summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", exited_summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", exited_summary.last_main_template_cond_message orelse return error.ExpectedMainPayload);
