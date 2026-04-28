@@ -20,8 +20,8 @@ test "phase 8 cpu mask starter slice parses dense masks and counts possible CPUs
     try std.testing.expect(parsed.values[8]);
 }
 
-test "phase 8 cpu mask starter slice keeps delimiter skipping bounded and rejects malformed ranges" {
-    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\n0-1,,4\r\n6\n");
+test "phase 8 cpu mask starter slice keeps delimiter skipping bounded, accepts leading horizontal whitespace, and rejects malformed ranges" {
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\n 0-1,\t4\r\n6\n");
     defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(@as(usize, 4), cpu_mask.countPossibleCpus(parsed.values));
@@ -33,6 +33,7 @@ test "phase 8 cpu mask starter slice keeps delimiter skipping bounded and reject
     try std.testing.expectError(error.EmptyCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "2-1"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "cpu0"));
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,4 \n"));
 }
 
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
@@ -54,7 +55,7 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-3", ",5", "\n7-8\n" },
+        .chunks = &.{ "0-3", ",\t5", "\n 7-8\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
