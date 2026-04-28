@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "ff0895938d77dec1332e24475f4f1bbe0fe9ba7d",
+  "surveyed_commit": "6afa667980bb289b2d811660aa92ea8106fbc043",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -89,6 +89,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
       "why_now": "The new queue-recovery summary freezes the last in-memory queue topology and recovery posture, blocks fresh probe snapshots while recovery is in flight, and clears stale planning state after restore so the lane can replay reset or renegotiation intent without claiming DMA-backed queue setup."
+    },
+    {
+      "id": "phase12-virtio-net-header-scatter-followup",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The new header-scatter follow-up now mirrors the `virtnet_probe()` `any_header_sg` and `needed_headroom` decision so the lab can record whether `VIRTIO_F_ANY_LAYOUT` or `VIRTIO_F_VERSION_1` permits a split header scatterlist before any live page-pool DMA, receive completion, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",

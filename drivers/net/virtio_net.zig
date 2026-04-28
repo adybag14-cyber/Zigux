@@ -4,6 +4,7 @@ const virtio = @import("virtio");
 pub const feature_mergeable_rx_buffers: u16 = 15;
 pub const feature_control_vq: u16 = 17;
 pub const feature_multiqueue: u16 = 22;
+pub const feature_any_layout: u16 = 27;
 pub const feature_version_1: u16 = 32;
 pub const feature_hash_report: u16 = 57;
 pub const feature_rss: u16 = 60;
@@ -60,6 +61,12 @@ pub const HeaderShape = enum {
     hash_report_tunnel,
 };
 
+pub const HeaderScatterSource = enum {
+    linear_header_only,
+    any_layout,
+    version_1,
+};
+
 pub const ProbeRequest = struct {
     driver_feature_bits: []const u16,
     requested_queue_pairs: u16,
@@ -86,10 +93,22 @@ pub const ProbeSnapshot = struct {
     hdr_len_bytes: u16,
     uses_hash_report_header: bool,
     uses_udp_tunnel_header: bool,
+    header_scatter_source: HeaderScatterSource,
+    supports_split_header_sg: bool,
+    needed_headroom_bytes: u16,
     rss_summary: RssSummary,
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
     queue_recovery_action: QueueRecoveryAction,
+};
+
+pub const HeaderScatterSummary = struct {
+    anchor: []const u8,
+    header_shape: HeaderShape,
+    hdr_len_bytes: u16,
+    header_scatter_source: HeaderScatterSource,
+    supports_split_header_sg: bool,
+    needed_headroom_bytes: u16,
 };
 
 pub const QueueRecoverySummary = struct {
@@ -154,6 +173,7 @@ pub const VirtioNetProbeLab = struct {
 
         const has_control_vq = try self.core.hasNegotiatedFeature(feature_control_vq);
         const has_multiqueue = try self.core.hasNegotiatedFeature(feature_multiqueue);
+        const has_any_layout = try self.core.hasNegotiatedFeature(feature_any_layout);
         const has_rss = try self.core.hasNegotiatedFeature(feature_rss);
         const has_hash_report = try self.core.hasNegotiatedFeature(feature_hash_report);
         const mergeable_rx_buffers = try self.core.hasNegotiatedFeature(feature_mergeable_rx_buffers);
@@ -210,6 +230,11 @@ pub const VirtioNetProbeLab = struct {
             has_guest_udp_tunnel_gso,
             has_host_udp_tunnel_gso,
         );
+        const header_scatter = summarizeHeaderScatter(
+            has_any_layout,
+            has_version_1,
+            header_shape.hdr_len_bytes,
+        );
 
         const snapshot = ProbeSnapshot{
             .anchor = descriptor().anchor,
@@ -229,6 +254,9 @@ pub const VirtioNetProbeLab = struct {
             .hdr_len_bytes = header_shape.hdr_len_bytes,
             .uses_hash_report_header = header_shape.uses_hash_report_header,
             .uses_udp_tunnel_header = header_shape.uses_udp_tunnel_header,
+            .header_scatter_source = header_scatter.source,
+            .supports_split_header_sg = header_scatter.supports_split_header_sg,
+            .needed_headroom_bytes = header_scatter.needed_headroom_bytes,
             .rss_summary = rss_summary,
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
@@ -236,6 +264,18 @@ pub const VirtioNetProbeLab = struct {
         };
         self.last_snapshot = snapshot;
         return snapshot;
+    }
+
+    pub fn summarizeHeaderScatterConstraint(self: *Self) !HeaderScatterSummary {
+        const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .header_shape = snapshot.header_shape,
+            .hdr_len_bytes = snapshot.hdr_len_bytes,
+            .header_scatter_source = snapshot.header_scatter_source,
+            .supports_split_header_sg = snapshot.supports_split_header_sg,
+            .needed_headroom_bytes = snapshot.needed_headroom_bytes,
+        };
     }
 
     pub fn freezeForRecovery(self: *Self) !QueueRecoverySummary {
@@ -338,6 +378,12 @@ pub const VirtioNetProbeLab = struct {
         uses_udp_tunnel_header: bool,
     };
 
+    const HeaderScatterState = struct {
+        source: HeaderScatterSource,
+        supports_split_header_sg: bool,
+        needed_headroom_bytes: u16,
+    };
+
     fn summarizeHeaderShape(
         mergeable_rx_buffers: bool,
         has_hash_report: bool,
@@ -377,6 +423,34 @@ pub const VirtioNetProbeLab = struct {
             .hdr_len_bytes = 10,
             .uses_hash_report_header = false,
             .uses_udp_tunnel_header = false,
+        };
+    }
+
+    fn summarizeHeaderScatter(
+        has_any_layout: bool,
+        has_version_1: bool,
+        hdr_len_bytes: u16,
+    ) HeaderScatterState {
+        if (has_version_1) {
+            return .{
+                .source = .version_1,
+                .supports_split_header_sg = true,
+                .needed_headroom_bytes = hdr_len_bytes,
+            };
+        }
+
+        if (has_any_layout) {
+            return .{
+                .source = .any_layout,
+                .supports_split_header_sg = true,
+                .needed_headroom_bytes = hdr_len_bytes,
+            };
+        }
+
+        return .{
+            .source = .linear_header_only,
+            .supports_split_header_sg = false,
+            .needed_headroom_bytes = 0,
         };
     }
 };
