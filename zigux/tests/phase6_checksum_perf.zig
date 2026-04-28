@@ -1,22 +1,11 @@
 const std = @import("std");
 const checksum = @import("checksum");
-
-const PerfCase = struct {
-    label: []const u8,
-    len: usize,
-    reps: usize,
-    seed: u32,
-};
-
-const perf_cases = [_]PerfCase{
-    .{ .label = "64", .len = 64, .reps = 20_000, .seed = 0 },
-    .{ .label = "1501", .len = 1501, .reps = 2_000, .seed = 0x1234_5678 },
-};
+const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
-    for (perf_cases) |case| {
+    for (fixtures.perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
             "phase6-checksum-perf {s} len={} reps={} ns_per_call={} ns_per_byte={d:.2} folded=0x{x:0>4} sink=0x{x:0>8}\n",
@@ -63,20 +52,11 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
-fn fillPayload(buffer: []u8) void {
-    var state: u32 = 0x51_67_2026;
-
-    for (buffer, 0..) |*byte, idx| {
-        state = state *% 1664525 +% 1013904223 +% @as(u32, @intCast(idx));
-        byte.* = @truncate((state >> 16) ^ state);
-    }
-}
-
-fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
+fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     const allocator = std.heap.page_allocator;
     const payload = try allocator.alloc(u8, case.len);
     defer allocator.free(payload);
-    fillPayload(payload);
+    fixtures.fillPerfPayload(payload);
 
     const expected_partial = referencePartial(payload, case.seed);
     const expected_folded = ~@as(u16, @truncate(expected_partial));
