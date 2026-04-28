@@ -84,6 +84,21 @@ test "phase 8 file-path-handle bridge accepts reordered fields and surrounding w
     try std.testing.expectEqual(@as(u32, 512), info.map_flags);
 }
 
+test "phase 8 file-path-handle bridge keeps reused-map name selection bounded and explicit" {
+    try std.testing.expectEqualStrings(
+        "process_pinned_map",
+        file_path_handle_bridge.chooseReusedMapName("process_pinned_map", "process_pinned_"),
+    );
+    try std.testing.expectEqualStrings(
+        "ringbuf_map",
+        file_path_handle_bridge.chooseReusedMapName("ringbuf_map_local", "ringbuf_map"),
+    );
+    try std.testing.expectEqualStrings(
+        "different_prefix",
+        file_path_handle_bridge.chooseReusedMapName("process_pinned_map", "different_prefix"),
+    );
+}
+
 test "phase 8 file-path-handle bridge keeps missing duplicate and malformed fdinfo fields explicit" {
     try std.testing.expectError(error.MissingMaxEntries, file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_type:\t3\n" ++
