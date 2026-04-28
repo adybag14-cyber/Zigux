@@ -8,6 +8,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
+FIXDEP_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
 
 
 def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -54,6 +55,10 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
     ROOT / 'zigux' / 'Makefile',
+    FIXDEP_DIR / 'cases.json',
+    FIXDEP_DIR / 'sample_concatenated_expected.txt',
+    FIXDEP_DIR / 'sample_output_write_expected.txt',
+    FIXDEP_DIR / 'sample_output_write_expected.stderr.txt',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'debug_reference_types_expected.json',
@@ -104,6 +109,8 @@ required_closure_markers = [
     'PHASE2_STATUS=closed',
     'PHASE2_TOOL_COUNT=6',
     'PHASE2_CROSS_TARGET_COUNT=3',
+    'PHASE2_FIXDEP_CASE_COUNT=7',
+    'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
