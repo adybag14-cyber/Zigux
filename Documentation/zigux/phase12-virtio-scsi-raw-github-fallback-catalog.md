@@ -1,6 +1,6 @@
 # Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
 
-This catalog records the exact read-only GitHub fallback coverage I verified for `P12-L09` when connector-backed reads are flaky or incomplete.
+This catalog records the exact read-only GitHub fallback coverage originally verified for `P12-L09` when connector-backed reads are flaky or incomplete.
 
 ## Verified head
 
@@ -82,3 +82,11 @@ This catalog records the exact read-only GitHub fallback coverage I verified for
 - shared_validator_missing_marker: `phase12_virtio_net_manifest.json:gap_count`
 - focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
 - focused_survey_result: `All 1 tests passed.`
+
+## Current replay note
+
+- current_master_replay_head: `cf92730c0711f5d0705b5c35aa8dfbf777219bcc`
+- current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
+- current_shared_validator_result: `PHASE12_VALIDATION=pass`
+- current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
+- current_focused_survey_result: `All 1 tests passed.`
