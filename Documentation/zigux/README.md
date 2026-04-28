@@ -121,6 +121,13 @@ Phase 10 notes
 - `python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the three manifest-backed survey records, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.
 - `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, ring, input, and MMIO-survey evidence bundle together, so new Phase 10 work stays reviewable as one bounded lab tranche instead of widening into ad hoc transport claims.
 
+Phase 12 notes
+- `Documentation/zigux/phase12-virtio-scsi-survey.md`
+- `Documentation/zigux/phase12-virtio-scsi-slice.md`
+- `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, and host-limit summary starters visible from the top-level docs index without overstating the still-blocked DMA-backed queue ownership, `Scsi_Host` lifecycle, or blk-mq follow-up.
+- `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche instead of leaving it discoverable only through the deeper survey note.
+
 Phase 13 notes
 - `Documentation/zigux/phase13-roadmap-traceability.md` now maps the four roadmap anchors from Phase 13's shared subsystem-helper tranche to the current repo evidence so reviewers can trace `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` from roadmap to code, tests, manifests, and survey notes without hunting through the tree.
 - `Documentation/zigux/phase13-release-notes-survey.md` now records the current release-discipline reading for the active shared-helper tranche, keeps the current roadmap-aligned evidence bundle in one place, and states plainly that Phase 13 is still active rather than closed while `lib/devres.c` remains the only anchor without a manifest-backed survey packet.
