@@ -89,6 +89,14 @@ Phase 7 flow
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py` replays the current external C-vs-Zig `rbtree` parity fixture so the parked Phase 7 packet still carries one representative non-Zig-only evidence path.
 - the current published slice notes for `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md` are part of that same shared validation surface.
 
+Phase 8 flow
+- `validate-phase8.py` keeps the shared Phase 8 tooling bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase8_build.zig`, and the current libbpf helper-family survey surfaces.
+- `make -C zigux phase8-validate` is the fail-fast bundle check for the current exec-cmd, help, kallsyms, cpu-mask, logging, pin-path, type-name, and manifest-backed libbpf survey packet.
+- `zigux/tests/phase8_build.zig` is the shared Phase 8 replay entrypoint for `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/tests/phase8_bpf_type_names.zig`.
+- `Documentation/zigux/phase8-libbpf-segment-survey.md` keeps the bounded libbpf helper catalog explicit, including the deferred `perf-buffer-online-cpu-routing` boundary beside `tools/lib/bpf/zigux_segments/cpu_mask.zig`.
+- `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md` keeps the landed `tools/lib/bpf/zigux_segments/cpu_mask.zig` helper scoped to parsing, chunk-reader ingestion, and counted mask output without overstating `parse_cpu_mask_file()` parity, `libbpf_num_possible_cpus()` caching, or perf-buffer routing behavior.
+- `Documentation/zigux/phase8-bpf-type-names-slice.md` and `tools/lib/bpf/zigux_segments/type_names.zig` stay in the same review packet so the current type-name helper does not drift away from the shared `make -C zigux phase8` entrypoint.
+
 Phase 9 flow
 - `validate-phase9.py` keeps the shared Phase 9 runtime bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase9_build.zig`, the trace-events freeze-map boundary packet, and the shared runtime-loader release-discipline evidence.
 - `make -C zigux phase9-validate` is the fail-fast bundle check for the current runtime atomic64, bitmap, trace-events, kretprobe, and shared loader-gap packet.
