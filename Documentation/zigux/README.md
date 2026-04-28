@@ -60,11 +60,12 @@ Phase 6 notes
 - `Documentation/zigux/phase6-helper-parity-catalog.md` is the shared inventory note for the current roadmap-backed leaf-helper packet and should move together with any helper, fixture, perf, or slice-note ownership change.
 - `make -C zigux phase6-base64-perf` now replays the bounded base64 perf sanity harness so the current leaf-helper lane keeps its representative encode and decode timing step visible while the review packet decides whether the shared Zig fixture surface is enough to park `lib/base64.zig`.
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py` is the current external C-vs-Zig spot check for the bounded base64 slice and should move together with the same review packet when portability-sensitive drift is under review.
+- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` now replays a representative external C-vs-Zig bsearch spot check, compiling `zigux/tests/fixtures/phase6_bsearch_c_harness.c` and comparing it against `zigux/tests/phase6_bsearch_c_parity.zig` so the current helper packet carries one portable semantic replay beyond the shared Zig-only tests.
 - `make -C zigux phase6-checksum-perf` now replays a checksum-specific perf sanity harness so the current math-sensitive helper lane records representative per-call and per-byte cost before Phase 6 claims it is ready to park.
 - `make -C zigux phase6-hexdump-perf` now replays a hexdump-specific perf sanity harness so the current formatter-sensitive helper lane records representative dump cost for plain and ASCII paths before Phase 6 treats that slice as fully parked.
 - the current bounded base64 decision is no longer whether reverse-map parity is wired at all; it is whether the current reverse-map coverage plus the perf-sanity replay is sufficient to leave the helper parked or whether one small external C-vs-Zig fixture is still worth carrying.
 - if the current spot check stops being worth the maintenance cost, replace it with a generated fixture flow rather than widening the lane into a broader new helper family.
-- the current bounded Phase 6 decision is no longer whether the hexdump fixture wiring works in CI; it is whether the current bsearch, checksum, and hexdump parity evidence is sufficient to park the leaf-helper lane or whether one more tiny external fixture is still worth carrying.
+- the current bounded Phase 6 decision is no longer whether the hexdump fixture wiring works in CI; it is whether the current checksum and hexdump parity evidence is sufficient to park the leaf-helper lane or whether one more tiny external fixture is still worth carrying.
 
 Phase 7 notes
 - `Documentation/zigux/phase7-string-helpers-slice.md`
