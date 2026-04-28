@@ -56,8 +56,9 @@ This slice does not yet claim:
 - direct `parse_cpu_mask_file()` parity
 - real file-descriptor I/O
 - `libbpf_num_possible_cpus()` caching or `READ_ONCE`/`WRITE_ONCE` behavior
+- `perf_buffer__new()` online CPU selection, perf-event-array population, or interrupt-routing behavior
 - perf-buffer or feature-probe integration
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and move to the next helper-first libbpf segment in `logging.zig` or `pin_path.zig` now that the deferred cpu-mask reader interface is covered.
+Keep the landed parser helper bounded, and leave the neighboring `perf-buffer-online-cpu-routing` survey segment deferred until Zigux has a smaller reviewed substrate for `/sys` cpu-mask reads, online CPU filtering, and per-CPU perf-buffer routing than the current libbpf boundary.
