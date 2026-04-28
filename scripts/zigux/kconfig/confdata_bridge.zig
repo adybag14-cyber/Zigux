@@ -33,6 +33,27 @@ pub const Summary = struct {
     unset_count: usize,
 };
 
+fn decrementCounts(kind: EntryKind, set_count: *usize, unset_count: *usize) void {
+    switch (kind) {
+        .unset => unset_count.* -= 1,
+        else => set_count.* -= 1,
+    }
+}
+
+fn incrementCounts(kind: EntryKind, set_count: *usize, unset_count: *usize) void {
+    switch (kind) {
+        .unset => unset_count.* += 1,
+        else => set_count.* += 1,
+    }
+}
+
+fn findEntryIndex(entries: []const Entry, name: []const u8) ?usize {
+    for (entries, 0..) |entry, index| {
+        if (std.mem.eql(u8, entry.name, name)) return index;
+    }
+    return null;
+}
+
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
@@ -111,12 +132,19 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         if (std.mem.startsWith(u8, line, "# CONFIG_") and std.mem.endsWith(u8, line, " is not set")) {
             const name = line[2 .. line.len - " is not set".len];
-            try entries.append(allocator, .{
-                .name = try allocator.dupe(u8, name),
-                .kind = .unset,
-                .value = try allocator.dupe(u8, "n"),
-            });
-            unset_count += 1;
+            if (findEntryIndex(entries.items, name)) |index| {
+                decrementCounts(entries.items[index].kind, &set_count, &unset_count);
+                allocator.free(entries.items[index].value);
+                entries.items[index].kind = .unset;
+                entries.items[index].value = try allocator.dupe(u8, "n");
+            } else {
+                try entries.append(allocator, .{
+                    .name = try allocator.dupe(u8, name),
+                    .kind = .unset,
+                    .value = try allocator.dupe(u8, "n"),
+                });
+            }
+            incrementCounts(.unset, &set_count, &unset_count);
             continue;
         }
 
@@ -142,12 +170,19 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         else
             try allocator.dupe(u8, raw_value);
 
-        try entries.append(allocator, .{
-            .name = try allocator.dupe(u8, name),
-            .kind = kind,
-            .value = cooked_value,
-        });
-        set_count += 1;
+        if (findEntryIndex(entries.items, name)) |index| {
+            decrementCounts(entries.items[index].kind, &set_count, &unset_count);
+            allocator.free(entries.items[index].value);
+            entries.items[index].kind = kind;
+            entries.items[index].value = cooked_value;
+        } else {
+            try entries.append(allocator, .{
+                .name = try allocator.dupe(u8, name),
+                .kind = kind,
+                .value = cooked_value,
+            });
+        }
+        incrementCounts(kind, &set_count, &unset_count);
     }
 
     return .{
@@ -269,8 +304,8 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \\\"bridge\\\""
-        \\CONFIG_PATH="drivers\\\\zigux"
+        \\CONFIG_BANNER="zigux \"bridge\""
+        \\CONFIG_PATH="drivers\\zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -370,6 +405,33 @@ test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
     try std.testing.expectEqual(EntryKind.hex, summary.entries[2].kind);
     try std.testing.expectEqual(EntryKind.hex, summary.entries[3].kind);
     try std.testing.expectEqual(EntryKind.value, summary.entries[4].kind);
+}
+
+test "confdata bridge keeps the last assignment for duplicate symbols" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\CONFIG_ALPHA=m
+        \\# CONFIG_BETA is not set
+        \\CONFIG_BETA=y
+        \\CONFIG_COUNT=7
+        \\# CONFIG_COUNT is not set
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("m", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_BETA", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_COUNT", summary.entries[2].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[2].value);
 }
 
 test "confdata bridge recognizes explicit plus-signed integers and hex values" {
