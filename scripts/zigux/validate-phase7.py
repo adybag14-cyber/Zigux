@@ -186,10 +186,10 @@ expected_phase7_build_paths = {
 }
 
 expected_phase7_import_calls = {
-    "string_helpers": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_string_helpers\\.zig",\s*"string_helpers",\s*"\.\./\.\./lib/string_helpers\\.zig",',
-    "cmdline": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_cmdline\\.zig",\s*"cmdline",\s*"\.\./\.\./lib/cmdline\\.zig",',
-    "argv_split": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_argv_split\\.zig",\s*"argv_split",\s*"\.\./\.\./lib/argv_split\\.zig",',
-    "rbtree": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\\.zig",\s*"rbtree",\s*"\.\./\.\./lib/rbtree\\.zig",',
+    "string_helpers": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_string_helpers\.zig",\s*"string_helpers",\s*"\.\./\.\./lib/string_helpers\.zig",',
+    "cmdline": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_cmdline\.zig",\s*"cmdline",\s*"\.\./\.\./lib/cmdline\.zig",',
+    "argv_split": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_argv_split\.zig",\s*"argv_split",\s*"\.\./\.\./lib/argv_split\.zig",',
+    "rbtree": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\.zig",\s*"rbtree",\s*"\.\./\.\./lib/rbtree\.zig",',
 }
 
 expected_phase7_run_labels = {
@@ -233,6 +233,20 @@ if missing_markers:
     sys.exit(1)
 
 phase7_build_paths = set(re.findall(r'b\.path\("([^"]+)"\)', phase7_build))
+for root_path, import_path in re.findall(
+    r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)",\s*"[^"]+",\s*"([^"]+)"',
+    phase7_build,
+    re.S,
+):
+    phase7_build_paths.add(root_path)
+    phase7_build_paths.add(import_path)
+
+for root_path in re.findall(
+    r'createStandaloneTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)"',
+    phase7_build,
+    re.S,
+):
+    phase7_build_paths.add(root_path)
 if phase7_build_paths != expected_phase7_build_paths:
     print("PHASE7_VALIDATION=fail")
     print("PHASE7_BUILD_PATH_DRIFT_START")
