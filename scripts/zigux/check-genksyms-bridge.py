@@ -246,7 +246,9 @@ def main() -> int:
         for case in cases:
             mode = case.get('mode', 'stdout_json')
             c_actual = tmp_dir / f"{case['name']}.c.actual.json"
+            c_repeat = tmp_dir / f"{case['name']}.c.repeat.json"
             zig_actual = tmp_dir / f"{case['name']}.zig.actual.json"
+            zig_repeat = tmp_dir / f"{case['name']}.zig.repeat.json"
             if mode == 'process_json':
                 normalize_stderr = bool(case.get('normalize_stderr', False))
                 capture_run_c(tmp_dir, c_actual, compiler, case['argv'], normalize_stderr=normalize_stderr)
@@ -267,10 +269,22 @@ def main() -> int:
             run(diff_base + [str(expected), str(zig_actual)], cwd=str(ROOT))
             run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
 
+            if mode == 'process_json':
+                normalize_stderr = bool(case.get('normalize_stderr', False))
+                capture_run_c(tmp_dir, c_repeat, compiler, case['argv'], normalize_stderr=normalize_stderr)
+                capture_run_zig(zig, tmp_dir, zig_repeat, case['argv'], normalize_stderr=normalize_stderr)
+            else:
+                compile_run_c(tmp_dir, c_repeat, compiler, case['argv'])
+                run_zig(zig, tmp_dir, zig_repeat, case['argv'])
+
+            run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))
+            run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))
+
     if args.refresh:
         print('GENKSYMS_BRIDGE_REFRESH=pass')
     else:
         print('GENKSYMS_BRIDGE_DIFF=pass')
+        print('GENKSYMS_BRIDGE_DETERMINISM=pass')
     print(f'FIXTURE_DIR={FIXTURE_DIR}')
     return 0
 
