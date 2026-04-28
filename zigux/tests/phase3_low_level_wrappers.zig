@@ -41,6 +41,9 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));
     try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);
     try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0));
+    try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);
+    try std.testing.expectEqual(@as(u32, 0xaabbccdd), try mmio.read32Scoped(.volatile_mmio, base, 4));
+    try std.testing.expectEqual(@as(u32, 0xaabbccdd), regs[1]);
 }
 
 test "phase3 low-level wrapper ABI range shape stays stable" {
