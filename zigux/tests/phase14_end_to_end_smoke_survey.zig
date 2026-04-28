@@ -38,6 +38,13 @@ const AnchorPacket = struct {
     blocked_gap: []const u8,
 };
 
+const CompileShard = struct {
+    artifact_name: []const u8,
+    root_source_file: []const u8,
+    bridge_import: []const u8,
+    bridge_source_file: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -47,6 +54,7 @@ const Manifest = struct {
     anchor_packets: []const AnchorPacket,
     smoke_commands: []const []const u8,
     smoke_shard_commands: []const []const u8,
+    compile_shards: []const CompileShard,
     survey_summary: SurveySummary,
 };
 
@@ -102,6 +110,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.compile_shards.len);
     try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);
     try std.testing.expect(manifest.survey_summary.phase14_validate_entrypoint_present);
     try std.testing.expect(manifest.survey_summary.phase14_build_has_shared_smoke_step);
@@ -128,6 +137,21 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqualStrings("0855a2fc20664cd4a138379d7731edf8183d74e6", manifest.anchor_packets[3].surveyed_commit);
     try std.testing.expectEqualStrings("", manifest.anchor_packets[3].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", manifest.anchor_packets[3].blocked_gap);
+
+    try std.testing.expectEqualStrings("phase14-workqueue-bridge-tests", manifest.compile_shards[0].artifact_name);
+    try std.testing.expectEqualStrings("phase14_workqueue_bridge.zig", manifest.compile_shards[0].root_source_file);
+    try std.testing.expectEqualStrings("workqueue_bridge", manifest.compile_shards[0].bridge_import);
+    try std.testing.expectEqualStrings("../../kernel/workqueue_bridge.zig", manifest.compile_shards[0].bridge_source_file);
+    try std.testing.expectEqualStrings("phase14-skbuff-bridge-tests", manifest.compile_shards[1].artifact_name);
+    try std.testing.expectEqualStrings("phase14_skbuff_bridge.zig", manifest.compile_shards[1].root_source_file);
+    try std.testing.expectEqualStrings("skbuff_bridge", manifest.compile_shards[1].bridge_import);
+    try std.testing.expectEqualStrings("../../net/core/skbuff_bridge.zig", manifest.compile_shards[1].bridge_source_file);
+    try std.testing.expectEqualStrings("phase14-ring-buffer-survey-tests", manifest.compile_shards[2].artifact_name);
+    try std.testing.expectEqualStrings("phase14_ring_buffer_survey.zig", manifest.compile_shards[2].root_source_file);
+    try std.testing.expectEqualStrings("phase14-rcu-tree-survey-tests", manifest.compile_shards[3].artifact_name);
+    try std.testing.expectEqualStrings("phase14_rcu_tree_survey.zig", manifest.compile_shards[3].root_source_file);
+    try std.testing.expectEqualStrings("phase14-end-to-end-smoke-tests", manifest.compile_shards[4].artifact_name);
+    try std.testing.expectEqualStrings("phase14_end_to_end_smoke_survey.zig", manifest.compile_shards[4].root_source_file);
 }
 
 test "phase14 shared smoke survey matches the live anchor packets and shared gate wiring" {
@@ -157,6 +181,14 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-end-to-end-smoke-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_end_to_end_smoke_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-smoke") != null);
+    for (smoke_manifest.value.compile_shards) |shard| {
+        try std.testing.expect(std.mem.indexOf(u8, build_file, shard.artifact_name) != null);
+        try std.testing.expect(std.mem.indexOf(u8, build_file, shard.root_source_file) != null);
+        if (shard.bridge_import.len > 0) {
+            try std.testing.expect(std.mem.indexOf(u8, build_file, shard.bridge_import) != null);
+            try std.testing.expect(std.mem.indexOf(u8, build_file, shard.bridge_source_file) != null);
+        }
+    }
 
     const makefile = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
