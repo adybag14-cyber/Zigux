@@ -359,6 +359,9 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no unclear panic or unsafe ownership story") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Delivery ownership map") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "manifest-backed catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "three sample-side loader plans") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/runtime_atomic64_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "atomic64 loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bitmap loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kretprobe loader-plan projection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
