@@ -8,7 +8,7 @@
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
-    "runtime_loader_plan_count": 2,
+    "runtime_loader_plan_count": 3,
     "shared_runtime_loader_present": true,
     "allocator_policy_present": true,
     "shared_init_exit_contract_present": true,
@@ -27,6 +27,7 @@
     "samples/zigux/runtime_trace_events.zig"
   ],
   "runtime_loader_plans": [
+    "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig"
   ],
@@ -71,7 +72,13 @@
       "id": "shared-runtime-loader-contract",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
-      "role": "owns the shared request contract plus allocator, command-name, and init or exit handoff fields"
+      "role": "owns the shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
+    },
+    {
+      "id": "atomic64-loader-plan",
+      "kind": "runtime_loader_scaffold",
+      "path": "samples/zigux/runtime_atomic64_loader.zig",
+      "role": "owns the atomic64 loader-plan projection into the shared runtime request surface"
     },
     {
       "id": "bitmap-loader-plan",
@@ -113,7 +120,11 @@
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "shared request contract plus allocator, command-name, and init or exit handoff fields"
+      "owns": "shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
+    },
+    {
+      "surface": "samples/zigux/runtime_atomic64_loader.zig",
+      "owns": "atomic64 loader-plan projection into the shared runtime request surface"
     },
     {
       "surface": "samples/zigux/runtime_bitmap_loader.zig",
@@ -158,7 +169,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
-      "why_now": "The bitmap and kretprobe starter lanes already publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+      "why_now": "The atomic64, bitmap, and kretprobe starter lanes now publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
     },
     {
       "id": "runtime-loader-workqueue-freeze-map-boundary",
