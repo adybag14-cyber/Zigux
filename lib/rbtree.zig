@@ -244,6 +244,28 @@ pub fn nextMatch(key: anytype, node: *const Node, cmp: *const fn (@TypeOf(key), 
     return candidate;
 }
 
+fn MatchIterator(comptime Key: type) type {
+    return struct {
+        key: Key,
+        cmp: *const fn (Key, *const Node) i32,
+        next_node: ?*Node,
+
+        pub fn next(self: *@This()) ?*Node {
+            const current = self.next_node orelse return null;
+            self.next_node = nextMatch(self.key, current, self.cmp);
+            return current;
+        }
+    };
+}
+
+pub fn iterateMatches(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) MatchIterator(@TypeOf(key)) {
+    return .{
+        .key = key,
+        .cmp = cmp,
+        .next_node = findFirst(key, root, cmp),
+    };
+}
+
 pub fn findAdd(node: *Node, root: *Root, cmp: *const fn (*Node, *const Node) i32) ?*Node {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -702,6 +724,61 @@ test "rbtree find helpers return duplicate-key ranges" {
     try std.testing.expectEqual(@as(?*Node, null), nextMatch(@as(i32, 10), third_match, cmp));
     try std.testing.expectEqual(@as(?*Node, null), find(@as(i32, 99), &root, cmp));
     try std.testing.expectEqual(@as(?*Node, null), findFirst(@as(i32, 99), &root, cmp));
+}
+
+test "rbtree iterateMatches streams duplicate-key ranges" {
+    const Entry = struct {
+        key: i32,
+        serial: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: i32, node: *const Node) i32 {
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return orderToInt(std.math.order(key, entry.key));
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 15, .serial = 0 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    var iterator = iterateMatches(@as(i32, 10), &root, cmp);
+    var serials: [3]i32 = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |match| {
+        const entry: *const Entry = @fieldParentPtr("node", match);
+        serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 1, 2 }, serials[0..count]);
+
+    var missing = iterateMatches(@as(i32, 99), &root, cmp);
+    try std.testing.expectEqual(@as(?*Node, null), missing.next());
 }
 
 test "rbtree findAdd inserts missing nodes and returns duplicate matches" {
