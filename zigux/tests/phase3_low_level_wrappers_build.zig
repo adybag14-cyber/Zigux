@@ -29,8 +29,20 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const export_shim_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/export_shim.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const uapi_version_module = b.createModule(.{
+        .root_source_file = b.path("../uapi/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     mmio_helpers_module.addImport("abi_bindings", abi_bindings_module);
     mmio_helpers_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    export_shim_module.addImport("abi_bindings", abi_bindings_module);
+    uapi_version_module.addImport("abi_bindings", abi_bindings_module);
 
     const low_level_root_module = b.createModule(.{
         .root_source_file = b.path("phase3_low_level_wrappers.zig"),
@@ -40,8 +52,10 @@ pub fn build(b: *std.Build) void {
     low_level_root_module.addImport("abi_bindings", abi_bindings_module);
     low_level_root_module.addImport("atomic_helpers", atomic_helpers_module);
     low_level_root_module.addImport("barrier_helpers", barrier_helpers_module);
+    low_level_root_module.addImport("export_shim", export_shim_module);
     low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);
     low_level_root_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    low_level_root_module.addImport("uapi_version", uapi_version_module);
 
     const low_level_tests = b.addTest(.{
         .name = "phase3-low-level-wrapper-tests",
