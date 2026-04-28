@@ -21,7 +21,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kfifo/bytestream-example.c` as one of the four Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-approved bounded Phase 5 reference samples plus several later runtime-oriented starters:
+Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-approved bounded Phase 5 reference samples and several later Phase 9 runtime starters or loader-side follow-ons that stay outside this non-runtime survey lane:
 
 - `bytestream_fifo.zig`
 - `kobject_example.zig`
@@ -29,7 +29,9 @@ Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-a
 - `trace_events_sample.zig`
 - `runtime_atomic64.zig`
 - `runtime_bitmap.zig`
+- `runtime_bitmap_loader.zig`
 - `runtime_kretprobe.zig`
+- `runtime_kretprobe_loader.zig`
 - `runtime_trace_events.zig`
 
 The `kfifo`-specific gap is no longer missing sample delivery. The remaining work in this lane is to keep the approved idiom, exact checks, and non-goals honest now that the full Phase 5 anchor set is landed, especially where later Phase 9 runtime pilots exist under neighboring Linux sample families.
