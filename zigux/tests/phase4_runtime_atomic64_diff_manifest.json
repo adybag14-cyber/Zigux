@@ -10,6 +10,7 @@
     "atomic64_test_c_lines": 277,
     "runtime_atomic64_diff_lines": 326,
     "runtime_atomic64_diff_present": true,
+    "post_selftest_replay_present": true,
     "phase4_build_present": true,
     "runtime_atomic64_sample_present": true,
     "phase4_validation_matrix_present": true,
