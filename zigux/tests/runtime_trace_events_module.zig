@@ -95,6 +95,11 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqual(@as(usize, 4), selftest_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 16), selftest_summary.total_events);
     try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(i32, 0), selftest_summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), selftest_summary.last_fn_count);
+    try std.testing.expect(selftest_summary.saw_vararg_payload);
+    try std.testing.expect(selftest_summary.saw_rel_loc_payload);
+    try std.testing.expect(selftest_summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", selftest_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", selftest_summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", selftest_summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
@@ -103,6 +108,7 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqualStrings("Hello __rel_loc", selftest_summary.last_main_relative_location_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", selftest_summary.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", selftest_summary.last_function_template_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("iter=%d", selftest_summary.last_format_template orelse return error.ExpectedMainPayload);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
@@ -114,6 +120,11 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqual(@as(usize, 12), exited_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), exited_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 16), exited_summary.total_events);
+    try std.testing.expectEqual(@as(i32, 0), exited_summary.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), exited_summary.last_fn_count);
+    try std.testing.expect(exited_summary.saw_vararg_payload);
+    try std.testing.expect(exited_summary.saw_rel_loc_payload);
+    try std.testing.expect(exited_summary.saw_conditional_path);
     try std.testing.expectEqualStrings("hello", exited_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("HELLO", exited_summary.last_main_template_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Some times print", exited_summary.last_main_conditional_message orelse return error.ExpectedMainPayload);
@@ -121,6 +132,8 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqualStrings("I have to be different", exited_summary.last_main_template_print_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Hello __rel_loc", exited_summary.last_main_relative_location_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("Look at me", exited_summary.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("Look at me too", exited_summary.last_function_template_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("iter=%d", exited_summary.last_format_template orelse return error.ExpectedMainPayload);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
