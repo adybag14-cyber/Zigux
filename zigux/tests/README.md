@@ -38,12 +38,15 @@ Key entrypoints
 - `zigux/tests/phase7_cmdline.zig`
 - `zigux/tests/phase7_argv_split.zig`
 - `zigux/tests/phase7_argv_split_survey.zig`
+- `zigux/tests/phase7_argv_split_manifest.json`
 - `zigux/tests/phase7_rbtree.zig`
 - `zigux/tests/phase7_rbtree_survey.zig`
+- `zigux/tests/phase7_rbtree_manifest.json`
 - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
 - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
 - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
 - `zigux/tests/fixtures/phase7_rbtree.json`
+- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 - `zigux/tests/phase8_build.zig`
 - `zigux/tests/phase8_exec_cmd.zig`
 - `zigux/tests/phase8_help.zig`
