@@ -45,14 +45,14 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_BITMAP_REVIEW=bitmap scnprintf parity covers contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot`
 - `PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view`
 
-- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit stays in range while another lives past `nbits`.
+- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage for baseline set, zero, and shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past `nbits`.
 - `tools/lib/find_bit.zig` direct Zig unit coverage now keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to `nbits`.
 - find_bit fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - find_bit manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`
 
 - `PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
-- `PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits`
+- `PHASE1_FIND_BIT_REVIEW=find_bit baseline set, zero, shared-bit, and tail-clamped scans ignore bits beyond nbits while preserving the in-range mixed-tail match`
 - `PHASE1_FIND_BIT_UNIT_REVIEW=find_bit same-word zero-scan start masking keeps inclusive starts honest, skips earlier zero matches after the search advances, and still clamps tail results to nbits`
 
 - `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.
