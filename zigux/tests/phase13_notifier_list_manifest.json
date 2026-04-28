@@ -1,13 +1,13 @@
 {
-  "lane_key": "P13-L14",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
-  "surveyed_commit": "3d734fefe5c64e29bed0dc38d69f64cae45be7ba",
+  "surveyed_commit": "05a762ea272fa488b877178987418c54c030b239",
   "anchors": [
     "include/linux/list.h",
     "include/linux/notifier.h",
     "include/linux/acpi_amd_wbrf.h"
   ],
-  "roadmap_scope": "Phase 13 is the shared helper tranche, so this lane stays reviewability-only and records the current interop gap between the preexisting list surfaces, the preexisting generic notifier header anchors, and the still-missing Zigux notifier ABI or helper surface.",
+  "roadmap_scope": "Phase 13 is the shared helper tranche, but its named anchors remain libfs, devres, and Landlock, so this lane stays reviewability-only and records the roadmap-adjacent interop gap between the preexisting list surfaces, the preexisting generic notifier header anchors, and the still-missing Zigux notifier ABI or helper surface.",
   "survey_summary": {
     "preexisting_phase13_build_present": true,
     "preexisting_phase3_build_present": true,
@@ -41,7 +41,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-notifier-list-survey.md",
-      "why_now": "The survey note records the exact current posture on master so later runs do not mistake the chrdev-only notify family for a generic notifier helper or overstate Phase 13 parity."
+      "why_now": "The survey note records the exact current posture on master so later runs do not mistake the chrdev-only notify family for a generic notifier helper or overstate this roadmap-adjacent packet as a new Phase 13 anchor."
     },
     {
       "id": "phase3-list-abi-and-view-surface",
