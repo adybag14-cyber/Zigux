@@ -1,11 +1,12 @@
 # Phase 14 RCU Tree Survey
 
-This document records the bounded Phase 14 survey lane around `kernel/rcu/tree.c`.
+This document records the bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`.
 
 ## Status
 
 - `PHASE14_STATUS=freeze_in_c`
 - `PHASE14_SLICE=rcu-tree-survey-gap`
+- `PHASE14_LANE_KEY=P14-L16`
 - `PHASE14_SURVEYED_COMMIT=4e45e5a392cca82429228d42d89c480fd413042b`
 - scope: the dedicated Phase 14 RCU tree survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that compares the roadmap destination against the current freeze boundary without shipping a bridge
 - survey provenance refreshed against verified `master` head `4e45e5a392cca82429228d42d89c480fd413042b`
