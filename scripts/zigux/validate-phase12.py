@@ -16,6 +16,7 @@ FILES = [
     "scripts/zigux/check-phase12-build-inventory.py",
     "scripts/zigux/validate-phase12.py",
     "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
@@ -62,6 +63,14 @@ README_MARKERS = [
     "phase12_libbpf_manifest.json",
     "shared build inventory snapshot",
     "survey notes pinned to each manifest's exact `surveyed_commit`",
+]
+DOCS_ROOT_MARKERS = [
+    "Phase 12 notes",
+    "Documentation/zigux/phase12-virtio-scsi-survey.md",
+    "Documentation/zigux/phase12-virtio-scsi-slice.md",
+    "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+    "the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, and host-limit summary starters visible from the top-level docs index",
+    "`zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche",
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
@@ -199,6 +208,7 @@ for name, source, markers in [
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("script_readme", text("scripts/zigux/README.md"), README_MARKERS),
+    ("docs_root_readme", text("Documentation/zigux/README.md"), DOCS_ROOT_MARKERS),
     ("review_checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("phase12_build", text("zigux/tests/phase12_build.zig"), BUILD_MARKERS),
 ]:
