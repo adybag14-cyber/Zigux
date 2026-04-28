@@ -26,7 +26,7 @@ Current Phase 2 use
 - `scripts/zigux/check-kconfig-bridge.py` compares those committed JSON fixtures against `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`.
 - `zigux/tests/fixtures/phase2_cross_targets.json` fixes the bounded cross-target compile set for the Phase 2 tool tranche.
 - `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json` and sibling JSON fixtures capture bounded stdin-driven behavior for `scripts/mod/mk_elfconfig.c`.
-- `scripts/zigux/check-mk-elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`, then reruns each side to prove repeat-run JSON determinism before the lane passes.
+- `scripts/zigux/check-mk_elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`.
 
 Current Phase 3 use
 - `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.
@@ -77,7 +77,7 @@ Current Phase 3 use
 Current Phase 4 use
 - `python3 scripts/zigux/artifact_diff.py --self-test` exercises the shared text, JSON, SHA-256, and missing-file comparison paths before the bounded Phase 4 rollback-readiness lanes run, which keeps stale expected-output and catalog drift small, auditable, and easy to refresh.
 - the same self-test now records the exact shared comparator contract: matching text fixtures must compare byte-for-byte, matching JSON fixtures must compare after canonical parsing so key order drift alone does not fail the lane, malformed JSON must fail with file-and-position context, matching binary fixtures must report identical SHA-256 digests, and missing-file mismatches must say which side is absent.
-- `scripts/zigux/artifact_diff.py` emits `ARTIFACT_DIFF=pass` plus `MODE`, `EXPECTED`, and `ACTUAL` for successful comparisons, adds one shared `SHA256=` line for successful hash-mode comparisons, and emits `ARTIFACT_DIFF=fail` plus the relevant existence, JSON-error, or per-side digest lines when a comparison drifts.
+- `scripts/zigux/artifact_diff.py` emits `ARTIFACT_DIFF=pass` plus `MODE`, `EXPECTED`, and `ACTUAL` for successful comparisons, adds one shared `SHA256=` line for successful hash-mode comparisons, and emits `ARTIFACT_DIFF=fail` plus the relevant existence, `EXPECTED_JSON_ERROR=` or `ACTUAL_JSON_ERROR=` marker, or per-side digest lines when a comparison drifts.
 - `zigux/tests/runtime_atomic64_diff.zig` currently carries the live bounded atomic64 rollback-readiness parity checks.
 - `zigux/tests/bitmap_diff.zig` anchors the bounded bitmap rollback-readiness parity checks.
 - `zigux/tests/phase4_build.zig` keeps the two Phase 4 diff gates on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
