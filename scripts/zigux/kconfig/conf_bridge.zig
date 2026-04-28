@@ -2,6 +2,7 @@ const std = @import("std");
 const Io = std.Io;
 
 pub const Mode = enum {
+    oldaskconfig,
     olddefconfig,
     oldconfig,
     listnewconfig,
@@ -29,6 +30,7 @@ pub const Mode = enum {
 
     pub fn flag(self: Mode) []const u8 {
         return switch (self) {
+            .oldaskconfig => "--oldaskconfig",
             .olddefconfig => "--olddefconfig",
             .oldconfig => "--oldconfig",
             .listnewconfig => "--listnewconfig",
@@ -49,6 +51,7 @@ pub const Mode = enum {
 
     pub fn text(self: Mode) []const u8 {
         return switch (self) {
+            .oldaskconfig => "oldaskconfig",
             .olddefconfig => "olddefconfig",
             .oldconfig => "oldconfig",
             .listnewconfig => "listnewconfig",
