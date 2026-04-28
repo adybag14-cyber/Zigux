@@ -61,7 +61,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
-    try std.testing.expectEqualStrings("6d4ca61ad174d69a6afe637a1fe39963c1872bd8", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("13dfd68ad1609c7bd68240e8210121640e877698", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.nvme_pci_c_lines >= 4000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
