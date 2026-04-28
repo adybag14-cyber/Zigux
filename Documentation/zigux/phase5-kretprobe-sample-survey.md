@@ -62,6 +62,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, fixed `maxactive`, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
+- does `zigux/tests/phase5_kretprobe_example_manifest.json` still pin the exact surveyed commit for the inspected `master` head instead of a floating branch label?
 - does the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate Phase 9 runtime starter while pointing reviewers at the shared `phase5_build.zig` entrypoint?
 - does the sample keep the Linux `maxactive = 20` budget explicit as a reviewable in-memory ceiling instead of silently drifting away from the anchor or implying runtime tuning support?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
