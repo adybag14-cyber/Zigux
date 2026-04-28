@@ -54,7 +54,24 @@ phase4_gate_expectations = {
         'owner': 'Shared Subsystems Pod',
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
-        'exact_checks': '`bitmap_fill(..., 35)` currently proves the 35-bit prefix start plus the 34, 35, and `BITS_PER_LONG` boundary bits, `bitmap_zero(..., 115)` still proves the two-word rounded clear, the cross-boundary `bitmap_set(..., 79, 19)` and `bitmap_clear(..., 79, 19)` cases keep the 64..78 and 98..1023 boundaries explicit, full-width `bitmap_fill(..., 1024)` and `bitmap_zero(..., 1024)` keep the endpoints honest, `bitmap_scnprintf()` preserves both the full `1-3,7,10-11` summary and the truncated `1-3` rendering, `bitmap_copy()` replays the 23-bit single-word window, the full-width cleared-destination and filled-destination copies, the 109-bit partial-tail, and the 97-bit aligned-copy cases while `bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract, and `find_nth_bit()` records both the full-width nth-7 and nth-8 outcomes plus the reduced-width `64 * 3 - 1` cutoff that still returns bit 123 for nth 6 and the cutoff width for nth 7',
+        'exact_check_markers': [
+            '`bitmap_fill(..., 35)`',
+            '`bitmap_zero(..., 115)`',
+            '`bitmap_set(..., 79, 19)`',
+            '`bitmap_clear(..., 79, 19)`',
+            '`bitmap_fill(..., 1024)`',
+            '`bitmap_zero(..., 1024)`',
+            '`1-3,7,10-11`',
+            'truncated `1-3` rendering',
+            '23-bit single-word window',
+            'filled-destination copies',
+            '109-bit partial-tail',
+            '97-bit aligned-copy',
+            '`bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract',
+            'full-width nth-7 and nth-8 outcomes',
+            'bit 123 for nth 6',
+            'cutoff width for nth 7',
+        ],
         'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
         'gate_scope': 'bounded bitmap range, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior replay',
@@ -147,7 +164,6 @@ required_phase4_matrix_markers = [
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
     'survey owner, rollback owner, and Zig lab matrix stay unassigned while the current replay stays on the C anchor via `make M=samples/vfs`; no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
-    'paired `bitmap_zero(..., 35)` and `bitmap_fill(..., 115)` rounded-prefix checkpoints stay out of the shipped gate until `tools/lib/bitmap.zig` matches the `lib/test_bitmap.c` anchor on those cases',
 ]
 roadmap_gap_expectations = {
     'samples/zigux/kprobe_example.zig': {
@@ -198,10 +214,6 @@ required_bitmap_diff_markers = [
     'test "bitmap diff gate records exact full-width fill and zero endpoints"',
     'test_find_nth_bit starter population',
     'test "bitmap diff gate records exact bounded copy checks"',
-    'test_copy single-word copy keeps only the source bits inside a 23-bit window',
-    'test_copy single-word copy clears the stale tail bits inside the copied window',
-    'test_copy full-width copy from a cleared destination replays the exact source window',
-    'test_copy full-width copy from a filled destination also drops stale tail bits',
     'test_copy partial-word tail clearing at 109 bits',
     'test_copy aligned-on-word-length at 97 bits keeps the stale tail word visible',
     'test_copy_clear_tail keeps the 109-bit cleared-tail contract explicit',
@@ -291,11 +303,13 @@ def check_gate_matrix_alignment(gate_name: str, expectation: dict[str, str]) -> 
         missing.append(
             f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}"
         )
-    exact_checks = expectation.get('exact_checks')
-    if exact_checks is not None and f"- exact bounded checks: {exact_checks}" not in gate_block:
-        missing.append(
-            f"phase4_matrix:exact_checks:{gate_name}:{exact_checks}"
-        )
+    exact_check_markers = expectation.get('exact_check_markers')
+    if exact_check_markers is not None:
+        if '- exact bounded checks:' not in gate_block:
+            missing.append(f'phase4_matrix:missing_exact_checks_heading:{gate_name}')
+        for marker in exact_check_markers:
+            if marker not in gate_block:
+                missing.append(f'phase4_matrix:exact_check_marker:{gate_name}:{marker}')
     if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
         missing.append(
             f"phase4_matrix:threshold_status:{gate_name}:{expectation['threshold_status']}"
@@ -369,5 +383,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + sum(len(markers) for _, markers in required_doc_marker_groups) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + sum(len(markers) for _, markers in required_doc_marker_groups) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers) + sum(len(expectation.get('exact_check_markers', [])) + (1 if expectation.get('exact_check_markers') is not None else 0) for expectation in phase4_gate_expectations.values())}"
 )
