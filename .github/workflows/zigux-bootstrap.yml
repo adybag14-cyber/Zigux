@@ -77,6 +77,9 @@ jobs:
       - name: Check Phase 3 roadmap gap survey
         run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py
 
+      - name: Check Phase 3 export and UAPI boundary survey
+        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py
+
       - name: Validate Phase 4 diff gates
         run: make -C zigux phase4-validate
 
@@ -85,6 +88,9 @@ jobs:
 
       - name: Self-test Phase 3 roadmap gap survey checker
         run: python3 scripts/zigux/validate-phase3-roadmap-gap-survey.py --self-test
+
+      - name: Self-test Phase 3 export and UAPI boundary survey checker
+        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
 
       - name: Self-test Phase 3 catalog
         run: python3 scripts/zigux/phase3_catalog.py --self-test
