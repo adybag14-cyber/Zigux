@@ -45,6 +45,17 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
+fn countLines(text: []const u8) usize {
+    if (text.len == 0) return 0;
+
+    var lines: usize = 1;
+    for (text) |byte| {
+        if (byte == '\n') lines += 1;
+    }
+    if (text[text.len - 1] == '\n') lines -= 1;
+    return lines;
+}
+
 test "phase11 dw_wdt survey manifest records the landed registration handoff and platform-resource preflight" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -61,12 +72,20 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const anchor_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        manifest.anchor,
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(anchor_source);
+
     try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("e078a6f17710c8095c1ba9557651897d7eb615f1", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
-    try std.testing.expect(manifest.survey_summary.dw_wdt_c_lines >= 700);
+    try std.testing.expectEqual(manifest.survey_summary.dw_wdt_c_lines, countLines(anchor_source));
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_gpio_lane_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_bcm2835_lane_present);
