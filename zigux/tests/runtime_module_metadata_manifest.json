@@ -1,0 +1,57 @@
+{
+  "lane_key": "P9-L09",
+  "phase": "Phase 9",
+  "surveyed_commit": "bc6ede334f83820e5d0aa4f509aba5f5ba41accf",
+  "scope": "verify current runtime-module metadata behavior and record exact evidence for the still-missing depmod bridge",
+  "runtime_sample_files": [
+    "samples/zigux/runtime_atomic64.zig",
+    "samples/zigux/runtime_bitmap.zig",
+    "samples/zigux/runtime_trace_events.zig",
+    "samples/zigux/runtime_kretprobe.zig"
+  ],
+  "runtime_loader_files": [
+    "samples/zigux/runtime_atomic64_loader.zig",
+    "samples/zigux/runtime_bitmap_loader.zig",
+    "samples/zigux/runtime_kretprobe_loader.zig"
+  ],
+  "shared_runtime_loader_contract": "zigux/kernel/runtime_loader.zig",
+  "sample_descriptor_fields": [
+    ".name",
+    ".anchor",
+    ".requires_runtime_substrate",
+    ".provides_selftest_hook"
+  ],
+  "loader_plan_fields": [
+    ".module_name",
+    ".command_name",
+    ".entry_symbol",
+    ".exit_symbol"
+  ],
+  "shared_request_fields": [
+    ".module_name",
+    ".command_name",
+    ".anchor",
+    ".entry_symbol",
+    ".exit_symbol"
+  ],
+  "absent_depmod_markers": [
+    "depmod",
+    "modinfo",
+    "modules.dep",
+    "modules.alias",
+    "modules.symbols",
+    "modules.builtin.modinfo",
+    "MODULE_LICENSE",
+    "MODULE_DESCRIPTION",
+    "MODULE_AUTHOR",
+    "MODULE_ALIAS",
+    "MODULE_FIRMWARE",
+    "MODULE_SOFTDEP"
+  ],
+  "shape_summary": {
+    "runtime_sample_count": 4,
+    "runtime_loader_count": 3,
+    "trace_events_loader_present": false,
+    "depmod_bridge_present": false
+  }
+}
