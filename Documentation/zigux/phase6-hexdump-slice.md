@@ -43,10 +43,12 @@ The current hexdump helper surface exercised by this slice covers:
 - `hexToBin`
 - `hex2bin`
 - `bin2hex`
+- `bin2hexUpper`
 - `hexDumpToBuffer`
 
 The current tests check:
 
+- uppercase whole-buffer hex encoding for a representative byte packet
 - mixed-case hex digit decoding
 - encode/decode round-trips on bounded fixtures
 - malformed source and destination handling
