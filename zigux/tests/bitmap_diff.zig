@@ -198,6 +198,37 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectClear(&wide_dst, 109);
     try expectClear(&wide_dst, bitmap_nbits - 1);
 
+    bitmap.fill(&wide_dst, bitmap_nbits);
+    // test_copy full-width partial-word tail clearing at 109 bits keeps the stale tail visible through bit 1023
+    copyFrom(&wide_dst, &wide_src, 109);
+    try std.testing.expectEqual(@as(usize, 109), weight(wide_dst[0..bitmap.bitsToWords(109)], 109));
+    try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "0-108,128-1023");
+    try std.testing.expectEqual(bitmap.lastWordMask(109), wide_dst[1]);
+    try std.testing.expectEqual(~@as(Word, 0), wide_dst[2]);
+    try expectSet(&wide_dst, bitmap_nbits - 1);
+
+    bitmap.fill(&wide_dst, bitmap_nbits);
+    // test_copy full-width aligned-on-word-length at 97 bits keeps the stale tail visible through bit 1023
+    copyFrom(&wide_dst, &wide_src, 97);
+    try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "0-108,128-1023");
+    try expectSet(&wide_dst, 108);
+    try expectClear(&wide_dst, 109);
+    try expectClear(&wide_dst, bits_per_long * 2 - 1);
+    try expectSet(&wide_dst, bits_per_long * 2);
+    try expectSet(&wide_dst, bitmap_nbits - 1);
+
+    bitmap.fill(&wide_dst, bitmap_nbits);
+    // test_copy_clear_tail full-width 109-bit replay keeps the stale tail contract explicit through bit 1023
+    bitmap.copyClearTail(&wide_dst, &wide_src, 109);
+    try std.testing.expectEqual(@as(usize, 109), weight(wide_dst[0..bitmap.bitsToWords(109)], 109));
+    try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "0-108,128-1023");
+    try std.testing.expectEqual(bitmap.lastWordMask(109), wide_dst[1]);
+    try std.testing.expectEqual(~@as(Word, 0), wide_dst[2]);
+    try expectSet(&wide_dst, bitmap_nbits - 1);
+
     bitmap.setRange(&src, 0, 109);
     copyFrom(&dst, &src, copy_nbits);
     try std.testing.expectEqual(@as(usize, 109), weight(&dst, copy_nbits));
