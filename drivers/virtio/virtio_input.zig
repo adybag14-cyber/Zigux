@@ -134,6 +134,18 @@ pub const TeardownPlanSummary = struct {
     preserves_identity_strings: bool,
 };
 
+pub const RegistrationPreflightSummary = struct {
+    anchor: []const u8,
+    identity_ready: bool,
+    staged_event_type_count: usize,
+    staged_capability_count: usize,
+    staged_abs_param_count: usize,
+    multitouch_enabled: bool,
+    multitouch_slots_ready: bool,
+    multitouch_slot_count: usize,
+    ready_for_registration: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -411,6 +423,30 @@ pub const VirtioInputLab = struct {
             .clears_abs_info_on_reset = true,
             .clears_multitouch_on_reset = true,
             .preserves_identity_strings = true,
+        };
+    }
+
+    pub fn registrationPreflightSummary(self: *const Self) !RegistrationPreflightSummary {
+        const capability_summary = try self.capabilitySetupSummary();
+        const identity_ready = self.name_len != 0 and self.serial_len != 0 and self.phys_len != 0;
+
+        const multitouch_slots_ready = true;
+        var multitouch_slot_count: usize = 0;
+        if (self.multitouch_enabled) {
+            const slot_summary = try self.multitouchSlotPlanSummary();
+            multitouch_slot_count = slot_summary.slot_count;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .identity_ready = identity_ready,
+            .staged_event_type_count = capability_summary.staged_event_type_count,
+            .staged_capability_count = capability_summary.staged_capability_count,
+            .staged_abs_param_count = capability_summary.staged_abs_param_count,
+            .multitouch_enabled = self.multitouch_enabled,
+            .multitouch_slots_ready = multitouch_slots_ready,
+            .multitouch_slot_count = multitouch_slot_count,
+            .ready_for_registration = identity_ready and capability_summary.staged_capability_count != 0 and multitouch_slots_ready,
         };
     }
 
