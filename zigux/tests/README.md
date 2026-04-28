@@ -33,6 +33,17 @@ Key entrypoints
 - `zigux/tests/phase6_hexdump_perf.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
+- `zigux/tests/phase7_build.zig`
+- `zigux/tests/phase7_string_helpers.zig`
+- `zigux/tests/phase7_cmdline.zig`
+- `zigux/tests/phase7_argv_split.zig`
+- `zigux/tests/phase7_argv_split_survey.zig`
+- `zigux/tests/phase7_rbtree.zig`
+- `zigux/tests/phase7_rbtree_survey.zig`
+- `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
+- `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+- `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+- `zigux/tests/fixtures/phase7_rbtree.json`
 - `zigux/tests/phase8_build.zig`
 - `zigux/tests/phase8_exec_cmd.zig`
 - `zigux/tests/phase8_help.zig`
@@ -64,6 +75,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/validate-phase4.py`
 - `scripts/zigux/validate-phase6.py`
+- `scripts/zigux/validate-phase7.py`
 - `scripts/zigux/validate-phase8.py`
 - `scripts/zigux/validate-phase9.py`
 - `scripts/zigux/validate-phase10-closure.py`
@@ -89,6 +101,7 @@ Guidance
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
+- keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
 
 Phase 10 guidance
 - keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig` and the three manifest-backed survey records instead of treating individual virtio starter files as independent closure signals
