@@ -146,11 +146,14 @@ test "runtime kretprobe loader prepares a bounded registration handoff plan" {
     try std.testing.expect(plan.requires_runtime_substrate);
     try std.testing.expect(plan.provides_selftest_hook);
     try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.selftest_complete, plan.handoff_stage);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.selftest_complete, plan.summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), plan.summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.skipped_kernel_threads);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.nmissed);
     try std.testing.expectEqual(@as(usize, 42), plan.summary.last_retval);
     try std.testing.expectEqual(@as(i64, 75), plan.summary.last_duration_ns);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), plan.summary.exit_runs);
     try std.testing.expect(!plan.summary.entry_timestamp_armed);
 }
 
@@ -164,7 +167,10 @@ test "runtime kretprobe loader keeps unavailable substrate and lifecycle guards 
     var loader = RuntimeKretprobeLoader{};
     const prepared = try loader.prepare(&module);
     try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.initialized, prepared.handoff_stage);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.initialized, prepared.summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), prepared.summary.init_runs);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), prepared.summary.exit_runs);
 
     try std.testing.expectError(error.LoaderAlreadyPrepared, loader.prepare(&module));
 
