@@ -54,6 +54,11 @@
       "expected": "descriptor and replay keep the sample on a fixed embedded 32-byte ring buffer rather than dynamic or runtime-backed storage"
     },
     {
+      "id": "review-path-packet",
+      "kind": "review_surface",
+      "expected": "the review path stays explicit across samples/zigux/bytestream_fifo.zig, zigux/tests/phase5_bytestream_fifo_manifest.json, zigux/tests/phase5_bytestream_fifo_survey.zig, Documentation/zigux/phase5-kfifo-sample-survey.md, Documentation/zigux/review-checklist.md, and the shared zigux/tests/phase5_build.zig entrypoint"
+    },
+    {
       "id": "bounded-helper-behavior",
       "kind": "helper_contract",
       "expected": "peek and skip return null when empty, snapshotInto does not mutate queue order, pushing past capacity returns false, and reset restores an empty queue"
