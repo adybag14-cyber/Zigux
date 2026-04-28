@@ -77,3 +77,9 @@ Phase 6 flow
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py` replays a representative external C-vs-Zig base64 spot check so portability-sensitive helper drift is reviewable beyond the shared Zig-only tests.
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` replays a representative external C-vs-Zig bsearch spot check so portability-sensitive helper drift is reviewable beyond the shared Zig-only tests.
 - the current published slice notes for `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md` are part of that same shared validation surface.
+
+Phase 7 flow
+- the shared Phase 7 runtime-helper bundle is currently replayed through `zigux/tests/phase7_build.zig`, not through a dedicated `validate-phase7.py` catalog check.
+- `make -C zigux phase7` and `make -C zigux phase7-test` keep the current string-helpers, cmdline, argv-split, and rbtree packet reviewable through one shared bootstrap-facing entrypoint instead of ad hoc slice-local commands.
+- `.github/workflows/zigux-bootstrap.yml` now runs the same `zig build test --build-file zigux/tests/phase7_build.zig --summary all` step directly, so shared bootstrap notes should move together with that build file, the make target, and the published slice notes.
+- `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md` are the current review surfaces for that parked helper bundle.
