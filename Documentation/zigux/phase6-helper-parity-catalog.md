@@ -40,6 +40,8 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - helper: `lib/bsearch.zig`
 - tests: `zigux/tests/phase6_bsearch.zig`
 - perf: `zigux/tests/phase6_bsearch_perf.zig`
+- external parity: `scripts/zigux/check-phase6-bsearch-c-parity.py`
+- fixtures: `zigux/tests/phase6_bsearch_c_parity.zig`, `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
 
 ### checksum
