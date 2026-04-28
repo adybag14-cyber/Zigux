@@ -14,10 +14,10 @@ SCRIPTS_README_REL = "scripts/zigux/README.md"
 REQUIRED_SURVEY_MARKERS = (
     "PHASE3_ROADMAP_ANCHORS=rust/exports.c,lib/bitmap.c,lib/rbtree.c,lib/cpumask.c",
     "PHASE3_CURRENT_EXPORT_SHIM=zigux/kernel/export_shim.zig",
-    "PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-only",
+    "PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header",
     "PHASE3_CURRENT_UAPI=zigux/uapi/version.zig",
-    "PHASE3_CURRENT_UAPI_SCOPE=version-only",
-    "PHASE3_UAPI_BOUNDARY_GAP=version-only-surface-is-still-below-full-uapi-shim-destination",
+    "PHASE3_CURRENT_UAPI_SCOPE=version-and-boundary-header",
+    "PHASE3_UAPI_BOUNDARY_GAP=version-and-boundary-header-surface-is-still-below-full-uapi-shim-destination",
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
     "PHASE3_CURRENT_RBTREE_STATUS=phase7-helper-exists-but-phase3-interop-slice-is-missing",
@@ -40,13 +40,13 @@ REQUIRED_DOCS_README_SNIPPETS = (
     "`Documentation/zigux/phase3-roadmap-gap-survey.md`",
     "`scripts/zigux/validate-phase3-roadmap-gap-survey.py`",
     "`make -C zigux phase3-validate`",
-    "export shim and current `zigux/uapi/version.zig` boundary",
+    "current export shim and current `zigux/uapi/version.zig` boundary",
 )
 
 REQUIRED_SCRIPTS_README_SNIPPETS = (
     "`validate-phase3-roadmap-gap-survey.py`",
     "`Documentation/zigux/phase3-roadmap-gap-survey.md`",
-    "export shim and current `zigux/uapi/version.zig` boundary",
+    "current export shim and current `zigux/uapi/version.zig` boundary",
 )
 
 
@@ -119,7 +119,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check that the published Phase 3 roadmap gap survey stays aligned with the live repo.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated checker tests without reading the repo.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated checker tests without reading the full repo.")
     args = parser.parse_args()
 
     if args.self_test:
