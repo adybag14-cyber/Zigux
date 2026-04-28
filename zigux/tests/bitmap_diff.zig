@@ -121,6 +121,8 @@ test "bitmap diff gate records exact bounded copy checks" {
     const copy_nbits = bits_per_long * 3;
     var small_src = [_]Word{ 0, 0 };
     var small_dst = [_]Word{ 0, 0 };
+    var wide_src = [_]Word{0} ** word_count;
+    var wide_dst = [_]Word{0} ** word_count;
     var src = [_]Word{ 0, 0, 0 };
     var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
 
@@ -145,6 +147,30 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectSet(&small_dst, 18);
     try expectClear(&small_dst, 19);
     try expectClear(&small_dst, 22);
+
+    bitmap.zero(&wide_src, bitmap_nbits);
+    bitmap.zero(&wide_dst, bitmap_nbits);
+    bitmap.setRange(&wide_src, 0, 109);
+    // test_copy full-width copy from a cleared destination replays the exact source window
+    copyFrom(&wide_dst, &wide_src, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 109), weight(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 109), firstZero(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "0-108");
+    try expectSet(&wide_dst, 108);
+    try expectClear(&wide_dst, 109);
+    try expectClear(&wide_dst, bitmap_nbits - 1);
+
+    bitmap.fill(&wide_dst, bitmap_nbits);
+    // test_copy full-width copy from a filled destination also drops stale tail bits
+    copyFrom(&wide_dst, &wide_src, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 109), weight(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 109), firstZero(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "0-108");
+    try expectSet(&wide_dst, 108);
+    try expectClear(&wide_dst, 109);
+    try expectClear(&wide_dst, bitmap_nbits - 1);
 
     bitmap.setRange(&src, 0, 109);
     copyFrom(&dst, &src, copy_nbits);
