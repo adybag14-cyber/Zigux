@@ -31,6 +31,8 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
+    try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
+    try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..8], replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.snapshot_len);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
@@ -76,6 +78,21 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
 
     try std.testing.expectEqual(@as(?u8, 0), module.skipByte());
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), module.count());
+
+    module.reset();
+    try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
+    var value: u8 = 0;
+    while (value < 10) : (value += 1) {
+        try std.testing.expect(module.pushByte(value));
+    }
+    var discard: [7]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, discard.len), module.dequeueSlice(discard[0..]));
+    try std.testing.expectEqual(@as(usize, 2), module.enqueueSlice(&.{ 0, 1 }));
+
+    var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
+    try std.testing.expectEqual(@as(usize, wraparound_preview.len), module.snapshotInto(wraparound_preview[0..]));
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
+    try std.testing.expectEqual(@as(usize, 10), module.count());
 
     module.reset();
     try std.testing.expectEqual(@as(usize, 0), module.count());
