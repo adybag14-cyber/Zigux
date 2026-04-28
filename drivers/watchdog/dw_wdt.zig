@@ -34,6 +34,11 @@ pub const WatchdogInfoSelection = enum {
     pretimeout,
 };
 
+pub const TimerClockSelection = enum {
+    named_tclk,
+    unnamed_default,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -109,6 +114,27 @@ pub const RegistrationHandoffSummary = struct {
     stop_on_reboot: bool,
     restart_priority: i32,
     register_device_requested: bool,
+};
+
+pub const PlatformResourcePreflightOptions = struct {
+    timer_clock_selection: TimerClockSelection = .named_tclk,
+    has_apb_clock: bool = false,
+    has_pretimeout_irq: bool = false,
+};
+
+pub const PlatformResourcePreflightSummary = struct {
+    anchor: []const u8,
+    timer_clock_selection: TimerClockSelection,
+    timer_clock_rate_hz: u32,
+    timer_clock_ready: bool,
+    apb_clock_optional: bool,
+    apb_clock_present: bool,
+    reset_control_optional: bool,
+    reset_control_shared: bool,
+    reset_control_available: bool,
+    pretimeout_irq_optional: bool,
+    pretimeout_irq_present: bool,
+    pretimeout_irq_shared_rising: bool,
 };
 
 pub const RuntimeSnapshot = struct {
@@ -247,6 +273,26 @@ pub const DwWdtLab = struct {
             .stop_on_reboot = probe.stop_on_reboot,
             .restart_priority = probe.restart_priority,
             .register_device_requested = true,
+        };
+    }
+
+    pub fn platformResourcePreflightSummary(
+        self: *const Self,
+        options: PlatformResourcePreflightOptions,
+    ) PlatformResourcePreflightSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .timer_clock_selection = options.timer_clock_selection,
+            .timer_clock_rate_hz = self.rate_hz,
+            .timer_clock_ready = self.rate_hz != 0,
+            .apb_clock_optional = true,
+            .apb_clock_present = options.has_apb_clock,
+            .reset_control_optional = true,
+            .reset_control_shared = true,
+            .reset_control_available = self.has_reset_control,
+            .pretimeout_irq_optional = true,
+            .pretimeout_irq_present = options.has_pretimeout_irq,
+            .pretimeout_irq_shared_rising = options.has_pretimeout_irq,
         };
     }
 
