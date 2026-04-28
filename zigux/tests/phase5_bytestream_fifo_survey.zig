@@ -47,7 +47,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_embedded_pattern = false;
@@ -57,10 +57,12 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_lifecycle_pattern = false;
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_replay_preview_prompt = false;
     var saw_helper_surface_prompt = false;
     var saw_docs_prompt = false;
     var saw_storage_prompt = false;
     var saw_exact_sequence = false;
+    var saw_replay_preview_prefix = false;
     var saw_snapshot = false;
     var saw_capacity = false;
     var saw_storage_contract = false;
@@ -98,6 +100,9 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "replay-preview prefix") != null) {
+            saw_replay_preview_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "phase5_bytestream_fifo.zig") != null and
             std.mem.indexOf(u8, prompt, "preview truncation") != null and
             std.mem.indexOf(u8, prompt, "capacity ceiling") != null)
@@ -122,6 +127,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
             saw_exact_sequence = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
+        }
+        if (std.mem.eql(u8, check.id, "replay-preview-prefix")) {
+            saw_replay_preview_prefix = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "[3,4,5,6,7,8,9,0]") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "full anchor-order snapshot") != null);
         }
         if (std.mem.eql(u8, check.id, "snapshot-before-final-drain")) {
             saw_snapshot = true;
@@ -167,10 +177,12 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_pattern);
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_replay_preview_prompt);
     try std.testing.expect(saw_helper_surface_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_storage_prompt);
     try std.testing.expect(saw_exact_sequence);
+    try std.testing.expect(saw_replay_preview_prefix);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
@@ -209,6 +221,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wraparound requeue, skip, and peek") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "truncated 8-byte preview prefix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "[3,4,5,6,7,8,9,0]") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime_kretprobe_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "preview truncation") != null);
