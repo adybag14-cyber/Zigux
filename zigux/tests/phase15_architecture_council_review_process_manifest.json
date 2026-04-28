@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L06",
+  "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "cbcc511944ba62eb6b0a6d73a0a041a6c2d38089",
+  "surveyed_commit": "3de513715c19db0afdb00d4580301a908a3594d6",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -67,7 +67,7 @@
     "roadmap_handoff": "The Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step.",
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
     "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
-    "current_bounded_lane": "P15-L06 keeps the review-process handoff synced by landing one explicit automatic return-to-blocked trigger rule on top of the already-landed roadmap-phase and written-rationale checklist sync, without reopening nearby README ownership or parity-scorecard evidence work.",
+    "current_bounded_lane": "P15-L08 keeps the review-process handoff synced by landing one explicit automatic return-to-blocked trigger rule on top of the already-landed roadmap-phase and written-rationale checklist sync, without reopening nearby README ownership or parity-scorecard evidence work.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
   "handoff": {
