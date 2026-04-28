@@ -45,7 +45,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -56,6 +56,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_snapshot = false;
     var saw_capacity = false;
     var saw_storage_contract = false;
+    var saw_review_path_packet = false;
     var saw_focus_list = false;
     var saw_lifecycle = false;
     var saw_lifecycle_guards = false;
@@ -100,6 +101,12 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_storage_contract = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "fixed embedded 32-byte ring buffer") != null);
         }
+        if (std.mem.eql(u8, check.id, "review-path-packet")) {
+            saw_review_path_packet = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase5-kfifo-sample-survey.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "review-checklist.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase5_build.zig") != null);
+        }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires init before replay") != null);
@@ -128,6 +135,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
+    try std.testing.expect(saw_review_path_packet);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(saw_lifecycle_guards);
@@ -166,6 +174,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "review path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
