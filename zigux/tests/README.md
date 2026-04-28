@@ -101,7 +101,7 @@ Guidance
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
-- keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
+- keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
 
 Phase 10 guidance
 - keep the current Phase 10 lab bundle reviewable through `zigux/tests/phase10_build.zig` and the three manifest-backed survey records instead of treating individual virtio starter files as independent closure signals
