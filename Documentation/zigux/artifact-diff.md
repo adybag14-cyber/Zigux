@@ -17,7 +17,7 @@ Current Phase 2 use
 - `zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt` and `sample_comment_only_expected.stderr.txt` anchor the bounded no-target failure shape, keeping the `fixdep: parse error; no targets found` path reviewable against both stdout and stderr artifacts.
 - `zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt` and `sample_missing_dep_expected.stderr.txt` anchor the bounded missing-dependency failure shape, including the preserved stdout prefix and C-style open-file stderr message.
 - `zigux/tests/fixtures/fixdep/sample_output_write_expected.txt` and `sample_output_write_expected.stderr.txt` anchor the bounded output-write failure shape when stdout cannot accept the full generated dependency payload.
-- `scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`, and it now also treats any unexpected stderr from success-path cases as a gate failure so quiet parity cannot drift silently.
+- `scripts/zigux/check-fixdep-diff.py` compares the committed fixdep samples against both the C tool and `scripts/zigux/fixdep.zig`, reruns each side to prove repeat-run artifact determinism, and now also treats any unexpected stderr from success-path cases as a gate failure so quiet parity cannot drift silently.
 - `zigux/tests/fixtures/genksyms_bridge/*.json` capture bounded wrapper-first `genksyms` invocation planning for committed flag combinations.
 - `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json` anchors the smallest wrapper-first `genksyms` invocation claim.
 - `scripts/zigux/check-genksyms-bridge.py` compares those committed JSON fixtures against both a bounded C harness and `scripts/zigux/genksyms.zig`.
@@ -27,7 +27,7 @@ Current Phase 2 use
 - `scripts/zigux/check-kconfig-bridge.py` compares those committed JSON fixtures against `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`.
 - `zigux/tests/fixtures/phase2_cross_targets.json` fixes the bounded cross-target compile set for the Phase 2 tool tranche.
 - `zigux/tests/fixtures/mk_elfconfig/elf32_expected.json` and sibling JSON fixtures capture bounded stdin-driven behavior for `scripts/mod/mk_elfconfig.c`.
-- `scripts/zigux/check-mk_elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`.
+- `scripts/zigux/check-mk-elfconfig-diff.py` compares those committed JSON results against both the C tool and `scripts/zigux/mk_elfconfig.zig`, then reruns each side to prove repeat-run JSON determinism before the lane passes.
 
 Current Phase 3 use
 - `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.
