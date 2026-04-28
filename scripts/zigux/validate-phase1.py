@@ -27,6 +27,8 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
+    ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -40,9 +42,11 @@ if missing:
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+string_root = (ROOT / 'tools' / 'lib' / 'string.zig').read_text(encoding='utf-8')
 test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
 bitmap_diff_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig').read_text(encoding='utf-8')
 bitmap_diff_build_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig').read_text(encoding='utf-8')
+phase1_closure = (ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md').read_text(encoding='utf-8')
 find_bit_fixture = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json').read_text(encoding='utf-8')
 find_bit_harness = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c').read_text(encoding='utf-8')
 find_bit_manifest = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8')
@@ -131,6 +135,31 @@ required_find_bit_manifest_markers = [
     '"find_bit.tail_and_mixed_next"',
     'tail mask keeps the in-range shared bit for and scans',
 ]
+required_string_helper_markers = [
+    'pub fn strim(buf: []u8) []u8 {',
+    'pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {',
+    'test "skip trim remove and replace spaces work in place"',
+    'test "memchrInv scans aligned and misaligned long buffers"',
+    'test "memchrInv catches prefix and trailing remainder mismatches"',
+]
+required_string_test_markers = [
+    'test "phase 1 string replaceChar stops at embedded NUL"',
+    "string.replaceChar(&replace_buffer, '-', '_')",
+    "&[_]u8{ 'a', '_', 0, '-', 'z' }",
+]
+required_string_manifest_markers = [
+    '"tools/lib/string.zig"',
+    '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
+    '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
+    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"skip trim remove and replace spaces work in place\\""',
+    '"alias_unit_test_contract": "Direct Zig unit coverage exercises the strim and strreplace wrapper aliases alongside trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior that keeps strreplace from mutating trailing bytes past the first terminator."',
+]
+required_string_closure_markers = [
+    'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
+    'string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`',
+    'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
+    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string strim and strreplace wrapper aliases stay aligned with trimSpaces, skipSpaces, removeSpaces, and replaceChar, including the embedded-NUL stop behavior at the first terminator',
+]
 
 missing_markers = []
 for marker in required_ledger_markers:
@@ -160,6 +189,18 @@ for marker in required_find_bit_harness_markers:
 for marker in required_find_bit_manifest_markers:
     if marker not in find_bit_manifest:
         missing_markers.append(f'find_bit_manifest:{marker}')
+for marker in required_string_helper_markers:
+    if marker not in string_root:
+        missing_markers.append(f'string_helper:{marker}')
+for marker in required_string_test_markers:
+    if marker not in test_root:
+        missing_markers.append(f'string_test:{marker}')
+for marker in required_string_manifest_markers:
+    if marker not in find_bit_manifest:
+        missing_markers.append(f'string_manifest:{marker}')
+for marker in required_string_closure_markers:
+    if marker not in phase1_closure:
+        missing_markers.append(f'string_closure:{marker}')
 
 if missing_markers:
     print('PHASE1_VALIDATION=fail')
@@ -173,5 +214,5 @@ print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers)}'
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_string_test_markers) + len(required_string_manifest_markers) + len(required_string_closure_markers)}'
 )
