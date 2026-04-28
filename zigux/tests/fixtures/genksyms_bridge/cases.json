@@ -11,6 +11,11 @@
       "expected": "debug_reference_types_expected.json"
     },
     {
+      "name": "short_inline_reference_dump_types",
+      "argv": ["-d", "-rfoo.symref", "-Tout.symtypes", "-p"],
+      "expected": "short_inline_reference_dump_types_expected.json"
+    },
+    {
       "name": "long_options",
       "argv": ["--debug", "--warnings", "--reference=foo.symref", "--dump-types", "types.symtypes", "--preserve"],
       "expected": "long_options_expected.json"
