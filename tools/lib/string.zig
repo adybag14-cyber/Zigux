@@ -59,16 +59,19 @@ pub fn trimSpaces(buf: []u8) []u8 {
         return buf[0..0];
     }
 
+    var limit: usize = 0;
+    while (limit < buf.len and buf[limit] != 0) : (limit += 1) {}
+
     var start: usize = 0;
-    while (start < buf.len and std.ascii.isWhitespace(buf[start])) : (start += 1) {}
-    if (start == buf.len) {
+    while (start < limit and std.ascii.isWhitespace(buf[start])) : (start += 1) {}
+    if (start == limit) {
         buf[0] = 0;
         return buf[0..0];
     }
 
-    var end = buf.len;
+    var end = limit;
     while (end > start and std.ascii.isWhitespace(buf[end - 1])) : (end -= 1) {}
-    if (end < buf.len) {
+    if (end < limit) {
         buf[end] = 0;
     }
 
@@ -201,10 +204,6 @@ test "skip trim remove and replace spaces work in place" {
     var strim_buf = [_]u8{ ' ', 'o', 'k', ' ', '\n', 0 };
     try std.testing.expectEqualStrings("ok", strim(&strim_buf));
 
-    var strim_cstr_buf = [_]u8{ ' ', 'o', 'k', 0, ' ', 'x' };
-    try std.testing.expectEqualStrings("ok", strim(&strim_cstr_buf));
-    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, ' ', 'x' }, &strim_cstr_buf);
-
     var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
 
@@ -227,6 +226,16 @@ test "skip trim remove and replace spaces work in place" {
     var strreplace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
     try std.testing.expectEqualStrings("a_b", strreplace(strreplace_buf[0 .. strreplace_buf.len - 1], '-', '_'));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, &strreplace_buf);
+}
+
+test "trimSpaces and strim stop at the first embedded NUL" {
+    var trim_cstr_buf = [_]u8{ ' ', 'a', 0, 'x', '\n' };
+    try std.testing.expectEqualStrings("a", trimSpaces(&trim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 0, 'x', '\n' }, &trim_cstr_buf);
+
+    var strim_cstr_buf = [_]u8{ '\t', 'o', 'k', 0, 'x', '\n' };
+    try std.testing.expectEqualStrings("ok", strim(&strim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\t', 'o', 'k', 0, 'x', '\n' }, &strim_cstr_buf);
 }
 
 test "memdup and memchrInv preserve byte content" {
