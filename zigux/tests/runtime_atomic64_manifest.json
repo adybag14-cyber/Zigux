@@ -21,7 +21,8 @@
     "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, direct phase9-runtime-atomic64-sample-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
-    "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter"
+    "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter",
+    "the atomic64 packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor"
   ],
   "exact_checks": [
     {
@@ -68,6 +69,11 @@
       "id": "loader-request-surface",
       "kind": "runtime_loader_contract",
       "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, kernel_heap allocator flow, and the four-field atomic64 payload summary machine-checkable through the shared runtime-loader request surface"
+    },
+    {
+      "id": "shared-loader-freeze-map-boundary",
+      "kind": "governance_surface",
+      "expected": "the atomic64 survey packet keeps Documentation/zigux/freeze-map.md and the study-only kernel/workqueue.c boundary explicit, with no parity scorecard entry or Architecture Council status-change request attached to this lane"
     },
     {
       "id": "diff-add-and-bitwise-cases",
@@ -246,6 +252,8 @@
     "a loadable Zigux runtime atomic64 module",
     "true runtime execution or lifecycle parity through a shared loader path",
     "the full lib/atomic64_test.c surface beyond the bounded starter and diff cases",
-    "shared runtime-loader command-name, argv-policy, or environment activation controls"
+    "shared runtime-loader command-name, argv-policy, or environment activation controls",
+    "parity or ownership for kernel/workqueue.c",
+    "any freeze-map status change for kernel/workqueue.c without an Architecture Council decision"
   ]
 }

@@ -93,12 +93,12 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.review_prompts.len >= 5);
-    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expect(manifest.review_prompts.len >= 6);
+    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 7);
-    try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.non_goals.len);
 
     var saw_descriptor_contract = false;
     var saw_initial_lifecycle = false;
@@ -109,6 +109,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_post_selftest_replay = false;
     var saw_exit_lifecycle = false;
     var saw_loader_request_surface = false;
+    var saw_freeze_map_boundary_check = false;
     var saw_diff_add_bitwise = false;
     var saw_diff_swap_guard = false;
     var saw_manifest_catalog = false;
@@ -119,9 +120,13 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var saw_loader_gap_ownership = false;
     var saw_atomic64_diff_ownership = false;
     var saw_atomic64_sample_ownership = false;
+    var saw_freeze_map_prompt = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
+        if (std.mem.indexOf(u8, prompt, "Documentation/zigux/freeze-map.md") != null) {
+            saw_freeze_map_prompt = true;
+        }
     }
 
     for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
@@ -244,6 +249,13 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zigux_runtime_atomic64_init") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_heap") != null);
+        }
+        if (std.mem.eql(u8, check.id, "shared-loader-freeze-map-boundary")) {
+            saw_freeze_map_boundary_check = true;
+            try std.testing.expectEqualStrings("governance_surface", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "Documentation/zigux/freeze-map.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel/workqueue.c") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "Architecture Council") != null);
         }
         if (std.mem.eql(u8, check.id, "diff-add-and-bitwise-cases")) {
             saw_diff_add_bitwise = true;
@@ -372,6 +384,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(saw_loader_gap_ownership);
     try std.testing.expect(saw_atomic64_diff_ownership);
     try std.testing.expect(saw_atomic64_sample_ownership);
+    try std.testing.expect(saw_freeze_map_prompt);
+    try std.testing.expect(saw_freeze_map_boundary_check);
 }
 
 test "phase 9 runtime atomic64 module slice note stays aligned with the landed loader-backed review packet" {
@@ -423,9 +437,14 @@ test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and 
         "a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
         "Delivery ownership map",
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+        "Documentation/zigux/freeze-map.md",
+        "`kernel/workqueue.c`",
+        "Study / Boundary Only",
+        "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 atomic64 lane.",
         "blocked shared command-name, argv-policy, and environment-derived activation-control posture",
         "shared Phase 9 replay entrypoint",
         "command-name, argv-policy, and environment-derived activation handling still have no shared owner",
+        "workqueue parity",
         "rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
     };
 
