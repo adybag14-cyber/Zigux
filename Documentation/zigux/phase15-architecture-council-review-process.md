@@ -88,9 +88,10 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
-- current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, automatic-return-to-blocked-trigger, retained-discussion-state, indefinite-c-policy link or applicability note, roadmap-phase-and-written-rationale fields, and reopen-trigger records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
-- until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
+- the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `Documentation/zigux/phase15-parity-scorecard.md`, and the reserved per-anchor templates under `Documentation/zigux/phase15-evidence-archives/`
+- current approval evidence is explicit negative evidence rather than silence: this note records the no-approval posture, the parity scorecard still keeps every anchor in `freeze_in_c`, each reserved evidence-archive template keeps `requested decision bucket: pending_no_request`, `decision record ID: pending_no_architecture_council_request`, and `no Architecture Council approval claim` visible, and the review packet now keeps the automatic return-to-blocked trigger explicit if those fields or linked evidence drift
+- current ownership evidence is explicit in both the scorecard and the anchor templates: `Documentation/zigux/phase15-parity-scorecard.md` names the lane owner and rollback owner for each freeze-in-C anchor, and each matching evidence-archive template repeats those same owner records together with the replay command, latest blocker disposition, retained discussion state, and reopen triggers
+- until the review record, the parity scorecard, and the anchor templates all say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Roadmap Handoff Evidence
 
