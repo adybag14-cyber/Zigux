@@ -94,3 +94,26 @@ test "phase 6 hexdump exposes append-style whole-buffer encoding" {
     try std.testing.expectEqual(@as(usize, 4), rest.len);
     try std.testing.expectEqualSlices(u8, "####", rest);
 }
+
+test "phase 6 hexdump replays serialized fixture vectors" {
+    for (fixtures.parity_cases) |case| {
+        try assertParityCase(case.len, case.rowsize, case.groupsize, case.ascii);
+        try assertFixtureParityCase(case);
+    }
+}
+
+test "phase 6 hexdump overflow contract matches truncation expectations" {
+    for (fixtures.overflow_cases) |case| {
+        try assertOverflowCase(case.buflen, case.len, case.rowsize, case.groupsize, case.ascii);
+        try assertFixtureOverflowCase(case);
+    }
+}
+
+test "phase 6 hexdump covers normalization and empty-buffer edge cases" {
+    try assertParityCase(12, 99, 3, true);
+    try assertParityCase(9, 32, 4, false);
+
+    for (fixtures.length_cases) |case| {
+        try assertFixtureLengthCase(case);
+    }
+}
