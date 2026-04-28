@@ -34,6 +34,17 @@ Without this matrix, the slice and survey named the right next step but did not 
 | platform registration and PM-base handoff | `platformHandoffSummary()` now records parent attachment, PM-base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability without claiming platform-driver execution or live MMIO | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the platform-handoff checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the handoff summary honest while a future lane decides whether to model any live platform registration or PM base plumbing | full platform registration, PM base ioremap, watchdog-core lifecycle, suspend or resume handling, and hardware-backed execution |
 | remove-time ownership boundary | `removeSummary()` records when the shared poweroff handler would be cleared only if the bcm2835 lane owns it, while leaving conflicting ownership in place | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the remove-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the remove-time ownership evidence tied to the same later live platform decision rather than widening this starter lane further | live remove callbacks, reboot-time ordering, and hardware-backed poweroff release |
 
+## Shared Replay Surface
+
+- current shared replay wiring on `master` includes both `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
+- exact shared command:
+  - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- included bcm2835 artifacts:
+  - `phase11-bcm2835-wdt-tests`
+  - `phase11-bcm2835-wdt-survey-tests`
+- focused survey replay command:
+  - `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig`
+
 ## Review Rules
 
 - treat this lane as a bounded starter plus validation-note lane even after the platform-registration and PM-base handoff summary lands
