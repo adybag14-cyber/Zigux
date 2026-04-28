@@ -1,5 +1,7 @@
 const std = @import("std");
 
+pub const bpf_obj_name_len: usize = 16;
+
 pub const FdInfoMapInfo = struct {
     map_type: u32,
     key_size: u32,
@@ -142,6 +144,17 @@ pub fn planTokenPreparation(token_path: ?[]const u8) TokenPreparationPlan {
     };
 }
 
+pub fn chooseReusedMapName(requested_name: []const u8, info_name: []const u8) []const u8 {
+    if (info_name.len == bpf_obj_name_len - 1 and
+        requested_name.len >= info_name.len and
+        std.mem.eql(u8, requested_name[0..info_name.len], info_name))
+    {
+        return requested_name;
+    }
+
+    return info_name;
+}
+
 pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {
     var info = FdInfoMapInfo{
         .map_type = 0,
@@ -228,6 +241,28 @@ test "planTokenPreparation keeps token-path intent explicit without claiming io 
     try std.testing.expectEqual(TokenPreparationLogLevel.warn, mandatory.log_level.?);
     try std.testing.expect(mandatory.requiresBpffsOpen());
     try std.testing.expect(mandatory.requiresTokenCreate());
+}
+
+test "chooseReusedMapName preserves the requested name when the kernel-truncated prefix matches" {
+    try std.testing.expectEqualStrings(
+        "process_pinned_map",
+        chooseReusedMapName("process_pinned_map", "process_pinned_"),
+    );
+}
+
+test "chooseReusedMapName falls back to the kernel info name when truncation rules do not match" {
+    try std.testing.expectEqualStrings(
+        "ringbuf_map",
+        chooseReusedMapName("ringbuf_map_local", "ringbuf_map"),
+    );
+    try std.testing.expectEqualStrings(
+        "different_prefix",
+        chooseReusedMapName("process_pinned_map", "different_prefix"),
+    );
+    try std.testing.expectEqualStrings(
+        "",
+        chooseReusedMapName("process_pinned_map", ""),
+    );
 }
 
 test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
