@@ -258,6 +258,9 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
+    try std.testing.expectEqualStrings("foo", replay.foo_value.attr_name);
+    try std.testing.expectEqualStrings("baz", replay.baz_value.attr_name);
+    try std.testing.expectEqualStrings("bar", replay.bar_value.attr_name);
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
