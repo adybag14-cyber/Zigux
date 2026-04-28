@@ -55,6 +55,7 @@ tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 phase8_build = (ROOT / "zigux" / "tests" / "phase8_build.zig").read_text(encoding="utf-8")
 phase8_survey = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-segment-survey.md").read_text(encoding="utf-8")
+phase8_cpu_mask = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-cpu-mask-slice.md").read_text(encoding="utf-8")
 phase8_type_names = (ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-slice.md").read_text(encoding="utf-8")
 manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json").read_text(encoding="utf-8")
 
@@ -142,6 +143,7 @@ required_survey_markers = [
     "tools/lib/bpf/zigux_segments/type_names.zig",
     "fdinfo-map-info-helpers",
     "file-path-and-handle-bridge",
+    "perf-buffer-online-cpu-routing",
     "phase8_file_path_handle_bridge.zig",
     "path construction",
     "text parsing",
@@ -152,11 +154,26 @@ required_survey_markers = [
     "bpf_object_prepare_token()",
     "bpf_object__reuse_map()",
     "bpf_get_map_info_from_fdinfo()",
+    "online CPU filtering",
+    "interrupt-routing-sensitive boundary",
     "zigux/tests/phase8_cpu_mask.zig",
     "zigux/tests/phase8_logging.zig",
     "zigux/tests/phase8_pin_path.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "make -C zigux phase8",
+]
+
+required_cpu_mask_markers = [
+    "libbpf-cpu-mask-starter",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "zigux/tests/phase8_cpu_mask.zig",
+    "parse_cpu_mask_str()",
+    "parse_cpu_mask_file()",
+    "`libbpf_num_possible_cpus()` caching",
+    "`perf_buffer__new()` online CPU selection",
+    "interrupt-routing behavior",
+    "perf-buffer-online-cpu-routing",
+    "per-CPU perf-buffer routing",
 ]
 
 required_type_name_markers = [
@@ -191,6 +208,13 @@ required_manifest_markers = [
     'fd ownership',
     '"slug": "type-name-helpers"',
     '"zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig"',
+    '"slug": "perf-buffer-online-cpu-routing"',
+    '"kind": "interrupt_routing_boundary"',
+    '"tools/lib/bpf/libbpf.c:14049-14110"',
+    '"tools/lib/bpf/libbpf.c:14429-14480"',
+    'online CPU filtering',
+    'perf-event-array map updates',
+    'interrupt-routing contract',
 ]
 
 missing_markers = []
@@ -216,6 +240,9 @@ for marker in required_phase8_build_markers:
 for marker in required_survey_markers:
     if marker not in phase8_survey:
         missing_markers.append(f"phase8_survey:{marker}")
+for marker in required_cpu_mask_markers:
+    if marker not in phase8_cpu_mask:
+        missing_markers.append(f"phase8_cpu_mask:{marker}")
 for marker in required_type_name_markers:
     if marker not in phase8_type_names:
         missing_markers.append(f"phase8_type_names:{marker}")
@@ -235,5 +262,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_survey_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_survey_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
 )
