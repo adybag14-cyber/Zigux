@@ -171,6 +171,7 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectSet(&dst, bits_per_long * 2);
 
     bitmap.fill(&dst, copy_nbits);
+    // test_copy_clear_tail keeps the 109-bit cleared-tail contract explicit
     bitmap.copyClearTail(&dst, &src, 109);
     try std.testing.expectEqual(@as(usize, 109), weight(dst[0..bitmap.bitsToWords(109)], 109));
     try expectPrintedList(&dst, copy_nbits, "0-108,128-191");
