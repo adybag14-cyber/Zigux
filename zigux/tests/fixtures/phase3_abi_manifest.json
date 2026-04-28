@@ -2,25 +2,32 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 18,
   "files": [
     "include/zigux/abi.h",
     "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
+    "zigux/kernel/export_shim.zig",
+    "zigux/uapi/version.zig",
     "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
-    "zigux/kernel/export_shim.zig",
     "zigux/unsafe/narrow.zig",
-    "zigux/uapi/version.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi/expected.json",
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
-  ]
+    "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/validate-phase3.py",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "zigux/tests/build.zig"
+  ],
+  "file_count": 25
 }
