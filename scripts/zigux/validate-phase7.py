@@ -58,6 +58,7 @@ required_make_markers = [
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "phase7-test:",
+    "$(ZIG) build test --build-file zigux/tests/phase7_build.zig",
     "zigux/tests/phase7_build.zig",
     "phase7: phase7-validate phase7-test",
 ]
@@ -66,6 +67,7 @@ required_workflow_markers = [
     "Validate Phase 7 runtime helper gates",
     "make -C zigux phase7-validate",
     "Run Phase 7 runtime helper tests",
+    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     "zigux/tests/phase7_build.zig",
 ]
 
@@ -74,7 +76,9 @@ required_script_readme_markers = [
     "check-phase7-rbtree-parity.py",
     "Phase 7 flow",
     "make -C zigux phase7-validate",
+    "make -C zigux phase7-test",
     "make -C zigux phase7",
+    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     "zigux/tests/phase7_build.zig",
     "phase7-rbtree-slice.md",
 ]
@@ -103,7 +107,9 @@ required_doc_readme_markers = [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "python3 scripts/zigux/validate-phase7.py",
     "make -C zigux phase7-validate",
+    "make -C zigux phase7-test",
     "make -C zigux phase7",
+    "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/tests/phase7_build.zig",
 ]
