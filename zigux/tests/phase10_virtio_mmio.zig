@@ -34,9 +34,56 @@ test "phase10 virtio mmio selects feature pages and records driver feature write
     try std.testing.expectError(error.FeaturePageOutOfRange, window.selectDriverFeaturePage(virtio_mmio.supported_feature_pages));
 }
 
-test "phase10 virtio mmio keeps status writes separate from reset" {
-    var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
+test "phase10 virtio mmio plans queue registers without claiming queue setup" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximums(
+        .{ 0, 0 },
+        0,
+        .{ 8, 16 },
+    );
 
+    var queue = try window.queueRegisterSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", queue.anchor);
+    try std.testing.expectEqual(@as(u32, 0), queue.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    queue = try window.selectQueue(1);
+    try std.testing.expectEqual(@as(u32, 1), queue.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    try std.testing.expectError(error.QueueIndexOutOfRange, window.selectQueue(virtio_mmio.supported_queues));
+    try std.testing.expectError(error.QueueReadyRequiresConfiguredSize, window.writeSelectedQueueReady(true));
+
+    queue = try window.writeSelectedQueueSize(12);
+    try std.testing.expectEqual(@as(u16, 12), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    try std.testing.expectError(error.QueueSizeExceedsMaximum, window.writeSelectedQueueSize(17));
+
+    queue = try window.writeSelectedQueueReady(true);
+    try std.testing.expect(queue.selected_queue_ready);
+
+    try std.testing.expectError(error.QueueReadyBlocksResize, window.writeSelectedQueueSize(8));
+
+    queue = try window.writeSelectedQueueReady(false);
+    try std.testing.expect(!queue.selected_queue_ready);
+    queue = try window.writeSelectedQueueSize(8);
+    try std.testing.expectEqual(@as(u16, 8), queue.selected_queue_size);
+}
+
+test "phase10 virtio mmio keeps status writes separate from reset" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximums(
+        .{ 0, 0 },
+        0,
+        .{ 8, 16 },
+    );
+
+    _ = try window.selectQueue(1);
+    _ = try window.writeSelectedQueueSize(16);
+    _ = try window.writeSelectedQueueReady(true);
     try std.testing.expectError(error.ResetRequiresDedicatedPath, window.setStatus(0));
 
     var status = try window.setStatus(0x07);
@@ -47,6 +94,12 @@ test "phase10 virtio mmio keeps status writes separate from reset" {
     status = window.reset();
     try std.testing.expectEqual(@as(u8, 0), status.status);
     try std.testing.expectEqual(@as(usize, 1), status.reset_count);
+
+    const queue = try window.queueRegisterSummary();
+    try std.testing.expectEqual(@as(u32, 0), queue.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
 }
 
 test "phase10 virtio mmio tracks config generation changes without config-space IO" {
