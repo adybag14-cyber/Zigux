@@ -12,6 +12,7 @@ test "runtime kretprobe sample advertises the bounded pilot-module contract" {
 
 test "runtime kretprobe sample enforces lifecycle transitions and return-probe bookkeeping" {
     var module = sample.RuntimeKretprobeSample{};
+    const too_long_symbol = [_]u8{'x'} ** sample.RuntimeKretprobeSample.max_symbol_name_len;
 
     try std.testing.expectEqual(sample.ModuleStage.cold, module.stage());
     const cold_summary = module.summary();
@@ -23,6 +24,7 @@ test "runtime kretprobe sample enforces lifecycle transitions and return-probe b
     try std.testing.expect(!cold_summary.entry_timestamp_armed);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(1, 10));
     try std.testing.expectError(error.InvalidSymbolName, module.retargetSymbol(""));
+    try std.testing.expectError(error.SymbolNameTooLong, module.retargetSymbol(too_long_symbol[0..]));
 
     try module.retargetSymbol("do_sys_openat2");
     try module.init();
@@ -158,4 +160,16 @@ test "runtime kretprobe sample keeps selftest and outstanding-instance paths exp
 test "runtime kretprobe sample rejects maxactive values outside the bounded starter contract" {
     var module = sample.RuntimeKretprobeSample{ .maxactive = sample.RuntimeKretprobeSample.default_maxactive + 1 };
     try std.testing.expectError(error.InvalidMaxactive, module.init());
+}
+
+test "runtime kretprobe sample keeps the Linux KSYM_NAME_LEN symbol cap explicit" {
+    const too_long_symbol = [_]u8{'k'} ** sample.RuntimeKretprobeSample.max_symbol_name_len;
+
+    var cold_module = sample.RuntimeKretprobeSample{};
+    try std.testing.expectError(error.SymbolNameTooLong, cold_module.retargetSymbol(too_long_symbol[0..]));
+
+    var preset_symbol_module = sample.RuntimeKretprobeSample{
+        .symbol_name = too_long_symbol[0..],
+    };
+    try std.testing.expectError(error.SymbolNameTooLong, preset_symbol_module.init());
 }
