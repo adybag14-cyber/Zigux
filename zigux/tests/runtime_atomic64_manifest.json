@@ -41,14 +41,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_module.zig",
-      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions plus the selftest-facing atomic64 surface."
+      "why_now": "A dedicated Phase 9 test file keeps the starter sample reviewable and bounded around lifecycle transitions plus the selftest-facing atomic64 surface, including the newly landed bitwise family."
     },
     {
       "id": "runtime-atomic64-diff-gate",
       "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_diff.zig",
-      "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for wide-value exchange and cmpxchg behavior, bounded guard paths (`add_unless`, `inc_not_zero`, and `dec_if_positive`), plus selftest-family coverage before any broader runtime substrate work."
+      "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for arithmetic, bitwise (`or`, `and`, `xor`, and `andnot`), wide-value exchange and cmpxchg behavior, bounded guard paths (`add_unless`, `inc_not_zero`, and `dec_if_positive`), plus selftest-family coverage before any broader runtime substrate work."
     },
     {
       "id": "runtime-atomic64-substrate-handoff",
