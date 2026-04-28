@@ -202,6 +202,149 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(!descriptor.touches_live_hierarchy);
 }
 
+test "phase13 landlock ruleset creation planner rejects an empty ruleset" {
+    try std.testing.expectError(
+        error.EmptyRuleset,
+        ruleset.RulesetHelperLab.planRulesetCreation(.{}),
+    );
+}
+
+test "phase13 landlock ruleset creation planner keeps the requested masks in one layer" {
+    const plan = try ruleset.RulesetHelperLab.planRulesetCreation(.{
+        .fs_access_mask = 0x3,
+        .net_access_mask = 0x11,
+        .scope_mask = 0x20,
+    });
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", plan.anchor);
+    try std.testing.expectEqual(@as(u32, 1), plan.num_layers);
+    try std.testing.expectEqual(@as(u32, 0x3), plan.access_masks.fs);
+    try std.testing.expectEqual(@as(u32, 0x11), plan.access_masks.net);
+    try std.testing.expectEqual(@as(u32, 0x20), plan.access_masks.scope);
+}
+
+test "phase13 landlock ruleset access-mask union planner combines every layer family" {
+    const combined = ruleset.RulesetHelperLab.unionAccessMasks(&.{
+        .{ .fs = 0x1, .net = 0x4, .scope = 0x10 },
+        .{ .fs = 0x8, .net = 0x2, .scope = 0x40 },
+        .{ .fs = 0x20, .net = 0, .scope = 0x4 },
+    });
+
+    try std.testing.expectEqual(@as(u32, 0x29), combined.fs);
+    try std.testing.expectEqual(@as(u32, 0x6), combined.net);
+    try std.testing.expectEqual(@as(u32, 0x54), combined.scope);
+}
+
+test "phase13 landlock ruleset layer-mask planner adds the initially denied filesystem bit" {
+    const plan = ruleset.RulesetHelperLab.initLayerMasks(
+        &.{
+            .{ .fs = 0x3, .net = 0, .scope = 0 },
+            .{ .fs = 0x4, .net = 0, .scope = 0 },
+            .{ .fs = 0, .net = 0, .scope = 0 },
+        },
+        0x2007,
+        .inode,
+    );
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", plan.anchor);
+    try std.testing.expectEqual(@as(u32, 0x2007), plan.handled_accesses);
+    try std.testing.expectEqual(@as(u32, 0x2003), plan.masks[0]);
+    try std.testing.expectEqual(@as(u32, 0x2004), plan.masks[1]);
+    try std.testing.expectEqual(@as(u32, 0), plan.masks[2]);
+}
+
+test "phase13 landlock ruleset unmask planner clears pending accesses across layers" {
+    var masks = [_]u32{ 0x7, 0x18 } ++ ([_]u32{0} ** (ruleset.max_num_layers - 2));
+
+    const fully_unmasked = try ruleset.RulesetHelperLab.unmaskLayers(
+        &.{
+            .{ .level = 1, .access = 0x7 },
+            .{ .level = 2, .access = 0x18 },
+        },
+        &masks,
+    );
+
+    try std.testing.expect(fully_unmasked);
+    try std.testing.expectEqual(@as(u32, 0), masks[0]);
+    try std.testing.expectEqual(@as(u32, 0), masks[1]);
+}
+
+test "phase13 landlock ruleset unmask planner rejects invalid layer numbers" {
+    var masks = [_]u32{0} ** ruleset.max_num_layers;
+
+    try std.testing.expectError(
+        error.InvalidLayer,
+        ruleset.RulesetHelperLab.unmaskLayers(&.{.{ .level = 0, .access = 0x1 }}, &masks),
+    );
+}
+
+test "phase13 landlock ruleset insertion planner extends matching access for level-zero requests" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 1,
+        .layers = [_]ruleset.Layer{.{ .level = 0, .access = 0x3 }} ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+    };
+
+    const plan = try ruleset.RulesetHelperLab.planRuleInsertion(
+        existing,
+        &.{.{ .level = 0, .access = 0x4 }},
+        9,
+    );
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", plan.anchor);
+    try std.testing.expectEqual(ruleset.RuleInsertionMode.extend_existing_access, plan.mode);
+    try std.testing.expectEqual(@as(usize, 1), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u32, 0x7), plan.resulting_rule.layers[0].access);
+    try std.testing.expectEqual(@as(u32, 9), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset insertion planner appends a merged layer for matching domain rules" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]ruleset.Layer{ .{ .level = 1, .access = 0x1 }, .{ .level = 2, .access = 0x6 } } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+    };
+
+    const plan = try ruleset.RulesetHelperLab.planRuleInsertion(
+        existing,
+        &.{.{ .level = 3, .access = 0x8 }},
+        5,
+    );
+
+    try std.testing.expectEqual(ruleset.RuleInsertionMode.append_merged_layer, plan.mode);
+    try std.testing.expectEqual(@as(usize, 3), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 3), plan.resulting_rule.layers[2].level);
+    try std.testing.expectEqual(@as(u32, 0x8), plan.resulting_rule.layers[2].access);
+    try std.testing.expectEqual(@as(u32, 5), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset insertion planner allocates a new rule for unmatched keys" {
+    const plan = try ruleset.RulesetHelperLab.planRuleInsertion(
+        null,
+        &.{.{ .level = 0, .access = 0x12 }},
+        4,
+    );
+
+    try std.testing.expectEqual(ruleset.RuleInsertionMode.insert_new_rule, plan.mode);
+    try std.testing.expectEqual(@as(usize, 1), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u32, 0x12), plan.resulting_rule.layers[0].access);
+    try std.testing.expectEqual(@as(u32, 5), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset insertion planner rejects multi-layer matches" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 1,
+        .layers = [_]ruleset.Layer{.{ .level = 0, .access = 0x3 }} ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+    };
+
+    try std.testing.expectError(
+        error.MatchingRuleRequiresSingleLayer,
+        ruleset.RulesetHelperLab.planRuleInsertion(
+            existing,
+            &.{ .{ .level = 1, .access = 0x4 }, .{ .level = 2, .access = 0x8 } },
+            9,
+        ),
+    );
+}
+
 test "phase13 landlock ruleset materialization planner copies a new rule without object ownership for net ports" {
     const plan = try ruleset.RulesetHelperLab.planRuleMaterialization(.net_port, &.{.{ .level = 0, .access = 0x11 }}, null);
 
