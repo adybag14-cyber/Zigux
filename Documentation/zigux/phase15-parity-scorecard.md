@@ -32,6 +32,20 @@ That gap matters because the current anchors are still large and deeply coupled:
 - current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, `make -C zigux phase15` convenience target, and the shared bootstrap workflow replay
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
+## Coverage Summary
+
+- freeze-in-C anchors tracked: `4`
+- anchors with Phase 14 survey evidence linked: `2 / 4`
+- reserved evidence-archive templates present: `4 / 4`
+- required review-process record fields tracked in the manifest: `8`
+- reopen-trigger catalog entries tracked in the manifest: `3`
+- repo evidence checks currently green: `15 / 15`
+- landed scorecard gaps: `17 / 18`
+- blocked scorecard gaps: `1 / 18`
+- replay surfaces currently recorded: `3 / 3`
+
+This summary is a reporting layer for the current maintenance-mode packet, not a new status claim. It says the governance bundle is fully inventoried and replay-backed across the dedicated `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow, while still keeping one explicit blocked gap for deep-core status changes.
+
 ## Scorecard Entries
 
 ### `kernel/sched/core.c`
