@@ -57,9 +57,9 @@ The current tests check:
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
-- a replayable perf-sanity harness reports representative checksum cost per call and per byte for a small fixed packet matrix
+- a replayable perf-sanity harness reports representative checksum cost per call and per byte for a fixture-backed deterministic packet matrix
 
-The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and now borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
+The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place, now also owns the deterministic perf corpus consumed by `zigux/tests/phase6_checksum_perf.zig`, and borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
 
 ## Non-goals
 
