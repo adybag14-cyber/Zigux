@@ -276,3 +276,61 @@ test "phase 8 help section rendering keeps list_commands formatting pure and sha
 
     try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
 }
+
+test "phase 8 help section rendering suppresses empty sections without stray headings or blank lines" {
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    {
+        var other_cmds = help.CmdNames.init(std.testing.allocator);
+        defer other_cmds.deinit();
+        try other_cmds.addCmdName("trace", 5);
+        try other_cmds.addCmdName("version", 7);
+        other_cmds.sort();
+
+        var rendered_other_only: std.Io.Writer.Allocating = .init(std.testing.allocator);
+        defer rendered_other_only.deinit();
+
+        try help.writeCommandSectionsForTerminal(
+            &rendered_other_only.writer,
+            "perf",
+            "/ignored",
+            main_cmds,
+            other_cmds,
+            null,
+            "18",
+            null,
+        );
+
+        const other_rule = [_]u8{'-'} ** 43;
+        const expected_other_only = std.fmt.comptimePrint(
+            "perf available from elsewhere on your $PATH\n{s}\n" ++
+                "  trace   version\n" ++
+                "\n",
+            .{other_rule[0..]},
+        );
+
+        try std.testing.expectEqualStrings(expected_other_only, rendered_other_only.writer.buffered());
+    }
+
+    {
+        var other_cmds = help.CmdNames.init(std.testing.allocator);
+        defer other_cmds.deinit();
+
+        var rendered_empty: std.Io.Writer.Allocating = .init(std.testing.allocator);
+        defer rendered_empty.deinit();
+
+        try help.writeCommandSectionsForTerminal(
+            &rendered_empty.writer,
+            "perf",
+            "/ignored",
+            main_cmds,
+            other_cmds,
+            null,
+            "18",
+            null,
+        );
+
+        try std.testing.expectEqualStrings("", rendered_empty.writer.buffered());
+    }
+}
