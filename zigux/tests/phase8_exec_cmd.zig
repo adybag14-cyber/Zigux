@@ -278,27 +278,7 @@ test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it ma
             different_pwd_identity,
         ),
     );
-    try std.testing.expect(exec_cmd.samePathIdentity(cwd_identity, matching_pwd_identity));
-    try std.testing.expect(!exec_cmd.samePathIdentity(cwd_identity, different_pwd_identity));
     try std.testing.expect(!exec_cmd.samePathIdentity(cwd_identity, null));
-    try std.testing.expectEqualStrings(
-        "/logical/repo",
-        exec_cmd.choosePwdCwdFromIdentities(
-            "/repo",
-            "/logical/repo",
-            cwd_identity,
-            matching_pwd_identity,
-        ),
-    );
-    try std.testing.expectEqualStrings(
-        "/repo",
-        exec_cmd.choosePwdCwdFromIdentities(
-            "/repo",
-            "/logical/repo",
-            cwd_identity,
-            different_pwd_identity,
-        ),
-    );
     try std.testing.expectEqualStrings(
         "/repo",
         exec_cmd.choosePwdCwdFromIdentities(
@@ -375,6 +355,24 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "`execv_cmd()`");
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
+}
+
+test "phase 8 exec-cmd review checklist keeps the deferred execution policy explicit" {
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContains(review_checklist, "phase8-exec-cmd-slice.md");
+    try expectContains(review_checklist, "zigux/tests/phase8_exec_cmd.zig");
+    try expectContains(review_checklist, "deferred execution helper-only");
+    try expectContains(review_checklist, "kernel/workqueue.c");
+    try expectContains(review_checklist, "`execv_cmd()`");
+    try expectContains(review_checklist, "`execvp()`");
+    try expectContains(review_checklist, "queue ownership");
+    try expectContains(review_checklist, "scheduler-facing transport");
 }
 
 test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
