@@ -101,6 +101,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c`, keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`, and state that the sample uses fixed embedded storage?
 - do `zigux/tests/phase5_bytestream_fifo_manifest.json`, its reference-pattern list, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the sample-backed survey note still record the exact queue-order replay, non-destructive snapshot, fixed embedded backing, and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
+- does `samples/zigux/README.md` still list `bytestream_fifo.zig` with the fixed embedded storage, exact queue-order replay, ownership and lifetime, and non-goal cues that keep this Phase 5 sample distinct from the later runtime starters in the same directory?
 - does `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact Phase 5 replay contract?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
@@ -111,6 +112,7 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 The current gap is not missing Phase 5 sample delivery for `kfifo`. The more precise lane posture is:
 
 - all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
+- `samples/zigux/README.md` can now act as the sample-root catalog that keeps those four Phase 5 reference readings visibly separate from the later Phase 9 runtime starters in the same directory
 - this survey now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
 - the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
 
