@@ -16,6 +16,10 @@ pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin
     return @atomicRmw(T, ptr, .Add, value, order);
 }
 
+pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {
+    return @atomicRmw(T, ptr, .Sub, value, order);
+}
+
 pub fn compareExchange(
     comptime T: type,
     ptr: *T,
@@ -36,14 +40,16 @@ test "phase3 atomic wrappers behave predictably" {
     try std.testing.expectEqual(@as(u32, 9), value);
     try std.testing.expectEqual(@as(u32, 9), fetchAdd(u32, &value, 4, .seq_cst));
     try std.testing.expectEqual(@as(u32, 13), value);
+    try std.testing.expectEqual(@as(u32, 13), fetchSub(u32, &value, 2, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 11), value);
 
     try std.testing.expectEqual(
         @as(?u32, null),
-        compareExchange(u32, &value, 13, 11, .seq_cst, .seq_cst),
+        compareExchange(u32, &value, 11, 15, .seq_cst, .seq_cst),
     );
-    try std.testing.expectEqual(@as(u32, 11), value);
+    try std.testing.expectEqual(@as(u32, 15), value);
 
-    const mismatch = compareExchange(u32, &value, 9, 15, .seq_cst, .seq_cst);
-    try std.testing.expectEqual(@as(?u32, 11), mismatch);
-    try std.testing.expectEqual(@as(u32, 11), value);
+    const mismatch = compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);
+    try std.testing.expectEqual(@as(?u32, 15), mismatch);
+    try std.testing.expectEqual(@as(u32, 15), value);
 }
