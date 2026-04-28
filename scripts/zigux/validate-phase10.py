@@ -104,8 +104,10 @@ MODULE_SLICE_MARKERS = [
 
 HELPER_MARKERS = [
     "pub const MultitouchSlotPlanSummary = struct {",
+    "pub const TeardownPlanSummary = struct {",
     "pub fn capabilitySetupSummary(self: *const Self) !CapabilitySetupSummary {",
     "pub fn multitouchSlotPlanSummary(self: *const Self) !MultitouchSlotPlanSummary {",
+    "pub fn teardownPlanSummary(self: *const Self) TeardownPlanSummary {",
     "pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {",
     "pub fn reset(self: *Self) void {",
 ]
@@ -113,6 +115,7 @@ HELPER_MARKERS = [
 TEST_MARKERS = [
     'test "phase10 virtio input stages capability setup from config bitmaps and ABS metadata" {',
     'test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {',
+    'test "phase10 virtio input teardown summary keeps reset cleanup and identity preservation explicit" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
 ]
 
@@ -121,6 +124,7 @@ SURVEY_TEST_MARKERS = [
     'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
     'try std.testing.expectEqual(@as(usize, 1), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-teardown-observation-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
@@ -203,7 +207,7 @@ else:
         missing.append("manifest:preexisting_virtio_input_module_note_present")
 
 gaps = manifest.get("gaps")
-if not isinstance(gaps, list) or len(gaps) < 12:
+if not isinstance(gaps, list) or len(gaps) < 13:
     missing.append("manifest:gaps")
 else:
     expected_statuses = {
@@ -212,6 +216,7 @@ else:
         "phase10-virtio-input-survey-gate": "starter_landed",
         "phase10-virtio-input-capability-setup-helper": "starter_landed",
         "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
+        "phase10-virtio-input-teardown-observation-helper": "starter_landed",
         "phase10-virtio-input-registration-preflight-helper": "ready_next",
         "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
     }
@@ -233,7 +238,7 @@ else:
         missing.append(f"manifest:ready_next_count={ready_count}")
     if blocked_count != 1:
         missing.append(f"manifest:blocked_count={blocked_count}")
-    if starter_count < 10:
+    if starter_count < 11:
         missing.append(f"manifest:starter_count={starter_count}")
 
     for gap_id, status in expected_statuses.items():
