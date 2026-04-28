@@ -41,6 +41,7 @@ Current bootstrap helpers
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
 - `check-mk-elfconfig-diff.py`
+- `check-phase6-bsearch-c-parity.py`
 
 Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
@@ -72,4 +73,5 @@ Phase 6 flow
 - `make -C zigux phase6-validate` is the fail-fast catalog check for the current base64, bsearch, checksum, and hexdump packet.
 - `make -C zigux phase6` and the per-helper perf targets keep the shared leaf-helper lane reviewable through one bundle instead of ad hoc helper-local checks.
 - `Documentation/zigux/phase6-helper-parity-catalog.md` is the shared inventory note for that same bundle and should move together with any Phase 6 helper, perf, fixture, or slice-note ownership change.
+- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` replays a representative external C-vs-Zig bsearch spot check so portability-sensitive helper drift is reviewable beyond the shared Zig-only tests.
 - the current published slice notes for `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md` are part of that same shared validation surface.
