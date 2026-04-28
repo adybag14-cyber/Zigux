@@ -72,6 +72,31 @@ test "phase10 virtio ring keeps avail and notify bookkeeping in memory only" {
     try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
 }
 
+test "phase10 virtio ring flushes num_added before the 16-bit threshold wraps" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, 1, .split, true, false);
+
+    var iteration: usize = 0;
+    while (iteration < std.math.maxInt(u16)) : (iteration += 1) {
+        try ring.publishDescriptorChain(0);
+        try ring.recordUsedChains(0, 1);
+    }
+
+    var summary = try ring.notificationSummary(0);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
+
+    try ring.publishDescriptorChain(0);
+    summary = try ring.notificationSummary(0);
+    try std.testing.expectEqual(@as(u16, 1), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(summary.needs_kick);
+}
+
 test "phase10 virtio ring rejects queue overflow and used batches beyond outstanding chains" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(4, 2, .packed_ring, false, true);
