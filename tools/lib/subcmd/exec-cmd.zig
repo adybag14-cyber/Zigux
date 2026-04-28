@@ -248,6 +248,7 @@ pub fn buildSearchPath(
 ) ![]u8 {
     var builder = std.ArrayList(u8).empty;
     errdefer builder.deinit(allocator);
+    const had_old_path = old_path != null;
 
     try appendPathEntry(&builder, allocator, cwd, argv_exec_path);
     if (argv0_path) |path| {
@@ -255,10 +256,12 @@ pub fn buildSearchPath(
     }
 
     const tail = old_path orelse "/usr/local/bin:/usr/bin:/bin";
-    if (tail.len != 0) {
+    if (tail.len != 0 or had_old_path) {
         if (builder.items.len != 0) {
             try builder.append(allocator, ':');
         }
+    }
+    if (tail.len != 0) {
         try builder.appendSlice(allocator, tail);
     }
 
@@ -389,6 +392,19 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     try std.testing.expectEqualStrings(
         "/work/tree/tools/bin:/work/tree/scripts:/usr/bin:/bin",
         built,
+    );
+
+    const inherited_empty = try buildSearchPath(
+        std.testing.allocator,
+        "/work/tree",
+        "tools/bin",
+        null,
+        "",
+    );
+    defer std.testing.allocator.free(inherited_empty);
+    try std.testing.expectEqualStrings(
+        "/work/tree/tools/bin:",
+        inherited_empty,
     );
 
     const fallback = try buildSearchPath(
@@ -560,6 +576,36 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         fallback,
     );
     try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
+
+    var inherited_empty_env = EnvMap.init(std.testing.allocator);
+    defer inherited_empty_env.deinit();
+    try execCmdInit(&inherited_empty_env, config);
+
+    var inherited_empty_state = ExecCmdState{};
+    defer inherited_empty_state.deinit(std.testing.allocator);
+    try setArgvExecPath(
+        std.testing.allocator,
+        &inherited_empty_env,
+        &inherited_empty_state,
+        config,
+        "tools/bin",
+    );
+    try inherited_empty_env.set("PATH", "");
+
+    const inherited_empty = try setupPath(
+        std.testing.allocator,
+        &inherited_empty_env,
+        inherited_empty_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_empty);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:",
+        inherited_empty,
+    );
+    try std.testing.expectEqualStrings(inherited_empty, inherited_empty_env.get("PATH").?);
 }
 
 test "choosePwdCwd prefers PWD only when it points at the same location" {
