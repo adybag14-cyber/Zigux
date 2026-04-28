@@ -177,6 +177,8 @@
   "repo_evidence": {
     "freeze_map_present": true,
     "review_checklist_present": true,
+    "phase15_review_process_note_present": true,
+    "phase15_indefinite_c_policy_note_present": true,
     "phase14_rcu_survey_present": true,
     "phase14_skbuff_survey_present": true,
     "phase15_readme_reviewability_present": true,
