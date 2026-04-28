@@ -1,6 +1,14 @@
 {
   "conf_cases": [
     {
+      "name": "oldaskconfig",
+      "mode": "oldaskconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "oldaskconfig_expected.json"
+    },
+    {
       "name": "olddefconfig",
       "mode": "olddefconfig",
       "kconfig": "Kconfig",
