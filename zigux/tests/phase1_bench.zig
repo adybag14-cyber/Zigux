@@ -59,7 +59,7 @@ fn bitmapWindowBench() struct { checksum: u64 } {
             rhs[1] &= ~(@as(bitmap.Word, 1) << 4);
         } else {
             lhs[1] &= ~(@as(bitmap.Word, 1) << 2);
-            rhs[1] |= @as(bitmap.Word, 1) << 4;
+            rhs[1] |= (@as(bitmap.Word, 1) << 4);
         }
 
         bitmap.orBits(&dst, &lhs, &rhs, nbits);
@@ -85,11 +85,20 @@ fn bitmapScnprintfBench() struct { checksum: u64 } {
     var map = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
     var full_buffer: [32]u8 = undefined;
     var trunc_buffer: [6]u8 = undefined;
+    var empty_buffer = [_]u8{0xcc} ** 4;
 
     var checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_bitmap_scnprintf) : (idx += 1) {
         bitmap.zero(&map, nbits);
+
+        empty_buffer = [_]u8{0xcc} ** 4;
+        const empty_len = bitmap.scnprintf(&map, nbits, &empty_buffer);
+        checksum +%= empty_len;
+        for (empty_buffer) |byte| {
+            checksum +%= byte;
+        }
+
         bitmap.setRange(&map, idx & 1, 3);
         bitmap.setRange(&map, 7, 1);
         if ((idx & 2) == 0) {
