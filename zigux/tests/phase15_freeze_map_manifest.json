@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "9f4c19ac36fd6bcaf184e9c528750cd7d973b5fa",
+  "surveyed_commit": "177c4179368f23f670c6e68678fcde4869199700",
   "anchor": "Documentation/zigux/freeze-map.md",
   "roadmap_freeze_in_c_targets": [
     "kernel/sched/core.c",
@@ -90,7 +90,7 @@
       "status": "starter_landed",
       "kind": "lane_note",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
-      "why_now": "The freeze-map-specific lane note now needs to reflect current Phase 15 repo reality instead of preserving the older maintenance snapshot that treated the wider shared Phase 15 replay as clean, because the current head now only leaves the review-process and handoff README readers drifted while the narrower freeze-map packet still replays locally."
+      "why_now": "The freeze-map-specific lane note now needs to reflect current Phase 15 repo reality instead of preserving the older maintenance snapshot, because the current head keeps both the narrower freeze-map packet and the shared Phase 15 governance replay green while the same deep-core blocker posture still stays parked."
     },
     {
       "id": "phase15-build-gate",
