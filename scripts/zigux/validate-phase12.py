@@ -69,7 +69,7 @@ DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-virtio-scsi-slice.md",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
-    "the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, and host-limit summary starters visible from the top-level docs index",
+    "the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, and io-queue-map starters visible from the top-level docs index",
     "`zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche",
 ]
 CHECKLIST_MARKERS = [
