@@ -145,6 +145,7 @@ pub const TraceEventsReferenceSample = struct {
 
     pub fn registerFunctionCallback(self: *Self) !void {
         try self.ensureMutable();
+        if (self.registration_depth != 0) return error.CallbackAlreadyRegistered;
         self.registration_depth += 1;
     }
 
@@ -264,4 +265,15 @@ test "trace-events sample rejects every mutable entry point after exit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerFunctionCallback());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayFunctionIteration(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.unregisterFunctionCallback());
+}
+
+test "trace-events sample keeps callback registration single-live" {
+    var sample = TraceEventsReferenceSample{};
+
+    try sample.init();
+    try sample.registerFunctionCallback();
+    try std.testing.expectError(error.CallbackAlreadyRegistered, sample.registerFunctionCallback());
+    try sample.replayFunctionIteration(5);
+    try sample.unregisterFunctionCallback();
+    try std.testing.expectEqual(@as(usize, 0), sample.registration_depth);
 }
