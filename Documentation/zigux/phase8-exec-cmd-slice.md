@@ -55,7 +55,7 @@ The current tests check:
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge and the skipped empty explicit exec-path segment
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
-- the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly when the optional `PWD` stat shape is missing
+- the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly for mismatched or missing optional `PWD` stat input
 - `setupPathWithPwd()` reuses the logical `PWD` only when the injected stat identities match and otherwise falls back to the physical cwd before rebuilding `PATH`
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, rejects a missing terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
