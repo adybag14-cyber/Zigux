@@ -562,6 +562,17 @@ test "genksyms bridge canonicalizes abbreviated long option missing-argument err
     }
 }
 
+test "genksyms bridge canonicalizes abbreviated dump-types missing-argument errors" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"--dump-t"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .missing_option_argument => |option| try std.testing.expectEqualStrings("dump-types", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
 test "genksyms bridge canonicalizes abbreviated long option unexpected-argument errors" {
     const outcome = try parseArgs(std.testing.allocator, &.{"--deb=extra"});
     switch (outcome) {
