@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `fcac175d389c062a1a2513ec9d9a5b2bf44c7592`
+- verified head: `be98ef3fc9c0ec48c80c82a4d7614288c2ba1b68`
 
 ## Scope
 
@@ -33,6 +33,9 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - tests: `zigux/tests/phase6_base64.zig`
 - perf: `zigux/tests/phase6_base64_perf.zig`
 - fixtures: `zigux/tests/fixtures/phase6_base64_vectors.zig`
+- parity spot check: `python3 scripts/zigux/check-phase6-base64-c-parity.py`
+- parity runner: `zigux/tests/phase6_base64_c_parity.zig`
+- C harness: `zigux/tests/fixtures/phase6_base64_c_harness.c`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
 
 ### bsearch
