@@ -98,6 +98,14 @@ test "searchIndex returns null for empty slices and missing values" {
     try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 34), values[0..], compareInt));
 }
 
+test "searchIndex handles singleton slices without widening the contract" {
+    const singleton = [_]i32{21};
+
+    try std.testing.expectEqual(@as(?usize, 0), searchIndex(i32, i32, &@as(i32, 21), singleton[0..], compareInt));
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 20), singleton[0..], compareInt));
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 22), singleton[0..], compareInt));
+}
+
 test "search returns a pointer to the matching element" {
     const values = [_]i32{ 5, 9, 12, 18, 27 };
     const found = search(i32, i32, &@as(i32, 18), values[0..], compareInt) orelse return error.TestUnexpectedResult;
@@ -113,6 +121,22 @@ test "searchMutable returns a writable pointer to the matching element" {
     try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
     found.* = 19;
     try std.testing.expectEqual(@as(i32, 19), values[3]);
+}
+
+test "search and searchMutable keep singleton and empty slices on the found-or-null boundary" {
+    const empty = [_]i32{};
+    var singleton = [_]i32{21};
+
+    const found = search(i32, i32, &@as(i32, 21), singleton[0..], compareInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&singleton[0]), @intFromPtr(found));
+
+    const found_mutable = searchMutable(i32, i32, &@as(i32, 21), singleton[0..], compareInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@intFromPtr(&singleton[0]), @intFromPtr(found_mutable));
+    found_mutable.* = 22;
+    try std.testing.expectEqual(@as(i32, 22), singleton[0]);
+
+    try std.testing.expect(search(i32, i32, &@as(i32, 21), empty[0..], compareInt) == null);
+    try std.testing.expect(searchMutable(i32, i32, &@as(i32, 21), singleton[0..0], compareInt) == null);
 }
 
 test "search accepts duplicate keys without claiming stable selection" {
