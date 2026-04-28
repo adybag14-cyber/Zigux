@@ -143,6 +143,10 @@ fn checkBytes8(buf: []const u8, value: u8) ?usize {
     return null;
 }
 
+fn firstDifferingByteIndex(word: u64, repeated: u64) usize {
+    return @ctz(word ^ repeated) / 8;
+}
+
 pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     if (buf.len <= 16) {
         return checkBytes8(buf, value);
@@ -163,7 +167,7 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     while (word_start + 8 <= buf.len) : (word_start += 8) {
         const word = std.mem.readInt(u64, buf[word_start .. word_start + 8][0..8], .little);
         if (word != repeated) {
-            return word_start + checkBytes8(buf[word_start .. word_start + 8], value).?;
+            return word_start + firstDifferingByteIndex(word, repeated);
         }
     }
 
@@ -277,4 +281,16 @@ test "memchrInv catches prefix and trailing remainder mismatches" {
     var trailing_storage = [_]u8{'a'} ** 26;
     trailing_storage[25] = 'X';
     try std.testing.expectEqual(@as(?usize, 24), memchrInv(trailing_storage[1..], 'a'));
+}
+
+test "memchrInv returns the earliest mismatch inside a dirty word" {
+    var aligned = [_]u8{'a'} ** 24;
+    aligned[10] = 'X';
+    aligned[12] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 10), memchrInv(&aligned, 'a'));
+
+    var misaligned_storage = [_]u8{'a'} ** 25;
+    misaligned_storage[11] = 'X';
+    misaligned_storage[14] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 10), memchrInv(misaligned_storage[1..], 'a'));
 }
