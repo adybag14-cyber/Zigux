@@ -123,7 +123,7 @@
     {
       "id": "main-thread-payload-surface",
       "kind": "payload_contract",
-      "expected": "emitMainIteration replays bounded foo_bar, template, conditional, template-print, and relative-location payload literals plus the exported iter=%d format template through the summary surface"
+      "expected": "emitMainIteration replays bounded foo_bar, count % 5 array-shape details, template, conditional, template-print, and relative-location payload literals plus the exported iter=%d format template through the summary surface"
     },
     {
       "id": "function-callback-balance",
