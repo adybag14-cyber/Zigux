@@ -119,7 +119,7 @@ MANIFEST_SPECS = {
     "phase12_nvme_pci_manifest.json": {
         "lane_key": "P12-L05",
         "anchor": "drivers/nvme/host/pci.c",
-        "gap_count": 12,
+        "gap_count": 13,
         "roadmap_destinations": ["drivers/nvme/host/pci.zig", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {
             "zigux/Makefile",
@@ -127,7 +127,7 @@ MANIFEST_SPECS = {
             "drivers/scsi/virtio_scsi.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
-        "expected_status_totals": {"starter_landed": 11, "blocked_on_dma_transport": 1},
+        "expected_status_totals": {"starter_landed": 12, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_nvme_pci_survey.zig",
         "survey_note_path": "Documentation/zigux/phase12-nvme-pci-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
