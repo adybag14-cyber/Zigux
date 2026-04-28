@@ -90,6 +90,20 @@ def ensure_manifest_matches_bridge_modes() -> None:
         )
 
 
+def ensure_confdata_case_order_is_sorted() -> None:
+    manifest_names = [case['name'] for case in CASES['confdata_cases']]
+    expected_names = sorted(manifest_names)
+
+    if manifest_names != expected_names:
+        fail_check(
+            'UNSORTED_CONFDATA_CASE_ORDER',
+            [
+                'manifest=' + ','.join(manifest_names),
+                'expected=' + ','.join(expected_names),
+            ],
+        )
+
+
 def read_nonempty_string(case: dict[str, object], field_name: str, issues: list[str], *, prefix: str) -> str | None:
     value = case.get(field_name)
     if not isinstance(value, str):
@@ -231,6 +245,7 @@ def main() -> int:
 
     ensure_manifest_shape()
     ensure_manifest_matches_bridge_modes()
+    ensure_confdata_case_order_is_sorted()
     ensure_manifest_is_deterministic()
     zig = find_zig(args.zig)
 
