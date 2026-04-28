@@ -46,8 +46,8 @@ required_closure_markers = [
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap multiword-tail xorBits behavior still lets callers clamp the last word without leaking out-of-range bits into the asserted view',
     'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_FIND_BIT_REVIEW=find_bit shared-bit and tail-clamped scans ignore bits beyond nbits',
-    'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"`',
-    'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit in-range shared tail bits stay visible while later out-of-range tail matches clamp to nbits',
+    'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`',
+    'PHASE1_FIND_BIT_UNIT_REVIEW=find_bit same-word zero-scan start masking keeps inclusive starts honest, skips earlier zero matches after the search advances, and still clamps tail results to nbits',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
     'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
@@ -157,9 +157,9 @@ if find_bit_review.get('evidence_keys') != [
     missing_markers.append('manifest:find_bit.evidence_keys')
 if find_bit_review.get('summary') != 'Committed C-backed parity coverage includes baseline set, zero, and shared-bit scans plus tail-clamped set, zero, and AND searches, including the mixed-tail case where one shared bit remains in range while another lives past nbits.':
     missing_markers.append('manifest:find_bit.summary')
-if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "tail mask keeps the in-range shared bit for and scans"':
+if find_bit_review.get('unit_test_anchor') != 'tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"':
     missing_markers.append('manifest:find_bit.unit_test_anchor')
-if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps the in-range shared tail bit visible for AND scans while still clamping later out-of-range tail matches to nbits.':
+if find_bit_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to nbits.':
     missing_markers.append('manifest:find_bit.unit_test_contract')
 if rbtree_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:rbtree.fixture=zigux/tests/fixtures/phase1_helpers.json')
