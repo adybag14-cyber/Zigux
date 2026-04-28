@@ -22,6 +22,7 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md",
     ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-survey.md",
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
+    ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "scripts" / "zigux" / "validate-phase10-closure.py",
     ROOT / "zigux" / "Makefile",
     ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
@@ -63,6 +64,7 @@ if missing:
 closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").read_text(encoding="utf-8")
 freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
+docs_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
@@ -153,6 +155,10 @@ required_checklist_markers = [
     "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and Phase 9 runtime lane still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, and `zigux/tests/phase9_build.zig` are not silently counted as driver-local virtio evidence?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
 ]
+required_docs_readme_markers = [
+    "`Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig`, its bounded MMIO starter test, and the remaining risky transport gaps stay visible together.",
+    "`python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the four Phase 10 survey manifests, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.",
+]
 required_ring_survey_markers = [
     "remaining MMIO follow-up ladder against the roadmap",
     "phase10-mmio-queue-register-helper",
@@ -180,6 +186,9 @@ for marker in required_workflow_markers:
 for marker in required_checklist_markers:
     if marker not in review_checklist:
         missing_markers.append(f"checklist:{marker}")
+for marker in required_docs_readme_markers:
+    if marker not in docs_readme:
+        missing_markers.append(f"docs_readme:{marker}")
 for marker in required_ring_survey_markers:
     if marker not in ring_survey:
         missing_markers.append(f"ring_survey:{marker}")
@@ -445,5 +454,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers)}"
 )
