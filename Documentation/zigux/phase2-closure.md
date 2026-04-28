@@ -114,6 +114,19 @@ The bounded `genksyms` closure packet remains closed because both the shared bri
 - `PHASE2_GENKSYMS_BRIDGE_POSITIONAL_CASES=zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/explicit_terminator_positional_passthrough_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_EVIDENCE=artifact fixtures plus abbreviated-long, inline-short, lone-dash, explicit-terminator, empty-long-name, and abbreviated-dump-types coverage are required for closure`
 
+## Kconfig Bridge Evidence
+
+The bounded `kconfig` bridge closure packet remains closed because both the shared fixture packet and the helper-local unit lane cover the published wrapper and confdata summary edges:
+
+- shared fixture packet:
+  `listnewconfig_expected.json`, `helpnewconfig_expected.json`, `duplicate_assignments_expected.json`, `escaped_control_sequences_expected.json`, `escaped_low_control_bytes_expected.json`
+- helper-local anchors in `scripts/zigux/kconfig/confdata_bridge.zig`:
+  `confdata bridge decodes escaped control sequences in quoted strings`
+  `confdata bridge escapes low control bytes in emitted json`
+
+- `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus confdata escaped-control decode and low-control JSON emission anchors are required for closure`
+
 ## Linux-Style Entry Point
 
 The bounded Phase 2 entry point is:
