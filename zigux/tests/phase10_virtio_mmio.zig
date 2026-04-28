@@ -179,6 +179,39 @@ test "phase10 virtio mmio tracks config generation changes without config-space 
     try std.testing.expect(generation.changed);
 }
 
+test "phase10 virtio mmio snapshots a bounded config window without writes" {
+    var window = virtio_mmio.VirtioMmioRegisterWindowLab.initWithQueueMaximumsAndConfigWindow(
+        .{ 0, 0 },
+        11,
+        .{ 8, 16 },
+        .{ 0x34, 0x12, 0x78, 0x56, 0xbc, 0x9a, 0xf0, 0xde, 0x11, 0x22, 0x33, 0x44, 0, 0, 0, 0 },
+    );
+
+    var config = try window.snapshotConfigWindow(0, .half);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", config.anchor);
+    try std.testing.expectEqual(@as(u32, 0), config.offset);
+    try std.testing.expectEqual(virtio_mmio.ConfigWindowWidth.half, config.width);
+    try std.testing.expectEqual(@as(u32, 11), config.generation);
+    try std.testing.expectEqual(@as(u32, 0x1234), config.value);
+
+    config = try window.snapshotConfigWindow(2, .word);
+    try std.testing.expectEqual(@as(u32, 2), config.offset);
+    try std.testing.expectEqual(virtio_mmio.ConfigWindowWidth.word, config.width);
+    try std.testing.expectEqual(@as(u32, 0x9abc5678), config.value);
+
+    _ = window.reset();
+    config = try window.snapshotConfigWindow(8, .byte);
+    try std.testing.expectEqual(@as(u32, 11), config.generation);
+    try std.testing.expectEqual(@as(u32, 0x11), config.value);
+
+    _ = window.bumpConfigGeneration();
+    config = try window.snapshotConfigWindow(8, .half);
+    try std.testing.expectEqual(@as(u32, 12), config.generation);
+    try std.testing.expectEqual(@as(u32, 0x2211), config.value);
+
+    try std.testing.expectError(error.ConfigWindowOutOfRange, window.snapshotConfigWindow(15, .half));
+}
+
 test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {
     var window = virtio_mmio.VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
 
