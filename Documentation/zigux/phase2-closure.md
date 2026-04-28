@@ -41,10 +41,12 @@ Phase 2 is only considered closed when all of the following are green:
 1. shared artifact diff self-test
 - `python3 scripts/zigux/artifact_diff.py --self-test`
 
-2. bounded fixdep artifact parity
+2. bounded fixdep artifact parity and deterministic failure coverage
 - `python3 scripts/zigux/check-fixdep-diff.py`
+- repeat-run determinism is required for both the bounded C helper and the Zig tool before closure evidence stays green
 - committed fixdep evidence now includes the primary, multi-target, escaped-whitespace, concatenated-depfile, comment-only, missing-dependency, and stdout write-failure cases under `zigux/tests/fixtures/fixdep/`
 - the bounded stdout write-failure proof is anchored by `zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`, which keeps the C-style `fixdep: not all data was written to the output` exit-1 surface explicit inside the closed Phase 2 packet
+- `scripts/zigux/fixdep.zig` now keeps dependency-file reads aligned with the C helper by reading the full file size and mapping short writes to the same output error surface
 - `PHASE2_FIXDEP_CASE_COUNT=7`
 - `PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`
 
@@ -75,6 +77,9 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test`
+- `PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py`
+- `PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts`
+- `PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
