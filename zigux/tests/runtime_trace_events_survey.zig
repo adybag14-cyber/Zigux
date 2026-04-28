@@ -205,6 +205,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "failed-exit rollback proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "polling-backed wake or dispatch behavior") != null);
@@ -227,6 +229,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit per-thread event-total") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded main-thread and function-thread payload literals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "phase9-runtime-trace-events-sample-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "failed-exit rollback proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership or event-loop substrate parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling and event-loop substrate") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "polling-backed wake or dispatch behavior") != null);
@@ -276,4 +280,5 @@ test "phase 9 runtime trace-events blocker stays loader-free until the scheduler
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-module-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-sample-tests") != null);
 }
