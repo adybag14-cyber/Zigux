@@ -17,6 +17,8 @@
     "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/phase3_export_uapi_build.zig",
+    "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
@@ -28,5 +30,5 @@
     "Documentation/zigux/phase3-abi-slice.md",
     "zigux/tests/build.zig"
   ],
-  "file_count": 24
+  "file_count": 26
 }
