@@ -34,6 +34,8 @@ EXPECTED_PHASE1_FIXTURE_SHAPE = {
         'andnot_values',
         'or_values',
         'xor_values',
+        'copy_nbits',
+        'copy_values',
         'partial_xor_nbits',
         'partial_xor_masked_values',
         'scnprintf_empty_len',
