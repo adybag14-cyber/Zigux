@@ -40,7 +40,7 @@ Current bootstrap helpers
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
 - `check-phase2-cross.py`
-- `check-mk_elfconfig-diff.py`
+- `check-mk-elfconfig-diff.py`
 
 Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
