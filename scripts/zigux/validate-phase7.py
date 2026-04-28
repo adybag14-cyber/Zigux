@@ -106,6 +106,8 @@ required_tests_readme_markers = [
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
+    "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
+    "`zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`",
 ]
 
 required_doc_readme_markers = [
@@ -121,8 +123,10 @@ required_doc_readme_markers = [
     "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/tests/phase7_build.zig",
-    "phase7_argv_split_manifest.json",
-    "phase7_rbtree_manifest.json",
+    "the current Phase 7 build handoff is intentionally split",
+    "explicit `addImport(...)` aliases",
+    "zigux/tests/phase7_argv_split_manifest.json",
+    "zigux/tests/phase7_rbtree_manifest.json",
 ]
 
 required_phase7_build_markers = [
@@ -131,10 +135,15 @@ required_phase7_build_markers = [
     "../../lib/argv_split.zig",
     "../../lib/rbtree.zig",
     "phase7_string_helpers.zig",
+    'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
     "phase7_cmdline.zig",
+    'cmdline_root_module.addImport("cmdline", cmdline_module);',
     "phase7_argv_split.zig",
+    'argv_split_root_module.addImport("argv_split", argv_split_module);',
     "phase7_argv_split_survey.zig",
+    "Survey tests stay self-contained and read their manifest JSON from repo-root paths.",
     "phase7_rbtree.zig",
+    'rbtree_root_module.addImport("rbtree", rbtree_module);',
     "phase7_rbtree_survey.zig",
     "phase7-string-helpers-tests",
     "phase7-cmdline-tests",
@@ -142,19 +151,7 @@ required_phase7_build_markers = [
     "phase7-argv-split-survey-tests",
     "phase7-rbtree-tests",
     "phase7-rbtree-survey-tests",
-    'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
-    'cmdline_root_module.addImport("cmdline", cmdline_module);',
-    'argv_split_root_module.addImport("argv_split", argv_split_module);',
-    'rbtree_root_module.addImport("rbtree", rbtree_module);',
     'b.step("test", "Run Phase 7 runtime helper tests")',
-]
-
-required_phase7_argv_split_survey_markers = [
-    "zigux/tests/phase7_argv_split_manifest.json",
-]
-
-required_phase7_rbtree_survey_markers = [
-    "zigux/tests/phase7_rbtree_manifest.json",
 ]
 
 required_phase7_rbtree_doc_markers = [
@@ -163,6 +160,14 @@ required_phase7_rbtree_doc_markers = [
     "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/tests/fixtures/phase7_rbtree.json",
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
+]
+
+required_phase7_argv_split_survey_markers = [
+    "zigux/tests/phase7_argv_split_manifest.json",
+]
+
+required_phase7_rbtree_survey_markers = [
+    "zigux/tests/phase7_rbtree_manifest.json",
 ]
 
 checks = [
