@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L22",
   "phase": "Phase 5",
-  "surveyed_commit": "597685ab7f876f827a2bba81468351520a367a68",
+  "surveyed_commit": "67553cdcf1ea95eae875eac746164dba3858cc5a",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -9,8 +9,9 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact registration, Linux foo/baz/bar attribute order, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
     "the sample-backed survey note and shared review checklist still name the manifest-backed survey, sample-backed survey note, and phase5_build.zig entrypoint as part of the shipped kobject review surface",
-    "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
+    "the manifest prompts keep the unnamed attribute group shape plus the pre-registration and post-exit show/store rejection boundaries explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration, attribute-order, and lifecycle contract instead of leaving reviewers to infer it from code alone",
+    "ownership checks keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show/store access until registerAttributes claims ownership",
     "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
@@ -28,6 +29,11 @@
       "id": "registration-step",
       "kind": "ownership_lifetime",
       "expected": "runAnchorReplay requires init first, registers exactly three attributes, and leaves the sample in the registered stage"
+    },
+    {
+      "id": "pre-registration-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "the initialized-but-not-registered stage keeps the active attribute count at zero and rejects show or store calls until registerAttributes claims ownership"
     },
     {
       "id": "foo-roundtrip",
