@@ -7,7 +7,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper slice plus shared deterministic escape fixtures and shared wrapper-entrypoint coverage landed; parked unless a new `string_helpers.c` parity issue appears
+- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, and one allocator-explicit `parse_int_array()` bridge landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
@@ -50,6 +50,7 @@ The current starter slice covers:
 - `string_upper()`
 - `string_lower()`
 - `string_get_size()` over the bounded SI and binary formatting subset
+- `parse_int_array()` through an allocator-explicit counted-array wrapper that reuses the existing `get_options()` Zig port
 - `string_unescape()`
 - `string_unescape_inplace()`
 - `string_unescape_any()`
@@ -71,6 +72,7 @@ The current tests check:
 - bounded ASCII case conversion that stops at the first NUL
 - deterministic SI and binary `string_get_size()` formatting with a block-size multiplier
 - `STRING_UNITS_NO_SPACE` and `STRING_UNITS_NO_BYTES` formatting flags plus snprintf-style truncation accounting for `string_get_size()`
+- allocator-explicit `parseIntArray()` output that preserves the Linux counted-array shape from `get_options()` while returning `error.NoEntry` when no integers can be parsed
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig` so the dedicated Phase 7 gate replays the landed escape-space, special, null, octal, hex, dictionary-limited, and passthrough-filter cases from one reviewable source
 - in-place unescape behavior and bounded destination termination
@@ -85,10 +87,10 @@ The current tests check:
 
 This slice does not yet claim:
 
-- parity for `parse_int_array()`
-- integer parsing beyond the current formatter and escape surface
+- user-buffer handling parity for `parse_int_array_user()`
+- integer parsing beyond the current counted-array bridge over the existing `get_options()` helper
 - allocation-backed duplication helpers
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded formatter-and-escape surface, such as a small `parse_int_array()` starter that is still clearly Phase 7-sized.
+Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen inside the existing helper-and-gate surface. The remaining `string_helpers.c` work now trends toward user-buffer handling or broader allocation-backed helpers, which is a poorer fit for this parked Phase 7 leaf-helper lane.

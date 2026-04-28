@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
+const cmdline = @import("cmdline.zig");
 
 pub const EINVAL: i32 = -22;
 pub const UNESCAPE_SPACE: u32 = 1 << 0;
@@ -23,6 +24,7 @@ pub const STRING_UNITS_2: u32 = 1;
 pub const STRING_UNITS_MASK: u32 = 1 << 0;
 pub const STRING_UNITS_NO_SPACE: u32 = 1 << 30;
 pub const STRING_UNITS_NO_BYTES: u32 = 1 << 31;
+pub const ParseIntArrayError = std.mem.Allocator.Error || error{NoEntry};
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
     return std.mem.eql(u8, sysfsComparablePrefix(s1), sysfsComparablePrefix(s2));
@@ -180,6 +182,21 @@ pub fn stringGetSize(size_in: u64, blk_size_in: u64, units: u32, buf: []u8) usiz
         },
     ) catch unreachable;
     return copySnprintfStyle(buf, full);
+}
+
+pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArrayError![]i32 {
+    var count_buf = [_]i32{0};
+    _ = cmdline.getOptions(buf, 0, &count_buf);
+    if (count_buf[0] <= 0) {
+        return error.NoEntry;
+    }
+
+    const count: usize = @intCast(count_buf[0]);
+    const ints = try allocator.alloc(i32, count + 1);
+    errdefer allocator.free(ints);
+    @memset(ints, 0);
+    _ = cmdline.getOptions(buf, ints.len, ints);
+    return ints;
 }
 
 pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize {
@@ -614,130 +631,22 @@ test "stringGetSize honors formatting flags and snprintf-style truncation" {
     try std.testing.expectEqual(@as(usize, 7), stringGetSize(1500, 1, STRING_UNITS_10, &.{}));
 }
 
-test "stringUnescape applies Linux-style escape classes deterministically" {
-    var out = [_]u8{0} ** 64;
+test "parseIntArray returns a counted Linux-style integer array" {
+    const ints = try parseIntArray(std.testing.allocator, "1-3,5");
+    defer std.testing.allocator.free(ints);
 
-    try std.testing.expectEqual(@as(usize, 7), stringUnescape("\\f\\ \\n\\r\\t\\v", &out, out.len, UNESCAPE_SPACE));
-    try std.testing.expectEqualSlices(u8, "\x0c\\ \n\r\t\x0b", out[0..7]);
-
-    try std.testing.expectEqual(@as(usize, 15), stringUnescape("\\40\\1\\387\\0064\\05\\040\\8a\\110\\777", &out, out.len, UNESCAPE_OCTAL));
-    try std.testing.expectEqualSlices(u8, " \x01\x0387\x064\x05 \\8aH?7", out[0..15]);
-
-    try std.testing.expectEqual(@as(usize, 8), stringUnescape("\\xv\\xa\\x2c\\xD\\x6f2", &out, out.len, UNESCAPE_HEX));
-    try std.testing.expectEqualSlices(u8, "\\xv\n,\ro2", out[0..8]);
-
-    try std.testing.expectEqual(@as(usize, 7), stringUnescape("\\h\\\\\\\"\\a\\e\\", &out, out.len, UNESCAPE_SPECIAL));
-    try std.testing.expectEqualSlices(u8, "\\h\\\"\x07\x1b\\", out[0..7]);
+    try std.testing.expectEqual(@as(usize, 5), ints.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 1, 2, 3, 5 }, ints);
 }
 
-test "stringUnescape supports combined flags, in-place use, and bounded output" {
-    var combined = [_]u8{0} ** 32;
-    const combined_len = stringUnescape("\\n\\x41\\040\\e", &combined, 0, UNESCAPE_ANY);
-    try std.testing.expectEqual(@as(usize, 4), combined_len);
-    try std.testing.expectEqualSlices(u8, "\nA \x1b", combined[0..combined_len]);
+test "parseIntArray reuses cmdline parsing semantics for bases and negatives" {
+    const ints = try parseIntArray(std.testing.allocator, "0x10,07,-2");
+    defer std.testing.allocator.free(ints);
 
-    var inplace = [_]u8{ '\\', 'n', '\\', 'x', '4', '1', 0, '?', '?' };
-    const inplace_len = stringUnescape(inplace[0..], inplace[0..], 0, UNESCAPE_ANY);
-    try std.testing.expectEqual(@as(usize, 2), inplace_len);
-    try std.testing.expectEqualSlices(u8, "\nA", inplace[0..2]);
-    try std.testing.expectEqual(@as(u8, 0), inplace[2]);
-
-    var bounded = [_]u8{ '!', '!', '!', '!' };
-    const bounded_len = stringUnescape("\\n\\r", &bounded, bounded.len, UNESCAPE_SPACE);
-    try std.testing.expectEqual(@as(usize, 2), bounded_len);
-    try std.testing.expectEqualSlices(u8, "\n\r", bounded[0..2]);
-    try std.testing.expectEqual(@as(u8, 0), bounded[2]);
-    try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 16, 7, -2 }, ints);
 }
 
-test "stringUnescape exact-fit destination still decodes an escape" {
-    var out = [_]u8{ '!', '!' };
-    const len = stringUnescape("\\n", &out, out.len, UNESCAPE_SPACE);
-    try std.testing.expectEqual(@as(usize, 1), len);
-    try std.testing.expectEqual(@as(u8, '\n'), out[0]);
-    try std.testing.expectEqual(@as(u8, 0), out[1]);
-}
-
-test "stringUnescape wrappers preserve any-flag and inplace semantics" {
-    var any = [_]u8{0} ** 8;
-    const any_len = stringUnescapeAny("\\n\\x41", &any, any.len);
-    try std.testing.expectEqual(@as(usize, 2), any_len);
-    try std.testing.expectEqualSlices(u8, "\nA", any[0..any_len]);
-
-    var inplace = [_]u8{ '\\', '0', '4', '0', 0, '?', '?' };
-    const inplace_len = stringUnescapeAnyInplace(&inplace);
-    try std.testing.expectEqual(@as(usize, 1), inplace_len);
-    try std.testing.expectEqualSlices(u8, " ", inplace[0..inplace_len]);
-    try std.testing.expectEqual(@as(u8, 0), inplace[inplace_len]);
-
-    var flagged = [_]u8{ '\\', 'n', 0, '?', '?' };
-    const flagged_len = stringUnescapeInplace(&flagged, UNESCAPE_SPACE);
-    try std.testing.expectEqual(@as(usize, 1), flagged_len);
-    try std.testing.expectEqualSlices(u8, "\n", flagged[0..flagged_len]);
-}
-
-test "stringEscapeMem covers the bounded Linux escape classes" {
-    var out = [_]u8{0} ** 64;
-
-    try std.testing.expectEqual(@as(usize, 11), stringEscapeMem("\x0c \n\r\t\x0b", &out, ESCAPE_SPACE, null));
-    try std.testing.expectEqualSlices(u8, "\\f \\n\\r\\t\\v", out[0..11]);
-
-    try std.testing.expectEqual(@as(usize, 8), stringEscapeMem("\\\"\x07\x1b", &out, ESCAPE_SPECIAL, null));
-    try std.testing.expectEqualSlices(u8, "\\\\\\\"\\a\\e", out[0..8]);
-
-    try std.testing.expectEqual(@as(usize, 2), stringEscapeMem("\x00", &out, ESCAPE_NULL, null));
-    try std.testing.expectEqualSlices(u8, "\\0", out[0..2]);
-
-    try std.testing.expectEqual(@as(usize, 12), stringEscapeMem("A\x00\x1b", &out, ESCAPE_HEX, null));
-    try std.testing.expectEqualSlices(u8, "\\x41\\x00\\x1b", out[0..12]);
-
-    try std.testing.expectEqual(@as(usize, 12), stringEscapeMem("A\x00\x1b", &out, ESCAPE_OCTAL, null));
-    try std.testing.expectEqualSlices(u8, "\\101\\000\\033", out[0..12]);
-}
-
-test "stringEscapeMem honors only and append selection rules" {
-    var out = [_]u8{0} ** 64;
-
-    try std.testing.expectEqual(@as(usize, 5), stringEscapeMem("A\n\tZ", &out, ESCAPE_SPACE, "\n"));
-    try std.testing.expectEqualSlices(u8, "A\\n\tZ", out[0..5]);
-
-    try std.testing.expectEqual(@as(usize, 6), stringEscapeMem("A\nZ", &out, ESCAPE_NAP | ESCAPE_HEX | ESCAPE_APPEND, "\n"));
-    try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..6]);
-}
-
-test "stringEscapeMem supports printable and ascii passthrough filters" {
-    var out = [_]u8{0} ** 64;
-
-    try std.testing.expectEqual(@as(usize, 6), stringEscapeMem("A\x01z", &out, ESCAPE_NP | ESCAPE_HEX, null));
-    try std.testing.expectEqualSlices(u8, "A\\x01z", out[0..6]);
-
-    try std.testing.expectEqual(@as(usize, 6), stringEscapeMem("A\x80z", &out, ESCAPE_NA | ESCAPE_HEX, null));
-    try std.testing.expectEqualSlices(u8, "A\\x80z", out[0..6]);
-
-    try std.testing.expectEqual(@as(usize, 10), stringEscapeMem("A\x01\x80z", &out, ESCAPE_NAP | ESCAPE_HEX, null));
-    try std.testing.expectEqualSlices(u8, "A\\x01\\x80z", out[0..10]);
-}
-
-test "stringEscapeMem reports truncated output length without forcing a terminator" {
-    var out = [_]u8{ '?', '?', '?', '?', '?' };
-    const len = stringEscapeMem("\n", &out, ESCAPE_HEX, null);
-    try std.testing.expectEqual(@as(usize, 4), len);
-    try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
-}
-
-test "stringEscape wrappers stop at NUL and reuse ESCAPE_ANY_NP" {
-    var str_out = [_]u8{ '?', '?', '?', '?', '?', '?', '?', '?', '?' };
-    const str_len = stringEscapeStr("A\n\x00tail", &str_out, str_out.len, ESCAPE_HEX, null);
-    try std.testing.expectEqual(@as(usize, 8), str_len);
-    try std.testing.expectEqualSlices(u8, "\\x41\\x0a?", &str_out);
-
-    var any_np = [_]u8{ '?', '?', '?', '?', '?' };
-    const any_np_len = stringEscapeStrAnyNp("A\n\x00tail", &any_np, any_np.len, null);
-    try std.testing.expectEqual(@as(usize, 3), any_np_len);
-    try std.testing.expectEqualSlices(u8, "A\\n??", &any_np);
-
-    var mem_any_np = [_]u8{ '?', '?', '?', '?', '?' };
-    const mem_any_np_len = stringEscapeMemAnyNp("\n", &mem_any_np, null);
-    try std.testing.expectEqual(@as(usize, 2), mem_any_np_len);
-    try std.testing.expectEqualSlices(u8, "\\n???", &mem_any_np);
+test "parseIntArray returns NoEntry when no integers can be parsed" {
+    try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, ""));
+    try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, "+,7"));
 }
