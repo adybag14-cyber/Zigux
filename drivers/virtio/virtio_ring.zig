@@ -56,25 +56,27 @@ pub const CallbackEnableSummary = struct {
     should_poll: bool,
 };
 
+pub const CallbackEnablePrepareSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    callback_enabled: bool,
+    last_used_idx_snapshot: u16,
+};
+
+pub const CallbackPreparedPollSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    last_used_idx_snapshot: u16,
+    current_last_used_idx: u16,
+    has_used_buffers_since_prepare: bool,
+};
+
 pub const CallbackDisableSummary = struct {
     anchor: []const u8,
     queue_index: u16,
     callback_enabled: bool,
     last_used_idx: u16,
     last_polled_used_idx: u16,
-    pending_used_chain_count: u16,
-    should_poll: bool,
-};
-
-pub const DelayedCallbackSummary = struct {
-    anchor: []const u8,
-    queue_index: u16,
-    callback_enabled: bool,
-    last_used_idx: u16,
-    last_polled_used_idx: u16,
-    outstanding_chain_count: u16,
-    delay_budget_count: u16,
-    delayed_event_target_idx: u16,
     pending_used_chain_count: u16,
     should_poll: bool,
 };
@@ -91,6 +93,19 @@ pub const QueueResetSummary = struct {
     outstanding_chain_count: u16,
     pending_used_chain_count: u16,
     notification_count: usize,
+};
+
+pub const DelayedCallbackSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    callback_enabled: bool,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+    delay_budget_count: u16,
+    delayed_event_target_idx: u16,
+    pending_used_chain_count: u16,
+    should_poll: bool,
 };
 
 pub const VirtioRingLab = struct {
@@ -241,6 +256,36 @@ pub const VirtioRingLab = struct {
         };
     }
 
+    pub fn enableCallbackPrepare(self: *Self, queue_index: u16) !CallbackEnablePrepareSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.callback_enabled = true;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .callback_enabled = slot.callback_enabled,
+            .last_used_idx_snapshot = slot.last_used_idx,
+        };
+    }
+
+    pub fn pollAfterEnable(
+        self: *const Self,
+        queue_index: u16,
+        last_used_idx_snapshot: u16,
+    ) !CallbackPreparedPollSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .last_used_idx_snapshot = last_used_idx_snapshot,
+            .current_last_used_idx = slot.last_used_idx,
+            .has_used_buffers_since_prepare = slot.last_used_idx != last_used_idx_snapshot,
+        };
+    }
+
     pub fn enableCallbackDelayed(self: *Self, queue_index: u16) !DelayedCallbackSummary {
         const slot = try self.checkedQueueSlot(queue_index);
         slot.callback_enabled = true;
@@ -263,8 +308,6 @@ pub const VirtioRingLab = struct {
 
     pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {
         const slot = try self.checkedQueueSlot(queue_index);
-        const descriptor_count = slot.descriptor_count;
-        const layout = slot.layout;
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
 
         slot.avail_idx_shadow = 0;
@@ -278,8 +321,8 @@ pub const VirtioRingLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .queue_index = queue_index,
-            .descriptor_count = descriptor_count,
-            .layout = layout,
+            .descriptor_count = slot.descriptor_count,
+            .layout = slot.layout,
             .callback_enabled = slot.callback_enabled,
             .avail_idx_shadow = slot.avail_idx_shadow,
             .last_used_idx = slot.last_used_idx,
