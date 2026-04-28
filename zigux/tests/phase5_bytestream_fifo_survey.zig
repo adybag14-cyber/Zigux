@@ -46,7 +46,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -57,6 +57,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_lifecycle_pattern = false;
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_samples_root_prompt = false;
     var saw_docs_prompt = false;
     var saw_storage_prompt = false;
     var saw_exact_sequence = false;
@@ -95,6 +96,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "samples/zigux/README.md") != null and
+            std.mem.indexOf(u8, prompt, "later runtime starters") != null)
+        {
+            saw_samples_root_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
             std.mem.indexOf(u8, prompt, "review checklist") != null)
@@ -154,6 +160,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_pattern);
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_samples_root_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_storage_prompt);
     try std.testing.expect(saw_exact_sequence);
@@ -187,18 +194,49 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(samples_readme);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "wraparound requeue, skip, and peek") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "Phase 5 reference samples") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "fixed embedded storage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "exact queue-order replay mirrors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "Phase 9 runtime starters") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "runtime_kretprobe.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "runtime_trace_events.zig") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
+
+    const readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(readme);
+
+    try std.testing.expect(std.mem.indexOf(u8, readme, "all four roadmap sample anchors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readme, "Phase 9 runtime pilot tranche") != null);
 }
