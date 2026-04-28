@@ -150,17 +150,17 @@ The exact current reading of the live repo is:
 - `Documentation/zigux/phase10-virtio-core-survey.md`, `zigux/tests/phase10_virtio_core_manifest.json`, and `zigux/tests/phase10_virtio_core_survey.zig` record the already-landed core survey surface, including the config-generation summary helper that closes the last core-local starter gap before risky lifecycle work
 - `drivers/virtio/virtio_ring.zig` is the bounded virtqueue helper starter
 - `drivers/virtio/virtio_input.zig` is the bounded input-driver starter
-- `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` now record the bounded MMIO register-window, queue-register, and queue-notify starter surface
-- `Documentation/zigux/phase10-virtio-mmio-survey.md` and `zigux/tests/phase10_virtio_mmio_manifest.json` keep the next queue-address helper explicit while MMIO lifecycle and IRQ work remain blocked
+- `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` now record the bounded MMIO register-window, queue-register, queue-notify, and queue-address starter surface
+- `Documentation/zigux/phase10-virtio-mmio-survey.md` and `zigux/tests/phase10_virtio_mmio_manifest.json` keep the next config-window helper explicit while MMIO lifecycle and IRQ work remain blocked
 
 This means the current evidence bundle is reviewable, but Phase 10 is not globally closed:
 
-- the bounded MMIO register-window, queue-register, and queue-notify helpers are landed; queue-address planning is the next narrow transport-facing follow-up
+- the bounded MMIO register-window, queue-register, queue-notify, and queue-address helpers are landed; config-window planning is the next narrow transport-facing follow-up
 - transport-backed queue setup, interrupt handling, DMA-facing paths, and broader lifecycle parity remain out of scope
 - the blocked transport claim set stays explicit: `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
 - the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
-- the current manifest-backed transport boundary stays explicit because the input survey advances only to the ready-next `phase10-virtio-input-registration-preflight-helper`, the MMIO survey packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, and `phase10-mmio-queue-notify-helper`, the MMIO survey advances only to the ready-next `phase10-mmio-queue-address-helper`, and `phase10-virtio-input-registration-lifecycle` plus `phase10-mmio-lifecycle-and-irq-paths` must stay `blocked_on_risky_transport` until those smaller helpers land first
+- the current manifest-backed transport boundary stays explicit because the input survey advances only to the ready-next `phase10-virtio-input-registration-preflight-helper`, the MMIO survey packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, `phase10-mmio-queue-notify-helper`, and `phase10-mmio-queue-address-helper`, the MMIO survey advances only to the ready-next `phase10-mmio-config-window-helper`, and `phase10-virtio-input-registration-lifecycle` plus `phase10-mmio-lifecycle-and-irq-paths` must stay `blocked_on_risky_transport` until those smaller helpers land first
 
 ## Boundary
 
