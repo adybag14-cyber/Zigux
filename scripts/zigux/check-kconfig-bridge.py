@@ -243,6 +243,7 @@ def main() -> int:
 
         for case in CASES['conf_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
+            repeat = tmp_dir / f"{case['name']}.repeat.json"
             cmd = [
                 str(conf_exe),
                 case['mode'],
@@ -255,14 +256,22 @@ def main() -> int:
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
             run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(FIXTURE_DIR / case['expected']), str(actual)], cwd=str(ROOT))
+            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
+            repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
+            run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(actual), str(repeat)], cwd=str(ROOT))
 
         for case in CASES['confdata_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
+            repeat = tmp_dir / f"{case['name']}.repeat.json"
             result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
             run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(FIXTURE_DIR / case['expected']), str(actual)], cwd=str(ROOT))
+            repeat_result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
+            repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
+            run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(actual), str(repeat)], cwd=str(ROOT))
 
     print('KCONFIG_BRIDGE_DIFF=pass')
+    print('KCONFIG_BRIDGE_DETERMINISM=pass')
     print(f'FIXTURE_DIR={FIXTURE_DIR}')
     return 0
 
