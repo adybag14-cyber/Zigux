@@ -90,7 +90,7 @@ test "phase 6 bsearch exposes a mutable pointer when searching mutable storage" 
     try std.testing.expectEqual(@as(u32, 22), values[3]);
 }
 
-test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {
+test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable duplicate selection" {
     const values = [_]u32{ 2, 7, 7, 7, 12, 18 };
     const index = bsearch.searchIndex(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
     const found = bsearch.search(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
@@ -102,7 +102,7 @@ test "phase 6 bsearch treats duplicate keys as found-or-null without claiming st
     try std.testing.expectEqual(@as(u32, 7), found.*);
 }
 
-test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {
+test "phase 6 bsearch keeps representative average and worst-case lookup work inside a binary-search budget" {
     const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 
     counted_compare_calls = 0;
