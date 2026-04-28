@@ -32,6 +32,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - queue descriptor shape metadata that records bounded readable and writable descriptor counts plus indirect-descriptor intent without claiming real ring setup
 - registration identity bookkeeping for the `register_virtio_device()` and `virtio_uevent()` path, including the bounded `virtio%u` device name and modalias string
 - config-change enable, disable, pending, flush, and reset bookkeeping that stays entirely in memory while making the later `virtio_config_enable()` and `virtio_config_disable()` review surface concrete
+- bounded config-generation increments, last-observed generation state, and pending-generation visibility that keep one more core-local review surface explicit without claiming transport reads
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
@@ -69,4 +70,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio-core lane only for another small core-local bridge that is still missing after the landed registration identity and config-change bookkeeping, such as a bounded config-generation summary, before widening into `virtio_mmio` or `virtio_ring` transport work.
+Leave the Phase 10 virtio-core helper parked unless fresh review drift appears in the landed config-generation summary surface. Any future reopen in this lane should stay explicit about the remaining blocked probe, remove, and transport-backed reset lifecycle gap instead of widening into `virtio_mmio` or `virtio_ring` work indirectly.
