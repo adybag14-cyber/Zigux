@@ -98,6 +98,7 @@ Low-level wrapper survey:
 ## Boundary
 
 Current repo-backed boundary survey:
+- focused export/UAPI replay: `zigux/tests/phase3_export_uapi.zig` keeps `export_shim.header`, `export_shim.isCompatibleHeader`, `export_shim.ok`, `export_shim.errno`, `export_shim.isOk`, `uapi_version.boundaryHeader`, `uapi_version.isCompatible`, and `uapi_version.abi_version` on their own bounded smoke surface instead of relying only on the broad `phase3_abi.zig` bundle
 - export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, but it now delegates boundary-header construction and compatibility checks through the shared UAPI surface instead of keeping a local test-only copy
 - UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor and compatibility check, which is still bounded but makes the public boundary less ad hoc than a version constant alone
 
