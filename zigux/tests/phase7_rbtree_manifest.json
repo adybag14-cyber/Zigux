@@ -26,14 +26,14 @@
       "status": "starter_landed",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/rbtree.zig",
-      "why_now": "The roadmap names lib/rbtree.zig directly, and the current starter helper already covers initialization, balancing, replacement, erase, traversal, and duplicate-key lookup semantics."
+      "why_now": "The roadmap names lib/rbtree.zig directly, and the current starter helper already covers initialization, balancing, replacement, erase, eraseInit ownership reset, traversal, and duplicate-key lookup semantics."
     },
     {
       "id": "phase7-rbtree-dedicated-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree.zig",
-      "why_now": "A dedicated Phase 7 test file keeps the intrusive-tree starter surface reviewable around traversal order, balancing invariants, duplicate-key lookup ranges, erase, replacement, and detached-node handling."
+      "why_now": "A dedicated Phase 7 test file keeps the intrusive-tree starter surface reviewable around traversal order, balancing invariants, duplicate-key lookup ranges, erase, eraseInit ownership reset, replacement, and detached-node handling."
     },
     {
       "id": "phase7-rbtree-slice-note",
@@ -54,7 +54,7 @@
       "status": "starter_landed",
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json",
-      "why_now": "The committed parity layer now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-key lookup ranges, reverse traversal, and postorder behavior against lib/rbtree.c."
+      "why_now": "The committed parity layer now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-key lookup ranges, reverse traversal, and postorder behavior against lib/rbtree.c, while the dedicated Phase 7 gate covers the reusable-node eraseInit ownership reset that stays just outside the C parity fixture."
     }
   ]
 }
