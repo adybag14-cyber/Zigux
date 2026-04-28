@@ -16,6 +16,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_tree_search_planning: bool,
     provides_rule_tree_link_planning: bool,
     provides_rule_materialization_planning: bool,
+    provides_rule_release_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -135,6 +136,15 @@ pub const RuleMaterializationPlan = struct {
     would_acquire_object_reference: bool,
 };
 
+pub const RuleReleasePlan = struct {
+    anchor: []const u8,
+    key_type: KeyType,
+    rule_present: bool,
+    may_sleep: bool,
+    would_release_object_reference: bool,
+    would_free_rule_allocation: bool,
+};
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -148,6 +158,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_tree_search_planning = true,
             .provides_rule_tree_link_planning = true,
             .provides_rule_materialization_planning = true,
+            .provides_rule_release_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -270,6 +281,17 @@ pub const RulesetHelperLab = struct {
             .resulting_rule = try makeRulePlan(base_layers, appended_layer),
             .initializes_rb_node = true,
             .would_acquire_object_reference = key_type == .inode,
+        };
+    }
+
+    pub fn planRuleRelease(key_type: KeyType, rule_present: bool) RuleReleasePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .key_type = key_type,
+            .rule_present = rule_present,
+            .may_sleep = true,
+            .would_release_object_reference = rule_present and key_type == .inode,
+            .would_free_rule_allocation = rule_present,
         };
     }
 
