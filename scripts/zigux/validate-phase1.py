@@ -245,6 +245,40 @@ required_bitmap_diff_build_markers = [
     'diff_root.addImport("bitmap", bitmap_module)',
     'diff_root.addImport("find_bit", find_bit_module)',
 ]
+required_bitmap_test_markers = [
+    'test "phase 1 bitmap allocation helpers keep ownership and zeroing explicit"',
+    'fixture.bitmap.scnprintf_empty_len',
+    'fixture.bitmap.scnprintf_empty_bytes',
+    'bitmap.bitmapAlloc(allocator, nbits)',
+    'bitmap.bitmapFree(allocator, &allocated)',
+    'bitmap.bitmapZalloc(allocator, nbits)',
+    'bitmap.empty(zeroed.?, nbits)',
+]
+required_bitmap_manifest_markers = [
+    '"tools/lib/bitmap.zig"',
+    '"bitmap.alloc_nbits"',
+    '"bitmap.alloc_values"',
+    '"bitmap.scnprintf"',
+    '"bitmap.scnprintf_empty_len"',
+    '"bitmap.scnprintf_empty_bytes"',
+    '"bitmap.scnprintf_trunc_len"',
+    '"bitmap.scnprintf_trunc"',
+    '"bitmap.zalloc_nbits"',
+    '"bitmap.zalloc_values"',
+    '"summary": "Committed C-backed parity coverage includes allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and truncation behavior that preserves the trailing terminator slot."',
+    '"unit_test_anchor": "tools/lib/bitmap.zig:test \\"bitmap allocation helpers size zero fill and reset optionals\\""',
+    '"unit_test_contract": "Direct Zig unit coverage keeps bitmapFree() honest by proving optional bitmap handles reset to null after release while allocator-backed bitmap sizing and zero-allocation state stay aligned with the committed C-backed fixture."',
+]
+required_bitmap_closure_markers = [
+    'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.',
+    'tools/lib/bitmap.zig` direct Zig unit coverage now keeps `bitmapFree()` aligned by proving optional bitmap handles reset to null after release while the shared C-backed fixture covers allocator-backed sizing and zero-allocation state.',
+    'bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`',
+    'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
+    'bitmap allocator review note: `bitmap_alloc()` and `bitmap_zalloc()` must size partial-word bitmaps through `BITS_TO_LONGS(nbits)`, while `bitmapFree()` optional-reset behavior remains direct Zig-only coverage because the C helper frees raw pointers in place',
+    'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
+    'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
+    'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
+]
 required_find_bit_test_markers = [
     'fixture.find_bit.tail_clamped_first',
     'fixture.find_bit.tail_zero_clamped_first',
@@ -376,6 +410,15 @@ for marker in required_bitmap_diff_markers:
 for marker in required_bitmap_diff_build_markers:
     if marker not in bitmap_diff_build_root:
         missing_markers.append(f'bitmap_diff_build:{marker}')
+for marker in required_bitmap_test_markers:
+    if marker not in test_root:
+        missing_markers.append(f'bitmap_test:{marker}')
+for marker in required_bitmap_manifest_markers:
+    if marker not in find_bit_manifest:
+        missing_markers.append(f'bitmap_manifest:{marker}')
+for marker in required_bitmap_closure_markers:
+    if marker not in phase1_closure:
+        missing_markers.append(f'bitmap_closure:{marker}')
 for marker in required_find_bit_test_markers:
     if marker not in test_root:
         missing_markers.append(f'find_bit_test:{marker}')
@@ -428,5 +471,5 @@ print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_bitmap_test_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_closure_markers) + len(required_find_bit_test_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
 )
