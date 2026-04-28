@@ -109,7 +109,73 @@ test "phase10 virtio net reuses prior room when planning the next mergeable rece
     try std.testing.expect(plan.uses_recycled_room);
 }
 
+test "phase10 virtio net summarizes whether refill stays on mergeable allocation or recycled-room paths" {
+    var fresh_device = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+    });
+    const fresh_snapshot = try fresh_device.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+        },
+        .requested_queue_pairs = 2,
+        .max_queue_pairs = 2,
+    });
+    _ = try fresh_device.planMergeableReceiveBuffer(fresh_snapshot, .{
+        .header_len = 12,
+        .average_packet_len = 1500,
+        .min_buf_len = 512,
+        .headroom = 256,
+        .cache_line_size = 64,
+        .skb_shared_info_size = 320,
+    });
+
+    const fresh_summary = try fresh_device.summarizeReceiveQueueRefill();
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", fresh_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 2), fresh_summary.planned_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), fresh_summary.rx_queue_count);
+    try std.testing.expectEqual(virtio_net.ReceiveQueueRefillPath.mergeable_allocation, fresh_summary.refill_path);
+    try std.testing.expect(fresh_summary.keeps_aligned_room);
+    try std.testing.expectEqual(@as(u32, 576), fresh_summary.room);
+    try std.testing.expectEqual(@as(u32, 0), fresh_summary.recycled_room);
+    try std.testing.expectEqual(@as(u32, 1536), fresh_summary.requested_len);
+    try std.testing.expectEqual(@as(u32, 2112), fresh_summary.requested_alloc_len);
+
+    var recycled_device = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+    });
+    const recycled_snapshot = try recycled_device.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try recycled_device.planMergeableReceiveBuffer(recycled_snapshot, .{
+        .header_len = 12,
+        .average_packet_len = 900,
+        .min_buf_len = 256,
+        .recycled_room = 896,
+    });
+
+    const recycled_summary = try recycled_device.summarizeReceiveQueueRefill();
+    try std.testing.expectEqual(virtio_net.ReceiveQueueRefillPath.recycled_room, recycled_summary.refill_path);
+    try std.testing.expect(!recycled_summary.keeps_aligned_room);
+    try std.testing.expectEqual(@as(u32, 0), recycled_summary.room);
+    try std.testing.expectEqual(@as(u32, 896), recycled_summary.recycled_room);
+    try std.testing.expectEqual(@as(u32, 3200), recycled_summary.requested_len);
+    try std.testing.expectEqual(@as(u32, 3200), recycled_summary.requested_alloc_len);
+}
+
 test "phase10 virtio net rejects mergeable buffer plans that widen beyond the negotiated safe path" {
+    var untouched_device = try virtio_net.VirtioNetProbeLab.init(&.{virtio_net.feature_mergeable_rx_buffers});
+    try std.testing.expectError(error.MergeableBufferPlanUnavailable, untouched_device.summarizeReceiveQueueRefill());
+
     var non_mergeable = try virtio_net.VirtioNetProbeLab.init(&.{virtio_net.feature_control_vq});
     const non_mergeable_snapshot = try non_mergeable.captureProbeSnapshot(.{
         .driver_feature_bits = &.{virtio_net.feature_control_vq},
