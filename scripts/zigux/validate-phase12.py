@@ -147,6 +147,35 @@ MANIFEST_SPECS = {
         "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
         "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
+        "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        "raw_fallback_tree_urls": [
+            "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/scsi",
+            "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+            "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+        ],
+        "raw_fallback_artifact_paths": [
+            "drivers/scsi/virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi_manifest.json",
+            "zigux/tests/phase12_virtio_scsi_survey.zig",
+            "zigux/tests/phase12_build.zig",
+            "Documentation/zigux/phase12-virtio-scsi-slice.md",
+            "Documentation/zigux/phase12-virtio-scsi-survey.md",
+            "scripts/zigux/validate-phase12.py",
+            "zigux/Makefile",
+        ],
+        "raw_fallback_raw_paths": [
+            "drivers/scsi/virtio_scsi.c",
+            "drivers/scsi/virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi_manifest.json",
+            "zigux/tests/phase12_virtio_scsi_survey.zig",
+            "zigux/tests/phase12_build.zig",
+            "Documentation/zigux/phase12-virtio-scsi-slice.md",
+            "Documentation/zigux/phase12-virtio-scsi-survey.md",
+            "scripts/zigux/validate-phase12.py",
+            "zigux/Makefile",
+        ],
     },
     "phase12_libbpf_manifest.json": {
         "lane_key": "P12-L13",
@@ -192,6 +221,11 @@ def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
         if destination == allowed:
             return True
     return False
+
+
+def expect_catalog_marker(catalog_text: str, marker: str, missing_key: str, missing: list[str]) -> None:
+    if marker not in catalog_text:
+        missing.append(missing_key)
 
 
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
@@ -341,6 +375,81 @@ for name, spec in MANIFEST_SPECS.items():
         missing.append(f"{name}:survey_note_commit_pin")
     if "make -C zigux phase12" not in survey_note_text:
         missing.append(f"{name}:survey_note_make_target")
+
+    raw_fallback_catalog_path = spec.get("raw_fallback_catalog_path")
+    if isinstance(raw_fallback_catalog_path, str):
+        raw_fallback_catalog_text = text(raw_fallback_catalog_path)
+        survey_summary = manifest.get("survey_summary")
+        if not isinstance(survey_summary, dict):
+            missing.append(f"{name}:survey_summary")
+        else:
+            tree_count = survey_summary.get("raw_github_tree_fallback_count")
+            file_count = survey_summary.get("raw_github_file_fallback_count")
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                f"verified_master_head: `{commit}`",
+                f"{name}:raw_fallback_catalog_verified_head",
+                missing,
+            )
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                f"inspected_master_head: `{commit}`",
+                f"{name}:raw_fallback_catalog_inspected_head",
+                missing,
+            )
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                f"raw_github_tree_fallback_count: `{tree_count}`",
+                f"{name}:raw_fallback_catalog_tree_count",
+                missing,
+            )
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                f"raw_github_file_fallback_count: `{file_count}`",
+                f"{name}:raw_fallback_catalog_file_count",
+                missing,
+            )
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                f"fallback_anchor_path: `{manifest.get('anchor')}`",
+                f"{name}:raw_fallback_catalog_anchor",
+                missing,
+            )
+
+        for tree_url in spec.get("raw_fallback_tree_urls", []):
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                tree_url,
+                f"{name}:raw_fallback_catalog_tree_url:{tree_url}",
+                missing,
+            )
+        for artifact_path in spec.get("raw_fallback_artifact_paths", []):
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                artifact_path,
+                f"{name}:raw_fallback_catalog_artifact:{artifact_path}",
+                missing,
+            )
+        for raw_path in spec.get("raw_fallback_raw_paths", []):
+            raw_url = f"https://raw.githubusercontent.com/adybag14-cyber/Zigux/{commit}/{raw_path}"
+            expect_catalog_marker(
+                raw_fallback_catalog_text,
+                raw_url,
+                f"{name}:raw_fallback_catalog_raw_url:{raw_path}",
+                missing,
+            )
+        expect_catalog_marker(
+            raw_fallback_catalog_text,
+            "shared_validator_command: `python3 scripts/zigux/validate-phase12.py`",
+            f"{name}:raw_fallback_catalog_validator_command",
+            missing,
+        )
+        expect_catalog_marker(
+            raw_fallback_catalog_text,
+            "focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
+            f"{name}:raw_fallback_catalog_survey_command",
+            missing,
+        )
 
 if starter_total != expected_starter_total:
     missing.append(f"starter_total:{starter_total}")
