@@ -167,7 +167,7 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     if not script_path.exists():
         return
     if script_path.read_text(encoding="utf-8") != render_wrapper_stub():
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
 
 
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -308,7 +308,6 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_export_uapi_build.zig").writeText if False else None
         (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
             'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");\n',
             encoding="utf-8",
