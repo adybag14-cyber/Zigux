@@ -113,12 +113,15 @@ Phase 9 notes
 Phase 10 notes
 - `Documentation/zigux/phase10-closure-evidence.md`
 - `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
 - `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `Documentation/zigux/phase10-virtio-input-slice.md`
 - `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `Documentation/zigux/README.md` now exposes the same nine published Phase 10 docs named by the shared closure packet, including `Documentation/zigux/phase10-virtio-core-survey.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the top-level docs index does not undercount the live parity-evidence bundle.
 - `Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig`, its bounded MMIO starter test, and the remaining risky transport gaps stay visible together.
 - `python3 scripts/zigux/validate-phase10.py` now keeps the narrower virtio_input packet aligned, so the Phase 10 docs, helper, tests, and survey manifest all keep the same registration-preflight helper and registration-lifecycle blocker posture.
 - `python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the four Phase 10 survey manifests, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.
