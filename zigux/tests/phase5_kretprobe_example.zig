@@ -11,10 +11,21 @@ test "phase 5 kretprobe sample stays in the reference-sample lane" {
 }
 
 test "phase 5 kretprobe sample replays the bounded skip, return, and summary paths" {
+    const expected_focus = [_]sample.SampleFocus{
+        .symbol_selection,
+        .entry_timestamp,
+        .private_data_shape,
+        .return_duration,
+        .maxactive_budget,
+        .missed_summary,
+        .ownership_and_lifetime,
+    };
+
     var module = sample.KretprobeExampleSample{};
     try module.init();
     const replay = try module.runAnchorReplay();
 
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
     try std.testing.expectEqualStrings("kernel_clone", replay.symbol_name);
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
@@ -24,7 +35,7 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(sample.SampleFocus, &expected_focus, replay.checked_focus);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
