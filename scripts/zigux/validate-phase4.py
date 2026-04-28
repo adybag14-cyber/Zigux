@@ -91,12 +91,10 @@ REQUIRED_WORKFLOW_MARKERS = [
 REQUIRED_DOC_MARKERS = [
     'Current Phase 4 use',
     'python3 scripts/zigux/artifact_diff.py --self-test',
-    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
     'scripts/zigux/validate-phase4.py',
-    'Documentation/zigux/artifact-diff.md',
     'Documentation/zigux/phase4-validation-matrix.md',
     'shared comparison layer that already backs the bounded host-side tools under `scripts/zigux/`',
     'keeps stale expected-output and catalog drift small, auditable, and easy to refresh',
@@ -129,7 +127,6 @@ REQUIRED_TESTS_README_MARKERS = [
 
 REQUIRED_SCRIPT_README_MARKERS = [
     'artifact_diff.py --self-test',
-    'check-artifact-diff-contract.py',
     'make -C zigux phase4-validate',
     'validate-phase4.py',
     'Phase 4 flow',
@@ -143,7 +140,6 @@ REQUIRED_DOC_README_MARKERS = [
     'Phase 4 notes',
     'make -C zigux phase4-validate',
     'python3 scripts/zigux/artifact_diff.py --self-test',
-    'check-artifact-diff-contract.py',
     'validate-phase4.py',
     'phase4-validation-matrix.md',
     'Validate Phase 4 diff gates',
@@ -154,8 +150,11 @@ REQUIRED_DOC_README_MARKERS = [
 
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
-    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'deterministic_preflight_required_for_host_side_diff_tools',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
+    'Phase 4 external CLI-contract replay for host-side tools',
+    'deterministic_cli_contract_required_for_host_side_diff_tools',
+    'outward `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code replay for one stable pass case plus one missing-file failure shape',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'bitmap_diff.zig',
@@ -218,4 +217,458 @@ REQUIRED_PHASE4_BUILD_MARKERS = [
 ]
 
 REQUIRED_RUNTIME_ATOMIC64_MARKERS = [
-    'addUn
+    'addUnlessCounter',
+    'incNotZeroCounter',
+    'decIfPositiveCounter',
+    'add_unless, and inc_not_zero expectations',
+    'checked_guard_paths',
+    'error.InvalidLifecycleTransition, module.incNotZeroCounter()',
+    'runtime atomic64 diff gate keeps post-selftest replay explicit',
+]
+
+REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS = [
+    'phase4_validation_matrix_present',
+    'phase4_build_present',
+    'phase4-runtime-atomic64-diff-gate',
+    'phase4-shared-build-entrypoint',
+    'phase4-validation-matrix-note',
+    'phase4-roadmap-path-alignment',
+    'phase4-broader-atomic64-surface',
+]
+
+REQUIRED_BITMAP_DIFF_MARKERS = [
+    'test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations"',
+    'test_fill_set bitmap_fill rounds 35 bits to one full word',
+    'test_zero_clear bitmap_zero rounds 115 bits to two full words',
+    'test "bitmap diff gate records exact cross-boundary set and clear checks"',
+    'test_fill_set bitmap_set crosses the 79..97 window without disturbing the gap',
+    'test_zero_clear bitmap_clear crosses the 79..97 window without disturbing the prefix',
+    'test "bitmap diff gate records exact full-width fill and zero endpoints"',
+    'test_find_nth_bit starter population',
+    'test "bitmap diff gate records exact bounded copy checks"',
+    'test_copy partial-word tail clearing at 109 bits',
+    'test_copy aligned-on-word-length at 97 bits keeps the stale tail word visible',
+    'test_copy_clear_tail keeps the 109-bit cleared-tail contract explicit',
+    'test "bitmap diff gate records exact bounded find_nth_bit checks"',
+    'test_find_nth_bit full-width nth 7',
+    'test_find_nth_bit truncated-width nth 8 returns nbits',
+    'roundedPrefixLen',
+    'fillPrefix',
+    'zeroPrefix',
+    'copyFrom',
+    'findNthSet',
+    'firstSet',
+    'firstZero',
+    'weight',
+]
+
+
+def read_text(root: Path, relative_path: str) -> str:
+    return (root / relative_path).read_text(encoding='utf-8')
+
+
+def collect_missing_markers(text: str, prefix: str, markers: list[str]) -> list[str]:
+    missing = []
+    for marker in markers:
+        if marker not in text:
+            missing.append(f'{prefix}:{marker}')
+    return missing
+
+
+def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation: dict[str, object]) -> list[str]:
+    gate_heading = f"### `zigux/tests/{gate_name}`"
+    gate_heading_index = phase4_matrix.find(gate_heading)
+    if gate_heading_index == -1:
+        return [f'phase4_matrix:missing_gate_heading:{gate_name}']
+
+    next_heading_index = phase4_matrix.find('\n### `zigux/tests/', gate_heading_index + len(gate_heading))
+    matrix_heading_index = phase4_matrix.find('\n## Lab And CI Matrix', gate_heading_index + len(gate_heading))
+    gate_block_end = matrix_heading_index
+    if next_heading_index != -1 and next_heading_index < matrix_heading_index:
+        gate_block_end = next_heading_index
+    gate_block = phase4_matrix[gate_heading_index:gate_block_end]
+
+    row_prefix = f"| `zigux/tests/{gate_name}` |"
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+
+    missing = []
+    if f"- owner: `{expectation['owner']}`" not in gate_block:
+        missing.append(f"phase4_matrix:owner:{gate_name}:{expectation['owner']}")
+    if f"- rollback owner: `{expectation['rollback_owner']}`" not in gate_block:
+        missing.append(
+            f"phase4_matrix:rollback_owner:{gate_name}:{expectation['rollback_owner']}"
+        )
+    if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}"
+        )
+    exact_check_markers = expectation.get('exact_check_markers')
+    if exact_check_markers is not None:
+        if '- exact bounded checks:' not in gate_block:
+            missing.append(f'phase4_matrix:missing_exact_checks_heading:{gate_name}')
+        for marker in exact_check_markers:
+            if marker not in gate_block:
+                missing.append(f'phase4_matrix:exact_check_marker:{gate_name}:{marker}')
+    if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:threshold_status:{gate_name}:{expectation['threshold_status']}"
+        )
+    if expectation['threshold_scope'] not in gate_block:
+        missing.append(
+            f"phase4_matrix:threshold_scope:{gate_name}:{expectation['threshold_scope']}"
+        )
+    if expectation['gate_scope'] not in row:
+        missing.append(f"phase4_matrix:gate_scope:{gate_name}:{expectation['gate_scope']}")
+    if expectation['threshold_posture'] not in row:
+        missing.append(
+            f"phase4_matrix:threshold_posture:{gate_name}:{expectation['threshold_posture']}"
+        )
+    if expectation['owner'] not in row:
+        missing.append(f"phase4_matrix:matrix_owner:{gate_name}:{expectation['owner']}")
+    if expectation['rollback_owner'] not in row:
+        missing.append(
+            f"phase4_matrix:matrix_rollback_owner:{gate_name}:{expectation['rollback_owner']}"
+        )
+    for local_replay_marker in expectation['local_replay_markers']:
+        if local_replay_marker not in row:
+            missing.append(
+                f"phase4_matrix:local_replay_test:{gate_name}:{local_replay_marker}"
+            )
+    if expectation['reversible_delivery'] not in row:
+        missing.append(
+            f"phase4_matrix:reversible_delivery:{gate_name}:{expectation['reversible_delivery']}"
+        )
+    return missing
+
+
+def check_roadmap_gap_alignment(phase4_matrix: str, item_name: str, expectation: dict[str, str]) -> list[str]:
+    row_prefixes = [
+        f'| `{item_name}`',
+        f'| {item_name} |',
+    ]
+    row = next(
+        (
+            line
+            for line in phase4_matrix.splitlines()
+            if any(line.startswith(prefix) for prefix in row_prefixes)
+        ),
+        '',
+    )
+    if not row:
+        return [f'phase4_matrix:missing_gap_row:{item_name}']
+
+    missing = []
+    for key, fragment in expectation.items():
+        if fragment not in row:
+            missing.append(f'phase4_matrix:gap_{key}:{item_name}:{fragment}')
+    return missing
+
+
+def validate_root(root: Path) -> list[str]:
+    missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
+    if missing_files:
+        return [f'file:{path}' for path in missing_files]
+
+    makefile = read_text(root, 'zigux/Makefile')
+    workflow = read_text(root, '.github/workflows/zigux-bootstrap.yml')
+    artifact_diff = read_text(root, 'scripts/zigux/artifact_diff.py')
+    artifact_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
+    tests_readme = read_text(root, 'zigux/tests/README.md')
+    script_readme = read_text(root, 'scripts/zigux/README.md')
+    doc_readme = read_text(root, 'Documentation/zigux/README.md')
+    phase4_matrix = read_text(root, 'Documentation/zigux/phase4-validation-matrix.md')
+    phase4_build = read_text(root, 'zigux/tests/phase4_build.zig')
+    runtime_atomic64_diff = read_text(root, 'zigux/tests/runtime_atomic64_diff.zig')
+    runtime_atomic64_diff_survey = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig')
+    bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
+
+    missing_markers: list[str] = []
+    missing_markers.extend(collect_missing_markers(makefile, 'make', REQUIRED_MAKE_MARKERS))
+    missing_markers.extend(collect_missing_markers(workflow, 'workflow', REQUIRED_WORKFLOW_MARKERS))
+    missing_markers.extend(collect_missing_markers(artifact_doc, 'doc', REQUIRED_DOC_MARKERS))
+    for group_name, markers in REQUIRED_DOC_MARKER_GROUPS:
+        for marker in markers:
+            if marker not in artifact_doc:
+                missing_markers.append(f'doc_group:{group_name}:{marker}')
+    for marker in FORBIDDEN_DOC_MARKERS:
+        if marker in artifact_doc:
+            missing_markers.append(f'doc_stale:{marker}')
+    missing_markers.extend(
+        collect_missing_markers(tests_readme, 'tests_readme', REQUIRED_TESTS_README_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(script_readme, 'script_readme', REQUIRED_SCRIPT_README_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(doc_readme, 'doc_readme', REQUIRED_DOC_README_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(phase4_matrix, 'phase4_matrix', REQUIRED_PHASE4_MATRIX_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(artifact_diff, 'artifact_diff', REQUIRED_ARTIFACT_DIFF_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(phase4_build, 'phase4_build', REQUIRED_PHASE4_BUILD_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            runtime_atomic64_diff,
+            'runtime_atomic64_diff',
+            REQUIRED_RUNTIME_ATOMIC64_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            runtime_atomic64_diff_survey,
+            'runtime_atomic64_diff_survey',
+            REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
+    )
+
+    for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
+        missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
+
+    for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
+        missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
+
+    return missing_markers
+
+
+def build_phase4_matrix_fixture() -> str:
+    lines = [
+        '# Phase 4 Validation Matrix',
+        '',
+        'This document records the live Phase 4 differential-validation ownership and replay matrix.',
+        '',
+        '## Status',
+        '',
+        '- `PHASE4_STATUS=differential_validation_matrix_landed`',
+        '- current repo reality:',
+        '  - `scripts/zigux/artifact_diff.py`',
+        '  - `zigux/tests/runtime_atomic64_diff.zig`',
+        '  - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`',
+        '  - `zigux/tests/bitmap_diff.zig`',
+        '  - `zigux/tests/phase4_build.zig`',
+        '  - `scripts/zigux/validate-phase4.py`',
+        '  - `.github/workflows/zigux-bootstrap.yml`',
+        '- rollback owner',
+        '- lab and CI matrix',
+        '- reversible delivery evidence',
+        '- perf threshold status',
+        '- Validate Phase 4 diff gates',
+        '- Run Phase 4 diff tests',
+        '- make -C zigux phase4-validate',
+        '- make -C zigux phase4-test',
+        '- scripts/zigux/artifact_diff.py --self-test',
+        '- deterministic_preflight_required_for_host_side_diff_tools',
+        '- phase4-runtime-atomic64-diff-tests',
+        '- phase4-runtime-atomic64-diff-survey-tests',
+        '- phase4-bitmap-diff-tests',
+        '',
+        '## Why this exists',
+        '',
+        '- the bounded rollback owner for each live Phase 4 gate',
+        '- the current perf threshold status for those gates',
+        '- the lab and CI matrix that replays the gates today',
+        '- the reversible-delivery evidence that ties each shipped Zig gate back to its current C anchor if the shared entrypoint has to drop that gate',
+        '- the shared artifact comparator self-test that now runs before the Phase 4 validator claims the rollback-readiness bundle is still aligned',
+        "- the external CLI-contract replay that keeps the current `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code surface reviewable outside the helper's built-in self-test",
+        '- one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head',
+        '- the survey-backed atomic64 replay that keeps the current roadmap-path and broader-surface gaps measurable inside the shared Phase 4 build',
+        '',
+        '## Gate Ownership',
+        '',
+        '### `scripts/zigux/artifact_diff.py --self-test`',
+        '',
+        '- anchor: `scripts/zigux/` host-side diff and layout tooling',
+        '- phase bucket: `Phase 4 deterministic artifact-diff preflight for host-side tools`',
+        '- owner: `Validation and Perf Team`',
+        '- rollback owner: `Validation and Perf Team`',
+        '- fallback path: keep the shared self-test wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the host-side diff tooling is aligned',
+        '- perf threshold status: deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
+        '',
+        '### `python3 scripts/zigux/check-artifact-diff-contract.py`',
+        '',
+        '- anchor: `scripts/zigux/` host-side diff and layout tooling',
+        '- phase bucket: `Phase 4 external CLI-contract replay for host-side tools`',
+        '- owner: `Validation and Perf Team`',
+        '- rollback owner: `Validation and Perf Team`',
+        '- fallback path: keep the external CLI-contract replay wired into `make -C zigux phase4-validate` so one stable pass case and one missing-file failure shape stay reviewable outside the helper-internal self-test',
+        '- perf threshold status: deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
+        '',
+    ]
+
+    for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
+        lines.extend(
+            [
+                f"### `zigux/tests/{gate_name}`",
+                '',
+                f"- owner: `{expectation['owner']}`",
+                f"- rollback owner: `{expectation['rollback_owner']}`",
+                f"- fallback path: {expectation['fallback_path']}",
+            ]
+        )
+        exact_check_markers = expectation.get('exact_check_markers')
+        if exact_check_markers is not None:
+            exact_checks = ', '.join(exact_check_markers)
+            lines.append(f'- exact bounded checks: {exact_checks}')
+        lines.extend(
+            [
+                f"- perf threshold status: {expectation['threshold_status']}",
+                f"- threshold scope: {expectation['threshold_scope']}",
+                '',
+            ]
+        )
+
+    lines.extend(
+        [
+            '## Lab And CI Matrix',
+            '',
+            '| lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | reversible delivery evidence | threshold posture |',
+            '| --- | --- | --- | --- | --- | --- | --- | --- |',
+            '| `scripts/zigux/artifact_diff.py --self-test` | deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the shared self-test before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` replay when the helper changes | `scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks | `deterministic_preflight_required_for_host_side_diff_tools` |',
+            '| `python3 scripts/zigux/check-artifact-diff-contract.py` | outward `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code replay for one stable pass case plus one missing-file failure shape | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the external host-tool contract replay before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/check-artifact-diff-contract.py` replay when the helper CLI contract changes | `scripts/zigux/check-artifact-diff-contract.py` keeps the outward `artifact_diff.py` CLI contract reviewable outside the built-in self-test, and removing it from `phase4-validate` would leave the shipped host-tool rollback packet with only internal helper coverage for that bounded pass/fail surface | `deterministic_cli_contract_required_for_host_side_diff_tools` |',
+        ]
+    )
+
+    for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
+        lines.append(
+            '| `zigux/tests/{gate}` | {purpose} | `{owner}` | `{rollback_owner}` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests` | `make -C zigux phase4-validate`, `make -C zigux phase4-test`, and `{local_replay}` | {reversible_delivery} | `{threshold_posture}` |'.format(
+                gate=gate_name,
+                purpose=expectation['gate_scope'],
+                owner=expectation['owner'],
+                rollback_owner=expectation['rollback_owner'],
+                local_replay=' and '.join(expectation['local_replay_markers']),
+                reversible_delivery=expectation['reversible_delivery'],
+                threshold_posture=expectation['threshold_posture'],
+            )
+        )
+
+    lines.extend(
+        [
+            '',
+            '## Remaining Measurability Gaps Vs Roadmap',
+            '',
+            '| roadmap item | current repo state | measurability gap | next bounded step |',
+            '| --- | --- | --- | --- |',
+        ]
+    )
+    for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
+        lines.append(
+            f"| `{item_name}` | {expectation['current_repo_state']} | {expectation['measurability_gap']} | {expectation['next_bounded_step']} |"
+        )
+
+    return '\n'.join(lines) + '\n'
+
+
+def write_fixture_tree(root: Path) -> None:
+    file_contents = {
+        'scripts/zigux/artifact_diff.py': '\n'.join(REQUIRED_ARTIFACT_DIFF_MARKERS) + '\n',
+        'scripts/zigux/check-artifact-diff-contract.py': "# synthetic contract replay target\n",
+        'scripts/zigux/validate-phase4.py': '# synthetic self-test target\n',
+        'Documentation/zigux/artifact-diff.md': '\n'.join(
+            REQUIRED_DOC_MARKERS
+            + [marker for _, markers in REQUIRED_DOC_MARKER_GROUPS for marker in markers]
+        )
+        + '\n',
+        'Documentation/zigux/phase4-validation-matrix.md': build_phase4_matrix_fixture(),
+        'Documentation/zigux/README.md': '\n'.join(REQUIRED_DOC_README_MARKERS) + '\n',
+        'scripts/zigux/README.md': '\n'.join(REQUIRED_SCRIPT_README_MARKERS) + '\n',
+        'zigux/tests/README.md': '\n'.join(REQUIRED_TESTS_README_MARKERS) + '\n',
+        'zigux/Makefile': '\n'.join(REQUIRED_MAKE_MARKERS) + '\n',
+        '.github/workflows/zigux-bootstrap.yml': '\n'.join(REQUIRED_WORKFLOW_MARKERS) + '\n',
+        'zigux/tests/runtime_atomic64_diff.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_MARKERS) + '\n',
+        'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS) + '\n',
+        'zigux/tests/bitmap_diff.zig': '\n'.join(REQUIRED_BITMAP_DIFF_MARKERS) + '\n',
+        'zigux/tests/phase4_build.zig': '\n'.join(REQUIRED_PHASE4_BUILD_MARKERS) + '\n',
+    }
+
+    for relative_path, content in file_contents.items():
+        target = root / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding='utf-8')
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='zigux_validate_phase4_') as tmp_dir_str:
+        tmp_root = Path(tmp_dir_str)
+        write_fixture_tree(tmp_root)
+
+        missing = validate_root(tmp_root)
+        assert not missing, missing
+
+        makefile = tmp_root / 'zigux/Makefile'
+        makefile.write_text(
+            makefile.read_text(encoding='utf-8').replace(
+                'scripts/zigux/validate-phase4.py --self-test\n',
+                '',
+            ),
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert 'make:scripts/zigux/validate-phase4.py --self-test' in missing, missing
+
+    print('PHASE4_VALIDATOR_SELF_TEST=pass')
+    return 0
+
+
+def required_marker_count() -> int:
+    return (
+        len(REQUIRED_MAKE_MARKERS)
+        + len(REQUIRED_WORKFLOW_MARKERS)
+        + len(REQUIRED_DOC_MARKERS)
+        + sum(len(markers) for _, markers in REQUIRED_DOC_MARKER_GROUPS)
+        + len(FORBIDDEN_DOC_MARKERS)
+        + len(REQUIRED_TESTS_README_MARKERS)
+        + len(REQUIRED_SCRIPT_README_MARKERS)
+        + len(REQUIRED_DOC_README_MARKERS)
+        + len(REQUIRED_PHASE4_MATRIX_MARKERS)
+        + len(REQUIRED_ARTIFACT_DIFF_MARKERS)
+        + len(REQUIRED_PHASE4_BUILD_MARKERS)
+        + len(REQUIRED_RUNTIME_ATOMIC64_MARKERS)
+        + len(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
+        + len(REQUIRED_BITMAP_DIFF_MARKERS)
+        + sum(
+            len(expectation.get('exact_check_markers', []))
+            + len(expectation.get('local_replay_markers', []))
+            for expectation in PHASE4_GATE_EXPECTATIONS.values()
+        )
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description='Validate the Phase 4 diff bundle.')
+    parser.add_argument(
+        '--self-test',
+        action='store_true',
+        help='Run the built-in synthetic marker-contract check.',
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    missing_markers = validate_root(ROOT)
+    if missing_markers:
+        print('PHASE4_VALIDATION=fail')
+        print('MISSING_PHASE4_MARKERS_START')
+        for marker in missing_markers:
+            print(marker)
+        print('MISSING_PHASE4_MARKERS_END')
+        return 1
+
+    print('PHASE4_VALIDATION=pass')
+    print(f'PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}')
+    print(f'PHASE4_REQUIRED_MARKER_COUNT={required_marker_count()}')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
