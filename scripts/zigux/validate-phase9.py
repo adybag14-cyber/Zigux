@@ -153,6 +153,15 @@ required_phase9_build_markers = [
     "phase9-runtime-loader-tests",
     "phase9-runtime-bitmap-loader-tests",
     "phase9-runtime-kretprobe-loader-tests",
+    "phase9-runtime-trace-events-module-tests",
+    "phase9-runtime-trace-events-sample-tests",
+    "phase9-runtime-trace-events-diff-tests",
+    "phase9-runtime-trace-events-survey-tests",
+]
+
+forbidden_phase9_build_markers = [
+    "runtime_trace_events_loader",
+    "phase9-runtime-trace-events-loader-tests",
 ]
 
 required_loader_gap_survey_test_markers = [
@@ -314,6 +323,9 @@ for marker in required_loader_gap_survey_markers:
 for marker in required_phase9_build_markers:
     if marker not in phase9_build:
         missing_markers.append(f"phase9_build:{marker}")
+for marker in forbidden_phase9_build_markers:
+    if marker in phase9_build:
+        missing_markers.append(f"phase9_build_forbidden:{marker}")
 for marker in required_loader_gap_survey_test_markers:
     if marker not in loader_gap_survey_test:
         missing_markers.append(f"loader_gap_survey_test:{marker}")
@@ -354,5 +366,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
 )
