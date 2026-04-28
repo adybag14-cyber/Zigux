@@ -44,9 +44,9 @@ Phase 5 notes
 - the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
 
 Phase 4 notes
-- `make -C zigux phase4-validate` runs `python3 scripts/zigux/artifact_diff.py --self-test` plus `python3 scripts/zigux/validate-phase4.py` before the shared Phase 4 Zig gate.
-- `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `bitmap_diff.zig` rollback gates, the paired `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` and `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` survey packet, the shared `zigux/tests/phase4_build.zig` entrypoint, and the bootstrap workflow aligned.
-- `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, the exact bootstrap workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, the shared `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` build entries that make local replay measurable, and the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate.
+- `make -C zigux phase4-validate` runs `python3 scripts/zigux/artifact_diff.py --self-test` plus `python3 scripts/zigux/validate-phase4.py` before the shared Phase 4 Zig diff gates.
+- `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates, the shared `zigux/tests/phase4_build.zig` entrypoint, the bootstrap workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, and the directly coupled Phase 4 notes aligned.
+- `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, the shared `phase4-runtime-atomic64-diff-tests` and `phase4-bitmap-diff-tests` build entries that make local replay measurable, and the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate.
 
 Phase 6 notes
 - `Documentation/zigux/phase6-base64-slice.md`
