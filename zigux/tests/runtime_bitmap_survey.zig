@@ -80,7 +80,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 5);
-    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 6);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -88,6 +88,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_initial_summary = false;
     var saw_range_mutation_copy = false;
     var saw_selftest_surface = false;
+    var saw_post_selftest_mutation_replay = false;
     var saw_exit_lifecycle = false;
     var saw_bounds_errors = false;
     var saw_zero_length_source_guards = false;
@@ -128,6 +129,13 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expectEqualStrings("selftest_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "clear_set") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iteration_and_ranges") != null);
+        }
+        if (std.mem.eql(u8, check.id, "post-selftest-mutation-replay")) {
+            saw_post_selftest_mutation_replay = true;
+            try std.testing.expectEqualStrings("selftest_lifecycle", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest_complete") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "weight 7") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "copyFrom") != null);
         }
         if (std.mem.eql(u8, check.id, "exit-and-lifecycle-guards")) {
             saw_exit_lifecycle = true;
@@ -260,6 +268,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_initial_summary);
     try std.testing.expect(saw_range_mutation_copy);
     try std.testing.expect(saw_selftest_surface);
+    try std.testing.expect(saw_post_selftest_mutation_replay);
     try std.testing.expect(saw_exit_lifecycle);
     try std.testing.expect(saw_bounds_errors);
     try std.testing.expect(saw_zero_length_source_guards);
