@@ -53,7 +53,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
     try std.testing.expectEqualStrings("P4-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
-    try std.testing.expectEqualStrings("c5e4b230582aa802127d96e4bf11ba03aa82381f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("a92dedede4388d547f584d1f13b2a73237d4b8e8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_destinations[0]);
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 250);
