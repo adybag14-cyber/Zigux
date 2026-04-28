@@ -309,8 +309,8 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
     while (index < args.len) : (index += 1) {
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--")) {
-            try rendered_args.appendSlice(allocator, positional_args.items);
             try rendered_args.append(allocator, arg);
+            try rendered_args.appendSlice(allocator, positional_args.items);
             if (index + 1 < args.len) {
                 try rendered_args.appendSlice(allocator, args[index + 1 ..]);
             }
@@ -590,6 +590,25 @@ test "genksyms bridge ignores positional args while still parsing later options"
                 try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
                 try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
                 try std.testing.expectEqualSlices([]const u8, &.{ "-d", "-r", "foo.symref", "leftover.c", "rightover.h" }, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge permutes prior positionals behind explicit terminator" {
+    const args = &.{ "leftover.c", "-d", "--", "tail.h" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expectEqual(@as(usize, 0), request.reference_files.len);
+                try std.testing.expectEqualSlices([]const u8, args, request.raw_args);
+                try std.testing.expectEqualSlices([]const u8, &.{ "-d", "--", "leftover.c", "tail.h" }, request.rendered_args);
             },
             else => return error.UnexpectedCommand,
         },
