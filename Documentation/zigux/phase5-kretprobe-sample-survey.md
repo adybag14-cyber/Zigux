@@ -48,9 +48,11 @@ The sample intentionally stays small:
 The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
 - the in-memory sample keeps `kernel_clone` as the default symbol name while allowing pre-init retargeting
+- before `init()` the in-memory sample allows retargeting the symbol to `do_sys_openat2` and preserves that choice through initialization without implying `module_param` or runtime registration parity
 - `runAnchorReplay()` checks that an entry with no `current->mm` is skipped instead of arming a tracked instance
 - the in-memory sample keeps a single private entry-timestamp record so the Linux `struct my_data` anchor shape stays explicit as one `i64`-sized word
 - the replay records return value `42` and duration `75 ns` after an entry timestamp of `100` and a return timestamp of `175`
+- `retHandler()` rejects a return timestamp of `199` after an entry timestamp of `200`, then accepts `260` and reports duration `60 ns` while clearing the private entry timestamp
 - the in-memory sample keeps the Linux `maxactive` budget explicit at `20` concurrent instances even though this Phase 5 slice does not model registration-pressure handling
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
@@ -61,7 +63,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, fixed `maxactive`, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, pre-init retargeting, timestamp-order boundary, private-data, return-value, duration, fixed `maxactive`, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
 - does `zigux/tests/phase5_kretprobe_example_manifest.json` still pin the exact surveyed commit for the inspected `master` head instead of a floating branch label?
 - does the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate Phase 9 runtime starter while pointing reviewers at the shared `phase5_build.zig` entrypoint?
 - does the sample keep the Linux `struct my_data`-style private entry timestamp explicit as one `i64`-sized in-memory word instead of hiding the anchor's private-data cue in unstructured state?
@@ -74,7 +76,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise state is:
 
-- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, fixed `maxactive`, summary recording, and teardown
+- the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, pre-init retargeting, skip behavior, private-data shape, timestamp-order rejection and recovery, return timing, fixed `maxactive`, summary recording, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
