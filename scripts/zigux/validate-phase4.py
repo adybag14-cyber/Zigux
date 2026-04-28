@@ -81,6 +81,22 @@ phase4_gate_expectations = {
     },
 }
 
+phase4_tool_expectations = {
+    'scripts/zigux/artifact_diff.py --self-test': {
+        'anchor': '`scripts/zigux/` host-side diff and layout tooling',
+        'phase_bucket': 'Phase 4 deterministic artifact-diff preflight for host-side tools',
+        'owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'fallback_path': 'keep the shared self-test wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the host-side diff tooling is aligned',
+        'threshold_status': 'deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
+        'purpose': 'deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling',
+        'bootstrap_ci_replay': 'workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the shared self-test before the shipped rollback gates',
+        'local_lab_replay': '`make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` replay when the helper changes',
+        'reversible_delivery': '`scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks',
+        'threshold_posture': 'deterministic_preflight_required_for_host_side_diff_tools',
+    },
+}
+
 required_make_markers = [
     'PHONY += phase4-validate phase4-test phase4',
     'phase4-validate:',
@@ -148,6 +164,8 @@ required_doc_readme_markers = [
     'reversible-delivery evidence',
 ]
 required_phase4_matrix_markers = [
+    'scripts/zigux/artifact_diff.py',
+    'scripts/zigux/artifact_diff.py --self-test',
     'runtime_atomic64_diff.zig',
     'bitmap_diff.zig',
     'rollback owner',
@@ -160,6 +178,7 @@ required_phase4_matrix_markers = [
     'make -C zigux phase4-test',
     'phase4-runtime-atomic64-diff-tests',
     'phase4-bitmap-diff-tests',
+    'deterministic_preflight_required_for_host_side_diff_tools',
     'Remaining Measurability Gaps Vs Roadmap',
     'samples/zigux/kprobe_example.zig',
     'samples/zigux/test_fsmount.zig',
@@ -349,6 +368,79 @@ for gate_name, expectation in phase4_gate_expectations.items():
     missing_markers.extend(check_gate_matrix_alignment(gate_name, expectation))
 
 
+def check_tool_matrix_alignment(tool_name: str, expectation: dict[str, str]) -> list[str]:
+    tool_heading = f"### `{tool_name}`"
+    tool_heading_index = phase4_matrix.find(tool_heading)
+    if tool_heading_index == -1:
+        return [f'phase4_matrix:missing_tool_heading:{tool_name}']
+
+    next_heading_index = phase4_matrix.find('\n### `', tool_heading_index + len(tool_heading))
+    matrix_heading_index = phase4_matrix.find('\n## Lab And CI Matrix', tool_heading_index + len(tool_heading))
+    tool_block_end = matrix_heading_index
+    if next_heading_index != -1 and next_heading_index < matrix_heading_index:
+        tool_block_end = next_heading_index
+    tool_block = phase4_matrix[tool_heading_index:tool_block_end]
+
+    row_prefix = f"| `{tool_name}` |"
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+    if not row:
+        return [f'phase4_matrix:missing_tool_row:{tool_name}']
+
+    missing = []
+    if f"- anchor: {expectation['anchor']}" not in tool_block:
+        missing.append(f"phase4_matrix:tool_anchor:{tool_name}:{expectation['anchor']}")
+    if f"- phase bucket: `{expectation['phase_bucket']}`" not in tool_block:
+        missing.append(
+            f"phase4_matrix:tool_phase_bucket:{tool_name}:{expectation['phase_bucket']}"
+        )
+    if f"- owner: `{expectation['owner']}`" not in tool_block:
+        missing.append(f"phase4_matrix:tool_owner:{tool_name}:{expectation['owner']}")
+    if f"- rollback owner: `{expectation['rollback_owner']}`" not in tool_block:
+        missing.append(
+            f"phase4_matrix:tool_rollback_owner:{tool_name}:{expectation['rollback_owner']}"
+        )
+    if f"- fallback path: {expectation['fallback_path']}" not in tool_block:
+        missing.append(
+            f"phase4_matrix:tool_fallback_path:{tool_name}:{expectation['fallback_path']}"
+        )
+    if f"- perf threshold status: {expectation['threshold_status']}" not in tool_block:
+        missing.append(
+            f"phase4_matrix:tool_threshold_status:{tool_name}:{expectation['threshold_status']}"
+        )
+    if expectation['purpose'] not in row:
+        missing.append(f"phase4_matrix:tool_purpose:{tool_name}:{expectation['purpose']}")
+    if expectation['owner'] not in row:
+        missing.append(f"phase4_matrix:tool_matrix_owner:{tool_name}:{expectation['owner']}")
+    if expectation['rollback_owner'] not in row:
+        missing.append(
+            f"phase4_matrix:tool_matrix_rollback_owner:{tool_name}:{expectation['rollback_owner']}"
+        )
+    if expectation['bootstrap_ci_replay'] not in row:
+        missing.append(
+            f"phase4_matrix:tool_bootstrap_ci:{tool_name}:{expectation['bootstrap_ci_replay']}"
+        )
+    if expectation['local_lab_replay'] not in row:
+        missing.append(
+            f"phase4_matrix:tool_local_lab:{tool_name}:{expectation['local_lab_replay']}"
+        )
+    if expectation['reversible_delivery'] not in row:
+        missing.append(
+            f"phase4_matrix:tool_reversible_delivery:{tool_name}:{expectation['reversible_delivery']}"
+        )
+    if expectation['threshold_posture'] not in row:
+        missing.append(
+            f"phase4_matrix:tool_threshold_posture:{tool_name}:{expectation['threshold_posture']}"
+        )
+    return missing
+
+
+for tool_name, expectation in phase4_tool_expectations.items():
+    missing_markers.extend(check_tool_matrix_alignment(tool_name, expectation))
+
+
 def check_roadmap_gap_alignment(item_name: str, expectation: dict[str, str]) -> list[str]:
     row_prefixes = [
         f'| `{item_name}`',
@@ -387,5 +479,5 @@ print('PHASE4_VALIDATION=pass')
 print(f'PHASE4_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE4_REQUIRED_MARKER_COUNT='
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + sum(len(markers) for _, markers in required_doc_marker_groups) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers) + sum(len(expectation.get('exact_check_markers', [])) + (1 if expectation.get('exact_check_markers') is not None else 0) for expectation in phase4_gate_expectations.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_doc_markers) + sum(len(markers) for _, markers in required_doc_marker_groups) + len(forbidden_doc_markers) + len(required_tests_readme_markers) + len(required_script_readme_markers) + len(required_doc_readme_markers) + len(required_phase4_matrix_markers) + len(required_artifact_diff_markers) + len(required_phase4_build_markers) + len(required_runtime_atomic64_markers) + len(required_bitmap_diff_markers) + sum(len(expectation.get('exact_check_markers', [])) + (1 if expectation.get('exact_check_markers') is not None else 0) for expectation in phase4_gate_expectations.values()) + sum(len(expectation) for expectation in phase4_tool_expectations.values())}"
 )
