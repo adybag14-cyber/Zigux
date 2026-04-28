@@ -6,6 +6,7 @@ pub const LoaderStage = runtime_loader.LoaderStage;
 
 pub const RuntimeBitmapLoadPlan = struct {
     module_name: []const u8,
+    command_name: ?[]const u8,
     anchor: []const u8,
     entry_symbol: []const u8,
     exit_symbol: []const u8,
@@ -37,6 +38,7 @@ pub const RuntimeBitmapLoader = struct {
 
         return .{
             .module_name = descriptor.name,
+            .command_name = null,
             .anchor = descriptor.anchor,
             .entry_symbol = "zigux_runtime_bitmap_init",
             .exit_symbol = "zigux_runtime_bitmap_exit",
@@ -83,6 +85,7 @@ pub const RuntimeBitmapLoader = struct {
 pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest {
     return .{
         .module_name = plan.module_name,
+        .command_name = plan.command_name,
         .anchor = plan.anchor,
         .entry_symbol = plan.entry_symbol,
         .exit_symbol = plan.exit_symbol,
@@ -111,6 +114,7 @@ test "runtime bitmap loader prepares a bounded handoff plan from the sample cont
 
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqualStrings("runtime_bitmap", plan.module_name);
+    try std.testing.expectEqual(@as(?[]const u8, null), plan.command_name);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", plan.anchor);
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_init", plan.entry_symbol);
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_exit", plan.exit_symbol);
@@ -184,6 +188,8 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, request.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);
+    try std.testing.expect(request.keepsCommandNameExplicit());
     try std.testing.expect(request.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(request.keepsInitExitContractExplicit());
     try std.testing.expect(request.keepsStageConsistentWithRuntimeSubstrate());
@@ -212,6 +218,8 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     const released = try loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.bitmap, released.lane());
+    try std.testing.expectEqual(@as(?[]const u8, null), released.command_name);
+    try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
     try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(released.keepsInitExitContractExplicit());
