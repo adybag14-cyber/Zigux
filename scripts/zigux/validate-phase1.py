@@ -1,9 +1,144 @@
 #!/usr/bin/env python3
+import json
 from pathlib import Path
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+EXPECTED_PHASE1_FIXTURE_SHAPE = {
+    'find_bit': {
+        'bits_per_long',
+        'first',
+        'next_after_6',
+        'next_after_word',
+        'first_zero',
+        'next_zero',
+        'first_and',
+        'next_and',
+        'tail_clamped_first',
+        'tail_clamped_next',
+        'tail_zero_clamped_first',
+        'tail_zero_clamped_next',
+        'tail_and_clamped_first',
+        'tail_and_clamped_next',
+        'tail_and_mixed_first',
+        'tail_and_mixed_next',
+    },
+    'bitmap': {
+        'weight',
+        'scnprintf',
+        'and_result',
+        'and_values',
+        'andnot_result',
+        'andnot_values',
+        'or_values',
+        'xor_values',
+        'partial_xor_nbits',
+        'partial_xor_masked_values',
+        'scnprintf_empty_len',
+        'scnprintf_empty_bytes',
+        'equal',
+        'intersects',
+        'subset',
+        'range_after_set',
+        'range_after_clear',
+        'full_after_fill',
+        'empty_after_zero',
+        'scnprintf_trunc_len',
+        'scnprintf_trunc',
+    },
+    'string': {
+        'strtobool_y',
+        'strtobool_on',
+        'strtobool_zero',
+        'strtobool_off',
+        'strtobool_invalid',
+        'strlcpy_len',
+        'strlcpy_buffer',
+        'skip_spaces',
+        'trim_spaces',
+        'remove_spaces',
+        'remove_spaces_nul',
+        'remove_spaces_nul_bytes',
+        'replace_char',
+        'replace_char_end',
+        'memchr_inv_index',
+        'memchr_inv_none',
+    },
+    'rbtree': {
+        'empty_root',
+        'insert_order',
+        'reverse_order',
+        'replace_order',
+        'erase_init_order',
+        'postorder_count',
+        'erase_init_node_empty',
+        'cleared_node_empty',
+    },
+    'argv_split': {'argc', 'argv', 'blank_argc'},
+    'cmdline': {'decimal_k', 'hex_m', 'octal_k', 'invalid'},
+    'ctype': {
+        'mask_A',
+        'mask_a',
+        'mask_space',
+        'isalnum_A',
+        'isalpha_z',
+        'isdigit_7',
+        'isspace_tab',
+        'isxdigit_f',
+        'ispunct_bang',
+        'tolower_A',
+        'toupper_z',
+        'isodigit_7',
+        'isodigit_8',
+    },
+    'hweight': {'w8', 'w16', 'w32', 'w64', 'wlong'},
+    'list_sort': {'tri_sorted_keys', 'tri_sorted_ordinals', 'bool_sorted_keys', 'bool_sorted_ordinals'},
+    'zalloc': {'zeroed', 'freed_is_null', 'value_zeroed', 'value_freed_is_null'},
+    'str_error_r': {'enoent', 'unknown'},
+    'slab': {
+        'null_without_reclaim',
+        'alloc_count_after_kmalloc',
+        'zero_after_kmalloc',
+        'alloc_count_after_kmalloc_free',
+        'array_zeroed',
+        'alloc_count_after_kmalloc_array',
+        'alloc_count_after_kmalloc_array_free',
+        'slab_is_available',
+    },
+    'vsprintf': {'scnprintf_text', 'scnprintf_len', 'pad_text', 'pad_len'},
+}
+
+
+def validate_phase1_fixture_shape(path: Path) -> list[str]:
+    issues: list[str] = []
+    fixture = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(fixture, dict):
+        return [f'phase1_fixture:expected_object:{path.relative_to(ROOT)}']
+
+    actual_sections = set(fixture)
+    expected_sections = set(EXPECTED_PHASE1_FIXTURE_SHAPE)
+
+    for name in sorted(expected_sections - actual_sections):
+        issues.append(f'phase1_fixture:missing_top_level:{name}')
+    for name in sorted(actual_sections - expected_sections):
+        issues.append(f'phase1_fixture:unexpected_top_level:{name}')
+
+    for section_name, expected_keys in EXPECTED_PHASE1_FIXTURE_SHAPE.items():
+        section = fixture.get(section_name)
+        if section is None:
+            continue
+        if not isinstance(section, dict):
+            issues.append(f'phase1_fixture:{section_name}:expected_object')
+            continue
+        actual_keys = set(section)
+        for key in sorted(expected_keys - actual_keys):
+            issues.append(f'phase1_fixture:{section_name}:missing_key:{key}')
+        for key in sorted(actual_keys - expected_keys):
+            issues.append(f'phase1_fixture:{section_name}:unexpected_key:{key}')
+
+    return issues
 
 required_files = [
     ROOT / 'tools' / 'lib' / 'bitmap.zig',
@@ -38,6 +173,17 @@ if missing:
     for item in missing:
         print(item)
     print('MISSING_PHASE1_FILES_END')
+    sys.exit(1)
+
+fixture_shape_issues = validate_phase1_fixture_shape(
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json'
+)
+if fixture_shape_issues:
+    print('PHASE1_VALIDATION=fail')
+    print('MISSING_PHASE1_FIXTURE_SHAPE_START')
+    for item in fixture_shape_issues:
+        print(item)
+    print('MISSING_PHASE1_FIXTURE_SHAPE_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
@@ -166,14 +312,14 @@ required_string_manifest_markers = [
     '"tools/lib/string.zig"',
     '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
-    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim stop at the first embedded NUL\\""',
-    '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by stopping at the first embedded NUL before trailing-whitespace trimming or wrapper-alias return slices can drift into later bytes."',
+    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\""',
+    '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
 ]
 required_string_closure_markers = [
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
-    'string alias unit-test anchor: `tools/lib/string.zig:test "skip trim remove and replace spaces work in place"`',
+    'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
-    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string skip_spaces, remove_spaces, strim, strreplace, and memchr_inv aliases stay aligned with skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv, including the embedded-NUL stop behavior that keeps remove_spaces and strreplace from touching trailing bytes past the first terminator',
+    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
 ]
 required_rbtree_helper_markers = [
     'pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
