@@ -16,6 +16,20 @@ Key entrypoints
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
+- `zigux/tests/phase7_build.zig`
+- `zigux/tests/phase7_string_helpers.zig`
+- `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
+- `zigux/tests/phase7_cmdline.zig`
+- `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+- `zigux/tests/phase7_argv_split.zig`
+- `zigux/tests/phase7_argv_split_survey.zig`
+- `zigux/tests/phase7_argv_split_manifest.json`
+- `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
+- `zigux/tests/phase7_rbtree.zig`
+- `zigux/tests/phase7_rbtree_survey.zig`
+- `zigux/tests/phase7_rbtree_manifest.json`
+- `zigux/tests/fixtures/phase7_rbtree.json`
+- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 - `zigux/tests/phase6_build.zig`
 - `zigux/tests/phase6_base64.zig`
 - `zigux/tests/phase6_base64_perf.zig`
@@ -68,6 +82,10 @@ Key entrypoints
 - `scripts/zigux/validate-phase9.py`
 - `scripts/zigux/validate-phase10-closure.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
+- `Documentation/zigux/phase7-string-helpers-slice.md`
+- `Documentation/zigux/phase7-cmdline-slice.md`
+- `Documentation/zigux/phase7-argv-split-slice.md`
+- `Documentation/zigux/phase7-rbtree-slice.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
 - `scripts/zigux/generate-phase3-check-wrappers.py --check`
@@ -87,6 +105,7 @@ Phase 3 fixtures
 Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
+- keep the parked Phase 7 runtime-helper bundle reviewable through `zigux/tests/phase7_build.zig`, the four published slice notes, and the two manifest-backed survey records instead of inventing ad hoc helper-local bootstrap hooks
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
 
