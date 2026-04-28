@@ -117,6 +117,23 @@ pub const MultitouchSlotPlanSummary = struct {
     initializes_slots: bool,
 };
 
+pub const TeardownPlanSummary = struct {
+    anchor: []const u8,
+    ready: bool,
+    queued_event_buffer_count: u16,
+    queued_status_count: usize,
+    suppressed_status_count: usize,
+    config_bitmap_count: usize,
+    abs_info_count: usize,
+    multitouch_enabled: bool,
+    clears_queue_plan_on_reset: bool,
+    clears_status_counters_on_reset: bool,
+    clears_config_on_reset: bool,
+    clears_abs_info_on_reset: bool,
+    clears_multitouch_on_reset: bool,
+    preserves_identity_strings: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -375,6 +392,25 @@ pub const VirtioInputLab = struct {
             .slot_count = @intCast(slot_count_i64),
             .staged_abs_param_count = capability_summary.staged_abs_param_count,
             .initializes_slots = true,
+        };
+    }
+
+    pub fn teardownPlanSummary(self: *const Self) TeardownPlanSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .ready = self.ready,
+            .queued_event_buffer_count = self.queued_event_buffer_count,
+            .queued_status_count = self.queued_status_count,
+            .suppressed_status_count = self.suppressed_status_count,
+            .config_bitmap_count = self.config_bitmap_count,
+            .abs_info_count = self.abs_info_count,
+            .multitouch_enabled = self.multitouch_enabled,
+            .clears_queue_plan_on_reset = true,
+            .clears_status_counters_on_reset = true,
+            .clears_config_on_reset = true,
+            .clears_abs_info_on_reset = true,
+            .clears_multitouch_on_reset = true,
+            .preserves_identity_strings = true,
         };
     }
 
