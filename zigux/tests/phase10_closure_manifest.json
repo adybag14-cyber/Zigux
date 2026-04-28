@@ -90,7 +90,7 @@
   },
   "ready_transport_followups": {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-preflight-helper",
-    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-queue-register-helper"
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-config-write-helper"
   },
   "landed_core_helper_evidence": {
     "zigux/tests/phase10_virtio_core_manifest.json": [
