@@ -214,24 +214,22 @@ pub fn setRange(map: []Word, start: usize, len: usize) void {
     }
 
     assertBitmapLen(map, start + len);
-    var ptr = start / bits_per_long;
-    const size = start + len;
-    var remaining = len;
-    var bits_to_set = bits_per_long - (start % bits_per_long);
-    var mask_to_set = firstWordMask(start);
+    const end = start + len;
+    const first = start / bits_per_long;
+    const last = (end - 1) / bits_per_long;
+    const first_mask = firstWordMask(start);
+    const last_mask = lastWordMask(end);
 
-    while (remaining >= bits_to_set) {
-        map[ptr] |= mask_to_set;
-        remaining -= bits_to_set;
-        bits_to_set = bits_per_long;
-        mask_to_set = ~@as(Word, 0);
-        ptr += 1;
+    if (first == last) {
+        map[first] |= first_mask & last_mask;
+        return;
     }
 
-    if (remaining != 0) {
-        mask_to_set &= lastWordMask(size);
-        map[ptr] |= mask_to_set;
+    map[first] |= first_mask;
+    if (last > first + 1) {
+        @memset(map[first + 1 .. last], ~@as(Word, 0));
     }
+    map[last] |= last_mask;
 }
 
 pub fn clearRange(map: []Word, start: usize, len: usize) void {
@@ -240,24 +238,22 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
     }
 
     assertBitmapLen(map, start + len);
-    var ptr = start / bits_per_long;
-    const size = start + len;
-    var remaining = len;
-    var bits_to_clear = bits_per_long - (start % bits_per_long);
-    var mask_to_clear = firstWordMask(start);
+    const end = start + len;
+    const first = start / bits_per_long;
+    const last = (end - 1) / bits_per_long;
+    const first_mask = firstWordMask(start);
+    const last_mask = lastWordMask(end);
 
-    while (remaining >= bits_to_clear) {
-        map[ptr] &= ~mask_to_clear;
-        remaining -= bits_to_clear;
-        bits_to_clear = bits_per_long;
-        mask_to_clear = ~@as(Word, 0);
-        ptr += 1;
+    if (first == last) {
+        map[first] &= ~(first_mask & last_mask);
+        return;
     }
 
-    if (remaining != 0) {
-        mask_to_clear &= lastWordMask(size);
-        map[ptr] &= ~mask_to_clear;
+    map[first] &= ~first_mask;
+    if (last > first + 1) {
+        @memset(map[first + 1 .. last], 0);
     }
+    map[last] &= ~last_mask;
 }
 
 fn appendSlice(buffer: []u8, written: *usize, text: []const u8) void {
@@ -346,6 +342,28 @@ test "bitmap set clear weight and empty full helpers" {
 
     fill(&map, bits_per_long * 2);
     try std.testing.expect(full(&map, bits_per_long * 2));
+}
+
+test "bitmap range helpers preserve edges across whole-word spans" {
+    const start = bits_per_long - 2;
+    const len = bits_per_long * 2 + 4;
+    var map = [_]Word{
+        0,
+        0,
+        0,
+        0,
+        0,
+    };
+
+    setRange(&map, start, len);
+    try std.testing.expectEqual(@as(Word, firstWordMask(start)), map[0]);
+    try std.testing.expectEqual(~@as(Word, 0), map[1]);
+    try std.testing.expectEqual(~@as(Word, 0), map[2]);
+    try std.testing.expectEqual(lastWordMask(start + len), map[3]);
+    try std.testing.expectEqual(@as(Word, 0), map[4]);
+
+    clearRange(&map, start, len);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0, 0, 0, 0 }, &map);
 }
 
 test "bitmap copy preserves source words and clears copied tail through source state" {
