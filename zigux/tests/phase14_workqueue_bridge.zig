@@ -58,7 +58,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
-    try std.testing.expectEqualStrings("007f00d0c6b6b430bfbb2110555544cc5faefe8b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("1b346dbd77659625fedfdc2a45f5016e391043f8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.workqueue_c_lines >= 8400);
     try std.testing.expect(manifest.survey_summary.workqueue_internal_h_lines >= 80);
@@ -72,6 +72,15 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_survey_note_present);
     try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=1b346dbd77659625fedfdc2a45f5016e391043f8") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -236,7 +245,7 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
     try std.testing.expectEqual(@as(usize, 13), workqueue_bridge.WorkqueueBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "drain_workqueue()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueBridgeLab.nextAuditFocus(), "__cancel_work_sync()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, workqueue_bridge.WorkqueueLab.nextAuditFocus(), "__cancel_work_sync()") != null);
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expectEqualStrings("pool->last_progress_ts", audit.checkpoints[1].observed_fields[0]);
     try std.testing.expectEqualStrings("max-active-ordering-gate", audit.checkpoints[2].id);
