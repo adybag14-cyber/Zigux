@@ -80,7 +80,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("05a762ea272fa488b877178987418c54c030b239", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("18c599511ce987dd281180374587be44f5ea0fc6", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
