@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-checklist-roadmap-phase-rationale-return-to-blocked-sync`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and one bounded return-to-blocked review-rule follow-up that keeps the already-landed roadmap-phase and written-rationale checklist sync inside the same explicit Architecture Council packet
-- survey provenance refreshed against verified `master` head `cbcc511944ba62eb6b0a6d73a0a041a6c2d38089`
+- survey provenance refreshed against verified `master` head `3de513715c19db0afdb00d4580301a908a3594d6`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -98,7 +98,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L06` keeps the review-process handoff synced by landing one explicit automatic return-to-blocked trigger rule on top of the already-landed roadmap-phase and written-rationale checklist sync, without reopening nearby README ownership or parity-scorecard evidence work
+- current bounded lane: `P15-L08` keeps the review-process handoff synced by landing one explicit automatic return-to-blocked trigger rule on top of the already-landed roadmap-phase and written-rationale checklist sync, without reopening nearby README ownership or parity-scorecard evidence work
 - maintenance-mode next step: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
