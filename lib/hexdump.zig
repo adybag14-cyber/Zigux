@@ -269,6 +269,15 @@ const TruncatingWriter = struct {
     }
 };
 
+fn referenceHexToBin(ch: u8) i32 {
+    return switch (ch) {
+        '0'...'9' => ch - '0',
+        'a'...'f' => ch - 'a' + 10,
+        'A'...'F' => ch - 'A' + 10,
+        else => -1,
+    };
+}
+
 const test_data_b = [_]u8{
     0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
     0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
@@ -287,6 +296,14 @@ test "hexToBin accepts digits and both alphabetic cases" {
     try std.testing.expectEqual(@as(i32, 15), hexToBin('F'));
     try std.testing.expectEqual(@as(i32, -1), hexToBin('g'));
     try std.testing.expectEqual(@as(i32, -1), hexToBin('/'));
+}
+
+test "hexToBin matches the full byte classification matrix" {
+    var raw: u16 = 0;
+    while (raw <= 0xff) : (raw += 1) {
+        const ch: u8 = @intCast(raw);
+        try std.testing.expectEqual(referenceHexToBin(ch), hexToBin(ch));
+    }
 }
 
 test "hex2bin and bin2hex round-trip payloads" {
