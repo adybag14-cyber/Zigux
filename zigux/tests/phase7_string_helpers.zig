@@ -118,6 +118,44 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
 }
 
+test "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules" {
+    var any = [_]u8{0} ** 8;
+    const any_len = string_helpers.stringUnescapeAny("\\n\\x41", &any, any.len);
+    try std.testing.expectEqual(@as(usize, 2), any_len);
+    try std.testing.expectEqualSlices(u8, "\nA", any[0..any_len]);
+
+    var any_inplace = [_]u8{ '\\', '0', '4', '0', 0, '?', '?' };
+    const any_inplace_len = string_helpers.stringUnescapeAnyInplace(&any_inplace);
+    try std.testing.expectEqual(@as(usize, 1), any_inplace_len);
+    try std.testing.expectEqualSlices(u8, " ", any_inplace[0..any_inplace_len]);
+    try std.testing.expectEqual(@as(u8, 0), any_inplace[any_inplace_len]);
+    try std.testing.expectEqual(@as(u8, '?'), any_inplace[5]);
+
+    var flagged_inplace = [_]u8{ '\\', 'n', 0, '?', '?' };
+    const flagged_inplace_len = string_helpers.stringUnescapeInplace(&flagged_inplace, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 1), flagged_inplace_len);
+    try std.testing.expectEqualSlices(u8, "\n", flagged_inplace[0..flagged_inplace_len]);
+    try std.testing.expectEqual(@as(u8, 0), flagged_inplace[flagged_inplace_len]);
+
+    var str_out = [_]u8{ '?', '?', '?', '?', '?', '?', '?', '?', '?' };
+    const str_len = string_helpers.stringEscapeStr("A\n\x00tail", &str_out, str_out.len, string_helpers.ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 8), str_len);
+    try std.testing.expectEqualSlices(u8, "\\x41\\x0a", str_out[0..str_len]);
+    try std.testing.expectEqual(@as(u8, '?'), str_out[str_len]);
+
+    var str_any_np = [_]u8{ '?', '?', '?', '?', '?' };
+    const str_any_np_len = string_helpers.stringEscapeStrAnyNp("A\n\x00tail", &str_any_np, str_any_np.len, null);
+    try std.testing.expectEqual(@as(usize, 3), str_any_np_len);
+    try std.testing.expectEqualSlices(u8, "A\\n", str_any_np[0..str_any_np_len]);
+    try std.testing.expectEqual(@as(u8, '?'), str_any_np[str_any_np_len]);
+
+    var mem_any_np = [_]u8{ '?', '?', '?', '?', '?' };
+    const mem_any_np_len = string_helpers.stringEscapeMemAnyNp("\n", &mem_any_np, null);
+    try std.testing.expectEqual(@as(usize, 2), mem_any_np_len);
+    try std.testing.expectEqualSlices(u8, "\\n", mem_any_np[0..mem_any_np_len]);
+    try std.testing.expectEqual(@as(u8, '?'), mem_any_np[mem_any_np_len]);
+}
+
 test "phase 7 stringEscapeMem covers the bounded escape subset" {
     var out = [_]u8{0} ** 64;
 
