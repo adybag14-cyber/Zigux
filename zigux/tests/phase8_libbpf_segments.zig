@@ -31,6 +31,8 @@ const Manifest = struct {
     segments: []const Segment,
 };
 
+const expected_surveyed_commit = "66f1975bcbd96c5a3ea19b49deacc1ec348360c3";
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "starter_landed") or
@@ -82,7 +84,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
-    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "246d0135fa18a1af90bf7d6e516ae4a7b2ac262a"));
+    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
@@ -231,6 +233,7 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
     try expectContains(survey_note, "blocked object-model");
+    try expectContains(survey_note, expected_surveyed_commit);
     try expectContains(survey_note, "skeleton");
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "online CPU filtering");
