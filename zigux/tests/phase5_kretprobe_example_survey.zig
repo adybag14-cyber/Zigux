@@ -44,19 +44,22 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_docs_prompt = false;
     var saw_private_data_prompt = false;
     var saw_maxactive_prompt = false;
+    var saw_exact_contract_prompt = false;
     var saw_symbol_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_private_data_check = false;
     var saw_maxactive_check = false;
     var saw_symbol_check = false;
+    var saw_retarget_check = false;
     var saw_duration_check = false;
+    var saw_timestamp_order_check = false;
     var saw_exit_check = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -81,6 +84,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         {
             saw_maxactive_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "pre-init retargeting") != null and
+            std.mem.indexOf(u8, prompt, "timestamp-order") != null and
+            std.mem.indexOf(u8, prompt, "missed-summary") != null)
+        {
+            saw_exact_contract_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "pre-init") != null and
             std.mem.indexOf(u8, prompt, "module_param") != null)
         {
@@ -102,6 +111,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_symbol_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "kernel_clone") != null);
         }
+        if (std.mem.eql(u8, check.id, "pre-init-retargeting")) {
+            saw_retarget_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "do_sys_openat2") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "module_param") != null);
+        }
         if (std.mem.eql(u8, check.id, "private-data-shape")) {
             saw_private_data_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "my_data") != null);
@@ -111,6 +125,13 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_duration_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retval 42") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "75 ns") != null);
+        }
+        if (std.mem.eql(u8, check.id, "timestamp-order-boundary")) {
+            saw_timestamp_order_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "199") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "200") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "260") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "60 ns") != null);
         }
         if (std.mem.eql(u8, check.id, "maxactive-budget")) {
             saw_maxactive_check = true;
@@ -133,12 +154,15 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_maxactive_prompt);
+    try std.testing.expect(saw_exact_contract_prompt);
     try std.testing.expect(saw_symbol_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_maxactive_check);
     try std.testing.expect(saw_symbol_check);
+    try std.testing.expect(saw_retarget_check);
     try std.testing.expect(saw_duration_check);
+    try std.testing.expect(saw_timestamp_order_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
@@ -180,8 +204,9 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "private entry timestamp") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "my_data") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "do_sys_openat2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "199") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "260") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "recordMissedInstance()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "entryHandler()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "retHandler()") != null);
