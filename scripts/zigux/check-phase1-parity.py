@@ -170,6 +170,7 @@ def main() -> int:
 
         exe = tmp_dir / ('phase1_helpers_c_harness.exe' if os.name == 'nt' else 'phase1_helpers_c_harness')
         actual = tmp_dir / 'phase1_helpers.actual.json'
+        repeat = tmp_dir / 'phase1_helpers.repeat.json'
 
         compile_and_run(tmp_dir, exe, actual, compiler, include_flags(shim_dir))
 
@@ -181,7 +182,10 @@ def main() -> int:
 
         diff_cmd = [sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(FIXTURE), str(actual)]
         run(diff_cmd, cwd=str(ROOT))
+        compile_and_run(tmp_dir, exe, repeat, compiler, include_flags(shim_dir))
+        run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(actual), str(repeat)], cwd=str(ROOT))
         print('PHASE1_PARITY=pass')
+        print('PHASE1_PARITY_DETERMINISM=pass')
         print(f'FIXTURE={FIXTURE}')
         return 0
 
