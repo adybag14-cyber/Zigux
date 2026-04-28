@@ -34,9 +34,13 @@ pub const ReplaySummary = struct {
     anchor: []const u8,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
+    initial_string_copy_count: usize,
     len_after_initial_fill: usize,
     first_out: [5]u8,
+    first_drain_count: usize,
     second_out: [2]u8,
+    second_drain_count: usize,
+    requeue_count: usize,
     skipped_byte: u8,
     peek_value: u8,
     preview_len: usize,
@@ -168,11 +172,14 @@ pub const BytestreamFifoSample = struct {
         const len_after_initial_fill = self.count();
 
         var first_out: [5]u8 = undefined;
-        if (self.dequeueSlice(first_out[0..]) != first_out.len) return error.UnexpectedFirstDrainCount;
+        const first_drain_count = self.dequeueSlice(first_out[0..]);
+        if (first_drain_count != first_out.len) return error.UnexpectedFirstDrainCount;
 
         var second_out: [2]u8 = undefined;
-        if (self.dequeueSlice(second_out[0..]) != second_out.len) return error.UnexpectedSecondDrainCount;
-        if (self.enqueueSlice(second_out[0..]) != second_out.len) return error.UnexpectedRequeueCount;
+        const second_drain_count = self.dequeueSlice(second_out[0..]);
+        if (second_drain_count != second_out.len) return error.UnexpectedSecondDrainCount;
+        const requeue_count = self.enqueueSlice(second_out[0..]);
+        if (requeue_count != second_out.len) return error.UnexpectedRequeueCount;
 
         const skipped = self.skipByte() orelse return error.UnexpectedSkipOnEmpty;
 
@@ -198,9 +205,13 @@ pub const BytestreamFifoSample = struct {
             .anchor = descriptor().anchor,
             .stage_before_replay = .initialized,
             .stage_after_replay = .replay_complete,
+            .initial_string_copy_count = hello_len,
             .len_after_initial_fill = len_after_initial_fill,
             .first_out = first_out,
+            .first_drain_count = first_drain_count,
             .second_out = second_out,
+            .second_drain_count = second_drain_count,
+            .requeue_count = requeue_count,
             .skipped_byte = skipped,
             .peek_value = peek_value,
             .preview_len = preview_len,
@@ -271,9 +282,13 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     }
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 5), replay.initial_string_copy_count);
     try std.testing.expectEqual(@as(usize, 15), replay.len_after_initial_fill);
     try std.testing.expectEqualStrings("hello", replay.first_out[0..]);
+    try std.testing.expectEqual(@as(usize, 5), replay.first_drain_count);
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
+    try std.testing.expectEqual(@as(usize, 2), replay.second_drain_count);
+    try std.testing.expectEqual(@as(usize, 2), replay.requeue_count);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
     try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
