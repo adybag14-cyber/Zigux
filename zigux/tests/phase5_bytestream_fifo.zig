@@ -26,9 +26,13 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
 
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 5), replay.initial_string_copy_count);
     try std.testing.expectEqual(@as(usize, 15), replay.len_after_initial_fill);
     try std.testing.expectEqualStrings("hello", replay.first_out[0..]);
+    try std.testing.expectEqual(@as(usize, 5), replay.first_drain_count);
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
+    try std.testing.expectEqual(@as(usize, 2), replay.second_drain_count);
+    try std.testing.expectEqual(@as(usize, 2), replay.requeue_count);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
     try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
