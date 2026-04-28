@@ -90,7 +90,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
     try std.testing.expectEqualStrings("4e45e5a392cca82429228d42d89c480fd413042b", manifest.surveyed_commit);
@@ -307,8 +307,8 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "freeze-in-C") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Roadmap boundary map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey lane `P14-L16`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L16") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane around `kernel/rcu/tree.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.zig`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=4e45e5a392cca82429228d42d89c480fd413042b") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against verified `master` head `4e45e5a392cca82429228d42d89c480fd413042b`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
