@@ -43,6 +43,10 @@ Phase 2 is only considered closed when all of the following are green:
 
 2. bounded fixdep artifact parity
 - `python3 scripts/zigux/check-fixdep-diff.py`
+- committed fixdep evidence now includes the primary, multi-target, escaped-whitespace, concatenated-depfile, comment-only, missing-dependency, and stdout write-failure cases under `zigux/tests/fixtures/fixdep/`
+- the bounded stdout write-failure proof is anchored by `zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`, which keeps the C-style `fixdep: not all data was written to the output` exit-1 surface explicit inside the closed Phase 2 packet
+- `PHASE2_FIXDEP_CASE_COUNT=7`
+- `PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt`
 
 3. bounded genksyms CRC artifact parity
 - `python3 scripts/zigux/check-genksyms-crc-diff.py`
