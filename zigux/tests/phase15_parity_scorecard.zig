@@ -190,7 +190,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("621356c2c80367701a16a5845f186163207b9a65", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
@@ -445,9 +445,9 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_archive_reporting);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
-    try std.testing.expect(saw_anchor_owner_tracking);
-    try std.testing.expect(saw_retirement_rule);
-    try std.testing.expect(saw_reopen_trigger_followup);
+    try std.testing.expect(saw_anchor_ownerTracking);
+    try std.testing.expect(saw_retirementRule);
+    try std.testing.expect(saw_reopenTrigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
     try std.testing.expect(saw_readme_governance_index);
     try std.testing.expect(saw_maintenance_mode_handoff);
@@ -519,6 +519,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     const skbuff_header_lines = try countLinesInRepoFile(io_instance.io(), "include/linux/skbuff.h", 1024 * 1024);
 
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "PHASE15_LANE_KEY=P15-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
