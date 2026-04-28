@@ -14,7 +14,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
-- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add`
+- `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
 - `PHASE3_MMIO_SCOPE=range-read16-read32-write16-write32-plus-scoped-read16-write16-read32-write32`
 - scope: first permanent C/Zigux boundary only
@@ -101,7 +101,7 @@ Unsafe policy:
 - focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps panic, allocator, interop-policy unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
 
 Low-level wrapper survey:
-- atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
+- atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state
 - MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read16`, `read32`, `write16`, and `write32`, plus scoped `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer
 - focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps those documented layout, panic, allocator, atomic, barrier, MMIO, and narrow-unsafe helpers on their own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
