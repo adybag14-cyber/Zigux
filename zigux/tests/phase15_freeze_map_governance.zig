@@ -53,7 +53,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("9f4c19ac36fd6bcaf184e9c528750cd7d973b5fa", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("177c4179368f23f670c6e68678fcde4869199700", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
@@ -120,9 +120,9 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-note")) {
             saw_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wider shared Phase 15 replay as clean") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review-process and handoff README readers drifted") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "narrower freeze-map packet still replays locally") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "older maintenance snapshot") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 15 governance replay green") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "deep-core blocker posture still stays parked") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-build-gate")) {
             saw_build = true;
@@ -242,14 +242,12 @@ test "phase 15 freeze-map governance note and checklist record the current block
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no Architecture Council decision record currently claims a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-clean-on-current-master`: no") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "wider shared Phase 15 bundle is currently drifted") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15_architecture_council_review_process.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15_handoff_next_steps.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "error.StreamTooLong") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "not in `phase15_parity_scorecard.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "make -C zigux phase15` currently fails") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "shared README read limits") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-clean-on-current-master`: yes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "broader shared Phase 15 bundle are runnable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "13/13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "16/16") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-failure-cause`: `none`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "shared Phase 15 governance bundle is green while the deep-core blocker posture remains unchanged") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "dedicated freeze-map governance-packet drift gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the freeze-map governance packet") != null);
