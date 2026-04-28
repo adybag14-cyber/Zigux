@@ -78,14 +78,16 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("3d734fefe5c64e29bed0dc38d69f64cae45be7ba", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("05a762ea272fa488b877178987418c54c030b239", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
     try std.testing.expectEqualStrings("include/linux/acpi_amd_wbrf.h", manifest.anchors[2]);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "shared helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "libfs, devres, and Landlock") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "generic notifier header anchors") != null);
 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase3_build_present);
@@ -131,6 +133,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, acpi_wbrf_header_text, "int amd_wbrf_register_notifier(struct notifier_block *nb);") != null);
     try std.testing.expect(std.mem.indexOf(u8, acpi_wbrf_header_text, "int amd_wbrf_unregister_notifier(struct notifier_block *nb);") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier ABI surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "roadmap-adjacent reviewability evidence only") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "list and hlist view surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "driver-local notifier/list anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier header anchor") != null);
@@ -159,7 +162,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         try std.testing.expect(isAllowedStatus(gap.status));
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
-        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface")) preexisting_phase3_count += 1;
+        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface") ) preexisting_phase3_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_header_surface")) preexisting_header_count += 1;
