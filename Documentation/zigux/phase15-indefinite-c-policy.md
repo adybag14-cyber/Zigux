@@ -70,6 +70,7 @@ When an anchor is recorded under the indefinite-C policy, the reviewable record 
 - the validation gate summary, the current benchmark-notes status, the evidence archive path, and the replay command reviewers should use
 - the latest blocker disposition and the written rationale for why the anchor remains in C
 - the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change
+- the automatic return-to-blocked trigger that makes stale evidence, missing record fields, or rollback-threshold drift send the anchor back to blocked review posture
 - the reopen triggers and the parity scorecard link or blocker record that keep the closed packet reviewable later
 - the explicit non-goals that keep the packet from widening into deep-core delivery
 
