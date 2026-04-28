@@ -12,6 +12,8 @@ Key entrypoints
 - `zigux/tests/runtime_atomic64_diff.zig`
 - `zigux/tests/bitmap_diff.zig`
 - `zigux/tests/phase4_build.zig`
+- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
+- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
