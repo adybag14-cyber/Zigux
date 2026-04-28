@@ -1,7 +1,5 @@
 const std = @import("std");
 
-// Mirror the Phase 3 ABI unsafe-scope tags locally so this helper stays
-// self-contained inside the existing narrow unsafe module wiring.
 pub const UnsafeScopeTag = enum(u8) {
     none = 0,
     volatile_mmio = 1,
@@ -26,6 +24,36 @@ pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
 
 pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {
     return scope == .raw_pointer_bridge;
+}
+
+pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {
+    if (reserved != 0) {
+        return null;
+    }
+    return switch (unsafe_scope) {
+        @intFromEnum(UnsafeScopeTag.none) => .none,
+        @intFromEnum(UnsafeScopeTag.volatile_mmio) => .volatile_mmio,
+        @intFromEnum(UnsafeScopeTag.raw_pointer_bridge) => .raw_pointer_bridge,
+        else => null,
+    };
+}
+
+pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return switch (scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false) {
+        .volatile_mmio => true,
+        else => false,
+    };
+}
+
+pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return switch (scopeFromInteropPolicyBytes(unsafe_scope, reserved) orelse return false) {
+        .raw_pointer_bridge => true,
+        else => false,
+    };
+}
+
+pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) != null;
 }
 
 pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {
@@ -82,6 +110,26 @@ test "phase3 narrow unsafe scope stays explicit" {
     try std.testing.expect(!permitsRawPointerBridge(.none));
     try std.testing.expect(!permitsRawPointerBridge(.volatile_mmio));
     try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
+}
+
+test "phase3 narrow unsafe interop policy decoding stays explicit" {
+    try std.testing.expectEqual(UnsafeScopeTag.volatile_mmio, scopeFromInteropPolicyBytes(1, 0).?);
+    try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
+    try std.testing.expect(permitsVolatileMmioPolicyBytes(1, 0));
+    try std.testing.expect(!permitsRawPointerBridgePolicyBytes(1, 0));
+
+    try std.testing.expectEqual(UnsafeScopeTag.raw_pointer_bridge, scopeFromInteropPolicyBytes(2, 0).?);
+    try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
+    try std.testing.expect(!permitsVolatileMmioPolicyBytes(2, 0));
+    try std.testing.expect(permitsRawPointerBridgePolicyBytes(2, 0));
+
+    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicyBytes(9, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
+    try std.testing.expect(!permitsVolatileMmioPolicyBytes(9, 0));
+    try std.testing.expect(!permitsRawPointerBridgePolicyBytes(9, 0));
+
+    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicyBytes(0, 1));
+    try std.testing.expect(!recognizesInteropPolicyBytes(0, 1));
 }
 
 test "phase3 scoped unsafe helpers require the declared scope" {
