@@ -377,6 +377,7 @@ def validate_kconfig_checker_confdata_gate(checker_script: Path) -> list[str]:
         'confdata_bridge_constant': "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
         'confdata_bridge_compile': 'compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',
         'confdata_cases_loop': "for case in CASES['confdata_cases']:",
+        'confdata_case_order_gate': 'UNSORTED_CONFDATA_CASE_ORDER',
         'confdata_bridge_replay': "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
     }
 
