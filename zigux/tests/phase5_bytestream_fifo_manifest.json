@@ -14,7 +14,7 @@
   ],
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate false while provides_selfcheck stays true, and names the fixed embedded storage backing used by the sample",
-    "the manifest, reference-pattern list, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
+    "the manifest, reference-pattern list, survey test, and sample-backed survey note still describe the exact queue-order replay, replay-preview prefix, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "phase5_bytestream_fifo.zig still keeps the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and reset behavior stay reviewable outside the main replay path",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "the review checklist still points reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared phase5_build.zig entrypoint for this exact replay contract",
@@ -40,6 +40,11 @@
       "id": "skip-and-peek",
       "kind": "queue_state",
       "expected": "skipping the next byte removes 2 and peeking afterward observes 3 without draining it"
+    },
+    {
+      "id": "replay-preview-prefix",
+      "kind": "reviewable_snapshot",
+      "expected": "before the full non-destructive snapshot, the replay exposes a truncated 8-byte preview prefix [3,4,5,6,7,8,9,0] from the wrapped 32-byte queue while leaving the full anchor-order snapshot available for later review"
     },
     {
       "id": "snapshot-before-final-drain",
