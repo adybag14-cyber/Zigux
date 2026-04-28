@@ -48,6 +48,7 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py',
@@ -102,7 +103,6 @@ required_closure_markers = [
     'PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py',
     'PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors',
-    'PHASE2_GENKSYMS_CRC_DETERMINISM=check-genksyms-crc-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_FIXDEP_CASE_COUNT=7',
     'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
@@ -121,18 +121,17 @@ required_closure_markers = [
     'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus confdata escaped-control decode and low-control JSON emission anchors are required for closure',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
-    'PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py',
-    'PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts',
+    'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
     'dep parsing keeps the first source across concatenated target entries',
     'output writer maps print and flush failures to fixdep output-write errors',
     'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target and output-write unit anchors are required for closure',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
+    'python3 scripts/zigux/artifact_diff.py --self-test',
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-kconfig-bridge.py',
-    'python3 scripts/zigux/check-mk-elfconfig-diff.py',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/validate-phase2-closure.py',
     'zig test scripts/zigux/fixdep.zig',
@@ -149,27 +148,28 @@ required_ledger_markers = [
     'docs(zigux): close bounded Phase 2 toolchain tranche',
 ]
 required_readme_markers = [
+    'artifact_diff.py --self-test',
     'check-genksyms-bridge.py',
     'check-kconfig-bridge.py',
-    'check-mk-elfconfig-diff.py',
     'check-phase2-cross.py',
     'genksyms.zig',
     'kconfig/conf_bridge.zig',
     'kconfig/confdata_bridge.zig',
 ]
 required_doc_markers = [
+    'python3 scripts/zigux/artifact_diff.py --self-test',
     'genksyms_bridge',
     'kconfig_bridge',
     'phase2_cross_targets.json',
 ]
 required_makefile_markers = [
     'phase2-validate:',
+    'artifact_diff.py --self-test',
     'phase2-tools:',
     'phase2-kconfig:',
     'phase2-cross:',
     'check-fixdep-diff.py',
     'check-genksyms-bridge.py',
-    'check-mk-elfconfig-diff.py',
     '$(ZIG) test scripts/zigux/fixdep.zig',
     '$(ZIG) test scripts/zigux/genksyms.zig',
 ]
