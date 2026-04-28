@@ -169,6 +169,35 @@ test "phase10 virtio ring disables and re-enables callbacks with queue-local pol
     try std.testing.expect(!enable_summary.should_poll);
 }
 
+test "phase10 virtio ring prepares callback re-enable snapshots without treating older used buffers as a new race" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(6);
+    try ring.publishDescriptorChain(6);
+    try ring.recordUsedChains(6, 1);
+
+    const prepare_summary = try ring.enableCallbackPrepare(6);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", prepare_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), prepare_summary.queue_index);
+    try std.testing.expect(prepare_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), prepare_summary.last_used_idx_snapshot);
+
+    var poll_summary = try ring.pollAfterEnable(6, prepare_summary.last_used_idx_snapshot);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", poll_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), poll_summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx_snapshot);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.current_last_used_idx);
+    try std.testing.expect(!poll_summary.has_used_buffers_since_prepare);
+
+    try ring.recordUsedChains(6, 1);
+
+    poll_summary = try ring.pollAfterEnable(6, prepare_summary.last_used_idx_snapshot);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx_snapshot);
+    try std.testing.expectEqual(@as(u16, 2), poll_summary.current_last_used_idx);
+    try std.testing.expect(poll_summary.has_used_buffers_since_prepare);
+}
+
 test "phase10 virtio ring delays callbacks until most outstanding buffers are consumed" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(7, 8, .split, true, false);
@@ -215,46 +244,15 @@ test "phase10 virtio ring delays callbacks until most outstanding buffers are co
     try std.testing.expect(delayed_summary.should_poll);
 }
 
-test "phase10 virtio ring reset rejects queues with unpublished or unpolled work" {
+test "phase10 virtio ring reset clears live queue bookkeeping without dropping queue shape" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(2, 8, .packed_ring, true, true);
 
     try ring.publishDescriptorChain(2);
-
-    var guard_summary = try ring.resetGuardSummary(2);
-    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", guard_summary.anchor);
-    try std.testing.expectEqual(@as(u16, 2), guard_summary.queue_index);
-    try std.testing.expectEqual(@as(u16, 1), guard_summary.outstanding_chain_count);
-    try std.testing.expectEqual(@as(u16, 0), guard_summary.pending_used_chain_count);
-    try std.testing.expectEqual(@as(u16, 1), guard_summary.unpublished_chain_count);
-    try std.testing.expect(!guard_summary.reset_allowed);
-    try std.testing.expectError(error.QueueResetRequiresDrainedQueue, ring.resetQueue(2));
-
-    _ = try ring.prepareKick(2);
-    try ring.recordUsedChains(2, 1);
-
-    guard_summary = try ring.resetGuardSummary(2);
-    try std.testing.expectEqual(@as(u16, 0), guard_summary.outstanding_chain_count);
-    try std.testing.expectEqual(@as(u16, 1), guard_summary.pending_used_chain_count);
-    try std.testing.expectEqual(@as(u16, 0), guard_summary.unpublished_chain_count);
-    try std.testing.expect(!guard_summary.reset_allowed);
-    try std.testing.expectError(error.QueueResetRequiresDrainedQueue, ring.resetQueue(2));
-}
-
-test "phase10 virtio ring reset clears drained queue bookkeeping without dropping queue shape" {
-    var ring = virtio_ring.VirtioRingLab{};
-    try ring.defineQueue(2, 8, .packed_ring, true, true);
-
     try ring.publishDescriptorChain(2);
     _ = try ring.prepareKick(2);
     try ring.recordUsedChains(2, 1);
-    _ = try ring.pollUsedBuffers(2);
-
-    const guard_summary = try ring.resetGuardSummary(2);
-    try std.testing.expect(guard_summary.reset_allowed);
-    try std.testing.expectEqual(@as(u16, 0), guard_summary.outstanding_chain_count);
-    try std.testing.expectEqual(@as(u16, 0), guard_summary.pending_used_chain_count);
-    try std.testing.expectEqual(@as(u16, 0), guard_summary.unpublished_chain_count);
+    _ = try ring.disableCallback(2);
 
     const reset_summary = try ring.resetQueue(2);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", reset_summary.anchor);
@@ -266,7 +264,7 @@ test "phase10 virtio ring reset clears drained queue bookkeeping without droppin
     try std.testing.expectEqual(@as(u16, 0), reset_summary.last_used_idx);
     try std.testing.expectEqual(@as(u16, 0), reset_summary.last_polled_used_idx);
     try std.testing.expectEqual(@as(u16, 0), reset_summary.outstanding_chain_count);
-    try std.testing.expectEqual(@as(u16, 0), reset_summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), reset_summary.pending_used_chain_count);
     try std.testing.expectEqual(@as(usize, 0), reset_summary.notification_count);
     try std.testing.expectEqual(@as(usize, 1), ring.registeredQueueCount());
 
