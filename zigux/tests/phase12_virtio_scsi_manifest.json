@@ -68,7 +68,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner, recovery helper, probe snapshot, host-limit summary, and io-queue-map summaries against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner, recovery helper, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map summaries against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
@@ -82,14 +82,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around poll-queue clamping, stable global virtqueue indexes, the bounded freeze or restore contract, and the new host-limit summary helper that clamps cmd_per_lun before any Scsi_Host registration work."
+      "why_now": "Dedicated driver tests now keep the starter honest around poll-queue clamping, stable global virtqueue indexes, the bounded freeze or restore contract, the host-limit summary helper that clamps cmd_per_lun, and the queue-depth summary helper that mirrors `virtscsi_change_queue_depth()` before any Scsi_Host registration work."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-slice.md",
-      "why_now": "The slice note records exactly what the queue-layout, probe snapshot, host-limit summary, and io-queue-map starters cover so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
+      "why_now": "The slice note records exactly what the queue-layout, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters cover so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
     },
     {
       "id": "phase12-virtio-scsi-raw-github-fallback-catalog",
@@ -113,6 +113,13 @@
       "why_now": "The landed host-limit summary helper now takes the probe snapshot one step farther by clamping cmd_per_lun against a synthetic `can_queue` and recording the derived `max_target`, `max_lun`, `max_sectors`, and `nr_hw_queues` values before any `scsi_host_alloc()`, `scsi_add_host()`, `scsi_scan_host()`, blk-mq mapping, or DMA-backed request flow is attempted."
     },
     {
+      "id": "phase12-virtio-scsi-queue-depth-summary-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The landed queue-depth summary helper now reuses the bounded host-limit summary to mirror `virtscsi_change_queue_depth()`, clamping a requested depth against effective `cmd_per_lun` while keeping `track_queue_depth` reviewable before any live `Scsi_Host` registration, blk-mq submission, or DMA-backed request flow is attempted."
+    },
+    {
       "id": "phase12-virtio-scsi-io-queue-map-summary-starter",
       "status": "starter_landed",
       "kind": "complex_driver_starter",
@@ -124,7 +131,7 @@
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
-      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), live blk-mq queue mapping callbacks, PM freeze or restore wiring, and DMA-backed request flow remain blocked even though the smaller probe snapshot, host-limit summary, and io-queue-map helpers are now landed."
+      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), live blk-mq queue mapping callbacks, PM freeze or restore wiring, and DMA-backed request flow remain blocked even though the smaller probe snapshot, host-limit summary, queue-depth summary, and io-queue-map helpers are now landed."
     }
   ]
 }
