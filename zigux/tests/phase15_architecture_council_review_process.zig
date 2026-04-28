@@ -67,7 +67,7 @@ test "phase 15 architecture council review-process manifest records current trig
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("65cb45dda5ca7fc760207a4ca711397bc7894e9e", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("cbcc511944ba62eb6b0a6d73a0a041a6c2d38089", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -78,7 +78,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("owner", manifest.ownership_evidence_fields[0]);
     try std.testing.expectEqualStrings("rollback owner", manifest.ownership_evidence_fields[1]);
@@ -144,7 +144,7 @@ test "phase 15 architecture council review-process manifest records current trig
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), landed_count);
+    try std.testing.expectEqual(@as(usize, 13), landed_count);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -171,7 +171,7 @@ test "phase 15 architecture council review-process note stays aligned with check
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(24 * 1024),
+        .limited(40 * 1024),
     );
     defer std.testing.allocator.free(docs_root);
 
@@ -196,9 +196,11 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current bounded lane: `P15-L12`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "current roadmap phase") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet refresh both the current lane owner and the rollback owner before active review resumes?") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state, the indefinite-C policy link or explicit non-applicability note, and the reopen triggers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "written rationale") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/freeze-map.md") != null);
@@ -208,7 +210,10 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-evidence-archives/") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "make -C zigux phase15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "maintenance mode") != null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, docs_root, "maintenance mode") != null or
+            std.mem.indexOf(u8, docs_root, "maintenance-mode bundle") != null,
+    );
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "deep-core blocker posture") != null);
 }
