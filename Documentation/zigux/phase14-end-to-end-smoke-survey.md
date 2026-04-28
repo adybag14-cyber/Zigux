@@ -17,7 +17,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4`
 - `PHASE14_STAY_IN_C_BOUNDARY=explicit`
 - `PHASE14_STATUS_CHANGE_CLAIM=no`
-- survey provenance captured against verified `master` head `05b7de54039c875e09b27425f57b73945232aa03`
+- survey provenance captured against verified `master` head `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
   - `scripts/zigux/README.md`
@@ -38,7 +38,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 
 ## Exact evidence captured
 
-- verified `master` head: `05b7de54039c875e09b27425f57b73945232aa03`
+- verified `master` head: `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
@@ -56,7 +56,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `1b346dbd77659625fedfdc2a45f5016e391043f8`, ready-next `phase14-workqueue-drain-cancel-followup`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-validate-xmit-republish-followup`, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `d78223d3f1a386521769795b1cff384d83cb6a3a`, blocked `phase14-ring-buffer-zig-port-blocker`
-  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L14`, surveyed commit `4e45e5a392cca82429228d42d89c480fd413042b`, blocked `phase14-rcu-tree-bridge-blocker`
+  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L16`, surveyed commit `4e45e5a392cca82429228d42d89c480fd413042b`, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
 
@@ -96,6 +96,7 @@ This shared smoke slice does not claim:
 
 2. run the focused Phase 14 smoke shard
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
+- `make -C zigux phase14-smoke`
 
 3. run the convenience targets
 - `make -C zigux phase14`
