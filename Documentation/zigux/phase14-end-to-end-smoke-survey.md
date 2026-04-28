@@ -39,6 +39,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Exact evidence captured
 
 - verified `master` head: `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
+- shared smoke manifest surveyed commit: `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
