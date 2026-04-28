@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L13",
   "phase": "Phase 12",
-  "surveyed_commit": "1ce18b1897d996a4585c22f74da05b1103b2c617",
+  "surveyed_commit": "13dfd68ad1609c7bd68240e8210121640e877698",
   "anchor": "tools/lib/bpf/libbpf.c",
   "roadmap_destinations": [
     "tools/lib/bpf/zigux_segments/",
@@ -111,11 +111,18 @@
       "why_now": "The shared segment catalog already isolates skeleton population as the nearest post-helper libbpf cluster, but it still depends on `bpf_object`, `bpf_map`, and `bpf_program` model parity that the repo has not started yet."
     },
     {
-      "id": "phase12-libbpf-object-loader-and-program-load",
-      "status": "blocked_on_object_model",
+      "id": "phase12-libbpf-object-and-elf-loader",
+      "status": "deferred_high_risk",
       "kind": "core_loader",
       "zigux_destination": "tools/lib/bpf/zigux_segments/object_loader.zig",
-      "why_now": "ELF collection, loader setup, relocation recording, and load-time verifier interactions remain a broader follow-on risk even after the nearer skeleton-population cluster, so the roadmap keeps this heavier slice blocked behind more object-model progress."
+      "why_now": "ELF collection and the surrounding object-loader setup are still the first place libbpf segmentation could collapse into mirror-tree sprawl, so this heavier slice should stay deferred until the helper-first and skeleton-adjacent surfaces are proven."
+    },
+    {
+      "id": "phase12-libbpf-btf-relocation-and-program-load",
+      "status": "deferred_high_risk",
+      "kind": "verifier_facing",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/relocation.zig",
+      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions remain the densest libbpf surface, so the Phase 12 survey should keep that boundary explicit instead of blurring it into the broader object-loader bucket."
     }
   ]
 }
