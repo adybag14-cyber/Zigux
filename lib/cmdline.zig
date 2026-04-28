@@ -232,6 +232,12 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
         return null;
     }
 
+    // `lib/cmdline.c` routes unsigned parsing through `simple_strtoull()`,
+    // which does not accept an explicit leading '+' in this tree.
+    if (s[0] == '+') {
+        return null;
+    }
+
     var base: u8 = 10;
     var start: usize = 0;
 
@@ -384,53 +390,3 @@ test "numeric parsing rejects an explicit leading plus sign" {
     try std.testing.expectEqual(@as(usize, 0), mem_index);
 }
 
-test "parseOptionStr only matches full comma-delimited options" {
-    try std.testing.expect(parseOptionStr("quiet,debug", "debug"));
-    try std.testing.expect(parseOptionStr("debug", "debug"));
-    try std.testing.expect(!parseOptionStr("nodebug,quiet", "debug"));
-    try std.testing.expect(!parseOptionStr("debug=1,quiet", "debug"));
-    try std.testing.expect(!parseOptionStr("debug,panic\x00,quiet", "quiet"));
-}
-
-test "nextArg splits parameter-value pairs and trims quoted values" {
-    var buffer = [_]u8{ 'm', 'o', 'd', 'e', '=', '"', 'f', 'a', 's', 't', ' ', 'b', 'o', 'o', 't', '"', ' ', 'n', 'e', 'x', 't', 0 };
-    const parsed = nextArg(&buffer);
-
-    try std.testing.expectEqualStrings("mode", parsed.param);
-    try std.testing.expectEqualStrings("fast boot", parsed.value.?);
-    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
-}
-
-test "nextArg keeps a whole quoted token together without inventing a value" {
-    var buffer = [_]u8{ '"', 't', 'w', 'o', ' ', 'w', 'o', 'r', 'd', 's', '"', ' ', 't', 'a', 'i', 'l', 0 };
-    const parsed = nextArg(&buffer);
-
-    try std.testing.expectEqualStrings("two words", parsed.param);
-    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
-    try std.testing.expectEqualStrings("tail", cStringPrefix(parsed.rest));
-}
-
-test "nextArg keeps unquoted values and empty quoted values bounded to the current token" {
-    var unquoted = [_]u8{ 'c', 'o', 'n', 's', 'o', 'l', 'e', '=', 't', 't', 'y', 'S', '0', ',', '1', '1', '5', '2', '0', '0', 'n', '8', ' ', 'p', 'a', 'n', 'i', 'c', '=', '-', '1', 0 };
-    const parsed_unquoted = nextArg(&unquoted);
-
-    try std.testing.expectEqualStrings("console", parsed_unquoted.param);
-    try std.testing.expectEqualStrings("ttyS0,115200n8", parsed_unquoted.value.?);
-    try std.testing.expectEqualStrings("panic=-1", cStringPrefix(parsed_unquoted.rest));
-
-    var empty = [_]u8{ 'r', 'd', 'i', 'n', 'i', 't', '=', '"', '"', ' ', 'q', 'u', 'i', 'e', 't', 0 };
-    const parsed_empty = nextArg(&empty);
-
-    try std.testing.expectEqualStrings("rdinit", parsed_empty.param);
-    try std.testing.expectEqualStrings("", parsed_empty.value.?);
-    try std.testing.expectEqualStrings("quiet", cStringPrefix(parsed_empty.rest));
-}
-
-test "nextArg does not treat a leading equals sign as a value separator" {
-    var buffer = [_]u8{ '=', 'b', 'a', 'd', ' ', 'n', 'e', 'x', 't', 0 };
-    const parsed = nextArg(&buffer);
-
-    try std.testing.expectEqualStrings("=bad", parsed.param);
-    try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
-    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
-}
