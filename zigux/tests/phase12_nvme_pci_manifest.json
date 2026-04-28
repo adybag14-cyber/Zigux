@@ -105,11 +105,18 @@
       "why_now": "The landed pointer-selection helper now records the bounded PRP-versus-SGL decision surface around admin-versus-I/O queues, page-gap forcing, user-command forcing, integrity-segment forcing, and average-segment threshold preference without claiming live descriptor allocation or DMA mapping."
     },
     {
+      "id": "phase12-nvme-pci-recovery-replay-helper",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The landed recovery-replay helper now records which cached PRP-shape and pointer-selection plans become stale across reset generations, how many I/O queues were dropped by reset, whether admin-queue planning must be replayed, and when queue numbering restarts, without claiming live timeout handling, IRQ-driven completion recovery, or PCI queue reinitialization."
+    },
+    {
       "id": "phase12-nvme-pci-live-queue-and-dma",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked even though the smaller PRP buffer-shape and pointer-selection helpers are now landed and the roadmap-approved DMA-safe transport substrate is still missing."
+      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked even though the smaller PRP buffer-shape, pointer-selection, and recovery-replay helpers are now landed and the roadmap-approved DMA-safe transport substrate is still missing."
     }
   ]
 }
