@@ -59,6 +59,27 @@ pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {
     return buf;
 }
 
+pub fn skipSpaces(str: []const u8) []const u8 {
+    const prefix = cStringPrefix(str);
+    var start: usize = 0;
+    while (start < prefix.len and std.ascii.isWhitespace(prefix[start])) : (start += 1) {}
+    return prefix[start..];
+}
+
+pub fn strim(buf: []u8) []u8 {
+    const prefix_len = cStringPrefixMutable(buf).len;
+    var end = prefix_len;
+
+    while (end > 0 and std.ascii.isWhitespace(buf[end - 1])) : (end -= 1) {}
+    if (end < buf.len) {
+        buf[end] = 0;
+    }
+
+    var start: usize = 0;
+    while (start < end and std.ascii.isWhitespace(buf[start])) : (start += 1) {}
+    return buf[start..end];
+}
+
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     std.debug.assert(src.len >= count);
 
@@ -514,6 +535,24 @@ test "strreplace mutates in place without touching bytes after NUL" {
 
     try std.testing.expectEqualStrings("a_b", cStringPrefix(returned));
     try std.testing.expectEqual(@as(u8, '-'), buffer[4]);
+}
+
+test "skipSpaces and strim preserve C-string whitespace semantics" {
+    try std.testing.expectEqualStrings("value", skipSpaces(" \t\nvalue\x00tail"));
+    try std.testing.expectEqual(skipSpaces(" \t\n\x00tail").len, 0);
+
+    var trimmed = [_]u8{ ' ', '\t', 'o', 'k', '\n', ' ', 0, 'x' };
+    const strimmed = strim(&trimmed);
+    try std.testing.expectEqualStrings("ok", strimmed);
+    try std.testing.expectEqual(@as(u8, 0), trimmed[4]);
+    try std.testing.expectEqual(@as(u8, 0), trimmed[6]);
+    try std.testing.expectEqual(@as(u8, 'x'), trimmed[7]);
+
+    var all_space = [_]u8{ ' ', '\n', '\t', 0, 'x' };
+    const empty = strim(&all_space);
+    try std.testing.expectEqual(@as(usize, 0), empty.len);
+    try std.testing.expectEqual(@as(u8, 0), all_space[0]);
+    try std.testing.expectEqual(@as(u8, 'x'), all_space[4]);
 }
 
 test "memcpyAndPad matches the bounded copy-and-pad contract" {
