@@ -90,16 +90,29 @@ test "phase 6 bsearch exposes a mutable pointer when searching mutable storage" 
     try std.testing.expectEqual(@as(u32, 22), values[3]);
 }
 
-test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {
-    const values = [_]u32{ 2, 7, 7, 7, 12, 18 };
-    const index = bsearch.searchIndex(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
-    const found = bsearch.search(u32, u32, &@as(u32, 7), values[0..], compareU32) orelse return error.TestUnexpectedResult;
-    const found_index = (@intFromPtr(found) - @intFromPtr(&values[0])) / @sizeOf(u32);
+test "phase 6 bsearch treats duplicate keys as found-or-null across beginning middle and end runs" {
+    const cases = [_]struct {
+        values: [6]u32,
+        needle: u32,
+        lower: usize,
+        upper: usize,
+    }{
+        .{ .values = .{ 7, 7, 7, 12, 18, 24 }, .needle = 7, .lower = 0, .upper = 2 },
+        .{ .values = .{ 2, 7, 7, 7, 12, 18 }, .needle = 7, .lower = 1, .upper = 3 },
+        .{ .values = .{ 2, 7, 12, 18, 18, 18 }, .needle = 18, .lower = 3, .upper = 5 },
+    };
 
-    try std.testing.expect(index >= 1 and index <= 3);
-    try std.testing.expectEqual(@as(u32, 7), values[index]);
-    try std.testing.expect(found_index >= 1 and found_index <= 3);
-    try std.testing.expectEqual(@as(u32, 7), found.*);
+    for (cases) |case| {
+        const values = case.values;
+        const index = bsearch.searchIndex(u32, u32, &case.needle, values[0..], compareU32) orelse return error.TestUnexpectedResult;
+        const found = bsearch.search(u32, u32, &case.needle, values[0..], compareU32) orelse return error.TestUnexpectedResult;
+        const found_index = (@intFromPtr(found) - @intFromPtr(&values[0])) / @sizeOf(u32);
+
+        try std.testing.expect(index >= case.lower and index <= case.upper);
+        try std.testing.expectEqual(case.needle, values[index]);
+        try std.testing.expect(found_index >= case.lower and found_index <= case.upper);
+        try std.testing.expectEqual(case.needle, found.*);
+    }
 }
 
 test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {
