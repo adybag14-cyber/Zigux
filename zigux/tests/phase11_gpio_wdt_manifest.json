@@ -1,7 +1,7 @@
 {
-  "lane_key": "P11-L04",
+  "lane_key": "P11-L01",
   "phase": "Phase 11",
-  "surveyed_commit": "3103a2e543ccd94822276b2892f6a9d24f025ca9",
+  "surveyed_commit": "0d1e336cf006e5477fc18df7df0f91520aebd647",
   "anchor": "drivers/watchdog/gpio_wdt.c",
   "roadmap_destinations": [
     "drivers/watchdog/*.zig",
@@ -81,11 +81,18 @@
       "why_now": "The starter now adds a tiny registration-facing handoff summary so review can see whether startup state, stop policy, timeout init, and reboot bookkeeping reach watchdog-core registration before any live GPIO or platform glue."
     },
     {
+      "id": "phase11-gpio-wdt-registration-plan-followup",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "The starter now records the first chosen registration surface and validation focus so review can see that the lane is still limited to watchdog-device metadata planning rather than a real `devm_watchdog_register_device()` call or live GPIO glue."
+    },
+    {
       "id": "phase11-gpio-wdt-platform-registration",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Platform-driver registration, GPIO descriptor acquisition, watchdog core registration, and reboot integration remain blocked until the lane grows a slightly richer hardware-validation plan and chooses a real registration surface."
+      "why_now": "Platform-driver registration, GPIO descriptor acquisition, watchdog core registration, and reboot integration remain blocked until the lane advances beyond metadata planning to a real register-device call surface with a slightly richer hardware-validation plan."
     }
   ]
 }
