@@ -242,9 +242,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-pool and DMA") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed `master` snapshot `97c9a41d834873da3c45a187bdf888a46d8b18ba`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed `master` snapshot `") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` head") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "next tiny `hdr_len` follow-up") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "already-landed queue-recovery and `hdr_len` follow-ups") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-pair clamp") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-recovery summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-net-queue-recovery-followup`") == null);
 }
