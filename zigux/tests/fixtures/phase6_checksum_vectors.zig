@@ -37,6 +37,14 @@ pub const CarryDisciplineCase = struct {
     expected_compute: u16,
 };
 
+pub const KunitRandomPrefixCase = struct {
+    name: []const u8,
+    bytes: []const u8,
+    seed: u32,
+    expected_partial: u32,
+    expected_compute: u16,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     len: usize,
@@ -59,6 +67,16 @@ const all_ones_odd = [_]u8{0xff};
 const all_ones_even = [_]u8{ 0xff, 0xff };
 const no_carry_single = [_]u8{0x04};
 const no_carry_pair = [_]u8{ 0x04, 0x04 };
+const kunit_random_prefix_source = [_]u8{
+    0xac, 0xd7, 0x76, 0x69, 0x6e, 0xf2, 0x93, 0x2c,
+    0x1f, 0xe0, 0xde, 0x86, 0x8f, 0x54, 0x33, 0x90,
+    0x95, 0xbf, 0xff, 0xb9, 0xea, 0x62, 0x6e, 0xb5,
+    0xd3, 0x4f, 0xf5, 0x60, 0x50, 0x5c, 0xc7, 0xfa,
+    0x6d, 0x1a, 0xc7, 0xf0, 0xd2, 0x2c, 0x12, 0x3d,
+    0x88, 0xe3, 0x14, 0x21, 0xb1, 0x5e, 0x45, 0x31,
+    0xa2, 0x85, 0x36, 0x76, 0xba, 0xd8, 0xad, 0xbb,
+    0x9e, 0x49, 0x8f, 0xf7, 0xce, 0xea, 0xef, 0xca,
+};
 
 pub const compute_cases = [_]ComputeCase{
     .{
@@ -170,6 +188,51 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
         .seed = 0xffff_f7f7,
         .expected_partial = 0xfbfb,
         .expected_compute = 0x0404,
+    },
+};
+
+pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{
+    .{
+        .name = "kunit random prefix len 0",
+        .bytes = kunit_random_prefix_source[0..0],
+        .seed = 0x8402ab7a,
+        .expected_partial = 0x2f7d,
+        .expected_compute = 0xd082,
+    },
+    .{
+        .name = "kunit random prefix len 1",
+        .bytes = kunit_random_prefix_source[0..1],
+        .seed = 0x8402ab7a,
+        .expected_partial = 0xdb7d,
+        .expected_compute = 0x2482,
+    },
+    .{
+        .name = "kunit random prefix len 2",
+        .bytes = kunit_random_prefix_source[0..2],
+        .seed = 0x8402ab7a,
+        .expected_partial = 0xdc54,
+        .expected_compute = 0x23ab,
+    },
+    .{
+        .name = "kunit random prefix len 5",
+        .bytes = kunit_random_prefix_source[0..5],
+        .seed = 0x8402ab7a,
+        .expected_partial = 0xc0be,
+        .expected_compute = 0x3f41,
+    },
+    .{
+        .name = "kunit random prefix len 31",
+        .bytes = kunit_random_prefix_source[0..31],
+        .seed = 0x8402ab7a,
+        .expected_partial = 0xe4c8,
+        .expected_compute = 0x1b37,
+    },
+    .{
+        .name = "kunit random prefix len 64",
+        .bytes = kunit_random_prefix_source[0..64],
+        .seed = 0x8402ab7a,
+        .expected_partial = 0xc153,
+        .expected_compute = 0x3eac,
     },
 };
 
