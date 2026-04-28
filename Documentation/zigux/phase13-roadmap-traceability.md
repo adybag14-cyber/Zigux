@@ -21,6 +21,15 @@ Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
 
+Current shared replay inventory recorded in `zigux/tests/phase13_build.zig`:
+- `phase13-libfs-tests`
+- `phase13-devres-tests`
+- `phase13-landlock-ruleset-tests`
+- `phase13-landlock-syscalls-tests`
+- `phase13-libfs-reviewability-tests`
+- `phase13-devres-reviewability-tests`
+- `phase13-notifier-list-reviewability-tests`
+
 Adjacent Phase 13 reviewability evidence already present on `master`:
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
@@ -35,6 +44,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_libfs.zig`
 - reviewability gate: `zigux/tests/phase13_libfs_reviewability.zig`
 - manifest: `zigux/tests/phase13_libfs_manifest.json`
+- manifest `surveyed_commit`: `de4608e6d7660ef469a327e5053a7a2dc932be71`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice notes: `Documentation/zigux/phase13-libfs-slice.md`
 - survey note: `Documentation/zigux/phase13-libfs-survey.md`
@@ -57,6 +67,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_devres.zig`
 - reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
 - manifest: `zigux/tests/phase13_devres_manifest.json`
+- manifest `surveyed_commit`: `7f50505d85ecd5e25afa9d833310cc24002de8ae`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-devres-slice.md`
 - survey note: `Documentation/zigux/phase13-devres-survey.md`
@@ -90,6 +101,7 @@ Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- manifest `surveyed_commit`: `4ee5cca6c2c1219fc6f267d3817d1dd0ef37e066`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-ruleset-survey.md`
@@ -112,6 +124,7 @@ Current repo evidence:
 - implementation anchor: `security/landlock/syscalls.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- manifest `surveyed_commit`: `05a762ea272fa488b877178987418c54c030b239`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
@@ -133,6 +146,8 @@ Traceability summary:
 What is fully traceable today:
 - the roadmap-to-repo path for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
 - the shared Phase 13 tranche entrypoints through `zigux/tests/phase13_build.zig` and `make -C zigux phase13`
+- the exact shared replay inventory of seven named test or reviewability steps inside `zigux/tests/phase13_build.zig`
+- the per-anchor manifest `surveyed_commit` anchors for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
 - the current landed versus blocked follow-ups for all four manifest-backed roadmap anchors
 
 What is additionally reviewable today without being a new roadmap anchor:
