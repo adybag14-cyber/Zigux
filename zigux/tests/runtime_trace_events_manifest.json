@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L09",
   "phase": "Phase 9",
-  "surveyed_commit": "8f1c853bbcdf4320164e0622ac77fe9d9fb8bc49",
+  "surveyed_commit": "9f47d4dbed0d88369fcc47af39bf72c49d47ecbc",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -21,8 +21,93 @@
   "review_prompts": [
     "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit instead of implying a live trace-events loader or ring-buffer parity",
     "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, payload-summary visibility, and the frozen runtime-substrate boundary",
+    "the manifest-backed delivery catalog and ownership map still keep the sample, module gate, diff gate, survey gate, shared build entrypoint, survey note, and freeze-map boundary in one reviewable packet",
     "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
     "broader runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring stay blocked until a separate runtime-substrate lane lands a real handoff"
+  ],
+  "delivery_evidence_catalog": [
+    {
+      "id": "runtime-trace-events-sample",
+      "kind": "sample_starter",
+      "path": "samples/zigux/runtime_trace_events.zig",
+      "role": "owns the bounded trace-events starter descriptor, lifecycle surface, diagnostics summary, and shipped selftest hook"
+    },
+    {
+      "id": "runtime-trace-events-module-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_trace_events_module.zig",
+      "role": "owns the dedicated lifecycle, summary-surface, and failed-exit rollback checks for the runtime trace-events starter"
+    },
+    {
+      "id": "runtime-trace-events-diff-gate",
+      "kind": "differential_validation",
+      "path": "zigux/tests/runtime_trace_events_diff.zig",
+      "role": "owns the bounded payload and function-callback replay checks against the Linux trace-events sample anchor"
+    },
+    {
+      "id": "runtime-trace-events-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_trace_events_survey.zig",
+      "role": "owns the machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary"
+    },
+    {
+      "id": "runtime-trace-events-manifest",
+      "kind": "manifest",
+      "path": "zigux/tests/runtime_trace_events_manifest.json",
+      "role": "owns the manifest-backed delivery catalog, ownership map, exact checks, and non-goal packet for the Phase 9 trace-events slice"
+    },
+    {
+      "id": "phase9-trace-events-build-gate",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "role": "owns the shared Phase 9 runtime bundle entrypoint that keeps the trace-events starter replayable with the other runtime pilot slices"
+    },
+    {
+      "id": "runtime-trace-events-survey-note",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "role": "owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the trace-events survey packet"
+    },
+    {
+      "id": "runtime-trace-events-freeze-map",
+      "kind": "governance",
+      "path": "Documentation/zigux/freeze-map.md",
+      "role": "owns the study-only `kernel/trace/ring_buffer.c` boundary and the Architecture Council reopen rule for trace-core status changes"
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "samples/zigux/runtime_trace_events.zig",
+      "owns": "bounded trace-events starter descriptor, lifecycle surface, diagnostics summary, and shipped selftest hook"
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_module.zig",
+      "owns": "dedicated lifecycle, summary-surface, and failed-exit rollback checks for the runtime trace-events starter"
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_diff.zig",
+      "owns": "bounded payload and function-callback replay checks against the Linux trace-events sample anchor"
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_survey.zig",
+      "owns": "machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary"
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_manifest.json",
+      "owns": "manifest-backed delivery catalog, ownership map, exact checks, and non-goal packet for the Phase 9 trace-events slice"
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "owns": "shared Phase 9 runtime bundle entrypoint for the trace-events starter"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "owns": "lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the trace-events survey packet"
+    },
+    {
+      "surface": "Documentation/zigux/freeze-map.md",
+      "owns": "study-only `kernel/trace/ring_buffer.c` boundary and the Architecture Council reopen rule for trace-core status changes"
+    }
   ],
   "exact_checks": [
     {
