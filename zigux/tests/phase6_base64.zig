@@ -82,7 +82,7 @@ test "phase 6 base64 standard encode parity matches kernel vectors" {
 
 test "phase 6 base64 variant alphabets match the kernel mappings" {
     for (fixtures.variant_cases) |case| {
-        try expectEncode(&fixtures.variant_sample, case.expected, case.padding, fixtureVariant(case.variant_name));
+        try expectEncode(case.input, case.expected, case.padding, fixtureVariant(case.variant_name));
     }
 }
 
@@ -113,7 +113,7 @@ test "phase 6 base64 exact-fit buffers work across fixture vectors" {
     }
 
     for (fixtures.variant_cases) |case| {
-        try expectExactEncodeBuffer(&fixtures.variant_sample, case.expected, case.padding, fixtureVariant(case.variant_name));
+        try expectExactEncodeBuffer(case.input, case.expected, case.padding, fixtureVariant(case.variant_name));
     }
 
     for (fixtures.standard_decode_cases) |case| {
