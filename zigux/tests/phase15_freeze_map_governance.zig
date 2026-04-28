@@ -19,8 +19,12 @@ const Manifest = struct {
     phase: []const u8,
     surveyed_commit: []const u8,
     anchor: []const u8,
+    roadmap_freeze_in_c_targets: []const []const u8,
+    roadmap_study_only_targets: []const []const u8,
     freeze_in_c_targets: []const []const u8,
     study_only_targets: []const []const u8,
+    repo_reality_evidence_paths: []const []const u8,
+    current_blockers: []const []const u8,
     governance_requirements: []const GovernanceRequirement,
     gaps: []const Gap,
 };
@@ -49,19 +53,37 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("2521496aeecede51ed8d7d81820b9cf70a527ceb", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("040884eb7ae838156e6a1f6cb4026b4cd22b5d51", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.repo_reality_evidence_paths.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.current_blockers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.governance_requirements.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
 
+    try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.roadmap_freeze_in_c_targets[0]);
+    try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.roadmap_freeze_in_c_targets[1]);
+    try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.roadmap_freeze_in_c_targets[2]);
+    try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.roadmap_freeze_in_c_targets[3]);
+    try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.roadmap_study_only_targets[0]);
+    try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.roadmap_study_only_targets[1]);
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.freeze_in_c_targets[1]);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.freeze_in_c_targets[2]);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.freeze_in_c_targets[3]);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.study_only_targets[0]);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.study_only_targets[1]);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.repo_reality_evidence_paths[0]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.repo_reality_evidence_paths[1]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", manifest.repo_reality_evidence_paths[2]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-skbuff-bridge-survey.md", manifest.repo_reality_evidence_paths[3]);
+    try std.testing.expectEqualStrings("kernel/sched/core.c: blocked_no_bounded_scheduler_seam", manifest.current_blockers[0]);
+    try std.testing.expectEqualStrings("mm/page_alloc.c: blocked_no_bounded_allocator_seam", manifest.current_blockers[1]);
+    try std.testing.expectEqualStrings("kernel/rcu/tree.c: blocked_phase14_followup_still_wider_than_allowed_rcu_seam", manifest.current_blockers[2]);
+    try std.testing.expectEqualStrings("net/core/skbuff.c: blocked_packet_lifetime_boundary_still_too_wide", manifest.current_blockers[3]);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -73,6 +95,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     var saw_closeout_sync = false;
     var saw_governance_family_alignment = false;
     var saw_drift_gate = false;
+    var saw_roadmap_vs_repo_reality = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -97,7 +120,8 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-note")) {
             saw_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "governance build as broken") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 15 replay as clean") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "narrower freeze-map packet locally") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-build-gate")) {
             saw_build = true;
@@ -127,6 +151,13 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "automatic return-to-blocked trigger") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "maintenance-mode handoff") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-roadmap-vs-repo-reality-survey")) {
+            saw_roadmap_vs_repo_reality = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "roadmap-versus-repo-reality comparison") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "same four deep-core blockers") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -139,7 +170,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), landed_count);
+    try std.testing.expectEqual(@as(usize, 8), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_doc);
@@ -149,6 +180,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expect(saw_closeout_sync);
     try std.testing.expect(saw_governance_family_alignment);
     try std.testing.expect(saw_drift_gate);
+    try std.testing.expect(saw_roadmap_vs_repo_reality);
     try std.testing.expect(saw_blocker);
 }
 
@@ -196,13 +228,26 @@ test "phase 15 freeze-map governance note and checklist record the current block
     defer std.testing.allocator.free(checklist);
 
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Current blocker posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Roadmap versus repo reality") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "roadmap freeze-in-C anchors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "live `Documentation/zigux/freeze-map.md` freeze-in-C anchors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "scorecard still records `blocked_no_bounded_scheduler_seam`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "scorecard still records `blocked_no_bounded_allocator_seam`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "scorecard still records `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "scorecard still records `blocked_packet_lifetime_boundary_still_too_wide`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded scheduler seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded allocator seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed RCU seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "no Architecture Council decision record currently claims a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-clean-on-current-master`: yes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "11/11` tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-build-clean-on-current-master`: no") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "wider shared Phase 15 bundle is currently drifted") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15_parity_scorecard.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15_handoff_next_steps.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "error.StreamTooLong") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "Phase 15 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "make -C zigux phase15` currently fails") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "dedicated freeze-map governance-packet drift gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the freeze-map governance packet") != null);
