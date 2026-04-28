@@ -46,6 +46,24 @@ test "phase 7 replacement and padding helpers work in place" {
     try std.testing.expectEqualSlices(u8, "xy", &exact);
 }
 
+test "phase 7 whitespace helpers honor C-string trimming boundaries" {
+    try std.testing.expectEqualStrings("value", string_helpers.skipSpaces(" \t\nvalue\x00tail"));
+    try std.testing.expectEqual(@as(usize, 0), string_helpers.skipSpaces(" \t\n\x00tail").len);
+
+    var trimmed = [_]u8{ ' ', '\t', 'o', 'k', '\n', ' ', 0, 'x' };
+    const strimmed = string_helpers.strim(&trimmed);
+    try std.testing.expectEqualSlices(u8, "ok", strimmed);
+    try std.testing.expectEqual(@as(u8, 0), trimmed[4]);
+    try std.testing.expectEqual(@as(u8, 0), trimmed[6]);
+    try std.testing.expectEqual(@as(u8, 'x'), trimmed[7]);
+
+    var all_space = [_]u8{ ' ', '\n', '\t', 0, 'x' };
+    const empty = string_helpers.strim(&all_space);
+    try std.testing.expectEqual(@as(usize, 0), empty.len);
+    try std.testing.expectEqual(@as(u8, 0), all_space[0]);
+    try std.testing.expectEqual(@as(u8, 'x'), all_space[4]);
+}
+
 test "phase 7 termination helper respects bounded search windows" {
     try std.testing.expect(string_helpers.stringIsTerminated("xy\x00tail", 3));
     try std.testing.expect(!string_helpers.stringIsTerminated("xy\x00tail", 2));
