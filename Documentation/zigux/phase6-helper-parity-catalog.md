@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `fcac175d389c062a1a2513ec9d9a5b2bf44c7592`
+- verified head: `6889254abd019f02607c39c6f424ff3091392645`
 
 ## Scope
 
@@ -32,6 +32,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - helper: `lib/base64.zig`
 - tests: `zigux/tests/phase6_base64.zig`
 - perf: `zigux/tests/phase6_base64_perf.zig`
+- perf gate: padded standard-path helper-vs-`std.base64.standard` encode/decode slowdown budgets for the current 64-byte and 1-kibibyte replay cases
 - fixtures: `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
 
