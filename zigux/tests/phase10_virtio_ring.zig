@@ -214,3 +214,41 @@ test "phase10 virtio ring delays callbacks until most outstanding buffers are co
     try std.testing.expectEqual(@as(u16, 3), delayed_summary.pending_used_chain_count);
     try std.testing.expect(delayed_summary.should_poll);
 }
+
+test "phase10 virtio ring reset clears live queue bookkeeping without dropping queue shape" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(2, 8, .packed_ring, true, true);
+
+    try ring.publishDescriptorChain(2);
+    try ring.publishDescriptorChain(2);
+    _ = try ring.prepareKick(2);
+    try ring.recordUsedChains(2, 1);
+    _ = try ring.disableCallback(2);
+
+    const reset_summary = try ring.resetQueue(2);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", reset_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 2), reset_summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), reset_summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, reset_summary.layout);
+    try std.testing.expect(reset_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), reset_summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), reset_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), reset_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), reset_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), reset_summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(usize, 0), reset_summary.notification_count);
+    try std.testing.expectEqual(@as(usize, 1), ring.registeredQueueCount());
+
+    const shape_summary = try ring.queueShapeSummary(2);
+    try std.testing.expectEqual(@as(u16, 8), shape_summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, shape_summary.layout);
+    try std.testing.expect(shape_summary.uses_event_idx);
+    try std.testing.expect(shape_summary.uses_indirect_descriptors);
+
+    try ring.publishDescriptorChain(2);
+    const notification_summary = try ring.notificationSummary(2);
+    try std.testing.expectEqual(@as(u16, 1), notification_summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), notification_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), notification_summary.num_added);
+    try std.testing.expect(notification_summary.needs_kick);
+}
