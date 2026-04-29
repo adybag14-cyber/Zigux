@@ -273,6 +273,20 @@ test "runtime bitmap sample keeps parse-and-print replay explicit" {
     try std.testing.expect(parsed.isSet(bitmap_view.bits_per_long));
     try std.testing.expect(parsed.isSet(bitmap_view.bits_per_long + 6));
 
+    var empty = RuntimeBitmapSample{};
+    try empty.initFromBitList("  ");
+
+    const empty_summary = empty.summary();
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, empty_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), empty_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), empty_summary.weight);
+    try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, empty_summary.nbits);
+    try std.testing.expectEqual(@as(?u32, null), empty.nthSetBit(0));
+
+    const empty_formatted = try empty.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(empty_formatted);
+    try std.testing.expectEqualStrings("", empty_formatted);
+
     var invalid = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList("0, nope"));
 }
