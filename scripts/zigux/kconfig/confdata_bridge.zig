@@ -80,8 +80,22 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     return text;
 }
 
-fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
-    const inner = raw_value[1 .. raw_value.len - 1];
+fn findClosingQuote(raw_value: []const u8) ?usize {
+    if (raw_value.len < 2 or raw_value[0] != '"') return null;
+
+    var index: usize = 1;
+    while (index < raw_value.len) : (index += 1) {
+        if (raw_value[index] == '\\') {
+            if (index + 1 < raw_value.len) index += 1;
+            continue;
+        }
+        if (raw_value[index] == '"') return index;
+    }
+    return null;
+}
+
+fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8, closing_quote_index: usize) ![]u8 {
+    const inner = raw_value[1..closing_quote_index];
     var decoded = std.ArrayList(u8).empty;
     errdefer decoded.deinit(allocator);
 
@@ -131,7 +145,8 @@ fn isHexValue(raw_value: []const u8) bool {
 
 fn isMalformedQuotedString(raw_value: []const u8) bool {
     if (raw_value.len == 0) return false;
-    return (raw_value[0] == '"') != (raw_value[raw_value.len - 1] == '"');
+    if (raw_value[0] == '"') return findClosingQuote(raw_value) == null;
+    return raw_value[raw_value.len - 1] == '"';
 }
 
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
@@ -174,9 +189,11 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         // bounded bridge: a one-sided quoted string is treated as malformed and skipped.
         if (isMalformedQuotedString(raw_value)) continue;
 
+        const closing_quote_index = findClosingQuote(raw_value);
+
         const kind: EntryKind = if (std.mem.eql(u8, raw_value, "y") or std.mem.eql(u8, raw_value, "m") or std.mem.eql(u8, raw_value, "n"))
             .tristate
-        else if (raw_value.len >= 2 and raw_value[0] == '"' and raw_value[raw_value.len - 1] == '"')
+        else if (closing_quote_index != null)
             .string
         else if (isHexValue(raw_value))
             .hex
@@ -186,7 +203,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             .value;
 
         const cooked_value = if (kind == .string)
-            try decodeQuotedString(allocator, raw_value)
+            try decodeQuotedString(allocator, raw_value, closing_quote_index.?)
         else
             try allocator.dupe(u8, raw_value);
 
@@ -478,6 +495,24 @@ test "confdata bridge skips malformed quoted strings" {
     try std.testing.expectEqualStrings("CONFIG_LABEL", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("ok", summary.entries[0].value);
+}
+
+test "confdata bridge accepts trailing bytes after the first closing quote" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_TRAILING=\"zigux\"suffix_noise\n" ++
+            "CONFIG_LABEL=\"ok\"\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_TRAILING", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("zigux", summary.entries[0].value);
+    try std.testing.expectEqualStrings("ok", summary.entries[1].value);
 }
 
 test "confdata bridge ignores non-CONFIG lines" {
