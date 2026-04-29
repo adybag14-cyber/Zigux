@@ -142,6 +142,16 @@ pub const RuntimeAtomic64Sample = struct {
         };
     }
 
+    pub fn subCounter(self: *Self, subtrahend: i64) !AddResult {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => blk: {
+                const previous = atomic.fetchSub(i64, &self.counter, subtrahend, .seq_cst);
+                break :blk .{ .previous = previous, .final = previous - subtrahend };
+            },
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
     pub fn orCounter(self: *Self, mask: i64) !BitwiseResult {
         return switch (self.stage()) {
             .initialized, .selftest_complete => blk: {
@@ -419,6 +429,7 @@ test "runtime atomic64 sample keeps lifecycle replay and summary accounting expl
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.subCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(1));
@@ -430,4 +441,31 @@ test "runtime atomic64 sample keeps lifecycle replay and summary accounting expl
     try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
+
+test "runtime atomic64 sample replays the bounded subtraction family from atomic64_test.c" {
+    const v0 = @as(i64, @bitCast(@as(u64, 0xaaa3_1337_c001_d00d)));
+    const onestwos = @as(i64, @bitCast(@as(u64, 0x1111_1111_2222_2222)));
+
+    var module = RuntimeAtomic64Sample{};
+    try module.init(v0);
+
+    const subtract_large = try module.subCounter(onestwos);
+    try std.testing.expectEqual(v0, subtract_large.previous);
+    try std.testing.expectEqual(@as(i64, @bitCast(@as(u64, 0x9992_0226_9ddf_adeb))), subtract_large.final);
+    try std.testing.expectEqual(subtract_large.final, module.snapshotCounter());
+
+    const subtract_negative_one = try module.subCounter(-1);
+    try std.testing.expectEqual(subtract_large.final, subtract_negative_one.previous);
+    try std.testing.expectEqual(v0 - onestwos + 1, subtract_negative_one.final);
+    try std.testing.expectEqual(subtract_negative_one.final, module.snapshotCounter());
+
+    _ = try module.runSelftest();
+    const post_selftest_subtract = try module.subCounter(1);
+    try std.testing.expectEqual(subtract_negative_one.final, post_selftest_subtract.previous);
+    try std.testing.expectEqual(subtract_negative_one.final - 1, post_selftest_subtract.final);
+    try std.testing.expectEqual(post_selftest_subtract.final, module.snapshotCounter());
+
+    try module.exit();
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.subCounter(1));
 }
