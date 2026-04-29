@@ -201,6 +201,16 @@ pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArra
     return ints;
 }
 
+pub fn parseIntArrayUser(allocator: std.mem.Allocator, from: []const u8, count: usize) ParseIntArrayError![]i32 {
+    const copy_len = @min(count, from.len);
+    const buf = try allocator.alloc(u8, copy_len + 1);
+    defer allocator.free(buf);
+
+    @memcpy(buf[0..copy_len], from[0..copy_len]);
+    buf[copy_len] = 0;
+    return parseIntArray(allocator, buf);
+}
+
 pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize {
     const limit = if (size == 0) dst.len else @min(size, dst.len);
     if (limit == 0) {
@@ -658,4 +668,19 @@ test "parseIntArray truncates wide values and stops at the first NUL" {
 test "parseIntArray returns NoEntry when nothing parseable is present" {
     try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, ""));
     try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, "+,7"));
+}
+
+test "parseIntArrayUser copies a bounded input window before parsing" {
+    const ints = try parseIntArrayUser(std.testing.allocator, "1-3,5", 3);
+    defer std.testing.allocator.free(ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 1, 2, 3 }, ints);
+}
+
+test "parseIntArrayUser keeps count-bounded NUL insertion and empty-input behavior" {
+    const counted = try parseIntArrayUser(std.testing.allocator, "7,9tail", 3);
+    defer std.testing.allocator.free(counted);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 7, 9 }, counted);
+
+    try std.testing.expectError(error.NoEntry, parseIntArrayUser(std.testing.allocator, "1,2", 0));
 }
