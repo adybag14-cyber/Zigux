@@ -61,7 +61,13 @@ pub fn skip_spaces(str: []const u8) []const u8 {
 }
 
 pub fn strStarts(str: []const u8, prefix: []const u8) bool {
-    return std.mem.startsWith(u8, str, prefix);
+    const prefix_len = cStringLen(prefix);
+    const str_len = cStringLen(str);
+    if (str_len < prefix_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len]);
 }
 
 pub fn strstarts(str: []const u8, prefix: []const u8) bool {
@@ -83,7 +89,13 @@ pub fn str_has_prefix(str: []const u8, prefix: []const u8) usize {
 }
 
 pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
-    return std.mem.endsWith(u8, str, suffix);
+    const suffix_len = cStringLen(suffix);
+    const str_len = cStringLen(str);
+    if (suffix_len > str_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, str[str_len - suffix_len .. str_len], suffix[0..suffix_len]);
 }
 
 pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
@@ -321,6 +333,10 @@ test "strstarts matches kernel prefix semantics" {
     try std.testing.expect(strstarts("", ""));
     try std.testing.expect(!strstarts("zig", "zigux"));
     try std.testing.expect(!strstarts("zigux", "Zig"));
+
+    const source = [_]u8{ 'z', 'i', 'g', 0, 'x' };
+    const embedded_prefix = [_]u8{ 'z', 'i', 'g', 0, 'u', 'x' };
+    try std.testing.expect(strstarts(&source, &embedded_prefix));
 }
 
 test "strHasPrefix returns the matched prefix length with C-string semantics" {
@@ -341,6 +357,10 @@ test "str_ends_with matches kernel suffix semantics" {
     try std.testing.expect(str_ends_with("", ""));
     try std.testing.expect(!str_ends_with("zig", "zigux"));
     try std.testing.expect(!str_ends_with("zigux", "GUX"));
+
+    const source = [_]u8{ 'z', 'i', 'g', 0, 'x' };
+    const embedded_suffix = [_]u8{ 'i', 'g', 0, 'u', 'x' };
+    try std.testing.expect(str_ends_with(&source, &embedded_suffix));
 }
 
 test "memdup and memchrInv preserve byte content" {
