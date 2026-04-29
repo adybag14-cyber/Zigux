@@ -6,6 +6,8 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
+- `PHASE5_LANE_KEY=P5-L19`
+- `PHASE5_SURVEYED_COMMIT=5aac89e74d2a7adf3000c2fa24ee8554e859f7e9`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -85,6 +87,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 The current gap is no longer "Zigux has no trace-events sample guidance." The more precise state is:
 
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=5aac89e74d2a7adf3000c2fa24ee8554e859f7e9` so the sample-backed survey note and manifest-backed survey both point at the same inspected `master` head
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
