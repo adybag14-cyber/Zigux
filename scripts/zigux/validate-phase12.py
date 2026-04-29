@@ -411,7 +411,7 @@ for name, spec in MANIFEST_SPECS.items():
         elif status == "blocked_on_object_model":
             expected_blocked_object_total += expected_total
         elif status == "deferred_high_risk":
-            expected_deferred_high_risk_total += expected_total
+            expected_deferred_high_RISK_total += expected_total
 
     survey_text = text(spec["survey_path"])
     commit = str(manifest.get("surveyed_commit", ""))
@@ -432,6 +432,16 @@ for name, spec in MANIFEST_SPECS.items():
         missing.append(f"{name}:survey_note_commit_pin")
     if "make -C zigux phase12" not in survey_note_text:
         missing.append(f"{name}:survey_note_make_target")
+    for marker_key, marker_text in [
+        ("section", "## Rollback And Reversible Delivery"),
+        ("owner", "- owner: `"),
+        ("rollback_owner", "- rollback owner: `"),
+        ("fallback_path", "- fallback path:"),
+        ("reversible_delivery", "- reversible delivery evidence:"),
+        ("rollback_drill", "- rollback drill:"),
+    ]:
+        if marker_text not in survey_note_text:
+            missing.append(f"{name}:survey_note_rollback:{marker_key}")
 
     raw_fallback_catalog_path = spec.get("raw_fallback_catalog_path")
     if isinstance(raw_fallback_catalog_path, str):
