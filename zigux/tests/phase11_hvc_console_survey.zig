@@ -105,7 +105,8 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order helpers") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-survey-note")) {
@@ -113,6 +114,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-hvc-console-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-starter")) {
@@ -124,6 +126,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-parity")) {
@@ -144,6 +147,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff boundaries") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract wakeup") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry sleep and backoff boundaries") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order and tty-wakeup sequencing boundaries") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-validation-matrix")) {
@@ -154,7 +158,8 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "survey gate still runs separately") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry evidence") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order evidence") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-tty-and-teardown-parity")) {
@@ -165,6 +170,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "close-wait ownership") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling-driven wakeups") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sleep-versus-timeout choices") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty wakeup sequencing") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
