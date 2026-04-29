@@ -151,6 +151,25 @@ test "phase 7 getOption matches malformed-token classification from the Linux KU
     }
 }
 
+test "phase 7 getOption keeps KUnit pointer-advance semantics around leading and trailing integers" {
+    const cases = [_]GetOptionCase{
+        .{ .input = "37-,", .expected_rc = 3, .expected_rest = "-," },
+        .{ .input = "37,-", .expected_rc = 2, .expected_rest = "-" },
+        .{ .input = "37--", .expected_rc = 3, .expected_rest = "--" },
+        .{ .input = "37,,", .expected_rc = 2, .expected_rest = "," },
+        .{ .input = "37\"", .expected_rc = 1, .expected_rest = "\"" },
+        .{ .input = "-,37", .expected_rc = 0, .expected_rest = ",37" },
+        .{ .input = "--37", .expected_rc = 0, .expected_rest = "-37" },
+        .{ .input = "-\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = "-37", .expected_rc = 1, .expected_rest = "" },
+        .{ .input = "37", .expected_rc = 1, .expected_rest = "" },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionCase(case);
+    }
+}
+
 test "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus" {
     const cases = [_]GetOptionsCase{
         .{ .input = "-1-2", .expected = &[_]i32{ 4, -1, 0, 1, 2 } },
