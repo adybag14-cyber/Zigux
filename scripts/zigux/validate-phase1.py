@@ -298,11 +298,14 @@ required_files = [
     ROOT / 'tools' / 'lib' / 'vsprintf.zig',
     ROOT / 'tools' / 'lib' / 'zalloc.zig',
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
     ROOT / 'zigux' / 'tests' / 'build.zig',
     ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig',
     ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig',
+    ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
     ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
@@ -342,9 +345,11 @@ if manifest_shape_issues:
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
 bitmap_root = (ROOT / 'tools' / 'lib' / 'bitmap.zig').read_text(encoding='utf-8')
 string_root = (ROOT / 'tools' / 'lib' / 'string.zig').read_text(encoding='utf-8')
 rbtree_root = (ROOT / 'tools' / 'lib' / 'rbtree.zig').read_text(encoding='utf-8')
+phase1_bench_root = (ROOT / 'zigux' / 'tests' / 'phase1_bench.zig').read_text(encoding='utf-8')
 test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
 bitmap_diff_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig').read_text(encoding='utf-8')
 bitmap_diff_build_root = (ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig').read_text(encoding='utf-8')
@@ -352,6 +357,7 @@ phase1_closure = (ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md').read_t
 find_bit_fixture = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json').read_text(encoding='utf-8')
 find_bit_harness = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c').read_text(encoding='utf-8')
 find_bit_manifest = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8')
+phase1_bench_expectations = (ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json').read_text(encoding='utf-8')
 find_bit_root = (ROOT / 'tools' / 'lib' / 'find_bit.zig').read_text(encoding='utf-8')
 
 required_ledger_markers = [
@@ -364,9 +370,15 @@ required_ledger_markers = [
 required_workflow_markers = [
     'tools/lib/*.zig',
     'python3 scripts/zigux/validate-phase1.py',
+    'python3 scripts/zigux/check-phase1-bench.py',
     'python3 scripts/zigux/check-phase1-parity.py',
+    'zig build bench --build-file zigux/tests/build.zig',
     'zig build test --build-file zigux/tests/build.zig',
     'zig build test --build-file zigux/tests/bitmap_diff_build.zig --summary all',
+]
+required_build_markers = [
+    'phase1_bench.zig',
+    'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
 ]
 required_test_markers = [
     '@import("argv_split")',
@@ -440,6 +452,20 @@ required_bitmap_closure_markers = [
     'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
+]
+required_bench_markers = [
+    'PHASE1_BENCH=pass',
+    'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=',
+    'PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM=',
+    'PHASE1_BENCH_STRING_CHECKSUM=',
+    'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=',
+]
+required_bench_expectation_markers = [
+    '"status": "pass"',
+    '"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 2260000',
+    '"PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM": 17862764',
+    '"PHASE1_BENCH_STRING_CHECKSUM": 2500000',
+    '"PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 1384000',
 ]
 required_find_bit_test_markers = [
     'fixture.find_bit.tail_clamped_first',
@@ -616,6 +642,9 @@ for marker in required_ledger_markers:
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
+for marker in required_build_markers:
+    if marker not in tests_build:
+        missing_markers.append(f'build:{marker}')
 for marker in required_test_markers:
     if marker not in test_root:
         missing_markers.append(f'test:{marker}')
@@ -640,6 +669,12 @@ for marker in required_bitmap_manifest_markers:
 for marker in required_bitmap_closure_markers:
     if marker not in phase1_closure:
         missing_markers.append(f'bitmap_closure:{marker}')
+for marker in required_bench_markers:
+    if marker not in phase1_bench_root:
+        missing_markers.append(f'bench:{marker}')
+for marker in required_bench_expectation_markers:
+    if marker not in phase1_bench_expectations:
+        missing_markers.append(f'bench_expectations:{marker}')
 for marker in required_find_bit_test_markers:
     if marker not in test_root:
         missing_markers.append(f'find_bit_test:{marker}')
@@ -698,5 +733,5 @@ print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_bitmap_helper_markers) + len(required_bitmap_test_markers) + len(required_bitmap_harness_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_closure_markers) + len(required_find_bit_test_markers) + len(required_find_bit_helper_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_find_bit_closure_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_bitmap_helper_markers) + len(required_bitmap_test_markers) + len(required_bitmap_harness_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_closure_markers) + len(required_bench_markers) + len(required_bench_expectation_markers) + len(required_find_bit_test_markers) + len(required_find_bit_helper_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_find_bit_closure_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
 )
