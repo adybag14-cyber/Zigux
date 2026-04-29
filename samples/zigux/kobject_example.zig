@@ -284,3 +284,47 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
     try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
+
+test "kobject sample teardown keeps ownership boundaries explicit" {
+    var initialized_sample = KobjectExampleSample{};
+    try initialized_sample.init();
+
+    const initialized_exit = try initialized_sample.exit();
+    try std.testing.expectEqual(SampleStage.initialized, initialized_exit.stage_before_exit);
+    try std.testing.expectEqual(SampleStage.exited, initialized_exit.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 0), initialized_exit.active_attr_count_before_exit);
+    try std.testing.expectEqual(@as(usize, 0), initialized_exit.active_attr_count_after_exit);
+    try std.testing.expect(!initialized_exit.attributes_were_accessible);
+    try std.testing.expectEqual(ExitDisposition.abandoned_before_registration, initialized_exit.disposition);
+    try std.testing.expectEqual(@as(usize, 1), initialized_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_exit.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), initialized_exit.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.storeValue("foo", "1\n"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.exit());
+
+    var registered_sample = KobjectExampleSample{};
+    try registered_sample.init();
+    try registered_sample.registerAttributes();
+
+    const registered_exit = try registered_sample.exit();
+    try std.testing.expectEqual(SampleStage.registered, registered_exit.stage_before_exit);
+    try std.testing.expectEqual(SampleStage.exited, registered_exit.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 3), registered_exit.active_attr_count_before_exit);
+    try std.testing.expectEqual(@as(usize, 0), registered_exit.active_attr_count_after_exit);
+    try std.testing.expect(registered_exit.attributes_were_accessible);
+    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, registered_exit.disposition);
+    try std.testing.expectEqual(@as(usize, 1), registered_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), registered_exit.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), registered_exit.exit_runs);
+    try std.testing.expectEqual(@as(i32, 0), registered_sample.foo);
+    try std.testing.expectEqual(@as(i32, 0), registered_sample.baz);
+    try std.testing.expectEqual(@as(i32, 0), registered_sample.bar);
+    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.storeValue("foo", "1\n"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.exit());
+}
