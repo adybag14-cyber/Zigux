@@ -106,8 +106,12 @@ The adjacent notifier-list reviewability packet remains useful release evidence,
 
 The current bounded release-evidence set is:
 
+- `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/README.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
@@ -118,6 +122,7 @@ The current bounded release-evidence set is:
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `.github/workflows/zigux-bootstrap.yml`
+- `zigux/Makefile`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_devres.zig`
