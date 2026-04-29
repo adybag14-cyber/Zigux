@@ -270,12 +270,18 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
         .reset_and_replay,
         .ownership_and_lifetime,
     };
+    const descriptor = BytestreamFifoSample.descriptor();
 
     var sample = BytestreamFifoSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
 
-    try std.testing.expectEqualStrings(BytestreamFifoSample.descriptor().anchor, replay.anchor);
+    try std.testing.expectEqualStrings("bytestream_fifo", descriptor.name);
+    try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", descriptor.anchor);
+    try std.testing.expect(!descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selfcheck);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
+    try std.testing.expectEqualStrings(descriptor.anchor, replay.anchor);
     try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
     for (expected_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
