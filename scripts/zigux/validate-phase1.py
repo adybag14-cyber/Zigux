@@ -408,14 +408,19 @@ required_string_closure_markers = [
 required_rbtree_helper_markers = [
     'pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
     'pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
+    'pub fn findLast(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
     'pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {',
+    'pub fn prevMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {',
     'pub fn iterateMatches(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {',
+    'pub fn iterateMatchesReverse(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ReverseMatchIterator {',
     'pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {',
     'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree prevMatch walks the duplicate range in reverse order"',
     'test "rbtree cached root keeps leftmost in sync across add erase and replace"',
     'test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace"',
     'test "rbtree iterateMatches streams only the duplicate range"',
     'test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"',
+    'test "rbtree duplicate search stays aligned after erase and same-key replace"',
 ]
 required_rbtree_manifest_markers = [
     '"tools/lib/rbtree.zig"',
