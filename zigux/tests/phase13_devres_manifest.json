@@ -73,7 +73,7 @@
       "status": "starter_landed",
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now keeps __devm_ioremap(), devm_ioremap_uc(), and devm_iounmap() in pure lifetime-planning form around retained release records, free-on-failure cleanup, and exact detach pointer matching."
+      "why_now": "The helper lab now keeps __devm_ioremap(), devm_ioremap(), devm_ioremap_uc(), devm_ioremap_wc(), and devm_iounmap() in pure lifetime-planning form around retained release records, free-on-failure cleanup, and exact detach pointer matching."
     },
     {
       "id": "phase13-devres-managed-resource-planner",
