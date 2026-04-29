@@ -8,9 +8,13 @@ pub const FdInfoMapInfo = struct {
     value_size: u32,
     max_entries: u32,
     map_flags: u32,
+    map_extra: u64 = 0,
 };
 
 pub const default_bpf_fs_path = "/sys/fs/bpf";
+pub const bpf_map_type_devmap: u32 = 14;
+pub const bpf_map_type_devmap_hash: u32 = 25;
+pub const bpf_f_rdonly_prog: u32 = 1 << 7;
 
 pub const TokenPreparationDisposition = enum {
     prevented,
@@ -207,6 +211,23 @@ pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInf
     return info;
 }
 
+pub fn normalizeReuseCompatibilityMapFlags(expected_map_type: u32, actual_map_flags: u32) u32 {
+    if (expected_map_type == bpf_map_type_devmap or expected_map_type == bpf_map_type_devmap_hash) {
+        return actual_map_flags & ~bpf_f_rdonly_prog;
+    }
+
+    return actual_map_flags;
+}
+
+pub fn isMapReuseCompatible(expected: FdInfoMapInfo, actual: FdInfoMapInfo) bool {
+    return actual.map_type == expected.map_type and
+        actual.key_size == expected.key_size and
+        actual.value_size == expected.value_size and
+        actual.max_entries == expected.max_entries and
+        normalizeReuseCompatibilityMapFlags(expected.map_type, actual.map_flags) == expected.map_flags and
+        actual.map_extra == expected.map_extra;
+}
+
 test "buildFdinfoPath keeps the proc fdinfo pathname helper explicit" {
     var buffer: [64]u8 = undefined;
 
@@ -368,4 +389,76 @@ test "parseMapInfoFromFdinfo keeps malformed values explicit" {
             "max_entries:\t16\n" ++
             "map_flags:\t32\n",
     ));
+}
+
+test "normalizeReuseCompatibilityMapFlags mirrors libbpf's DEVMAP readonly-prog exception" {
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        normalizeReuseCompatibilityMapFlags(bpf_map_type_devmap, bpf_f_rdonly_prog),
+    );
+    try std.testing.expectEqual(
+        @as(u32, 0x20),
+        normalizeReuseCompatibilityMapFlags(bpf_map_type_devmap_hash, bpf_f_rdonly_prog | 0x20),
+    );
+    try std.testing.expectEqual(
+        @as(u32, bpf_f_rdonly_prog),
+        normalizeReuseCompatibilityMapFlags(1, bpf_f_rdonly_prog),
+    );
+}
+
+test "isMapReuseCompatible accepts DEVMAP info when only readonly-prog was injected by the kernel" {
+    const expected = FdInfoMapInfo{
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 9,
+    };
+    const actual = FdInfoMapInfo{
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = bpf_f_rdonly_prog,
+        .map_extra = 9,
+    };
+
+    try std.testing.expect(isMapReuseCompatible(expected, actual));
+}
+
+test "isMapReuseCompatible keeps exact field mismatches explicit outside the DEVMAP exception" {
+    const expected = FdInfoMapInfo{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 9,
+    };
+
+    try std.testing.expect(!isMapReuseCompatible(expected, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = bpf_f_rdonly_prog,
+        .map_extra = 9,
+    }));
+    try std.testing.expect(!isMapReuseCompatible(expected, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 16,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 9,
+    }));
+    try std.testing.expect(!isMapReuseCompatible(expected, .{
+        .map_type = 1,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 10,
+    }));
 }
