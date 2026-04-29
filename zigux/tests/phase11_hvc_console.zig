@@ -289,11 +289,21 @@ test "phase11 hvc console adds carriage returns and keeps final flush intent on 
     try std.testing.expect(!write.dropped_on_error);
 }
 
-test "phase11 hvc console keeps retry intent on eagain and clears the slot on teardown" {
+test "phase11 hvc console keeps retry intent on zero-progress writes and eagain, then clears the slot on teardown" {
     var console = try hvc_console.HvcConsoleLab.init(0);
     _ = console.instantiate(0x99);
 
-    var write = try console.stageWrite("x\n", hvc_console.eagain);
+    var write = try console.stageWrite("x\n", 0);
+    try std.testing.expectEqual(@as(usize, 3), write.framed_len);
+    try std.testing.expectEqualStrings("x\r\n", write.framed[0..write.framed_len]);
+    try std.testing.expectEqual(@as(usize, 3), write.remaining_len);
+    try std.testing.expectEqualStrings("x\r\n", write.remaining[0..write.remaining_len]);
+    try std.testing.expectEqual(hvc_console.FlushIntent.retry_after_eagain, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.no_progress, write.flush_progress);
+    try std.testing.expect(write.final_flush);
+    try std.testing.expect(!write.dropped_on_error);
+
+    write = try console.stageWrite("x\n", hvc_console.eagain);
     try std.testing.expectEqual(@as(usize, 3), write.framed_len);
     try std.testing.expectEqualStrings("x\r\n", write.framed[0..write.framed_len]);
     try std.testing.expectEqual(@as(usize, 3), write.remaining_len);
