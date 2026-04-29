@@ -144,3 +144,18 @@ test "phase 6 hexdump covers normalization and empty-buffer edge cases" {
         try assertFixtureLengthCase(case);
     }
 }
+
+test "phase 6 hexdump proves exact 4-byte grouped output" {
+    var linebuf: [test_hexdump_buf_size]u8 = undefined;
+    const required = hexdump.hexDumpToBuffer(test_data_b[0..16], 16, 4, linebuf[0..], false);
+
+    try std.testing.expectEqual(@as(usize, 35), required);
+    try std.testing.expectEqualSlices(
+        u8,
+        if (@import("builtin").cpu.arch.endian() == .big)
+            "be32db7b 0a1893b2 70bac424 7d83349b"
+        else
+            "7bdb32be b293180a 24c4ba70 9b34837d",
+        std.mem.sliceTo(linebuf[0..], 0),
+    );
+}
