@@ -23,6 +23,27 @@ pub const TokenPreparationLogLevel = enum {
     warn,
 };
 
+pub const TokenPreparationFailureStage = enum {
+    bpffs_open,
+    token_create,
+};
+
+pub const TokenPreparationFailureDisposition = enum {
+    fail,
+    skip_optional,
+    skip_optional_missing_delegation,
+};
+
+pub const TokenPreparationFailurePlan = struct {
+    disposition: TokenPreparationFailureDisposition,
+    log_level: TokenPreparationLogLevel,
+    message_suffix: []const u8,
+
+    pub fn shouldContinueWithoutToken(self: TokenPreparationFailurePlan) bool {
+        return self.disposition != .fail;
+    }
+};
+
 pub const TokenPreparationPlan = struct {
     disposition: TokenPreparationDisposition,
     bpffs_path: []const u8,
@@ -49,6 +70,8 @@ pub const FilePathHandleBridgeError = error{
     MissingMaxEntries,
     MissingMapFlags,
 };
+
+const linux_errno = std.os.linux.E;
 
 fn noSpaceToPathTooLong(err: anyerror) FilePathHandleBridgeError {
     return switch (err) {
@@ -141,6 +164,35 @@ pub fn planTokenPreparation(token_path: ?[]const u8) TokenPreparationPlan {
         .disposition = .optional_probe,
         .bpffs_path = default_bpf_fs_path,
         .log_level = .debug,
+    };
+}
+
+pub fn classifyTokenPreparationFailure(
+    plan: TokenPreparationPlan,
+    stage: TokenPreparationFailureStage,
+    err_code: i32,
+) TokenPreparationFailurePlan {
+    const log_level = plan.log_level orelse .debug;
+    if (plan.disposition == .mandatory_probe) {
+        return .{
+            .disposition = .fail,
+            .log_level = log_level,
+            .message_suffix = "",
+        };
+    }
+
+    if (stage == .token_create and err_code == -@as(i32, @intFromEnum(linux_errno.NOENT))) {
+        return .{
+            .disposition = .skip_optional_missing_delegation,
+            .log_level = log_level,
+            .message_suffix = "",
+        };
+    }
+
+    return .{
+        .disposition = .skip_optional,
+        .log_level = log_level,
+        .message_suffix = ", skipping optional step...",
     };
 }
 
@@ -241,6 +293,32 @@ test "planTokenPreparation keeps token-path intent explicit without claiming io 
     try std.testing.expectEqual(TokenPreparationLogLevel.warn, mandatory.log_level.?);
     try std.testing.expect(mandatory.requiresBpffsOpen());
     try std.testing.expect(mandatory.requiresTokenCreate());
+}
+
+test "classifyTokenPreparationFailure keeps optional and mandatory recovery discipline explicit" {
+    const prevented = classifyTokenPreparationFailure(planTokenPreparation(""), .bpffs_open, -@as(i32, @intFromEnum(linux_errno.ACCES)));
+    try std.testing.expectEqual(TokenPreparationFailureDisposition.skip_optional, prevented.disposition);
+    try std.testing.expectEqual(TokenPreparationLogLevel.debug, prevented.log_level);
+    try std.testing.expectEqualStrings(", skipping optional step...", prevented.message_suffix);
+    try std.testing.expect(prevented.shouldContinueWithoutToken());
+
+    const optional_open = classifyTokenPreparationFailure(planTokenPreparation(null), .bpffs_open, -@as(i32, @intFromEnum(linux_errno.PERM)));
+    try std.testing.expectEqual(TokenPreparationFailureDisposition.skip_optional, optional_open.disposition);
+    try std.testing.expectEqual(TokenPreparationLogLevel.debug, optional_open.log_level);
+    try std.testing.expectEqualStrings(", skipping optional step...", optional_open.message_suffix);
+    try std.testing.expect(optional_open.shouldContinueWithoutToken());
+
+    const optional_missing_delegation = classifyTokenPreparationFailure(planTokenPreparation(null), .token_create, -@as(i32, @intFromEnum(linux_errno.NOENT)));
+    try std.testing.expectEqual(TokenPreparationFailureDisposition.skip_optional_missing_delegation, optional_missing_delegation.disposition);
+    try std.testing.expectEqual(TokenPreparationLogLevel.debug, optional_missing_delegation.log_level);
+    try std.testing.expectEqualStrings("", optional_missing_delegation.message_suffix);
+    try std.testing.expect(optional_missing_delegation.shouldContinueWithoutToken());
+
+    const mandatory_create = classifyTokenPreparationFailure(planTokenPreparation("/custom/bpffs"), .token_create, -@as(i32, @intFromEnum(linux_errno.PERM)));
+    try std.testing.expectEqual(TokenPreparationFailureDisposition.fail, mandatory_create.disposition);
+    try std.testing.expectEqual(TokenPreparationLogLevel.warn, mandatory_create.log_level);
+    try std.testing.expectEqualStrings("", mandatory_create.message_suffix);
+    try std.testing.expect(!mandatory_create.shouldContinueWithoutToken());
 }
 
 test "chooseReusedMapName preserves the requested name when the kernel-truncated prefix matches" {
