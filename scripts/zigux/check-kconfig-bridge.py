@@ -178,18 +178,25 @@ def ensure_manifest_is_deterministic() -> None:
                 referenced_files.add(expected_path)
 
             if group_name == 'conf_cases':
-                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'expected'}
+                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'expected'}
                 mode = read_nonempty_string(case, 'mode', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'kconfig', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'config', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'arch', issues, prefix=case_prefix)
 
                 mode_arg = case.get('mode_arg')
+                allconfig = case.get('allconfig')
                 if mode in {'defconfig', 'savedefconfig'}:
                     if not isinstance(mode_arg, str) or not mode_arg:
                         issues.append(f'{case_prefix}:mode_arg:required_for_argument_mode')
                 elif mode_arg is not None:
                     issues.append(f'{case_prefix}:mode_arg:unexpected_for_mode:{mode}')
+
+                if mode in {'allnoconfig', 'allyesconfig', 'allmodconfig', 'alldefconfig', 'randconfig'}:
+                    if allconfig is not None and (not isinstance(allconfig, str) or not allconfig):
+                        issues.append(f'{case_prefix}:allconfig:expected_nonempty_string')
+                elif allconfig is not None:
+                    issues.append(f'{case_prefix}:allconfig:unexpected_for_mode:{mode}')
             else:
                 allowed_keys = {'name', 'input', 'expected'}
                 input_path = read_nonempty_string(case, 'input', issues, prefix=case_prefix)
@@ -274,6 +281,8 @@ def main() -> int:
             ]
             if 'mode_arg' in case:
                 cmd.append(case['mode_arg'])
+            elif 'allconfig' in case:
+                cmd.append(case['allconfig'])
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(FIXTURE_DIR / case['expected'], actual)
