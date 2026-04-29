@@ -10,6 +10,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
+  - `zigux/tests/phase8_exec_cmd_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -27,10 +28,14 @@ The roadmap boundary matters here too: Phase 8 is the repo-hosted tooling tranch
 1. run the focused Zig module tests
 - `zig test tools/lib/subcmd/exec-cmd.zig`
 
-2. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+2. run the focused shared exec-cmd gate
+- `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
 
-3. run the convenience target
+3. run the broader Phase 8 tooling gate
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+4. run the convenience targets
+- `make -C zigux phase8-exec-cmd-test`
 - `make -C zigux phase8`
 
 ## Current parity surface
