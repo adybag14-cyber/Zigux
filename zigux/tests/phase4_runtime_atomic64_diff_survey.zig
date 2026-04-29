@@ -6,6 +6,8 @@ const SurveySummary = struct {
     runtime_atomic64_diff_present: bool,
     post_selftest_replay_present: bool,
     phase4_build_present: bool,
+    phase9_build_present: bool,
+    phase4_validator_runtime_atomic64_diff_present: bool,
     runtime_atomic64_sample_present: bool,
     phase4_validation_matrix_present: bool,
     tests_readme_runtime_atomic64_diff_present: bool,
@@ -70,6 +72,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.post_selftest_replay_present);
     try std.testing.expect(manifest.survey_summary.phase4_build_present);
+    try std.testing.expect(manifest.survey_summary.phase9_build_present);
+    try std.testing.expect(manifest.survey_summary.phase4_validator_runtime_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_sample_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
     try std.testing.expect(manifest.survey_summary.tests_readme_runtime_atomic64_diff_present);
@@ -139,6 +143,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_atomic64_diff.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "canonical path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9_build.zig") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-broader-atomic64-surface")) {
