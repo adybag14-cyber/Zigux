@@ -19,6 +19,21 @@
     "tools/lib/subcmd/exec-cmd.zig",
     "tools/lib/subcmd/help.zig"
   ],
+  "phase8_control_surface_markers": {
+    "exec_cmd_surface": "tools/lib/subcmd/exec-cmd.zig",
+    "help_surface": "tools/lib/subcmd/help.zig",
+    "command_name_field": "ExtractArgv0Result.command_name",
+    "exec_path_env_field": "Config.exec_path_env",
+    "shared_runtime_loader_field": "shared command_name field",
+    "exec_env_names": [
+      "PERF_EXEC_PATH",
+      "PATH"
+    ],
+    "terminal_env_names": [
+      "LINES",
+      "COLUMNS"
+    ]
+  },
   "phase6_leaf_helpers": [
     "lib/base64.zig",
     "lib/bsearch.zig",
