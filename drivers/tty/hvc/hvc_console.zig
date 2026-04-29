@@ -8,6 +8,7 @@ pub const eagain: isize = -11;
 pub const close_wait_hz_divisor: usize = 100;
 pub const min_khvcd_timeout_ms: u32 = 10;
 pub const max_khvcd_timeout_ms: u32 = 2000;
+pub const epipe: isize = -32;
 
 pub const FlushIntent = enum {
     none,
@@ -168,6 +169,47 @@ pub const KhvcdWorkerEntrySnapshot = struct {
     timeout_backoff_active: bool,
     sleep_timeout_ms: u32,
     timeout_capped_at_max: bool,
+    backend_handoff_pending: bool,
+};
+
+pub const PollDrainOrderRequest = struct {
+    contract: KhvcdPollingContractRequest = .{},
+    may_sleep: bool = false,
+    tty_attached: bool = true,
+    tty_throttled: bool = false,
+    irq_requested: bool = false,
+    buffered_write_len: usize = 0,
+    write_result: isize = 0,
+    flip_room_available: bool = true,
+    read_result: isize = 0,
+    preexisting_do_wakeup: bool = false,
+};
+
+pub const PollDrainOrderSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    tty_registration_pending: bool,
+    write_drain_precedes_read_path: bool,
+    write_drain_attempted: bool,
+    write_remaining_len: usize,
+    write_poll_pending_after_drain: bool,
+    write_progress_resets_timeout: bool,
+    stalled_write_uses_min_timeout: bool,
+    releases_lock_before_read_retry: bool,
+    tty_required_for_read_path: bool,
+    throttled_read_skipped: bool,
+    read_poll_armed_without_irq: bool,
+    read_poll_pending_after_drain: bool,
+    read_hangup_pending: bool,
+    read_bytes_drained: usize,
+    wakeup_before_unlock: bool,
+    flip_push_after_unlock: bool,
+    wakeup_precedes_flip_push: bool,
     backend_handoff_pending: bool,
 };
 
@@ -364,6 +406,69 @@ pub const HvcConsoleLab = struct {
         };
     }
 
+    pub fn summarizePollDrainOrder(
+        self: *const Self,
+        request: PollDrainOrderRequest,
+    ) !PollDrainOrderSnapshot {
+        const contract = try self.summarizeKhvcdPollingContract(request.contract);
+        const write_drain = summarizePollWriteDrain(
+            request.buffered_write_len,
+            request.write_result,
+            request.preexisting_do_wakeup,
+        );
+
+        const tty_required_for_read_path = request.tty_attached;
+        const throttled_read_skipped = tty_required_for_read_path and request.tty_throttled;
+        const read_poll_armed_without_irq = tty_required_for_read_path and
+            !request.tty_throttled and
+            !request.irq_requested;
+        const read_bytes_drained = if (request.read_result > 0)
+            @as(usize, @intCast(request.read_result))
+        else
+            0;
+        const read_hangup_pending = tty_required_for_read_path and
+            !request.tty_throttled and
+            request.read_result == epipe;
+        const read_poll_pending_after_drain = read_poll_armed_without_irq or
+            (tty_required_for_read_path and !request.tty_throttled and !request.flip_room_available) or
+            (tty_required_for_read_path and !request.tty_throttled and request.read_result == eagain) or
+            (tty_required_for_read_path and !request.tty_throttled and !request.may_sleep and read_bytes_drained > 0);
+        const wakeup_before_unlock = tty_required_for_read_path and write_drain.do_wakeup;
+        const flip_push_after_unlock = read_bytes_drained > 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = contract.slot_index,
+            .vtermno = contract.vtermno,
+            .adapter_present = contract.adapter_present,
+            .final_close_wait_required = contract.final_close_wait_required,
+            .clears_port_initialized_on_final_close = contract.clears_port_initialized_on_final_close,
+            .keeps_console_binding = contract.keeps_console_binding,
+            .tty_registration_pending = contract.tty_registration_pending,
+            .write_drain_precedes_read_path = true,
+            .write_drain_attempted = request.buffered_write_len > 0,
+            .write_remaining_len = write_drain.remaining_len,
+            .write_poll_pending_after_drain = write_drain.remaining_len > 0,
+            .write_progress_resets_timeout = write_drain.progress_resets_timeout,
+            .stalled_write_uses_min_timeout = write_drain.stalled_write_uses_min_timeout,
+            .releases_lock_before_read_retry = request.may_sleep,
+            .tty_required_for_read_path = tty_required_for_read_path,
+            .throttled_read_skipped = throttled_read_skipped,
+            .read_poll_armed_without_irq = read_poll_armed_without_irq,
+            .read_poll_pending_after_drain = read_poll_pending_after_drain,
+            .read_hangup_pending = read_hangup_pending,
+            .read_bytes_drained = read_bytes_drained,
+            .wakeup_before_unlock = wakeup_before_unlock,
+            .flip_push_after_unlock = flip_push_after_unlock,
+            .wakeup_precedes_flip_push = wakeup_before_unlock and flip_push_after_unlock,
+            .backend_handoff_pending = contract.teardown_host_io_pending or
+                write_drain.remaining_len > 0 or
+                read_poll_pending_after_drain or
+                read_hangup_pending or
+                flip_push_after_unlock,
+        };
+    }
+
     pub fn stageWrite(self: *const Self, input: []const u8, put_result: isize) !WriteSnapshot {
         if (!self.slotSnapshot().usable_for_console) return error.ConsoleUnavailable;
 
@@ -427,6 +532,55 @@ const FlushProgressSummary = struct {
     flush_progress: FlushProgress,
     dropped_on_error: bool,
 };
+
+const PollWriteDrainSummary = struct {
+    remaining_len: usize,
+    do_wakeup: bool,
+    progress_resets_timeout: bool,
+    stalled_write_uses_min_timeout: bool,
+};
+
+fn summarizePollWriteDrain(
+    buffered_write_len: usize,
+    write_result: isize,
+    preexisting_do_wakeup: bool,
+) PollWriteDrainSummary {
+    if (buffered_write_len == 0) {
+        return .{
+            .remaining_len = 0,
+            .do_wakeup = preexisting_do_wakeup,
+            .progress_resets_timeout = false,
+            .stalled_write_uses_min_timeout = false,
+        };
+    }
+
+    if (write_result <= 0) {
+        if (write_result == 0 or write_result == eagain) {
+            return .{
+                .remaining_len = buffered_write_len,
+                .do_wakeup = true,
+                .progress_resets_timeout = false,
+                .stalled_write_uses_min_timeout = true,
+            };
+        }
+
+        return .{
+            .remaining_len = 0,
+            .do_wakeup = true,
+            .progress_resets_timeout = false,
+            .stalled_write_uses_min_timeout = false,
+        };
+    }
+
+    const written = @min(@as(usize, @intCast(write_result)), buffered_write_len);
+    const remaining_len = buffered_write_len - written;
+    return .{
+        .remaining_len = remaining_len,
+        .do_wakeup = preexisting_do_wakeup or remaining_len == 0,
+        .progress_resets_timeout = remaining_len > 0,
+        .stalled_write_uses_min_timeout = false,
+    };
+}
 
 fn summarizeFlushProgress(
     framed: []const u8,
