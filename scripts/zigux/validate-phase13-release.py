@@ -116,6 +116,18 @@ BUILD_NAME_MARKERS = [
     "phase13-notifier-list-reviewability-tests",
 ]
 
+RELEASE_EVIDENCE_CORE_PATHS = [
+    "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/README.md",
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
+    "zigux/tests/phase13_build.zig",
+]
+
 
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
@@ -217,6 +229,18 @@ for rel in [
 ]:
     if rel not in release_text:
         missing.append(f"release:evidence_path:{rel}")
+
+release_evidence = section_text(
+    release_text,
+    "The current bounded release-evidence set is:\n",
+    "\n## Gates",
+)
+if release_evidence is None:
+    missing.append("release:evidence_set_section")
+else:
+    for rel in RELEASE_EVIDENCE_CORE_PATHS:
+        if rel not in release_evidence:
+            missing.append(f"release:evidence_set_path:{rel}")
 
 build_text = text("zigux/tests/phase13_build.zig")
 build_names = BUILD_TEST_NAME_RE.findall(build_text)
