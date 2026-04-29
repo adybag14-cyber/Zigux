@@ -449,8 +449,8 @@ test "confdata bridge keeps explicit n assignments as tristate values" {
 test "confdata bridge keeps empty quoted strings as string values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_EMPTY=\"\"
-        \\CONFIG_LABEL=\"zigux\"
+        \\CONFIG_EMPTY=""
+        \\CONFIG_LABEL="zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -466,8 +466,8 @@ test "confdata bridge keeps empty quoted strings as string values" {
 test "confdata bridge skips malformed quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BROKEN=\"zigux
-        \\CONFIG_LABEL=\"ok\"
+        \\CONFIG_BROKEN="zigux
+        \\CONFIG_LABEL="ok"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -486,7 +486,7 @@ test "confdata bridge ignores non-CONFIG lines" {
         \\CONFIG_ALPHA=y
         \\BROKEN_ALPHA=y
         \\# BROKEN_BETA is not set
-        \\CONFIG_NAME=\"zigux\"
+        \\CONFIG_NAME="zigux"
         \\# CONFIG_DEBUG is not set
         \\
     );
