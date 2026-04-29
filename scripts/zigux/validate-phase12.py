@@ -339,6 +339,12 @@ elif isinstance(expected_step_count, int) and isinstance(expected_test_count, in
     if expected_summary_line != canonical_summary_line:
         missing.append("phase12_build_fixture:expected_summary_line_mismatch")
 
+docs_root_readme = text("Documentation/zigux/README.md")
+if isinstance(expected_summary_line, str) and expected_summary_line not in docs_root_readme:
+    missing.append("docs_root_readme:phase12_expected_summary_line")
+if "`35/35`" in docs_root_readme:
+    missing.append("docs_root_readme:stale_phase12_summary")
+
 starter_total = 0
 blocked_dma_total = 0
 blocked_object_total = 0
