@@ -20,6 +20,7 @@ required_files = [
     ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase8_build.zig",
     ROOT / "zigux" / "tests" / "phase8_exec_cmd_only_build.zig",
+    ROOT / "zigux" / "tests" / "phase8_help_only_build.zig",
     ROOT / "zigux" / "tests" / "phase8_libbpf_segments_only_build.zig",
     ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig",
     ROOT / "zigux" / "tests" / "phase8_help.zig",
@@ -58,6 +59,7 @@ tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 phase8_build = (ROOT / "zigux" / "tests" / "phase8_build.zig").read_text(encoding="utf-8")
 phase8_exec_cmd_only_build = (ROOT / "zigux" / "tests" / "phase8_exec_cmd_only_build.zig").read_text(encoding="utf-8")
+phase8_help_only_build = (ROOT / "zigux" / "tests" / "phase8_help_only_build.zig").read_text(encoding="utf-8")
 phase8_libbpf_segments_only_build = (ROOT / "zigux" / "tests" / "phase8_libbpf_segments_only_build.zig").read_text(encoding="utf-8")
 phase8_survey = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-segment-survey.md").read_text(encoding="utf-8")
 phase8_bridge_boundary = (ROOT / "Documentation" / "zigux" / "phase8-userspace-kernel-bridge-boundary-survey.md").read_text(encoding="utf-8")
@@ -68,16 +70,18 @@ manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json")
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
 
 required_make_markers = [
-    "PHONY += phase8-validate phase8-exec-cmd-test phase8-libbpf-segments-test phase8-test phase8",
+    "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test phase8",
     "phase8-validate:",
     "scripts/zigux/validate-phase8.py",
     "phase8-exec-cmd-test:",
     "zigux/tests/phase8_exec_cmd_only_build.zig",
+    "phase8-help-test:",
+    "zigux/tests/phase8_help_only_build.zig",
     "phase8-libbpf-segments-test:",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "phase8-test:",
     "zigux/tests/phase8_build.zig",
-    "phase8: phase8-validate phase8-exec-cmd-test phase8-libbpf-segments-test phase8-test",
+    "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test",
 ]
 
 required_workflow_markers = [
@@ -85,6 +89,8 @@ required_workflow_markers = [
     "make -C zigux phase8-validate",
     "Run focused Phase 8 exec-cmd tests",
     "zigux/tests/phase8_exec_cmd_only_build.zig",
+    "Run focused Phase 8 help tests",
+    "zigux/tests/phase8_help_only_build.zig",
     "Run focused Phase 8 libbpf segment survey tests",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "Run Phase 8 tooling tests",
@@ -161,6 +167,12 @@ required_phase8_build_markers = [
     "phase8_file_path_handle_bridge.zig",
     "phase8_libbpf_segments.zig",
     "phase8_bpf_type_names.zig",
+]
+
+required_phase8_help_only_build_markers = [
+    "phase8_help.zig",
+    "phase8-help-tests",
+    "Run focused Phase 8 help tests",
 ]
 
 required_phase8_libbpf_segments_only_build_markers = [
@@ -330,6 +342,9 @@ for marker in required_phase8_build_markers:
 for marker in required_phase8_exec_cmd_only_build_markers:
     if marker not in phase8_exec_cmd_only_build:
         missing_markers.append(f"phase8_exec_cmd_only_build:{marker}")
+for marker in required_phase8_help_only_build_markers:
+    if marker not in phase8_help_only_build:
+        missing_markers.append(f"phase8_help_only_build:{marker}")
 for marker in required_phase8_libbpf_segments_only_build_markers:
     if marker not in phase8_libbpf_segments_only_build:
         missing_markers.append(f"phase8_libbpf_segments_only_build:{marker}")
@@ -367,5 +382,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
 )
