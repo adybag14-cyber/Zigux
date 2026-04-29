@@ -441,6 +441,24 @@ test "decode rejects malformed input and reports destination bounds" {
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg==", false, .urlsafe));
 }
 
+test "decode and bytes reject non-canonical tail bits across variants" {
+    var buf: [4]u8 = undefined;
+
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zh", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zh", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("-x", false, .urlsafe));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "-x", false, .urlsafe));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("+x", false, .imap));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "+x", false, .imap));
+
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("//B", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "//B", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("__B", false, .urlsafe));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "__B", false, .urlsafe));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes(",,B", false, .imap));
+    try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], ",,B", false, .imap));
+}
+
 test "decode reverse maps classify every byte across all variants" {
     const variants = [_]Variant{ .std, .urlsafe, .imap };
 
