@@ -101,6 +101,8 @@ The roadmap boundary matters here:
 - `Phase 8` owns the first repo-level command and environment plumbing surfaces under `tools/lib/subcmd/*.zig`, so this survey records the live `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` anchors and their continued absence from the runtime path instead of inventing a parallel control stack
 - `Phase 9` is the first runtime-module phase, so this survey is recorded there even though the scheduled lane key is `P6-L01`
 
+That same roadmap split also keeps earlier config and export ownership explicit. `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` stay in the Phase 2 config-surface bridge packet, while `rust/exports.c` and `zigux/kernel/export_shim.zig` stay in the Phase 3 export-boundary packet. This Phase 9 survey records those files only as boundary references instead of Phase 9 runtime evidence.
+
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
 It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`, so the shared loader packet must keep workqueue parity and any scheduler-core status change blocked until the Architecture Council explicitly reopens that anchor with fresh evidence.
 
