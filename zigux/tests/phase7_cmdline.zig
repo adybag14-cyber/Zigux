@@ -172,14 +172,26 @@ test "phase 7 getOption keeps KUnit pointer-advance semantics around leading and
 
 test "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus" {
     const cases = [_]GetOptionsCase{
+        .{ .input = "-7", .expected = &[_]i32{ 1, -7 } },
+        .{ .input = "--7", .expected = &[_]i32{ 0, 0 } },
         .{ .input = "-1-2", .expected = &[_]i32{ 4, -1, 0, 1, 2 } },
         .{ .input = "7--9", .expected = &[_]i32{ 0, 7 } },
         .{ .input = "7-", .expected = &[_]i32{ 0, 7 } },
+        .{ .input = "-7--9", .expected = &[_]i32{ 0, -7 } },
+        .{ .input = "7-9,", .expected = &[_]i32{ 3, 7, 8, 9, 0 } },
+        .{ .input = "9-7", .expected = &[_]i32{ 0, 9 } },
         .{ .input = "5-a", .expected = &[_]i32{ 0, 5 } },
+        .{ .input = "a-5", .expected = &[_]i32{ 0, 0 } },
         .{ .input = "5-8", .expected = &[_]i32{ 4, 5, 6, 7, 8 } },
+        .{ .input = ",8-5", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "+,1", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = "-,4", .expected = &[_]i32{ 0, 0 } },
         .{ .input = "-3,0-1,6", .expected = &[_]i32{ 4, -3, 0, 1, 6 } },
         .{ .input = "4,-", .expected = &[_]i32{ 1, 4 } },
+        .{ .input = " +2", .expected = &[_]i32{ 0, 0 } },
+        .{ .input = " -9", .expected = &[_]i32{ 0, 0 } },
         .{ .input = "0-1,-3,6", .expected = &[_]i32{ 4, 0, 1, -3, 6 } },
+        .{ .input = "- 9", .expected = &[_]i32{ 0, 0 } },
     };
 
     for (cases) |case| {
