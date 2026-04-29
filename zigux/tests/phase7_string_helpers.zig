@@ -194,6 +194,22 @@ test "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe dupl
     try std.testing.expectEqual(@as(?[:0]u8, null), try string_helpers.kstrdupQuotable(std.testing.allocator, null));
 }
 
+test "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit" {
+    const replaced = (try string_helpers.kstrdupAndReplace(std.testing.allocator, "a-b-a\x00tail", '-', '_')).?;
+    defer std.testing.allocator.free(replaced);
+
+    try std.testing.expectEqualStrings("a_b_a", replaced);
+    try std.testing.expectEqual(@as(u8, 0), replaced[replaced.len]);
+
+    var source = [_]u8{ 'x', '-', 'y', 0, '-', 'z' };
+    const duplicated = (try string_helpers.kstrdupAndReplace(std.testing.allocator, &source, '-', '.')).?;
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("x.y", duplicated);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'x', '-', 'y', 0, '-', 'z' }, &source);
+    try std.testing.expectEqual(@as(?[:0]u8, null), try string_helpers.kstrdupAndReplace(std.testing.allocator, null, '-', '.'));
+}
+
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     var out = [_]u8{0} ** 32;
 
