@@ -66,6 +66,8 @@ required_closure_markers = [
     'PHASE1_RBTREE_CACHED_DUPLICATE_UNIT_REVIEW=rbtree RootCached duplicate minima stay aligned when eraseCached promotes the next equal-key minimum and replaceNodeCached leaves the cached first node unchanged for non-leftmost replacement',
     'rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`',
     'PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys',
+    'rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`',
+    'PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_STRING_REVIEW=string parity covers Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection',
     'string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`',
@@ -230,6 +232,10 @@ if rbtree_review.get('iterator_unit_test_anchor') != 'tools/lib/rbtree.zig:test 
     missing_markers.append('manifest:rbtree.iterator_unit_test_anchor')
 if rbtree_review.get('iterator_unit_test_contract') != 'Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.':
     missing_markers.append('manifest:rbtree.iterator_unit_test_contract')
+if rbtree_review.get('reverse_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"':
+    missing_markers.append('manifest:rbtree.reverse_unit_test_anchor')
+if rbtree_review.get('reverse_unit_test_contract') != 'Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.':
+    missing_markers.append('manifest:rbtree.reverse_unit_test_contract')
 if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if string_review.get('evidence_keys') != [
