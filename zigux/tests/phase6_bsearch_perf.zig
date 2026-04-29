@@ -31,7 +31,7 @@ const PerfResult = struct {
     avg_compare_calls: f64,
 };
 
-fn compareCounted(key: *const u32, item: *const u32) i32 {
+fn compareCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
     compare_calls += 1;
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
