@@ -111,7 +111,7 @@ Low-level wrapper survey:
 - atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state
 - MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read16`, `read32`, `write16`, and `write32`, plus scoped `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer
-- focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps those documented layout, panic, allocator, atomic, barrier, MMIO, and narrow-unsafe helpers on their own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
+- focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps the atomic, barrier, MMIO, and scoped narrow-unsafe helper contract on its own compile-and-test path, while the dedicated `zigux/tests/phase3_policy_unsafe.zig` gate owns layout, panic, allocator, and interop-policy unsafe-byte decoding
 
 ## Boundary
 
