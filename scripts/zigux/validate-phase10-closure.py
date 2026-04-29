@@ -414,6 +414,25 @@ else:
             if not (ROOT / rel).exists():
                 missing_markers.append(f"manifest:cross_phase_scoreboard_boundary:evidence_missing:{rel}")
 
+survey_provenance = manifest.get("survey_provenance")
+expected_survey_provenance = {
+    "source": "manifest_derived",
+    "lane_keys": {
+        "core": core_manifest.get("lane_key"),
+        "ring": ring_manifest.get("lane_key"),
+        "input": input_manifest.get("lane_key"),
+        "mmio": mmio_manifest.get("lane_key"),
+    },
+    "surveyed_commits": {
+        "core": core_manifest.get("surveyed_commit"),
+        "ring": ring_manifest.get("surveyed_commit"),
+        "input": input_manifest.get("surveyed_commit"),
+        "mmio": mmio_manifest.get("surveyed_commit"),
+    },
+}
+if survey_provenance != expected_survey_provenance:
+    missing_markers.append("manifest:survey_provenance:mismatch")
+
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-config-write-helper"
