@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "46c0200e7a4a125223ba0b90145f914f5855a88a";
+const current_surveyed_commit = "3f2d00857ca82c001056f297c87621988f3d0025";
 
 const SurveySummary = struct {
     libbpf_c_lines: usize,
@@ -267,7 +267,7 @@ test "phase12 libbpf survey note records rollback drill and reversible delivery 
         std.testing.allocator,
         .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(survey_note);
+    defer std.testing.allocator.free(manifest_json);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "- owner: `BPF Tooling Lane`") != null);
