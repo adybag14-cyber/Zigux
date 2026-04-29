@@ -136,9 +136,10 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var saw_diff_gate = false;
     var saw_freeze_map_boundary = false;
     var saw_manifest_catalog = false;
-    var saw_shared_build_catalog = false;
     var saw_module_slice_catalog = false;
+    var saw_shared_build_catalog = false;
     var saw_freeze_map_catalog = false;
+    var saw_module_slice_ownership = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
@@ -146,6 +147,9 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             saw_loader_free_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "delivery catalog and ownership map") != null) {
+            saw_ownership_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "module-slice note") != null) {
             saw_ownership_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "`kernel/trace/ring_buffer.c`") != null) {
@@ -177,7 +181,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("documentation", entry.kind);
             try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-module-slice.md", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "landed starter surface summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, entry.role, "loader-free blocker") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "loader-free blocker restatement") != null);
         }
         if (std.mem.eql(u8, entry.id, "runtime-trace-events-freeze-map")) {
             saw_freeze_map_catalog = true;
@@ -204,12 +208,13 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "`kernel/trace/ring_buffer.c`") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "Architecture Council") != null);
         }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")) {
+            saw_module_slice_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "landed starter surface summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "loader-free blocker restatement") != null);
+        }
         if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared Phase 9 runtime bundle entrypoint") != null);
-        }
-        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")) {
-            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "landed starter surface summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "loader-free blocker") != null);
         }
 
         for (manifest.ownership_map[i + 1 ..]) |other| {
@@ -350,9 +355,10 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_freeze_map_prompt);
     try std.testing.expect(saw_manifest_catalog);
-    try std.testing.expect(saw_shared_build_catalog);
     try std.testing.expect(saw_module_slice_catalog);
+    try std.testing.expect(saw_shared_build_catalog);
     try std.testing.expect(saw_freeze_map_catalog);
+    try std.testing.expect(saw_module_slice_ownership);
     try std.testing.expect(saw_descriptor_contract);
     try std.testing.expect(saw_summary_surface);
     try std.testing.expect(saw_summary_run_counters);
@@ -422,6 +428,8 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "study-boundary note rather than a freeze-map reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Architecture Council") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `fa0b74ea2d3884ac60f88bbe3a5fd74f3de16738`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "landed starter surface summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "loader-free blocker restatement") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L11`") != null);
