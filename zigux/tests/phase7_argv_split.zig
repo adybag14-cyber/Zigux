@@ -20,6 +20,11 @@ fn expectFixture(fixture: phase7_vectors.ArgvSplitCase) !void {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), c_argv[fixture.expected.len]);
 }
 
+fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const u8) !void {
+    var split = try argv_split.argvSplit(allocator, text);
+    defer split.deinit(allocator);
+}
+
 test "phase 7 argv_split module imports cleanly" {
     _ = argv_split;
 }
@@ -119,4 +124,12 @@ test "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable"
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 
     argv_split.argvFree(std.testing.allocator, &split);
+}
+
+test "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runArgvSplitWithFailingAllocator,
+        .{"console=ttyS0 root=/dev/vda rw"},
+    );
 }
