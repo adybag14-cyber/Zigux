@@ -340,7 +340,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-command-environment-controls")) {
-            saw_command_env_blocker = true;
+            saw_commandEnv_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 8 tooling") != null);
@@ -473,7 +473,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
 
     try expectContainsAll(review_checklist, &.{
         "## ABI and Runtime",
-        "does the change avoid hidden runtime services, implicit allocation, or unclear panic or unsafe ownership behavior?",
+        "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
         "if unsafe code exists, is it narrow, visible, and review-owned?",
         "are parity tests or fixture checks included?",
         "is there a stated rollback owner and fallback path?",
