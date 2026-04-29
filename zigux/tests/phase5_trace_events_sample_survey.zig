@@ -82,6 +82,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_surveyed_commit_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
+            std.mem.indexOf(u8, prompt, "samples/zigux/README.md") != null and
             std.mem.indexOf(u8, prompt, "Documentation/zigux/README.md") != null and
             std.mem.indexOf(u8, prompt, "Documentation/zigux/review-checklist.md") != null and
             std.mem.indexOf(u8, prompt, "Phase 9 runtime pilot") != null)
@@ -267,6 +268,14 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     );
     defer std.testing.allocator.free(readme);
 
+    const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
@@ -282,8 +291,9 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L23") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=7c95cdbe21c6d4fc3266ecd676d883209568deeb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9 runtime pilot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
@@ -309,11 +319,17 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptor, manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "infer the new boundary from code alone") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=7c95cdbe21c6d4fc3266ecd676d883209568deeb`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/trace_events_sample.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "Phase 9 runtime pilot tranche") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Trace-events review packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_trace_events_sample_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_trace_events_sample_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5-trace-events-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Phase 9 runtime pilot claim") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
