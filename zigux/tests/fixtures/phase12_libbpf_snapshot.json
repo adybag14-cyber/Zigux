@@ -1,33 +1,33 @@
 {
   "lane_key": "P12-L13",
   "phase": "Phase 12",
-  "surveyed_commit": "46c0200e7a4a125223ba0b90145f914f5855a88a",
+  "surveyed_commit": "3f2d00857ca82c001056f297c87621988f3d0025",
   "tracked_file_count": 5,
   "files": [
     {
       "path": "zigux/tests/phase12_libbpf_manifest.json",
       "bytes": 7303,
-      "sha256": "464ea707c85e0b74d2d86637ae13a9fb631412a183c43dfd8ecdb15771a7bc61"
+      "sha256": "2c5b592c5eebd6a32b4dd694174bc668c63dccad813bbfc2731fc508e15fd3a4"
     },
     {
       "path": "zigux/tests/phase12_libbpf_segments.zig",
       "bytes": 15775,
-      "sha256": "8e3e5279b59d0a4456f2965e12f7d4cff2bf67c43f4e9e4e85284cd0a5e2051d"
+      "sha256": "acd5e6de481b78d65ab6b80eb2d806c6cd8f97ee575272e6a3d9f7c1ed99f4d2"
     },
     {
       "path": "zigux/tests/phase12_libbpf_reviewability.zig",
       "bytes": 11901,
-      "sha256": "9046e7b2c1f6ed3292b4bbfed446e86a084c5733229ed523d2206fe8c2a26416"
+      "sha256": "3d3afdf719e2d2252cfc1384833a1e2de2723e8d60fe805151b3831407d433f6"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
       "bytes": 9477,
-      "sha256": "3b289a2c279c9fd13e3461e0042c1b706a31728d1269a62e908110edf7c08115"
+      "sha256": "6c149060d9305530391b9107166aa25046dedbe0f8843fa86ffe1c0c137a2118"
     },
     {
       "path": "tools/lib/bpf/zigux_segments/manifest.json",
-      "bytes": 6884,
-      "sha256": "99498ff5e5903ca93b9c482850932cad4d89265a9ed46b820cb5c4867255d9bc"
+      "bytes": 7509,
+      "sha256": "53a7dd4703c79d788a99c84510d108b80b33f32d7c2331b46a8066a7cb22d3e7"
     }
   ]
 }
