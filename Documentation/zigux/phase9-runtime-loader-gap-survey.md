@@ -26,7 +26,7 @@ The schedule prompt for this lane mixes a `Phase 6` label with a runtime allocat
 
 Phase 6 stays limited to low-risk leaf helpers such as `lib/base64.zig`, `lib/bsearch.zig`, `lib/checksum.zig`, and `lib/hexdump.zig`. Runtime pilot modules do not appear until Phase 9, where the roadmap explicitly calls for `zigux/tests/runtime_*` plus `samples/zigux/runtime_*`.
 
-The roadmap's first command and environment plumbing surfaces also sit outside this runtime lane. Those controls belong to `Phase 8`, where the product plan points at `tools/lib/subcmd/exec-cmd.c` and `tools/lib/subcmd/help.c` rather than any Phase 6 helper or already-landed Phase 9 runtime starter.
+The roadmap's first command and environment plumbing surfaces also sit outside this runtime lane. Those controls belong to `Phase 8`, where the product plan first points at the exec-cmd and help control family and the live repo now lands them as `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` rather than any Phase 6 helper or already-landed Phase 9 runtime starter.
 
 The live repo already reflects that split:
 
@@ -86,6 +86,8 @@ What is still missing is actual runtime execution behavior:
 
 - no real runtime loader owns thread creation, task scheduling, polling, or event-loop behavior
 - the shared request contract now records an optional shared `command_name` field, but no broader shared runtime command or environment control surface yet records argv policy or environment-derived activation cues
+- `tools/lib/subcmd/exec-cmd.zig` owns the live Phase 8 command-name and path-shaping surfaces through `ExtractArgv0Result.command_name`, `Config.exec_path_env`, `PERF_EXEC_PATH`, and `PATH`
+- `tools/lib/subcmd/help.zig` owns the live Phase 8 terminal-cue surfaces through `LINES`, `COLUMNS`, and the pretty-print terminal layout helpers
 - no path here claims module registration parity, live init invocation, or live exit teardown
 - no path here claims workqueue parity, scheduler-facing runtime transport ownership, or a freeze-map status change for `kernel/workqueue.c` without an explicit Architecture Council decision
 
@@ -96,7 +98,7 @@ That means the current runtime surface is now a bounded shared request contract,
 The roadmap boundary matters here:
 
 - `Phase 6` is still a leaf-helper phase and should not absorb runtime allocator or boot/init work
-- `Phase 8` owns the first repo-level command and environment plumbing surfaces under `tools/lib/subcmd/*.zig`, so this survey records their absence from the runtime path instead of inventing a parallel control stack
+- `Phase 8` owns the first repo-level command and environment plumbing surfaces under `tools/lib/subcmd/*.zig`, so this survey records the live `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` anchors and their continued absence from the runtime path instead of inventing a parallel control stack
 - `Phase 9` is the first runtime-module phase, so this survey is recorded there even though the scheduled lane key is `P6-L01`
 
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
