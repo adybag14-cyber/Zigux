@@ -6,7 +6,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L19`
+- `PHASE5_LANE_KEY=P5-L20`
 - `PHASE5_SURVEYED_COMMIT=5aac89e74d2a7adf3000c2fa24ee8554e859f7e9`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
