@@ -7,7 +7,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=workqueue-drain-cancel-audit`
 - `PHASE14_SURVEYED_COMMIT=1b346dbd77659625fedfdc2a45f5016e391043f8`
-- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new flush-color, barrier-insertion, and in-flight release checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
+- scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline and new flush-color, barrier-insertion, in-flight release, and drain-or-cancel checkpoints, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `kernel/workqueue_bridge.zig`
   - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -31,9 +31,8 @@ The highest-value honest step in this lane was not to sketch a fake async runtim
 - `lib/test_workqueue.c` shows there is already a kernel-side test surface around real execution behavior, which reinforces that the first Zigux artifact should be descriptive and reviewable rather than another runtime.
 - the live repo already had `zigux/kernel/export_shim.zig`, which made a kernel-adjacent Phase 14 boundary-map file a natural next step without inventing a new namespace.
 - the new `kernel/workqueue_bridge.zig` starter stays intentionally narrow around boundary recording for submission routing, allocation and attrs, flush or cancel coordination, worker-pool concurrency ownership, and rescuer or scheduler hooks.
-- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the irq-disabled `try_to_grab_pending()` or `queue_work_on()` PENDING-bit claim window, the unbound `__queue_work()` `pwq->refcnt` retry loop, the `__queue_work()` `last_pool->lock` handoff, the `__flush_workqueue()` flush-color cascade, the `start_flush_work()` barrier insertion path, the `pwq_dec_nr_in_flight()` in-flight release path, the new `drain_workqueue()` or `__flush_work()` or `__cancel_work_sync()` reflush-and-cancel boundary, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
-- the new drain-and-cancel audit records that `drain_workqueue()` raises `__WQ_DRAINING`, loops back through `__flush_workqueue()` until each `pwq_is_empty()` check stabilizes under `pool->lock`, that `__flush_work()` waits on `barr.done` after `start_flush_work()` inserts a single-work barrier, and that `__cancel_work_sync()` only re-enables the work item after the wait path completes.
-- the next honest workqueue-facing step is a disable and delayed-cancel follow-up around `disable_work()`, `disable_work_sync()`, and `cancel_delayed_work_sync()` so the lane names disable-depth accounting, delayed-timer cancellation, and sleepable-versus-BH completion boundaries before any wrapper claims delayed cancellation parity.
+- the bridge now carries an expanded concurrency audit outline around `manage_workers()`, `worker_pool` forward-progress fields, the `__queue_work()` `max_active` gate, the irq-disabled `try_to_grab_pending()` or `queue_work_on()` PENDING-bit claim window, the unbound `__queue_work()` `pwq->refcnt` retry loop, the `__queue_work()` `last_pool->lock` handoff, the `__flush_workqueue()` flush-color cascade, the `start_flush_work()` barrier insertion path, the `pwq_dec_nr_in_flight()` in-flight release path, the new `drain_workqueue()` or `__flush_work()` or `__cancel_work_sync()` reflush-and-cancel checkpoint, the `process_one_work()` unlock or relock execution window, the `worker_thread()` idle sleep transition, `rescuer_thread()`, and `wq_worker_running()` or `wq_worker_sleeping()`, still without claiming live execution ownership.
+- the next honest workqueue-facing step is a disable-and-delayed follow-up around `disable_work()`, `disable_work_sync()`, and `cancel_delayed_work_sync()` so the lane names disable-depth accounting, delayed-timer cancellation, and sleepable-versus-BH completion boundaries before any wrapper claims delayed cancellation parity.
 
 ## Recorded gaps
 
@@ -79,4 +78,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` disable and delayed-cancel audit next, limited to `disable_work()`, `disable_work_sync()`, and `cancel_delayed_work_sync()` so the bridge records disable-depth accounting, delayed-timer cancellation, and sleepable-versus-BH completion boundaries before any wrapper claims delayed cancellation parity.
+Stay in the Phase 14 workqueue lane and add one tiny `kernel/workqueue_bridge.zig` disable-and-delayed audit next, limited to `disable_work()`, `disable_work_sync()`, and `cancel_delayed_work_sync()` so the bridge records disable-depth accounting, delayed-timer cancellation, and sleepable-versus-BH completion boundaries before any wrapper claims delayed cancellation parity.
