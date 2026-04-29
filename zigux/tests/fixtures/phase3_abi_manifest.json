@@ -11,6 +11,7 @@
     "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/interop_policy.zig",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
@@ -34,5 +35,5 @@
     "Documentation/zigux/phase3-abi-slice.md",
     "zigux/tests/build.zig"
   ],
-  "file_count": 30
+  "file_count": 31
 }
