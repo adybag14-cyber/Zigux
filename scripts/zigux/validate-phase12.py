@@ -111,7 +111,7 @@ MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
         "lane_key": "P12-L01",
         "anchor": "drivers/net/virtio_net.c",
-        "gap_count": 13,
+        "gap_count": 14,
         "roadmap_destinations": ["drivers/net/virtio_net.zig", "zigux/tests/"],
         "shared_allowed_destinations": {
             "Documentation/zigux/",
@@ -120,7 +120,7 @@ MANIFEST_SPECS = {
             "drivers/virtio/virtio_ring.zig",
         },
         "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
-        "expected_status_totals": {"starter_landed": 12, "blocked_on_dma_transport": 1},
+        "expected_status_totals": {"starter_landed": 13, "blocked_on_dma_transport": 1},
         "survey_path": "zigux/tests/phase12_virtio_net_survey.zig",
         "survey_note_path": "Documentation/zigux/phase12-virtio-net-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
@@ -189,11 +189,11 @@ MANIFEST_SPECS = {
     "phase12_libbpf_manifest.json": {
         "lane_key": "P12-L13",
         "anchor": "tools/lib/bpf/libbpf.c",
-        "gap_count": 14,
+        "gap_count": 17,
         "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {"zigux/Makefile"},
         "allowed_statuses": {"starter_landed", "blocked_on_object_model", "deferred_high_risk"},
-        "expected_status_totals": {"starter_landed": 11, "blocked_on_object_model": 1, "deferred_high_risk": 2},
+        "expected_status_totals": {"starter_landed": 12, "blocked_on_object_model": 1, "deferred_high_risk": 4},
         "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
         "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model"), ("deferred_count", "deferred_high_risk")],
