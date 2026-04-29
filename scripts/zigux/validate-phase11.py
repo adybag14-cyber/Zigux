@@ -274,7 +274,7 @@ for marker in [
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
 for marker in [
-    "PHASE11_HVC_CONSOLE_STATUS=khvcd_sleep_handoff_landed",
+    "PHASE11_HVC_CONSOLE_STATUS=poll_drain_order_landed",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay",
     "leave this handoff parked unless another comparably small host-free khvcd split is obvious",
