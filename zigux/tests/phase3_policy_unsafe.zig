@@ -2,6 +2,7 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const panic_policy = @import("panic_policy");
 const allocator_policy = @import("allocator_policy");
+const interop_policy = @import("interop_policy");
 const layout_assert = @import("layout_assert");
 const narrow = @import("narrow_unsafe");
 
@@ -59,6 +60,41 @@ test "phase3 policy layout stays explicit at the ABI boundary" {
     try std.testing.expectEqual(@intFromEnum(abi.PanicMode.warn), policy.panic_mode);
     try std.testing.expectEqual(@intFromEnum(abi.AllocatorMode.arena), policy.allocator_mode);
     try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), policy.unsafe_scope);
+}
+
+test "phase3 policy decoder validates the whole interop record" {
+    const decoded = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    try std.testing.expect(decoded.canReturn());
+    try std.testing.expect(decoded.requiresExplicitCaller());
+    try std.testing.expect(!decoded.permitsGlobalFallback());
+    try std.testing.expect(decoded.permitsRawPointerBridge());
+    try std.testing.expect(!decoded.permitsVolatileMmio());
+    try std.testing.expect(interop_policy.recognizes(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    }));
+}
+
+test "phase3 policy decoder rejects partial or reserved policy bytes" {
+    try std.testing.expectError(error.ReservedBitsSet, interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 1,
+    }));
+    try std.testing.expectError(error.InvalidUnsafeScope, interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = 9,
+        .reserved = 0,
+    }));
 }
 
 test "phase3 narrow unsafe helpers stay explicit" {
