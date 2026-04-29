@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L04",
+  "lane_key": "P13-L06",
   "phase": "Phase 13",
-  "surveyed_commit": "ff87456109937e1ffbe7f2a91a79c2661874ef88",
+  "surveyed_commit": "37aa7955301349eda9d3127ad6571ed481b5b37d",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -112,10 +112,17 @@
     },
     {
       "id": "phase13-libfs-dcache-dir-close-release-bookkeeping",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is to model the tiny dcache_dir_close() release bookkeeping around dput(file->private_data) and the zero-error close outcome without claiming live refcount mutation, inode ownership, or directory teardown."
+      "why_now": "The libfs helper lab now models the tiny dcache_dir_close() release bookkeeping around dput(file->private_data) and the zero-error close outcome without claiming live refcount mutation, inode ownership, or directory teardown."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-helpers",
+      "status": "blocked_on_vfs_state",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "Deeper dcache cursor helpers still depend on live sibling-list traversal, reschedule-aware walking, and parent-lock ordering, so they remain blocked until a later Phase 13 pass can justify modeling more than the current preconditions, reposition bookkeeping, and close-path release planner."
     }
   ]
 }
