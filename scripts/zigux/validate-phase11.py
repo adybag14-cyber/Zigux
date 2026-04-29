@@ -16,6 +16,8 @@ FILES = [
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase11-dw-wdt-survey.md",
+    "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -86,7 +88,7 @@ BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
-    "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 11, [], ["phase11-dw-wdt-platform-and-pm"]),
+    "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L14", "drivers/tty/hvc/hvc_console.c", 10, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
@@ -118,6 +120,10 @@ SURVEY_SPECS = {
         "path": "zigux/tests/phase11_uapi_header_parity_survey.zig",
         "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next")],
     },
+}
+DW_DOC_PATHS = {
+    "survey": "Documentation/zigux/phase11-dw-wdt-survey.md",
+    "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
 }
 HVC_DOC_PATHS = {
     "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
@@ -258,6 +264,34 @@ for name, (lane_key, anchor, gap_count, ready_ids, blocked_ids) in MANIFEST_SPEC
         count_marker = f'expectEqual(@as(usize, {expected_count}), {variable_name});'
         if count_marker not in survey_text:
             missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
+
+dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
+dw_commit = str(dw_manifest.get("surveyed_commit", ""))
+dw_survey_doc = text(DW_DOC_PATHS["survey"])
+dw_matrix_doc = text(DW_DOC_PATHS["matrix"])
+for marker in [
+    f"`master` `{dw_commit}`",
+    "phase11-dw-wdt-validation-matrix.md",
+    "last recorded shared replay",
+    "`PHASE11_VALIDATION=pass`",
+]:
+    if marker not in dw_survey_doc:
+        missing.append(f"phase11_dw_wdt_docs:survey:{marker}")
+for marker in [
+    "PHASE11_DW_WDT_STATUS=validation_matrix_landed",
+    "## Shared Replay Surface",
+    "phase11-dw-wdt-tests",
+    "phase11-dw-wdt-survey-tests",
+    "fixed TOP timeout evidence",
+    "IRQ pretimeout bookkeeping",
+    "imported running-state handoff evidence",
+    "non-stoppable stop failure-mode boundary",
+    "zig test zigux/tests/phase11_dw_wdt.zig",
+    "zig test zigux/tests/phase11_dw_wdt_survey.zig",
+    "python3 scripts/zigux/validate-phase11.py",
+]:
+    if marker not in dw_matrix_doc:
+        missing.append(f"phase11_dw_wdt_docs:matrix:{marker}")
 
 hvc_manifest = load_manifest("phase11_hvc_console_manifest.json")
 hvc_commit = str(hvc_manifest.get("surveyed_commit", ""))
