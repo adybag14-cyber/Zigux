@@ -54,6 +54,12 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+const AnchorRange = struct {
+    path: []const u8,
+    start_line: usize,
+    end_line: usize,
+};
+
 fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
@@ -64,6 +70,63 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
         allocator,
         .limited(limit),
     );
+}
+
+fn parseAnchorRange(text: []const u8) !AnchorRange {
+    const colon = std.mem.lastIndexOfScalar(u8, text, ':') orelse return error.InvalidAnchorRange;
+    const dash = std.mem.indexOfScalar(u8, text[colon + 1 ..], '-') orelse return error.InvalidAnchorRange;
+    const dash_index = colon + 1 + dash;
+    const start_line = std.fmt.parseUnsigned(usize, text[colon + 1 .. dash_index], 10) catch return error.InvalidAnchorRange;
+    const end_line = std.fmt.parseUnsigned(usize, text[dash_index + 1 ..], 10) catch return error.InvalidAnchorRange;
+    if (start_line == 0 or end_line < start_line) return error.InvalidAnchorRange;
+
+    return .{
+        .path = text[0..colon],
+        .start_line = start_line,
+        .end_line = end_line,
+    };
+}
+
+fn lineRangeSlice(content: []const u8, anchor_range: AnchorRange) ![]const u8 {
+    var line: usize = 1;
+    var line_start: usize = 0;
+    var slice_start: ?usize = null;
+    var slice_end: ?usize = null;
+
+    for (content, 0..) |char, index| {
+        if (line == anchor_range.start_line and slice_start == null) {
+            slice_start = line_start;
+        }
+        if (char == '\n') {
+            if (line == anchor_range.end_line) {
+                slice_end = index + 1;
+                break;
+            }
+            line += 1;
+            line_start = index + 1;
+        }
+    }
+
+    if (slice_start == null and line == anchor_range.start_line) {
+        slice_start = line_start;
+    }
+    if (slice_end == null and line == anchor_range.end_line) {
+        slice_end = content.len;
+    }
+    if (slice_start == null or slice_end == null) {
+        return error.AnchorRangeOutsideFile;
+    }
+
+    return content[slice_start.?..slice_end.?];
+}
+
+fn findSegmentBySlug(segments: []const Segment, slug: []const u8) ?Segment {
+    for (segments) |segment| {
+        if (std.mem.eql(u8, segment.slug, slug)) {
+            return segment;
+        }
+    }
+    return null;
 }
 
 test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
@@ -217,6 +280,46 @@ test "phase 8 libbpf segment evidence still matches the live irq and reuse-name 
     try expectContains(libbpf_c, "name_len = strlen(info.name);");
     try expectContains(libbpf_c, "if (name_len == BPF_OBJ_NAME_LEN - 1 && strncmp(map->name, info.name, name_len) == 0)");
     try expectContains(libbpf_c, "new_name = strdup(map->name);");
+}
+
+test "phase 8 deferred perf-buffer anchor ranges still point at the live routing packet" {
+    const manifest_json = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const routing_segment = findSegmentBySlug(parsed.value.segments, "perf-buffer-online-cpu-routing") orelse return error.MissingRoutingSegment;
+    try std.testing.expectEqual(@as(usize, 2), routing_segment.anchor_ranges.len);
+
+    const libbpf_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/libbpf.c",
+        1024 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_c);
+
+    const setup_range = try parseAnchorRange(routing_segment.anchor_ranges[0]);
+    try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", setup_range.path);
+    const setup_slice = try lineRangeSlice(libbpf_c, setup_range);
+    try expectContains(setup_slice, "pb->cpu_cnt = libbpf_num_possible_cpus();");
+    try expectContains(setup_slice, "err = parse_cpu_mask_file(online_cpus_file, &online, &n);");
+    try expectContains(setup_slice, "if (p->cpu_cnt <= 0 && (cpu >= n || !online[cpu]))");
+    try expectContains(setup_slice, "err = bpf_map_update_elem(pb->map_fd, &map_key,");
+    try expectContains(setup_slice, "epoll_ctl(pb->epoll_fd, EPOLL_CTL_ADD, cpu_buf->fd,");
+
+    const parser_range = try parseAnchorRange(routing_segment.anchor_ranges[1]);
+    try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", parser_range.path);
+    const parser_slice = try lineRangeSlice(libbpf_c, parser_range);
+    try expectContains(parser_slice, "int parse_cpu_mask_file(const char *fcpu, bool **mask, int *mask_sz)");
+    try expectContains(parser_slice, "fd = open(fcpu, O_RDONLY | O_CLOEXEC);");
+    try expectContains(parser_slice, "return parse_cpu_mask_str(buf, mask, mask_sz);");
+    try expectContains(parser_slice, "int libbpf_num_possible_cpus(void)");
+    try expectContains(parser_slice, "WRITE_ONCE(cpus, tmp_cpus);");
 }
 
 test "phase 8 docs keep the deferred libbpf boundaries explicit" {
