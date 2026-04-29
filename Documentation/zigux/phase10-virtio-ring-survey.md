@@ -25,9 +25,9 @@ The live repo already has a bounded `drivers/virtio/virtio.zig` core starter wit
 - `drivers/virtio/virtio_ring.c` is present on `master` at 3940 lines and spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
 - the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_build.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`, and that core slice now covers queue callback bookkeeping, descriptor-shape metadata, and notification accounting.
 - the current Zigux VirtIO surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, callback enable-prepare snapshots, delayed-callback pacing bookkeeping, notify-prepare bookkeeping with a 16-bit rollover flush, and reset discipline that both refuses unsafe resets and clears drained queues without dropping shape metadata.
-- the adjacent MMIO lane has now already landed the bounded register-window, queue-register, queue-notify, queue-address, and config-window helpers in `drivers/virtio/virtio_mmio.zig`, so the remaining honest cross-lane follow-up is the tiny config-write helper rather than the older config-window step.
+- the adjacent MMIO lane has now already landed the bounded register-window, queue-register, queue-notify, queue-address, config-window, and config-write helpers in `drivers/virtio/virtio_mmio.zig`, so no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet.
 - the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed MMIO queue reset execution.
-- this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule is still satisfied, and the next tiny cross-lane follow-up after the ring foothold is the `virtio_mmio` config-write helper rather than more speculative in-memory ring work.
+- this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule is still satisfied through the landed MMIO config-write rung, and more speculative in-memory ring work should stay parked while the remaining transport-facing MMIO blocker stays explicit.
 
 ## Recorded gaps
 
@@ -52,10 +52,10 @@ The survey manifest now records:
 - the landed `phase10-mmio-queue-notify-helper`
 - the landed `phase10-mmio-queue-address-helper`
 - the landed `phase10-mmio-config-window-helper`
-- the ready-next `phase10-mmio-config-write-helper`
+- the landed `phase10-mmio-config-write-helper`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback disable and re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping with rollover flushing, and queue-reset guard plus drained-queue reset discipline are landed, the cross-lane MMIO ladder now truthfully records the landed register-window, queue-register, queue-notify, queue-address, and config-window steps, and only the bounded config-write helper plus the broader transport-facing lifecycle and IRQ work remain intentionally constrained.
+This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback disable and re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping with rollover flushing, and queue-reset guard plus drained-queue reset discipline are landed, the cross-lane MMIO ladder now truthfully records the landed register-window, queue-register, queue-notify, queue-address, config-window, and config-write steps, and only the broader transport-facing lifecycle and IRQ work remains intentionally constrained.
 
 ## Non-goals
 
@@ -65,7 +65,7 @@ This survey slice does not yet claim:
 - DMA mapping or unmapping wrappers
 - `virtqueue_add_*`, `virtqueue_get_buf`, or `vring_interrupt` lifecycle behavior
 - `virtio_mmio.c` transport glue
-- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and only advances through the bounded `phase10-mmio-config-write-helper` follow-up
+- any reopen of the Phase 14 study-only anchors `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`; this lane stays inside `drivers/virtio/*.zig` and does not use the landed MMIO config-write rung as a pretext for broader transport claims
 
 ## Gates
 
@@ -77,4 +77,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Do not reopen the ring lane for more speculative in-memory queue work. The next bounded cross-lane follow-up is now the tiny `virtio_mmio` config-write helper, with IRQ, lifecycle, and other transport-facing MMIO work still blocked behind that smaller step.
+Do not reopen the ring lane for more speculative in-memory queue work. Leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without widening the ring slice.
