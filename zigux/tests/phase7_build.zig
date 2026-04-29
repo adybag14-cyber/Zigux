@@ -68,6 +68,12 @@ pub fn build(b: *std.Build) void {
         "cmdline",
         "../../lib/cmdline.zig",
     );
+    const cmdline_survey_root_module = createStandaloneTestRoot(
+        b,
+        target,
+        optimize,
+        "phase7_cmdline_survey.zig",
+    );
     const argv_split_root_module = createImportedTestRoot(
         b,
         target,
@@ -113,6 +119,11 @@ pub fn build(b: *std.Build) void {
         "phase7-cmdline-tests",
         cmdline_root_module,
     );
+    const run_cmdline_survey_tests = addTestRun(
+        b,
+        "phase7-cmdline-survey-tests",
+        cmdline_survey_root_module,
+    );
     const run_argv_split_tests = addTestRun(
         b,
         "phase7-argv-split-tests",
@@ -142,6 +153,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 7 runtime helper tests");
     test_step.dependOn(&run_string_helpers_tests.step);
     test_step.dependOn(&run_cmdline_tests.step);
+    test_step.dependOn(&run_cmdline_survey_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
     test_step.dependOn(&run_argv_split_survey_tests.step);
     test_step.dependOn(&run_string_helpers_survey_tests.step);
