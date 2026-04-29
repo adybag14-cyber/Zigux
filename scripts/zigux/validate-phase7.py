@@ -20,6 +20,7 @@ required_files = [
     ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase7_build.zig",
     ROOT / "zigux" / "tests" / "phase7_string_helpers.zig",
+    ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig",
     ROOT / "zigux" / "tests" / "phase7_cmdline.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig",
@@ -54,6 +55,7 @@ script_readme = (ROOT / "scripts" / "zigux" / "README.md").read_text(encoding="u
 tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 phase7_build = (ROOT / "zigux" / "tests" / "phase7_build.zig").read_text(encoding="utf-8")
+phase7_string_helpers_survey = (ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig").read_text(encoding="utf-8")
 phase7_argv_split_survey = (ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig").read_text(encoding="utf-8")
 phase7_rbtree_survey = (ROOT / "zigux" / "tests" / "phase7_rbtree_survey.zig").read_text(encoding="utf-8")
 phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md").read_text(encoding="utf-8")
@@ -86,6 +88,7 @@ required_script_readme_markers = [
     "make -C zigux phase7",
     "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     "zigux/tests/phase7_build.zig",
+    "phase7_string_helpers_survey.zig",
     "phase7_argv_split_manifest.json",
     "phase7_rbtree_manifest.json",
     "phase7-rbtree-slice.md",
@@ -94,6 +97,7 @@ required_script_readme_markers = [
 required_tests_readme_markers = [
     "zigux/tests/phase7_build.zig",
     "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
@@ -109,6 +113,7 @@ required_tests_readme_markers = [
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
+    "`zigux/tests/phase7_string_helpers_survey.zig` stays standalone so the helper-only slice keeps its roadmap and sample-root boundary explicit without pretending there is a Phase 5 `samples/zigux/*string*` reference sample",
     "`zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`",
 ]
 
@@ -127,6 +132,7 @@ required_doc_readme_markers = [
     "zigux/tests/phase7_build.zig",
     "the current Phase 7 build handoff is intentionally split",
     "explicit `addImport(...)` aliases",
+    "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/phase7_rbtree_manifest.json",
 ]
@@ -140,6 +146,7 @@ required_phase7_build_markers = [
     "../../lib/argv_split.zig",
     "../../lib/rbtree.zig",
     "phase7_string_helpers.zig",
+    "phase7_string_helpers_survey.zig",
     "phase7_cmdline.zig",
     "phase7_argv_split.zig",
     "phase7_argv_split_survey.zig",
@@ -148,6 +155,7 @@ required_phase7_build_markers = [
     'root_module.addImport(import_name, imported_module);',
     "Helper tests keep the shipped lib imports explicit, while survey tests stay standalone.",
     "phase7-string-helpers-tests",
+    "phase7-string-helpers-survey-tests",
     "phase7-cmdline-tests",
     "phase7-argv-split-tests",
     "phase7-argv-split-survey-tests",
@@ -164,6 +172,12 @@ required_phase7_rbtree_doc_markers = [
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
 ]
 
+required_phase7_string_helpers_survey_markers = [
+    "Documentation/zigux/phase7-string-helpers-slice.md",
+    "samples/zigux/README.md",
+    "no `samples/zigux/*string*` Phase 5 reference sample",
+]
+
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
 ]
@@ -178,6 +192,7 @@ expected_phase7_build_paths = {
     "../../lib/argv_split.zig",
     "../../lib/rbtree.zig",
     "phase7_string_helpers.zig",
+    "phase7_string_helpers_survey.zig",
     "phase7_cmdline.zig",
     "phase7_argv_split.zig",
     "phase7_argv_split_survey.zig",
@@ -194,6 +209,7 @@ expected_phase7_import_calls = {
 
 expected_phase7_run_labels = {
     "phase7-string-helpers-tests",
+    "phase7-string-helpers-survey-tests",
     "phase7-cmdline-tests",
     "phase7-argv-split-tests",
     "phase7-argv-split-survey-tests",
@@ -213,6 +229,7 @@ checks = [
     ("zigux/tests/README.md", tests_readme, required_tests_readme_markers),
     ("Documentation/zigux/README.md", doc_readme, required_doc_readme_markers),
     ("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers),
+    ("zigux/tests/phase7_string_helpers_survey.zig", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),
     ("zigux/tests/phase7_argv_split_survey.zig", phase7_argv_split_survey, required_phase7_argv_split_survey_markers),
     ("zigux/tests/phase7_rbtree_survey.zig", phase7_rbtree_survey, required_phase7_rbtree_survey_markers),
     ("Documentation/zigux/phase7-rbtree-slice.md", phase7_rbtree_doc, required_phase7_rbtree_doc_markers),
