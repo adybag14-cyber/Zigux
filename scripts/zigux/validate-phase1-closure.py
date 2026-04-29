@@ -70,6 +70,10 @@ required_closure_markers = [
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
     'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
+    'string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`',
+    'PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons',
+    'string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`',
+    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith and str_ends_with keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -249,6 +253,14 @@ if string_review.get('alias_unit_test_anchor') != 'tools/lib/string.zig:test "tr
     missing_markers.append('manifest:string.alias_unit_test_anchor')
 if string_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.':
     missing_markers.append('manifest:string.alias_unit_test_contract')
+if string_review.get('prefix_unit_test_anchor') != 'tools/lib/string.zig:test "strstarts matches kernel prefix semantics"':
+    missing_markers.append('manifest:string.prefix_unit_test_anchor')
+if string_review.get('prefix_unit_test_contract') != 'Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.':
+    missing_markers.append('manifest:string.prefix_unit_test_contract')
+if string_review.get('suffix_unit_test_anchor') != 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"':
+    missing_markers.append('manifest:string.suffix_unit_test_anchor')
+if string_review.get('suffix_unit_test_contract') != 'Direct Zig unit coverage keeps strEndsWith and str_ends_with aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.':
+    missing_markers.append('manifest:string.suffix_unit_test_contract')
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
 loose_checksums = bench_expectations.get('checksums', [])
