@@ -142,6 +142,27 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
         "deferred_high_risk",
         "tools/lib/bpf/zigux_segments/relocation.zig",
     ));
+
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
+    var deferred_count: usize = 0;
+    for (manifest.gaps) |gap| {
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
+            ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_object_model")) {
+            blocked_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "deferred_high_risk")) {
+            deferred_count += 1;
+        }
+    }
+
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 4), deferred_count);
 }
 
 test "phase12 libbpf survey note records rollback and current surveyed head" {
