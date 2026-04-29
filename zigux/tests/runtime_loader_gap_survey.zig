@@ -480,6 +480,8 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         "if the change touches the shared Phase 9 runtime-loader evidence packet, does `zigux/tests/runtime_loader_gap_manifest.json` still keep the manifest-backed catalog and ownership map aligned with the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
         "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     });
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "scripts/zigux/kconfig/conf_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "zigux/kernel/export_shim.zig") != null);
 }
 
 test "runtime loader gap survey proves the shared request surface and existing loader controls directly" {
