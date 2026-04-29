@@ -34,7 +34,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L21", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L23", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
@@ -276,8 +276,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L21") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=7f328fa71ad66f5062f5dd4b324e74e430ac9a94") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L23") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9 runtime pilot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
@@ -302,7 +302,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptor, manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "infer the new boundary from code alone") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=7f328fa71ad66f5062f5dd4b324e74e430ac9a94`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/trace_events_sample.zig") != null);
