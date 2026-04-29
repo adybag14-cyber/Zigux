@@ -84,7 +84,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_RBTREE_CACHED_UNIT_REVIEW=rbtree RootCached leftmost tracking stays aligned across addCached, eraseCached, and replaceNodeCached so the cached first node matches the underlying tree root`
 - `PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys`
 
-- `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers, and first-mismatch `memchrInv` detection.
+- `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers including `removeSpaces` stop-at-NUL behavior, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `trimSpaces` and `strim` aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.
 - string fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
@@ -93,7 +93,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`
 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
-- `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection`
+- `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup including removeSpaces stop-at-NUL handling, replacement, and memchrInv mismatch detection`
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
 - `PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator`
 
