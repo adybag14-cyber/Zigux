@@ -107,3 +107,16 @@ test "phase 7 argvSplit deinit stays safe when called after teardown already cle
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
+
+test "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable" {
+    var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+
+    argv_split.argvFree(std.testing.allocator, &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+
+    argv_split.argvFree(std.testing.allocator, &split);
+}
