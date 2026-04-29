@@ -69,6 +69,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     );
     defer std.testing.allocator.free(build_file);
 
+    const driver_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/net/virtio_net.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(driver_file);
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase12-virtio-net-survey.md",
@@ -254,6 +262,19 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(saw_resume_summary);
     try std.testing.expect(saw_receive_path_summary);
     try std.testing.expect(saw_blocker);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const ProbeSnapshot = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const QueueRecoverySummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const QueueResumeSummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const ReceiveBufferMode = enum") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const XdpConstraint = enum") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn freezeForRecovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn restoreAfterRecovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planQueueResume") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeHeaderShape(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeReceiveBufferMode(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeHeaderScatter(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeXdpConstraint(") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue recovery action") != null);
