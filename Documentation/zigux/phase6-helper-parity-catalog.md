@@ -59,7 +59,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - helper: `lib/hexdump.zig`
 - tests: `zigux/tests/phase6_hexdump.zig`
 - perf: `zigux/tests/phase6_hexdump_perf.zig`
-- fixtures: `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+- fixtures: `zigux/tests/phase6_hexdump_vectors.zig`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
 
 ## Current perf gate posture
@@ -78,6 +78,7 @@ The current Phase 6 perf packet is intentionally mixed. Two helpers now carry fi
 - `zigux/tests/phase6_bsearch_perf.zig` replays two representative sorted slices: `256` entries at `2_000` reps and `4096` entries at `500` reps.
 - the machine-checked threshold is algorithmic rather than time-based: `avg_compare_calls <= std.math.log2_int_ceil(len) + 1`.
 - the harness still prints `ns_per_lookup`, but no stable nanosecond ceiling is claimed today.
+- the shipped helper surface now includes both `Comparator` and `CComparator`, and the current Zig test packet keeps runtime-selected native and C ABI comparator-pointer coverage in the same found-or-null contract.
 
 ### checksum
 
