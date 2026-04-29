@@ -88,3 +88,13 @@ test "phase3 mmio wrapper keeps declared scope explicit across widths" {
     try std.testing.expectEqual(@as(u32, 0xaabbccdd), regs[1]);
     try std.testing.expectEqual(@as(u32, 0xaabbccdd), try read32Scoped(.volatile_mmio, base, @sizeOf(u32)));
 }
+
+test "phase3 mmio wrapper rejects misaligned scoped accesses" {
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0 };
+    const base = narrow.addressOf(&bytes[0]);
+
+    try std.testing.expectError(error.MisalignedAccess, write16Scoped(.volatile_mmio, base, 1, 0xabcd));
+    try std.testing.expectError(error.MisalignedAccess, read16Scoped(.volatile_mmio, base, 1));
+    try std.testing.expectError(error.MisalignedAccess, write32Scoped(.volatile_mmio, base, 2, 0x12345678));
+    try std.testing.expectError(error.MisalignedAccess, read32Scoped(.volatile_mmio, base, 2));
+}
