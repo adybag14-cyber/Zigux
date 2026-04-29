@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 PHASE4_GATE_EXPECTATIONS = {
-    'runtime_atomic64_diff.zig': {
+    'atomic64_diff.zig': {
         'owner': 'ABI and Runtime Team',
         'rollback_owner': 'ABI and Runtime Team',
         'fallback_path': 'keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses',
@@ -47,7 +47,7 @@ PHASE4_GATE_EXPECTATIONS = {
             'phase4-runtime-atomic64-diff-tests',
             'phase4-runtime-atomic64-diff-survey-tests',
         ],
-        'reversible_delivery': '`lib/atomic64_test.c` stays the source of truth, and removing `runtime_atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move while the existing Phase 9 runtime atomic64 starter remains the forward path',
+        'reversible_delivery': '`lib/atomic64_test.c` stays the source of truth, and removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move while `runtime_atomic64_diff.zig` remains the single replay body and the existing Phase 9 runtime atomic64 starter remains the forward path',
     },
     'bitmap_diff.zig': {
         'owner': 'Shared Subsystems Pod',
@@ -126,6 +126,7 @@ REQUIRED_DOC_MARKERS = [
     'Current Phase 4 use',
     'python3 scripts/zigux/artifact_diff.py --self-test',
     'python3 scripts/zigux/check-artifact-diff-contract.py',
+    'zigux/tests/atomic64_diff.zig',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
@@ -155,6 +156,7 @@ FORBIDDEN_DOC_MARKERS = [
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
+    'zigux/tests/atomic64_diff.zig',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
@@ -191,7 +193,8 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'python3 scripts/zigux/check-artifact-diff-contract.py',
     'deterministic_preflight_required_for_host_side_diff_tools',
     'roadmap names `zigux/tests/atomic64_diff.zig`',
-    'bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig`',
+    'canonical wrapper while the bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig` remains the single underlying replay body',
+    'atomic64_diff.zig',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'bitmap_diff.zig',
@@ -210,15 +213,13 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'samples/zigux/kprobe_example.zig',
     'samples/zigux/test_fsmount.zig',
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
-    'manifest-backed survey gate now lives in `zigux/tests/phase4_test_fsmount_manifest.json`',
-    'phase4-test-fsmount-survey-tests',
     'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
 ]
 
 ROADMAP_GAP_EXPECTATIONS = {
     'samples/zigux/kprobe_example.zig': {
-        'current_repo_state': 'not present on `master`; validator-backed absence check keeps that true today, and the current anchor remains `samples/kprobes/kprobe_example.c` through `samples/kprobes/Makefile` and `CONFIG_SAMPLE_KPROBES`',
+        'current_repo_state': 'not present on `master`; the current anchor remains `samples/kprobes/kprobe_example.c` through `samples/kprobes/Makefile` and `CONFIG_SAMPLE_KPROBES`, and the validator-backed absence check keeps that true today',
         'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
         'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
     },
@@ -228,7 +229,7 @@ ROADMAP_GAP_EXPECTATIONS = {
         'next_bounded_step': 'land one bounded starter under `samples/zigux/test_fsmount.zig` that keeps the same owner, rollback owner, and `make M=samples/vfs` replay contract before claiming this anchor as active Phase 4 work',
     },
     'perf baselines and thresholds for the two shipped rollback gates': {
-        'current_repo_state': '`zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still correctness-only gates today',
+        'current_repo_state': '`zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still correctness-only gates today',
         'measurability_gap': 'benchmark command and acceptable limit are still unapproved for both landed gates',
         'next_bounded_step': 'land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage',
     },
@@ -568,13 +569,14 @@ def build_phase4_matrix_fixture() -> str:
         '- `PHASE4_STATUS=differential_validation_matrix_landed`',
         '- current repo reality:',
         '  - `scripts/zigux/artifact_diff.py`',
+        '  - `zigux/tests/atomic64_diff.zig`',
         '  - `zigux/tests/runtime_atomic64_diff.zig`',
         '  - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`',
         '  - `zigux/tests/bitmap_diff.zig`',
         '  - `zigux/tests/phase4_build.zig`',
         '  - `scripts/zigux/validate-phase4.py`',
         '  - `.github/workflows/zigux-bootstrap.yml`',
-        '- roadmap note: the roadmap names `zigux/tests/atomic64_diff.zig`, but live `master` currently carries the bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig`; this record follows the shipped tree instead of inventing a second parallel gate',
+        '- roadmap note: the roadmap names `zigux/tests/atomic64_diff.zig`, and live `master` now ships that canonical wrapper while the bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig` remains the single underlying replay body; this record follows the shipped wrapper-plus-runtime bundle instead of inventing a second parallel gate',
         '- rollback owner',
         '- lab and CI matrix',
         '- reversible delivery evidence',
@@ -627,6 +629,9 @@ def build_phase4_matrix_fixture() -> str:
             [
                 f"### `zigux/tests/{gate_name}`",
                 '',
+                '- anchor: `lib/atomic64_test.c`',
+                '- phase bucket: `Phase 4 differential validation via the canonical atomic64 wrapper plus the current live replay body`',
+                '- underlying replay body: `zigux/tests/runtime_atomic64_diff.zig`, which keeps the bounded atomic64 behavior in one place while the wrapper preserves the roadmap-facing entrypoint',
                 f"- owner: `{expectation['owner']}`",
                 f"- rollback owner: `{expectation['rollback_owner']}`",
                 f"- fallback path: {expectation['fallback_path']}",
@@ -684,13 +689,6 @@ def build_phase4_matrix_fixture() -> str:
         lines.append(
             f"| `{item_name}` | {expectation['current_repo_state']} | {expectation['measurability_gap']} | {expectation['next_bounded_step']} |"
         )
-
-    lines.extend(
-        [
-            '',
-            'The `samples/zigux/test_fsmount.zig` roadmap row is no longer prose-only: the manifest-backed survey gate now lives in `zigux/tests/phase4_test_fsmount_manifest.json`, runs through `phase4-test-fsmount-survey-tests` in `zigux/tests/phase4_build.zig`, and keeps the current lab posture C-anchor-only through `make M=samples/vfs` until the bounded Zig sample itself lands.',
-        ]
-    )
 
     return '\n'.join(lines) + '\n'
 
