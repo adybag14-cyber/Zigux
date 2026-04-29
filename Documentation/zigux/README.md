@@ -39,7 +39,7 @@ Phase 5 notes
 - `Documentation/zigux/phase5-kobject-sample-survey.md` now records the landed `samples/zigux/kobject_example.zig` reference sample, its exact registration, Linux `foo`/`baz`/`bar` attribute-order, and attribute-roundtrip checks, and the remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration.
 - the same kobject survey note now doubles as the sample-backed contributor guide for the landed kobject slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync.
 - `Documentation/zigux/phase5-kretprobe-sample-survey.md` now records the landed `samples/zigux/kretprobe_example.zig` reference sample, its exact skip, private-data-shape, return-value, duration, fixed `maxactive`, and `nmissed` replay checks, and the remaining non-goals around probe registration, `pt_regs`, and module wiring.
-- the same kretprobe survey note now doubles as the sample-backed contributor guide for the landed non-runtime `kretprobe` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime starter.
+- the same kretprobe survey note now doubles as the sample-backed contributor guide for the landed non-runtime `kretprobe` slice by naming the descriptor, shared sample-root catalog, shared review checklist, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime starter.
 - `Documentation/zigux/phase5-trace-events-sample-survey.md` now records the landed `samples/zigux/trace_events_sample.zig` reference sample, its exact payload, string-selection, main-path and callback-path iteration cues, formatted-message, event-family-count, vararg-payload, relative-location, callback-path, and callback-registration replay checks, and the remaining non-goals around tracepoint macros, kernel scheduling, and module wiring.
 - the same trace-events survey note now doubles as the sample-backed contributor guide for the landed non-runtime `trace-events` slice by naming the descriptor, manifest, and shared `phase5_build.zig` entrypoint prompts that reviewers should keep in sync while staying distinct from the separate Phase 9 runtime pilot tranche.
 - the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
@@ -158,16 +158,3 @@ Phase 13 notes
 - `zigux/tests/phase13_build.zig`, `make -C zigux phase13`, `Documentation/zigux/phase13-roadmap-traceability.md`, and `Documentation/zigux/phase13-release-notes-survey.md` now expose the same shared tranche entrypoints and release-facing readout, so this docs index stays aligned with the validator-first replay path already used elsewhere in the Phase 13 packet.
 - all four roadmap anchors now carry manifest-backed survey packets, while the adjacent notifier-list reviewability packet stays explicit as supporting shared-helper evidence rather than a fifth roadmap anchor.
 - the same top-level Phase 13 packet still keeps the helper-only `devres` boundary honest: live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state remain intentionally blocked even though `lib/devres.c` is now manifest-backed.
-
-Phase 15 notes
-- `Documentation/zigux/freeze-map.md`
-- `Documentation/zigux/phase15-freeze-map-governance.md`
-- `Documentation/zigux/phase15-architecture-council-review-process.md`
-- `Documentation/zigux/phase15-parity-scorecard.md`
-- `Documentation/zigux/phase15-indefinite-c-policy.md`
-- `Documentation/zigux/phase15-readiness-gate-survey.md`
-- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
-- `Documentation/zigux/phase15-evidence-archives/`
-- the active Phase 15 governance packet now keeps the freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, the tranche-readiness survey, the parked-next-step synthesis, and the reserved evidence archives visible from the top-level docs index, so the maintenance mode bundle stays reviewable as one unit instead of hiding only in deeper packet notes.
-- `zigux/tests/phase15_build.zig`, `zigux/Makefile`, and the shared bootstrap workflow now expose the same bounded replay path through `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15`, so the current Phase 15 governance bundle is no longer maintainer-memory only.
-- the same top-level Phase 15 packet now keeps the named reopen triggers and deep-core blocker posture explicit alongside the retained stay-in-C closeout state, so maintenance edits do not imply a silent status change for `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`.
