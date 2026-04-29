@@ -57,20 +57,21 @@ pub fn argvSplitWithArgc(
     text: []const u8,
     argcp: ?*usize,
 ) !ArgvSplitResult {
-    var storage = try allocator.dupeZ(u8, cStringPrefix(text));
-    errdefer allocator.free(storage);
-
-    const argc = countArgc(storage);
+    const current = cStringPrefix(text);
+    const argc = countArgc(current);
     if (argc == 0) {
         if (argcp) |count_out| {
             count_out.* = 0;
         }
         return .{
-            .storage = storage,
+            .storage = empty_storage_view,
             .argv = &.{},
             .argv_null_terminated = empty_argv_null_terminated,
         };
     }
+
+    var storage = try allocator.dupeZ(u8, current);
+    errdefer allocator.free(storage);
 
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
@@ -215,6 +216,20 @@ test "argvSplit reuses the exported empty argv view for blank input" {
     try std.testing.expectEqual(@as(usize, 0), argc);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvSplit reuses the exported empty storage view for blank input without allocating" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    defer split.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
