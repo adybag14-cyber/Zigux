@@ -20,8 +20,8 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
-- lane key: `P14-L06`
-- surveyed commit: `d78223d3f1a386521769795b1cff384d83cb6a3a`
+- lane key: `P14-L05`
+- surveyed commit: `7addb3a576d8a83a542f84a83957289cfe2f72e5`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
 - retained-in-C boundary: reserve or commit publication, reader-page handoff, wakeup or watermark publication, mapped-reader limitations, `ring_buffer_read_page()` extraction behavior, and the read-page allocation or reuse contract still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
@@ -30,7 +30,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-- lane key: `P14-L11`
+- lane key: `P14-L12`
 - surveyed commit: `f65e3d897847bf205198e5c47a41782085620579`
 - ready-next gap: `phase14-skbuff-validate-xmit-republish-followup`
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
@@ -41,7 +41,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - manifest: `zigux/tests/phase14_rcu_tree_manifest.json`
 - survey note: `Documentation/zigux/phase14-rcu-tree-survey.md`
 - lane key: `P14-L16`
-- surveyed commit: `4e45e5a392cca82429228d42d89c480fd413042b`
+- surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
 - retained-in-C boundary: grace-period sequence publication, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, and memory-ordering guarantees.
 
