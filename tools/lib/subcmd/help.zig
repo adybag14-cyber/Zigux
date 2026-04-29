@@ -750,6 +750,90 @@ test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" 
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[1].name);
 }
 
+test "resolveTerminalDimensions mirrors C env precedence, fallback, and defaults" {
+    try std.testing.expectEqualDeep(
+        TerminalDimensions{ .rows = 40, .cols = 120 },
+        resolveTerminalDimensions(
+            "40",
+            "120",
+            .{ .rows = 25, .cols = 80 },
+        ),
+    );
+
+    try std.testing.expectEqualDeep(
+        TerminalDimensions{ .rows = 31, .cols = 96 },
+        resolveTerminalDimensions(
+            "40",
+            null,
+            .{ .rows = 31, .cols = 96 },
+        ),
+    );
+
+    try std.testing.expectEqualDeep(
+        TerminalDimensions{ .rows = 31, .cols = 96 },
+        resolveTerminalDimensions(
+            "0",
+            "120",
+            .{ .rows = 31, .cols = 96 },
+        ),
+    );
+
+    try std.testing.expectEqualDeep(
+        TerminalDimensions{ .rows = 25, .cols = 80 },
+        resolveTerminalDimensions(
+            "bogus",
+            "24",
+            null,
+        ),
+    );
+}
+
+test "writePrettyPrintStringListForTerminal uses fallback dimensions when env dimensions are incomplete or invalid" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("annotate", 8);
+    try cmds.addCmdName("bench", 5);
+    try cmds.addCmdName("report", 6);
+    try cmds.addCmdName("stat", 4);
+    cmds.sort();
+
+    var rendered_missing_columns: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered_missing_columns.deinit();
+
+    try writePrettyPrintStringListForTerminal(
+        &rendered_missing_columns.writer,
+        cmds,
+        cmds.longestNameLen(),
+        "40",
+        null,
+        .{
+            .rows = 31,
+            .cols = 25,
+        },
+    );
+
+    const expected = "  annotate report\n" ++
+        "  bench    stat\n";
+    try std.testing.expectEqualStrings(expected, rendered_missing_columns.writer.buffered());
+
+    var rendered_zero_lines: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered_zero_lines.deinit();
+
+    try writePrettyPrintStringListForTerminal(
+        &rendered_zero_lines.writer,
+        cmds,
+        cmds.longestNameLen(),
+        "0",
+        "120",
+        .{
+            .rows = 31,
+            .cols = 25,
+        },
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered_zero_lines.writer.buffered());
+}
+
 test "writePrettyPrintStringListForTerminal keeps column-major pretty-printing pure and testable" {
     var cmds = CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
