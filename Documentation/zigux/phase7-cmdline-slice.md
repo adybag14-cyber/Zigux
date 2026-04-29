@@ -11,6 +11,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - product boundary:
   - `lib/cmdline.zig`
   - `zigux/tests/phase7_cmdline.zig`
+  - `zigux/tests/phase7_cmdline_survey.zig`
   - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
   - `zigux/tests/phase7_build.zig`
 
@@ -30,6 +31,9 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
+
+3. keep the helper-only review note replay inside the shared gate
+- `zigux/tests/phase7_cmdline_survey.zig`
 
 ## Current parity surface
 
@@ -52,7 +56,7 @@ The current tests check:
 - rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
-- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination in both the helper-local `zig test lib/cmdline.zig` path and the shared Phase 7 gate
+- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination
 
 Review note:
 - this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
