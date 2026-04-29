@@ -68,7 +68,7 @@ manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json")
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
 
 required_make_markers = [
-    "PHONY += phase8-validate phase8-exec-cmd-test phase8-libbpf-segments-test phase8-test phase8",
+    "PHONY += phase8-validate phase8-exec-cmd-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test phase8",
     "phase8-validate:",
     "scripts/zigux/validate-phase8.py",
     "phase8-exec-cmd-test:",
@@ -77,7 +77,7 @@ required_make_markers = [
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "phase8-test:",
     "zigux/tests/phase8_build.zig",
-    "phase8: phase8-validate phase8-exec-cmd-test phase8-libbpf-segments-test phase8-test",
+    "phase8: phase8-validate phase8-exec-cmd-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test",
 ]
 
 required_workflow_markers = [
@@ -182,6 +182,9 @@ required_survey_markers = [
     "path construction",
     "planTokenPreparation()",
     "optional-versus-mandatory bpffs intent",
+    "classifyTokenPreparationFailure()",
+    "skip_optional_missing_delegation",
+    "fail-fast boundary",
     "default `/sys/fs/bpf` optional probing",
     "text parsing",
     "/proc/.../fdinfo",
@@ -192,7 +195,7 @@ required_survey_markers = [
     "bpf_object__reuse_map()",
     "bpf_get_map_info_from_fdinfo()",
     "online CPU filtering",
-    "interrupt-routing-sensitive boundary",
+    "interrupt-routing-sensitive timing boundary",
     "zigux/tests/phase8_cpu_mask.zig",
     "zigux/tests/phase8_logging.zig",
     "zigux/tests/phase8_pin_path.zig",
@@ -209,6 +212,7 @@ required_bridge_boundary_markers = [
     "tools/lib/subcmd/help.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "planTokenPreparation()",
+    "classifyTokenPreparationFailure()",
     "execvp()",
     "environment reads or writes",
     "opendir()",
@@ -218,6 +222,8 @@ required_bridge_boundary_markers = [
     "`bpf_obj_get()` reopen flows",
     "`bpf_token_create()` handle lifecycle parity",
     "`open()` or `close()` ownership",
+    "skip_optional_missing_delegation",
+    "mandatory `fail`",
     "python3 scripts/zigux/validate-phase8.py",
     "make -C zigux phase8-validate",
     "zig build test --build-file zigux/tests/phase8_build.zig",
