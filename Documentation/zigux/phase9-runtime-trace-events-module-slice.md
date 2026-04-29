@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary with explicit main-thread and function-thread event totals, direct sample-local selftest, failed-exit rollback proof, and exit proof, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
+- scope: lifecycle starter, bounded event-emission and registration behavior, a machine-checkable diagnostics summary with explicit main-thread and function-thread event totals plus explicit replay run counters, direct sample-local selftest, failed-exit rollback proof, and exit proof, a tiny payload-oriented diff gate, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `zigux/tests/runtime_trace_events_module.zig`
@@ -31,7 +31,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
 - explicit registration-balance checks for the function-callback path
-- a stable `RuntimeTraceEventsSummary` view exposing lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals without requiring direct field-by-field payload inspection
+- a stable `RuntimeTraceEventsSummary` view exposing lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, `init_runs`, `selftest_runs`, and `exit_runs`, payload-presence flags, and the latest bounded main-thread and function-thread payload literals without requiring direct field-by-field payload inspection
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - the same main-thread replay now also keeps the Linux sample's `count % 5` array-shape replay explicit by recording the bounded vararg array length and its zero terminator alongside the selected random string
 - concrete function-callback payload labels for the current bounded replay path
