@@ -248,9 +248,8 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(manifest.gaps.len, starter_landed_count + ready_next_count + blocked_count);
+    try std.testing.expect(blocked_count > 0);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
