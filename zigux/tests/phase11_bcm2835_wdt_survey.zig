@@ -78,7 +78,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_shared_replay_evidence_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
@@ -86,6 +86,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-bcm2835-wdt-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_bcm2835_wdt_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "watchdog metadata surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "WDIOF_SETTIMEOUT") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "full platform registration") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PM base ioremap") != null);
 
@@ -95,6 +97,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     var saw_build_gate = false;
     var saw_survey_gate = false;
     var saw_driver_gap = false;
+    var saw_metadata_summary = false;
     var saw_driver_tests = false;
     var saw_slice_note = false;
     var saw_validation_matrix = false;
@@ -135,15 +138,26 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             saw_driver_gap = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-registration and PM-base handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-watchdog-metadata")) {
+            saw_metadata_summary = true;
+            try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Linux identity string") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog option flags") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "start or stop or get_timeleft or restart ops surface") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-handoff prerequisites") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership outcomes") != null);
         }
@@ -152,6 +166,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
         }
@@ -161,6 +176,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed platform-handoff review surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay commands") != null);
         }
@@ -210,12 +226,13 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
+    try std.testing.expect(saw_metadata_summary);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_validation_matrix);
