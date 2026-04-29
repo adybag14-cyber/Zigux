@@ -288,10 +288,27 @@ def run_self_test() -> int:
             "    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));\n"
             "    try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);\n"
             "    _ = .{\n"
+            "        atomic.fetchSub(u32, &value, 4, .seq_cst),\n"
+            "        atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst),\n"
             "        atomic.fetchOr(u32, &value, 0b1000, .seq_cst),\n"
             "        atomic.fetchAnd(u32, &value, 0b0111, .seq_cst),\n"
             "        atomic.fetchXor(u32, &value, 0b1111, .seq_cst),\n"
             "    };\n"
+            "}\n"
+            'test "phase3 low-level wrapper ABI range shape stays stable" {\n'
+            "    barrier.acquire();\n"
+            "    barrier.release();\n"
+            "    barrier.full();\n"
+            "    const desc = mmio.range(base, 12, 4);\n"
+            "    _ = desc;\n"
+            "    mmio.write16(base, 2, 0xabcd);\n"
+            "    _ = mmio.read16(base, 2);\n"
+            "    mmio.write32(base, 8, 0x12345678);\n"
+            "    _ = mmio.read32(base, 8);\n"
+            "    mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);\n"
+            "    _ = mmio.read16Scoped(.volatile_mmio, base, 0);\n"
+            "    try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);\n"
+            "    _ = mmio.read32Scoped(.volatile_mmio, base, 4);\n"
             "}\n"
             'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
             encoding="utf-8",
@@ -417,7 +434,7 @@ def run_self_test() -> int:
 
         low_level_path = root / "zigux" / "tests" / "phase3_low_level_wrappers.zig"
         original_low_level = low_level_path.read_text(encoding="utf-8")
-        missing_low_level_marker = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_low_level_wrappers.zig"][1]
+        missing_low_level_marker = "const desc = mmio.range(base, 12, 4);"
         low_level_path.write_text(
             original_low_level.replace("    " + missing_low_level_marker + "\n", "", 1),
             encoding="utf-8",
