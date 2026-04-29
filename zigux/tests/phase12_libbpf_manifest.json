@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L13",
   "phase": "Phase 12",
-  "surveyed_commit": "3f2d00857ca82c001056f297c87621988f3d0025",
+  "surveyed_commit": "0b472ee501f0999f82840c7feaa872e6152764f8",
   "anchor": "tools/lib/bpf/libbpf.c",
   "roadmap_destinations": [
     "tools/lib/bpf/zigux_segments/",
@@ -102,6 +102,27 @@
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
       "why_now": "The landed file-path-and-fdinfo helper keeps `/proc/<pid>/fdinfo/<fd>` path construction, bounded map-info text parsing, and the token-preparation recovery split explicit and reviewable before any direct procfs reads, pinned-object reopen flows, token creation, or fd-ownership behavior enters the lane."
+    },
+    {
+      "id": "phase12-libbpf-map-reuse-compatibility-helper-foundation",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The landed reused-map-name chooser and bounded compatibility comparison now keep the DEVMAP readonly-prog exception reviewable in the same helper file without widening into pinned-object reopen flow, fd duplication, or loader parity."
+    },
+    {
+      "id": "phase12-libbpf-file-path-and-handle-bridge-boundary",
+      "status": "deferred_high_risk",
+      "kind": "resource_boundary",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The remaining file-path-and-handle bridge still crosses real procfs reads, bpffs opens, token creation, pinned-object reopen flows, and fd ownership, so the Phase 12 survey should keep that resource boundary explicit even though smaller helper slices already live in the same file."
+    },
+    {
+      "id": "phase12-libbpf-perf-buffer-online-cpu-routing-boundary",
+      "status": "deferred_high_risk",
+      "kind": "interrupt_routing_boundary",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+      "why_now": "The remaining cpu-mask-adjacent perf-buffer path still crosses `/sys` cpu-mask reads, online CPU filtering, per-CPU perf-event-array map updates, epoll registration, and timeout-driven perf-buffer polling, so the helper-first parser footing must stay separate from routing and timing parity."
     },
     {
       "id": "phase12-libbpf-skeleton-population",
