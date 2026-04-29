@@ -25,6 +25,14 @@ const AddCase = struct {
     final: i64,
 };
 
+const SubCase = struct {
+    name: []const u8,
+    seed: i64,
+    subtrahend: i64,
+    previous: i64,
+    final: i64,
+};
+
 const BitwiseCase = struct {
     name: []const u8,
     seed: i64,
@@ -91,6 +99,16 @@ fn expectAddCase(case: AddCase) !void {
     try module.init(case.seed);
 
     const result = try module.addCounter(case.addend);
+    try std.testing.expectEqual(case.previous, result.previous);
+    try std.testing.expectEqual(case.final, result.final);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+fn expectSubCase(case: SubCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const result = try module.subCounter(case.subtrahend);
     try std.testing.expectEqual(case.previous, result.previous);
     try std.testing.expectEqual(case.final, result.final);
     try std.testing.expectEqual(case.final, module.snapshotCounter());
@@ -166,7 +184,7 @@ fn expectDecIfPositiveCase(case: DecIfPositiveCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c add, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
+test "runtime atomic64 diff gate replays bounded atomic64_test.c add, sub, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, and dec_if_positive expectations" {
     const v0 = signed(0xaaa3_1337_c001_d00d);
     const v1 = signed(0xdead_beef_deaf_cafe);
     const v2 = signed(0xface_abad_f00d_f001);
@@ -191,6 +209,27 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c add, bitwise, e
 
     for (add_cases) |case| {
         try expectAddCase(case);
+    }
+
+    const sub_cases = [_]SubCase{
+        .{
+            .name = "sub matches the wide onestwos decrement from atomic64_test.c",
+            .seed = v0,
+            .subtrahend = onestwos,
+            .previous = v0,
+            .final = signed(0x9992_0226_9ddf_adeb),
+        },
+        .{
+            .name = "sub accepts the negative one increment path from atomic64_test.c",
+            .seed = v0,
+            .subtrahend = -1,
+            .previous = v0,
+            .final = signed(0xaaa3_1337_c001_d00e),
+        },
+    };
+
+    for (sub_cases) |case| {
+        try expectSubCase(case);
     }
 
     const or_cases = [_]BitwiseCase{
@@ -405,6 +444,7 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectEqual(std.math.minInt(i64), module.snapshotCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.subCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(
         std.math.minInt(i64),
