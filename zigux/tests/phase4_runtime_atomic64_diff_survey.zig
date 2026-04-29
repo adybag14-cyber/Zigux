@@ -65,7 +65,7 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
-test "phase4 runtime atomic64 survey manifest records the shipped bounded gate and the remaining roadmap gap" {
+test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, roadmap entrypoint, and remaining broader-surface gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -89,7 +89,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_destinations[0]);
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 250);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_lines >= 200);
-    try std.testing.expectEqual(false, manifest.survey_summary.roadmap_atomic64_diff_present);
+    try std.testing.expectEqual(true, manifest.survey_summary.roadmap_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.post_selftest_replay_present);
     try std.testing.expect(manifest.survey_summary.phase4_build_present);
@@ -247,11 +247,11 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
 
         if (std.mem.eql(u8, gap.id, "phase4-roadmap-path-alignment")) {
             saw_path_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "not present on master") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "canonical entrypoint") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_atomic64_diff.zig") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "canonical path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase4_build.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9_build.zig") != null);
         }
@@ -271,8 +271,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 4), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_live_gate);
     try std.testing.expect(saw_runtime_sample);
