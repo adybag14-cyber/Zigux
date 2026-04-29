@@ -478,7 +478,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(24 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
