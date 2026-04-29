@@ -7,12 +7,13 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L11`
-- `PHASE5_SURVEYED_COMMIT=142403f33892ec3a3bac63c887f5fe539e181fb6`
+- `PHASE5_SURVEYED_COMMIT=d9a76f93ff1ad1fe97ba899a4e1667206e44064a`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
   - `samples/zigux/kobject_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kobject_example.zig`
@@ -62,7 +63,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `142403f33892ec3a3bac63c887f5fe539e181fb6` on 2026-04-29 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `d9a76f93ff1ad1fe97ba899a4e1667206e44064a` on 2026-04-29 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
@@ -70,7 +71,7 @@ The exact verification commands and observed results were:
   - observed result: `1/1 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
   - observed result: `All 1 tests passed.`
 - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-  - observed result: `Build Summary: 17/17 steps succeeded; 26/26 tests passed`
+  - observed result: `Build Summary: 17/17 steps succeeded; 27/27 tests passed`
   - observed result: `phase5-kobject-example-tests 5 pass (5 total)`
   - observed result: `phase5-kobject-example-survey-tests 2 pass (2 total)`
 
@@ -81,9 +82,9 @@ Those live runs confirmed that the shipped kobject sample still matches the exac
 When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, single `register_runs` ownership claim, Linux `foo`/`baz`/`bar` attribute order, shared `0664` attribute mode pattern, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `samples/zigux/README.md` still describe the exact registration, single `register_runs` ownership claim, Linux `foo`/`baz`/`bar` attribute order, shared `0664` attribute mode pattern, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
 - do the replay contract and survey note still keep the static directory-name cue explicit, keep `emits_uevent = false`, and say dynamic kobjects stay out of scope for this Phase 5 sample?
-- does this sample-backed survey note stay aligned with the manifest-backed survey, `Documentation/zigux/review-checklist.md`, and the shared `zigux/tests/phase5_build.zig` entrypoint so reviewers can see the whole shipped kobject review surface in one place?
+- does this sample-backed survey note stay aligned with the manifest-backed survey, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and the shared `zigux/tests/phase5_build.zig` entrypoint so reviewers can see the whole shipped kobject review surface in one place?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the pre-registration ownership boundary, the initialized-only exit summary, and the post-`exit()` rejection boundaries explicit instead of implying sysfs registration?
 - do the ownership checks still keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show or store access until `registerAttributes()` claims ownership?
 - if the sample behavior changes, is the manifest updated alongside the registration, attribute-order, teardown-summary, and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
@@ -94,7 +95,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, a single replay-side ownership claim, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
-- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=142403f33892ec3a3bac63c887f5fe539e181fb6` so the survey note, manifest-backed checks, and contributor review path all point at the same inspected `master` head
+- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=d9a76f93ff1ad1fe97ba899a4e1667206e44064a` so the survey note, manifest-backed checks, and contributor review path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, initialized-only abandonment path, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
