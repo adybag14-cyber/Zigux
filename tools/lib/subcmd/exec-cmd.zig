@@ -840,6 +840,34 @@ test "setupPathWithPwd reuses the logical PWD only when the injected identities 
         missing,
     );
     try std.testing.expectEqualStrings(missing, missing_env.get("PATH").?);
+
+    var empty_env = EnvMap.init(std.testing.allocator);
+    defer empty_env.deinit();
+    try execCmdInit(&empty_env, config);
+
+    var empty_state = ExecCmdState{};
+    defer empty_state.deinit(std.testing.allocator);
+    try setArgvExecPath(std.testing.allocator, &empty_env, &empty_state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &empty_state, "scripts");
+    try empty_env.set("PATH", "/usr/bin");
+
+    const empty = try setupPathWithPwd(
+        std.testing.allocator,
+        &empty_env,
+        empty_state,
+        config,
+        "/repo",
+        "",
+        cwd_identity,
+        matching_pwd_identity,
+    );
+    defer std.testing.allocator.free(empty);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin",
+        empty,
+    );
+    try std.testing.expectEqualStrings(empty, empty_env.get("PATH").?);
 }
 
 test "choosePwdCwd prefers PWD only when it points at the same location" {
@@ -858,6 +886,10 @@ test "choosePwdCwd prefers PWD only when it points at the same location" {
     try std.testing.expectEqualStrings(
         "/repo",
         choosePwdCwd("/repo", "/other", false),
+    );
+    try std.testing.expectEqualStrings(
+        "/repo",
+        choosePwdCwd("/repo", "", true),
     );
 }
 
