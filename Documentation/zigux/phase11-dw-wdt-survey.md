@@ -1,6 +1,6 @@
 # Phase 11 DesignWare Watchdog Survey
 
-This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `2e54098e1bf01307c29421a4040537a7e49b8831`.
+This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `880fd4cff8f1725a59ad155a3f824411f3a47344`.
 
 The live repo state is now:
 
@@ -13,3 +13,11 @@ The live repo state is now:
 This lane still does not claim platform-driver registration, live clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, live MMIO access, or hardware validation coverage.
 
 The next honest larger move is still blocked on platform-driver scaffold work such as live clock or reset acquisition, IRQ registration, watchdog registration execution, PM handling, and a hardware-validation plan.
+
+Latest verification snapshot:
+
+- lane key refreshed to `P11-L11` while keeping the same bounded DesignWare starter scope
+- `zig test zigux/tests/phase11_dw_wdt.zig`
+- `zig test zigux/tests/phase11_dw_wdt_survey.zig`
+- `python3 scripts/zigux/validate-phase11.py`
+- observed outcome: `PHASE11_VALIDATION=pass`, the dw_wdt starter replay passed, and the focused survey replay stayed aligned with the current `master` packet
