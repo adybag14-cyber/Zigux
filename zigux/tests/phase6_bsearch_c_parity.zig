@@ -6,7 +6,7 @@ const Symbol = struct {
     address: usize,
 };
 
-fn compareU32(key: *const u32, item: *const u32) i32 {
+fn compareU32(key: *const u32, item: *const u32) callconv(.c) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
         .eq => 0,
@@ -14,7 +14,7 @@ fn compareU32(key: *const u32, item: *const u32) i32 {
     };
 }
 
-fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
+fn compareSymbolName(key: *const []const u8, item: *const Symbol) callconv(.c) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
         .eq => 0,
