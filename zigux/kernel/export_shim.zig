@@ -9,6 +9,10 @@ pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {
     return boundary_header.abi_version == abi.ABI_VERSION and boundary_header.size >= @sizeOf(abi.BoundaryHeader);
 }
 
+pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {
+    return boundary_header.abi_version == abi.ABI_VERSION and boundary_header.size == @sizeOf(abi.BoundaryHeader);
+}
+
 pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {
     var normalized = status;
     if (normalized.code < 0) {
@@ -76,4 +80,18 @@ test "phase3 export shim normalizes explicit status decoding" {
     });
     try std.testing.expectEqual(@as(u16, 0), stray_error_flag.flags & abi.STATUS_FLAG_ERROR);
     try std.testing.expect(isOk(stray_error_flag));
+}
+
+test "phase3 export shim separates canonical headers from broader compatibility" {
+    const canonical = header(0x20);
+    try std.testing.expect(isCanonicalHeader(canonical));
+    try std.testing.expect(isCompatibleHeader(canonical));
+
+    const future_compatible: abi.BoundaryHeader = .{
+        .size = @sizeOf(abi.BoundaryHeader) + 8,
+        .abi_version = abi.ABI_VERSION,
+        .flags = 0x20,
+    };
+    try std.testing.expect(!isCanonicalHeader(future_compatible));
+    try std.testing.expect(isCompatibleHeader(future_compatible));
 }
