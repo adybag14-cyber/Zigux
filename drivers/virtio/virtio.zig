@@ -90,6 +90,15 @@ pub const DriverBindingSummary = struct {
     delivery_count: usize,
 };
 
+pub const DriverRemoveSummary = struct {
+    anchor: []const u8,
+    driver_attached_before_remove: bool,
+    status_after_remove: u8,
+    config_core_enabled: bool,
+    config_changed_handler_present: bool,
+    registered_queue_count: usize,
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
@@ -454,6 +463,33 @@ pub const VirtioCoreLabDevice = struct {
             .config_changed_handler_present = self.config_changed_handler_present,
             .change_pending = self.config_change_pending,
             .delivery_count = self.config_change_delivery_count,
+        };
+    }
+
+    pub fn removeDriver(self: *Self) !DriverRemoveSummary {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+
+        self.config_core_enabled = false;
+        self.config_driver_disabled = false;
+        self.config_change_pending = false;
+        self.config_change_delivery_count = 0;
+        self.last_config_change_disposition = .none;
+        self.config_generation = 0;
+        self.last_observed_generation = 0;
+        self.config_changed_handler_present = false;
+        self.driver_features = FeatureSet.initEmpty();
+        self.negotiated_features = FeatureSet.initEmpty();
+        self.queues = [_]QueueSlot{QueueSlot{}} ** queue_capacity;
+        self.registered_queue_count = 0;
+        self.status = DeviceStatus.acknowledge;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_attached_before_remove = true,
+            .status_after_remove = self.status,
+            .config_core_enabled = self.config_core_enabled,
+            .config_changed_handler_present = self.config_changed_handler_present,
+            .registered_queue_count = self.registered_queue_count,
         };
     }
 
