@@ -62,7 +62,7 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try std.testing.expectEqualStrings("P13-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("378906ad852f26857b23e893b47c3bab4b916b68", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("3f74e747aa08fd80bf4db8d7b085aa5293bb53ef", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -106,7 +106,7 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
     try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-dma-scatterlist-reviewability`");
-    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=378906ad852f26857b23e893b47c3bab4b916b68`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
