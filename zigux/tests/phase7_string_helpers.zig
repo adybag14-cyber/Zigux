@@ -129,6 +129,19 @@ test "phase 7 parseIntArray reports missing integer input" {
     try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "words only"));
 }
 
+test "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit" {
+    const ints = try string_helpers.parseIntArrayUser(std.testing.allocator, "1-3,5", 3);
+    defer std.testing.allocator.free(ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 1, 2, 3 }, ints);
+
+    const counted = try string_helpers.parseIntArrayUser(std.testing.allocator, "7,9tail", 3);
+    defer std.testing.allocator.free(counted);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 7, 9 }, counted);
+
+    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArrayUser(std.testing.allocator, "1,2", 0));
+}
+
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     var out = [_]u8{0} ** 32;
 
