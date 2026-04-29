@@ -39,17 +39,23 @@ fn addTestRun(
     b: *std.Build,
     name: []const u8,
     root_module: *std.Build.Module,
+    cwd: ?std.Build.LazyPath,
 ) *std.Build.Step.Run {
     const tests = b.addTest(.{
         .name = name,
         .root_module = root_module,
     });
-    return b.addRunArtifact(tests);
+    const run = b.addRunArtifact(tests);
+    if (cwd) |path| {
+        run.setCwd(path);
+    }
+    return run;
 }
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const repo_root = b.path("../..");
 
     // Helper tests keep the shipped lib imports explicit, while survey tests stay standalone.
     const string_helpers_root_module = createImportedTestRoot(
@@ -113,41 +119,49 @@ pub fn build(b: *std.Build) void {
         b,
         "phase7-string-helpers-tests",
         string_helpers_root_module,
+        null,
     );
     const run_cmdline_tests = addTestRun(
         b,
         "phase7-cmdline-tests",
         cmdline_root_module,
+        null,
     );
     const run_cmdline_survey_tests = addTestRun(
         b,
         "phase7-cmdline-survey-tests",
         cmdline_survey_root_module,
+        repo_root,
     );
     const run_argv_split_tests = addTestRun(
         b,
         "phase7-argv-split-tests",
         argv_split_root_module,
+        null,
     );
     const run_argv_split_survey_tests = addTestRun(
         b,
         "phase7-argv-split-survey-tests",
         argv_split_survey_root_module,
+        repo_root,
     );
     const run_string_helpers_survey_tests = addTestRun(
         b,
         "phase7-string-helpers-survey-tests",
         string_helpers_survey_root_module,
+        repo_root,
     );
     const run_rbtree_tests = addTestRun(
         b,
         "phase7-rbtree-tests",
         rbtree_root_module,
+        null,
     );
     const run_rbtree_survey_tests = addTestRun(
         b,
         "phase7-rbtree-survey-tests",
         rbtree_survey_root_module,
+        repo_root,
     );
 
     const test_step = b.step("test", "Run Phase 7 runtime helper tests");
