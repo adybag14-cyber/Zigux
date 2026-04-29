@@ -410,6 +410,11 @@ def _pick_manifest(slug: str, candidates: Iterable[Path]) -> Path | None:
         if score > best_score:
             best_score = score
             best_path = path
+        elif score == best_score and best_path is not None:
+            # Prefer the shared top-level manifest path when duplicate
+            # fixture-local copies carry the same payload.
+            if path.parent == ROOT / "zigux" / "tests" / "fixtures" and best_path.parent != path.parent:
+                best_path = path
     if best_path is not None:
         return best_path
     for path in candidates:
@@ -957,15 +962,13 @@ def run_self_test() -> int:
                 newline="\n",
             )
 
-        add_slice("abi", "ABI")
+        add_slice("abi", "ABI", manifest_name="phase3_abi_manifest.json")
         add_slice("bitmap-cpumask", "bitmap/cpumask")
         add_slice("ida-range-set", "ida range-set")
 
         entries = discover_phase3_slices(paths)
         assert [entry.slug for entry in entries] == ["abi", "bitmap-cpumask", "ida-range-set"]
-        assert entries[0].manifest_path == (
-            paths.fixtures_dir / "phase3_abi" / "phase3_abi_manifest.json"
-        )
+        assert entries[0].manifest_path == (paths.fixtures_dir / "phase3_abi_manifest.json")
         assert all(entry.interop_gate_mode == "legacy-wrapper" for entry in entries)
 
         rewritten_docs = rewrite_legacy_wrapper_docs(entries)
