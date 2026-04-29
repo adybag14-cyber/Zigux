@@ -54,10 +54,19 @@ pub fn assertInteropPolicyLayout() void {
     assertOffset(abi.InteropPolicy, "reserved", 3);
 }
 
+pub fn assertMmioRangeLayout() void {
+    assertSize(abi.MmioRange, @sizeOf(usize) + 8);
+    assertAlign(abi.MmioRange, @alignOf(usize));
+    assertOffset(abi.MmioRange, "base_addr", 0);
+    assertOffset(abi.MmioRange, "length", @sizeOf(usize));
+    assertOffset(abi.MmioRange, "stride", @sizeOf(usize) + 4);
+}
+
 test "phase3 layout assertions cover canonical bindings" {
     comptime {
         assertBoundaryHeaderLayout();
         assertExportStatusLayout();
         assertInteropPolicyLayout();
+        assertMmioRangeLayout();
     }
 }
