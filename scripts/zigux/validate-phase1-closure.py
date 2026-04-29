@@ -148,22 +148,40 @@ for rel in manifest_helpers:
 if bitmap_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:bitmap.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if bitmap_review.get('evidence_keys') != [
-    'bitmap.alloc_nbits',
-    'bitmap.alloc_values',
+    'bitmap.weight',
     'bitmap.scnprintf',
     'bitmap.scnprintf_empty_len',
     'bitmap.scnprintf_empty_bytes',
     'bitmap.scnprintf_trunc_len',
     'bitmap.scnprintf_trunc',
+    'bitmap.alloc_nbits',
+    'bitmap.alloc_values',
     'bitmap.zalloc_nbits',
     'bitmap.zalloc_values',
+    'bitmap.and_result',
+    'bitmap.and_values',
+    'bitmap.andnot_result',
+    'bitmap.andnot_values',
+    'bitmap.or_values',
+    'bitmap.xor_values',
+    'bitmap.copy_nbits',
+    'bitmap.copy_values',
+    'bitmap.partial_xor_nbits',
+    'bitmap.partial_xor_masked_values',
+    'bitmap.equal',
+    'bitmap.intersects',
+    'bitmap.subset',
+    'bitmap.range_after_set',
+    'bitmap.range_after_clear',
+    'bitmap.full_after_fill',
+    'bitmap.empty_after_zero',
 ]:
     missing_markers.append('manifest:bitmap.evidence_keys')
-if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and truncation behavior that preserves the trailing terminator slot.':
+if bitmap_review.get('summary') != 'Committed C-backed parity coverage includes allocator-backed bitmap sizing, zero-allocation state, tail-sensitive bitwise and copy replay, range set and clear behavior, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and truncation behavior that preserves the trailing terminator slot.':
     missing_markers.append('manifest:bitmap.summary')
 if bitmap_review.get('unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"':
     missing_markers.append('manifest:bitmap.unit_test_anchor')
-if bitmap_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps bitmapFree() honest by proving optional bitmap handles reset to null after release while allocator-backed bitmap sizing and zero-allocation state stay aligned with the committed C-backed fixture.':
+if bitmap_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps bitmapAlloc(), bitmapZalloc(), and bitmapFree() honest by proving optional bitmap handles size through bitsToWords(), zero-filled allocation stays intact, and released optionals reset to null.':
     missing_markers.append('manifest:bitmap.unit_test_contract')
 if find_bit_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:find_bit.fixture=zigux/tests/fixtures/phase1_helpers.json')
