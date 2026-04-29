@@ -668,7 +668,7 @@ def run_self_test() -> int:
         assert not missing, missing
 
         makefile = tmp_root / 'zigux/Makefile'
-        makefile.writeText(
+        makefile.write_text(
             makefile.read_text(encoding='utf-8').replace(
                 'scripts/zigux/validate-phase4.py --self-test\n',
                 '',
