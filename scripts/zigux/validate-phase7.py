@@ -68,7 +68,7 @@ required_make_markers = [
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "phase7-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase7_build.zig",
+    "$(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all",
     "zigux/tests/phase7_build.zig",
     "phase7: phase7-validate phase7-test",
 ]
@@ -235,12 +235,12 @@ expected_make_expansions = {
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     ],
     "phase7-test": [
-        "zig build test --build-file zigux/tests/phase7_build.zig",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
     "phase7": [
         "python3 scripts/zigux/validate-phase7.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
-        "zig build test --build-file zigux/tests/phase7_build.zig",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
 }
 
