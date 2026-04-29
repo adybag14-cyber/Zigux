@@ -1,5 +1,6 @@
 const std = @import("std");
 const base64 = @import("base64");
+const fixtures = @import("fixtures/phase6_base64_vectors.zig");
 
 const PerfCase = struct {
     label: []const u8,
@@ -7,11 +8,21 @@ const PerfCase = struct {
     reps: usize,
     max_encode_slowdown_pct: u16,
     max_decode_slowdown_pct: u16,
+    padding: bool,
+    variant: base64.Variant,
+    reference_kind: ReferenceKind,
+};
+
+const ReferenceKind = enum {
+    standard,
+    url_safe_no_pad,
 };
 
 const perf_cases = [_]PerfCase{
-    .{ .label = "64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225 },
-    .{ .label = "1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225 },
+    .{ .label = "std-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "std-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "urlsafe-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "urlsafe-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
 };
 
 pub fn main(init: std.process.Init) !void {
@@ -51,11 +62,11 @@ fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
 }
 
-fn benchHelperEncode(src: []const u8, dst: []u8, reps: usize, io: std.Io) !struct { elapsed: i96, sink: u32 } {
+fn benchHelperEncode(src: []const u8, dst: []u8, reps: usize, padding: bool, variant: base64.Variant, io: std.Io) !struct { elapsed: i96, sink: u32 } {
     var sink: u32 = 0;
     const started_at = benchTime(io);
     for (0..reps) |_| {
-        const len = try base64.encode(dst, src, true, .std);
+        const len = try base64.encode(dst, src, padding, variant);
         sink +%= @as(u32, @intCast(len));
         sink +%= dst[0];
         sink +%= dst[@max(len, 1) - 1];
@@ -63,11 +74,18 @@ fn benchHelperEncode(src: []const u8, dst: []u8, reps: usize, io: std.Io) !struc
     return .{ .elapsed = benchTime(io) - started_at, .sink = sink };
 }
 
-fn benchReferenceEncode(src: []const u8, dst: []u8, reps: usize, io: std.Io) struct { elapsed: i96, sink: u32 } {
+fn referenceEncode(kind: ReferenceKind, dst: []u8, src: []const u8) []const u8 {
+    return switch (kind) {
+        .standard => std.base64.standard.Encoder.encode(dst, src),
+        .url_safe_no_pad => std.base64.url_safe_no_pad.Encoder.encode(dst, src),
+    };
+}
+
+fn benchReferenceEncode(kind: ReferenceKind, src: []const u8, dst: []u8, reps: usize, io: std.Io) struct { elapsed: i96, sink: u32 } {
     var sink: u32 = 0;
     const started_at = benchTime(io);
     for (0..reps) |_| {
-        const encoded = std.base64.standard.Encoder.encode(dst, src);
+        const encoded = referenceEncode(kind, dst, src);
         sink +%= @as(u32, @intCast(encoded.len));
         sink +%= encoded[0];
         sink +%= encoded[@max(encoded.len, 1) - 1];
@@ -75,11 +93,11 @@ fn benchReferenceEncode(src: []const u8, dst: []u8, reps: usize, io: std.Io) str
     return .{ .elapsed = benchTime(io) - started_at, .sink = sink };
 }
 
-fn benchHelperDecode(encoded: []const u8, dst: []u8, expected_len: usize, reps: usize, io: std.Io) !struct { elapsed: i96, sink: u32 } {
+fn benchHelperDecode(encoded: []const u8, dst: []u8, expected_len: usize, reps: usize, padding: bool, variant: base64.Variant, io: std.Io) !struct { elapsed: i96, sink: u32 } {
     var sink: u32 = 0;
     const started_at = benchTime(io);
     for (0..reps) |_| {
-        const len = try base64.decode(dst, encoded, true, .std);
+        const len = try base64.decode(dst, encoded, padding, variant);
         std.debug.assert(len == expected_len);
         sink +%= @as(u32, @intCast(len));
         sink +%= dst[0];
@@ -88,11 +106,25 @@ fn benchHelperDecode(encoded: []const u8, dst: []u8, expected_len: usize, reps: 
     return .{ .elapsed = benchTime(io) - started_at, .sink = sink };
 }
 
-fn benchReferenceDecode(encoded: []const u8, dst: []u8, expected_len: usize, reps: usize, io: std.Io) !struct { elapsed: i96, sink: u32 } {
+fn referenceDecodedLen(kind: ReferenceKind, encoded: []const u8) !usize {
+    return switch (kind) {
+        .standard => std.base64.standard.Decoder.calcSizeForSlice(encoded),
+        .url_safe_no_pad => std.base64.url_safe_no_pad.Decoder.calcSizeForSlice(encoded),
+    };
+}
+
+fn referenceDecode(kind: ReferenceKind, dst: []u8, encoded: []const u8) !void {
+    switch (kind) {
+        .standard => try std.base64.standard.Decoder.decode(dst, encoded),
+        .url_safe_no_pad => try std.base64.url_safe_no_pad.Decoder.decode(dst, encoded),
+    }
+}
+
+fn benchReferenceDecode(kind: ReferenceKind, encoded: []const u8, dst: []u8, expected_len: usize, reps: usize, io: std.Io) !struct { elapsed: i96, sink: u32 } {
     var sink: u32 = 0;
     const started_at = benchTime(io);
     for (0..reps) |_| {
-        try std.base64.standard.Decoder.decode(dst[0..expected_len], encoded);
+        try referenceDecode(kind, dst[0..expected_len], encoded);
         sink +%= @as(u32, @intCast(expected_len));
         sink +%= dst[0];
         sink +%= dst[@max(expected_len, 1) - 1];
@@ -109,14 +141,13 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
 
     std.debug.assert(case.size <= input.len);
 
-    var prng = std.Random.DefaultPrng.init(0x5a17_2026_0640_0001);
-    prng.random().bytes(input[0..case.size]);
+    fixtures.fillPerfPayload(input[0..case.size]);
 
-    const encoded_len = try base64.encode(helper_encoded[0..], input[0..case.size], true, .std);
-    const reference_encoded_slice = std.base64.standard.Encoder.encode(reference_encoded[0..], input[0..case.size]);
-    const decoded_len = try base64.decode(helper_decoded[0..], helper_encoded[0..encoded_len], true, .std);
-    const reference_decoded_len = try std.base64.standard.Decoder.calcSizeForSlice(reference_encoded_slice);
-    try std.base64.standard.Decoder.decode(reference_decoded[0..reference_decoded_len], reference_encoded_slice);
+    const encoded_len = try base64.encode(helper_encoded[0..], input[0..case.size], case.padding, case.variant);
+    const reference_encoded_slice = referenceEncode(case.reference_kind, reference_encoded[0..], input[0..case.size]);
+    const decoded_len = try base64.decode(helper_decoded[0..], helper_encoded[0..encoded_len], case.padding, case.variant);
+    const reference_decoded_len = try referenceDecodedLen(case.reference_kind, reference_encoded_slice);
+    try referenceDecode(case.reference_kind, reference_decoded[0..reference_decoded_len], reference_encoded_slice);
 
     try std.testing.expectEqual(encoded_len, reference_encoded_slice.len);
     try std.testing.expectEqual(case.size, decoded_len);
@@ -125,10 +156,10 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     try std.testing.expectEqualSlices(u8, input[0..case.size], helper_decoded[0..decoded_len]);
     try std.testing.expectEqualSlices(u8, input[0..case.size], reference_decoded[0..reference_decoded_len]);
 
-    const helper_encode_warmup = try benchHelperEncode(input[0..case.size], helper_encoded[0..], case.reps, io);
-    const reference_encode_warmup = benchReferenceEncode(input[0..case.size], reference_encoded[0..], case.reps, io);
-    const helper_decode_warmup = try benchHelperDecode(reference_encoded_slice, helper_decoded[0..], decoded_len, case.reps, io);
-    const reference_decode_warmup = try benchReferenceDecode(reference_encoded_slice, reference_decoded[0..], reference_decoded_len, case.reps, io);
+    const helper_encode_warmup = try benchHelperEncode(input[0..case.size], helper_encoded[0..], case.reps, case.padding, case.variant, io);
+    const reference_encode_warmup = benchReferenceEncode(case.reference_kind, input[0..case.size], reference_encoded[0..], case.reps, io);
+    const helper_decode_warmup = try benchHelperDecode(reference_encoded_slice, helper_decoded[0..], decoded_len, case.reps, case.padding, case.variant, io);
+    const reference_decode_warmup = try benchReferenceDecode(case.reference_kind, reference_encoded_slice, reference_decoded[0..], reference_decoded_len, case.reps, io);
 
     var helper_encode_elapsed = helper_encode_warmup.elapsed;
     var reference_encode_elapsed = reference_encode_warmup.elapsed;
@@ -140,22 +171,22 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     var reference_decode_sink = reference_decode_warmup.sink;
 
     for (0..2) |_| {
-        const helper_encode_sample = try benchHelperEncode(input[0..case.size], helper_encoded[0..], case.reps, io);
+        const helper_encode_sample = try benchHelperEncode(input[0..case.size], helper_encoded[0..], case.reps, case.padding, case.variant, io);
         if (helper_encode_sample.elapsed < helper_encode_elapsed) {
             helper_encode_elapsed = helper_encode_sample.elapsed;
             helper_encode_sink = helper_encode_sample.sink;
         }
-        const reference_encode_sample = benchReferenceEncode(input[0..case.size], reference_encoded[0..], case.reps, io);
+        const reference_encode_sample = benchReferenceEncode(case.reference_kind, input[0..case.size], reference_encoded[0..], case.reps, io);
         if (reference_encode_sample.elapsed < reference_encode_elapsed) {
             reference_encode_elapsed = reference_encode_sample.elapsed;
             reference_encode_sink = reference_encode_sample.sink;
         }
-        const helper_decode_sample = try benchHelperDecode(reference_encoded_slice, helper_decoded[0..], decoded_len, case.reps, io);
+        const helper_decode_sample = try benchHelperDecode(reference_encoded_slice, helper_decoded[0..], decoded_len, case.reps, case.padding, case.variant, io);
         if (helper_decode_sample.elapsed < helper_decode_elapsed) {
             helper_decode_elapsed = helper_decode_sample.elapsed;
             helper_decode_sink = helper_decode_sample.sink;
         }
-        const reference_decode_sample = try benchReferenceDecode(reference_encoded_slice, reference_decoded[0..], reference_decoded_len, case.reps, io);
+        const reference_decode_sample = try benchReferenceDecode(case.reference_kind, reference_encoded_slice, reference_decoded[0..], reference_decoded_len, case.reps, io);
         if (reference_decode_sample.elapsed < reference_decode_elapsed) {
             reference_decode_elapsed = reference_decode_sample.elapsed;
             reference_decode_sink = reference_decode_sample.sink;
