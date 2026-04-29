@@ -382,11 +382,15 @@ required_kretprobe_manifest_markers = [
 ]
 
 required_kretprobe_survey_test_markers = [
+    'const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";',
+    'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
     'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
     'std.mem.indexOf(u8, check.expected, "command-name")',
     'std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary")',
     'std.mem.indexOf(u8, survey_doc, "released_without_substrate")',
     'std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary")',
+    'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
+    'std.mem.indexOf(u8, module_doc, surveyed_commit)',
 ]
 
 required_trace_events_survey_markers = [
