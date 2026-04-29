@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "de4608e6d7660ef469a327e5053a7a2dc932be71";
+const expected_surveyed_commit = "ba763c301c69054c422b8945903eb6dd9226c35c";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -139,7 +139,7 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_lookup") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-tests")) {
-            saw_tests = true;
+            sawTests = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs.zig", gap.zigux_destination);
         }
