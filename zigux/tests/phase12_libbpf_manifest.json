@@ -59,7 +59,7 @@
       "status": "starter_landed",
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-      "why_now": "The landed CPU mask helper now covers bounded string parsing, set-bit counting, and a deferred chunk-reader interface for sysfs-style buffered input that future perf-buffer and feature-probe work can share without widening into direct file I/O or runtime loader behavior."
+      "why_now": "The landed CPU mask helper now covers bounded string parsing, set-bit counting, and a deferred chunk-reader interface for sysfs-style buffered input while keeping the same fixed-width input ceiling that the current libbpf cpu-mask file path uses, so future perf-buffer and feature-probe work can share it without widening into direct file I/O or runtime loader behavior."
     },
     {
       "id": "phase12-libbpf-survey-gate",
