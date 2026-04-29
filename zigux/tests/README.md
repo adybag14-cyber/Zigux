@@ -9,6 +9,7 @@ Purpose
 
 Key entrypoints
 - `zigux/tests/build.zig`
+- `zigux/tests/atomic64_diff.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
 - `zigux/tests/bitmap_diff.zig`
 - `zigux/tests/phase4_build.zig`
