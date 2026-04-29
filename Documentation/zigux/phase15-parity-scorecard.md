@@ -4,11 +4,11 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L11`
+- `PHASE15_LANE_KEY=P15-L10`
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=maintenance-mode-handoff-synthesis`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and the maintenance-mode handoff now that the landed Phase 15 governance bundle already replays in the shared workflow
-- survey provenance refreshed against verified `master` head `0baf9b87cf6856f138b85cef7822504272a7b8de`
+- survey provenance refreshed against verified `master` head `7095a02f382e919b535b5e5c3fa8985ded58268e`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -38,11 +38,12 @@ That gap matters because the current anchors are still large and deeply coupled:
 - freeze-in-C anchors tracked: `4`
 - anchors with Phase 14 survey evidence linked: `2 / 4`
 - reserved evidence-archive templates present: `4 / 4`
+- anchors with explicit blocker dispositions recorded: `4 / 4`
 - required review-process record fields tracked in the manifest: `8`
 - reopen-trigger catalog entries tracked in the manifest: `3`
 - repo evidence checks currently green: `15 / 15`
-- landed scorecard gaps: `17 / 18`
-- blocked scorecard gaps: `1 / 18`
+- landed scorecard gaps: `18 / 19`
+- blocked scorecard gaps: `1 / 19`
 - replay surfaces currently recorded: `3 / 3`
 
 This summary is a reporting layer for the current maintenance-mode packet, not a new status claim. It says the governance bundle is fully inventoried and replay-backed across the dedicated `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow, while still keeping one explicit blocked gap for deep-core status changes.
@@ -170,6 +171,7 @@ The current lane state is:
 - landed `phase15-build-gate`
 - landed `phase15-make-target`
 - landed `phase15-evidence-archive-reporting`
+- landed `phase15-blocker-disposition-summary-metric`
 - landed `phase15-decision-record-template-followup`
 - landed `phase15-template-field-sync-followup`
 - landed `phase15-anchor-owner-tracking`
