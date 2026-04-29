@@ -11,6 +11,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
   - `samples/zigux/bytestream_fifo.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_bytestream_fifo.zig`
@@ -35,6 +36,7 @@ Fresh repo inspection now shows that `samples/zigux/` carries all four roadmap-a
 - `runtime_trace_events.zig`
 
 The `kfifo`-specific gap is no longer missing sample delivery. The remaining work in this lane is to keep the approved idiom, exact checks, and non-goals honest now that the full Phase 5 anchor set is landed, especially where later Phase 9 runtime pilots exist under neighboring Linux sample families.
+The sample-root catalog in `samples/zigux/README.md` is part of that boundary now, because it is the shortest shared place to keep the four Phase 5 reference readings visibly separate from the later runtime starters that live in the same directory.
 
 ## Survey findings
 
@@ -44,6 +46,7 @@ The `kfifo`-specific gap is no longer missing sample delivery. The remaining wor
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters separate from these non-runtime reference readings.
+- `samples/zigux/README.md` is the shared sample-root catalog for that directory boundary, so drift there is a Phase 5 reviewability problem even when the bytestream sample code itself has not changed.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for the landed kfifo-style sample
@@ -109,6 +112,7 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 - does `zigux/tests/phase5_bytestream_fifo.zig` still keep the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and queue-only reset behavior remain reviewable outside the main replay path?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
 - does `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact Phase 5 replay contract?
+- does `samples/zigux/README.md` still separate the four Phase 5 reference samples from the later `runtime_*` starters that share the same directory, without turning those runtime files into implied Phase 5 idioms?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
 
 These prompts are intentionally sample-backed rather than generic. They tie review back to the concrete descriptor, manifest, and build entrypoint that current `master` already ships.
@@ -118,7 +122,7 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 The current gap is not missing Phase 5 sample delivery for `kfifo`. The more precise lane posture is:
 
 - all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
-- this survey now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
+- `samples/zigux/README.md` now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
 - the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, including its explicit fixed-storage and transfer-count contract, so future work can leave this lane parked unless a real same-family drift appears.
