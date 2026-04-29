@@ -9,6 +9,7 @@
   "survey_summary": {
     "atomic64_test_c_lines": 277,
     "runtime_atomic64_diff_lines": 504,
+    "roadmap_atomic64_diff_present": false,
     "runtime_atomic64_diff_present": true,
     "post_selftest_replay_present": true,
     "phase4_build_present": true,
@@ -52,7 +53,7 @@
       "status": "ready_next",
       "kind": "roadmap_gap",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, but the shipped tree uses zigux/tests/runtime_atomic64_diff.zig across the shared validate-phase4.py packet and the existing phase9_build.zig replay bundle. The next bounded step is to choose one canonical path and update the roadmap-facing note in the same change before anyone claims a broader atomic64 diff surface."
+      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, but that roadmap path is not present on master and the shipped tree uses zigux/tests/runtime_atomic64_diff.zig across the shared validate-phase4.py packet and the existing phase9_build.zig replay bundle. The next bounded step is to choose one canonical path and update the roadmap-facing note in the same change before anyone claims a broader atomic64 diff surface."
     },
     {
       "id": "phase4-broader-atomic64-surface",
