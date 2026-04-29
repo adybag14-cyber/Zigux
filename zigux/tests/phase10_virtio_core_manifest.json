@@ -9,10 +9,10 @@
   ],
   "survey_summary": {
     "virtio_c_lines": 730,
-    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_test_files": 9,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_closure_validator_present": true,
-    "preexisting_phase10_closure_note_present": true,
+    "preexisting_phase10_closure_note_present": false,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_core_test_present": true,
     "preexisting_virtio_core_slice_note_present": true,
