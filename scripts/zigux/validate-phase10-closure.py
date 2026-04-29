@@ -67,7 +67,7 @@ closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").rea
 freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 docs_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
-ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
+ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").readText(encoding="utf-8")
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
@@ -180,7 +180,7 @@ required_ledger_markers = [
     "PHASE10_LEDGER_EXACT_CHECK_3=make -C zigux phase10-validate",
     "PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-test",
     "PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10",
-    "PHASE10_LEDGER_NEXT_STEP=phase10-mmio-config-write-helper",
+    "PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-mmio-lifecycle-and-irq-paths_splits_smaller",
     "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -200,7 +200,7 @@ required_ring_survey_markers = [
     "phase10-mmio-queue-register-helper",
 ]
 required_ring_survey_test_markers = [
-    'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through config-window follow-up" {',
+    'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {',
 ]
 forbidden_stale_ring_markers = [
     "remaining queue-wrapper gap",
@@ -434,9 +434,7 @@ if survey_provenance != expected_survey_provenance:
     missing_markers.append("manifest:survey_provenance:mismatch")
 
 ready_transport_followups = manifest.get("ready_transport_followups")
-expected_ready_transport_followups = {
-    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-config-write-helper"
-}
+expected_ready_transport_followups = {}
 if ready_transport_followups != expected_ready_transport_followups:
     missing_markers.append("manifest:ready_transport_followups:mismatch")
 
@@ -511,8 +509,8 @@ if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecyc
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
 if not has_gap_status(mmio_manifest, "phase10-mmio-config-window-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-config-window-helper:starter_landed")
-if not has_gap_status(mmio_manifest, "phase10-mmio-config-write-helper", "ready_next"):
-    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-config-write-helper:ready_next")
+if not has_gap_status(mmio_manifest, "phase10-mmio-config-write-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-config-write-helper:starter_landed")
 if not has_gap_status(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-lifecycle-and-irq-paths:blocked_on_risky_transport")
 
