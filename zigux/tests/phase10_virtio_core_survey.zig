@@ -50,6 +50,14 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-core-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -57,7 +65,7 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expectEqualStrings("P10-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("c61c278199722ea3a77c7d1aa6a074eeb13a1960", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0b472ee501f0999f82840c7feaa872e6152764f8", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
@@ -71,6 +79,12 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_survey_present);
     try std.testing.expect(manifest.gaps.len >= 12);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-change-bookkeeping-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-binding-bookkeeping-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-generation-summary-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-delivery-disposition-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
