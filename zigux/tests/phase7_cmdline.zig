@@ -87,6 +87,18 @@ test "phase 7 getOptions preserves descending-range and partial-parse stop behav
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 8, 0 }, &partial);
 }
 
+test "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored" {
+    var limited = [_]i32{ 0, 0, 0 };
+    const limited_rest = cmdline.getOptions("1-4,8", limited.len, &limited);
+    try std.testing.expectEqualStrings("4,8", limited_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 1, 2 }, &limited);
+
+    var validate = [_]i32{0} ** 8;
+    const validate_rest = cmdline.getOptions("1-4,8", 0, &validate);
+    try std.testing.expectEqualStrings("", validate_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 0, 0, 0, 0, 0, 0, 0 }, &validate);
+}
+
 test "phase 7 memparse preserves suffix scaling and stop index semantics" {
     var index: usize = 0;
     try std.testing.expectEqual(@as(u64, 64 * 1024), cmdline.memparse("64K,panic", &index));
