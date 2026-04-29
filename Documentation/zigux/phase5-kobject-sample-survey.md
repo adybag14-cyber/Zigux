@@ -56,6 +56,22 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
 - registered `exit()` returns a teardown summary, clears the tracked values, removes the active attribute count, and the post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected
 
+## Latest verification snapshot
+
+Current sample behavior was re-verified against `master` commit `4d8338f1f4e8243a19f6555dc7bfffd7a189d95d` on 2026-04-29 with the attached Zig toolchain.
+
+The exact verification commands and observed results were:
+
+- `zig test samples/zigux/kobject_example.zig`
+  - observed result: `1/1 kobject_example.test.kobject sample replay keeps the anchor reviewable and non-runtime...OK`
+  - observed result: `All 1 tests passed.`
+- `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+  - observed result: `Build Summary: 17/17 steps succeeded; 26/26 tests passed`
+  - observed result: `phase5-kobject-example-tests 5 pass (5 total)`
+  - observed result: `phase5-kobject-example-survey-tests 2 pass (2 total)`
+
+Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, the initialized-but-not-registered stage still keeps the active attribute count at `0` while rejecting show or store access, the initialized-only `exit()` path still reports `abandoned_before_registration`, and the registered teardown still clears tracked values while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
+
 ## Contributor refresh prompts for the landed sample
 
 When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
