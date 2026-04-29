@@ -13,6 +13,7 @@ BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase11-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 
 FILES = [
+    "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -41,6 +42,7 @@ FILES = [
 MAKE_MARKERS = [
     "PHONY += phase11-validate phase11-test phase11",
     "phase11-validate:",
+    "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/validate-phase11.py",
     "$(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all",
     "phase11: phase11-validate phase11-test",
@@ -52,6 +54,7 @@ WORKFLOW_MARKERS = [
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
 ]
 README_MARKERS = [
+    "check-phase11-build-inventory.py",
     "validate-phase11.py",
     "Phase 11 flow",
     "make -C zigux phase11-validate",
