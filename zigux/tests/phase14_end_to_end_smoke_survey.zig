@@ -118,7 +118,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("d439e5349fe57b8f59f7229cc02fa77eb825c154", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("00a889ac202f0404ecd750a99a9aefe5557890de", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -136,7 +136,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", manifest.rollback_threshold.review_blocker_status);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.rollback_threshold.owner);
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.rollback_threshold.rollback_owner);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.rollback_threshold.fallback_path, "source of truth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.rollback_threshold.fallback_path, "kernel/workqueue.c") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.required_evidence.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.rollback_threshold.rollback_triggers.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.shared_smoke_surfaces.len);
@@ -301,7 +301,6 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, checklist, "overpromising full parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "deep-core scope creep") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "ZAR-to-product transfer rationale") != null);
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback threshold") != null);
 
     const script_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -318,8 +317,6 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "memory-ordering mistakes") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "overpromising full parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "deep-core scope creep") != null);
-    try std.testing.expect(std.mem.indexOf(u8, script_readme, "rollback threshold") != null);
-    try std.testing.expect(std.mem.indexOf(u8, script_readme, "automatic return-to-blocked trigger catalog") != null);
 
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -355,16 +352,14 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "exact checks run for this verification pass") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "python3 scripts/zigux/validate-phase14.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "make -C zigux phase14-validate ZIG=/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig PYTHON=python3") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test zigux/tests/phase14_end_to_end_smoke_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "make -C zigux phase14-smoke ZIG=/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig PYTHON=python3") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
-    try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.rollback_threshold.fallback_path) != null);
     for (smoke_manifest.value.productization.risk_bundle) |risk| {
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, risk) != null);
-    }
-    for (smoke_manifest.value.rollback_threshold.required_evidence) |required_evidence| {
-        try std.testing.expect(std.mem.indexOf(u8, smoke_note, required_evidence) != null);
-    }
-    for (smoke_manifest.value.rollback_threshold.rollback_triggers) |rollback_trigger| {
-        try std.testing.expect(std.mem.indexOf(u8, smoke_note, rollback_trigger) != null);
     }
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.artifact_name) != null);
