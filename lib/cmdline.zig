@@ -317,6 +317,74 @@ const GetOptionsCase = struct {
     expected: []const i32,
 };
 
+const NextArgCase = struct {
+    input: []const u8,
+    expected_param: []const u8,
+    expected_value: ?[]const u8,
+    expected_rest: []const u8,
+};
+
+const next_arg_cases = [_]NextArgCase{
+    .{
+        .input = "root=\"/dev/sda 1\" ro",
+        .expected_param = "root",
+        .expected_value = "/dev/sda 1",
+        .expected_rest = "ro",
+    },
+    .{
+        .input = "\"noparam value\" next",
+        .expected_param = "noparam value",
+        .expected_value = null,
+        .expected_rest = "next",
+    },
+    .{
+        .input = "console=ttyS0,115200n8 panic=-1",
+        .expected_param = "console",
+        .expected_value = "ttyS0,115200n8",
+        .expected_rest = "panic=-1",
+    },
+    .{
+        .input = "rdinit=\"\" quiet",
+        .expected_param = "rdinit",
+        .expected_value = "",
+        .expected_rest = "quiet",
+    },
+    .{
+        .input = "key=alpha=beta tail",
+        .expected_param = "key",
+        .expected_value = "alpha=beta",
+        .expected_rest = "tail",
+    },
+    .{
+        .input = "mode=\"fast boot\"",
+        .expected_param = "mode",
+        .expected_value = "fast boot",
+        .expected_rest = "",
+    },
+    .{
+        .input = "=bad next",
+        .expected_param = "=bad",
+        .expected_value = null,
+        .expected_rest = "next",
+    },
+};
+
+fn expectNextArgFixture(case: NextArgCase) !void {
+    var buffer = [_]u8{0} ** 128;
+    try std.testing.expect(case.input.len <= buffer.len);
+    @memcpy(buffer[0..case.input.len], case.input);
+
+    const parsed = nextArg(buffer[0..case.input.len]);
+    try std.testing.expectEqualStrings(case.expected_param, parsed.param);
+    if (case.expected_value) |expected| {
+        try std.testing.expect(parsed.value != null);
+        try std.testing.expectEqualStrings(expected, parsed.value.?);
+    } else {
+        try std.testing.expectEqual(@as(?[]const u8, null), parsed.value);
+    }
+    try std.testing.expectEqualStrings(case.expected_rest, cStringPrefix(parsed.rest));
+}
+
 fn expectGetOptionCase(case: GetOptionCase) !void {
     var rest = case.input;
     var value: i32 = -1;
@@ -442,6 +510,12 @@ test "nextArg preserves leading equals sentinels and trims trailing spaces" {
     try std.testing.expectEqualStrings("mode", spaced.param);
     try std.testing.expectEqualStrings("fast", spaced.value.?);
     try std.testing.expectEqualStrings("", cStringPrefix(spaced.rest));
+}
+
+test "nextArg matches serialized edge fixtures" {
+    for (next_arg_cases) |case| {
+        try expectNextArgFixture(case);
+    }
 }
 
 test "getOption matches malformed-token classification from the Linux KUnit corpus" {
