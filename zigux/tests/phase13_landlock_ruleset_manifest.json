@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L12",
   "phase": "Phase 13",
-  "surveyed_commit": "4ee5cca6c2c1219fc6f267d3817d1dd0ef37e066",
+  "surveyed_commit": "c2e6f75f05a6f935d21d06d21494d71883a5fa49",
   "anchor": "security/landlock/ruleset.c",
   "roadmap_destinations": [
     "security/landlock/ruleset.zig",
