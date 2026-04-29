@@ -43,6 +43,21 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
         if not group:
             issues.append(f'kconfig_bridge:manifest:{group_name}:empty')
 
+    conf_cases = data.get('conf_cases')
+    if isinstance(conf_cases, list):
+        by_name = {
+            case.get('name'): case
+            for case in conf_cases
+            if isinstance(case, dict) and isinstance(case.get('name'), str)
+        }
+        for name in ('allnoconfig', 'randconfig'):
+            case = by_name.get(name)
+            if case is None:
+                issues.append(f'kconfig_bridge:manifest:missing_conf_case:{name}')
+                continue
+            if not isinstance(case.get('allconfig'), str) or not case.get('allconfig'):
+                issues.append(f'kconfig_bridge:manifest:{name}:missing_allconfig')
+
     return issues
 
 
@@ -116,10 +131,12 @@ required_closure_markers = [
     'genksyms bridge canonicalizes abbreviated dump-types missing-argument errors',
     'genksyms bridge rejects reference lists beyond the bounded C harness limit',
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
+    'conf bridge emits allconfig env for allconfig family modes',
     'confdata bridge decodes escaped control sequences in quoted strings',
     'confdata bridge escapes low control bytes in emitted json',
+    'PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json',
     'PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json',
-    'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus confdata escaped-control decode and low-control JSON emission anchors are required for closure',
+    'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge allconfig env and confdata escaped-control decode and low-control JSON emission anchors are required for closure',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
