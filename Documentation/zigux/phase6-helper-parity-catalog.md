@@ -76,7 +76,7 @@ The current Phase 6 perf packet is intentionally mixed. Two helpers now carry fi
 ### bsearch
 
 - `zigux/tests/phase6_bsearch_perf.zig` replays two representative sorted slices: `256` entries at `2_000` reps and `4096` entries at `500` reps.
-- the machine-checked threshold is algorithmic rather than time-based: `avg_compare_calls <= std.math.log2_int_ceil(len) + 1`.
+- the machine-checked threshold is algorithmic rather than time-based: every replayed lookup must stay within `std.math.log2_int_ceil(len) + 1` comparator calls, and the run still requires `avg_compare_calls <= std.math.log2_int_ceil(len) + 1`.
 - the harness still prints `ns_per_lookup`, but no stable nanosecond ceiling is claimed today.
 
 ### checksum
@@ -108,7 +108,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `make -C zigux phase6` replays the bundled Phase 6 helper tests together.
 - `zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
 - the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets instead of leaving the IMAP path outside the bounded slowdown gate.
-- `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded comparison budget rather than a nanosecond threshold.
+- `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
 - `zigux/tests/phase6_hexdump_perf.zig` currently remains a deterministic formatter-cost sanity harness without a numeric slowdown ceiling.
 - The per-helper perf targets stay reviewable only through this same bounded packet; do not treat one helper-local perf harness as closure for the whole tranche.
 - Reopen this catalog only when the shipped helper inventory, test labels, fixture modules, perf entrypoints, or slice-note ownership changes.
