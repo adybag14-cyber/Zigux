@@ -74,7 +74,7 @@ The current starter implementation stays deliberately bounded:
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
 - `file_path_handle_bridge.zig` ports the pure `/proc/<pid>/fdinfo/<fd>` path construction, a current-process convenience wrapper that mirrors libbpf's `getpid()`-based anchor, a `planTokenPreparation()` helper that keeps optional-versus-mandatory bpffs intent explicit around `bpf_object_prepare_token()`, and bounded `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` text parsing from `bpf_get_map_info_from_fdinfo()`
 - the file-path-handle helper now also exposes the reused-map-name chooser from `bpf_map__reuse_fd()`, preserving the original requested name only when the kernel-provided info name is exactly `BPF_OBJ_NAME_LEN - 1` bytes and matches the truncated prefix
-- the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines and keeps duplicate or malformed fields explicit for callers instead of silently guessing
+- the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines, keeps missing fields zero-initialized, lets later duplicate fdinfo keys overwrite earlier values the same way libbpf's fallback does, and still keeps malformed values explicit for callers
 - the same helper now keeps empty-string token prevention, default `/sys/fs/bpf` optional probing, and caller-provided mandatory token paths explicit without claiming real `open()`, `close()`, or `bpf_token_create()` behavior
 - the new helper still does not claim `fopen()`, `fgets()`, `fclose()`, pinned-object reopen flows, token creation lifecycle parity, or FD duplication and replacement side effects
 
@@ -100,7 +100,7 @@ The current tests check:
 - buffer exhaustion during pin-path assembly stays explicit
 - proc fdinfo paths format cleanly for representative pid and fd pairs, including the current-process `getpid()` convenience path, without widening into direct file reads
 - token-preparation planning keeps prevented, optional, and mandatory bpffs intent explicit while still stopping short of live directory opens or token creation
-- bounded fdinfo map metadata parsing accepts reordered lines and explicit `map_flags` bases while rejecting duplicates, malformed values, and missing required fields
+- bounded fdinfo map metadata parsing accepts reordered lines and explicit `map_flags` bases, keeps omitted fields zero-initialized, resolves duplicate keys last-wins, and still rejects malformed values
 - truncated kernel map names only expand back to the requested full name when the `BPF_OBJ_NAME_LEN - 1` prefix matches, keeping reused-map naming rules explicit without widening into FD duplication or pinned-object side effects
 
 ## Gates
