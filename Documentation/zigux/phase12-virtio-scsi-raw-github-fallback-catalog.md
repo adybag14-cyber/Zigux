@@ -63,6 +63,8 @@ This catalog records the exact read-only GitHub fallback coverage originally ver
 - raw_github_tree_fallback_count: `3`
 - raw_github_file_fallback_count: `10`
 - fallback_anchor_path: `drivers/scsi/virtio_scsi.c`
+- fallback_anchor_only_raw_file: `drivers/scsi/virtio_scsi.c`
+- fallback_lane_artifact_count: `9`
 - fallback_lane_artifacts:
   - `drivers/scsi/virtio_scsi.zig`
   - `zigux/tests/phase12_virtio_scsi.zig`
@@ -87,6 +89,8 @@ This catalog records the exact read-only GitHub fallback coverage originally ver
 - focused_survey_result: `All 1 tests passed.`
 
 ## Current replay note
+
+These fields record the last replay performed for this pinned fallback packet. They can lag the live `master` head until `P12-L09` or `P12-L12` refreshes the exact inspected-head evidence again.
 
 - current_master_replay_head: `a8daee106057a542aa03f2983662bec7c06584bb`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
