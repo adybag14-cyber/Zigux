@@ -68,7 +68,7 @@ The current tests check:
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
-- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that reuses the shared `zigux/tests/fixtures/phase6_base64_vectors.zig` payload corpus, compares the helper against the padded `std.base64.standard` reference path, the unpadded `std.base64.url_safe_no_pad` reference path, and a translated unpadded IMAP reference path, and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets while rechecking round-trip correctness
+- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that reuses the shared `zigux/tests/fixtures/phase6_base64_vectors.zig` payload corpus, compares the helper against the padded `std.base64.standard` reference path, the unpadded `std.base64.url_safe_no_pad` reference path, and a translated unpadded IMAP reference path, and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets using a median-of-three slowdown sample while rechecking round-trip correctness
 
 ## Non-goals
 
