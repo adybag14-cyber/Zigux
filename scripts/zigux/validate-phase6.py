@@ -275,10 +275,10 @@ required_slice_markers = {
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-bsearch-perf',
         'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
-        'duplicate-key found-or-null parity without claiming stable selection',
+        'duplicate-key found-or-null parity without claiming stable selection across beginning, middle, and end duplicate runs',
         'representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup, not only on average across the perf run',
         'representative external C-vs-Zig parity spot check',
-        'replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative sorted slices',
+        'a replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative sorted slices',
     ],
     'phase6-checksum-slice.md': [
         'PHASE6_STATUS=active',
