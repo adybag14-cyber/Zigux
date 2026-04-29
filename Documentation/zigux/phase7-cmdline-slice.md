@@ -61,6 +61,7 @@ The current tests check:
 
 Review note:
 - this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
+- `zig test lib/cmdline.zig` keeps a mirrored `next_arg()` edge corpus beside `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` because helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change
 
 ## Non-goals
 
