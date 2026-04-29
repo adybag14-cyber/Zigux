@@ -96,7 +96,7 @@ RELEASE_MARKERS = [
 ]
 
 CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, and explicit ZAR-to-product transfer rationale?",
+    "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
 ]
 
 BUILD_MARKERS = [
@@ -301,6 +301,9 @@ for index, shard in enumerate(compile_shards):
 survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 if surveyed_commit and surveyed_commit not in survey_note:
     missing.append("survey:surveyed_commit")
+expected_shared_manifest_line = f"- shared smoke manifest surveyed commit: `{surveyed_commit}`"
+if expected_shared_manifest_line not in survey_note:
+    missing.append("survey:shared_manifest_line")
 for key, value in PRODUCTIZATION_KEYS.items():
     if value not in survey_note:
         missing.append(f"survey:productization:{key}")
