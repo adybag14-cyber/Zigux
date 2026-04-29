@@ -15,7 +15,7 @@ Current repo state on `master`:
 - a generic notifier header anchor is already present in `include/linux/acpi_amd_wbrf.h`, which includes `include/linux/notifier.h` and publishes `amd_wbrf_register_notifier()` plus `amd_wbrf_unregister_notifier()` around `struct notifier_block *nb` without yet giving Zigux a shared ABI or helper surface for that contract
 - `include/linux/notifier.h` also already fixes the field-level read-only shape that any future Zigux ABI would need to mirror: `struct notifier_block` carries `notifier_call`, `next`, and `priority`, and `struct raw_notifier_head` anchors the chain through `head`
 - a public list-plus-notifier coexistence anchor is also already visible in `include/net/dsa.h`, where `struct dsa_switch_tree` carries `list`, `ports`, `nh`, and `rtable` while the same header's `struct dsa_switch` carries a notifier listener `nb`, which makes shared read-only notifier or list adjacency reviewable without claiming a Zigux helper yet
-- there is still no generic notifier ABI surface in `zigux/bindings/abi.zig` and no shared helper under `zigux/helpers/` that models notifier-chain linkage directly
+- there is still no generic notifier ABI surface in `zigux/bindings/abi.zig`, no shared notifier helper file or build replay hook, and no helper under `zigux/helpers/` that models notifier-chain linkage directly
 
 Why this matters for Phase 13:
 
@@ -24,6 +24,7 @@ Why this matters for Phase 13:
 - the generic header anchor narrows the remaining gap: upstream C already exposes a reusable `notifier_block` contract, but Zigux still lacks the tiny read-only ABI and helper surfaces that would make that contract reviewable on the Zig side
 - the field-level notifier layout anchor makes that remaining gap sharper: the missing Zigux ABI is no longer just about naming the contract, but about mirroring a specific read-only chain shape without over-claiming registration or execution semantics
 - the public list-plus-notifier coexistence anchor sharpens the adjacency question further: shared public headers already keep `list_head`, `raw_notifier_head`, and `notifier_block` shapes near each other, and this survey packet now records that DSA header explicitly instead of leaving it prose-only, so the missing Zigux work is clearly about mirroring those read-only shapes rather than discovering whether the upstream surface exists
+- the explicit no-helper or no-build-hook proof keeps this lane from drifting into false positives once a later run starts a real notifier helper, because the current reviewability gate now fails as soon as a `zigux/helpers/notifier_chain_view.zig` style file or matching replay hook lands without the survey packet moving with it
 - that mismatch means later helper work such as list-backed cursor or chain bookkeeping can accidentally overstate notifier readiness unless the gap is recorded explicitly
 
 The next honest bounded step in this same lane is a tiny generic notifier ABI foothold, paired with one helper-first survey of notifier-chain linkage against the existing list and hlist view surface. That follow-up must stay out of live callback registration, chain execution, SRCU or blocking semantics, and any new chrdev delivery expansion.
