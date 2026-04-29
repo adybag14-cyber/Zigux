@@ -129,8 +129,7 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
-        'test "phase3 low-level wrappers keep policy helpers inside the documented ABI surface"',
-        'test "phase3 low-level wrappers decode interop policy unsafe scope explicitly"',
+        'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
@@ -570,8 +569,7 @@ def run_self_test() -> int:
         )
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
             'test "phase3 low-level wrappers stay inside the documented ABI surface" {}\n'
-            'test "phase3 low-level wrappers keep policy helpers inside the documented ABI surface" {}\n'
-            'test "phase3 low-level wrappers decode interop policy unsafe scope explicitly" {}\n',
+            'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
             encoding="utf-8",
             newline="\n",
         )
