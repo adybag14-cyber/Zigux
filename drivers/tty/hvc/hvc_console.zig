@@ -245,6 +245,29 @@ pub const PollDrainOrderSnapshot = struct {
     backend_handoff_pending: bool,
 };
 
+pub const HangupDisconnectRequest = struct {
+    port_count_before_hangup: usize = 1,
+    notifier_hangup_present: bool = false,
+    buffered_write_len: usize = 0,
+};
+
+pub const HangupDisconnectSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    cancel_resize_pending: bool,
+    hangup_skipped: bool,
+    port_count_before_hangup: usize,
+    port_count_after_hangup: usize,
+    tty_detached: bool,
+    clears_outbuf: bool,
+    buffered_write_len_before_hangup: usize,
+    buffered_write_len_after_hangup: usize,
+    notifier_hangup_pending: bool,
+    keeps_console_binding: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -373,7 +396,7 @@ pub const HvcConsoleLab = struct {
             .vtermno = handoff.vtermno,
             .adapter_present = handoff.adapter_present,
             .final_close_wait_required = handoff.final_close_wait_required,
-            .clears_port_initialized_on_final_close = handoff.clears_port_initialized_on_final_close,
+            .clears_port_initialized_on_final_close = handoff.clears_port_initialized_onFinalClose,
             .keeps_console_binding = handoff.keeps_console_binding,
             .tty_registration_pending = handoff.tty_registration_pending,
             .khvcd_polling_pending = handoff.khvcd_polling_pending,
@@ -404,7 +427,7 @@ pub const HvcConsoleLab = struct {
         const poll_mask_pending = poll_read_pending or poll_write_pending;
         const skip_sleep_due_to_kick = request.kick_pending_after_walk;
         const sleeps_without_timeout = !skip_sleep_due_to_kick and !poll_mask_pending;
-        const timeout_backoff_active = !skip_sleep_due_to_kick and poll_mask_pending;
+        const timeout_backoff_active = !skip_sleep_dueToKick and poll_mask_pending;
         const sleep_timeout_ms = if (timeout_backoff_active)
             growKhvcdTimeout(request.timeout_ms)
         else
@@ -503,7 +526,7 @@ pub const HvcConsoleLab = struct {
             @as(usize, @intCast(request.read_result))
         else
             0;
-        const read_hangup_pending = tty_required_for_read_path and
+        const read_hangup_pending = tty_required_for_readPath and
             !request.tty_throttled and
             request.read_result == epipe;
         const read_poll_pending_after_drain = read_poll_armed_without_irq or
@@ -543,6 +566,32 @@ pub const HvcConsoleLab = struct {
                 read_poll_pending_after_drain or
                 read_hangup_pending or
                 flip_push_after_unlock,
+        };
+    }
+
+    pub fn summarizeHangupDisconnect(
+        self: *const Self,
+        request: HangupDisconnectRequest,
+    ) !HangupDisconnectSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        const hangup_skipped = request.port_count_before_hangup == 0;
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .cancel_resize_pending = true,
+            .hangup_skipped = hangup_skipped,
+            .port_count_before_hangup = request.port_count_before_hangup,
+            .port_count_after_hangup = 0,
+            .tty_detached = !hangup_skipped,
+            .clears_outbuf = !hangup_skipped,
+            .buffered_write_len_before_hangup = request.buffered_write_len,
+            .buffered_write_len_after_hangup = if (hangup_skipped) request.buffered_write_len else 0,
+            .notifier_hangup_pending = !hangup_skipped and request.notifier_hangup_present,
+            .keeps_console_binding = true,
         };
     }
 
