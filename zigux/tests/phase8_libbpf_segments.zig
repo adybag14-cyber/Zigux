@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const current_surveyed_commit = "2b4981e7e731f954e21db71e991fe885c518eb0d";
+
 const CompanionFile = struct {
     path: []const u8,
     lines: usize,
@@ -36,18 +38,6 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "blocked_on_object_model") or
         std.mem.eql(u8, status, "deferred_high_risk");
-}
-
-fn isLowerHexCommit(commit: []const u8) bool {
-    if (commit.len != 40) return false;
-
-    for (commit) |char| {
-        if (!((char >= '0' and char <= '9') or (char >= 'a' and char <= 'f'))) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
@@ -143,9 +133,8 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
-    try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
-    try std.testing.expect(!std.mem.eql(u8, manifest.surveyed_commit, "246d0135fa18a1af90bf7d6e516ae4a7b2ac262a"));
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
@@ -344,6 +333,7 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     );
     defer std.testing.allocator.free(bridge_boundary_note);
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
     try expectContains(survey_note, "blocked object-model");
