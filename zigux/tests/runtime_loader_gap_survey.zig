@@ -31,6 +31,16 @@ const OwnershipEntry = struct {
     owns: []const u8,
 };
 
+const Phase8ControlSurfaceMarkers = struct {
+    exec_cmd_surface: []const u8,
+    help_surface: []const u8,
+    command_name_field: []const u8,
+    exec_path_env_field: []const u8,
+    shared_runtime_loader_field: []const u8,
+    exec_env_names: []const []const u8,
+    terminal_env_names: []const []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     schedule_phase: []const u8,
@@ -41,6 +51,7 @@ const Manifest = struct {
     survey_summary: SurveySummary,
     phase6_leaf_helpers: []const []const u8,
     phase8_command_environment_surfaces: []const []const u8,
+    phase8_control_surface_markers: Phase8ControlSurfaceMarkers,
     runtime_samples: []const []const u8,
     runtime_loader_plans: []const []const u8,
     delivery_evidence_catalog: []const DeliveryEvidence,
@@ -116,6 +127,17 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expect(!manifest.survey_summary.shared_command_environment_control_present);
     try std.testing.expectEqual(@as(usize, 4), manifest.phase6_leaf_helpers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.phase8_command_environment_surfaces.len);
+    try std.testing.expectEqualStrings("tools/lib/subcmd/exec-cmd.zig", manifest.phase8_control_surface_markers.exec_cmd_surface);
+    try std.testing.expectEqualStrings("tools/lib/subcmd/help.zig", manifest.phase8_control_surface_markers.help_surface);
+    try std.testing.expectEqualStrings("ExtractArgv0Result.command_name", manifest.phase8_control_surface_markers.command_name_field);
+    try std.testing.expectEqualStrings("Config.exec_path_env", manifest.phase8_control_surface_markers.exec_path_env_field);
+    try std.testing.expectEqualStrings("shared command_name field", manifest.phase8_control_surface_markers.shared_runtime_loader_field);
+    try std.testing.expectEqual(@as(usize, 2), manifest.phase8_control_surface_markers.exec_env_names.len);
+    try std.testing.expectEqualStrings("PERF_EXEC_PATH", manifest.phase8_control_surface_markers.exec_env_names[0]);
+    try std.testing.expectEqualStrings("PATH", manifest.phase8_control_surface_markers.exec_env_names[1]);
+    try std.testing.expectEqual(@as(usize, 2), manifest.phase8_control_surface_markers.terminal_env_names.len);
+    try std.testing.expectEqualStrings("LINES", manifest.phase8_control_surface_markers.terminal_env_names[0]);
+    try std.testing.expectEqualStrings("COLUMNS", manifest.phase8_control_surface_markers.terminal_env_names[1]);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
