@@ -80,10 +80,10 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     );
     defer std.testing.allocator.free(anchor_source);
 
-    try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("2e54098e1bf01307c29421a4040537a7e49b8831", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("880fd4cff8f1725a59ad155a3f824411f3a47344", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(manifest.survey_summary.dw_wdt_c_lines, countLines(anchor_source));
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -317,6 +317,11 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and platform-resou
     try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, preflight_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, resource_order_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt_survey.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`python3 scripts/zigux/validate-phase11.py`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE11_VALIDATION=pass`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, preflight_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, resource_order_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked on platform-driver scaffold work") != null);
