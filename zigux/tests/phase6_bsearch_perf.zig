@@ -20,8 +20,16 @@ pub fn main(init: std.process.Init) !void {
     for (perf_cases) |case| {
         const result = try runPerfCase(case, io);
         std.debug.print(
-            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={}\n",
-            .{ case.label, case.len, case.reps, result.ns_per_lookup, result.avg_compare_calls, result.max_compare_calls },
+            "phase6-bsearch-perf {s} len={} reps={} ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={}\n",
+            .{
+                case.label,
+                case.len,
+                case.reps,
+                result.ns_per_lookup,
+                result.avg_compare_calls,
+                result.max_compare_calls,
+                result.max_compare_budget,
+            },
         );
     }
 }
@@ -30,6 +38,7 @@ const PerfResult = struct {
     ns_per_lookup: u64,
     avg_compare_calls: f64,
     max_compare_calls: usize,
+    max_compare_budget: usize,
 };
 
 fn compareCounted(key: *const u32, item: *const u32) callconv(.c) i32 {
@@ -107,6 +116,7 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
         .ns_per_lookup = @max(@as(u64, @intCast(@divFloor(elapsed, @as(i96, @intCast(total_lookups))))), 1),
         .avg_compare_calls = avg_compare_calls,
         .max_compare_calls = max_compare_calls,
+        .max_compare_budget = max_compare_budget,
     };
 }
 
