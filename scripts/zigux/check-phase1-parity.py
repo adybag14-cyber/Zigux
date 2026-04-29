@@ -72,7 +72,18 @@ def write_host_shims(root: Path) -> None:
         encoding='utf-8',
     )
     (asm_dir / 'posix_types.h').write_text('#include <asm-generic/posix_types.h>\n', encoding='utf-8')
-    (asm_dir / 'bitsperlong.h').write_text('#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)\n', encoding='utf-8')
+    (asm_dir / 'bitsperlong.h').write_text(
+        '\n'.join([
+            '#ifndef __ZIGUX_HOST_ASM_BITSPERLONG_H__',
+            '#define __ZIGUX_HOST_ASM_BITSPERLONG_H__',
+            '#ifndef __BITS_PER_LONG',
+            '#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)',
+            '#endif',
+            '#endif',
+            '',
+        ]),
+        encoding='utf-8',
+    )
     (linux_dir / 'slab.h').write_text(
         '\n'.join([
             '#ifndef __ZIGUX_HOST_LINUX_SLAB_H__',
@@ -105,6 +116,8 @@ def write_host_shims(root: Path) -> None:
 
 def include_flags(shim_dir: Path) -> list[str]:
     return [
+        '-D__WORDSIZE=(__CHAR_BIT__ * __SIZEOF_LONG__)',
+        '-DBITS_PER_LONG=(__CHAR_BIT__ * __SIZEOF_LONG__)',
         '-I', str(shim_dir),
         '-I', str(ROOT / 'tools' / 'include'),
         '-I', str(ROOT / 'tools' / 'include' / 'uapi'),
@@ -125,7 +138,18 @@ def run_windows_wsl_compile(tmp_dir: Path, exe: Path, actual: Path, compiler: st
         'set -euo pipefail',
     ]
 
-    quoted = [shlex.quote(compiler), '-std=gnu11', '-Wall', '-Wextra', '-Wno-type-limits', '-Wno-int-to-pointer-cast', '-Wno-pointer-to-int-cast', '-o', shlex.quote(windows_to_wsl(exe))]
+    quoted = [
+        shlex.quote(compiler),
+        '-std=gnu11',
+        '-Wall',
+        '-Wextra',
+        '-Wno-type-limits',
+        '-Wno-int-to-pointer-cast',
+        '-Wno-pointer-to-int-cast',
+        '-Wno-unused-parameter',
+        '-o',
+        shlex.quote(windows_to_wsl(exe)),
+    ]
     index = 0
     while index < len(flags):
         item = flags[index]
@@ -147,7 +171,18 @@ def compile_and_run(tmp_dir: Path, exe: Path, actual: Path, compiler: str, flags
         run_windows_wsl_compile(tmp_dir, exe, actual, compiler, flags)
         return
 
-    compile_cmd = [compiler, '-std=gnu11', '-Wall', '-Wextra', '-Wno-type-limits', '-Wno-int-to-pointer-cast', '-Wno-pointer-to-int-cast', '-o', str(exe)]
+    compile_cmd = [
+        compiler,
+        '-std=gnu11',
+        '-Wall',
+        '-Wextra',
+        '-Wno-type-limits',
+        '-Wno-int-to-pointer-cast',
+        '-Wno-pointer-to-int-cast',
+        '-Wno-unused-parameter',
+        '-o',
+        str(exe),
+    ]
     compile_cmd.extend(flags)
     compile_cmd.extend(str(path) for path in SOURCES)
     run(compile_cmd, cwd=str(ROOT))
