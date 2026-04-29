@@ -53,9 +53,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_lifecycle_prompt = false;
     var saw_callback_prompt = false;
     var saw_non_goal_prompt = false;
+    var saw_descriptor_check = false;
     var saw_message_check = false;
     var saw_modulo_cycle_check = false;
     var saw_iteration_check = false;
+    var saw_array_shape_check = false;
     var saw_rel_loc_check = false;
     var saw_vararg_check = false;
     var saw_counts_check = false;
@@ -129,6 +131,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=7") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Gandalf") != null);
         }
+        if (std.mem.eql(u8, check.id, "descriptor-anchor")) {
+            saw_descriptor_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "samples/trace_events/trace-events-sample.c") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "non-runtime reference-sample lane") != null);
+        }
         if (std.mem.eql(u8, check.id, "modulo-string-cycle")) {
             saw_modulo_cycle_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Mother Goose") != null);
@@ -141,6 +148,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_iteration_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "main iteration 7") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "function-callback iteration 9") != null);
+        }
+        if (std.mem.eql(u8, check.id, "array-and-sentinel-shape")) {
+            saw_array_shape_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,2 payload prefix") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero sentinel") != null);
         }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
             saw_rel_loc_check = true;
@@ -203,9 +215,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_sync_prompt);
     try std.testing.expect(saw_non_goal_prompt);
+    try std.testing.expect(saw_descriptor_check);
     try std.testing.expect(saw_message_check);
     try std.testing.expect(saw_modulo_cycle_check);
     try std.testing.expect(saw_iteration_check);
+    try std.testing.expect(saw_array_shape_check);
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
@@ -216,6 +230,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "CREATE_TRACE_POINTS parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "tracepoint macro parity from trace-events-sample.h"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "kernel thread scheduling or timeout parity"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "module registration or unregister wiring parity"));
 }
 
 test "phase 5 trace-events contributor docs stay aligned with the shipped review surface" {
