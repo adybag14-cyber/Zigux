@@ -175,6 +175,19 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_kobject_example_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kobject-sample-survey.md",
@@ -195,7 +208,15 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010") != null);
+    {
+        const surveyed_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "PHASE5_SURVEYED_COMMIT={s}",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(surveyed_commit_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_line) != null);
+    }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `0664` attribute mode pattern") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
@@ -207,7 +228,15 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010`") != null);
+    {
+        const pinned_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(pinned_commit_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
+    }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
 
