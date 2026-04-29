@@ -118,6 +118,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "IRQ pretimeout bookkeeping") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "imported running-state handoff evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "non-stoppable stop failure-mode boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt_survey.zig") != null);
@@ -371,6 +372,7 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and validation-mat
     try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, preflight_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, resource_order_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt.zig`") != null);
@@ -379,6 +381,7 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and validation-mat
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE11_VALIDATION=pass`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, preflight_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, resource_order_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked on platform-driver scaffold work") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked on platform-driver scaffold work") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_DW_WDT_STATUS=validation_matrix_landed") != null);
