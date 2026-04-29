@@ -581,6 +581,26 @@ pub fn nextPostorder(node: *const Node) ?*Node {
     return parent;
 }
 
+pub const PostorderIterator = struct {
+    current: ?*Node,
+
+    pub fn init(root: *const Root) PostorderIterator {
+        return .{
+            .current = firstPostorder(root),
+        };
+    }
+
+    pub fn next(self: *PostorderIterator) ?*Node {
+        const node = self.current orelse return null;
+        self.current = nextPostorder(node);
+        return node;
+    }
+};
+
+pub fn iteratePostorder(root: *const Root) PostorderIterator {
+    return PostorderIterator.init(root);
+}
+
 fn expectValidSubtree(node: ?*Node) !usize {
     const current = node orelse return 1;
 
@@ -793,6 +813,47 @@ test "rbtree postorder and empty node helpers behave" {
     var detached = Node.init();
     clearNode(&detached);
     try std.testing.expect(emptyNode(&detached));
+}
+
+test "rbtree iteratePostorder streams the full postorder walk once" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 4 },
+        .{ .key = 3 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    var iterator = iteratePostorder(&root);
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 2 }, order[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), iterator.next());
 }
 
 test "rbtree findAdd keeps the first duplicate and inserts new keys" {
