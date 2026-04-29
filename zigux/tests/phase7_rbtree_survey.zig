@@ -50,7 +50,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("2109f2238e9ddb6ad4354319525d475f62a70e44", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("406cdc1ff4f9b353860202ec6bbaaa5c2d157039", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/rbtree.zig", manifest.roadmap_destinations[0]);
