@@ -68,6 +68,20 @@ pub fn strstarts(str: []const u8, prefix: []const u8) bool {
     return strStarts(str, prefix);
 }
 
+pub fn strHasPrefix(str: []const u8, prefix: []const u8) usize {
+    const prefix_len = cStringLen(prefix);
+    const str_len = cStringLen(str);
+    if (str_len < prefix_len) {
+        return 0;
+    }
+
+    return if (std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len])) prefix_len else 0;
+}
+
+pub fn str_has_prefix(str: []const u8, prefix: []const u8) usize {
+    return strHasPrefix(str, prefix);
+}
+
 pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
     return std.mem.endsWith(u8, str, suffix);
 }
@@ -307,6 +321,17 @@ test "strstarts matches kernel prefix semantics" {
     try std.testing.expect(strstarts("", ""));
     try std.testing.expect(!strstarts("zig", "zigux"));
     try std.testing.expect(!strstarts("zigux", "Zig"));
+}
+
+test "strHasPrefix returns the matched prefix length with C-string semantics" {
+    try std.testing.expectEqual(@as(usize, 3), strHasPrefix("zigux", "zig"));
+    try std.testing.expectEqual(@as(usize, 3), str_has_prefix("zigux", "zig"));
+    try std.testing.expectEqual(@as(usize, 0), strHasPrefix("zigux", "zug"));
+    try std.testing.expectEqual(@as(usize, 0), strHasPrefix("zig", "zigux"));
+
+    const source = [_]u8{ 'a', 'l', 'p', 'h', 'a', 0, 'b', 'e', 't', 'a' };
+    const embedded_prefix = [_]u8{ 'a', 'l', 'p', 'h', 'a', 0, 'x' };
+    try std.testing.expectEqual(@as(usize, 5), strHasPrefix(&source, &embedded_prefix));
 }
 
 test "str_ends_with matches kernel suffix semantics" {
