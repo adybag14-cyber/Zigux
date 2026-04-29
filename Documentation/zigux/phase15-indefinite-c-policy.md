@@ -4,11 +4,11 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L15`
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
+- `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=indefinite-c-policy-current-gap-survey`
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and one current-roadmap-gap survey refresh that records the present indefinite-C policy posture against the surrounding Phase 15 governance bundle, the docs root, and the shared replay path
-- survey provenance refreshed against verified `master` head `271ca9aff7d84f07dee6aa93ac6bf9daf49a5096`
+- survey provenance refreshed against verified `master` head `0a2744ddb50c9fec2cfe0699ff63895561306a8d`
 - product boundary:
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/freeze-map.md`
