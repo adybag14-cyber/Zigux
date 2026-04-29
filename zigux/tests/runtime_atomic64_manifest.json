@@ -18,7 +18,7 @@
   },
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded in-memory counter starter rather than implying a loadable module",
-    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, direct phase9-runtime-atomic64-sample-tests leg, direct phase9-runtime-atomic64-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
+    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, module-slice note, direct phase9-runtime-atomic64-sample-tests leg, direct phase9-runtime-atomic64-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter",
@@ -99,6 +99,12 @@
       "role": "records the roadmap anchor, shipped starter scope, explicit ownership packet, and remaining shared-loader blocker without implying loadable-module parity"
     },
     {
+      "id": "runtime-atomic64-module-slice",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+      "role": "records the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped runtime atomic64 packet"
+    },
+    {
       "id": "runtime-atomic64-manifest",
       "kind": "manifest",
       "path": "zigux/tests/runtime_atomic64_manifest.json",
@@ -157,6 +163,10 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-atomic64-survey.md",
       "owns": "the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+      "owns": "the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped packet"
     },
     {
       "surface": "zigux/tests/runtime_atomic64_manifest.json",
