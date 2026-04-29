@@ -40,6 +40,8 @@ def main() -> int:
         actual_json = tmp_dir / 'actual.json'
         invalid_expected_json = tmp_dir / 'expected-invalid.json'
         invalid_actual_json = tmp_dir / 'actual-invalid.json'
+        blob_a = tmp_dir / 'blob-a.bin'
+        blob_b = tmp_dir / 'blob-b.bin'
 
         expected.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
         actual.write_text('alpha\nbeta\n', encoding='utf-8', newline='\n')
@@ -71,6 +73,7 @@ def main() -> int:
         actual_json.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         invalid_expected_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         invalid_actual_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
+
         run_contract_case(
             ['--mode', 'json', str(invalid_expected_json), str(actual_json)],
             1,
@@ -92,6 +95,20 @@ def main() -> int:
                 f'EXPECTED={expected_json}',
                 f'ACTUAL={invalid_actual_json}',
                 f'ACTUAL_JSON_ERROR={invalid_actual_json}:2:1: Expecting property name enclosed in double quotes',
+            ],
+        )
+
+        blob_a.write_bytes(b'zigux-artifact-diff')
+        blob_b.write_bytes(b'zigux-artifact-diff')
+        run_contract_case(
+            ['--mode', 'sha256', str(blob_a), str(blob_b)],
+            0,
+            [
+                'ARTIFACT_DIFF=pass',
+                'MODE=sha256',
+                f'EXPECTED={blob_a}',
+                f'ACTUAL={blob_b}',
+                'SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
             ],
         )
 
