@@ -7,12 +7,13 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L23`
-- `PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4`
+- `PHASE5_SURVEYED_COMMIT=7c95cdbe21c6d4fc3266ecd676d883209568deeb`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
   - `samples/zigux/trace_events_sample.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_trace_events_sample.zig`
@@ -23,7 +24,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe reference samples plus a later Phase 9 runtime `trace-events` starter. The missing Phase 5 job was still the earlier non-runtime reading of the same Linux anchor so reviewers can see the payload and callback idioms without confusing them with runtime substrate work.
+Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `trace_events_sample` slice. The trace-events-specific job is no longer missing sample delivery; it is to keep this payload-and-callback idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
 
 ## Survey findings
 
@@ -34,6 +35,8 @@ Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe
   - function-callback registration and unregister balance for the second thread path
   - real runtime substrate through `CREATE_TRACE_POINTS`, tracepoint macros, `kthread_run()`, `schedule_timeout()`, and module init or exit hooks
 - the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, public selected-string slot and payload-length cues, and callback-registration balance reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
+- the shared sample-root catalog in `samples/zigux/README.md` is part of that boundary now, because it is the shortest shared place to keep the four Phase 5 reference readings visibly separate from the later runtime starters that live in the same directory.
+- the shared sample-root catalog now also carries a dedicated trace-events review-packet stanza, so contributors can refresh the exact replay contract, callback-balance cues, and out-of-scope runtime claims without having to infer them from the deeper survey note alone.
 
 ## Landed sample and exact checks
 
@@ -66,7 +69,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `822dff09aaeef22905727c20cead3a568c85cbb4`
+- inspected `master` head: `7c95cdbe21c6d4fc3266ecd676d883209568deeb`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -90,7 +93,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - does `zigux/tests/phase5_trace_events_sample_manifest.json` still pin `surveyed_commit` to the exact inspected `master` head instead of a floating branch label?
-- do the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
+- do the sample-backed survey note, `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
 - do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact selected-string-slot, payload-length, main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does `lifecycleSummary()` still keep stage plus init, replay, and exit counts, registration depth, and total event calls visible without private field access?
 - do the sample self-check and the manifest-backed exact-check packet still keep the full modulo-selected string cycle explicit across counts `0` through `4` instead of only one reviewed string case?
@@ -98,7 +101,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does the in-memory replay still keep the array payload, selected string, selected-string slot, payload length, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a single-live register-then-unregister idiom, including rejection of a second `registerFunctionCallback()` call while one callback is already registered, rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - after `exit()`, do `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` all stay rejected so the teardown boundary is fully reviewable instead of only partially implied?
-- do the sample-backed survey note and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact replay contract?
+- do the sample-backed survey note, `samples/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, shared sample-root catalog, and shared `phase5_build.zig` entrypoint for this exact replay contract?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
 
@@ -109,7 +112,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4` so the sample-backed survey note, latest verification snapshot, and manifest-backed survey all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=7c95cdbe21c6d4fc3266ecd676d883209568deeb` so the sample-backed survey note, latest verification snapshot, sample-root catalog boundary, and manifest-backed survey all point at the same inspected `master` head
 
 ## Review gates for this survey
 
