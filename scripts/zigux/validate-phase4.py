@@ -100,6 +100,8 @@ REQUIRED_FILES = [
     'zigux/tests/atomic64_diff.zig',
     'zigux/tests/phase4_runtime_atomic64_diff_survey.zig',
     'zigux/tests/phase4_runtime_atomic64_diff_manifest.json',
+    'zigux/tests/phase4_test_fsmount_manifest.json',
+    'zigux/tests/phase4_test_fsmount_survey.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
 ]
@@ -250,9 +252,11 @@ REQUIRED_ARTIFACT_DIFF_MARKERS = [
 REQUIRED_PHASE4_BUILD_MARKERS = [
     'atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
+    'phase4_test_fsmount_survey.zig',
     'bitmap_diff.zig',
     'phase4-runtime-atomic64-diff-tests',
     'phase4-runtime-atomic64-diff-survey-tests',
+    'phase4-test-fsmount-survey-tests',
     'phase4-bitmap-diff-tests',
 ]
 
@@ -719,6 +723,8 @@ def write_fixture_tree(root: Path) -> None:
         'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
         + '\nroadmap_atomic64_diff_present = true\n',
         'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": true\n}\n',
+        'zigux/tests/phase4_test_fsmount_manifest.json': '{\n  "lane_key": "P4-L19"\n}\n',
+        'zigux/tests/phase4_test_fsmount_survey.zig': 'test "synthetic phase4 test_fsmount survey gate" {}\n',
         'zigux/tests/bitmap_diff.zig': '\n'.join(REQUIRED_BITMAP_DIFF_MARKERS) + '\n',
         'zigux/tests/phase4_build.zig': '\n'.join(REQUIRED_PHASE4_BUILD_MARKERS) + '\n',
     }
@@ -749,7 +755,7 @@ def run_self_test() -> int:
         assert 'make:scripts/zigux/validate-phase4.py --self-test' in missing, missing
 
         sample_kprobes_makefile = tmp_root / 'samples/kprobes/Makefile'
-        sample_kprobes_makefile.write_text('', encoding='utf-8')
+        sample_kprobes_makefile.writeText('', encoding='utf-8')
         missing = validate_root(tmp_root)
         assert (
             'sample_kprobes_make:obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o'
@@ -770,6 +776,29 @@ def run_self_test() -> int:
             'sample_vfs_test_fsmount:if (move_mount(mfd, "", AT_FDCWD, "/mnt", MOVE_MOUNT_F_EMPTY_PATH) < 0) {'
             in missing
         ), missing
+        sample_vfs_test_fsmount.write_text(
+            '\n'.join(REQUIRED_SAMPLE_VFS_SOURCE_MARKERS) + '\n',
+            encoding='utf-8',
+        )
+
+        test_fsmount_manifest = tmp_root / 'zigux/tests/phase4_test_fsmount_manifest.json'
+        test_fsmount_manifest.unlink()
+        missing = validate_root(tmp_root)
+        assert 'file:zigux/tests/phase4_test_fsmount_manifest.json' in missing, missing
+        test_fsmount_manifest.write_text('{\n  "lane_key": "P4-L19"\n}\n', encoding='utf-8')
+
+        phase4_build = tmp_root / 'zigux/tests/phase4_build.zig'
+        phase4_build.write_text(
+            '\n'.join(
+                marker
+                for marker in REQUIRED_PHASE4_BUILD_MARKERS
+                if marker != 'phase4-test-fsmount-survey-tests'
+            )
+            + '\n',
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert 'phase4_build:phase4-test-fsmount-survey-tests' in missing, missing
 
     print('PHASE4_VALIDATOR_SELF_TEST=pass')
     return 0
