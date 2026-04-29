@@ -61,6 +61,14 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     );
     defer std.testing.allocator.free(survey_note);
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-mmio-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -88,6 +96,10 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-config-write-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "in-memory config-write planning") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "add one small config-window write-planning helper next") == null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
