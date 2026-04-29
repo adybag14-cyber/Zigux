@@ -256,7 +256,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(deferred_high_risk_count >= 3);
     try std.testing.expect(saw_logging_segment);
     try std.testing.expect(saw_pin_path_segment);
-    try std.testing.expect(saw_cpu_MASK_segment);
+    try std.testing.expect(saw_cpu_mask_segment);
     try std.testing.expect(saw_fdinfo_helper_segment);
     try std.testing.expect(saw_file_path_handle_segment);
     try std.testing.expect(saw_interrupt_routing_segment);
