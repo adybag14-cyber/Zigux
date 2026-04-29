@@ -98,7 +98,7 @@ required_make_markers = [
     "phase8-libbpf-segments-test:",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "phase8-test:",
-    "zigux/tests/phase8_build.zig",
+    "zigux/tests/phase8_build.zig --summary all",
     "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test",
 ]
 
@@ -132,6 +132,8 @@ required_script_readme_markers = [
     "phase8-libbpf-segment-survey.md",
     "cpu_mask.zig",
     "type_names.zig",
+    "make -C zigux phase8-test",
+    "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
 ]
 
 required_tests_readme_markers = [
