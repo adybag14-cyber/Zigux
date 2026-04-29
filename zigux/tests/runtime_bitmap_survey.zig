@@ -341,3 +341,35 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteratio
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs") != null);
 }
+
+test "phase 9 runtime bitmap module slice note stays aligned with the landed loader-backed review packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const module_slice = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice);
+
+    const required_markers = [_][]const u8{
+        "adjacent loader scaffold plus shared loader-request binding",
+        "zigux/kernel/runtime_loader.zig",
+        "direct post-selftest mutation replay proof",
+        "direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs",
+        "shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig`",
+        "bounded two-word runtime bitmap backing store",
+    };
+
+    for (required_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, module_slice, marker) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        module_slice,
+        "lane-local manifest closure only",
+    ) == null);
+}
