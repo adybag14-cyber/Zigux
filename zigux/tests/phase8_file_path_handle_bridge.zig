@@ -143,3 +143,49 @@ test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
             "map_flags:\t0x100000000\n",
     ));
 }
+
+test "phase 8 file-path-handle bridge keeps the DEVMAP readonly-prog compatibility exception explicit" {
+    const expected = file_path_handle_bridge.FdInfoMapInfo{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 16,
+        .map_flags = 0,
+    };
+    const actual = file_path_handle_bridge.FdInfoMapInfo{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 16,
+        .map_flags = file_path_handle_bridge.bpf_f_rdonly_prog,
+    };
+
+    try std.testing.expectEqual(
+        @as(u32, 0),
+        file_path_handle_bridge.normalizeReuseCompatibilityMapFlags(expected.map_type, actual.map_flags),
+    );
+    try std.testing.expect(file_path_handle_bridge.isMapReuseCompatible(expected, actual));
+}
+
+test "phase 8 file-path-handle bridge keeps non-DEVMAP reuse mismatches explicit" {
+    const expected = file_path_handle_bridge.FdInfoMapInfo{
+        .map_type = 3,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+    };
+    const actual = file_path_handle_bridge.FdInfoMapInfo{
+        .map_type = 3,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = file_path_handle_bridge.bpf_f_rdonly_prog,
+    };
+
+    try std.testing.expectEqual(
+        file_path_handle_bridge.bpf_f_rdonly_prog,
+        file_path_handle_bridge.normalizeReuseCompatibilityMapFlags(expected.map_type, actual.map_flags),
+    );
+    try std.testing.expect(!file_path_handle_bridge.isMapReuseCompatible(expected, actual));
+}
