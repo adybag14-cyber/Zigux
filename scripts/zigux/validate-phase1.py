@@ -300,6 +300,8 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
+    ROOT / 'scripts' / 'zigux' / 'install-zig.py',
+    ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
     ROOT / 'zigux' / 'tests' / 'build.zig',
     ROOT / 'zigux' / 'tests' / 'bitmap_diff.zig',
     ROOT / 'zigux' / 'tests' / 'bitmap_diff_build.zig',
@@ -368,13 +370,21 @@ required_ledger_markers = [
     'feat(tools/lib): complete bounded phase-1 helper coverage',
 ]
 required_workflow_markers = [
+    'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
+    'uses: actions/checkout@v6.0.2',
+    'uses: actions/setup-python@v6.2.0',
     'tools/lib/*.zig',
+    'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
     'python3 scripts/zigux/validate-phase1.py',
+    'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
     'python3 scripts/zigux/check-phase1-parity.py',
     'zig build bench --build-file zigux/tests/build.zig',
     'zig build test --build-file zigux/tests/build.zig',
     'zig build test --build-file zigux/tests/bitmap_diff_build.zig --summary all',
+]
+required_phase1_closure_gate_markers = [
+    'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
 ]
 required_build_markers = [
     'phase1_bench.zig',
@@ -669,6 +679,9 @@ for marker in required_bitmap_manifest_markers:
 for marker in required_bitmap_closure_markers:
     if marker not in phase1_closure:
         missing_markers.append(f'bitmap_closure:{marker}')
+for marker in required_phase1_closure_gate_markers:
+    if marker not in phase1_closure:
+        missing_markers.append(f'phase1_closure_gate:{marker}')
 for marker in required_bench_markers:
     if marker not in phase1_bench_root:
         missing_markers.append(f'bench:{marker}')
