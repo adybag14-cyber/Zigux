@@ -206,8 +206,18 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareInt(typed_key, typed_item);
 }
 
+fn compareOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareDescendingInt(typed_key, typed_item);
+}
+
 fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
     return compareOpaqueInt(key, item);
+}
+
+fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareOpaqueDescendingInt(key, item);
 }
 
 fn compareOpaqueName(key: *const anyopaque, item: *const anyopaque) i32 {
@@ -325,6 +335,53 @@ test "bsearchIndex and bsearch expose the raw Linux-style helper contract" {
     try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
 }
 
+test "bsearch raw helpers keep empty singleton and miss cases on the null-or-hit boundary" {
+    const empty = [_]i32{};
+    const values = [_]i32{ 3, 5, 8, 13, 21 };
+    var singleton = [_]i32{21};
+
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&@as(i32, 8), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&@as(i32, 1), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&@as(i32, 9), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&@as(i32, 34), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(?usize, 0), bsearchIndex(&@as(i32, 21), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(i32), compareOpaqueInt));
+
+    try std.testing.expect(bsearch(&@as(i32, 21), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(i32), compareOpaqueInt) == null);
+    try std.testing.expect(bsearch(&@as(i32, 20), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(i32), compareOpaqueInt) == null);
+
+    const found = bsearchMutable(&@as(i32, 21), @ptrCast(singleton[0..].ptr), singleton.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_found: *i32 = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@intFromPtr(&singleton[0]), @intFromPtr(typed_found));
+    typed_found.* = 22;
+    try std.testing.expectEqual(@as(i32, 22), singleton[0]);
+}
+
+test "bsearch raw helpers accept duplicate keys without claiming stable selection" {
+    const cases = [_]struct {
+        values: [6]i32,
+        needle: i32,
+        lower: usize,
+        upper: usize,
+    }{
+        .{ .values = .{ 4, 4, 4, 9, 16, 25 }, .needle = 4, .lower = 0, .upper = 2 },
+        .{ .values = .{ 1, 4, 4, 4, 9, 16 }, .needle = 4, .lower = 1, .upper = 3 },
+        .{ .values = .{ 1, 4, 9, 16, 16, 16 }, .needle = 16, .lower = 3, .upper = 5 },
+    };
+
+    for (cases) |case| {
+        var values = case.values;
+        const index = bsearchIndex(&case.needle, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+        const found = bsearchMutable(&case.needle, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+        const typed_found: *i32 = @ptrCast(@alignCast(found));
+        const found_index = (@intFromPtr(typed_found) - @intFromPtr(&values[0])) / @sizeOf(i32);
+
+        try std.testing.expect(index >= case.lower and index <= case.upper);
+        try std.testing.expectEqual(case.needle, values[index]);
+        try std.testing.expect(found_index >= case.lower and found_index <= case.upper);
+        try std.testing.expectEqual(case.needle, typed_found.*);
+    }
+}
+
 test "bsearch supports heterogeneous keys and mutable raw pointers" {
     var entries = [_]Entry{
         .{ .name = "alpha", .value = 1 },
@@ -370,13 +427,29 @@ test "search accepts runtime-selected C ABI comparator function pointers" {
     }
 }
 
-test "bsearch accepts runtime-selected C ABI raw comparator function pointers" {
-    const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
-    const comparators = [_]CRawComparator{compareCOpaqueInt};
-    const target = @as(i32, 23);
+test "bsearch accepts runtime-selected raw comparator function pointers for ascending and descending slices" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]RawComparator{ compareOpaqueInt, compareOpaqueDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 23, 7 };
 
-    for (comparators) |compare| {
-        const found = bsearch(&target, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+    for (comparators, slices, targets) |compare, items, target| {
+        const found = bsearch(&target, @ptrCast(items.ptr), items.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(target, typed_found.*);
+    }
+}
+
+test "bsearch accepts runtime-selected C ABI raw comparator function pointers for ascending and descending slices" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]CRawComparator{ compareCOpaqueInt, compareCOpaqueDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 23, 7 };
+
+    for (comparators, slices, targets) |compare, items, target| {
+        const found = bsearch(&target, @ptrCast(items.ptr), items.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
         const typed_found: *const i32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(target, typed_found.*);
     }
