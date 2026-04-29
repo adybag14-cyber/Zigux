@@ -52,7 +52,8 @@ The current tests check:
 - descending-range and unparseable-suffix early stop behavior
 - array-capacity stop behavior when a hyphen range is only partially stored and the upper bound remains pending in the remaining cursor
 - malformed token classification and malformed range counting ported from the in-tree `lib/tests/cmdline_kunit.c` corpus
-- KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs so the Zig helper keeps matching where the C helper leaves the parse cursor
+- the full KUnit malformed-token classification corpus now also runs through the shared `zigux/tests/phase7_cmdline.zig` gate instead of only the helper-local `zig test lib/cmdline.zig` path
+- KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs so the shared Phase 7 gate and the helper-local test path both keep matching where the C helper leaves the parse cursor
 - memory-size suffix scaling with accurate parse-stop reporting
 - rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
 - exact bare-option matching for comma-delimited flags
