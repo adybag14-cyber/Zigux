@@ -108,10 +108,17 @@
     },
     {
       "id": "phase14-workqueue-drain-cancel-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records how `drain_workqueue()` raises `__WQ_DRAINING`, loops back through `__flush_workqueue()` until each `pwq_is_empty()` check stabilizes, how `__flush_work()` waits on `barr.done` after `start_flush_work()` inserts a single-work barrier, and how `__cancel_work_sync()` only re-enables the work item after that wait path completes, so Zigux can name reflush and cancellation completion boundaries without claiming live draining or cancel parity."
+    },
+    {
+      "id": "phase14-workqueue-disable-delayed-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `drain_workqueue()`, `__flush_work()`, and `__cancel_work_sync()` so Zigux can describe reflush looping, single-work barrier waiting, and cancellation completion boundaries before any wrapper claims draining or cancellation parity."
+      "why_now": "The next honest Phase 14 step is to audit `disable_work()`, `disable_work_sync()`, and `cancel_delayed_work_sync()` so Zigux can describe disable-depth accounting, delayed-timer cancellation, and sleepable-versus-BH completion rules before any wrapper claims delayed cancellation parity."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
