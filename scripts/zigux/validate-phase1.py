@@ -292,7 +292,7 @@ required_find_bit_manifest_markers = [
     '"find_bit.tail_and_mixed_first"',
     '"find_bit.tail_and_mixed_next"',
     'mixed-tail case where one shared bit remains in range while another lives past nbits.',
-    '"boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \"empty and boundary scans return nbits\""',
+    '"boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \\"empty and boundary scans return nbits\\""',
     '"boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range."',
 ]
 required_find_bit_closure_markers = [
@@ -324,19 +324,19 @@ required_string_fixture_markers = [
 required_string_harness_markers = [
     "char remove_nul_buf[] = {'a', ' ', 'b', 0, ' ', 'x'};",
     'remove_spaces(remove_nul_buf);',
-    '\"remove_spaces_nul\":',
-    '\"remove_spaces_nul_bytes\":',
+    '\\"remove_spaces_nul\\":',
+    '\\"remove_spaces_nul_bytes\\":',
 ]
 required_string_manifest_markers = [
     '"tools/lib/string.zig"',
     '"string.remove_spaces_nul"',
     '"string.remove_spaces_nul_bytes"',
     '"summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection."',
-    '"cstring_unit_test_anchor": "tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\""',
+    '"cstring_unit_test_anchor": "tools/lib/string.zig:test \\"strlcpy stops at the first embedded NUL in the source\\""',
     '"cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched."',
-    '"unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\""',
+    '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
-    '"alias_unit_test_anchor": "tools/lib/string.zig:test \"trimSpaces and strim trim trailing whitespace before an embedded NUL\""',
+    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\""',
     '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
 ]
 required_string_closure_markers = [
@@ -360,11 +360,11 @@ required_rbtree_helper_markers = [
 required_rbtree_manifest_markers = [
     '"tools/lib/rbtree.zig"',
     '"summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks."',
-    '"unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree findAdd keeps the first duplicate and inserts new keys\""',
+    '"unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree findAdd keeps the first duplicate and inserts new keys\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree."',
-    '"search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree nextMatch walks the duplicate range in order\""',
+    '"search_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree nextMatch walks the duplicate range in order\\""',
     '"search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key."',
-    '"cached_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree cached root keeps leftmost in sync across add erase and replace\""',
+    '"cached_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree cached root keeps leftmost in sync across add erase and replace\\""',
     '"cached_unit_test_contract": "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root."',
 ]
 required_rbtree_closure_markers = [
