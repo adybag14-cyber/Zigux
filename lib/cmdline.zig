@@ -473,6 +473,55 @@ test "getOption matches malformed-token classification from the Linux KUnit corp
     }
 }
 
+test "getOption matches leading-integer pointer advance from the Linux KUnit corpus" {
+    const cases = [_]GetOptionCase{
+        .{ .input = "37\"\"", .expected_rc = 1, .expected_rest = "\"\"" },
+        .{ .input = "37=", .expected_rc = 1, .expected_rest = "=" },
+        .{ .input = "37\"-", .expected_rc = 1, .expected_rest = "\"-" },
+        .{ .input = "37,", .expected_rc = 2, .expected_rest = "" },
+        .{ .input = "37-,", .expected_rc = 3, .expected_rest = "-," },
+        .{ .input = "37,-", .expected_rc = 2, .expected_rest = "-" },
+        .{ .input = "37-", .expected_rc = 3, .expected_rest = "-" },
+        .{ .input = "37+,", .expected_rc = 1, .expected_rest = "+," },
+        .{ .input = "37--", .expected_rc = 3, .expected_rest = "--" },
+        .{ .input = "37,,", .expected_rc = 2, .expected_rest = "," },
+        .{ .input = "37''", .expected_rc = 1, .expected_rest = "''" },
+        .{ .input = "37\"\",", .expected_rc = 1, .expected_rest = "\"\"," },
+        .{ .input = "37\",\"", .expected_rc = 1, .expected_rest = "\",\"" },
+        .{ .input = "37-\"\"", .expected_rc = 3, .expected_rest = "-\"\"" },
+        .{ .input = "37\"", .expected_rc = 1, .expected_rest = "\"" },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionCase(case);
+    }
+}
+
+test "getOption matches trailing-integer pointer advance from the Linux KUnit corpus" {
+    const cases = [_]GetOptionCase{
+        .{ .input = "\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = "=37", .expected_rc = 0, .expected_rest = "=37" },
+        .{ .input = "\"-37", .expected_rc = 0, .expected_rest = "\"-37" },
+        .{ .input = ",37", .expected_rc = 0, .expected_rest = ",37" },
+        .{ .input = "-,37", .expected_rc = 0, .expected_rest = ",37" },
+        .{ .input = ",-37", .expected_rc = 0, .expected_rest = ",-37" },
+        .{ .input = "-37", .expected_rc = 1, .expected_rest = "" },
+        .{ .input = "+,37", .expected_rc = 0, .expected_rest = "+,37" },
+        .{ .input = "--37", .expected_rc = 0, .expected_rest = "-37" },
+        .{ .input = ",,37", .expected_rc = 0, .expected_rest = ",,37" },
+        .{ .input = "''37", .expected_rc = 0, .expected_rest = "''37" },
+        .{ .input = "\"\",37", .expected_rc = 0, .expected_rest = "\"\",37" },
+        .{ .input = "\",\"37", .expected_rc = 0, .expected_rest = "\",\"37" },
+        .{ .input = "-\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = "\"37", .expected_rc = 0, .expected_rest = "\"37" },
+        .{ .input = "37", .expected_rc = 1, .expected_rest = "" },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionCase(case);
+    }
+}
+
 test "getOptions matches malformed-range counting from the Linux KUnit corpus" {
     const cases = [_]GetOptionsCase{
         .{ .input = "-7", .expected = &[_]i32{ 1, -7 } },
