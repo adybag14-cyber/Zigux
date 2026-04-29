@@ -491,9 +491,11 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "Phase 14");
     try expectContains(slice_note, "kernel/workqueue.c");
     try expectContains(slice_note, "`execv_cmd()`");
+    try expectContains(slice_note, "`execl_cmd()`");
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
     try expectContains(slice_note, "buildDeferredExecvCall()");
+    try expectContains(slice_note, "buildDeferredExeclCall()");
 }
 
 test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
