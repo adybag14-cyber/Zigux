@@ -82,6 +82,12 @@ pub fn build(b: *std.Build) void {
         optimize,
         "phase7_argv_split_survey.zig",
     );
+    const string_helpers_survey_root_module = createStandaloneTestRoot(
+        b,
+        target,
+        optimize,
+        "phase7_string_helpers_survey.zig",
+    );
     const rbtree_root_module = createImportedTestRoot(
         b,
         target,
@@ -117,6 +123,11 @@ pub fn build(b: *std.Build) void {
         "phase7-argv-split-survey-tests",
         argv_split_survey_root_module,
     );
+    const run_string_helpers_survey_tests = addTestRun(
+        b,
+        "phase7-string-helpers-survey-tests",
+        string_helpers_survey_root_module,
+    );
     const run_rbtree_tests = addTestRun(
         b,
         "phase7-rbtree-tests",
@@ -133,6 +144,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_cmdline_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
     test_step.dependOn(&run_argv_split_survey_tests.step);
+    test_step.dependOn(&run_string_helpers_survey_tests.step);
     test_step.dependOn(&run_rbtree_tests.step);
     test_step.dependOn(&run_rbtree_survey_tests.step);
 }
