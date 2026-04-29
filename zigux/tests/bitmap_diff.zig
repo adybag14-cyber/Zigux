@@ -65,6 +65,26 @@ fn findNthSet(map: []const Word, nbits: usize, nth: usize) usize {
 test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     var map = [_]Word{0} ** word_count;
 
+    bitmap.zero(&map, bitmap_nbits);
+    // test_fill_set single-word bitmap_set keeps the exact 0..8 prefix
+    bitmap.setRange(&map, 0, 9);
+    try std.testing.expectEqual(@as(usize, 9), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 9), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "0-8");
+    try expectSet(&map, 8);
+    try expectClear(&map, 9);
+
+    bitmap.fill(&map, bitmap_nbits);
+    // test_zero_clear single-word bitmap_clear keeps the exact 9..1023 suffix
+    bitmap.clearRange(&map, 0, 9);
+    try std.testing.expectEqual(bitmap_nbits - 9, weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 9), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "9-1023");
+    try expectClear(&map, 8);
+    try expectSet(&map, 9);
+
     // test_fill_set bitmap_fill rounds 35 bits to one full word
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
     fillPrefix(&map, 35);
