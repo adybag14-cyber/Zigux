@@ -97,9 +97,10 @@ The bounded `fixdep` closure packet remains closed because both the shared artif
   `sample_expected.txt`, `sample_multi_target_expected.txt`, `sample_escaped_space_expected.txt`, `sample_concatenated_expected.txt`, `sample_comment_only_expected.stderr.txt`, `sample_missing_dep_expected.stderr.txt`, `sample_output_write_expected.stderr.txt`
 - helper-local anchors in `scripts/zigux/fixdep.zig`:
   `dep parsing keeps the first source across concatenated target entries`
+  `dep parsing unescapes escaped hash and colon tokens once`
   `output writer maps print and flush failures to fixdep output-write errors`
 
-- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target and output-write unit anchors are required for closure`
+- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, and output-write unit anchors are required for closure`
 
 ## Genksyms Bridge Evidence
 
