@@ -110,6 +110,7 @@ required_script_readme_markers = [
 
 required_tests_readme_markers = [
     "zigux/tests/phase8_build.zig",
+    "zigux/tests/phase8_exec_cmd_only_build.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
     "zigux/tests/phase8_help.zig",
