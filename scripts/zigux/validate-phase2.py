@@ -598,24 +598,40 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
 def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
-        'conf_bridge_constant': "CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'",
-        'conf_bridge_compile': 'compile_tool(zig, CONF_BRIDGE, conf_exe)',
-        'conf_cases_loop': "for case in CASES['conf_cases']:",
-        'conf_repeat_artifact_compare': 'compare_json_artifacts(actual, repeat)',
-        'confdata_bridge_constant': "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
-        'confdata_bridge_compile': 'compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',
-        'confdata_cases_loop': "for case in CASES['confdata_cases']:",
-        'confdata_case_order_gate': 'UNSORTED_CONFDATA_CASE_ORDER',
-        'confdata_bridge_replay': "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
-        'confdata_repeat_artifact_compare': 'compare_json_artifacts(actual, repeat)',
-        'confdata_rebuild_compile': 'compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)',
-        'confdata_rebuild_compare': 'compare_json_artifacts(actual, rebuild)',
-        'determinism_marker': "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
+        'conf_bridge_constant': (
+            "CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'",
+        ),
+        'conf_bridge_compile': ('compile_tool(zig, CONF_BRIDGE, conf_exe)',),
+        # The checker recently moved from a module-global CASES manifest to a
+        # local `cases = load_cases()` binding. Keep the Phase 2 gate honest by
+        # accepting either iteration style instead of pinning to one variable
+        # name.
+        'conf_cases_loop': (
+            "for case in CASES['conf_cases']:",
+            "for case in cases['conf_cases']:",
+        ),
+        'conf_repeat_artifact_compare': ('compare_json_artifacts(actual, repeat)',),
+        'confdata_bridge_constant': (
+            "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
+        ),
+        'confdata_bridge_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',),
+        'confdata_cases_loop': (
+            "for case in CASES['confdata_cases']:",
+            "for case in cases['confdata_cases']:",
+        ),
+        'confdata_case_order_gate': ('UNSORTED_CONFDATA_CASE_ORDER',),
+        'confdata_bridge_replay': (
+            "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
+        ),
+        'confdata_repeat_artifact_compare': ('compare_json_artifacts(actual, repeat)',),
+        'confdata_rebuild_compile': ('compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)',),
+        'confdata_rebuild_compare': ('compare_json_artifacts(actual, rebuild)',),
+        'determinism_marker': ("print('KCONFIG_BRIDGE_DETERMINISM=pass')",),
     }
 
     issues: list[str] = []
-    for issue_name, marker in required_markers.items():
-        if marker not in source:
+    for issue_name, markers in required_markers.items():
+        if not any(marker in source for marker in markers):
             issues.append(f'kconfig_checker:{issue_name}')
     return issues
 
