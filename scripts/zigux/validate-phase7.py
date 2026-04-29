@@ -196,6 +196,7 @@ required_phase7_rbtree_survey_markers = [
 ]
 
 expected_phase7_build_paths = {
+    "../..",
     "../../lib/string_helpers.zig",
     "../../lib/cmdline.zig",
     "../../lib/argv_split.zig",
