@@ -33,6 +33,22 @@ pub const ConfigSnapshot = struct {
     max_hw_heartbeat_ms: u32,
 };
 
+pub const WatchdogMetadataSummary = struct {
+    anchor: []const u8,
+    identity: []const u8,
+    supports_set_timeout: bool,
+    supports_magic_close: bool,
+    supports_keepalive_ping: bool,
+    start_op_ready: bool,
+    stop_op_ready: bool,
+    get_timeleft_op_ready: bool,
+    restart_op_ready: bool,
+    min_timeout_sec: u32,
+    default_timeout_sec: u32,
+    max_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+};
+
 pub const ProbeSummary = struct {
     anchor: []const u8,
     timeout_sec: u32,
@@ -127,6 +143,25 @@ pub const Bcm2835WatchdogLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .timeout_sec = self.timeout_sec,
+            .max_timeout_sec = max_timeout_sec,
+            .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
+        };
+    }
+
+    pub fn watchdogMetadataSummary(self: *const Self) WatchdogMetadataSummary {
+        _ = self;
+        return .{
+            .anchor = descriptor().anchor,
+            .identity = "Broadcom BCM2835 Watchdog timer",
+            .supports_set_timeout = true,
+            .supports_magic_close = true,
+            .supports_keepalive_ping = true,
+            .start_op_ready = true,
+            .stop_op_ready = true,
+            .get_timeleft_op_ready = true,
+            .restart_op_ready = true,
+            .min_timeout_sec = min_timeout_sec,
+            .default_timeout_sec = max_timeout_sec,
             .max_timeout_sec = max_timeout_sec,
             .max_hw_heartbeat_ms = max_hw_heartbeat_ms,
         };
