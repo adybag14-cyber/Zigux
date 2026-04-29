@@ -132,12 +132,44 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
     }
 }
 
-test "unfold keeps folded checksum words reusable as partial sums" {
-    for (fixtures.compute_cases) |case| {
-        const unfolded_partial = checksum.unfold(~case.expected_compute);
+test "incremental checksum replacements match full recomputation" {
+    var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
+    const old_partial = checksum.partial(&payload, 0);
+    const old_word = (@as(u32, payload[0]) << 8) | payload[1];
+    payload[0] = 0x12;
+    payload[1] = 0x34;
+    const new_word = (@as(u32, payload[0]) << 8) | payload[1];
 
-        try std.testing.expectEqual(case.expected_partial, unfolded_partial);
-        try std.testing.expectEqual(case.expected_compute, checksum.fold(unfolded_partial));
-        try std.testing.expectEqual(case.expected_compute, checksum.from32to16(checksum.unfold(case.expected_compute)));
-    }
+    try std.testing.expectEqual(checksum.partial(&payload, 0), checksum.partial("", checksum.replace(old_partial, old_word, new_word)));
+
+    var ipv4_header = [_]u8{
+        0x45, 0x00, 0x00, 0x3c,
+        0x1c, 0x46, 0x40, 0x00,
+        0x40, 0x06, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const old_checksum = checksum.compute(&ipv4_header);
+    const old_total_length = (@as(u16, ipv4_header[2]) << 8) | ipv4_header[3];
+    ipv4_header[2] = 0x00;
+    ipv4_header[3] = 0x40;
+    const new_total_length = (@as(u16, ipv4_header[2]) << 8) | ipv4_header[3];
+    ipv4_header[10] = 0;
+    ipv4_header[11] = 0;
+    const diff = checksum.sub(new_total_length, old_total_length);
+
+    try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replaceByDiff(old_checksum, diff));
+    try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace2(old_checksum, old_total_length, new_total_length));
+
+    const checksum_before_addr_change = checksum.compute(&ipv4_header);
+    const old_saddr: u32 = 0xc0a80001;
+    const new_saddr: u32 = 0xc0a80002;
+    ipv4_header[12] = 0xc0;
+    ipv4_header[13] = 0xa8;
+    ipv4_header[14] = 0x00;
+    ipv4_header[15] = 0x02;
+    ipv4_header[10] = 0;
+    ipv4_header[11] = 0;
+
+    try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr));
 }

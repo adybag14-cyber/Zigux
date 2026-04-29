@@ -47,6 +47,10 @@ The current checksum helper surface exercised by this slice covers:
 - `from32to16`
 - `fold`
 - `unfold`
+- `replaceByDiff`
+- `replace4`
+- `replace2`
+- `replace`
 - `tcpUdpNofold`
 - `partial`
 - `compute`
@@ -59,7 +63,7 @@ The current tests check:
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - six imported KUnit random-prefix prefix lengths that replay precomputed folded results from one upstream fixed-random checksum corpus with the corresponding imported initial seed
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
-- folded checksum word round-trips that keep `unfold` aligned with the existing `fold` and `from32to16` helper surface
+- incremental checksum update parity for 16-bit payload words, RFC 1624-style folded field replacement, and 32-bit header-field replacement without full recomputation
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte for a fixture-backed deterministic packet matrix
 - that perf harness also compares the helper against its own widened-accumulator reference path and rejects regressions that exceed the fixture-backed slowdown budget for the current packet sizes
 
@@ -75,4 +79,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Checksum now has a small KUnit-inspired carry-discipline foothold plus six imported random-prefix prefix lengths alongside the existing compute, composition, seeded-partial, pseudo-header, and relative perf-gate surfaces. The next honest decision is whether that evidence is now enough to park this Phase 6 leaf-helper lane unless a future external parity artifact becomes clearly worthwhile.
+Checksum now covers the common incremental update helpers alongside the existing compute, composition, seeded-partial, pseudo-header, KUnit-inspired carry discipline, imported random-prefix, and relative perf-gate surfaces. The next honest decision is whether a future Phase 6 checksum follow-up should stay parked unless a clearly bounded external parity artifact, such as an IPv6 pseudo-header helper or a new imported fixture family, becomes worth the extra surface area.
