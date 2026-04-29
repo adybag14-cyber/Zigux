@@ -27,6 +27,7 @@ Current bootstrap helpers
 - `validate-phase9.py`
 - `validate-phase10.py`
 - `validate-phase10-closure.py`
+- `check-phase11-build-inventory.py`
 - `validate-phase11.py`
 - `check-phase12-build-inventory.py`
 - `check-phase12-libbpf-snapshot.py`
@@ -124,8 +125,9 @@ Phase 10 flow
 - this keeps the current input lane honest now that the queue-callback preflight helper is landed, with the already-landed registration-preflight summary and earlier `ABS_MT_SLOT` planning helper staying as bounded prerequisites before any wider `input_register_device()` claim.
 
 Phase 11 flow
+- `check-phase11-build-inventory.py` regenerates the committed `zigux/tests/fixtures/phase11_build_inventory.json` snapshot from `zigux/tests/phase11_build.zig` and fails if the shared build inventory or the dedicated `hvc_console` survey boundary drifts.
 - `validate-phase11.py` keeps the current simple-driver packet aligned before replay by checking the workflow wiring, `zigux/Makefile`, `zigux/tests/phase11_build.zig`, the shared build inventory snapshot in `zigux/tests/fixtures/phase11_build_inventory.json`, the four driver-local manifests `zigux/tests/phase11_gpio_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_hvc_console_manifest.json`, plus the shared header-boundary manifest `zigux/tests/phase11_uapi_header_parity_manifest.json`.
-- `make -C zigux phase11-validate` is the fail-fast catalog check for the current watchdog, hvc, and shared header-boundary packet.
+- `make -C zigux phase11-validate` is the fail-fast catalog check for the current watchdog, hvc, and shared header-boundary packet, and now runs the dedicated build-inventory checker before the broader validator.
 - the validator also keeps the dedicated hvc_console survey note and validation matrix aligned with the exact shared-versus-dedicated replay commands and observed outcome lines, so the repo does not silently imply that `zigux/tests/phase11_hvc_console_survey.zig` already runs inside the shared `zigux/tests/phase11_build.zig` path.
 - `make -C zigux phase11` keeps that same simple-driver lane reviewable through one shared bundle instead of ad hoc slice-local checks.
 
