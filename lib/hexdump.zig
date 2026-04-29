@@ -421,6 +421,13 @@ test "hexDumpToBuffer emits grouped and ascii text" {
         "32be 7bdb 180a b293 ba70 24c4 837d 9b34";
     try std.testing.expectEqualSlices(u8, grouped2, std.mem.sliceTo(linebuf[0..], 0));
 
+    try std.testing.expectEqual(@as(usize, 35), hexDumpToBuffer(test_data_b[0..16], 16, 4, linebuf[0..], false));
+    const grouped4 = if (builtin.cpu.arch.endian() == .big)
+        "be32db7b 0a1893b2 70bac424 7d83349b"
+    else
+        "7bdb32be b293180a 24c4ba70 9b34837d";
+    try std.testing.expectEqualSlices(u8, grouped4, std.mem.sliceTo(linebuf[0..], 0));
+
     try std.testing.expectEqual(@as(usize, 33), hexDumpToBuffer(test_data_b[0..16], 16, 8, linebuf[0..], false));
     const grouped8 = if (builtin.cpu.arch.endian() == .big)
         "be32db7b0a1893b2 70bac4247d83349b"
