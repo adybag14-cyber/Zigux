@@ -2,6 +2,7 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const atomic = @import("atomic_helpers");
 const barrier = @import("barrier_helpers");
+const layout_assert = @import("layout_assert");
 const mmio = @import("mmio_helpers");
 const narrow = @import("narrow_unsafe");
 
@@ -60,15 +61,7 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
 
 test "phase3 low-level wrapper ABI range shape stays stable" {
     comptime {
-        if (@sizeOf(abi.MmioRange) != @sizeOf(usize) + 8) {
-            @compileError("MmioRange size drifted");
-        }
-        if (@offsetOf(abi.MmioRange, "length") != @sizeOf(usize)) {
-            @compileError("MmioRange.length offset drifted");
-        }
-        if (@offsetOf(abi.MmioRange, "stride") != @sizeOf(usize) + 4) {
-            @compileError("MmioRange.stride offset drifted");
-        }
+        layout_assert.assertMmioRangeLayout();
     }
 }
 
