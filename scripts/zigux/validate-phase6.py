@@ -156,6 +156,7 @@ required_phase6_catalog_markers = [
     '`zigux/tests/phase6_hexdump_perf.zig` currently remains a deterministic formatter-cost sanity harness without a numeric slowdown ceiling',
     '22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 16 invalid decode vectors',
     'PHASE6_BASE64_C_PARITY_CASES=90',
+    'PHASE6_BSEARCH_C_PARITY_CASES=15',
     'scripts/zigux/validate-phase6.py',
     '.github/workflows/zigux-bootstrap.yml',
     'Documentation/zigux/README.md',
