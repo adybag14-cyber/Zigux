@@ -203,6 +203,25 @@ test "bitmap diff gate records exact bounded copy checks" {
 
     bitmap.zero(&wide_src, bitmap_nbits);
     bitmap.zero(&wide_dst, bitmap_nbits);
+    // test_copy full-width copy keeps an empty source empty from a cleared destination
+    copyFrom(&wide_dst, &wide_src, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 0), weight(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(bitmap_nbits, firstSet(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "");
+    try expectClear(&wide_dst, 0);
+    try expectClear(&wide_dst, bitmap_nbits - 1);
+
+    bitmap.fill(&wide_dst, bitmap_nbits);
+    // test_copy full-width copy keeps an empty source empty from a filled destination
+    copyFrom(&wide_dst, &wide_src, bitmap_nbits);
+    try std.testing.expectEqual(@as(usize, 0), weight(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(bitmap_nbits, firstSet(&wide_dst, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&wide_dst, bitmap_nbits));
+    try expectPrintedList(&wide_dst, bitmap_nbits, "");
+    try expectClear(&wide_dst, 0);
+    try expectClear(&wide_dst, bitmap_nbits - 1);
+
     bitmap.setRange(&wide_src, 0, 109);
     // test_copy full-width copy from a cleared destination replays the exact source window
     copyFrom(&wide_dst, &wide_src, bitmap_nbits);
