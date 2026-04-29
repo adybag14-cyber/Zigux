@@ -64,7 +64,7 @@ The current tests check:
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
 - the same `zigux/tests/fixtures/phase6_base64_vectors.zig` module also owns the deterministic perf corpus shape that `zigux/tests/phase6_base64_perf.zig` replays for the current 64-byte and 1-kibibyte slowdown gates
-- a small external C-vs-Zig spot-check harness that compiles `zigux/tests/fixtures/phase6_base64_c_harness.c`, runs it beside `zigux/tests/phase6_base64_c_parity.zig`, and compares representative encode, decode, decoded-length preflight, and invalid-input cases with explicit coverage for no-padding one-byte and two-byte tails plus malformed decode inputs
+- a small external C-vs-Zig spot-check harness that regenerates the committed C include payload through `zigux/tests/phase6_base64_c_casegen.zig`, compiles `zigux/tests/fixtures/phase6_base64_c_harness.c`, runs it beside `zigux/tests/phase6_base64_c_parity.zig`, and compares representative encode, decode, decoded-length preflight, and invalid-input cases with explicit coverage for no-padding one-byte and two-byte tails plus malformed decode inputs
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
@@ -80,4 +80,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity or slowdown drift in the current standard, URL-safe, or IMAP packet. If Phase 6 base64 reopens, keep the next step narrow: either widen the representative external C-vs-Zig corpus into a generated fixture flow or retire the current spot check if a better shared parity substrate replaces it.
+Leave this helper parked unless fresh repo inspection shows a concrete parity or slowdown drift in the current standard, URL-safe, or IMAP packet. The current review packet already carries the generated-fixture handoff through `zigux/tests/phase6_base64_c_casegen.zig`, so the next reopen should stay narrow: either widen that representative external C-vs-Zig corpus further or retire the current spot check if a better shared parity substrate replaces it.
