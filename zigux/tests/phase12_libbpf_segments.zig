@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "3f2d00857ca82c001056f297c87621988f3d0025";
+const current_surveyed_commit = "0b472ee501f0999f82840c7feaa872e6152764f8";
 
 const SurveySummary = struct {
     libbpf_c_lines: usize,
@@ -68,7 +68,7 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     try std.testing.expect(hasGap(
         manifest,
@@ -87,6 +87,24 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
         "phase12-libbpf-file-path-handle-helper-foundation",
         "starter_landed",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-libbpf-map-reuse-compatibility-helper-foundation",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-libbpf-file-path-and-handle-bridge-boundary",
+        "deferred_high_risk",
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-libbpf-perf-buffer-online-cpu-routing-boundary",
+        "deferred_high_risk",
+        "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     ));
     try std.testing.expect(hasGap(
         manifest,
