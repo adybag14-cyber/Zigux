@@ -127,19 +127,28 @@ The bounded `genksyms` closure packet remains closed because both the shared bri
 
 ## Kconfig Bridge Evidence
 
-The bounded `kconfig` bridge closure packet remains closed because both the shared fixture packet and the helper-local unit lane cover the published wrapper and confdata summary edges:
+The bounded `kconfig` bridge closure packet remains closed because the shared fixture packet, manifest-determinism gate, and helper-local unit lanes cover the published wrapper and confdata summary edges:
 
-- shared fixture packet:
-  `listnewconfig_expected.json`, `helpnewconfig_expected.json`, `allnoconfig_expected.json`, `randconfig_expected.json`, `duplicate_assignments_expected.json`, `escaped_control_sequences_expected.json`, `escaped_low_control_bytes_expected.json`
+- shared wrapper and summary packet:
+  `oldaskconfig_expected.json`, `olddefconfig_expected.json`, `oldconfig_expected.json`, `listnewconfig_expected.json`, `helpnewconfig_expected.json`, `yes2modconfig_expected.json`, `mod2yesconfig_expected.json`, `defconfig_expected.json`, `savedefconfig_expected.json`, `mod2noconfig_expected.json`, `allnoconfig_expected.json`, `allyesconfig_expected.json`, `allmodconfig_expected.json`, `alldefconfig_expected.json`, `randconfig_expected.json`, `syncconfig_expected.json`, `duplicate_assignments_expected.json`, `escaped_control_sequences_expected.json`, `escaped_low_control_bytes_expected.json`, `signed_numeric_kinds_expected.json`
+- bridge manifest hardening:
+  `check-kconfig-bridge.py` rejects uncovered conf bridge modes, unsorted conf-case order, malformed manifest shape, duplicate fixture references, orphaned fixture files, and non-canonical confdata fixture naming before replaying the bounded artifacts
 - helper-local anchors in `scripts/zigux/kconfig/conf_bridge.zig`:
   `conf bridge emits allconfig env for allconfig family modes`
+  `conf bridge requires mode arg for defconfig modes`
+  `conf bridge emits savedefconfig mode argument before kconfig`
+  `conf bridge escapes low control bytes in argv and env values`
 - helper-local anchors in `scripts/zigux/kconfig/confdata_bridge.zig`:
   `confdata bridge decodes escaped control sequences in quoted strings`
   `confdata bridge escapes low control bytes in emitted json`
 
+- `PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=16`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=12`
 - `PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json`
+- `PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
-- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge allconfig env and confdata escaped-control decode and low-control JSON emission anchors are required for closure`
+- `PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, and low-control JSON emission anchors are required for closure`
 
 ## Linux-Style Entry Point
 
