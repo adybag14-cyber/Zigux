@@ -836,6 +836,7 @@ required_script_markers = [
     'repeat-run artifact determinism',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
+    'check-kconfig-bridge.py --self-test',
     'check-kconfig-bridge.py',
     'check-phase2-cross.py',
     'genksyms.zig',
