@@ -161,7 +161,6 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "helpers" / "allocator_policy.zig").writeText = None
         (root / "zigux" / "helpers" / "allocator_policy.zig").write_text(
             "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {\n"
             "    _ = mode;\n"
