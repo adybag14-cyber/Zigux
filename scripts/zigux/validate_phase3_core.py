@@ -140,6 +140,10 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
         "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
         "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
+        "try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);",
+        "try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0));",
+        "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
+        "try std.testing.expectEqual(@as(u32, 0xaabbccdd), try mmio.read32Scoped(.volatile_mmio, base, 4));",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
