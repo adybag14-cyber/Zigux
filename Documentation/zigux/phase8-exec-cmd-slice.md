@@ -58,7 +58,7 @@ The current tests check:
 
 - path fallback precedence stays stable, including the explicit-empty exec-path sentinel staying distinct from the configured fallback
 - relative search-path entries become absolute against the current working directory input
-- directory-prefixed `argv[0]` values split cleanly into path and command name
+- directory-prefixed `argv[0]` values split cleanly into path and command name, including the root-directory `/perf` shape preserving the C helper's empty `argv0_path` sentinel without injecting a blank search-path segment
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge and the skipped empty explicit exec-path segment
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd and still falls back cleanly when `PWD` is explicitly empty
 - the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly for mismatched or missing optional `PWD` stat input
