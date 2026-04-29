@@ -154,6 +154,8 @@ required_phase6_catalog_markers = [
     '`zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds',
     '`zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded comparison budget rather than a nanosecond threshold',
     '`zigux/tests/phase6_hexdump_perf.zig` currently remains a deterministic formatter-cost sanity harness without a numeric slowdown ceiling',
+    '22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 16 invalid decode vectors',
+    'PHASE6_BASE64_C_PARITY_CASES=90',
     'scripts/zigux/validate-phase6.py',
     '.github/workflows/zigux-bootstrap.yml',
     'Documentation/zigux/README.md',
