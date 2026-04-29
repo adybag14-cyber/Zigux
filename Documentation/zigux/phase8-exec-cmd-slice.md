@@ -51,7 +51,7 @@ The current parked slice covers:
 - a tiny `FileIdentity` plus `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
 - `setupPathWithPwd()` as the bounded wrapper that applies that stat-backed `PWD` proof directly to `setupPath()` before relative search-path normalization
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
-- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, including the accepted exact-`MAX_ARGS` null-terminated edge from the C helper, its required trailing null terminator, and its legacy overflow guard without claiming any direct process-launch behavior
+- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector, including the C helper's legacy post-fetch `MAX_ARGS` overflow guard where a terminating null that lands in slot `MAX_ARGS` still fails, plus its required trailing null terminator, without claiming any direct process-launch behavior
 - `buildDeferredExeclCall()` plus the tiny `DeferredExecCall` carrier so the `execl_cmd()` path can now hand off one fully prepared future `execvp()` argv packet without launching a process, waiting for completion, or claiming any queue ownership
 
 The current tests check:
@@ -64,7 +64,7 @@ The current tests check:
 - the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly for mismatched or missing optional `PWD` stat input
 - `setupPathWithPwd()` reuses the logical `PWD` only when the injected stat identities match and otherwise falls back to the physical cwd before rebuilding `PATH`
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
-- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, accepts the exact `MAX_ARGS` boundary when the final slot is the null terminator just like the C helper, rejects a missing terminator, and still rejects the first true overflow shape before any real `execvp()` call exists
+- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, accepts only the last null-terminated shape that stays below `MAX_ARGS`, rejects the C helper's legacy null-slot overflow shape where the terminating null itself lands in slot `MAX_ARGS`, rejects a missing terminator, and still stops before any real `execvp()` call exists
 - the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
 
 ## Non-goals
@@ -81,4 +81,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, while the deferred `execl_cmd()` handoff now keeps the accepted exact `MAX_ARGS` edge aligned with `exec-cmd.c` without widening into launch behavior, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, while the deferred `execl_cmd()` handoff now keeps the C helper's legacy null-slot `MAX_ARGS` overflow edge aligned with `exec-cmd.c` without widening into launch behavior, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
