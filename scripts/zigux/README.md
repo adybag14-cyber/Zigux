@@ -21,6 +21,7 @@ Current bootstrap helpers
 - `validate-phase2-closure.py`
 - `validate-phase3.py`
 - `validate-phase4.py`
+- `validate-phase5.py`
 - `validate-phase6.py`
 - `validate-phase7.py`
 - `validate-phase8.py`
@@ -79,6 +80,13 @@ Phase 4 flow
 - `check-artifact-diff-contract.py` keeps one stable pass case, one missing-file failure case, malformed expected and actual JSON failure shapes, and SHA-256 pass and drift cases of the outward helper CLI reviewable beside the built-in self-test, including the emitted `EXPECTED_JSON_ERROR=...`, `ACTUAL_JSON_ERROR=...`, `SHA256=...`, `EXPECTED_SHA256=...`, and `ACTUAL_SHA256=...` fields.
 - `validate-phase4.py` checks that the bounded Phase 4 differential gates, the manifest-backed `test_fsmount` survey packet, that shared artifact-diff self-test, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned, including the current `make M=samples/vfs` C-anchor-only replay posture while `samples/zigux/test_fsmount.zig` remains absent.
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, the exact workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, the shared `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, `phase4-test-fsmount-survey-tests`, and `phase4-bitmap-diff-tests` replay anchors, the manifest-backed `test_fsmount` survey row and its current `make M=samples/vfs` C-anchor-only lab posture, plus the reversible-delivery evidence that ties each shipped Phase 4 gate back to its current C anchor if the shared entrypoint has to drop that Zig gate.
+
+Phase 5 flow
+- `validate-phase5.py` keeps the shared Phase 5 reference-sample packet aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase5_build.zig`, the four sample-backed survey manifests, and the shared `samples/zigux/README.md` catalog boundary.
+- `make -C zigux phase5-validate` is the fail-fast packet check for the current bytestream FIFO, kobject, kretprobe, and trace-events sample bundle.
+- `make -C zigux phase5` keeps that same non-runtime reference-sample lane reviewable through one validator-first path instead of ad hoc sample-local commands.
+- `zigux/tests/phase5_build.zig` is the shared replay entrypoint for `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_survey.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`.
+- `samples/zigux/README.md` stays in that same validation surface so the four approved Phase 5 reference samples remain visibly distinct from the later `runtime_*` starters that share the directory.
 
 Phase 6 flow
 - `validate-phase6.py` keeps the shared Phase 6 leaf-helper bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, and `zigux/tests/phase6_build.zig`.
