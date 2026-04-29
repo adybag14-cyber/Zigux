@@ -755,7 +755,7 @@ def run_self_test() -> int:
         assert 'make:scripts/zigux/validate-phase4.py --self-test' in missing, missing
 
         sample_kprobes_makefile = tmp_root / 'samples/kprobes/Makefile'
-        sample_kprobes_makefile.writeText('', encoding='utf-8')
+        sample_kprobes_makefile.write_text('', encoding='utf-8')
         missing = validate_root(tmp_root)
         assert (
             'sample_kprobes_make:obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o'
