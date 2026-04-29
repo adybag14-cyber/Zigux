@@ -492,7 +492,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "samples/zigux/runtime_atomic64_loader.zig",
-        16 * 1024,
+        32 * 1024,
     );
     defer std.testing.allocator.free(atomic64_loader);
 
@@ -500,7 +500,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "samples/zigux/runtime_bitmap_loader.zig",
-        16 * 1024,
+        32 * 1024,
     );
     defer std.testing.allocator.free(bitmap_loader);
 
@@ -508,7 +508,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "samples/zigux/runtime_kretprobe_loader.zig",
-        16 * 1024,
+        32 * 1024,
     );
     defer std.testing.allocator.free(kretprobe_loader);
 
@@ -516,7 +516,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         io_instance.io(),
         std.testing.allocator,
         "zigux/kernel/runtime_loader.zig",
-        24 * 1024,
+        32 * 1024,
     );
     defer std.testing.allocator.free(runtime_loader_file);
     const exec_cmd_file = try readWorkspaceFile(
