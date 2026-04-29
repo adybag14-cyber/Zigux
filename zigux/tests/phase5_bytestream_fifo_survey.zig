@@ -167,7 +167,8 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "checked-focus-list")) {
             saw_focus_list = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly six focus areas") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly seven focus areas") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "preview_truncation") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
         }
         if (std.mem.eql(u8, check.id, "lifecycle-guards-and-counters")) {
