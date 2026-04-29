@@ -101,6 +101,15 @@ pub const ConfigWindowSummary = struct {
     value: u32,
 };
 
+pub const ConfigWritePlanSummary = struct {
+    anchor: []const u8,
+    offset: u32,
+    width: ConfigWindowWidth,
+    generation: u32,
+    previous_value: u32,
+    planned_value: u32,
+};
+
 pub const StatusSummary = struct {
     anchor: []const u8,
     status: u8,
@@ -370,6 +379,35 @@ pub const VirtioMmioRegisterWindowLab = struct {
         };
     }
 
+    pub fn planConfigWrite(
+        self: *Self,
+        offset: u32,
+        width: ConfigWindowWidth,
+        value: u32,
+    ) !ConfigWritePlanSummary {
+        const config_offset = try checkedConfigWindow(offset, width);
+        const width_bytes = @intFromEnum(width);
+        try validateConfigWriteValue(width, value);
+
+        var previous_value: u32 = 0;
+        for (0..width_bytes) |index| {
+            previous_value |= @as(u32, self.config_window[config_offset + index]) << @intCast(index * 8);
+        }
+
+        for (0..width_bytes) |index| {
+            self.config_window[config_offset + index] = @intCast((value >> @intCast(index * 8)) & 0xff);
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .offset = offset,
+            .width = width,
+            .generation = self.config_generation,
+            .previous_value = previous_value,
+            .planned_value = value,
+        };
+    }
+
     pub fn setStatus(self: *Self, status: u8) !StatusSummary {
         if (status == 0) return error.ResetRequiresDedicatedPath;
         self.status = status;
@@ -465,6 +503,15 @@ fn checkedConfigWindow(offset: u32, width: ConfigWindowWidth) !usize {
     const end = config_offset +| width_bytes;
     if (end > supported_config_window_bytes) return error.ConfigWindowOutOfRange;
     return config_offset;
+}
+
+fn validateConfigWriteValue(width: ConfigWindowWidth, value: u32) !void {
+    const max_value: u32 = switch (width) {
+        .byte => 0xff,
+        .half => 0xffff,
+        .word => std.math.maxInt(u32),
+    };
+    if (value > max_value) return error.ConfigWriteValueTooWide;
 }
 
 test "register enum keeps the bounded mmio offsets reviewable" {
