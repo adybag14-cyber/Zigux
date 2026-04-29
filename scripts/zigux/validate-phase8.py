@@ -189,6 +189,7 @@ required_phase8_build_markers = [
     "phase8_file_path_handle_bridge.zig",
     "phase8_libbpf_segments.zig",
     "phase8_bpf_type_names.zig",
+    "phase8-bpf-type-names-tests",
 ]
 
 required_phase8_exec_cmd_only_build_markers = [
