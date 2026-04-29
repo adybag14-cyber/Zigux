@@ -65,7 +65,7 @@ required_closure_markers = [
     'rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`',
     'PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys',
     'PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
-    'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup, replacement, and memchrInv mismatch detection',
+    'PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup including removeSpaces stop-at-NUL handling, replacement, and memchrInv mismatch detection',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
@@ -231,13 +231,15 @@ if string_review.get('evidence_keys') != [
     'string.skip_spaces',
     'string.trim_spaces',
     'string.remove_spaces',
+    'string.remove_spaces_nul',
+    'string.remove_spaces_nul_bytes',
     'string.replace_char',
     'string.replace_char_end',
     'string.memchr_inv_index',
     'string.memchr_inv_none',
 ]:
     missing_markers.append('manifest:string.evidence_keys')
-if string_review.get('summary') != 'Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, bounded strlcpy truncation, in-place whitespace and replacement helpers, and first-mismatch memchrInv detection.':
+if string_review.get('summary') != 'Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, bounded strlcpy truncation, in-place whitespace and replacement helpers including removeSpaces stop-at-NUL behavior, and first-mismatch memchrInv detection.':
     missing_markers.append('manifest:string.summary')
 if string_review.get('unit_test_anchor') != 'tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"':
     missing_markers.append('manifest:string.unit_test_anchor')
