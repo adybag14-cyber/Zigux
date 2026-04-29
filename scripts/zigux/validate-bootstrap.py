@@ -11,6 +11,8 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'freeze-map.md',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'scripts' / 'zigux' / 'install-zig.py',
+    ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json',
     ROOT / 'scripts' / 'zigux' / 'validate-phase6.py',
     ROOT / 'zigux' / 'tests' / 'README.md',
 ]
@@ -55,6 +57,7 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
     'Validate Phase 6 leaf helper gates',
     'make -C zigux phase6-validate',
     'Run Phase 6 leaf helper tests',
@@ -83,6 +86,36 @@ if missing_workflow_markers:
     print('MISSING_WORKFLOW_MARKERS_END')
     sys.exit(1)
 
+toolchain_checker = (ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py').read_text(encoding='utf-8')
+required_toolchain_markers = [
+    'zig-toolchain-policy.json',
+    'ZIG_TOOLCHAIN_REQUIRED_VERSION',
+    'status = "not_pinned"',
+]
+missing_toolchain_markers = [marker for marker in required_toolchain_markers if marker not in toolchain_checker]
+if missing_toolchain_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_TOOLCHAIN_CHECKER_MARKERS_START')
+    for marker in missing_toolchain_markers:
+        print(marker)
+    print('MISSING_TOOLCHAIN_CHECKER_MARKERS_END')
+    sys.exit(1)
+
+installer = (ROOT / 'scripts' / 'zigux' / 'install-zig.py').read_text(encoding='utf-8')
+required_installer_markers = [
+    'zig-toolchain-policy.json',
+    'policy version drift',
+    "parser.add_argument('--self-test'",
+]
+missing_installer_markers = [marker for marker in required_installer_markers if marker not in installer]
+if missing_installer_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_INSTALLER_MARKERS_START')
+    for marker in missing_installer_markers:
+        print(marker)
+    print('MISSING_INSTALLER_MARKERS_END')
+    sys.exit(1)
+
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 required_make_markers = [
     'phase6-validate:',
@@ -101,4 +134,7 @@ if missing_make_markers:
 
 print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers) + len(required_workflow_markers) + len(required_make_markers)}')
+print(
+    'BOOTSTRAP_REQUIRED_MARKER_COUNT='
+    f"{len(required_markers) + len(required_workflow_markers) + len(required_toolchain_markers) + len(required_installer_markers) + len(required_make_markers)}"
+)

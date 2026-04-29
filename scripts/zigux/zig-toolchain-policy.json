@@ -1,0 +1,6 @@
+{
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "policy_note": "Shared Zigux bootstrap and Phase 2 toolchain pin."
+}
