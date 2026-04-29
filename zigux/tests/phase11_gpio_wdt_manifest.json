@@ -38,35 +38,35 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-survey.md",
-      "why_now": "The survey note now records the landed gpio_wdt starter, the probe-summary follow-up, the nowayout-aware stop helper, the metadata-only registration plan, and the first bounded register-device call summary so the remaining Phase 11 gap stays explicit without overclaiming broader watchdog progress."
+      "why_now": "The survey note now records the landed gpio_wdt starter, the probe-summary follow-up, the nowayout-aware teardown-facing stop helper, the metadata-only registration plan, the first bounded register-device call summary, and the current hardware-validation posture so the remaining Phase 11 gap stays explicit without overclaiming broader watchdog progress."
     },
     {
       "id": "phase11-gpio-wdt-driver-starter",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The first gpio_wdt starter is now landed and models hw_algo parsing, heartbeat margin validation, bounded start or stop or ping transitions, a tiny probe-time summary, a nowayout-aware stop helper, a metadata-only registration plan, and the first bounded register-device call summary without touching live GPIO or platform registration."
+      "why_now": "The first gpio_wdt starter is now landed and models hw_algo parsing, heartbeat margin validation, bounded start or stop or ping transitions, a tiny probe-time summary, a nowayout-aware teardown-facing stop helper, a metadata-only registration plan, and the first bounded register-device call summary without touching live GPIO or platform registration."
     },
     {
       "id": "phase11-gpio-wdt-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests now keep the toggle and level state transitions, heartbeat validation, always-running stop behavior, nowayout-aware stop outcomes, registration handoff bookkeeping, and the first bounded register-device request honest around the landed simple-driver scaffold."
+      "why_now": "Dedicated Phase 11 tests now keep the toggle and level state transitions, heartbeat validation, always-running stop behavior, teardown-facing nowayout outcomes, registration handoff bookkeeping, and the first bounded register-device request honest around the landed simple-driver scaffold."
     },
     {
       "id": "phase11-gpio-wdt-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-slice.md",
-      "why_now": "A bounded slice note records exactly what the gpio_wdt starter, probe-summary helper, stop-policy helper, metadata-only registration plan, and register-device call summary cover so later Phase 11 work can extend the model without reopening the starter contract."
+      "why_now": "A bounded slice note records exactly what the gpio_wdt starter, probe-summary helper, teardown-facing stop helper, metadata-only registration plan, and register-device call summary cover so later Phase 11 work can extend the model without reopening the starter contract."
     },
     {
       "id": "phase11-gpio-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the first bounded register-device call surface, and the focused survey command that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
+      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the teardown-facing stop evidence, and the first bounded register-device call surface that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
@@ -80,7 +80,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The starter now lands a tiny nowayout-aware stop helper so review can distinguish watchdog-core stop blocking from hardware always-running behavior before any live GPIO or platform glue."
+      "why_now": "The starter now lands a tiny nowayout-aware stop helper so review can distinguish watchdog-core stop blocking from hardware always-running behavior and preserve teardown-facing stop outcomes before any live GPIO or platform glue."
     },
     {
       "id": "phase11-gpio-wdt-registration-handoff-followup",
@@ -101,7 +101,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
-      "why_now": "The starter now adds one tiny register-device request summary so review can see the exact watchdog metadata, timeout, nowayout, parent, and stop-on-reboot state that would reach the first bounded `devm_watchdog_register_device()` request before any live GPIO descriptor acquisition or reboot glue lands."
+      "why_now": "The starter now adds one tiny register-device request summary so review can see the exact watchdog metadata, timeout, nowayout, parent, stop-on-reboot, and teardown-adjacent startup state that would reach the first bounded `devm_watchdog_register_device()` request before any live GPIO descriptor acquisition or reboot glue lands."
     },
     {
       "id": "phase11-gpio-wdt-platform-registration",
