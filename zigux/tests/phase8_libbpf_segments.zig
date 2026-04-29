@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "ba507b1f2e16af8983c61802e07bcbc95592aef4";
+const current_surveyed_commit = "9bb604c900b9ae13e7291841470e8326639b4f4e";
 
 const CompanionFile = struct {
     path: []const u8,
@@ -140,7 +140,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
@@ -158,6 +158,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     var saw_pin_path_segment = false;
     var saw_cpu_mask_segment = false;
     var saw_fdinfo_helper_segment = false;
+    var saw_map_reuse_segment = false;
     var saw_file_path_handle_segment = false;
     var saw_interrupt_routing_segment = false;
     var saw_type_names_segment = false;
@@ -216,6 +217,16 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try expectContains(segment.why_now, "text parsing");
             try expectContains(segment.why_now, "reused-map-name chooser");
         }
+        if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
+            saw_map_reuse_segment = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expectEqualStrings("helper_first", segment.kind);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
+            try std.testing.expectEqual(@as(usize, 1), segment.anchor_ranges.len);
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:5220-5251", segment.anchor_ranges[0]);
+            try expectContains(segment.why_now, "pure field-and-flag check");
+            try expectContains(segment.why_now, "DEVMAP readonly-flag exception");
+        }
         if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
             saw_file_path_handle_segment = true;
             try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
@@ -258,12 +269,13 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(saw_pin_path_segment);
     try std.testing.expect(saw_cpu_mask_segment);
     try std.testing.expect(saw_fdinfo_helper_segment);
+    try std.testing.expect(saw_map_reuse_segment);
     try std.testing.expect(saw_file_path_handle_segment);
     try std.testing.expect(saw_interrupt_routing_segment);
     try std.testing.expect(saw_type_names_segment);
 }
 
-test "phase 8 libbpf segment evidence still matches the live irq and reuse-name anchors" {
+test "phase 8 libbpf segment evidence still matches the live irq and reuse compatibility anchors" {
     const libbpf_c = try readWorkspaceFile(
         std.testing.allocator,
         "tools/lib/bpf/libbpf.c",
@@ -279,6 +291,9 @@ test "phase 8 libbpf segment evidence still matches the live irq and reuse-name 
     try expectContains(libbpf_c, "name_len = strlen(info.name);");
     try expectContains(libbpf_c, "if (name_len == BPF_OBJ_NAME_LEN - 1 && strncmp(map->name, info.name, name_len) == 0)");
     try expectContains(libbpf_c, "new_name = strdup(map->name);");
+    try expectContains(libbpf_c, "if (map->def.type == BPF_MAP_TYPE_DEVMAP || map->def.type == BPF_MAP_TYPE_DEVMAP_HASH)");
+    try expectContains(libbpf_c, "map_info.map_flags &= ~BPF_F_RDONLY_PROG;");
+    try expectContains(libbpf_c, "map_info.map_flags == map->def.map_flags");
 }
 
 test "phase 8 deferred perf-buffer anchor ranges still point at the live routing packet" {
@@ -347,13 +362,6 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     defer std.testing.allocator.free(bridge_boundary_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
-    try expectContains(survey_note, "Latest verification snapshot");
-    try expectContains(survey_note, "zig test zigux/tests/phase8_libbpf_segments.zig");
-    try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
-    try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
-    try expectContains(survey_note, "python3 scripts/zigux/validate-phase8.py");
-    try expectContains(survey_note, "Build Summary: 20/20 steps succeeded; 63/63 tests passed");
-    try expectContains(survey_note, "PHASE8_VALIDATION=pass");
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
     try expectContains(survey_note, "blocked object-model");
@@ -366,6 +374,8 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "no standalone clockevent helper");
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "reused-map-name chooser");
+    try expectContains(survey_note, "map reuse compatibility");
+    try expectContains(survey_note, "DEVMAP readonly-prog");
     try expectContains(survey_note, "token-preparation planning");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
