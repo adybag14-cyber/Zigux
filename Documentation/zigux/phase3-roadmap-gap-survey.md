@@ -6,7 +6,7 @@ This note records the current Phase 3 ABI and interop gap between the roadmap co
 
 - `PHASE3_ROADMAP_ANCHORS=rust/exports.c,lib/bitmap.c,lib/rbtree.c,lib/cpumask.c`
 - `PHASE3_CURRENT_EXPORT_SHIM=zigux/kernel/export_shim.zig`
-- `PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-plus-shared-header`
+- `PHASE3_CURRENT_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_CURRENT_UAPI=zigux/uapi/version.zig`
 - `PHASE3_CURRENT_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_UAPI_BOUNDARY_GAP=version-and-boundary-header-surface-is-still-below-full-uapi-shim-destination`
@@ -43,8 +43,8 @@ The current tree already carries the bounded ABI substrate and the first reusabl
 
 - `include/zigux/abi.h` and `include/linux/zigux.h` define the curated C-facing boundary
 - `zigux/bindings/abi.zig` mirrors that boundary on the Zig side
-- `zigux/kernel/export_shim.zig` keeps the export status surface explicit, and it now also keeps the shared boundary-header constructor and compatibility path reviewable without widening into a broader export namespace
-- `zigux/uapi/version.zig` keeps one minimal UAPI surface aligned to the ABI version, and it now also exposes the shared boundary-header constructor and compatibility check without widening into a broader UAPI shim family
+- `zigux/kernel/export_shim.zig` keeps the export status surface explicit, and it now also keeps the boundary-header constructor and compatibility path reviewable without widening into a broader export namespace
+- `zigux/uapi/version.zig` keeps one minimal UAPI surface aligned to the ABI version, and it now also exposes the boundary-header constructor and compatibility check without widening into a broader UAPI shim family
 - `zigux/helpers/layout_assert.zig`, `panic_policy.zig`, `allocator_policy.zig`, `atomic.zig`, `barrier.zig`, and `mmio.zig` cover the low-level policy and wrapper packet
 - `zigux/tests/phase3_low_level_wrappers.zig` plus `zigux/tests/phase3_low_level_wrappers_build.zig` now keep that atomic, barrier, and MMIO packet reviewable on its own focused replay path, including the scoped MMIO entry points routed back through the declared narrow unsafe layer
 - `zigux/unsafe/narrow.zig` keeps the unsafe boundary narrow and named
