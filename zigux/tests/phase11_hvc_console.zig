@@ -169,6 +169,42 @@ test "phase11 hvc console keeps hvc_hangup disconnect boundaries reviewable" {
     try std.testing.expect(stale_hangup.keeps_console_binding);
 }
 
+test "phase11 hvc console keeps hvc_remove handoff boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(10);
+    _ = console.instantiate(0xa0);
+
+    const attached_remove = try console.summarizeRemoveHandoff(.{
+        .tty_attached = true,
+    });
+    try std.testing.expectEqual(@as(usize, 10), attached_remove.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xa0), attached_remove.vtermno);
+    try std.testing.expect(attached_remove.adapter_present);
+    try std.testing.expect(attached_remove.console_lock_brackets_slot_clear);
+    try std.testing.expect(attached_remove.clears_vtermno_slot);
+    try std.testing.expect(attached_remove.clears_cons_ops_slot);
+    try std.testing.expect(attached_remove.keeps_irq_until_hangup);
+    try std.testing.expect(attached_remove.tty_port_put_requested);
+    try std.testing.expect(attached_remove.tty_port_put_precedes_tty_vhangup);
+    try std.testing.expect(attached_remove.console_unlock_precedes_tty_vhangup);
+    try std.testing.expect(attached_remove.tty_vhangup_requested);
+    try std.testing.expect(attached_remove.tty_kref_put_after_vhangup);
+    try std.testing.expect(attached_remove.teardown_deferred_to_hangup);
+
+    const detached_remove = try console.summarizeRemoveHandoff(.{
+        .tty_attached = false,
+    });
+    try std.testing.expect(detached_remove.console_lock_brackets_slot_clear);
+    try std.testing.expect(detached_remove.clears_vtermno_slot);
+    try std.testing.expect(detached_remove.clears_cons_ops_slot);
+    try std.testing.expect(detached_remove.keeps_irq_until_hangup);
+    try std.testing.expect(detached_remove.tty_port_put_requested);
+    try std.testing.expect(!detached_remove.tty_port_put_precedes_tty_vhangup);
+    try std.testing.expect(!detached_remove.console_unlock_precedes_tty_vhangup);
+    try std.testing.expect(!detached_remove.tty_vhangup_requested);
+    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);
+    try std.testing.expect(!detached_remove.teardown_deferred_to_hangup);
+}
+
 test "phase11 hvc console keeps khvcd polling wakeups and teardown boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(5);
     _ = console.instantiate(0x55);
