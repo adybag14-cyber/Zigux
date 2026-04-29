@@ -20,6 +20,7 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
         .wraparound_requeue,
         .peek_and_skip,
         .non_destructive_snapshot,
+        .preview_truncation,
         .reset_and_replay,
         .ownership_and_lifetime,
     };
