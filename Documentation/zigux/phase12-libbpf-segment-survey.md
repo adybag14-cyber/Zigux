@@ -22,7 +22,7 @@ That matters because the live repo already has real helper-first progress under 
 
 The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate aware of it, verifies that the landed helper files still match the segment plan, and keeps the blocked-risk split current instead of drifting behind the live tree.
 
-This checkpoint has now been re-verified against current `master` head `46c0200e7a4a125223ba0b90145f914f5855a88a`, with the same landed helper set and the same three-way split still holding between the skeleton blocker, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
+This checkpoint has now been re-verified against current `master` head `3f2d00857ca82c001056f297c87621988f3d0025`, with the same landed helper set and the same three-way split still holding between the skeleton blocker, the deferred object-loader bucket, and the deferred relocation or verifier-facing bucket.
 
 ## Survey findings
 
