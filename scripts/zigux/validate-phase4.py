@@ -53,6 +53,7 @@ PHASE4_GATE_EXPECTATIONS = {
         'owner': 'Shared Subsystems Pod',
         'rollback_owner': 'Shared Subsystems Pod',
         'fallback_path': 'keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses',
+        'rollback_evidence_gap': 'direct `bitmap_fill(..., 115)` still stops at bit 114 in the shipped Zig helper, so the Phase 4 packet keeps that mismatch survey-only instead of claiming parity with the `lib/test_bitmap.c` rounded two-word anchor',
         'exact_check_markers': [
             '`bitmap_fill(..., 35)`',
             '`bitmap_zero(..., 35)`',
@@ -347,6 +348,12 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
         for marker in exact_check_markers:
             if marker not in gate_block:
                 missing.append(f'phase4_matrix:exact_check_marker:{gate_name}:{marker}')
+    rollback_evidence_gap = expectation.get('rollback_evidence_gap')
+    if rollback_evidence_gap is not None:
+        if f'- current rollback evidence gap: {rollback_evidence_gap}' not in gate_block:
+            missing.append(
+                f'phase4_matrix:rollback_evidence_gap:{gate_name}:{rollback_evidence_gap}'
+            )
     if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
         missing.append(
             f"phase4_matrix:threshold_status:{gate_name}:{expectation['threshold_status']}"
@@ -567,6 +574,9 @@ def build_phase4_matrix_fixture() -> str:
         if exact_check_markers is not None:
             exact_checks = ', '.join(exact_check_markers)
             lines.append(f'- exact bounded checks: {exact_checks}')
+        rollback_evidence_gap = expectation.get('rollback_evidence_gap')
+        if rollback_evidence_gap is not None:
+            lines.append(f'- current rollback evidence gap: {rollback_evidence_gap}')
         lines.extend(
             [
                 f"- perf threshold status: {expectation['threshold_status']}",
@@ -687,6 +697,7 @@ def required_marker_count() -> int:
         + len(REQUIRED_BITMAP_DIFF_MARKERS)
         + sum(
             len(expectation.get('exact_check_markers', []))
+            + (1 if expectation.get('rollback_evidence_gap') is not None else 0)
             + len(expectation.get('local_replay_markers', []))
             for expectation in PHASE4_GATE_EXPECTATIONS.values()
         )
