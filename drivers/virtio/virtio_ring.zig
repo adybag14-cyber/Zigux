@@ -117,6 +117,15 @@ pub const QueueResetGuardSummary = struct {
     reset_allowed: bool,
 };
 
+pub const QueueBrokenSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    broken: bool,
+    outstanding_chain_count: u16,
+    pending_used_chain_count: u16,
+    unpublished_chain_count: u16,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -129,6 +138,7 @@ pub const VirtioRingLab = struct {
         last_used_idx: u16 = 0,
         last_polled_used_idx: u16 = 0,
         callback_enabled: bool = true,
+        broken: bool = false,
         outstanding_chain_count: u16 = 0,
         num_added: u16 = 0,
         notification_count: usize = 0,
@@ -175,6 +185,7 @@ pub const VirtioRingLab = struct {
 
     pub fn publishDescriptorChain(self: *Self, queue_index: u16) !void {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
         if (slot.outstanding_chain_count == slot.descriptor_count) return error.QueueFull;
 
         slot.avail_idx_shadow +%= 1;
@@ -190,6 +201,7 @@ pub const VirtioRingLab = struct {
         const index = try checkedQueueIndex(queue_index);
         const slot = &self.queues[index];
         if (!slot.active) return error.QueueNotDefined;
+        if (slot.broken) return error.QueueBroken;
 
         const needs_kick = slot.num_added != 0;
         if (needs_kick) {
@@ -364,6 +376,34 @@ pub const VirtioRingLab = struct {
             .pending_used_chain_count = pending_used_chain_count,
             .unpublished_chain_count = slot.num_added,
             .reset_allowed = slot.outstanding_chain_count == 0 and pending_used_chain_count == 0 and slot.num_added == 0,
+        };
+    }
+
+    pub fn breakQueue(self: *Self, queue_index: u16) !QueueBrokenSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.broken = true;
+        return self.brokenSummary(queue_index);
+    }
+
+    pub fn unbreakQueue(self: *Self, queue_index: u16) !QueueBrokenSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.broken = false;
+        return self.brokenSummary(queue_index);
+    }
+
+    pub fn brokenSummary(self: *const Self, queue_index: u16) !QueueBrokenSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .broken = slot.broken,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .pending_used_chain_count = pending_used_chain_count,
+            .unpublished_chain_count = slot.num_added,
         };
     }
 
