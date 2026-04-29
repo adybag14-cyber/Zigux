@@ -233,3 +233,110 @@ pub const RuntimeKretprobeSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "runtime kretprobe sample keeps lifecycle replay and summary accounting explicit" {
+    const descriptor = RuntimeKretprobeSample.descriptor();
+    try std.testing.expectEqualStrings("runtime_kretprobe", descriptor.name);
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    var module = RuntimeKretprobeSample{};
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+
+    const cold_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.active_instances);
+    try std.testing.expect(!cold_summary.entry_timestamp_armed);
+
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+
+    const initialized_summary = module.summary();
+    try std.testing.expectEqualStrings("do_sys_openat2", initialized_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.active_instances);
+    try std.testing.expect(!initialized_summary.entry_timestamp_armed);
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqualStrings(descriptor.anchor, selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), selftest.probe_focus.len);
+    try std.testing.expect(selftest.skipped_kernel_thread_path_checked);
+    try std.testing.expect(selftest.duration_path_checked);
+    try std.testing.expect(selftest.missed_instance_path_checked);
+    try std.testing.expectEqual(@as(usize, 42), selftest.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), selftest.nmissed);
+    try std.testing.expectEqual(RuntimeKretprobeSample.default_maxactive, selftest.maxactive);
+
+    const selftest_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 42), selftest_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.nmissed);
+    try std.testing.expect(!selftest_summary.entry_timestamp_armed);
+
+    try module.exit();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 42), exited_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), exited_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.nmissed);
+    try std.testing.expect(!exited_summary.entry_timestamp_armed);
+}
+
+test "runtime kretprobe sample replays bounded skip, return, and concurrent timestamp paths" {
+    const too_long_symbol = [_]u8{'k'} ** RuntimeKretprobeSample.max_symbol_name_len;
+
+    var cold = RuntimeKretprobeSample{};
+    try std.testing.expectError(error.InvalidSymbolName, cold.retargetSymbol(""));
+    try std.testing.expectError(error.SymbolNameTooLong, cold.retargetSymbol(too_long_symbol[0..]));
+
+    var invalid_maxactive = RuntimeKretprobeSample{ .maxactive = RuntimeKretprobeSample.default_maxactive + 1 };
+    try std.testing.expectError(error.InvalidMaxactive, invalid_maxactive.init());
+
+    var module = RuntimeKretprobeSample{};
+    try module.init();
+
+    try std.testing.expect(!(try module.entryHandler(false, 11)));
+    try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    try std.testing.expect(try module.entryHandler(true, 160));
+    try std.testing.expectEqual(@as(usize, 2), module.active_instances);
+    try std.testing.expect(module.summary().entry_timestamp_armed);
+
+    try std.testing.expectError(error.InvalidTimestampOrder, module.retHandler(9, 159));
+
+    const second = try module.retHandler(12, 210);
+    try std.testing.expectEqual(@as(usize, 12), second.retval);
+    try std.testing.expectEqual(@as(i64, 50), second.duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), module.active_instances);
+
+    const first = try module.retHandler(37, 260);
+    try std.testing.expectEqual(@as(usize, 37), first.retval);
+    try std.testing.expectEqual(@as(i64, 160), first.duration_ns);
+    try std.testing.expectEqual(@as(usize, 0), module.active_instances);
+
+    try module.recordMissedInstance();
+    try std.testing.expectEqual(@as(usize, 1), module.nmissed);
+    try std.testing.expectError(error.MissingEntryTimestamp, module.retHandler(5, 300));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetSymbol("vfs_read"));
+
+    try module.exit();
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 320));
+}
