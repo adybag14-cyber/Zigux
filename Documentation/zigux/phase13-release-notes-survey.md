@@ -19,9 +19,13 @@ This document records the current release-discipline reading for the active Phas
   - `.github/workflows/zigux-bootstrap.yml`
   - `zigux/tests/phase13_build.zig`
   - `zigux/Makefile`
+  - `Documentation/zigux/phase13-libfs-slice.md`
   - `Documentation/zigux/phase13-libfs-survey.md`
+  - `Documentation/zigux/phase13-devres-slice.md`
   - `Documentation/zigux/phase13-devres-survey.md`
+  - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
   - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+  - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
   - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
   - `Documentation/zigux/phase13-notifier-list-survey.md`
   - `zigux/tests/phase13_libfs_manifest.json`
