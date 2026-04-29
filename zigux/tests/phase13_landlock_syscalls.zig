@@ -30,7 +30,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "05a762ea272fa488b877178987418c54c030b239";
+const expected_surveyed_commit = "c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d";
+const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-ruleset-fd-creation-handoff";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -78,6 +79,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_slice_marker) != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
