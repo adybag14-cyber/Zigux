@@ -320,11 +320,24 @@ test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
     try std.testing.expectEqualStrings("--stdio", collected[2].?);
     try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
 
-    var overflowing_tail: [31]?[]const u8 = undefined;
-    for (overflowing_tail[0..30]) |*slot| {
+    var max_accepted_tail: [31]?[]const u8 = undefined;
+    for (max_accepted_tail[0..30]) |*slot| {
         slot.* = "x";
     }
-    overflowing_tail[30] = null;
+    max_accepted_tail[30] = null;
+
+    const max_accepted = try exec_cmd.collectExeclArgs(std.testing.allocator, "record", &max_accepted_tail);
+    defer std.testing.allocator.free(max_accepted);
+    try std.testing.expectEqual(@as(usize, exec_cmd.max_execl_slots), max_accepted.len);
+    try std.testing.expectEqualStrings("record", max_accepted[0].?);
+    try std.testing.expectEqualStrings("x", max_accepted[exec_cmd.max_execl_slots - 2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), max_accepted[exec_cmd.max_execl_slots - 1]);
+
+    var overflowing_tail: [32]?[]const u8 = undefined;
+    for (overflowing_tail[0..31]) |*slot| {
+        slot.* = "x";
+    }
+    overflowing_tail[31] = null;
 
     try std.testing.expectError(
         error.TooManyArguments,
@@ -405,4 +418,5 @@ test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
     try expectContains(exec_cmd_c, "int execl_cmd(const char *cmd,...)");
     try expectContains(exec_cmd_c, "while (argc < MAX_ARGS)");
     try expectContains(exec_cmd_c, "if (MAX_ARGS <= argc)");
+    try expectContains(exec_cmd_c, "if (!arg)");
 }
