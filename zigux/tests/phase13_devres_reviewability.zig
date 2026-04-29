@@ -39,7 +39,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
 
-test "phase13 devres manifest records the landed helper-first MMIO safety surface and explicit blockers" {
+test "phase13 devres manifest records the landed helper-first dma/scatterlist boundary and explicit blockers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -171,6 +171,8 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-devres-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "helper-first") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scatterlist") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-managed-ioremap-lifetime")) {
             saw_ioremap_lifetime = true;
