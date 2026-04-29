@@ -6,7 +6,8 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-survey`
-- surveyed inspected `master` head: `32d3cb93dc1119700c39c8039526fa1797550802`
+- lane: `P10-L03`
+- surveyed inspected `master` head: `2fb5b0c059d2f4da65f856d2b5a377ad257e44de`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that compares the already-landed core starter against the remaining roadmap gap
 - product boundary:
   - `zigux/tests/phase10_virtio_core_manifest.json`
@@ -64,6 +65,19 @@ This survey slice does not yet claim:
 
 2. run the convenience target
 - `make -C zigux phase10`
+
+## Latest verification snapshot
+
+- verified against current `master` head `2fb5b0c059d2f4da65f856d2b5a377ad257e44de`
+- `python3 scripts/zigux/validate-phase10.py`
+- `python3 scripts/zigux/validate-phase10-closure.py`
+- `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
+- `make -C zigux phase10`
+- observed results:
+  - `PHASE10_VALIDATION=pass`
+  - `PHASE10_CLOSURE_VALIDATION=pass`
+  - shared Phase 10 build summary: `17/17` steps succeeded and `62/62` tests passed
+  - convenience entrypoint completed successfully on the same inspected head after validating the expected cross-phase closure bundle
 
 ## Next bounded step
 
