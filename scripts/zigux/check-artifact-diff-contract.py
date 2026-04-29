@@ -112,6 +112,20 @@ def main() -> int:
             ],
         )
 
+        blob_b.write_bytes(b'zigux-artifact-DRIFT')
+        run_contract_case(
+            ['--mode', 'sha256', str(blob_a), str(blob_b)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=sha256',
+                f'EXPECTED={blob_a}',
+                f'ACTUAL={blob_b}',
+                'EXPECTED_SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
+                'ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94',
+            ],
+        )
+
     print('ARTIFACT_DIFF_CONTRACT=pass')
     return 0
 
