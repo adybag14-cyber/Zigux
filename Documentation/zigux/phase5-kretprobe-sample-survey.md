@@ -5,7 +5,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
+- `PHASE5_LANE_KEY=P5-L15`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
+- `PHASE5_SURVEYED_COMMIT=b951338a1ff5523b5697436d264e3e3aed5bd32d`
 - scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
@@ -57,6 +59,23 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - the replay records one missed instance so the exit-side `nmissed` summary stays reviewable without claiming registration-pressure parity
 - `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
 - after `exit()` the sample rejects later `recordMissedInstance()`, `entryHandler()`, or `retHandler()` calls
+
+## Latest verification snapshot
+
+- inspected `master` head: `b951338a1ff5523b5697436d264e3e3aed5bd32d`
+- attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
+- exact commands and observed results:
+  - `zig test samples/zigux/kretprobe_example.zig`
+    - `1/1 kretprobe_example.test.kretprobe sample replay keeps the anchor reviewable and non-runtime...OK`
+    - `All 1 tests passed.`
+  - `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
+    - `1/2 phase5_kretprobe_example_survey.test.phase 5 kretprobe manifest records the exact bounded checks...OK`
+    - `2/2 phase5_kretprobe_example_survey.test.phase 5 kretprobe contributor docs stay aligned with the shipped review surface...OK`
+    - `All 2 tests passed.`
+  - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+    - `Build Summary: 17/17 steps succeeded; 26/26 tests passed`
+    - `phase5-kretprobe-example-tests 4 pass (4 total)`
+    - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
 
 ## Contributor refresh prompts for the landed sample
 
