@@ -138,13 +138,19 @@ Current repo evidence:
 - implementation anchor: `security/landlock/syscalls.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- manifest `surveyed_commit`: `05a762ea272fa488b877178987418c54c030b239`
+- manifest `surveyed_commit`: `c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 
 Current lane state recorded in the manifest:
+- landed `phase13-build-gate`
+- landed `phase13-make-target`
 - landed `phase13-landlock-syscalls-starter`
+- landed `phase13-landlock-syscalls-test-gate`
+- landed `phase13-landlock-syscalls-slice-note`
+- landed `phase13-landlock-syscalls-survey-note`
+- landed `phase13-landlock-copy-min-struct-followup`
 - landed `phase13-landlock-add-rule-followup`
 - landed `phase13-landlock-ruleset-fd-mode-followup`
 - landed `phase13-landlock-path-fd-followup`
@@ -153,7 +159,7 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-ruleset-fd-creation-handoff-followup`
 
 Traceability summary:
-- this anchor is also roadmap-aligned and manifest-backed, with the current repo keeping the syscall helper slice explicit about ABI, create-ruleset, add-rule, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still blocking live path import, credential mutation, and enforcement claims.
+- this anchor is roadmap-aligned and manifest-backed, with the current repo keeping the syscall helper slice explicit about ABI sizing, bounded `copy_min_struct_from_user()` discipline, create-ruleset query and mask validation, `landlock_restrict_self()` logging-flag translation, add-rule validation, ruleset-FD lookup, path-FD lookup, path-beneath handoff, net-port handoff, and ruleset-FD creation handoff planning while still blocking live user-memory access, live path import, credential mutation, and enforcement claims.
 
 ## Phase 13 traceability status
 
@@ -174,7 +180,7 @@ What stays intentionally blocked today:
 - `fs/libfs.c` now records the landed cursor-reposition bookkeeping step and keeps the next close-path release planner separate from the blocked dcache-cursor helpers and inode or pseudofs lifecycle work, so the current helper packet still does not overstate broader inode-state handling
 - `lib/devres.c` still keeps live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state out of scope even though its helper-first survey packet is now manifest-backed
 - `security/landlock/ruleset.c` still keeps live Landlock tree-state ownership, rule-release ownership, and hierarchy-lifetime behavior outside the current in-memory helper lab even though the ruleset anchor is manifest-backed
-- `security/landlock/syscalls.c` still keeps live path import, credential mutation, and enforcement claims out of scope even though the syscall helper slice already records the current bounded handoff planning
+- `security/landlock/syscalls.c` still keeps live user-memory access, live path import, credential mutation, and enforcement claims out of scope even though the syscall helper packet now records ABI sizing, bounded struct-copy discipline, create-ruleset and restrict-self planning, and the current FD or path handoff planners
 
 ## Next bounded step
 
