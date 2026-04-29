@@ -83,6 +83,28 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectEqual(@as(usize, 0), module.lifecycleSummary().registration_depth);
 }
 
+test "phase 5 trace-events sample keeps the full string and formatting cycle explicit" {
+    var module = sample.TraceEventsReferenceSample{};
+    const expected_strings = [_][]const u8{
+        "Mother Goose",
+        "Snoopy",
+        "Gandalf",
+        "Frodo",
+        "One ring to rule them all",
+    };
+    var message_buffer: [16]u8 = undefined;
+
+    try module.init();
+    for (expected_strings, 0..) |expected_string, count| {
+        try module.replayMainIteration(@intCast(count));
+        try std.testing.expectEqualStrings(expected_string, module.selected_string);
+        try std.testing.expectEqualStrings(
+            try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
+            module.formattedMessage(),
+        );
+    }
+}
+
 test "phase 5 trace-events sample makes ownership and teardown boundaries explicit" {
     var module = sample.TraceEventsReferenceSample{};
 
