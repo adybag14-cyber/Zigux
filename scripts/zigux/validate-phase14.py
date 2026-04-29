@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase14-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+BUILD_SMOKE_DEPEND_STEP_RE = re.compile(r"phase14_smoke_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 
 FILES = [
     "scripts/zigux/validate-phase14.py",
@@ -81,6 +82,9 @@ RELEASE_MARKERS = [
     "PHASE14_COMPILE_ARTIFACT_COUNT=5",
     "PHASE14_FOCUSED_SHARD_COUNT=1",
     "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
+    "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5",
+    "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
+    "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "scripts/zigux/validate-phase14.py",
@@ -208,6 +212,8 @@ required_summary_keys = [
     "phase14_validate_entrypoint_present",
     "phase14_build_has_shared_smoke_step",
     "phase14_build_has_smoke_shard_step",
+    "phase14_build_full_bundle_routes_all_compile_artifacts",
+    "phase14_build_smoke_shard_routes_only_smoke_survey",
     "phase14_make_target_present",
     "phase14_make_smoke_target_present",
     "workflow_runs_phase14_validate",
@@ -242,6 +248,7 @@ if not isinstance(anchor_packets, list) or len(anchor_packets) != 4:
 build_text = text("zigux/tests/phase14_build.zig")
 actual_build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
 actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+actual_smoke_depend_steps = BUILD_SMOKE_DEPEND_STEP_RE.findall(build_text)
 expected_build_test_names: list[str] = []
 focused_shard_count = 0
 full_bundle_only_count = 0
@@ -315,6 +322,17 @@ if actual_build_test_names != expected_build_test_names:
     missing.append("phase14_build:build_test_names_mismatch")
 if len(actual_depend_steps) != len(expected_build_test_names):
     missing.append("phase14_build:depend_step_count_mismatch")
+expected_run_symbols = [
+    "run_phase14_workqueue_bridge_tests",
+    "run_phase14_skbuff_bridge_tests",
+    "run_phase14_ring_buffer_survey_tests",
+    "run_phase14_rcu_tree_survey_tests",
+    "run_phase14_end_to_end_smoke_tests",
+]
+if actual_depend_steps != expected_run_symbols:
+    missing.append("phase14_build:full_bundle_route_mismatch")
+if actual_smoke_depend_steps != ["run_phase14_end_to_end_smoke_tests"]:
+    missing.append("phase14_build:smoke_route_mismatch")
 if focused_shard_count != 1:
     missing.append(f"manifest:focused_shard_count={focused_shard_count}")
 if full_bundle_only_count != len(expected_build_test_names) - focused_shard_count:
