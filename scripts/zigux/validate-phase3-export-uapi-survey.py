@@ -25,7 +25,9 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_SURVEY_SNIPPETS = (
+    "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -36,6 +38,7 @@ REQUIRED_SURVEY_PATHS = (
     "include/linux/zigux.h",
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
 REQUIRED_DOCS_README_SNIPPETS = (
