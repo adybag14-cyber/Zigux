@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `74b8b7554433805e20f56facc18adbfc5b634808`
+- verified head: `5b54a90ee07fd00c54ce80a3651b25320b9d48d5`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 
 ## Scope
@@ -71,9 +71,9 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 ### base64
 
 - `zigux/tests/phase6_base64_perf.zig` replays two deterministic payloads: `64B` at `20_000` reps and `1KB` at `4_000` reps.
-- the current numeric thresholds are `max_encode_slowdown_pct = 125` and `max_decode_slowdown_pct = 225` for all six replay cases: padded standard `64B` and `1KB`, unpadded URL-safe `64B` and `1KB`, and unpadded IMAP `64B` and `1KB`.
+- the current numeric thresholds are `max_encode_slowdown_pct = 190` and `max_decode_slowdown_pct = 320` for all six replay cases: padded standard `64B` and `1KB`, unpadded URL-safe `64B` and `1KB`, and unpadded IMAP `64B` and `1KB`.
 - the harness measures those cases against the padded `std.base64.standard` reference path, the unpadded `std.base64.url_safe_no_pad` reference path, and a translated standard-to-IMAP reference path for the IMAP alphabet.
-- the harness also rechecks encode parity, decode parity, and round-trip correctness before and after the timed loops while reporting helper and reference nanoseconds per operation plus the observed slowdown percentages.
+- the harness also rechecks encode parity, decode parity, and round-trip correctness before and after the timed loops while reporting helper and reference nanoseconds per operation plus the observed median-of-three slowdown percentages.
 
 ### bsearch
 
