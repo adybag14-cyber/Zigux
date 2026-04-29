@@ -159,6 +159,7 @@ required_phase6_catalog_markers = [
     '22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 16 invalid decode vectors',
     'PHASE6_BASE64_C_PARITY_CASES=90',
     'PHASE6_BSEARCH_C_PARITY_CASES=15',
+    'the shipped helper surface now includes both `Comparator` and `CComparator`, and the current Zig test packet keeps runtime-selected native and C ABI comparator-pointer coverage in the same found-or-null contract.',
     'scripts/zigux/validate-phase6.py',
     '.github/workflows/zigux-bootstrap.yml',
     'Documentation/zigux/README.md',
@@ -211,6 +212,7 @@ required_bsearch_markers = [
     'phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection',
     'phase 6 bsearch keeps representative lookup work inside a binary-search budget',
     'compareU32Counted',
+    'phase 6 bsearch accepts runtime-selected C ABI comparator pointers',
 ]
 
 required_bsearch_perf_markers = [
@@ -265,7 +267,9 @@ required_slice_markers = {
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-bsearch-perf',
         'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
+        'CComparator',
         'duplicate-key found-or-null parity without claiming stable selection',
+        'runtime-selected C ABI comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices',
         'representative lookup work stays inside a bounded binary-search comparison budget',
         'representative external C-vs-Zig parity spot check',
         'replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices',
