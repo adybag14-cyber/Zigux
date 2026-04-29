@@ -226,6 +226,18 @@ pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 
     return dst[0..escaped_len :0];
 }
 
+pub fn kstrdupAndReplace(allocator: std.mem.Allocator, src: ?[]const u8, old: u8, new: u8) !?[:0]u8 {
+    const input = src orelse return null;
+    const prefix = cStringPrefix(input);
+    const dst = try allocator.alloc(u8, prefix.len + 1);
+    errdefer allocator.free(dst);
+
+    @memcpy(dst[0..prefix.len], prefix);
+    dst[prefix.len] = 0;
+    _ = strreplace(dst[0 .. prefix.len + 1], old, new);
+    return dst[0..prefix.len :0];
+}
+
 pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize {
     const limit = if (size == 0) dst.len else @min(size, dst.len);
     if (limit == 0) {
@@ -708,6 +720,22 @@ test "kstrdupQuotable allocates an escaped printable C string" {
     try std.testing.expectEqual(@as(u8, 0), quoted[quoted.len]);
 
     try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupQuotable(std.testing.allocator, null));
+}
+
+test "kstrdupAndReplace duplicates the prefix before replacing bytes in place" {
+    const replaced = (try kstrdupAndReplace(std.testing.allocator, "a-b-a\x00tail", '-', '_')).?;
+    defer std.testing.allocator.free(replaced);
+
+    try std.testing.expectEqualStrings("a_b_a", replaced);
+    try std.testing.expectEqual(@as(u8, 0), replaced[replaced.len]);
+
+    var original = [_]u8{ 'a', '-', 'b', 0, '-', 'x' };
+    const duplicate = (try kstrdupAndReplace(std.testing.allocator, &original, '-', '_')).?;
+    defer std.testing.allocator.free(duplicate);
+    try std.testing.expectEqualStrings("a_b", duplicate);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '-', 'b', 0, '-', 'x' }, &original);
+
+    try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupAndReplace(std.testing.allocator, null, '-', '_'));
 }
 
 test "escape flag masks stay aligned with the Linux public helper surface" {
