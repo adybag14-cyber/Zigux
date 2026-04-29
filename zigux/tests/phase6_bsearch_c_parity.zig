@@ -14,6 +14,10 @@ fn compareU32(key: *const u32, item: *const u32) callconv(.c) i32 {
     };
 }
 
+fn compareDescendingU32(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareU32(item, key);
+}
+
 fn compareSymbolName(key: *const []const u8, item: *const Symbol) callconv(.c) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
@@ -34,6 +38,7 @@ pub fn main(init: std.process.Init) !void {
     const duplicate_at_end = [_]u32{ 2, 7, 12, 18, 18, 18 };
     const singleton = [_]u32{21};
     const empty = [_]u32{};
+    const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
     const symbols = [_]Symbol{
         .{ .name = "do_exit", .address = 0x1000 },
         .{ .name = "kfree", .address = 0x1200 },
@@ -50,6 +55,8 @@ pub fn main(init: std.process.Init) !void {
     try writeIndexCase(writer, "singleton-hit", 21, bsearch.searchIndex(u32, u32, &@as(u32, 21), singleton[0..], compareU32));
     try writeIndexCase(writer, "singleton-miss", 20, bsearch.searchIndex(u32, u32, &@as(u32, 20), singleton[0..], compareU32));
     try writeIndexCase(writer, "empty-miss", 21, bsearch.searchIndex(u32, u32, &@as(u32, 21), empty[0..], compareU32));
+    try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));
+    try writeIndexCase(writer, "descending-miss", 20, bsearch.searchIndex(u32, u32, &@as(u32, 20), descending_values[0..], compareDescendingU32));
     try writeDuplicateCase(writer, "duplicate-hit-begin", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_at_beginning[0..], compareU32));
     try writeDuplicateCase(writer, "duplicate-hit-middle", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_in_middle[0..], compareU32));
     try writeDuplicateCase(writer, "duplicate-hit-end", 18, bsearch.searchIndex(u32, u32, &@as(u32, 18), duplicate_at_end[0..], compareU32));

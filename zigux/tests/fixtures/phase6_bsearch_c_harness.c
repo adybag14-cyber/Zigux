@@ -44,6 +44,11 @@ static int compare_u32(const void *key, const void *elt)
     return 0;
 }
 
+static int compare_descending_u32(const void *key, const void *elt)
+{
+    return compare_u32(elt, key);
+}
+
 static int compare_symbol_name(const void *key, const void *elt)
 {
     const char *name = (const char *)key;
@@ -80,6 +85,7 @@ int main(void)
     static const uint32_t duplicate_in_middle[] = { 2, 7, 7, 7, 12, 18 };
     static const uint32_t duplicate_at_end[] = { 2, 7, 12, 18, 18, 18 };
     static const uint32_t singleton[] = { 21 };
+    static const uint32_t descending_values[] = { 89, 55, 34, 21, 13, 8, 3 };
     static const struct symbol symbols[] = {
         { "do_exit", 0x1000u },
         { "kfree", 0x1200u },
@@ -123,6 +129,14 @@ int main(void)
     {
         const uint32_t key = 21;
         print_index_case("empty-miss", key, values, inline_bsearch(&key, values, 0, sizeof(values[0]), compare_u32));
+    }
+    {
+        const uint32_t key = 34;
+        print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));
+    }
+    {
+        const uint32_t key = 20;
+        print_index_case("descending-miss", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));
     }
     {
         const uint32_t key = 7;
