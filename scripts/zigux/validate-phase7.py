@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import re
+import subprocess
 import sys
 
 
@@ -222,6 +223,21 @@ unexpected_phase7_build_markers = [
     "zigux/tests/build.zig",
 ]
 
+expected_make_expansions = {
+    "phase7-validate": [
+        "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    ],
+    "phase7-test": [
+        "zig build test --build-file zigux/tests/phase7_build.zig",
+    ],
+    "phase7": [
+        "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "zig build test --build-file zigux/tests/phase7_build.zig",
+    ],
+}
+
 checks = [
     ("zigux/Makefile", makefile, required_make_markers),
     (".github/workflows/zigux-bootstrap.yml", workflow, required_workflow_markers),
@@ -322,6 +338,36 @@ if unexpected_build_hits:
         print(marker)
     print("PHASE7_BUILD_STALE_MARKERS_END")
     sys.exit(1)
+
+for target_name, expected_lines in expected_make_expansions.items():
+    result = subprocess.run(
+        ["make", "-n", "-C", str(ROOT / "zigux"), target_name],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print("PHASE7_VALIDATION=fail")
+        print("PHASE7_MAKE_WRAPPER_CHECK_FAILED_START")
+        print(f"{target_name}: returncode={result.returncode}")
+        stderr = result.stderr.strip()
+        if stderr:
+            print(stderr)
+        print("PHASE7_MAKE_WRAPPER_CHECK_FAILED_END")
+        sys.exit(1)
+
+    wrapper_output = result.stdout
+    missing_wrapper_lines = [
+        line for line in expected_lines if line not in wrapper_output
+    ]
+    if missing_wrapper_lines:
+        print("PHASE7_VALIDATION=fail")
+        print("PHASE7_MAKE_WRAPPER_DRIFT_START")
+        print(f"{target_name}: missing expected wrapper expansion")
+        for line in missing_wrapper_lines:
+            print(line)
+        print("PHASE7_MAKE_WRAPPER_DRIFT_END")
+        sys.exit(1)
 
 print("PHASE7_VALIDATION=pass")
 print(f"PHASE7_REQUIRED_FILE_COUNT={len(required_files)}")
