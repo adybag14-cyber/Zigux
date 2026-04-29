@@ -52,7 +52,7 @@ The current tests check:
 - rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`, so the Zig helper stays aligned with the `simple_strtoull()` parsing used by `lib/cmdline.c`
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
-- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination
+- serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination in both the helper-local `zig test lib/cmdline.zig` path and the shared Phase 7 gate
 
 Review note:
 - this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
