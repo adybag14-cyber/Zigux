@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus five landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on
-- survey checkpoint: refreshed against inspected `master` head `ba507b1f2e16af8983c61802e07bcbc95592aef4`
+- survey checkpoint: refreshed against inspected `master` head `36092f6bfcc18da5630d7b5a535a41d9064bb7e1`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -121,13 +121,13 @@ The current tests check:
 
 ## Latest verification snapshot
 
-- verified against inspected `master` head `ba507b1f2e16af8983c61802e07bcbc95592aef4`
+- verified against inspected `master` head `36092f6bfcc18da5630d7b5a535a41d9064bb7e1`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `6/6` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
   - `Build Summary: 3/3 steps succeeded; 6/6 tests passed`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-  - `Build Summary: 20/20 steps succeeded; 68/68 tests passed`
+  - `Build Summary: 20/20 steps succeeded; 71/71 tests passed`
 - `python3 scripts/zigux/validate-phase8.py`
   - `PHASE8_VALIDATION=pass`
 
