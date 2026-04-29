@@ -32,8 +32,14 @@ pub fn strtobool(s: ?[]const u8) ParseBoolError!bool {
     return error.Invalid;
 }
 
+fn cStringLen(src: []const u8) usize {
+    var len: usize = 0;
+    while (len < src.len and src[len] != 0) : (len += 1) {}
+    return len;
+}
+
 pub fn strlcpy(dest: []u8, src: []const u8) usize {
-    const ret = src.len;
+    const ret = cStringLen(src);
     if (dest.len == 0) {
         return ret;
     }
@@ -198,6 +204,22 @@ test "strlcpy copies and returns the source length" {
     var untouched = [_]u8{0xaa};
     try std.testing.expectEqual(@as(usize, 5), strlcpy(untouched[0..0], "hello"));
     try std.testing.expectEqual(@as(u8, 0xaa), untouched[0]);
+}
+
+test "strlcpy stops at the first embedded NUL in the source" {
+    const src = [_]u8{ 'h', 'i', 0, 'x', 'y' };
+
+    var dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(usize, 2), strlcpy(&dst, &src));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'i', 0, 0xaa, 0xaa }, &dst);
+
+    var truncated = [_]u8{ 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(usize, 2), strlcpy(&truncated, &src));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 0 }, &truncated);
+
+    var zero_sized = [_]u8{0xaa};
+    try std.testing.expectEqual(@as(usize, 2), strlcpy(zero_sized[0..0], &src));
+    try std.testing.expectEqual(@as(u8, 0xaa), zero_sized[0]);
 }
 
 test "skip trim remove and replace spaces work in place" {
