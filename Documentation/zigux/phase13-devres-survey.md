@@ -2,6 +2,21 @@
 
 This lane stays inside the Phase 13 shared-helper tranche and records the current `lib/devres.c` helper-first boundary without claiming live device-resource teardown, live MMIO mappings, live DMA-backed helpers, live scatter-gather ownership, or generic devres-group ownership.
 
+## Status
+
+- `PHASE13_STATUS=active`
+- `PHASE13_SLICE=devres-helper-dma-scatterlist-reviewability`
+- `PHASE13_SURVEYED_COMMIT=378906ad852f26857b23e893b47c3bab4b916b68`
+- scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-only DMA/scatterlist boundary pinned to the current repo state
+- product boundary:
+  - `lib/devres.zig`
+  - `zigux/tests/phase13_devres.zig`
+  - `zigux/tests/phase13_devres_reviewability.zig`
+  - `zigux/tests/phase13_devres_manifest.json`
+  - `zigux/tests/phase13_build.zig`
+  - `Documentation/zigux/phase13-devres-slice.md`
+  - `Documentation/zigux/phase13-devres-survey.md`
+
 Current repo state on `master`:
 
 - reviewed against live `master` `378906ad852f26857b23e893b47c3bab4b916b68`
