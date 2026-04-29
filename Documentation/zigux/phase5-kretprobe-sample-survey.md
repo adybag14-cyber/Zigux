@@ -7,11 +7,12 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_LANE_KEY=P5-L17`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb`
+- `PHASE5_SURVEYED_COMMIT=a23191f177f640ddbb10ab5f9f9e9afff9b83470`
 - scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/README.md`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
@@ -36,6 +37,7 @@ Fresh repo inspection now shows that current `master` carries all four roadmap-a
   - a fixed `maxactive = 20` concurrency budget plus the exit-side `nmissed` summary that explains when that budget was too low
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
 - the ongoing Phase 5 review job is to keep symbol choice, skip behavior, the one-word private timestamp record, duration bookkeeping, the fixed `maxactive` budget, and the `nmissed` summary reviewable in memory while leaving probe registration and module plumbing out of scope.
+- the shared sample-root catalog in `samples/zigux/README.md` and the shared `Documentation/zigux/review-checklist.md` prompts are part of that boundary now, because they are the shortest contributor-facing places to keep this landed non-runtime `kretprobe` idiom visibly separate from the later Phase 9 runtime starter.
 
 ## Landed sample and exact checks
 
@@ -63,7 +65,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 
 ## Latest verification snapshot
 
-- inspected `master` head: `b21d2dfb039484b866f247a974369b9619a2afcb`
+- inspected `master` head: `a23191f177f640ddbb10ab5f9f9e9afff9b83470`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/kretprobe_example.zig`
@@ -98,6 +100,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, pre-init retargeting, skip behavior, private-data shape, timestamp-order rejection and recovery, return timing, fixed `maxactive`, summary recording, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
+- this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT=a23191f177f640ddbb10ab5f9f9e9afff9b83470` so the survey note, manifest-backed checks, shared sample-root catalog, and shared review checklist all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
 ## Review gates for this survey
