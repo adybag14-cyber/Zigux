@@ -186,6 +186,57 @@ test "runtime kretprobe loader keeps unavailable substrate and lifecycle guards 
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeKretprobeLoader.planFor(&module));
 }
 
+test "runtime kretprobe loader snapshots the prepared probe summary before later sample mutation" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+
+    var loader = RuntimeKretprobeLoader{};
+    const prepared = try loader.prepare(&module);
+
+    const selftest = try module.runSelftest();
+    const mutated_summary = module.summary();
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.selftest_complete, mutated_summary.stage);
+    try std.testing.expectEqualStrings("do_sys_openat2", selftest.symbol_name);
+    try std.testing.expectEqualStrings("do_sys_openat2", mutated_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 0), prepared.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), prepared.summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), prepared.summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 0), prepared.summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), prepared.summary.last_duration_ns);
+    try std.testing.expect(!prepared.summary.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 1), mutated_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), mutated_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), mutated_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), mutated_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), mutated_summary.last_duration_ns);
+    try std.testing.expect(!mutated_summary.entry_timestamp_armed);
+
+    const pending_plan = try loader.requestRuntimeLoad();
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.initialized, prepared.handoff_stage);
+    try std.testing.expectEqual(prepared.handoff_stage, pending_plan.handoff_stage);
+    try std.testing.expectEqual(prepared.summary.stage, pending_plan.summary.stage);
+    try std.testing.expectEqualStrings(prepared.summary.symbol_name, pending_plan.summary.symbol_name);
+    try std.testing.expectEqual(prepared.summary.maxactive, pending_plan.summary.maxactive);
+    try std.testing.expectEqual(prepared.summary.active_instances, pending_plan.summary.active_instances);
+    try std.testing.expectEqual(prepared.summary.skipped_kernel_threads, pending_plan.summary.skipped_kernel_threads);
+    try std.testing.expectEqual(prepared.summary.nmissed, pending_plan.summary.nmissed);
+    try std.testing.expectEqual(prepared.summary.last_retval, pending_plan.summary.last_retval);
+    try std.testing.expectEqual(prepared.summary.last_duration_ns, pending_plan.summary.last_duration_ns);
+    try std.testing.expectEqual(prepared.summary.init_runs, pending_plan.summary.init_runs);
+    try std.testing.expectEqual(prepared.summary.selftest_runs, pending_plan.summary.selftest_runs);
+    try std.testing.expectEqual(prepared.summary.exit_runs, pending_plan.summary.exit_runs);
+    try std.testing.expectEqual(prepared.summary.entry_timestamp_armed, pending_plan.summary.entry_timestamp_armed);
+    try std.testing.expectEqual(runtime_kretprobe_sample.ModuleStage.initialized, pending_plan.summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 0), pending_plan.summary.last_duration_ns);
+    try std.testing.expect(!pending_plan.summary.entry_timestamp_armed);
+}
+
 test "runtime kretprobe loader emits the shared runtime-loader request shape" {
     var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
     try module.retargetSymbol("do_sys_openat2");
