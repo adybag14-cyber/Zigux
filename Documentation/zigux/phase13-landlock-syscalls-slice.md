@@ -5,6 +5,7 @@ This bounded Phase 13 slice starts `security/landlock/syscalls.zig` with a pure 
 The current helper stays intentionally narrow:
 
 - reports the ABI shape checks that `build_check_abi()` enforces for `landlock_ruleset_attr`, `landlock_path_beneath_attr`, and `landlock_net_port_attr`
+- models the `copy_min_struct_from_user()` helper discipline around null-user rejection, minimum-size and page-limit validation, plus copy-then-zero-fill intent without touching live user-memory access
 - models the query and validation path of `landlock_create_ruleset()` around version and errata requests, minimum struct sizing, page-size bounds, handled-access mask filtering, and empty-ruleset rejection
 - translates the logging and thread-sync flags used by `landlock_restrict_self()`, including the special `ruleset_fd == -1` mute-subdomains-only case
 - adds one in-memory `landlock_add_rule()` planner for rule-type dispatch, empty-access rejection, handled-access subset checks, and net-port bounds without touching file descriptors or paths
@@ -14,6 +15,6 @@ The current helper stays intentionally narrow:
 - adds one in-memory `add_rule_net_port()` planner that reuses the bounded add-rule validation and makes the copied net-port attrs plus final `landlock_append_net_rule()` handoff explicit without touching live socket, ruleset, or domain state
 - adds one in-memory ruleset-FD creation handoff planner that keeps the fixed `anon_inode_getfd("[landlock-ruleset]", ..., O_RDWR | O_CLOEXEC)` label or flag discipline plus the `landlock_put_ruleset()` failure release responsibility explicit without touching live file operations wiring or FD ownership
 
-This slice does not claim anonymous-fd creation, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
+This slice does not claim anonymous-fd creation, live user-memory copying, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
 The next honest bounded step in this same lane is to stay parked at the current syscall-helper boundary unless another follow-up can tighten validation or lifetime discipline without widening into anonymous inode internals, live file operations wiring, FD ownership, credential changes, or domain state.
