@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "191ab9636741bd2275fcbd15ed5a0e46f12b3ae6";
+const current_surveyed_commit = "a8daee106057a542aa03f2983662bec7c06584bb";
 
 const SurveySummary = struct {
     nvme_pci_c_lines: usize,
@@ -60,7 +60,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
@@ -103,10 +103,13 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "page-gap forcing") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "average-segment threshold preference") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-L07") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`master` snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-pointer-selection-helper`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus pointer-selection starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pointer-selection helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 50/50 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
