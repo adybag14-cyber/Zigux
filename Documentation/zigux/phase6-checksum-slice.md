@@ -46,6 +46,7 @@ The current checksum helper surface exercised by this slice covers:
 - `blockSub`
 - `from32to16`
 - `fold`
+- `unfold`
 - `tcpUdpNofold`
 - `partial`
 - `compute`
@@ -58,6 +59,7 @@ The current tests check:
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - six imported KUnit random-prefix prefix lengths that replay precomputed folded results from one upstream fixed-random checksum corpus with the corresponding imported initial seed
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
+- folded checksum word round-trips that keep `unfold` aligned with the existing `fold` and `from32to16` helper surface
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte for a fixture-backed deterministic packet matrix
 - that perf harness also compares the helper against its own widened-accumulator reference path and rejects regressions that exceed the fixture-backed slowdown budget for the current packet sizes
 

@@ -35,6 +35,10 @@ pub fn fold(sum: u32) u16 {
     return ~from32to16(sum);
 }
 
+pub fn unfold(sum: u16) u32 {
+    return sum;
+}
+
 pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     var result = normalize(sum);
     result = add(result, saddr >> 16);
@@ -180,4 +184,14 @@ test "add, sub, and offset shifting preserve checksum arithmetic" {
     try std.testing.expectEqual(shift(rhs, 1), shift(rhs, 3));
     try std.testing.expectEqual(add(lhs, shift(rhs, 1)), blockAdd(lhs, rhs, 1));
     try std.testing.expectEqual(sub(lhs, shift(rhs, 1)), blockSub(lhs, rhs, 1));
+}
+
+test "unfold preserves folded checksum words for incremental callers" {
+    for (fixtures.compute_cases) |case| {
+        const unfolded_partial = unfold(~case.expected_compute);
+
+        try std.testing.expectEqual(case.expected_partial, unfolded_partial);
+        try std.testing.expectEqual(case.expected_compute, fold(unfolded_partial));
+        try std.testing.expectEqual(case.expected_compute, from32to16(unfold(case.expected_compute)));
+    }
 }

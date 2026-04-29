@@ -131,3 +131,13 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
         try std.testing.expectEqual(referenceInternetChecksum(pseudo_and_payload[0..combined_len]), actual);
     }
 }
+
+test "unfold keeps folded checksum words reusable as partial sums" {
+    for (fixtures.compute_cases) |case| {
+        const unfolded_partial = checksum.unfold(~case.expected_compute);
+
+        try std.testing.expectEqual(case.expected_partial, unfolded_partial);
+        try std.testing.expectEqual(case.expected_compute, checksum.fold(unfolded_partial));
+        try std.testing.expectEqual(case.expected_compute, checksum.from32to16(checksum.unfold(case.expected_compute)));
+    }
+}
