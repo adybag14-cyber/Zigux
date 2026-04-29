@@ -465,6 +465,7 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
         "direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs",
         "shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig`",
         "bounded two-word runtime bitmap backing store",
+        "bounded parse-and-print replay",
     };
 
     for (required_markers) |marker| {
@@ -475,5 +476,10 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
         u8,
         module_slice,
         "lane-local manifest closure only",
+    ) == null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        module_slice,
+        "parse, print, region-allocation, or performance-path differentials",
     ) == null);
 }
