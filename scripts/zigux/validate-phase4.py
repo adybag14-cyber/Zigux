@@ -93,6 +93,7 @@ REQUIRED_FILES = [
     'zigux/Makefile',
     '.github/workflows/zigux-bootstrap.yml',
     'zigux/tests/runtime_atomic64_diff.zig',
+    'zigux/tests/atomic64_diff.zig',
     'zigux/tests/phase4_runtime_atomic64_diff_survey.zig',
     'zigux/tests/phase4_runtime_atomic64_diff_manifest.json',
     'zigux/tests/bitmap_diff.zig',
@@ -287,7 +288,8 @@ REQUIRED_BITMAP_DIFF_MARKERS = [
     'test_copy_clear_tail keeps the 109-bit cleared-tail contract explicit',
     'test "bitmap diff gate records exact bounded find_nth_bit checks"',
     'test_find_nth_bit full-width nth 7',
-    'test_find_nth_bit truncated-width nth 8 returns nbits',
+    'test_find_nth_bit reduced-width cutoff still keeps bit 123 visible for nth 7',
+    'test_find_nth_bit reduced-width nth 8 returns the cutoff width',
     'roundedPrefixLen',
     'fillPrefix',
     'zeroPrefix',
@@ -478,7 +480,9 @@ def validate_root(root: Path) -> list[str]:
         collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
     )
     if not roadmap_atomic64_diff_present:
-        missing_markers.append('phase4_atomic64_path:missing_roadmap_gate:zigux/tests/atomic64_diff.zig')
+        missing_markers.append(
+            'phase4_atomic64_path:missing_canonical_entrypoint:zigux/tests/atomic64_diff.zig'
+        )
     if '"roadmap_atomic64_diff_present": true' not in runtime_atomic64_manifest:
         missing_markers.append(
             'runtime_atomic64_manifest:"roadmap_atomic64_diff_present": true'
@@ -640,8 +644,8 @@ def write_fixture_tree(root: Path) -> None:
         'zigux/tests/README.md': '\n'.join(REQUIRED_TESTS_README_MARKERS) + '\n',
         'zigux/Makefile': '\n'.join(REQUIRED_MAKE_MARKERS) + '\n',
         '.github/workflows/zigux-bootstrap.yml': '\n'.join(REQUIRED_WORKFLOW_MARKERS) + '\n',
-        'zigux/tests/atomic64_diff.zig': 'const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");\n',
         'zigux/tests/runtime_atomic64_diff.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_MARKERS) + '\n',
+        'zigux/tests/atomic64_diff.zig': 'const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");\n\ncomptime {\n    _ = runtime_atomic64_diff;\n}\n',
         'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
         + '\nroadmap_atomic64_diff_present = true\n',
         'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": true\n}\n',
@@ -664,7 +668,7 @@ def run_self_test() -> int:
         assert not missing, missing
 
         makefile = tmp_root / 'zigux/Makefile'
-        makefile.write_text(
+        makefile.writeText(
             makefile.read_text(encoding='utf-8').replace(
                 'scripts/zigux/validate-phase4.py --self-test\n',
                 '',
