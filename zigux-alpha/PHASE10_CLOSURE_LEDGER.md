@@ -21,10 +21,10 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_3=make -C zigux phase10-validate`
 - `PHASE10_LEDGER_EXACT_CHECK_4=make -C zigux phase10-test`
 - `PHASE10_LEDGER_EXACT_CHECK_5=make -C zigux phase10`
-- `PHASE10_LEDGER_NEXT_STEP=phase10-mmio-config-write-helper`
+- `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 
-This ledger stays intentionally narrow. It records the roadmap-backed closure packet and the next bounded MMIO follow-up without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity.
+This ledger stays intentionally narrow. It records the roadmap-backed closure packet and the current parked-next-step posture without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity.
 
 The exact replay packet for the current closure bundle is:
 
