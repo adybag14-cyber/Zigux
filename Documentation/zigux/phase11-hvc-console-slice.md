@@ -14,10 +14,11 @@ The starter stays intentionally narrow:
 - adds a tiny khvcd worker-entry summary that keeps wake-before-sleep decisions, xmon-forced read polling, mutex-backed list walks, and timeout-backoff choices reviewable without claiming live worker execution
 - adds a tiny khvcd sleep-and-reschedule handoff summary that keeps the pre-sleep kick check, the interruptible-state recheck, untimed schedule versus timed backoff selection, and running-state restore reviewable without claiming live worker execution
 - adds a tiny `__hvc_poll()` drain-order summary that keeps write-drain-before-read ordering, read-poll rearm boundaries, and tty wakeup versus flip-push sequencing reviewable without claiming host-backed polling execution
+- adds a tiny `hvc_hangup()` disconnect summary that keeps resize-cancel ordering, the stale-count guard, tty detach, outbuf clearing, and notifier-hangup boundaries reviewable without claiming notifier callback execution
 - mirrors the slot teardown that clears the early-console binding
 
 This slice does not claim tty-driver registration, khvcd polling or execution, sysrq handling, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.
 
-`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for tty registration, close-wait teardown parity, the landed khvcd polling-contract evidence, the khvcd worker-entry boundary, the khvcd sleep-and-reschedule handoff, and the `__hvc_poll()` drain-order handoff without widening into host-backed I/O.
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for tty registration, close-wait teardown parity, the landed khvcd polling-contract evidence, the khvcd worker-entry boundary, the khvcd sleep-and-reschedule handoff, the `__hvc_poll()` drain-order handoff, and the `hvc_hangup()` disconnect handoff without widening into host-backed I/O.
 
-The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless a comparably small host-free handoff becomes obvious; otherwise avoid widening straight into notifier execution, sysrq handling, or live khvcd worker behavior.
+The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless a comparably small host-free `hvc_remove()` handoff becomes obvious; otherwise avoid widening straight into notifier execution, sysrq handling, or live khvcd worker behavior.
