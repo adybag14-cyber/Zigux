@@ -77,6 +77,7 @@ pub const Request = struct {
     config: []const u8,
     arch: []const u8,
     mode_arg: ?[]const u8 = null,
+    allconfig: ?[]const u8 = null,
 };
 
 const ValidateModeArgError = error{
@@ -123,17 +124,29 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("\",\"KCONFIG_CONFIG\":\"");
     try writeJsonEscaped(writer, request.config);
     try writer.writeAll("\"");
+    if (request.allconfig) |allconfig| {
+        try writer.writeAll(",\"KCONFIG_ALLCONFIG\":\"");
+        try writeJsonEscaped(writer, allconfig);
+        try writer.writeAll("\"");
+    }
     if (request.mode == .syncconfig) {
         try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
     }
     try writer.writeAll("}}\n");
 }
 
+fn supportsAllConfig(mode: Mode) bool {
+    return switch (mode) {
+        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig, .randconfig => true,
+        else => false,
+    };
+}
+
 fn validateModeArg(mode: Mode, mode_arg: ?[]const u8) ValidateModeArgError!void {
     if ((mode == .defconfig or mode == .savedefconfig) and mode_arg == null) {
         return error.MissingModeArg;
     }
-    if (mode != .defconfig and mode != .savedefconfig and mode_arg != null) {
+    if (mode != .defconfig and mode != .savedefconfig and mode_arg != null and !supportsAllConfig(mode)) {
         return error.UnexpectedModeArg;
     }
 }
@@ -146,7 +159,7 @@ pub fn main(init: std.process.Init) !void {
     if (args.len < 5 or args.len > 6) {
         var stderr_buffer: [160]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg]\n");
+        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg|allconfig]\n");
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
@@ -159,7 +172,9 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     };
 
-    const mode_arg = if (args.len == 6) args[5] else null;
+    const extra_arg = if (args.len == 6) args[5] else null;
+    const mode_arg = if (mode == .defconfig or mode == .savedefconfig) extra_arg else null;
+    const allconfig = if (supportsAllConfig(mode)) extra_arg else null;
     validateModeArg(mode, mode_arg) catch |err| switch (err) {
         error.MissingModeArg => {
             var stderr_buffer: [160]u8 = undefined;
@@ -185,6 +200,7 @@ pub fn main(init: std.process.Init) !void {
         .config = args[3],
         .arch = args[4],
         .mode_arg = mode_arg,
+        .allconfig = allconfig,
     });
     try stdout_writer.interface.flush();
 }
@@ -529,6 +545,56 @@ test "conf bridge emits mod2noconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"mips\"") != null);
 }
 
+test "conf bridge emits allconfig env for allconfig family modes" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    const cases = [_]struct {
+        mode: Mode,
+        mode_text: []const u8,
+    }{
+        .{ .mode = .allnoconfig, .mode_text = "allnoconfig" },
+        .{ .mode = .allyesconfig, .mode_text = "allyesconfig" },
+        .{ .mode = .allmodconfig, .mode_text = "allmodconfig" },
+        .{ .mode = .alldefconfig, .mode_text = "alldefconfig" },
+        .{ .mode = .randconfig, .mode_text = "randconfig" },
+    };
+
+    inline for (cases) |case| {
+        var capture = try Capture.init(std.testing.allocator);
+        defer capture.deinit();
+
+        try runConfBridge(&capture, .{
+            .mode = case.mode,
+            .kconfig = "Kconfig",
+            .config = "seed/.config",
+            .arch = "arm64",
+            .allconfig = "arch/arm64/configs/all.config",
+        });
+
+        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, case.mode_text) != null);
+        try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"arch/arm64/configs/all.config\"") != null);
+    }
+}
+
 test "conf bridge requires mode arg for defconfig modes" {
     try std.testing.expectError(error.MissingModeArg, validateModeArg(.defconfig, null));
     try std.testing.expectError(error.MissingModeArg, validateModeArg(.savedefconfig, null));
@@ -542,6 +608,7 @@ test "conf bridge rejects mode arg for non-argument modes" {
 test "conf bridge accepts valid mode arg combinations" {
     try validateModeArg(.defconfig, "arch/arm64/configs/defconfig");
     try validateModeArg(.savedefconfig, "arch/arm64/configs/minimal_defconfig");
+    try validateModeArg(.allnoconfig, "arch/arm64/configs/all.config");
     try validateModeArg(.oldconfig, null);
 }
 
