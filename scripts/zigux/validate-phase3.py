@@ -136,6 +136,13 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         'test "phase3 policy gate enforces the declared unsafe scope"',
     ),
 }
+ABI_REQUIRED_EXPECTED_CONSTANTS = {
+    "facility_kernel": 1,
+    "status_flag_error": 1,
+    "panic_abort": 0,
+    "allocator_caller_provided": 0,
+    "unsafe_scope_raw_pointer_bridge": 2,
+}
 LIST_HLIST_REQUIRED_DOC_MARKERS = (
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug list-hlist",
     "PHASE3_LIST_HLIST_BOUNDARY=descriptor-only-no-container-of-no-lockless-no-rcu-no-notifier-chains",
@@ -255,6 +262,28 @@ def validate_source_markers(root: Path, slug: str, issues: list[str]) -> None:
         for marker in markers:
             if marker not in content:
                 issues.append(f"{slug}:missing_source_marker={rel}:{marker}")
+
+
+def validate_abi_expected_fixture(root: Path, issues: list[str]) -> None:
+    path = root / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        issues.append("abi:missing_expected_fixture=zigux/tests/fixtures/phase3_abi/expected.json")
+        return
+    except json.JSONDecodeError as exc:
+        issues.append(f"abi:invalid_expected_fixture=zigux/tests/fixtures/phase3_abi/expected.json:{exc.msg}")
+        return
+
+    constants = data.get("constants")
+    if not isinstance(constants, dict):
+        issues.append(f"abi:expected_constants={type(constants).__name__}")
+        return
+
+    for key, value in ABI_REQUIRED_EXPECTED_CONSTANTS.items():
+        actual = constants.get(key)
+        if actual != value:
+            issues.append(f"abi:expected_constant={key}:{actual}")
 
 
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
@@ -408,6 +437,8 @@ def validate_slices(
     validate_abi_focused_build(root, issues)
     validate_export_uapi_focused_build(root, issues)
     validate_policy_unsafe_focused_build(root, issues)
+    if any(entry.slug == "abi" for entry in slices):
+        validate_abi_expected_fixture(root, issues)
     validate_runner_metadata(slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
     if check_build_smoke:
@@ -573,297 +604,4 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
-            'test "phase3 policy helpers stay ABI aligned" {}\n'
-            'test "phase3 policy gate enforces the declared unsafe scope" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        (paths.tests_dir / "build.zig").write_text(
-            'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n'
-            'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
-            'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_policy_unsafe_build.zig").write_text(
-            'const phase3_policy_unsafe_step = b.step("phase3-policy-unsafe-test", "Run focused Phase 3 policy and unsafe substrate tests");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_low_level_wrappers_build.zig").write_text(
-            'const phase3_low_level_step = b.step("phase3-low-level-wrappers-test", "Run focused Phase 3 low-level wrapper tests");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        abi_manifest_path = root / "tmp" / "abi_manifest.json"
-        abi_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        partial_abi_manifest_files = list(ABI_REQUIRED_MANIFEST_FILES[:-8])
-        abi_manifest_path.write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "abi-slice",
-                    "files": partial_abi_manifest_files,
-                    "file_count": len(partial_abi_manifest_files),
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        abi_issues: list[str] = []
-        validate_manifest(root, abi_manifest_path, "abi", abi_issues)
-        assert abi_issues == [
-            "abi:manifest_missing_required_file=zigux/tests/phase3_abi.zig",
-            "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi_build.zig",
-            "abi:manifest_missing_required_file=zigux/tests/phase3_export_uapi.zig",
-            "abi:manifest_missing_required_file=zigux/tests/phase3_abi_dump.zig",
-            "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/expected.json",
-            "abi:manifest_missing_required_file=zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
-            "abi:manifest_missing_required_file=Documentation/zigux/phase3-export-uapi-boundary-survey.md",
-            "abi:manifest_missing_required_file=scripts/zigux/validate-phase3-export-uapi-survey.py",
-        ]
-
-        abi_manifest_path.write_text(
-            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "abi-slice", "files": list(ABI_REQUIRED_MANIFEST_FILES), "file_count": len(ABI_REQUIRED_MANIFEST_FILES)}),
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert validate_manifest(root, abi_manifest_path, "abi", []) is not None
-
-        abi_doc_path = root / "tmp" / "phase3-abi-slice.md"
-        abi_doc_path.write_text(
-            "\n".join([
-                "PHASE3_STATUS=ready",
-                "PHASE3_SLICE=abi-slice",
-                *ABI_REQUIRED_DOC_MARKERS,
-                "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
-                "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                "",
-            ]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert validate_slices(root, []) == []
-
-        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
-            "pub fn actionFor(mode: abi.PanicMode) Action {\n"
-            "    _ = mode;\n"
-            "    return .abort_now;\n"
-            "}\n\n"
-            'test "phase3 panic modes drifted" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        drift_issues: list[str] = []
-        validate_source_markers(root, "abi", drift_issues)
-        assert drift_issues == [
-            'abi:missing_source_marker=zigux/helpers/panic_policy.zig:test "phase3 panic policy stays explicit"',
-        ]
-        (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
-            "pub fn actionFor(mode: abi.PanicMode) Action {\n"
-            "    _ = mode;\n"
-            "    return .abort_now;\n"
-            "}\n\n"
-            'test "phase3 panic policy stays explicit" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / "zigux" / "helpers" / "barrier.zig").write_text(
-            "pub fn acquire() void {}\n"
-            "pub fn release() void {}\n"
-            "pub fn full() void {}\n\n"
-            'test "phase3 barrier wrappers drifted" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        barrier_drift_issues: list[str] = []
-        validate_source_markers(root, "abi", barrier_drift_issues)
-        assert barrier_drift_issues == [
-            'abi:missing_source_marker=zigux/helpers/barrier.zig:test "phase3 barrier wrappers stay local to each barrier probe"',
-        ]
-        (root / "zigux" / "helpers" / "barrier.zig").write_text(
-            "pub fn acquire() void {}\n"
-            "pub fn release() void {}\n"
-            "pub fn full() void {}\n\n"
-            'test "phase3 barrier wrappers stay local to each barrier probe" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / "zigux" / "kernel" / "export_shim.zig").write_text(
-            "pub fn header(flags: u16) abi.BoundaryHeader {\n"
-            "    _ = flags;\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {\n"
-            "    _ = boundary_header;\n"
-            "    return true;\n"
-            "}\n\n"
-            "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {\n"
-            "    return status;\n"
-            "}\n\n"
-            'test "phase3 export shim drifted" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        export_shim_drift_issues: list[str] = []
-        validate_source_markers(root, "abi", export_shim_drift_issues)
-        assert export_shim_drift_issues == [
-            'abi:missing_source_marker=zigux/kernel/export_shim.zig:test "phase3 export shim keeps failure encoding explicit"',
-            'abi:missing_source_marker=zigux/kernel/export_shim.zig:test "phase3 export shim normalizes explicit status decoding"',
-        ]
-        (root / "zigux" / "kernel" / "export_shim.zig").write_text(
-            "pub fn header(flags: u16) abi.BoundaryHeader {\n"
-            "    _ = flags;\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {\n"
-            "    _ = boundary_header;\n"
-            "    return true;\n"
-            "}\n\n"
-            "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {\n"
-            "    return status;\n"
-            "}\n\n"
-            'test "phase3 export shim keeps failure encoding explicit" {}\n'
-            'test "phase3 export shim normalizes explicit status decoding" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / "zigux" / "uapi" / "version.zig").write_text(
-            "pub const abi_version: u16 = abi.ABI_VERSION;\n\n"
-            "pub fn boundaryHeader(flags: u16) Header {\n"
-            "    _ = flags;\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn isCompatible(header: Header) bool {\n"
-            "    _ = header;\n"
-            "    return true;\n"
-            "}\n\n"
-            'test "phase3 uapi boundary header stays explicit and compatible" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        uapi_drift_issues: list[str] = []
-        validate_source_markers(root, "abi", uapi_drift_issues)
-        assert uapi_drift_issues == [
-            'abi:missing_source_marker=zigux/uapi/version.zig:test "phase3 uapi version follows abi version"',
-        ]
-        (root / "zigux" / "uapi" / "version.zig").write_text(
-            "pub const abi_version: u16 = abi.ABI_VERSION;\n\n"
-            "pub fn boundaryHeader(flags: u16) Header {\n"
-            "    _ = flags;\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn isCompatible(header: Header) bool {\n"
-            "    _ = header;\n"
-            "    return true;\n"
-            "}\n\n"
-            'test "phase3 uapi version follows abi version" {}\n'
-            'test "phase3 uapi boundary header stays explicit and compatible" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_export_uapi.zig").write_text(
-            'test "phase3 export shim and uapi stay aligned" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        export_uapi_drift_issues: list[str] = []
-        validate_source_markers(root, "abi", export_uapi_drift_issues)
-        assert export_uapi_drift_issues == [
-            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
-            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));",
-            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));",
-            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);",
-        ]
-        (paths.tests_dir / "phase3_export_uapi.zig").write_text(
-            'test "phase3 export shim and uapi stay aligned" {\n'
-            "    try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));\n"
-            "    try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));\n"
-            "    try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));\n"
-            "    try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);\n"
-            "}\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        manifest_rel = "zigux/tests/fixtures/phase3_alpha/expected.json"
-        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
-            "\n".join([
-                "PHASE3_STATUS=ready",
-                "PHASE3_SLICE=alpha-slice",
-                "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-                "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
-                "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-                "",
-            ]),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "alpha-slice", "files": [manifest_rel], "file_count": 1}),
-            encoding="utf-8",
-            newline="\n",
-        )
-
-        discovered = discover_phase3_slices(paths)
-        alpha = [entry for entry in discovered if entry.slug == "alpha"]
-        assert len(alpha) == 1
-        assert validate_slices(root, alpha) == []
-
-    print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
-    parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
-    parser.add_argument("--check-artifact-diff", action="store_true", help="Also validate the generated Current Phase 3 use section.")
-    parser.add_argument("--check-build-smoke", action="store_true", help="Also run focused Zig build smoke checks for the selected Phase 3 slices.")
-    parser.add_argument("--check-slug-sanity", action="store_true", help="Also audit discovered Phase 3 slugs for naming drift.")
-    parser.add_argument("--skip-obsolete-wrapper-check", action="store_true", help="Skip the stale wrapper-file scan.")
-    parser.add_argument("--zig", help="Explicit zig executable path for --check-build-smoke runs.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated validator checks.")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    slices = select_slices(discover_phase3_slices(), args.slug)
-    if not slices:
-        raise SystemExit("no Phase 3 slugs discovered")
-
-    issues = validate_slices(
-        ROOT,
-        slices,
-        check_artifact_diff=args.check_artifact_diff,
-        check_build_smoke=args.check_build_smoke,
-        check_slug_sanity=args.check_slug_sanity,
-        check_all_wrappers=not args.skip_obsolete_wrapper_check,
-        zig_path=args.zig,
-    )
-    if issues:
-        print("PHASE3_VALIDATION=fail")
-        for issue in issues:
-            print(issue)
-        return 1
-
-    print("PHASE3_VALIDATION=pass")
-    print("PHASE3_VALIDATED_SLUGS=" + ",".join(entry.slug for entry in slices))
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        (paths.tests_dir / "phase3_policy_unsafe.zig").writeText
