@@ -4,8 +4,8 @@ This document records the bounded kernel-integration validation matrix for the Z
 
 ## Status
 
-- `PHASE11_HVC_CONSOLE_STATUS=poll_drain_order_landed`
-- reviewed against live `master` `0980ef63e2e9ff3ee3befe56215b6786a215bb3a`
+- `PHASE11_HVC_CONSOLE_STATUS=hangup_disconnect_landed`
+- reviewed against live `master` `97b6925916ab092c5442f8276c2ab503df0f280d`
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/tty/hvc/hvc_console.zig`
@@ -17,11 +17,11 @@ This document records the bounded kernel-integration validation matrix for the Z
 
 ## Why This Exists
 
-The bounded starter now covers slot validation, CRLF framing, flush-progress intent, teardown, the final-close wait boundary, a tiny tty-registration handoff summary, a tiny khvcd polling-contract summary, a tiny khvcd worker-entry summary, a tiny khvcd sleep-and-reschedule handoff summary, and a tiny `__hvc_poll()` drain-order summary. The live repo still needs one reviewable note that explains:
+The bounded starter now covers slot validation, CRLF framing, flush-progress intent, teardown, the final-close wait boundary, a tiny tty-registration handoff summary, a tiny khvcd polling-contract summary, a tiny khvcd worker-entry summary, a tiny khvcd sleep-and-reschedule handoff summary, a tiny `__hvc_poll()` drain-order summary, and a tiny `hvc_hangup()` disconnect summary. The live repo still needs one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which khvcd-facing behaviors are already reviewable in bounded form versus still deferred
-- which areas must remain out of scope until a later kernel-facing handoff lands
+- which teardown-facing areas are now parked in bounded form versus still out of scope until a later kernel-facing handoff lands
 
 Without this matrix, the slice preserves the parked boundary but does not keep the validation posture in one place.
 
@@ -37,6 +37,7 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 | khvcd worker entry | `summarizeKhvcdWorkerEntry()` keeps freezer checks, kick-reset timing, xmon-forced read polling, mutex-backed list walks, sleep-versus-timeout choices, and timeout-backoff growth reviewable without claiming live worker execution | `zigux/tests/phase11_hvc_console.zig` now keeps the worker-entry sleep and backoff assertions inside the shared Phase 11 replay | keep the worker-entry evidence stable unless a later host-free follow-up can stay smaller than live worker execution | live khvcd kthread execution, scheduler timing, backend poll loops, and host-backed transport |
 | khvcd sleep-and-reschedule handoff | `summarizeKhvcdSleepHandoff()` keeps the pre-sleep kick check, the interruptible-state recheck, untimed `schedule()` versus timed `schedule_timeout_interruptible()` selection, the guarded timeout tick, and the running-state restore reviewable without claiming live khvcd execution | `zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay | leave this handoff parked unless another comparably small host-free khvcd split is obvious | live khvcd kthread execution, scheduler timing, notifier callbacks, and host-backed transport |
 | `__hvc_poll()` drain ordering | `summarizePollDrainOrder()` keeps write-drain-before-read ordering, stalled-write timeout posture, IRQ-free read-poll rearm intent, `-EPIPE` hangup pressure, and tty-wakeup versus flip-push sequencing reviewable without claiming host-backed polling execution | `zigux/tests/phase11_hvc_console.zig` now keeps the drain-order and wakeup sequencing assertions inside the shared Phase 11 replay | leave this helper packet parked unless a later host-free khvcd or notifier split needs the same drain-order evidence | live `get_chars()` or `put_chars()` execution, khvcd thread scheduling, notifier callback execution, and sysrq dispatch |
+| `hvc_hangup()` disconnect boundary | `summarizeHangupDisconnect()` keeps resize-work cancellation, the stale-count short-circuit, tty detachment, buffered-write clearing, and `notifier_hangup` ownership reviewable without claiming live callback execution | `zigux/tests/phase11_hvc_console.zig` now keeps the active-hangup and stale-hangup assertions inside the shared Phase 11 replay | leave this helper parked unless a comparably small host-free `hvc_remove()` handoff becomes obvious | live notifier callback execution, remove-time tty ownership races, irq teardown, and host-backed disconnect timing |
 
 ## Failure-Mode Evidence
 
@@ -49,11 +50,11 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
 - the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane
-- this bounded worker-entry, sleep-handoff, and drain-order evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
+- this bounded worker-entry, sleep-handoff, drain-order, and hangup-disconnect evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules
 
-- treat this lane as a bounded driver-starter plus validation-note lane until another comparably small host-free khvcd or notifier handoff actually lands
+- treat this lane as a bounded driver-starter plus validation-note lane until another comparably small host-free khvcd, notifier, or remove handoff actually lands
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not claim khvcd execution, sysrq, notifier callbacks, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
-- after this landed `__hvc_poll()` drain-order handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, or sysrq split actually lands so the lane keeps one truthful next step
+- after this landed `hvc_hangup()` disconnect handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, sysrq, or remove split actually lands so the lane keeps one truthful next step
