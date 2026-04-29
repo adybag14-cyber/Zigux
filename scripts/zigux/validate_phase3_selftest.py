@@ -47,7 +47,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha dump\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").write_text("{}", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").writeText("{}", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("// alpha harness\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
@@ -134,7 +134,34 @@ def run_self_test() -> int:
         )
         (root / "zigux" / "helpers" / "atomic.zig").write_text(
             "const std = @import(\"std\");\n\n"
+            "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn store(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) void {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "}\n\n"
+            "pub fn exchange(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
             "pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn fetchAnd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn fetchOr(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
+            "    _ = .{ T, ptr, value, order };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
             "    _ = .{ T, ptr, value, order };\n"
             "    return undefined;\n"
             "}\n\n"
