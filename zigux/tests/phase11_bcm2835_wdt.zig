@@ -125,7 +125,7 @@ test "phase11 bcm2835_wdt probe summary keeps probe-time watchdog-core bookkeepi
     const stopped_probe = watchdog.probeSummary(false, false, false);
     try std.testing.expect(!stopped_probe.nowayout);
     try std.testing.expect(!stopped_probe.bootloader_running);
-    try std.testing.expect(!stopped_probe.framework_marks_hw_RUNNING);
+    try std.testing.expect(!stopped_probe.framework_marks_hw_running);
     try std.testing.expect(!stopped_probe.framework_ping_expected);
     try std.testing.expect(stopped_probe.heartbeat_init_requested);
     try std.testing.expect(stopped_probe.parent_attached);
