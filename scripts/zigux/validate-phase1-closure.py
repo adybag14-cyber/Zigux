@@ -288,26 +288,26 @@ if string_review.get('suffix_unit_test_contract') != 'Direct Zig unit coverage k
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
 loose_checksums = bench_expectations.get('checksums', [])
-if exact_checksums.get('PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM') != 15621472:
-    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM=15621472')
-if exact_checksums.get('PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM') != 2200000:
-    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM=2200000')
-if exact_checksums.get('PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM') != 17862764:
-    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM=17862764')
-if exact_checksums.get('PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM') != 8124000:
-    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM=8124000')
-if exact_checksums.get('PHASE1_BENCH_STRING_CHECKSUM') != 2500000:
-    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_STRING_CHECKSUM=2500000')
-if exact_checksums.get('PHASE1_BENCH_RBTREE_CHECKSUM') != 1308000:
-    missing_markers.append('bench:exact_checksums.PHASE1_BENCH_RBTREE_CHECKSUM=1308000')
-if 'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM' in loose_checksums:
-    missing_markers.append('bench:remove_loose_find_bit_checksum')
-if 'PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM' in loose_checksums:
-    missing_markers.append('bench:remove_loose_find_same_word_checksum')
-if 'PHASE1_BENCH_STRING_CHECKSUM' in loose_checksums:
-    missing_markers.append('bench:remove_loose_string_checksum')
-if 'PHASE1_BENCH_RBTREE_CHECKSUM' in loose_checksums:
-    missing_markers.append('bench:remove_loose_rbtree_checksum')
+required_exact_checksums = {
+    'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
+    'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
+    'PHASE1_BENCH_BITMAP_COPY_CHECKSUM': 18960000,
+    'PHASE1_BENCH_BITMAP_SCNPRINTF_CHECKSUM': 11760000,
+    'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
+    'PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM': 17862764,
+    'PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM': 8124000,
+    'PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM': 2200000,
+    'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM': 1929133,
+    'PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM': 1925492,
+    'PHASE1_BENCH_STRING_CHECKSUM': 2500000,
+    'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
+    'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM': 1384000,
+}
+for key, expected in required_exact_checksums.items():
+    if exact_checksums.get(key) != expected:
+        missing_markers.append(f'bench:exact_checksums.{key}={expected}')
+    if key in loose_checksums:
+        missing_markers.append(f'bench:remove_loose_exact_checksum:{key}')
 
 if missing_markers:
     print('PHASE1_CLOSURE_VALIDATION=fail')
