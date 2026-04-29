@@ -522,7 +522,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "helpers" / "barrier.zig").write_text(
+        (root / "zigux" / "helpers" / "barrier.zig").write.text(
             "pub fn acquire() void {}\n"
             "pub fn release() void {}\n"
             "pub fn full() void {}\n\n"
@@ -530,7 +530,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "helpers" / "mmio.zig").write_text(
+        (root / "zigux" / "helpers" / "mmio.zig").write.text(
             "const abi = @import(\"abi_bindings\");\n"
             "const narrow = @import(\"narrow_unsafe\");\n\n"
             "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {\n"
@@ -543,19 +543,4 @@ def run_self_test() -> int:
             "}\n\n"
             "pub fn write32(base_addr: usize, offset: usize, value: u32) void {\n"
             "    _ = .{ base_addr, offset, value };\n"
-            "}\n\n"
-            'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (root / "zigux" / "unsafe" / "narrow.zig").write_text(
-            "pub const UnsafeScopeTag = enum(u8) {\n"
-            "    none = 0,\n"
-            "    volatile_mmio = 1,\n"
-            "    raw_pointer_bridge = 2,\n"
-            "};\n\n"
-            'test "phase3 narrow unsafe scope stays explicit" {}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_export_uapi.zig").writeText
+            "}
