@@ -55,7 +55,14 @@ The live tree also contains additional bounded interop helpers beyond the roadma
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig`
 - `zigux/helpers/err_ptr.zig`, `xa_value.zig`, `xarray_slot_view.zig`, `idr_slot_view.zig`
 - `zigux/helpers/ida_bitmap_view.zig`, `ida_alloc_view.zig`, `ida_range_view.zig`, `ida_range_set_view.zig`, `ida_policy_view.zig`
-- `zigux/helpers/cdev_add_plan.zig` and `zigux/helpers/cdev_lookup_plan.zig`
+
+The largest adjacent growth, though, is now the `chrdev_*` planning ladder. Current `master` no longer stops at one or two exploratory helpers here:
+
+- early chrdev planning is already published through `zigux/helpers/cdev_add_plan.zig`, `cdev_lookup_plan.zig`, `chrdev_open_plan.zig`, `chrdev_fops_plan.zig`, and `chrdev_route_plan.zig`
+- the same ladder already continues through `zigux/helpers/chrdev_io_plan.zig`, `chrdev_xfer_plan.zig`, `chrdev_complete_plan.zig`, and `chrdev_notify_plan.zig`
+- later slices already widen that planning family further into notification acknowledgement and windowing surfaces such as `zigux/helpers/chrdev_notify_ack_plan.zig` and `chrdev_notify_ack_window_plan.zig`
+- the documentation packet mirrors that spread with published slice notes such as `Documentation/zigux/phase3-cdev-add-slice.md`, `phase3-chrdev-open-slice.md`, `phase3-chrdev-fops-slice.md`, `phase3-chrdev-route-slice.md`, `phase3-chrdev-io-slice.md`, `phase3-chrdev-complete-slice.md`, `phase3-chrdev-notify-slice.md`, `phase3-chrdev-notify-ack-slice.md`, and `phase3-chrdev-notify-ack-window-slice.md`
+- `include/zigux/abi.h` and `zigux/bindings/abi.zig` now carry a matching expansion of chrdev planning flags, views, and summaries far beyond the original four roadmap anchors
 
 Those slices are real repo state, but they should not be confused with closure of the original roadmap anchors or with closure of the broader Phase 3 destination around export shims and UAPI.
 
@@ -79,16 +86,19 @@ There is also a smaller but still explicit boundary gap around UAPI scope:
 
 ## Drift Note
 
-The live Phase 3 tree has also grown a long `chrdev_*` planning ladder.
+The live Phase 3 tree has now grown far beyond a small side branch of `chrdev_*` planning helpers.
 
-That growth is real repo state, but it exceeds the small named anchor set in the roadmap and should be treated as adjacent exploratory surface, not as proof that the core Phase 3 roadmap contract is complete. The current repo reality is therefore:
+Current repo reality is that the exploratory chrdev packet already stretches from `cdev_add` and `chrdev_open` through route and IO planning, transfer and completion planning, notification planning, and the later notify-ack and ack-window layers, with matching ABI and binding surface growth in `include/zigux/abi.h` and `zigux/bindings/abi.zig`.
+
+That growth is real repo state, but it still exceeds the small named anchor set in the roadmap and should be treated as adjacent exploratory surface, not as proof that the core Phase 3 roadmap contract is complete. The current repo reality is therefore:
 
 - the ABI substrate is real
 - the low-level wrapper packet is real and now has its own focused replay gate
 - the export shim is real but still intentionally narrow
 - the current UAPI boundary is real but still version-and-boundary-header only
 - bitmap and cpumask interop are real
-- several additional interop and planning slices are real
+- several additional interop slices are real
+- the chrdev planning ladder is real and much broader than the original anchor list
 - the roadmap-backed `rbtree` boundary is still missing
 - more `chrdev_*` slice growth should wait until the roadmap-backed gap is explicitly addressed
 
