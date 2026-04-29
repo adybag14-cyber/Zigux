@@ -13,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
     provides_directory_cursor_preconditions: bool,
+    provides_directory_close_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
     touches_live_dcache: bool,
@@ -141,6 +142,13 @@ pub const CursorRepositionPlan = struct {
     keeps_private_data: bool,
 };
 
+pub const DirectoryClosePlan = struct {
+    anchor: []const u8,
+    returns_zero: bool,
+    releases_private_cursor_ref: bool,
+    had_private_data: bool,
+};
+
 pub const TransactionAcquireMode = enum {
     ready,
     request_too_large,
@@ -194,6 +202,7 @@ pub const LibFsHelperLab = struct {
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_preconditions = true,
+            .provides_directory_close_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
             .touches_live_dcache = false,
@@ -460,6 +469,15 @@ pub const LibFsHelperLab = struct {
             .requires_parent_lock = true,
             .drops_found_reference = true,
             .keeps_private_data = true,
+        };
+    }
+
+    pub fn dcacheDirClosePlan(has_private_data: bool) DirectoryClosePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .returns_zero = true,
+            .releases_private_cursor_ref = has_private_data,
+            .had_private_data = has_private_data,
         };
     }
 
