@@ -64,14 +64,18 @@ test "phase 7 blank argvSplit input reuses the empty exported argv view" {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
-test "phase 7 argvSplit deinit leaves exported argv views empty and null terminated" {
+test "phase 7 argvSplit deinit clears exported storage and argv views" {
     var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
 
+    try std.testing.expect(split.storage.len != 0);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 3), split.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
 
     split.deinit(std.testing.allocator);
 
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
