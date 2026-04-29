@@ -30,6 +30,10 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
@@ -39,7 +43,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
 
-test "phase13 devres manifest records the landed helper-first dma/scatterlist boundary surface and explicit blockers" {
+test "phase13 devres manifest records the landed helper-first dma/scatterlist boundary and explicit blockers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -55,7 +59,7 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqualStrings("378906ad852f26857b23e893b47c3bab4b916b68", manifest.surveyed_commit);
@@ -74,6 +78,8 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_release_pointer_match);
+    try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_uc_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_wc_planning);
@@ -86,6 +92,23 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-devres-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try expectContains(survey_note, "## Status");
+    try expectContains(survey_note, "- `PHASE13_STATUS=active`");
+    try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-dma-scatterlist-reviewability`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=378906ad852f26857b23e893b47c3bab4b916b68`");
+    try expectContains(survey_note, "- product boundary:");
+    try expectContains(survey_note, "- `lib/devres.zig`");
+    try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
+    try expectContains(survey_note, "- `Documentation/zigux/phase13-devres-survey.md`");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
@@ -109,7 +132,7 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     var saw_live_mmio_blocker = false;
     var saw_dma_blocker = false;
     var saw_scatterlist_blocker = false;
-    var saw_device_tree_blocker = false;
+    var saw_deviceTreeBlocker = false;
     var saw_arch_memtype_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -237,7 +260,7 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg_*") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-device-tree-walk")) {
-            saw_device_tree_blocker = true;
+            saw_deviceTreeBlocker = true;
             try std.testing.expectEqualStrings("blocked_on_device_tree_state", gap.status);
             try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct device_node") != null);
@@ -278,6 +301,6 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try std.testing.expect(saw_live_mmio_blocker);
     try std.testing.expect(saw_dma_blocker);
     try std.testing.expect(saw_scatterlist_blocker);
-    try std.testing.expect(saw_device_tree_blocker);
+    try std.testing.expect(saw_deviceTreeBlocker);
     try std.testing.expect(saw_arch_memtype_blocker);
 }
