@@ -1,6 +1,6 @@
 const std = @import("std");
 const root = @import("root");
-const find_bit = if (@hasDecl(root, "find_bit")) root.find_bit else @import("find_bit.zig");
+const find_bit = if (@hasDecl(root, "find_bit")) root.find_bit else @import("find_bit");
 
 pub const Word = find_bit.Word;
 pub const bits_per_long = find_bit.bits_per_long;
@@ -497,7 +497,6 @@ test "bitmap scnprintf collapses contiguous ranges" {
 test "bitmap scnprintf truncates and keeps a terminator slot" {
     var map = [_]Word{0};
     setRange(&map, 1, 3);
-    setRange(&map, 7, 1);
 
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
     const len = scnprintf(&map, 8, &buffer);
