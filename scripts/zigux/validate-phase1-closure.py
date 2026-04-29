@@ -91,7 +91,7 @@ required_workflow_markers = [
     'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
     'uses: actions/checkout@v6.0.2',
     'uses: actions/setup-python@v6.2.0',
-    'python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain',
+    'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
     'run: zig version',
     'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
