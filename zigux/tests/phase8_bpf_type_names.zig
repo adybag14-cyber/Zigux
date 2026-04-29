@@ -1,13 +1,22 @@
 const std = @import("std");
 const bpf_type_names = @import("bpf_type_names");
 
-const uapi_bpf_h = @embedFile("../../tools/include/uapi/linux/bpf.h");
-const libbpf_c = @embedFile("../../tools/lib/bpf/libbpf.c");
-
 const DenseTableEntry = struct {
     token: []const u8,
     name: []const u8,
 };
+
+fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        allocator,
+        .limited(limit),
+    );
+}
 
 fn trimInlineBlockComment(line: []const u8) []const u8 {
     return line[0 .. std.mem.indexOf(u8, line, "/*") orelse line.len];
@@ -25,7 +34,7 @@ fn enumBody(header_text: []const u8, enum_marker: []const u8) ![]const u8 {
     return header_text[body_start .. body_start + body_end_rel];
 }
 
-fn parseEnumAssignment(header_text: []const u8, enum_marker: []const u8, value_text: []const u8) !usize {
+fn parseEnumAssignment(header_text: []const u8, enum_marker: []const u8, value_text: []const u8) anyerror!usize {
     if (std.ascii.isAlphabetic(value_text[0]) or value_text[0] == '_') {
         return parseEnumOrdinal(header_text, enum_marker, value_text);
     }
@@ -33,7 +42,7 @@ fn parseEnumAssignment(header_text: []const u8, enum_marker: []const u8, value_t
     return std.fmt.parseInt(usize, value_text, 0) catch error.UnsupportedEnumAssignment;
 }
 
-fn parseEnumOrdinal(header_text: []const u8, enum_marker: []const u8, token: []const u8) !usize {
+fn parseEnumOrdinal(header_text: []const u8, enum_marker: []const u8, token: []const u8) anyerror!usize {
     const body = try enumBody(header_text, enum_marker);
     var next_ordinal: usize = 0;
     var saw_entry = false;
@@ -89,19 +98,21 @@ fn parseDenseTableEntry(raw_line: []const u8) ?DenseTableEntry {
 }
 
 fn validateDenseTable(
+    header_text: []const u8,
+    table_text: []const u8,
     table_marker: []const u8,
     enum_marker: []const u8,
     expected_len: usize,
     helper: *const fn (i32) ?[]const u8,
 ) !void {
-    const body = try denseTableBody(libbpf_c, table_marker);
+    const body = try denseTableBody(table_text, table_marker);
     var lines = std.mem.splitScalar(u8, body, '\n');
     var entry_count: usize = 0;
     var max_ordinal: usize = 0;
 
     while (lines.next()) |raw_line| {
         const entry = parseDenseTableEntry(raw_line) orelse continue;
-        const ordinal = try parseEnumOrdinal(uapi_bpf_h, enum_marker, entry.token);
+        const ordinal = try parseEnumOrdinal(header_text, enum_marker, entry.token);
         const resolved = helper(@intCast(ordinal)) orelse return error.MissingResolvedName;
         try std.testing.expectEqualStrings(entry.name, resolved);
         entry_count += 1;
@@ -119,25 +130,47 @@ test "phase 8 bpf type-name segment imports cleanly" {
 }
 
 test "phase 8 bpf type-name segment keeps live libbpf tables aligned with current UAPI ordinals" {
+    const uapi_bpf_h = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/include/uapi/linux/bpf.h",
+        512 * 1024,
+    );
+    defer std.testing.allocator.free(uapi_bpf_h);
+
+    const libbpf_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/libbpf.c",
+        1024 * 1024,
+    );
+    defer std.testing.allocator.free(libbpf_c);
+
     try validateDenseTable(
+        uapi_bpf_h,
+        libbpf_c,
         "static const char * const attach_type_name[] = {",
         "enum bpf_attach_type {",
         bpf_type_names.attach_type_names.len,
         bpf_type_names.libbpfBpfAttachTypeStr,
     );
     try validateDenseTable(
+        uapi_bpf_h,
+        libbpf_c,
         "static const char * const link_type_name[] = {",
         "enum bpf_link_type {",
         bpf_type_names.link_type_names.len,
         bpf_type_names.libbpfBpfLinkTypeStr,
     );
     try validateDenseTable(
+        uapi_bpf_h,
+        libbpf_c,
         "static const char * const map_type_name[] = {",
         "enum bpf_map_type {",
         bpf_type_names.map_type_names.len,
         bpf_type_names.libbpfBpfMapTypeStr,
     );
     try validateDenseTable(
+        uapi_bpf_h,
+        libbpf_c,
         "static const char * const prog_type_name[] = {",
         "enum bpf_prog_type {",
         bpf_type_names.prog_type_names.len,
