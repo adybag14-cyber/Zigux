@@ -24,6 +24,9 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectEqual(@as(u32, 12), value);
     try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst));
     try std.testing.expectEqual(@as(u32, 21), value);
+    const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);
+    try std.testing.expectEqual(@as(?u32, 21), mismatch);
+    try std.testing.expectEqual(@as(u32, 21), value);
 
     barrier.acquire();
     barrier.release();
