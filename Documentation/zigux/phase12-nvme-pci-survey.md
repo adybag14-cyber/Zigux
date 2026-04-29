@@ -5,7 +5,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 ## Status
 
 - `PHASE12_STATUS=active`
-- `PHASE12_LANE_KEY=P12-L07`
+- `PHASE12_LANE_KEY=P12-L08`
 - `PHASE12_SLICE=nvme-pci-survey`
 - `PHASE12_SURVEYED_COMMIT=a8daee106057a542aa03f2983662bec7c06584bb`
 - scope: archival survey manifest, dedicated survey gate, shared Phase 12 build and make-target wiring, and a lane note that compares the landed `pci.zig` starter against the remaining roadmap gap and the current Phase 12 tranche state
