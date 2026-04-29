@@ -150,6 +150,7 @@ phase10-test:
 phase10: phase10-validate phase10-test
 
 phase11-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py
 
 phase11-test:
