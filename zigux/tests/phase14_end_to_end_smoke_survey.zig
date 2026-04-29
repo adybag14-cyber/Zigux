@@ -97,7 +97,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
@@ -284,6 +284,9 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     );
     defer allocator.free(smoke_note);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.surveyed_commit) != null);
+    var shared_lane_marker_buf: [64]u8 = undefined;
+    const shared_lane_marker = try std.fmt.bufPrint(&shared_lane_marker_buf, "PHASE14_SHARED_LANE={s}", .{smoke_manifest.value.lane_key});
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, shared_lane_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_SMOKE_VALIDATOR=present") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_COMPILE_ARTIFACT_COUNT=5") != null);
