@@ -265,6 +265,123 @@ test "phase11 hvc console keeps khvcd worker-entry sleep and backoff boundaries 
     }));
 }
 
+test "phase11 hvc console keeps khvcd sleep-and-reschedule handoff boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(8);
+    _ = console.instantiate(0x80);
+
+    const timed_sleep = try console.summarizeKhvcdSleepHandoff(.{
+        .entry = .{
+            .contract = .{
+                .close = .{
+                    .port_initialized = true,
+                    .open_count_before_close = 1,
+                },
+                .read_poll_pending = true,
+                .write_poll_pending = true,
+            },
+            .timeout_ms = hvc_console.min_khvcd_timeout_ms,
+        },
+    });
+    try std.testing.expectEqual(@as(usize, 8), timed_sleep.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x80), timed_sleep.vtermno);
+    try std.testing.expect(timed_sleep.adapter_present);
+    try std.testing.expect(timed_sleep.final_close_wait_required);
+    try std.testing.expect(timed_sleep.clears_port_initialized_on_final_close);
+    try std.testing.expect(timed_sleep.keeps_console_binding);
+    try std.testing.expect(timed_sleep.tty_registration_pending);
+    try std.testing.expect(timed_sleep.khvcd_polling_pending);
+    try std.testing.expect(timed_sleep.poll_read_pending);
+    try std.testing.expect(timed_sleep.poll_write_pending);
+    try std.testing.expect(timed_sleep.checks_kick_before_sleep_state);
+    try std.testing.expect(!timed_sleep.kick_short_circuits_before_sleep_state);
+    try std.testing.expect(timed_sleep.sets_interruptible_before_sleep_recheck);
+    try std.testing.expect(timed_sleep.checks_kick_after_interruptible_state);
+    try std.testing.expect(!timed_sleep.skip_schedule_due_to_post_state_kick);
+    try std.testing.expect(!timed_sleep.schedule_without_timeout);
+    try std.testing.expect(timed_sleep.schedule_timeout_interruptible);
+    try std.testing.expect(timed_sleep.timeout_backoff_grows_before_timed_sleep);
+    try std.testing.expectEqual(@as(u32, 11), timed_sleep.sleep_timeout_ms);
+    try std.testing.expect(!timed_sleep.timeout_capped_at_max);
+    try std.testing.expect(timed_sleep.timed_sleep_uses_guard_tick);
+    try std.testing.expect(timed_sleep.restores_running_state_after_handoff);
+    try std.testing.expect(timed_sleep.backend_handoff_pending);
+
+    const untimed_sleep = try console.summarizeKhvcdSleepHandoff(.{
+        .entry = .{
+            .contract = .{
+                .close = .{
+                    .port_initialized = false,
+                    .open_count_before_close = 2,
+                },
+            },
+        },
+    });
+    try std.testing.expect(!untimed_sleep.poll_read_pending);
+    try std.testing.expect(!untimed_sleep.poll_write_pending);
+    try std.testing.expect(!untimed_sleep.kick_short_circuits_before_sleep_state);
+    try std.testing.expect(untimed_sleep.sets_interruptible_before_sleep_recheck);
+    try std.testing.expect(untimed_sleep.checks_kick_after_interruptible_state);
+    try std.testing.expect(!untimed_sleep.skip_schedule_due_to_post_state_kick);
+    try std.testing.expect(untimed_sleep.schedule_without_timeout);
+    try std.testing.expect(!untimed_sleep.schedule_timeout_interruptible);
+    try std.testing.expect(!untimed_sleep.timeout_backoff_grows_before_timed_sleep);
+    try std.testing.expectEqual(@as(u32, 0), untimed_sleep.sleep_timeout_ms);
+    try std.testing.expect(!untimed_sleep.timeout_capped_at_max);
+    try std.testing.expect(!untimed_sleep.timed_sleep_uses_guard_tick);
+    try std.testing.expect(untimed_sleep.restores_running_state_after_handoff);
+    try std.testing.expect(untimed_sleep.backend_handoff_pending);
+
+    const pre_state_kick = try console.summarizeKhvcdSleepHandoff(.{
+        .entry = .{
+            .contract = .{
+                .close = .{
+                    .open_count_before_close = 1,
+                },
+            },
+            .kick_pending_after_walk = true,
+        },
+    });
+    try std.testing.expect(pre_state_kick.checks_kick_before_sleep_state);
+    try std.testing.expect(pre_state_kick.kick_short_circuits_before_sleep_state);
+    try std.testing.expect(!pre_state_kick.sets_interruptible_before_sleep_recheck);
+    try std.testing.expect(!pre_state_kick.checks_kick_after_interruptible_state);
+    try std.testing.expect(!pre_state_kick.skip_schedule_due_to_post_state_kick);
+    try std.testing.expect(!pre_state_kick.schedule_without_timeout);
+    try std.testing.expect(!pre_state_kick.schedule_timeout_interruptible);
+    try std.testing.expectEqual(@as(u32, 0), pre_state_kick.sleep_timeout_ms);
+    try std.testing.expect(!pre_state_kick.restores_running_state_after_handoff);
+
+    const post_state_kick = try console.summarizeKhvcdSleepHandoff(.{
+        .entry = .{
+            .contract = .{
+                .close = .{
+                    .open_count_before_close = 1,
+                },
+            },
+        },
+        .kick_pending_after_interruptible_state = true,
+    });
+    try std.testing.expect(post_state_kick.checks_kick_before_sleep_state);
+    try std.testing.expect(!post_state_kick.kick_short_circuits_before_sleep_state);
+    try std.testing.expect(post_state_kick.sets_interruptible_before_sleep_recheck);
+    try std.testing.expect(post_state_kick.checks_kick_after_interruptible_state);
+    try std.testing.expect(post_state_kick.skip_schedule_due_to_post_state_kick);
+    try std.testing.expect(!post_state_kick.schedule_without_timeout);
+    try std.testing.expect(!post_state_kick.schedule_timeout_interruptible);
+    try std.testing.expectEqual(@as(u32, 0), post_state_kick.sleep_timeout_ms);
+    try std.testing.expect(post_state_kick.restores_running_state_after_handoff);
+
+    try std.testing.expectError(error.InvalidOpenCount, console.summarizeKhvcdSleepHandoff(.{
+        .entry = .{
+            .contract = .{
+                .close = .{
+                    .open_count_before_close = 0,
+                },
+            },
+        },
+    }));
+}
+
 test "phase11 hvc console keeps __hvc_poll drain ordering and wakeup boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(7);
     _ = console.instantiate(0x70);
