@@ -131,6 +131,34 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
+test "bitmap diff survey keeps rounded fill drift explicit against lib/test_bitmap.c" {
+    var map = [_]Word{0} ** word_count;
+
+    // The kernel anchor rounds fill(35) to one whole word, but the shipped
+    // Zig helper still sets only the first 35 bits. Keep that gap measurable
+    // here until tools/lib/bitmap.zig changes.
+    try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
+    fillPrefix(&map, 35);
+    try std.testing.expectEqual(@as(usize, 35), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 35), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "0-34");
+    try expectSet(&map, 34);
+    try expectClear(&map, 35);
+    try expectClear(&map, bits_per_long - 1);
+
+    bitmap.zero(&map, bitmap_nbits);
+    // The same drift is still present for fill(115): the kernel anchor rounds
+    // to two whole words, while the current Zig helper stops at bit 114.
+    try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
+    fillPrefix(&map, 115);
+    try std.testing.expectEqual(@as(usize, 115), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 115), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "0-114");
+    try expectSet(&map, 114);
+    try expectClear(&map, 115);
+    try expectClear(&map, bits_per_long * 2 - 1);
+}
+
 test "bitmap diff gate records exact cross-boundary set and clear checks" {
     var map = [_]Word{0} ** word_count;
 
