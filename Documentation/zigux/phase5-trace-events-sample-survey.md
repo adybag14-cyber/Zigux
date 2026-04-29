@@ -33,7 +33,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe
   - string and array selection derived from `cnt % 5`
   - function-callback registration and unregister balance for the second thread path
   - real runtime substrate through `CREATE_TRACE_POINTS`, tracepoint macros, `kthread_run()`, `schedule_timeout()`, and module init or exit hooks
-- the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, and callback-registration balance reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
+- the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, public selected-string slot and payload-length cues, and callback-registration balance reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
 
 ## Landed sample and exact checks
 
@@ -42,7 +42,7 @@ The repo now carries that bounded sample in `samples/zigux/trace_events_sample.z
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
-- it models only the bounded array payload, selected string, public main-path and callback-path iteration cues, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one single-live register-then-unregister callback idiom in memory
+- it models only the bounded array payload, selected string, public selected-string slot and payload-length cues, public main-path and callback-path iteration cues, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one single-live register-then-unregister callback idiom in memory
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it now exposes `lifecycleSummary()` so the public review surface can read stage plus init, replay, and exit counts, registration depth, and total event calls without private field access
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
@@ -51,9 +51,9 @@ The sample intentionally stays small:
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
 - the in-memory sample keeps `samples/trace_events/trace-events-sample.c` explicit and stays in the non-runtime reference-sample lane
-- `runAnchorReplay()` formats `iter=7` and selects `Gandalf` from the Linux `random_strings` table for `len = 2`
+- `runAnchorReplay()` formats `iter=7`, selects `Gandalf`, and exposes selected-string slot `2` from the Linux `random_strings` table for `len = 2`
 - the replay summary now exposes main iteration `7` and function-callback iteration `9` so the Linux `cnt`-driven split between the two thread paths stays reviewable without reading private sample state
-- the replay keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
+- the replay exposes payload length `2` and keeps the `1,2` payload prefix plus a zero sentinel so the Linux array idiom remains reviewable in memory
 - the sample self-check replays counts `0` through `4` so the full modulo-selected string cycle stays explicit: `Mother Goose`, `Snoopy`, `Gandalf`, `Frodo`, and `One ring to rule them all`
 - the replay records the `0xdeadbeef` bitmask word and marks the relative-location payload path as checked in the replay summary
 - the replay marks the vararg payload path as checked so the `fmt` plus `va_list` `trace_foo_bar` idiom stays explicit in the public replay summary
@@ -91,11 +91,11 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - does `zigux/tests/phase5_trace_events_sample_manifest.json` still pin `surveyed_commit` to the exact inspected `master` head instead of a floating branch label?
 - do the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
-- do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact selected-string-slot, payload-length, main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does `lifecycleSummary()` still keep stage plus init, replay, and exit counts, registration depth, and total event calls visible without private field access?
 - do the sample self-check and the manifest-backed exact-check packet still keep the full modulo-selected string cycle explicit across counts `0` through `4` instead of only one reviewed string case?
 - do the sample self-check and `zigux/tests/phase5_trace_events_sample.zig` still assert the exact `checked_focus` list and order instead of only its length?
-- does the in-memory replay still keep the array payload, selected string, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
+- does the in-memory replay still keep the array payload, selected string, selected-string slot, payload length, and `iter=%d` message reviewable instead of hiding them behind runtime thread state?
 - does function-callback replay stay a single-live register-then-unregister idiom, including rejection of a second `registerFunctionCallback()` call while one callback is already registered, rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - after `exit()`, do `replayMainIteration()`, `registerFunctionCallback()`, `replayFunctionIteration()`, and `unregisterFunctionCallback()` all stay rejected so the teardown boundary is fully reviewable instead of only partially implied?
 - do the sample-backed survey note and `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact replay contract?
@@ -106,7 +106,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 
 The current gap is no longer "Zigux has no trace-events sample guidance." The more precise state is:
 
-- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
+- the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, selected-string slot cues, payload-length cues, main-path and callback-path iteration cues, formatted messages, bounded family counts, lifecycle-summary counts, the exact `checked_focus` review surface, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 - this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=822dff09aaeef22905727c20cead3a568c85cbb4` so the sample-backed survey note, latest verification snapshot, and manifest-backed survey all point at the same inspected `master` head
