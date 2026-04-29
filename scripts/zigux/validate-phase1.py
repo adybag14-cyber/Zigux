@@ -305,6 +305,8 @@ required_string_helper_markers = [
     'pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {',
     'test "skip trim remove and replace spaces work in place"',
     'test "strlcpy stops at the first embedded NUL in the source"',
+    'test "strstarts matches kernel prefix semantics"',
+    'test "str_ends_with matches kernel suffix semantics"',
     'test "memchrInv scans aligned and misaligned long buffers"',
     'test "memchrInv catches prefix and trailing remainder mismatches"',
 ]
@@ -338,6 +340,10 @@ required_string_manifest_markers = [
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
     '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\""',
     '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
+    '"prefix_unit_test_anchor": "tools/lib/string.zig:test \\"strstarts matches kernel prefix semantics\\""',
+    '"prefix_unit_test_contract": "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons."',
+    '"suffix_unit_test_anchor": "tools/lib/string.zig:test \\"str_ends_with matches kernel suffix semantics\\""',
+    '"suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith and str_ends_with aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons."',
 ]
 required_string_closure_markers = [
     'string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`',
@@ -345,8 +351,12 @@ required_string_closure_markers = [
     'PHASE1_STRING_CSTRING_UNIT_REVIEW=string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves zero-sized destinations untouched',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
+    'string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`',
+    'string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
+    'PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons',
+    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith and str_ends_with keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
 ]
 required_rbtree_helper_markers = [
     'pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
