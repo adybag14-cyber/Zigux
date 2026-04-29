@@ -22,6 +22,7 @@
     "preexisting_generic_notifier_layout_anchor_present": true,
     "preexisting_public_list_notifier_coexistence_anchor_present": true,
     "preexisting_generic_notifier_abi_present": false,
+    "preexisting_generic_notifier_build_surface_present": false,
     "preexisting_generic_notifier_helper_present": false
   },
   "gaps": [
