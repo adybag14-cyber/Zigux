@@ -59,6 +59,9 @@ phase6_catalog = (ROOT / "Documentation" / "zigux" / "phase6-helper-parity-catal
 phase6_manifest = json.loads((ROOT / "zigux" / "tests" / "phase6_helper_parity_manifest.json").read_text(encoding="utf-8"))
 phase6_build = (ROOT / "zigux" / "tests" / "phase6_build.zig").read_text(encoding="utf-8")
 phase6_base64_perf = (ROOT / "zigux" / "tests" / "phase6_base64_perf.zig").read_text(encoding="utf-8")
+phase6_checksum_perf = (ROOT / "zigux" / "tests" / "phase6_checksum_perf.zig").read_text(encoding="utf-8")
+phase6_checksum_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig").read_text(encoding="utf-8")
+phase6_checksum_slice = (ROOT / "Documentation" / "zigux" / "phase6-checksum-slice.md").read_text(encoding="utf-8")
 
 phase6_catalog_verified_head_match = re.search(r"- verified head: `([0-9a-f]{40})`", phase6_catalog)
 if phase6_catalog_verified_head_match is None:
@@ -166,6 +169,27 @@ required_phase6_base64_perf_markers = [
     "try std.testing.expect(decode_slowdown_pct <= case.max_decode_slowdown_pct);",
 ]
 
+required_phase6_checksum_perf_markers = [
+    "fn referencePartial(bytes: []const u8, seed: u32) u32",
+    "var slowdown_samples: [3]u64 = undefined;",
+    "const slowdown_pct = median3(",
+    "helper_ns_per_byte={d:.2}",
+    "reference_ns_per_byte={d:.2}",
+    "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);",
+]
+
+required_phase6_checksum_vector_markers = [
+    '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
+    '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
+]
+
+required_phase6_checksum_slice_markers = [
+    "replay the checksum perf sanity harness when reviewing checksum-cost drift",
+    "deterministic 64-byte and 1501-byte payloads",
+    "`referencePartial` path",
+    "representative checksum cost per call and per byte",
+]
+
 
 def require_markers(label: str, text: str, markers: list[str], issues: list[str]) -> None:
     for marker in markers:
@@ -181,6 +205,9 @@ require_markers("tests_readme", tests_readme, required_tests_readme_markers, iss
 require_markers("doc_readme", doc_readme, required_doc_readme_markers, issues)
 require_markers("phase6_build", phase6_build, required_phase6_build_markers, issues)
 require_markers("phase6_base64_perf", phase6_base64_perf, required_phase6_base64_perf_markers, issues)
+require_markers("phase6_checksum_perf", phase6_checksum_perf, required_phase6_checksum_perf_markers, issues)
+require_markers("phase6_checksum_vectors", phase6_checksum_vectors, required_phase6_checksum_vector_markers, issues)
+require_markers("phase6_checksum_slice", phase6_checksum_slice, required_phase6_checksum_slice_markers, issues)
 
 if phase6_manifest.get("phase") != "Phase 6":
     issues.append("manifest:phase")
