@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L14",
   "phase": "Phase 11",
-  "surveyed_commit": "e814a2b1ccd51e66839b5f9dae5f1cc348890116",
+  "surveyed_commit": "8733ce0d4e2e17ccf139a38a70fc745843c068a3",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
