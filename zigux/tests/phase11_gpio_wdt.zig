@@ -144,6 +144,62 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expectEqual(@as(usize, 0), kept_running.disable_count);
 }
 
+test "phase11 gpio_wdt teardown summary keeps disable ordering and failure modes reviewable" {
+    var blocked_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    const blocked = try blocked_watchdog.summarizeTeardown(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, blocked.hw_algo);
+    try std.testing.expect(!blocked.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!blocked.driver_stop_invoked);
+    try std.testing.expect(!blocked.disable_requested);
+    try std.testing.expect(!blocked.disable_performs_eternal_ping);
+    try std.testing.expect(!blocked.disable_returns_toggle_line_to_input);
+    try std.testing.expect(!blocked.disable_keeps_level_line_output);
+    try std.testing.expect(blocked.final_running);
+    try std.testing.expect(blocked.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), blocked.disable_count);
+
+    var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_teardown.hw_algo);
+    try std.testing.expect(toggle_teardown.stop_allowed_by_watchdog_core);
+    try std.testing.expect(toggle_teardown.driver_stop_invoked);
+    try std.testing.expect(toggle_teardown.disable_requested);
+    try std.testing.expect(toggle_teardown.disable_performs_eternal_ping);
+    try std.testing.expect(toggle_teardown.disable_returns_toggle_line_to_input);
+    try std.testing.expect(!toggle_teardown.disable_keeps_level_line_output);
+    try std.testing.expect(!toggle_teardown.stop_keeps_running_for_always_running);
+    try std.testing.expect(!toggle_teardown.final_running);
+    try std.testing.expect(toggle_teardown.final_line_state);
+    try std.testing.expect(!toggle_teardown.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 1), toggle_teardown.disable_count);
+
+    var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 50, false);
+    const level_teardown = try level_watchdog.summarizeTeardown(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_teardown.hw_algo);
+    try std.testing.expect(level_teardown.disable_requested);
+    try std.testing.expect(level_teardown.disable_performs_eternal_ping);
+    try std.testing.expect(!level_teardown.disable_returns_toggle_line_to_input);
+    try std.testing.expect(level_teardown.disable_keeps_level_line_output);
+    try std.testing.expect(!level_teardown.final_running);
+    try std.testing.expect(level_teardown.final_line_state);
+    try std.testing.expect(level_teardown.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 1), level_teardown.disable_count);
+
+    var always_running_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 50, true);
+    const always_running = try always_running_watchdog.summarizeTeardown(false);
+    try std.testing.expect(always_running.stop_allowed_by_watchdog_core);
+    try std.testing.expect(always_running.driver_stop_invoked);
+    try std.testing.expect(!always_running.disable_requested);
+    try std.testing.expect(!always_running.disable_performs_eternal_ping);
+    try std.testing.expect(!always_running.disable_returns_toggle_line_to_input);
+    try std.testing.expect(!always_running.disable_keeps_level_line_output);
+    try std.testing.expect(always_running.stop_keeps_running_for_always_running);
+    try std.testing.expect(always_running.final_running);
+    try std.testing.expect(!always_running.final_line_state);
+    try std.testing.expect(always_running.final_line_is_output);
+    try std.testing.expectEqual(@as(usize, 0), always_running.disable_count);
+}
+
 test "phase11 gpio_wdt registration handoff summary records startup state and stop policy" {
     var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);

@@ -103,6 +103,24 @@ pub const StopSummary = struct {
     disable_count: usize,
 };
 
+pub const TeardownSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    stop_allowed_by_watchdog_core: bool,
+    driver_stop_invoked: bool,
+    disable_requested: bool,
+    disable_performs_eternal_ping: bool,
+    disable_returns_toggle_line_to_input: bool,
+    disable_keeps_level_line_output: bool,
+    stop_keeps_running_for_always_running: bool,
+    final_running: bool,
+    final_line_state: bool,
+    final_line_is_output: bool,
+    disable_count: usize,
+};
+
 pub const RegistrationHandoffSummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -358,6 +376,33 @@ pub const GpioWatchdogLab = struct {
             .line_state = runtime.line_state,
             .line_is_output = runtime.line_is_output,
             .disable_count = runtime.disable_count,
+        };
+    }
+
+    pub fn summarizeTeardown(self: *Self, nowayout: bool) !TeardownSummary {
+        if (!self.running) {
+            _ = try self.start();
+        }
+
+        const stop_summary = self.requestStop(nowayout);
+        const disable_requested = stop_summary.driver_stop_invoked and !self.always_running;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .stop_allowed_by_watchdog_core = stop_summary.stop_allowed_by_watchdog_core,
+            .driver_stop_invoked = stop_summary.driver_stop_invoked,
+            .disable_requested = disable_requested,
+            .disable_performs_eternal_ping = disable_requested,
+            .disable_returns_toggle_line_to_input = disable_requested and self.hw_algo == .toggle,
+            .disable_keeps_level_line_output = disable_requested and self.hw_algo == .level,
+            .stop_keeps_running_for_always_running = self.always_running and stop_summary.running,
+            .final_running = stop_summary.running,
+            .final_line_state = stop_summary.line_state,
+            .final_line_is_output = stop_summary.line_is_output,
+            .disable_count = stop_summary.disable_count,
         };
     }
 

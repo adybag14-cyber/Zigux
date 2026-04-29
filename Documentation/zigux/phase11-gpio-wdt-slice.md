@@ -8,13 +8,14 @@ The starter stays intentionally narrow:
 - enforces the same bounded hardware heartbeat margin window used by the C driver
 - models the in-memory start, ping, stop, and disable transitions for both hardware algorithms
 - preserves the `always-running` stop behavior so the lab model does not pretend the watchdog can be disabled when the platform contract forbids it
+- adds an explicit `summarizeTeardown()` helper so eternal-ping disable ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable before any unregister path exists
 - reports a probe-time summary for requested GPIO line mode, `always-running` startup behavior, `nowayout`, timeout init, parent linkage, and stop-on-reboot bookkeeping before watchdog registration
 - distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior so teardown-facing stop review does not blur policy gating with hardware gating
 - adds a tiny registration-facing handoff summary so the starter records what startup state, stop policy, timeout init, and reboot bookkeeping reach `devm_watchdog_register_device()` without claiming the registration call itself
 - records the first chosen registration surface and validation focus so the lane stays explicitly parked at watchdog-device metadata planning instead of overclaiming a real register-device call
 - adds one tiny `registerDeviceCallSummary()` helper so the starter records the exact watchdog metadata, timeout, parent, `nowayout`, and stop-on-reboot state that would reach the first bounded `devm_watchdog_register_device()` request without claiming the live call itself
-- now pairs that starter surface with `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` so the shared replay contract, teardown-facing stop evidence, and the first bounded register-device call boundary are recorded in one reviewable place
+- now pairs that starter surface with `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` so the shared replay contract, teardown-facing stop evidence, explicit teardown-summary evidence, and the first bounded register-device call boundary are recorded in one reviewable place
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or live hardware validation yet.
 
-The next honest bounded step inside the same Phase 11 lane is no longer the first register-device request summary itself. That boundary is now reviewable. If this lane reopens, keep it on one tiny descriptor-backed or probe-order preflight step that stays immediately adjacent to `devm_watchdog_register_device()` while still avoiding live GPIO execution, reboot glue, and broader watchdog integration.
+The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`. Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.

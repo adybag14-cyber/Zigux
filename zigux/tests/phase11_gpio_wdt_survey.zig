@@ -81,7 +81,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_validation_matrix_present);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_GPIO_WDT_STATUS=register_device_call_surface_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_GPIO_WDT_STATUS=teardown_and_register_device_surface_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "## Shared Replay Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-survey-tests") != null);
@@ -89,12 +89,15 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "teardown-facing stop evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "nowayout failure-mode evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "explicit disable-order teardown summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardown()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "register-device call surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "descriptor-facing registration handoff") == null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "summarizeTeardown()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "registerDeviceCallSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "now-landed bounded register-device call summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is no longer the first register-device call surface itself.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "descriptor-backed or probe-order preflight step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "Avoid widening straight into descriptor-backed preflight, reboot glue, or broader watchdog registration work from this packet.") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
 
     var starter_landed_count: usize = 0;
