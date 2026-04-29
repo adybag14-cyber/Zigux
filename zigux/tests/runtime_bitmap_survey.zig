@@ -297,6 +297,14 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample and loader build
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase9-runtime-bitmap-survey.md",
@@ -315,6 +323,8 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample and loader build
 
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-loader-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "`samples/zigux/runtime_bitmap.zig` or `samples/zigux/runtime_bitmap_loader.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "the bitmap pair is the separate Phase 9 runtime pilot and not a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
