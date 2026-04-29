@@ -303,6 +303,18 @@ fn findAndBitBench() struct { checksum: u64 } {
 }
 
 fn stringBench() !struct { checksum: u64 } {
+    var aligned = [_]u8{'a'} ** 24;
+    aligned[17] = 'X';
+
+    var misaligned_storage = [_]u8{'a'} ** 25;
+    misaligned_storage[18] = 'X';
+
+    var prefix_storage = [_]u8{'a'} ** 25;
+    prefix_storage[3] = 'X';
+
+    var trailing_storage = [_]u8{'a'} ** 26;
+    trailing_storage[25] = 'X';
+
     var checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_string) : (idx += 1) {
@@ -311,6 +323,10 @@ fn stringBench() !struct { checksum: u64 } {
         const trimmed = string.trimSpaces(&trim_buf);
         checksum +%= @as(u64, @intFromBool(enabled));
         checksum +%= @intCast(trimmed.len);
+        checksum +%= string.memchrInv(&aligned, 'a').?;
+        checksum +%= string.memchrInv(misaligned_storage[1..], 'a').?;
+        checksum +%= string.memchrInv(prefix_storage[1..], 'a').?;
+        checksum +%= string.memchrInv(trailing_storage[1..], 'a').?;
     }
 
     return .{ .checksum = checksum };
