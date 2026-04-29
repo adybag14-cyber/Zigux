@@ -304,9 +304,33 @@ pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node
     return match;
 }
 
+pub fn findLast(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
+    var current = root.node;
+    var match: ?*Node = null;
+
+    while (current) |node| {
+        const order = cmp(key, node);
+        if (order < 0) {
+            current = node.left;
+        } else {
+            if (order == 0) {
+                match = node;
+            }
+            current = node.right;
+        }
+    }
+
+    return match;
+}
+
 pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {
     const next_node = next(node) orelse return null;
     return if (cmp(key, next_node) == 0) next_node else null;
+}
+
+pub fn prevMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {
+    const prev_node = prev(node) orelse return null;
+    return if (cmp(key, prev_node) == 0) prev_node else null;
 }
 
 pub const MatchIterator = struct {
@@ -331,6 +355,30 @@ pub const MatchIterator = struct {
 
 pub fn iterateMatches(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
     return MatchIterator.init(key, root, cmp);
+}
+
+pub const ReverseMatchIterator = struct {
+    key: *const anyopaque,
+    cmp: CmpKeyFn,
+    current: ?*Node,
+
+    pub fn init(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ReverseMatchIterator {
+        return .{
+            .key = key,
+            .cmp = cmp,
+            .current = findLast(key, root, cmp),
+        };
+    }
+
+    pub fn next(self: *ReverseMatchIterator) ?*Node {
+        const node = self.current orelse return null;
+        self.current = prevMatch(self.key, node, self.cmp);
+        return node;
+    }
+};
+
+pub fn iterateMatchesReverse(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ReverseMatchIterator {
+    return ReverseMatchIterator.init(key, root, cmp);
 }
 
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
@@ -948,6 +996,55 @@ test "rbtree findFirst returns the leftmost duplicate match" {
     try std.testing.expectEqual(@as(?*Node, null), findFirst(&missing, &root, cmpKey));
 }
 
+test "rbtree findLast returns the rightmost duplicate match" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    const wanted = @as(i32, 10);
+    const found = findLast(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    const found_entry: *const Entry = @fieldParentPtr("node", found);
+    try std.testing.expectEqual(@as(i32, 10), found_entry.key);
+    try std.testing.expectEqual(@as(usize, 4), found_entry.serial);
+
+    const missing = @as(i32, 17);
+    try std.testing.expectEqual(@as(?*Node, null), findLast(&missing, &root, cmpKey));
+}
+
 test "rbtree nextMatch walks the duplicate range in order" {
     const Entry = struct {
         key: i32,
@@ -1002,6 +1099,62 @@ test "rbtree nextMatch walks the duplicate range in order" {
     try std.testing.expectEqual(@as(usize, 3), count);
     try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
     try std.testing.expectEqual(@as(?*Node, null), nextMatch(&wanted, current, cmpKey));
+}
+
+test "rbtree prevMatch walks the duplicate range in reverse order" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    const wanted = @as(i32, 10);
+    var current = findLast(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    while (true) {
+        const entry: *const Entry = @fieldParentPtr("node", current);
+        serials[count] = entry.serial;
+        count += 1;
+        current = prevMatch(&wanted, current, cmpKey) orelse break;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 4, 2, 0 }, serials[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), prevMatch(&wanted, current, cmpKey));
 }
 
 test "rbtree iterateMatches streams only the duplicate range" {
@@ -1059,6 +1212,64 @@ test "rbtree iterateMatches streams only the duplicate range" {
 
     const missing = @as(i32, 17);
     var missing_iterator = iterateMatches(&missing, &root, cmpKey);
+    try std.testing.expectEqual(@as(?*Node, null), missing_iterator.next());
+}
+
+test "rbtree iterateMatchesReverse streams only the duplicate range in reverse" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    const wanted = @as(i32, 10);
+    var iterator = iterateMatchesReverse(&wanted, &root, cmpKey);
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 4, 2, 0 }, serials[0..count]);
+
+    const missing = @as(i32, 17);
+    var missing_iterator = iterateMatchesReverse(&missing, &root, cmpKey);
     try std.testing.expectEqual(@as(?*Node, null), missing_iterator.next());
 }
 
