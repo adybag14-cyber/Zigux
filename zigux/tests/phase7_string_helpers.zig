@@ -110,6 +110,28 @@ test "phase 7 stringGetSize returns snprintf-style length on truncation" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &out);
 }
 
+test "phase 7 escape flag masks stay aligned with the Linux helper contract" {
+    try std.testing.expectEqual(
+        string_helpers.UNESCAPE_SPACE |
+            string_helpers.UNESCAPE_OCTAL |
+            string_helpers.UNESCAPE_HEX |
+            string_helpers.UNESCAPE_SPECIAL,
+        string_helpers.UNESCAPE_ALL_MASK,
+    );
+    try std.testing.expectEqual(
+        string_helpers.ESCAPE_SPACE |
+            string_helpers.ESCAPE_SPECIAL |
+            string_helpers.ESCAPE_NULL |
+            string_helpers.ESCAPE_OCTAL |
+            string_helpers.ESCAPE_NP |
+            string_helpers.ESCAPE_HEX |
+            string_helpers.ESCAPE_NA |
+            string_helpers.ESCAPE_NAP |
+            string_helpers.ESCAPE_APPEND,
+        string_helpers.ESCAPE_ALL_MASK,
+    );
+}
+
 test "phase 7 parseIntArray keeps the counted get_options contract explicit" {
     const ints = try string_helpers.parseIntArray(std.testing.allocator, "1-3,5");
     defer std.testing.allocator.free(ints);
