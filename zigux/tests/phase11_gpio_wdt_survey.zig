@@ -54,6 +54,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     );
     defer std.testing.allocator.free(matrix_doc);
 
+    const module_slice_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice_doc);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -83,6 +91,11 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "nowayout failure-mode evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "register-device call surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "descriptor-facing registration handoff") == null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "registerDeviceCallSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "now-landed bounded register-device call summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is no longer the first register-device call surface itself.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "descriptor-backed or probe-order preflight step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
