@@ -210,4 +210,3 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-test-fsmount-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "phase4-test-fsmount-survey-tests") != null);
 }
-#endifyn, and local `phase4-test-fsmount-survey` local replay steps that keep each shipped gate or survey packet measurable, and the reversible-delivery evidence that ties each shipped gate back to its current C anchor if the shared Phase 4 entrypoint has to drop that Zig gate.
