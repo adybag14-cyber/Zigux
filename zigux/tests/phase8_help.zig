@@ -1,11 +1,29 @@
 const std = @import("std");
 const help = @import("help");
 
+const FixtureDir = struct {
+    path: []const u8,
+    entries: []const help.DirectoryEntry,
+};
+
+const FixtureSource = struct {
+    dirs: []const FixtureDir,
+
+    fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
+        for (self.dirs) |dir| {
+            if (std.mem.eql(u8, dir.path, path)) {
+                try help.addExecutableEntries(cmds, dir.entries, prefix);
+                return;
+            }
+        }
+    }
+};
+
 test "phase 8 help module imports cleanly" {
     _ = help;
 }
 
-test "phase 8 help starter slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning" {
+test "phase 8 help phase-level coverage stays focused on integrated command-list behavior" {
     var main_cmds = help.CmdNames.init(std.testing.allocator);
     defer main_cmds.deinit();
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
@@ -26,65 +44,9 @@ test "phase 8 help starter slice covers command-list ownership, filtering, exclu
     try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
     try std.testing.expect(main_cmds.isInCmdList("trace"));
     try std.testing.expectEqual(@as(usize, 5), main_cmds.longestNameLen());
-    try std.testing.expectEqualStrings("record", help.commandNameFromEntry("perf-record.exe", "perf-").?);
-
-    const layout = help.planPrettyPrint(7, 8, 41);
-    try std.testing.expectEqual(@as(usize, 4), layout.cols);
-    try std.testing.expectEqual(@as(usize, 2), layout.rows);
-    try std.testing.expectEqual(@as(usize, 9), layout.spacing);
-
-    const narrow_layout = help.planPrettyPrint(3, 8, 9);
-    try std.testing.expectEqual(@as(usize, 1), narrow_layout.cols);
-    try std.testing.expectEqual(@as(usize, 3), narrow_layout.rows);
-    try std.testing.expectEqual(@as(usize, 9), narrow_layout.spacing);
-
-    const terminal = help.resolveTerminalDimensions("31", "37", .{
-        .rows = 20,
-        .cols = 60,
-    });
-    try std.testing.expectEqual(@as(usize, 31), terminal.rows);
-    try std.testing.expectEqual(@as(usize, 37), terminal.cols);
-
-    const fallback_terminal = help.resolveTerminalDimensions("31", null, .{
-        .rows = 20,
-        .cols = 60,
-    });
-    try std.testing.expectEqual(@as(usize, 20), fallback_terminal.rows);
-    try std.testing.expectEqual(@as(usize, 60), fallback_terminal.cols);
-
-    const env_layout = help.planPrettyPrintForTerminal(7, 8, "31", "37", .{
-        .rows = 24,
-        .cols = 80,
-    });
-    try std.testing.expectEqual(@as(usize, 4), env_layout.cols);
-    try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
-    try std.testing.expectEqual(@as(usize, 9), env_layout.spacing);
-
-    const empty_layout = help.planPrettyPrint(0, 8, 41);
-    try std.testing.expectEqual(@as(usize, 1), empty_layout.cols);
-    try std.testing.expectEqual(@as(usize, 0), empty_layout.rows);
-    try std.testing.expectEqual(@as(usize, 9), empty_layout.spacing);
 }
 
 test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const help.DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try help.addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     const exec_entries = [_]help.DirectoryEntry{
         .{ .name = "perf-stat", .is_executable = true },
         .{ .name = "perf-report.exe", .is_executable = true },
@@ -134,24 +96,6 @@ test "phase 8 help command-source and terminal layers stay aligned with the curr
 }
 
 test "phase 8 help raw PATH splitting keeps empty segments, custom prefixes, and exec-path exclusion aligned with help.c" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const help.DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try help.addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     var split_entries = try help.splitPathEntries(std.testing.allocator, ":/opt/perf/bin::/usr/bin:");
     defer split_entries.deinit();
     try std.testing.expectEqual(@as(usize, 5), split_entries.count());
