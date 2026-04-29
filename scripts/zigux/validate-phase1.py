@@ -189,6 +189,64 @@ EXPECTED_PHASE1_MANIFEST_SHAPE = {
             'suffix_unit_test_contract',
         },
     },
+    'helper_review_evidence_keys': {
+        'tools/lib/bitmap.zig': {
+            'bitmap.alloc_nbits',
+            'bitmap.alloc_values',
+            'bitmap.scnprintf',
+            'bitmap.scnprintf_empty_len',
+            'bitmap.scnprintf_empty_bytes',
+            'bitmap.scnprintf_trunc_len',
+            'bitmap.scnprintf_trunc',
+            'bitmap.zalloc_nbits',
+            'bitmap.zalloc_values',
+        },
+        'tools/lib/find_bit.zig': {
+            'find_bit.first',
+            'find_bit.next_after_6',
+            'find_bit.next_after_word',
+            'find_bit.first_zero',
+            'find_bit.next_zero',
+            'find_bit.first_and',
+            'find_bit.next_and',
+            'find_bit.tail_clamped_first',
+            'find_bit.tail_clamped_next',
+            'find_bit.tail_zero_clamped_first',
+            'find_bit.tail_zero_clamped_next',
+            'find_bit.tail_and_clamped_first',
+            'find_bit.tail_and_clamped_next',
+            'find_bit.tail_and_mixed_first',
+            'find_bit.tail_and_mixed_next',
+        },
+        'tools/lib/rbtree.zig': {
+            'rbtree.empty_root',
+            'rbtree.insert_order',
+            'rbtree.reverse_order',
+            'rbtree.replace_order',
+            'rbtree.erase_init_order',
+            'rbtree.postorder_count',
+            'rbtree.erase_init_node_empty',
+            'rbtree.cleared_node_empty',
+        },
+        'tools/lib/string.zig': {
+            'string.strtobool_y',
+            'string.strtobool_on',
+            'string.strtobool_zero',
+            'string.strtobool_off',
+            'string.strtobool_invalid',
+            'string.strlcpy_len',
+            'string.strlcpy_buffer',
+            'string.skip_spaces',
+            'string.trim_spaces',
+            'string.remove_spaces',
+            'string.remove_spaces_nul',
+            'string.remove_spaces_nul_bytes',
+            'string.replace_char',
+            'string.replace_char_end',
+            'string.memchr_inv_index',
+            'string.memchr_inv_none',
+        },
+    },
 }
 
 
@@ -254,6 +312,7 @@ def validate_phase1_manifest_shape(path: Path) -> list[str]:
         return issues
 
     expected_notes = EXPECTED_PHASE1_MANIFEST_SHAPE['helper_review_notes']
+    expected_evidence_keys = EXPECTED_PHASE1_MANIFEST_SHAPE['helper_review_evidence_keys']
     actual_note_helpers = set(review_notes)
     for helper in sorted(set(expected_notes) - actual_note_helpers):
         issues.append(f'phase1_manifest:helper_review_notes:missing_helper:{helper}')
@@ -280,6 +339,15 @@ def validate_phase1_manifest_shape(path: Path) -> list[str]:
         evidence_keys = note.get('evidence_keys')
         if not isinstance(evidence_keys, list) or not evidence_keys:
             issues.append(f'phase1_manifest:{helper}:evidence_keys:expected_nonempty_list')
+            continue
+
+        actual_evidence_keys = set(evidence_keys)
+        for key in sorted(expected_evidence_keys[helper] - actual_evidence_keys):
+            issues.append(f'phase1_manifest:{helper}:evidence_keys:missing:{key}')
+        for key in sorted(actual_evidence_keys - expected_evidence_keys[helper]):
+            issues.append(f'phase1_manifest:{helper}:evidence_keys:unexpected:{key}')
+        if len(evidence_keys) != len(actual_evidence_keys):
+            issues.append(f'phase1_manifest:{helper}:evidence_keys:duplicate_entries')
 
     return issues
 
