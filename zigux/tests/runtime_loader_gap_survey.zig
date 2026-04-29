@@ -473,7 +473,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
 
     try expectContainsAll(review_checklist, &.{
         "## ABI and Runtime",
-        "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
+        "does the change avoid hidden runtime services, implicit allocation, or unclear panic or unsafe ownership behavior?",
         "if unsafe code exists, is it narrow, visible, and review-owned?",
         "are parity tests or fixture checks included?",
         "is there a stated rollback owner and fallback path?",
