@@ -16,9 +16,15 @@ test "phase3 policy helpers stay ABI aligned" {
     try std.testing.expectEqual(abi.PanicMode.warn, panic_policy.modeFromInteropPolicyByte(@intFromEnum(abi.PanicMode.warn)).?);
     try std.testing.expect(panic_policy.recognizesInteropPolicyByte(@intFromEnum(abi.PanicMode.warn)));
     try std.testing.expect(!panic_policy.recognizesInteropPolicyByte(9));
+    try std.testing.expectEqual(abi.PanicMode.warn, panic_policy.modeFromInteropPolicyBytes(@intFromEnum(abi.PanicMode.warn), 0).?);
+    try std.testing.expect(panic_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.PanicMode.warn), 0));
+    try std.testing.expectEqual(@as(?abi.PanicMode, null), panic_policy.modeFromInteropPolicyBytes(@intFromEnum(abi.PanicMode.warn), 1));
+    try std.testing.expect(!panic_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.PanicMode.warn), 1));
     try std.testing.expect(panic_policy.canReturnPolicyByte(@intFromEnum(abi.PanicMode.warn)));
     try std.testing.expect(!panic_policy.canReturnPolicyByte(@intFromEnum(abi.PanicMode.abort)));
     try std.testing.expect(!panic_policy.canReturnPolicyByte(9));
+    try std.testing.expect(panic_policy.canReturnPolicyBytes(@intFromEnum(abi.PanicMode.warn), 0));
+    try std.testing.expect(!panic_policy.canReturnPolicyBytes(@intFromEnum(abi.PanicMode.warn), 1));
 
     try std.testing.expectEqual(allocator_policy.InitFlow.caller_prepared, allocator_policy.initFlowFor(.caller_provided));
     try std.testing.expectEqual(allocator_policy.InitFlow.helper_owned, allocator_policy.initFlowFor(.kernel_heap));
@@ -28,15 +34,28 @@ test "phase3 policy helpers stay ABI aligned" {
     try std.testing.expectEqual(abi.AllocatorMode.arena, allocator_policy.modeFromInteropPolicyByte(@intFromEnum(abi.AllocatorMode.arena)).?);
     try std.testing.expect(allocator_policy.recognizesInteropPolicyByte(@intFromEnum(abi.AllocatorMode.arena)));
     try std.testing.expect(!allocator_policy.recognizesInteropPolicyByte(9));
+    try std.testing.expectEqual(abi.AllocatorMode.arena, allocator_policy.modeFromInteropPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 0).?);
+    try std.testing.expect(allocator_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 0));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, null), allocator_policy.modeFromInteropPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 1));
+    try std.testing.expect(!allocator_policy.recognizesInteropPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 1));
     try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));
     try std.testing.expect(allocator_policy.requiresExplicitCallerPolicyByte(@intFromEnum(abi.AllocatorMode.caller_provided)));
+    try std.testing.expect(allocator_policy.requiresExplicitCallerPolicyBytes(@intFromEnum(abi.AllocatorMode.caller_provided), 0));
+    try std.testing.expect(!allocator_policy.requiresExplicitCallerPolicyBytes(@intFromEnum(abi.AllocatorMode.caller_provided), 1));
     try std.testing.expect(!allocator_policy.permitsGlobalFallback(.caller_provided));
     try std.testing.expect(allocator_policy.permitsGlobalFallback(.kernel_heap));
     try std.testing.expect(allocator_policy.permitsGlobalFallbackPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap)));
+    try std.testing.expect(allocator_policy.permitsGlobalFallbackPolicyBytes(@intFromEnum(abi.AllocatorMode.kernel_heap), 0));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackPolicyBytes(@intFromEnum(abi.AllocatorMode.kernel_heap), 1));
     try std.testing.expect(allocator_policy.requiresResetOnInit(.arena));
     try std.testing.expect(allocator_policy.initializesOwnedStatePolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap)));
+    try std.testing.expect(allocator_policy.initializesOwnedStatePolicyBytes(@intFromEnum(abi.AllocatorMode.kernel_heap), 0));
+    try std.testing.expect(!allocator_policy.initializesOwnedStatePolicyBytes(@intFromEnum(abi.AllocatorMode.kernel_heap), 1));
     try std.testing.expect(allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena)));
+    try std.testing.expect(allocator_policy.requiresResetOnInitPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 0));
+    try std.testing.expect(!allocator_policy.requiresResetOnInitPolicyBytes(@intFromEnum(abi.AllocatorMode.arena), 1));
     try std.testing.expect(!allocator_policy.permitsGlobalFallbackPolicyByte(9));
+    try std.testing.expect(!allocator_policy.permitsGlobalFallbackPolicyBytes(9, 0));
 }
 
 test "phase3 policy layout stays explicit at the ABI boundary" {
