@@ -86,6 +86,12 @@ fn emitOutputWriteError(io: std.Io) !noreturn {
     std.process.exit(1);
 }
 
+fn flushOutputPreservingPrimaryError(writer: anytype) void {
+    // Match the C helper: once parsing or file-open logic has already failed,
+    // a late stdout flush failure must not replace the original error surface.
+    writer.flush() catch {};
+}
+
 const Processor = struct {
     io: std.Io,
     arena: std.heap.ArenaAllocator,
@@ -296,14 +302,14 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     try writer.print("savedcmd_{s} := {s}\n\n", .{ target, cmdline });
     const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
         error.ReadDependencyFile => {
-            try writer.flush();
+            flushOutputPreservingPrimaryError(writer);
             try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
         },
         else => return err,
     };
     processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
         error.ReadDependencyFile => {
-            try writer.flush();
+            flushOutputPreservingPrimaryError(writer);
             try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
         },
         else => return err,
@@ -340,7 +346,7 @@ pub fn main(init: std.process.Init) !void {
 
     runFixdep(arena, io, &stdout, args[1], args[2], args[3]) catch |err| switch (err) {
         error.NoTargets => {
-            try stdout.flush();
+            flushOutputPreservingPrimaryError(&stdout);
             try emitNoTargetsParseError(io);
         },
         error.OutputWrite => try emitOutputWriteError(io),
@@ -601,4 +607,17 @@ test "output writer maps print and flush failures to fixdep output-write errors"
 
     try std.testing.expectError(error.OutputWrite, writer.print("savedcmd_sample := cmd\n", .{}));
     try std.testing.expectError(error.OutputWrite, writer.flush());
+}
+
+test "preserving a primary error ignores late output flush failures" {
+    const FailingWriter = struct {
+        fn flush(_: *@This()) error{NoSpaceLeft}!void {
+            return error.NoSpaceLeft;
+        }
+    };
+
+    var inner = FailingWriter{};
+    var writer = OutputWriter(*FailingWriter).init(&inner);
+
+    flushOutputPreservingPrimaryError(&writer);
 }
