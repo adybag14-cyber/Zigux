@@ -14,6 +14,12 @@ Bytestream FIFO review packet
 - keep the helper-only review surface explicit outside the main replay path: empty-queue null handling, the capacity ceiling, and queue-only reset remain part of the shipped contract
 - keep procfs, `kfifo_from_user()` or `kfifo_to_user()`, locking, and runtime registration out of scope so this sample stays a bounded in-memory idiom rather than a runtime module claim
 
+Kretprobe review packet
+- keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and `Documentation/zigux/phase5-kretprobe-sample-survey.md` aligned through the shared `zigux/tests/phase5_build.zig` entrypoint
+- keep the landed replay contract explicit: default symbol selection, pre-init retargeting, kernel-thread skip behavior, the single private entry timestamp, return-duration replay, the fixed `maxactive = 20` ceiling, and the bounded `nmissed` summary
+- keep the ownership-and-lifetime review surface explicit outside the main replay path: timestamp-order rejection and recovery, armed-exit rejection, and post-exit handler rejection remain part of the shipped contract
+- keep `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and runtime module wiring out of scope so this sample stays a bounded non-runtime idiom rather than a Phase 9 starter claim
+
 Later runtime starters and loader-side follow-ons
 - `samples/zigux/runtime_atomic64.zig`
 - `samples/zigux/runtime_atomic64_loader.zig`
@@ -27,6 +33,7 @@ Review rules
 - keep the four Phase 5 reference samples reviewable as bounded in-memory or non-runtime idiom readings
 - do not treat the later `runtime_*` files in this directory as Phase 5 approved reference idioms
 - keep sample-root notes aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`
+- when `samples/zigux/kretprobe_example.zig` changes, keep this sample-root catalog aligned with the focused replay test, manifest-backed survey, and sample-backed survey note instead of leaving the root-level contributor packet FIFO-only
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; keep string-helper evidence under the separate Phase 7 helper bundle
 
 String-work boundary checks

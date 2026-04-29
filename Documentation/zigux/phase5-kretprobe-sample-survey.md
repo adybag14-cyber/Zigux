@@ -5,14 +5,14 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
-- `PHASE5_LANE_KEY=P5-L18`
+- `PHASE5_LANE_KEY=P5-L17`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=e82c951478a89f1dadc880875ff39949773dd6af`
-- scope: roadmap-vs-repo sample reviewability, approved non-runtime probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
+- `PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb`
+- scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   - `Documentation/zigux/README.md`
-  - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kretprobe_example.zig`
@@ -23,7 +23,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kprobes/kretprobe_example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `kretprobe_example` slice. The kretprobe-specific job is no longer missing sample delivery; it is to keep this approved non-runtime probe-lifecycle idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
+Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `kretprobe_example` slice. The kretprobe-specific job is no longer missing sample delivery; it is to keep this probe-lifecycle idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
 
 ## Survey findings
 
@@ -63,7 +63,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 
 ## Latest verification snapshot
 
-- inspected `master` head: `e82c951478a89f1dadc880875ff39949773dd6af`
+- inspected `master` head: `b21d2dfb039484b866f247a974369b9619a2afcb`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/kretprobe_example.zig`
@@ -85,7 +85,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, pre-init retargeting, timestamp-order boundary, private-data, return-value, duration, fixed `maxactive`, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
 - does `zigux/tests/phase5_kretprobe_example_manifest.json` still pin the exact surveyed commit for the inspected `master` head instead of a floating branch label?
-- does the sample-backed survey note, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate Phase 9 runtime starter while pointing reviewers at the shared `phase5_build.zig` entrypoint?
+- does the sample-backed survey note, `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kretprobe slice distinct from the separate Phase 9 runtime starter while pointing reviewers at the shared `phase5_build.zig` entrypoint?
 - does the sample keep the Linux `struct my_data`-style private entry timestamp explicit as one `i64`-sized in-memory word instead of hiding the anchor's private-data cue in unstructured state?
 - does the sample keep the Linux `maxactive = 20` budget explicit as a reviewable in-memory ceiling instead of silently drifting away from the anchor or implying runtime tuning support?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
@@ -97,14 +97,13 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise state is:
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, pre-init retargeting, skip behavior, private-data shape, timestamp-order rejection and recovery, return timing, fixed `maxactive`, summary recording, and teardown
-- the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kretprobe slice as one approved non-runtime probe-lifecycle idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux kretprobe example
-   - `rg -n "samples/kprobes/kretprobe_example.c|Phase 5" Documentation/zigux samples`
+   - `rg -n "samples/kprobes/kretprobe_example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 kretprobe lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "kretprobe|runtime_kretprobe"`
 3. run the exact bounded Phase 5 sample checks
