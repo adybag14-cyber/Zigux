@@ -9,6 +9,10 @@ pub fn CComparator(comptime Key: type, comptime T: type) type {
     return *const fn (*const Key, *const T) callconv(.c) i32;
 }
 
+pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
+
+pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) i32;
+
 fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
     const fn_info = switch (@typeInfo(Compare)) {
         .@"fn" => |info| info,
@@ -31,6 +35,83 @@ fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: ty
     if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != i32) {
         @compileError("bsearch comparator return type must be i32");
     }
+}
+
+fn validateRawComparator(comptime Compare: type) void {
+    const fn_info = switch (@typeInfo(Compare)) {
+        .@"fn" => |info| info,
+        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
+            .@"fn" => |info| info,
+            else => @compileError("bsearch raw comparator must be a function or function pointer"),
+        },
+        else => @compileError("bsearch raw comparator must be a function or function pointer"),
+    };
+
+    if (fn_info.params.len != 2) {
+        @compileError("bsearch raw comparator must accept exactly two parameters");
+    }
+    if (fn_info.params[0].type orelse @compileError("bsearch raw comparator key parameter must be typed") != *const anyopaque) {
+        @compileError("bsearch raw comparator first parameter must be *const anyopaque");
+    }
+    if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
+        @compileError("bsearch raw comparator second parameter must be *const anyopaque");
+    }
+    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != i32) {
+        @compileError("bsearch raw comparator return type must be i32");
+    }
+}
+
+pub fn bsearchIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?usize {
+    comptime validateRawComparator(@TypeOf(compare));
+    var start: usize = 0;
+    var count = num;
+
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
+        const result = compare(key, pivot_ptr);
+
+        if (result == 0) {
+            return pivot_index;
+        }
+        if (result > 0) {
+            start = pivot_index + 1;
+            count -= 1;
+        }
+        count >>= 1;
+    }
+
+    return null;
+}
+
+pub fn bsearch(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?*const anyopaque {
+    comptime validateRawComparator(@TypeOf(compare));
+    const index = bsearchIndex(key, base, num, size, compare) orelse return null;
+    return @ptrCast(base + (index * size));
+}
+
+pub fn bsearchMutable(
+    key: *const anyopaque,
+    base: [*]u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?*anyopaque {
+    comptime validateRawComparator(@TypeOf(compare));
+    const index = bsearchIndex(key, base, num, size, compare) orelse return null;
+    return @ptrCast(base + (index * size));
 }
 
 pub fn searchIndex(
@@ -117,6 +198,22 @@ fn compareName(key: *const []const u8, item: *const Entry) i32 {
         .eq => 0,
         .gt => 1,
     };
+}
+
+fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareInt(typed_key, typed_item);
+}
+
+fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareOpaqueInt(key, item);
+}
+
+fn compareOpaqueName(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const []const u8 = @ptrCast(@alignCast(key));
+    const typed_item: *const Entry = @ptrCast(@alignCast(item));
+    return compareName(typed_key, typed_item);
 }
 
 test "searchIndex finds values at the beginning middle and end of a sorted slice" {
@@ -216,6 +313,37 @@ test "search supports heterogeneous keys through the comparator" {
     try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
 }
 
+test "bsearchIndex and bsearch expose the raw Linux-style helper contract" {
+    const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const key = @as(i32, 16);
+
+    try std.testing.expectEqual(@as(?usize, 4), bsearchIndex(&key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt));
+
+    const found = bsearch(&key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_found: *const i32 = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@as(i32, 16), typed_found.*);
+    try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+}
+
+test "bsearch supports heterogeneous keys and mutable raw pointers" {
+    var entries = [_]Entry{
+        .{ .name = "alpha", .value = 1 },
+        .{ .name = "beta", .value = 2 },
+        .{ .name = "delta", .value = 4 },
+        .{ .name = "omega", .value = 24 },
+    };
+    const key = @as([]const u8, "delta");
+
+    const found = bsearch(@ptrCast(&key), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
+    const typed_found: *const Entry = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@as(u32, 4), typed_found.value);
+
+    const found_mutable = bsearchMutable(@ptrCast(&key), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
+    const typed_found_mutable: *Entry = @ptrCast(@alignCast(found_mutable));
+    typed_found_mutable.value = 5;
+    try std.testing.expectEqual(@as(u32, 5), entries[2].value);
+}
+
 test "search accepts runtime-selected comparator function pointers" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
@@ -239,5 +367,17 @@ test "search accepts runtime-selected C ABI comparator function pointers" {
     for (comparators, slices, targets) |compare, items, target| {
         const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
         try std.testing.expectEqual(target, found.*);
+    }
+}
+
+test "bsearch accepts runtime-selected C ABI raw comparator function pointers" {
+    const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const comparators = [_]CRawComparator{compareCOpaqueInt};
+    const target = @as(i32, 23);
+
+    for (comparators) |compare| {
+        const found = bsearch(&target, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(target, typed_found.*);
     }
 }
