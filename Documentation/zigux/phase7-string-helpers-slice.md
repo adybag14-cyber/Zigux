@@ -7,7 +7,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, and a small allocator-backed `parse_int_array()` starter landed; parked unless a new `string_helpers.c` parity issue appears
+- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, and small allocator-backed `parse_int_array()` and `parse_int_array_user()` starters landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
@@ -63,6 +63,7 @@ The current starter slice covers:
 - `string_escape_str()`
 - `string_escape_str_any_np()`
 - `parse_int_array()` over the bounded allocator-backed starter path
+- `parse_int_array_user()` over the bounded copy-and-parse starter path
 
 The current tests check:
 
@@ -86,15 +87,15 @@ The current tests check:
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator through one dedicated gate assertion
 - shared wrapper proofs that `string_escape_mem_any_np()`, `string_escape_str()`, and `string_escape_str_any_np()` reuse the bounded `ESCAPE_ANY_NP` policy and stop at the first C-string terminator instead of walking tail bytes
 - allocator-backed `parse_int_array()` coverage that preserves Linux's count-prefixed output layout, reuses the existing `get_options()` base and sign semantics, stops at the first C-string terminator, truncates wide values to `i32`, and returns a no-entry error when the input contains no parseable integers
+- shared `parse_int_array_user()` coverage that keeps the bounded copy window explicit before parsing, inserts a first-NUL terminator at the requested count boundary, and returns a no-entry error when the requested window is empty
 
 ## Non-goals
 
 This slice does not yet claim:
 
-- integer parsing beyond the current formatter and escape surface
-- parity for `parse_int_array_user()`
+- integer parsing beyond the current formatter, bounded count-backed array starters, and escape surface
 - allocation-backed duplication helpers
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded formatter, escape, and `parse_int_array()` starter surface, such as a tightly scoped follow-up on one remaining allocation-backed helper or a dedicated `parse_int_array_user()` review slice that is still clearly Phase 7-sized.
+Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded formatter, escape, and counted integer-array starter surface, such as a tightly scoped follow-up on one remaining allocation-backed helper.
