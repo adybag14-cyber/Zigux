@@ -31,6 +31,25 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+fn readWorkspaceFile(
+    io: anytype,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
+fn countLines(text: []const u8) usize {
+    if (text.len == 0) return 0;
+
+    var lines: usize = 0;
+    for (text) |byte| {
+        if (byte == '\n') lines += 1;
+    }
+    return if (text[text.len - 1] == '\n') lines else lines + 1;
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -78,6 +97,82 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
     try std.testing.expect(manifest.survey_summary.tests_readme_runtime_atomic64_diff_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+
+    const atomic64_test_c = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "lib/atomic64_test.c",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_test_c);
+    const runtime_atomic64_diff = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/runtime_atomic64_diff.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_atomic64_diff);
+    const phase4_build = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase4_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(phase4_build);
+    const phase9_build = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase9_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(phase9_build);
+    const phase4_validator = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(phase4_validator);
+    const runtime_atomic64_sample = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "samples/zigux/runtime_atomic64.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(runtime_atomic64_sample);
+    const phase4_validation_matrix = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix);
+    const tests_readme = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/README.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(tests_readme);
+
+    const live_summary = SurveySummary{
+        .atomic64_test_c_lines = countLines(atomic64_test_c),
+        .runtime_atomic64_diff_lines = countLines(runtime_atomic64_diff),
+        .runtime_atomic64_diff_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate replays bounded atomic64_test.c") != null,
+        .post_selftest_replay_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate keeps post-selftest replay explicit") != null,
+        .phase4_build_present = std.mem.indexOf(u8, phase4_build, "runtime_atomic64_diff.zig") != null and
+            std.mem.indexOf(u8, phase4_build, "phase4-runtime-atomic64-diff-tests") != null,
+        .phase9_build_present = std.mem.indexOf(u8, phase9_build, "runtime_atomic64_diff.zig") != null and
+            std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-diff-tests") != null,
+        .phase4_validator_runtime_atomic64_diff_present = std.mem.indexOf(u8, phase4_validator, "zigux/tests/runtime_atomic64_diff.zig") != null,
+        .runtime_atomic64_sample_present = std.mem.indexOf(u8, runtime_atomic64_sample, "provides_selftest_hook = true") != null and
+            std.mem.indexOf(u8, runtime_atomic64_sample, "pub fn addCounter") != null,
+        .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_validation_matrix, "zigux/tests/runtime_atomic64_diff.zig") != null and
+            std.mem.indexOf(u8, phase4_validation_matrix, "threshold_pending_until_runtime_atomic64_scope_widens") != null,
+        .tests_readme_runtime_atomic64_diff_present = std.mem.indexOf(u8, tests_readme, "zigux/tests/runtime_atomic64_diff.zig") != null,
+    };
+
+    try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
