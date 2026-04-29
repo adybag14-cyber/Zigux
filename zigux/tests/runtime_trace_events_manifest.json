@@ -21,7 +21,7 @@
   "review_prompts": [
     "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit instead of implying a live trace-events loader or ring-buffer parity",
     "the manifest, survey gate, module gate, diff gate, survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, replay run counters, payload-summary visibility, and the frozen runtime-substrate boundary",
-    "the manifest-backed delivery catalog and ownership map still keep the sample, module gate, diff gate, survey gate, shared build entrypoint, survey note, and freeze-map boundary in one reviewable packet",
+    "the manifest-backed delivery catalog and ownership map still keep the sample, module gate, diff gate, survey gate, shared build entrypoint, survey note, module-slice note, and freeze-map boundary in one reviewable packet",
     "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
     "broader runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring stay blocked until a separate runtime-substrate lane lands a real handoff"
   ],
@@ -69,6 +69,12 @@
       "role": "owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the trace-events survey packet"
     },
     {
+      "id": "runtime-trace-events-module-slice",
+      "kind": "documentation",
+      "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "role": "owns the landed starter surface summary, direct sample and diff gate posture, and the paired loader-free blocker restatement for the trace-events packet"
+    },
+    {
       "id": "runtime-trace-events-freeze-map",
       "kind": "governance",
       "path": "Documentation/zigux/freeze-map.md",
@@ -103,6 +109,10 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
       "owns": "lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the trace-events survey packet"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "owns": "landed starter surface summary, direct sample and diff gate posture, and the paired loader-free blocker restatement for the trace-events packet"
     },
     {
       "surface": "Documentation/zigux/freeze-map.md",
