@@ -56,7 +56,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0626b89ccc57cd2d579344f878be4e23fd33d691", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("242977647386c9f661be8e3c64dab554ab15be20", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_input_c_lines >= 400);
     try std.testing.expectEqual(@as(usize, 8), manifest.survey_summary.preexisting_phase10_test_files);
@@ -151,10 +151,12 @@ test "phase10 virtio input survey manifest records the live starter and remainin
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {
             saw_ready_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration intent is staged") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event queue is filled") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status queue is configured") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device is ready") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {
@@ -167,7 +169,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     }
 
     try std.testing.expect(starter_landed_count >= 12);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_gate);
