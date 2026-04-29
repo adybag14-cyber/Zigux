@@ -39,6 +39,7 @@ This lane keeps the shipped `help.zig` starter slice aligned with the stable com
 The current starter slice covers:
 
 - owned `add_cmdname()`-style command-name storage with explicit copy semantics
+- owned command-name and raw-`PATH` entry storage that now also frees temporary copied slices cleanly if allocator growth fails before the new entry is retained
 - `cmdname_compare()`-adjacent lexical sorting
 - `uniq()` behavior for adjacent duplicates after sorting
 - `exclude_cmds()` behavior for sorted exclusion lists
@@ -54,6 +55,7 @@ The current starter slice covers:
 The current tests check:
 
 - copied command names do not alias mutable caller buffers
+- owned command-name and raw-`PATH` entry helpers release temporary copied slices cleanly when allocator failure interrupts append growth
 - sorted duplicate removal keeps one stable owned copy
 - sorted exclusions remove matching entries without disturbing survivors
 - executable-entry filtering ignores non-prefixed, non-executable, and prefix-only candidates while stripping `.exe` suffixes
