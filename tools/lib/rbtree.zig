@@ -1273,6 +1273,85 @@ test "rbtree iterateMatchesReverse streams only the duplicate range in reverse" 
     try std.testing.expectEqual(@as(?*Node, null), missing_iterator.next());
 }
 
+test "rbtree duplicate search stays aligned after erase and same-key replace" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 5, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 20, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var replacement = Entry{ .key = 10, .serial = 6 };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    const wanted = @as(i32, 10);
+    erase(&entries[2].node, &root);
+    try expectValidTree(&root);
+
+    const after_erase_first = findFirst(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    const after_erase_last = findLast(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), (@as(*const Entry, @fieldParentPtr("node", after_erase_first))).serial);
+    try std.testing.expectEqual(@as(usize, 4), (@as(*const Entry, @fieldParentPtr("node", after_erase_last))).serial);
+
+    var forward_after_erase = iterateMatches(&wanted, &root, cmpKey);
+    var erase_serials: [2]usize = undefined;
+    var erase_count: usize = 0;
+    while (forward_after_erase.next()) |node| {
+        erase_serials[erase_count] = (@as(*const Entry, @fieldParentPtr("node", node))).serial;
+        erase_count += 1;
+    }
+    try std.testing.expectEqual(@as(usize, 2), erase_count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 4 }, erase_serials[0..erase_count]);
+
+    replaceNode(&entries[4].node, &replacement.node, &root);
+    try expectValidTree(&root);
+
+    const after_replace_first = findFirst(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    const after_replace_last = findLast(&wanted, &root, cmpKey) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), (@as(*const Entry, @fieldParentPtr("node", after_replace_first))).serial);
+    try std.testing.expectEqual(@as(usize, 6), (@as(*const Entry, @fieldParentPtr("node", after_replace_last))).serial);
+
+    var reverse_after_replace = iterateMatchesReverse(&wanted, &root, cmpKey);
+    var replace_serials: [2]usize = undefined;
+    var replace_count: usize = 0;
+    while (reverse_after_replace.next()) |node| {
+        replace_serials[replace_count] = (@as(*const Entry, @fieldParentPtr("node", node))).serial;
+        replace_count += 1;
+    }
+    try std.testing.expectEqual(@as(usize, 2), replace_count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 6, 0 }, replace_serials[0..replace_count]);
+}
+
 test "rbtree cached root keeps leftmost in sync across add erase and replace" {
     const Entry = struct {
         key: i32,
