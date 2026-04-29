@@ -37,7 +37,6 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "blocked_on_current_master_replay_drift") or
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
@@ -59,7 +58,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("2b58a5636c7fcf3776e5960b52d1916a54ae64b4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("7095a02f382e919b535b5e5c3fa8985ded58268e", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -81,13 +80,11 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_replay_green_on_current_master);
+    try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
-    try std.testing.expectEqual(@as(usize, 3), manifest.remaining_gaps.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.remaining_gaps.len);
 
-    var saw_review_process_lane_marker_drift = false;
-    var saw_checklist_limit_drift = false;
     var saw_status_change_blocker = false;
     for (manifest.remaining_gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -95,22 +92,6 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
         try std.testing.expect(gap.zigux_destination.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
-
-        if (std.mem.eql(u8, gap.id, "phase15-review-process-lane-marker-drift")) {
-            saw_review_process_lane_marker_drift = true;
-            try std.testing.expectEqualStrings("blocked_on_current_master_replay_drift", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current bounded lane: `P15-L07`") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current bounded lane: `P15-L08`") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase15-parity-scorecard-review-checklist-read-limit-drift")) {
-            saw_checklist_limit_drift = true;
-            try std.testing.expectEqualStrings("blocked_on_current_master_replay_drift", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase15_parity_scorecard.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "error.StreamTooLong") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "17,461") != null);
-        }
 
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_status_change_blocker = true;
@@ -124,12 +105,10 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
         }
     }
 
-    try std.testing.expect(saw_review_process_lane_marker_drift);
-    try std.testing.expect(saw_checklist_limit_drift);
     try std.testing.expect(saw_status_change_blocker);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance-ready status") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "review-process lane marker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "read cap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance-ready governance mode") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared Phase 15 replay drifts again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "dedicated readiness guard") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core blocker posture") != null);
 }
 
@@ -160,15 +139,12 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared bootstrap workflow still runs the Phase 15 governance bundle") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "not replay-clean on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Build Summary: 9/13 steps succeeded (3 failed); 13/16 tests passed (3 failed)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "current bounded lane") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "P15-L07") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "P15-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "replay-clean on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Build Summary: 13/13 steps succeeded; 16/16 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Phase 15 notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "error.StreamTooLong") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "not yet maintenance-ready") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-review-process-lane-marker-drift") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-parity-scorecard-review-checklist-read-limit-drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-ready as a governance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
