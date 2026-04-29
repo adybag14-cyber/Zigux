@@ -1,13 +1,14 @@
 # Phase 6 Checksum Slice
 
-This document reserves a bounded Phase 6 leaf-helper port for Zigux.
+This document records the bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
-- `PHASE6_STATUS=planned`
+- `PHASE6_STATUS=active`
 - `PHASE6_SLICE=checksum-leaf-helper`
-- scope: first low-risk checksum helper only
-- live `master` currently ships the review note only; the code and harness files below are still the intended product boundary, not a landed surface:
+- scope: first low-risk checksum helper coverage only
+- lane posture: parked after the current parity surface cleared the bounded helper goal
+- product boundary:
   - `lib/checksum.zig`
   - `zigux/tests/phase6_checksum.zig`
   - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
@@ -16,29 +17,30 @@ This document reserves a bounded Phase 6 leaf-helper port for Zigux.
 
 ## Why this slice exists
 
-Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without stepping into runtime-core or driver complexity.
+Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without stepping into runtime-core or driver complexity.
 
-`lib/checksum.c` is still a good first slice because it is:
+`lib/checksum.c` is a good Phase 6 slice because it is:
 
 - leaf-oriented
 - math-sensitive enough to justify a focused gate
 - small enough to validate without inventing a broad new subsystem
+- already ported with a committed helper, shared fixture corpus, and focused perf-sanity harness
 
-## Review Gate
+## Gates
 
-Before this slice can be called active, live `master` needs a bounded checksum packet that lands all of the following together:
+1. run the focused Zig Phase 6 helper tests
+- `zig build test --build-file zigux/tests/phase6_build.zig`
 
-1. the helper surface in `lib/checksum.zig`
-2. focused parity coverage in `zigux/tests/phase6_checksum.zig`
-3. any imported or hand-authored checksum fixtures in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-4. a Phase 6 build entry in `zigux/tests/phase6_build.zig`
-5. the Zigux convenience targets in `zigux/Makefile`
+2. keep the helper wired through the Zigux convenience target
+- `make -C zigux phase6`
 
-Until those files exist on `master`, do not claim shipped checksum parity, shipped perf gating, or completed helper coverage from this note alone.
+3. replay the checksum perf sanity harness when reviewing checksum-cost drift
+- `zig build checksum-perf --build-file zigux/tests/phase6_build.zig`
+- or `make -C zigux phase6-checksum-perf`
 
-## Planned Parity Surface
+## Current parity surface
 
-Once the bounded checksum packet lands, the first honest parity target should stay narrow and reviewable. The intended starter surface remains:
+The current checksum helper surface exercised by this slice covers:
 
 - `add`
 - `sub`
@@ -56,20 +58,19 @@ Once the bounded checksum packet lands, the first honest parity target should st
 - `partial`
 - `compute`
 
-## Planned Gates
+The current tests check:
 
-Once the helper and tests exist, the intended verification path is:
+- fixture-backed whole-buffer compute parity across the committed checksum vectors
+- partial-sum composition across even and odd split boundaries
+- seeded partial accumulation against a widened-accumulator reference path
+- carry-discipline edge cases on the helper-local surface
+- six imported KUnit random-prefix prefix lengths through the committed fixture corpus
+- pseudo-header accumulation parity for representative TCP/UDP-style checksum folding
+- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
+- shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed directly by both `lib/checksum.zig` and `zigux/tests/phase6_checksum.zig`
+- a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads
 
-1. run the focused Zig checksum tests
-- `zig build test --build-file zigux/tests/phase6_build.zig`
-
-2. keep the helper wired through the Zigux convenience target
-- `make -C zigux phase6`
-
-3. replay the checksum perf sanity harness for this math-sensitive helper
-- `make -C zigux phase6-checksum-perf`
-
-The first landing should keep its fixture layer intentionally small and only claim parity that is directly backed by checked-in vectors, focused helper tests, and any shipped perf ceiling data.
+This is enough evidence to leave the bounded checksum helper lane parked unless a concrete new parity or perf gap appears in the live repo.
 
 ## Non-goals
 
@@ -78,7 +79,8 @@ This slice does not yet claim:
 - arch-specific assembly fast paths
 - kbuild integration into the kernel proper
 - performance equivalence across all architectures
+- broader networking checksum families beyond the current bounded leaf-helper surface
 
 ## Next bounded step
 
-The next honest checksum step is to land the first real `lib/checksum.zig` packet with a minimal parity surface and directly coupled tests, then flip this note from planned to active only after those files exist on live `master`.
+Leave the checksum helper lane parked unless fresh repo inspection finds a concrete parity, perf, or directly coupled review-packet drift inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `zigux/tests/phase6_checksum_perf.zig`, or the shared Phase 6 packet.
