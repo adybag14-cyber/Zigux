@@ -154,7 +154,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "5ecf3870d48d43e7a718b620b02ab9f60c0b969f") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "145972f2b522a36b8074bc114df6d3a9f7675264") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "2b4981e7e731f954e21db71e991fe885c518eb0d") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_VALIDATION=pass") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_net_manifest.json:gap_count") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase12_virtio_scsi_survey.zig") != null);
@@ -191,7 +191,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "5e763869076a06bf66ba409cb74a96226f0feebe048f032dda699bb3b79508f0") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "shared_validator_result: `PHASE12_VALIDATION=fail`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "shared_validator_missing_marker: `phase12_virtio_net_manifest.json:gap_count`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_master_replay_head: `145972f2b522a36b8074bc114df6d3a9f7675264`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_master_replay_head: `2b4981e7e731f954e21db71e991fe885c518eb0d`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_result: `PHASE12_VALIDATION=pass`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_focused_survey_result: `All 1 tests passed.`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "focused_survey_result: `All 1 tests passed.`") != null);
