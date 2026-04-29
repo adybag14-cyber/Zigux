@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 import json
 import re
@@ -103,6 +104,7 @@ BUILD_MARKERS = [
 ]
 FORBIDDEN_BUILD_MARKERS: list[str] = []
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase12_build_inventory.json"
+PHASE12_LIBBPF_SNAPSHOT_FIXTURE = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 
 MANIFEST_SPECS = {
     "phase12_virtio_net_manifest.json": {
@@ -228,6 +230,45 @@ def expect_catalog_marker(catalog_text: str, marker: str, missing_key: str, miss
     if marker not in catalog_text:
         missing.append(missing_key)
 
+
+def expect_libbpf_snapshot_fixture(
+    snapshot: dict[str, object], manifest: dict[str, object], missing: list[str]
+) -> None:
+    if snapshot.get("lane_key") != manifest.get("lane_key"):
+        missing.append("phase12_libbpf_snapshot_fixture:lane_key")
+    if snapshot.get("phase") != manifest.get("phase"):
+        missing.append("phase12_libbpf_snapshot_fixture:phase")
+    if snapshot.get("surveyed_commit") != manifest.get("surveyed_commit"):
+        missing.append("phase12_libbpf_snapshot_fixture:surveyed_commit")
+
+    files = snapshot.get("files")
+    if not isinstance(files, list) or not all(isinstance(item, dict) for item in files):
+        missing.append("phase12_libbpf_snapshot_fixture:files")
+        return
+
+    tracked_file_count = snapshot.get("tracked_file_count")
+    if tracked_file_count != len(files):
+        missing.append("phase12_libbpf_snapshot_fixture:tracked_file_count")
+
+    expected_paths = [
+        "zigux/tests/phase12_libbpf_manifest.json",
+        "zigux/tests/phase12_libbpf_segments.zig",
+        "zigux/tests/phase12_libbpf_reviewability.zig",
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+    ]
+    actual_paths = [entry.get("path") for entry in files]
+    if actual_paths != expected_paths:
+        missing.append("phase12_libbpf_snapshot_fixture:paths")
+        return
+
+    for entry, expected_path in zip(files, expected_paths):
+        file_bytes = (ROOT / expected_path).read_bytes()
+        if entry.get("bytes") != len(file_bytes):
+            missing.append(f"phase12_libbpf_snapshot_fixture:bytes:{expected_path}")
+        if entry.get("sha256") != hashlib.sha256(file_bytes).hexdigest():
+            missing.append(f"phase12_libbpf_snapshot_fixture:sha256:{expected_path}")
+
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
     print("PHASE12_VALIDATION=fail")
@@ -256,6 +297,7 @@ for marker in FORBIDDEN_BUILD_MARKERS:
         missing.append(f"phase12_build:forbidden:{marker}")
 
 build_inventory = json.loads(text(BUILD_INVENTORY_FIXTURE))
+phase12_libbpf_snapshot_fixture = json.loads(text(PHASE12_LIBBPF_SNAPSHOT_FIXTURE))
 expected_build_test_names = build_inventory.get("build_test_names")
 if not isinstance(expected_build_test_names, list) or not all(isinstance(item, str) for item in expected_build_test_names):
     missing.append("phase12_build_fixture:build_test_names")
@@ -456,6 +498,9 @@ for name, spec in MANIFEST_SPECS.items():
             f"{name}:raw_fallback_catalog_survey_command",
             missing,
         )
+
+    if name == "phase12_libbpf_manifest.json":
+        expect_libbpf_snapshot_fixture(phase12_libbpf_snapshot_fixture, manifest, missing)
 
 if starter_total != expected_starter_total:
     missing.append(f"starter_total:{starter_total}")
