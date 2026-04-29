@@ -68,10 +68,10 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expectEqualStrings("2fb5b0c059d2f4da65f856d2b5a377ad257e44de", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
-    try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_closure_validator_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase10_closure_note_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_phase10_closure_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_slice_note_present);
