@@ -234,6 +234,13 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     );
     defer std.testing.allocator.free(cpu_mask_note);
 
+    const bridge_boundary_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_boundary_note);
+
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
     try expectContains(survey_note, "blocked object-model");
@@ -246,4 +253,10 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
     try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
+    try expectContains(bridge_boundary_note, "perf-buffer-online-cpu-routing");
+    try expectContains(bridge_boundary_note, "/sys/devices/system/cpu/online");
+    try expectContains(bridge_boundary_note, "cached `/sys/devices/system/cpu/possible` counts");
+    try expectContains(bridge_boundary_note, "libbpf_num_possible_cpus()");
+    try expectContains(bridge_boundary_note, "per-CPU perf-event-array map updates");
+    try expectContains(bridge_boundary_note, "epoll-backed perf FD registration");
 }
