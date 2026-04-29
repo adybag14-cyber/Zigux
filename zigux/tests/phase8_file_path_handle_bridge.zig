@@ -61,6 +61,47 @@ test "phase 8 file-path-handle bridge plans token preparation without claiming l
     try std.testing.expect(mandatory.requiresTokenCreate());
 }
 
+test "phase 8 file-path-handle bridge keeps token failure recovery discipline explicit" {
+    const prevented = file_path_handle_bridge.classifyTokenPreparationFailure(
+        file_path_handle_bridge.planTokenPreparation(""),
+        .bpffs_open,
+        -@as(i32, @intFromEnum(std.os.linux.E.ACCES)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationFailureDisposition.skip_optional,
+        prevented.disposition,
+    );
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.debug, prevented.log_level);
+    try std.testing.expectEqualStrings(", skipping optional step...", prevented.message_suffix);
+    try std.testing.expect(prevented.shouldContinueWithoutToken());
+
+    const optional_missing_delegation = file_path_handle_bridge.classifyTokenPreparationFailure(
+        file_path_handle_bridge.planTokenPreparation(null),
+        .token_create,
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationFailureDisposition.skip_optional_missing_delegation,
+        optional_missing_delegation.disposition,
+    );
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.debug, optional_missing_delegation.log_level);
+    try std.testing.expectEqualStrings("", optional_missing_delegation.message_suffix);
+    try std.testing.expect(optional_missing_delegation.shouldContinueWithoutToken());
+
+    const mandatory_create = file_path_handle_bridge.classifyTokenPreparationFailure(
+        file_path_handle_bridge.planTokenPreparation("/custom/bpffs"),
+        .token_create,
+        -@as(i32, @intFromEnum(std.os.linux.E.PERM)),
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationFailureDisposition.fail,
+        mandatory_create.disposition,
+    );
+    try std.testing.expectEqual(file_path_handle_bridge.TokenPreparationLogLevel.warn, mandatory_create.log_level);
+    try std.testing.expectEqualStrings("", mandatory_create.message_suffix);
+    try std.testing.expect(!mandatory_create.shouldContinueWithoutToken());
+}
+
 test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
     const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
         "pos:\t0\n" ++
@@ -108,6 +149,10 @@ test "phase 8 file-path-handle bridge keeps reused-map name selection bounded an
         "different_prefix",
         file_path_handle_bridge.chooseReusedMapName("process_pinned_map", "different_prefix"),
     );
+    try std.testing.expectEqualStrings(
+        "",
+        file_path_handle_bridge.chooseReusedMapName("process_pinned_map", ""),
+    );
 }
 
 test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wins fdinfo fallback" {
@@ -128,6 +173,13 @@ test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wi
 }
 
 test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
+    try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_type:\t3\n" ++
+            "key_size:\tfour\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t256\n" ++
+            "map_flags:\t32\n",
+    ));
     try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_type:\t3\n" ++
             "key_size:\t4\n" ++
@@ -165,6 +217,13 @@ test "phase 8 file-path-handle bridge keeps the DEVMAP readonly-prog compatibili
         file_path_handle_bridge.normalizeReuseCompatibilityMapFlags(expected.map_type, actual.map_flags),
     );
     try std.testing.expect(file_path_handle_bridge.isMapReuseCompatible(expected, actual));
+    try std.testing.expectEqual(
+        @as(u32, 0x20),
+        file_path_handle_bridge.normalizeReuseCompatibilityMapFlags(
+            file_path_handle_bridge.bpf_map_type_devmap_hash,
+            file_path_handle_bridge.bpf_f_rdonly_prog | 0x20,
+        ),
+    );
 }
 
 test "phase 8 file-path-handle bridge keeps non-DEVMAP reuse mismatches explicit" {
@@ -188,4 +247,12 @@ test "phase 8 file-path-handle bridge keeps non-DEVMAP reuse mismatches explicit
         file_path_handle_bridge.normalizeReuseCompatibilityMapFlags(expected.map_type, actual.map_flags),
     );
     try std.testing.expect(!file_path_handle_bridge.isMapReuseCompatible(expected, actual));
+    try std.testing.expect(!file_path_handle_bridge.isMapReuseCompatible(expected, .{
+        .map_type = 3,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 1,
+    }));
 }
