@@ -5,6 +5,7 @@ const SurveySummary = struct {
     runtime_sample_count: usize,
     runtime_loader_plan_count: usize,
     phase8_command_environment_surface_count: usize,
+    cross_phase_non_owner_surface_count: usize,
     shared_runtime_loader_present: bool,
     allocator_policy_present: bool,
     shared_init_exit_contract_present: bool,
@@ -31,6 +32,13 @@ const OwnershipEntry = struct {
     owns: []const u8,
 };
 
+const NonOwnerSurface = struct {
+    surface: []const u8,
+    owning_phase: []const u8,
+    boundary_kind: []const u8,
+    why_non_owner: []const u8,
+};
+
 const Phase8ControlSurfaceMarkers = struct {
     exec_cmd_surface: []const u8,
     help_surface: []const u8,
@@ -54,6 +62,7 @@ const Manifest = struct {
     phase8_control_surface_markers: Phase8ControlSurfaceMarkers,
     runtime_samples: []const []const u8,
     runtime_loader_plans: []const []const u8,
+    non_owner_surfaces: []const NonOwnerSurface,
     delivery_evidence_catalog: []const DeliveryEvidence,
     ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
@@ -138,8 +147,10 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 2), manifest.phase8_control_surface_markers.terminal_env_names.len);
     try std.testing.expectEqualStrings("LINES", manifest.phase8_control_surface_markers.terminal_env_names[0]);
     try std.testing.expectEqualStrings("COLUMNS", manifest.phase8_control_surface_markers.terminal_env_names[1]);
+    try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.cross_phase_non_owner_surface_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.runtime_samples.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.runtime_loader_plans.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.non_owner_surfaces.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
@@ -153,6 +164,22 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", manifest.runtime_loader_plans[0]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", manifest.runtime_loader_plans[1]);
     try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", manifest.runtime_loader_plans[2]);
+    try std.testing.expectEqualStrings("scripts/zigux/kconfig/conf_bridge.zig", manifest.non_owner_surfaces[0].surface);
+    try std.testing.expectEqualStrings("Phase 2", manifest.non_owner_surfaces[0].owning_phase);
+    try std.testing.expectEqualStrings("config_surface_bridge", manifest.non_owner_surfaces[0].boundary_kind);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.non_owner_surfaces[0].why_non_owner, "boundary reference instead of Phase 9 runtime evidence") != null);
+    try std.testing.expectEqualStrings("scripts/zigux/kconfig/confdata_bridge.zig", manifest.non_owner_surfaces[1].surface);
+    try std.testing.expectEqualStrings("Phase 2", manifest.non_owner_surfaces[1].owning_phase);
+    try std.testing.expectEqualStrings("config_surface_bridge", manifest.non_owner_surfaces[1].boundary_kind);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.non_owner_surfaces[1].why_non_owner, "boundary reference instead of Phase 9 runtime evidence") != null);
+    try std.testing.expectEqualStrings("rust/exports.c", manifest.non_owner_surfaces[2].surface);
+    try std.testing.expectEqualStrings("Phase 3", manifest.non_owner_surfaces[2].owning_phase);
+    try std.testing.expectEqualStrings("export_boundary", manifest.non_owner_surfaces[2].boundary_kind);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.non_owner_surfaces[2].why_non_owner, "boundary reference instead of Phase 9 runtime evidence") != null);
+    try std.testing.expectEqualStrings("zigux/kernel/export_shim.zig", manifest.non_owner_surfaces[3].surface);
+    try std.testing.expectEqualStrings("Phase 3", manifest.non_owner_surfaces[3].owning_phase);
+    try std.testing.expectEqualStrings("export_boundary", manifest.non_owner_surfaces[3].boundary_kind);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.non_owner_surfaces[3].why_non_owner, "boundary reference instead of Phase 9 runtime evidence") != null);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -423,6 +450,13 @@ test "runtime loader gap survey doc keeps the mixed roadmap phases and remaining
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 6 runtime implementation progress") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/kconfig/conf_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/kconfig/confdata_bridge.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rust/exports.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/export_shim.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 2 config-surface bridge packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 3 export-boundary packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary references instead of Phase 9 runtime evidence") != null);
 }
 
 test "runtime loader gap survey keeps the review checklist runtime guardrails explicit" {
