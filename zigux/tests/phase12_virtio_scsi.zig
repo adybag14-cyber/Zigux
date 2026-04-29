@@ -190,6 +190,17 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
         },
         .synthetic_can_queue = 7,
     }));
+    try std.testing.expectError(error.TransportFrozen, lab.captureQueueDepthSummary(.{
+        .host_limit = .{
+            .probe = .{
+                .num_queues = 5,
+                .requested_poll_queues = 2,
+                .cmd_per_lun = 9,
+            },
+            .synthetic_can_queue = 7,
+        },
+        .requested_depth = 4,
+    }));
     try std.testing.expectError(error.TransportFrozen, lab.captureIoQueueMapSummary(5, 2));
 
     _ = try lab.restoreAfterTransportReset();
@@ -207,6 +218,24 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
     });
     try std.testing.expectEqual(@as(u32, 7), recaptured.effective_can_queue);
     try std.testing.expectEqual(@as(u32, 7), recaptured.effective_cmd_per_lun);
+
+    const requeued = try lab.captureQueueDepthSummary(.{
+        .host_limit = .{
+            .probe = .{
+                .num_queues = 5,
+                .requested_poll_queues = 2,
+                .cmd_per_lun = 9,
+                .max_target = 3,
+                .max_lun = 2,
+                .max_sectors = 1536,
+            },
+            .synthetic_can_queue = 7,
+        },
+        .requested_depth = 11,
+    });
+    try std.testing.expectEqual(@as(u32, 7), requeued.effective_can_queue);
+    try std.testing.expectEqual(@as(u32, 7), requeued.effective_cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 7), requeued.clamped_queue_depth);
 
     const remapped = try lab.captureIoQueueMapSummary(5, 2);
     try std.testing.expectEqual(@as(u16, 3), remapped.default_queue_count);
