@@ -57,7 +57,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
 5. bounded mk_elfconfig artifact parity and determinism
-- `python3 scripts/zigux/check-mk_elfconfig-diff.py`
+- `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 - repeat-run determinism is required for both the bounded C tool and the Zig tool before closure evidence stays green
 
 6. bounded kconfig bridge parity
