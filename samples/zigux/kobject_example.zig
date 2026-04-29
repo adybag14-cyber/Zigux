@@ -12,6 +12,7 @@ pub const SampleFocus = enum {
     shared_attribute_dispatch,
     ownership_and_lifetime,
     parse_error_visibility,
+    static_name_no_uevent_boundary,
     reviewable_non_sysfs_scope,
 };
 
@@ -42,6 +43,9 @@ pub const ReplaySummary = struct {
     register_runs_after_replay: usize,
     group_is_named: bool,
     uses_shared_b_handlers: bool,
+    directory_name_is_static: bool,
+    emits_uevent: bool,
+    supports_dynamic_instances: bool,
     foo_value: RenderedAttribute,
     baz_value: RenderedAttribute,
     bar_value: RenderedAttribute,
@@ -194,6 +198,9 @@ pub const KobjectExampleSample = struct {
             .register_runs_after_replay = self.register_runs,
             .group_is_named = false,
             .uses_shared_b_handlers = true,
+            .directory_name_is_static = true,
+            .emits_uevent = false,
+            .supports_dynamic_instances = false,
             .foo_value = try self.showValue("foo"),
             .baz_value = try self.showValue("baz"),
             .bar_value = try self.showValue("bar"),
@@ -202,6 +209,7 @@ pub const KobjectExampleSample = struct {
                 .shared_attribute_dispatch,
                 .ownership_and_lifetime,
                 .parse_error_visibility,
+                .static_name_no_uevent_boundary,
                 .reviewable_non_sysfs_scope,
             },
         };
@@ -246,6 +254,7 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
         .shared_attribute_dispatch,
         .ownership_and_lifetime,
         .parse_error_visibility,
+        .static_name_no_uevent_boundary,
         .reviewable_non_sysfs_scope,
     };
 
@@ -264,6 +273,9 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 1), replay.register_runs_after_replay);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
+    try std.testing.expect(replay.directory_name_is_static);
+    try std.testing.expect(!replay.emits_uevent);
+    try std.testing.expect(!replay.supports_dynamic_instances);
     try std.testing.expectEqualStrings("foo", replay.foo_value.attr_name);
     try std.testing.expectEqualStrings("baz", replay.baz_value.attr_name);
     try std.testing.expectEqualStrings("bar", replay.bar_value.attr_name);
