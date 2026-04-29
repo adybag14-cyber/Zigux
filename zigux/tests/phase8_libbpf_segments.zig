@@ -165,6 +165,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
 
     for (manifest.segments, 0..) |segment, i| {
         try std.testing.expect(segment.id.len > 0);
+        try std.testing.expect(std.mem.startsWith(u8, segment.id, "P8-L15-S"));
         try std.testing.expect(segment.slug.len > 0);
         try std.testing.expect(segment.kind.len > 0);
         try std.testing.expect(segment.anchor_ranges.len > 0);
