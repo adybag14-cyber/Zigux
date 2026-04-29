@@ -59,7 +59,24 @@ def windows_to_wsl(path: Path) -> str:
     return f'/mnt/{drive}{tail}'
 
 
-def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str, argv: list[str]) -> None:
+def write_text(path: Path, text: str) -> None:
+    path.write_text(text, encoding='utf-8', newline='\n')
+
+
+def write_stdout_stderr(
+    stdout_path: Path,
+    stderr_path: Path | None,
+    result: subprocess.CompletedProcess[str],
+    *,
+    normalize_stderr: bool = False,
+) -> None:
+    write_text(stdout_path, result.stdout)
+    if stderr_path is not None:
+        stderr = normalize_cli_stderr(result.stderr) if normalize_stderr else result.stderr
+        write_text(stderr_path, stderr)
+
+
+def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, actual_stderr: Path | None, compiler: str, argv: list[str]) -> None:
     script_path = tmp_dir / 'run_genksyms_bridge_c.sh'
     command = [
         shlex.quote(compiler),
@@ -71,6 +88,8 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str, arg
         shlex.quote(windows_to_wsl(C_HARNESS)),
     ]
     run_line = [shlex.quote(windows_to_wsl(exe)), *[shlex.quote(arg) for arg in argv], '>', shlex.quote(windows_to_wsl(actual))]
+    if actual_stderr is not None:
+        run_line.extend(['2>', shlex.quote(windows_to_wsl(actual_stderr))])
     lines = [
         '#!/usr/bin/env bash',
         'set -euo pipefail',
@@ -81,21 +100,23 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str, arg
     run(['wsl', 'bash', windows_to_wsl(script_path)], cwd=str(ROOT))
 
 
-def compile_run_c(tmp_dir: Path, actual: Path, compiler: str, argv: list[str]) -> None:
+def compile_run_c(tmp_dir: Path, actual: Path, actual_stderr: Path | None, compiler: str, argv: list[str]) -> None:
     exe = tmp_dir / ('genksyms-bridge-c.exe' if os.name == 'nt' else 'genksyms-bridge-c')
     if os.name == 'nt' and shutil.which('wsl'):
-        compile_run_c_wsl(tmp_dir, exe, actual, compiler, argv)
+        compile_run_c_wsl(tmp_dir, exe, actual, actual_stderr, compiler, argv)
         return
     run([compiler, '-std=c11', '-Wall', '-Wextra', '-o', str(exe), str(C_HARNESS)], cwd=str(ROOT))
-    result = run([str(exe), *argv], cwd=str(ROOT), capture_output=True)
-    actual.write_text(result.stdout, encoding='utf-8', newline='\n')
+    result = run_capture([str(exe), *argv], cwd=str(ROOT))
+    result.check_returncode()
+    write_stdout_stderr(actual, actual_stderr, result)
 
 
-def run_zig(zig: str, tmp_dir: Path, actual: Path, argv: list[str]) -> None:
+def run_zig(zig: str, tmp_dir: Path, actual: Path, actual_stderr: Path | None, argv: list[str]) -> None:
     exe = tmp_dir / ('genksyms-bridge-zig.exe' if os.name == 'nt' else 'genksyms-bridge-zig')
     run([zig, 'build-exe', str(ZIG_TOOL), '-femit-bin=' + str(exe)], cwd=str(ROOT))
-    result = run([str(exe), *argv], cwd=str(ROOT), capture_output=True)
-    actual.write_text(result.stdout, encoding='utf-8', newline='\n')
+    result = run_capture([str(exe), *argv], cwd=str(ROOT))
+    result.check_returncode()
+    write_stdout_stderr(actual, actual_stderr, result)
 
 
 def normalize_cli_stderr(text: str) -> str:
@@ -127,7 +148,7 @@ def write_process_json(path: Path, result: subprocess.CompletedProcess[str], *, 
         'stderr': normalize_cli_stderr(result.stderr) if normalize_stderr else result.stderr,
         'exit_code': result.returncode,
     }
-    path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8', newline='\n')
+    write_text(path, json.dumps(payload, indent=2) + '\n')
 
 
 def capture_run_c(tmp_dir: Path, actual: Path, compiler: str, argv: list[str], *, normalize_stderr: bool) -> None:
@@ -249,13 +270,19 @@ def main() -> int:
             c_repeat = tmp_dir / f"{case['name']}.c.repeat.json"
             zig_actual = tmp_dir / f"{case['name']}.zig.actual.json"
             zig_repeat = tmp_dir / f"{case['name']}.zig.repeat.json"
+            c_actual_stderr = tmp_dir / f"{case['name']}.c.actual.stderr.txt"
+            c_repeat_stderr = tmp_dir / f"{case['name']}.c.repeat.stderr.txt"
+            zig_actual_stderr = tmp_dir / f"{case['name']}.zig.actual.stderr.txt"
+            zig_repeat_stderr = tmp_dir / f"{case['name']}.zig.repeat.stderr.txt"
+            empty_stderr = tmp_dir / 'expected-empty.stderr.txt'
+            write_text(empty_stderr, '')
             if mode == 'process_json':
                 normalize_stderr = bool(case.get('normalize_stderr', False))
                 capture_run_c(tmp_dir, c_actual, compiler, case['argv'], normalize_stderr=normalize_stderr)
                 capture_run_zig(zig, tmp_dir, zig_actual, case['argv'], normalize_stderr=normalize_stderr)
             elif mode == 'stdout_json':
-                compile_run_c(tmp_dir, c_actual, compiler, case['argv'])
-                run_zig(zig, tmp_dir, zig_actual, case['argv'])
+                compile_run_c(tmp_dir, c_actual, c_actual_stderr, compiler, case['argv'])
+                run_zig(zig, tmp_dir, zig_actual, zig_actual_stderr, case['argv'])
             else:
                 raise SystemExit(f"Unsupported genksyms bridge case mode: {mode}")
 
@@ -268,17 +295,26 @@ def main() -> int:
             run(diff_base + [str(expected), str(c_actual)], cwd=str(ROOT))
             run(diff_base + [str(expected), str(zig_actual)], cwd=str(ROOT))
             run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
+            if mode == 'stdout_json':
+                text_diff_base = [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text']
+                run(text_diff_base + [str(empty_stderr), str(c_actual_stderr)], cwd=str(ROOT))
+                run(text_diff_base + [str(empty_stderr), str(zig_actual_stderr)], cwd=str(ROOT))
+                run(text_diff_base + [str(c_actual_stderr), str(zig_actual_stderr)], cwd=str(ROOT))
 
             if mode == 'process_json':
                 normalize_stderr = bool(case.get('normalize_stderr', False))
                 capture_run_c(tmp_dir, c_repeat, compiler, case['argv'], normalize_stderr=normalize_stderr)
                 capture_run_zig(zig, tmp_dir, zig_repeat, case['argv'], normalize_stderr=normalize_stderr)
             else:
-                compile_run_c(tmp_dir, c_repeat, compiler, case['argv'])
-                run_zig(zig, tmp_dir, zig_repeat, case['argv'])
+                compile_run_c(tmp_dir, c_repeat, c_repeat_stderr, compiler, case['argv'])
+                run_zig(zig, tmp_dir, zig_repeat, zig_repeat_stderr, case['argv'])
 
             run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))
             run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))
+            if mode == 'stdout_json':
+                text_diff_base = [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text']
+                run(text_diff_base + [str(c_actual_stderr), str(c_repeat_stderr)], cwd=str(ROOT))
+                run(text_diff_base + [str(zig_actual_stderr), str(zig_repeat_stderr)], cwd=str(ROOT))
 
     if args.refresh:
         print('GENKSYMS_BRIDGE_REFRESH=pass')
