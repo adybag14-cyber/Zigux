@@ -149,6 +149,31 @@ pub const LiveResourceOrderSummary = struct {
     install_restart_handler_after_registration: bool,
 };
 
+pub const TeardownLifecycleRequest = struct {
+    restart_watchdog_running: bool = true,
+    stop_interrupt_pending: bool = true,
+};
+
+pub const TeardownLifecycleSummary = struct {
+    anchor: []const u8,
+    can_stop: bool,
+    stop_path_running_before_stop: bool,
+    stop_path_running_after_stop: bool,
+    stop_path_hardware_running_after_stop: bool,
+    stop_clears_enable_bit: bool,
+    stop_clears_interrupt_status: bool,
+    stop_uses_reset_pulse: bool,
+    stop_preserves_running_marker_without_reset: bool,
+    restart_path_running_before_restart: bool,
+    restart_path_running_after_restart: bool,
+    restart_path_hardware_running_after_restart: bool,
+    restart_forces_reset_mode: bool,
+    restart_clears_pretimeout: bool,
+    restart_clears_timeout_range: bool,
+    restart_kicks_running_watchdog: bool,
+    restart_enables_stopped_watchdog: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -324,6 +349,51 @@ pub const DwWdtLab = struct {
             .programs_timeout_before_registration = handoff.programs_timeout_before_registration,
             .registers_watchdog_after_resources_ready = true,
             .install_restart_handler_after_registration = true,
+        };
+    }
+
+    pub fn summarizeTeardownLifecycle(
+        self: *Self,
+        request: TeardownLifecycleRequest,
+    ) !TeardownLifecycleSummary {
+        _ = try self.setResponseMode(.irq);
+        _ = try self.setTimeout(9);
+        _ = try self.start();
+        _ = self.setInterruptPending(request.stop_interrupt_pending);
+        const stop_before = self.runtimeSnapshot();
+        const stop_after = self.stop();
+
+        _ = self.loadRegisters(.{});
+        if (request.restart_watchdog_running) {
+            _ = try self.setResponseMode(.irq);
+            _ = try self.setTimeout(9);
+            _ = try self.start();
+        } else {
+            self.response_mode = .irq;
+            self.pretimeout_sec = 8;
+        }
+        const restart_before = self.runtimeSnapshot();
+        const restart_after = self.armRestart();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .can_stop = self.has_reset_control,
+            .stop_path_running_before_stop = stop_before.running,
+            .stop_path_running_after_stop = stop_after.running,
+            .stop_path_hardware_running_after_stop = stop_after.hardware_running,
+            .stop_clears_enable_bit = stop_before.running and !stop_after.running,
+            .stop_clears_interrupt_status = request.stop_interrupt_pending and !stop_after.interrupt_pending,
+            .stop_uses_reset_pulse = self.has_reset_control,
+            .stop_preserves_running_marker_without_reset = !self.has_reset_control and stop_after.hardware_running,
+            .restart_path_running_before_restart = restart_before.running,
+            .restart_path_running_after_restart = restart_after.running,
+            .restart_path_hardware_running_after_restart = restart_after.hardware_running,
+            .restart_forces_reset_mode = restart_after.response_mode == .reset,
+            .restart_clears_pretimeout = restart_after.pretimeout_sec == 0,
+            .restart_clears_timeout_range = restart_after.registers.timeout_range == 0,
+            .restart_kicks_running_watchdog = request.restart_watchdog_running and
+                restart_after.registers.restart == counter_restart_kick_value,
+            .restart_enables_stopped_watchdog = !request.restart_watchdog_running and restart_after.running,
         };
     }
 
