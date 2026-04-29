@@ -23,10 +23,13 @@ The live repo already had the parse-first `kallsyms.zig` starter plus the inject
 1. run the focused Zig module tests
 - `zig test tools/lib/symbol/kallsyms.zig`
 
-2. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+2. run the focused shared kallsyms gate
+- `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`
 
-3. run the convenience target
+3. run the dedicated Phase 8 tooling gate
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -55,6 +58,7 @@ The current tests check:
 - the direct wrappers preserve both the cwd-based filename contract and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked discard path and direct-wrapper routes, so the starter slice now matches the C helper's bounded callback contract without buffering the whole overlong line first
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
+- the focused `phase8_kallsyms_only_build.zig` replay keeps that parked parser and callback-contract packet reviewable on its own instead of relying only on the broader shared Phase 8 tooling build
 
 ## Non-goals
 
