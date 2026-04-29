@@ -302,12 +302,53 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     var runtime = unstoppable.stop();
     try std.testing.expect(runtime.running);
     try std.testing.expect(runtime.hardware_running);
+    const unstoppable_summary = try unstoppable.summarizeTeardownLifecycle(.{
+        .restart_watchdog_running = true,
+        .stop_interrupt_pending = true,
+    });
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", unstoppable_summary.anchor);
+    try std.testing.expect(!unstoppable_summary.can_stop);
+    try std.testing.expect(unstoppable_summary.stop_path_running_before_stop);
+    try std.testing.expect(unstoppable_summary.stop_path_running_after_stop);
+    try std.testing.expect(unstoppable_summary.stop_path_hardware_running_after_stop);
+    try std.testing.expect(!unstoppable_summary.stop_clears_enable_bit);
+    try std.testing.expect(!unstoppable_summary.stop_clears_interrupt_status);
+    try std.testing.expect(!unstoppable_summary.stop_uses_reset_pulse);
+    try std.testing.expect(unstoppable_summary.stop_preserves_running_marker_without_reset);
+    try std.testing.expect(unstoppable_summary.restart_path_running_before_restart);
+    try std.testing.expect(unstoppable_summary.restart_path_running_after_restart);
+    try std.testing.expect(unstoppable_summary.restart_path_hardware_running_after_restart);
+    try std.testing.expect(unstoppable_summary.restart_forces_reset_mode);
+    try std.testing.expect(unstoppable_summary.restart_clears_pretimeout);
+    try std.testing.expect(unstoppable_summary.restart_clears_timeout_range);
+    try std.testing.expect(unstoppable_summary.restart_kicks_running_watchdog);
+    try std.testing.expect(!unstoppable_summary.restart_enables_stopped_watchdog);
 
     var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
     _ = try stoppable.start();
     runtime = stoppable.stop();
     try std.testing.expect(!runtime.running);
     try std.testing.expect(!runtime.hardware_running);
+    const stoppable_summary = try stoppable.summarizeTeardownLifecycle(.{
+        .restart_watchdog_running = false,
+        .stop_interrupt_pending = true,
+    });
+    try std.testing.expect(stoppable_summary.can_stop);
+    try std.testing.expect(stoppable_summary.stop_path_running_before_stop);
+    try std.testing.expect(!stoppable_summary.stop_path_running_after_stop);
+    try std.testing.expect(!stoppable_summary.stop_path_hardware_running_after_stop);
+    try std.testing.expect(stoppable_summary.stop_clears_enable_bit);
+    try std.testing.expect(stoppable_summary.stop_clears_interrupt_status);
+    try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);
+    try std.testing.expect(!stoppable_summary.stop_preserves_running_marker_without_reset);
+    try std.testing.expect(!stoppable_summary.restart_path_running_before_restart);
+    try std.testing.expect(stoppable_summary.restart_path_running_after_restart);
+    try std.testing.expect(stoppable_summary.restart_path_hardware_running_after_restart);
+    try std.testing.expect(stoppable_summary.restart_forces_reset_mode);
+    try std.testing.expect(stoppable_summary.restart_clears_pretimeout);
+    try std.testing.expect(stoppable_summary.restart_clears_timeout_range);
+    try std.testing.expect(!stoppable_summary.restart_kicks_running_watchdog);
+    try std.testing.expect(stoppable_summary.restart_enables_stopped_watchdog);
 
     var restart_lab = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     runtime = restart_lab.armRestart();
