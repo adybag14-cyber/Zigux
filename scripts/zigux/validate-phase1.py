@@ -304,6 +304,7 @@ required_string_helper_markers = [
     'pub fn strim(buf: []u8) []u8 {',
     'pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {',
     'test "skip trim remove and replace spaces work in place"',
+    'test "strlcpy stops at the first embedded NUL in the source"',
     'test "memchrInv scans aligned and misaligned long buffers"',
     'test "memchrInv catches prefix and trailing remainder mismatches"',
 ]
@@ -328,12 +329,20 @@ required_string_harness_markers = [
 ]
 required_string_manifest_markers = [
     '"tools/lib/string.zig"',
+    '"string.remove_spaces_nul"',
+    '"string.remove_spaces_nul_bytes"',
+    '"summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection."',
+    '"cstring_unit_test_anchor": "tools/lib/string.zig:test \\"strlcpy stops at the first embedded NUL in the source\\""',
+    '"cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched."',
     '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
     '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\""',
     '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
 ]
 required_string_closure_markers = [
+    'string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`',
+    'PHASE1_STRING_REVIEW=string parity covers bool parsing, C-string-aware strlcpy length and truncation, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection',
+    'PHASE1_STRING_CSTRING_UNIT_REVIEW=string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves zero-sized destinations untouched',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
