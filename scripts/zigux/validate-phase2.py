@@ -795,6 +795,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
+    'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
     'python3 scripts/zigux/check-kconfig-bridge.py',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/check-mk-elfconfig-diff.py',
