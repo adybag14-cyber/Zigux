@@ -5,6 +5,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_ioremap_lifetime_planning: bool,
     provides_ioremap_uc_wrapper_planning: bool,
+    provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioport_lifetime_planning: bool,
     provides_ioremap_resource_planning: bool,
@@ -293,6 +294,7 @@ pub const DevresHelperLab = struct {
             .anchor = "lib/devres.c",
             .provides_ioremap_lifetime_planning = true,
             .provides_ioremap_uc_wrapper_planning = true,
+            .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioport_lifetime_planning = true,
             .provides_ioremap_resource_planning = true,
@@ -328,6 +330,14 @@ pub const DevresHelperLab = struct {
     pub fn planManagedIoremapAcquireUc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
         return planManagedIoremapAcquire(.{
             .kind = .uncached,
+            .release_record_allocated = input.release_record_allocated,
+            .mapped_address = input.mapped_address,
+        });
+    }
+
+    pub fn planManagedIoremapAcquireWc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
+        return planManagedIoremapAcquire(.{
+            .kind = .write_combined,
             .release_record_allocated = input.release_record_allocated,
             .mapped_address = input.mapped_address,
         });
