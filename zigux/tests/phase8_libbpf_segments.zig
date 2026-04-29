@@ -368,7 +368,7 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
     try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
     try expectContains(survey_note, "python3 scripts/zigux/validate-phase8.py");
-    try expectContains(survey_note, "Build Summary: 20/20 steps succeeded; 63/63 tests passed");
+    try expectContains(survey_note, "Build Summary: 20/20 steps succeeded; 68/68 tests passed");
     try expectContains(survey_note, "PHASE8_VALIDATION=pass");
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
