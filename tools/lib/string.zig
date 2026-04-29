@@ -60,6 +60,14 @@ pub fn skip_spaces(str: []const u8) []const u8 {
     return skipSpaces(str);
 }
 
+pub fn strStarts(str: []const u8, prefix: []const u8) bool {
+    return std.mem.startsWith(u8, str, prefix);
+}
+
+pub fn strstarts(str: []const u8, prefix: []const u8) bool {
+    return strStarts(str, prefix);
+}
+
 pub fn trimSpaces(buf: []u8) []u8 {
     if (buf.len == 0) {
         return buf[0..0];
@@ -262,6 +270,15 @@ test "skip trim remove and replace spaces work in place" {
     var strreplace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
     try std.testing.expectEqualStrings("a_b", strreplace(strreplace_buf[0 .. strreplace_buf.len - 1], '-', '_'));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, &strreplace_buf);
+}
+
+test "strstarts matches kernel prefix semantics" {
+    try std.testing.expect(strStarts("zigux", "zig"));
+    try std.testing.expect(strstarts("zigux", "zig"));
+    try std.testing.expect(strstarts("zigux", ""));
+    try std.testing.expect(strstarts("", ""));
+    try std.testing.expect(!strstarts("zig", "zigux"));
+    try std.testing.expect(!strstarts("zigux", "Zig"));
 }
 
 test "trimSpaces and strim stop at the first embedded NUL" {
