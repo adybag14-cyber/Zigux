@@ -85,7 +85,7 @@
     {
       "id": "checked-focus-list",
       "kind": "review_surface",
-      "expected": "the replay advertises exactly six focus areas: bounded_fifo_order, wraparound_requeue, peek_and_skip, non_destructive_snapshot, reset_and_replay, and ownership_and_lifetime"
+      "expected": "the replay advertises exactly seven focus areas: bounded_fifo_order, wraparound_requeue, peek_and_skip, non_destructive_snapshot, preview_truncation, reset_and_replay, and ownership_and_lifetime"
     },
     {
       "id": "lifecycle-boundary",
