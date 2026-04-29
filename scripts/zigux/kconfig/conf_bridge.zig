@@ -612,6 +612,15 @@ test "conf bridge accepts valid mode arg combinations" {
     try validateModeArg(.oldconfig, null);
 }
 
+test "conf bridge mode text and flag stay aligned with enum tags" {
+    inline for (std.meta.fields(Mode)) |field| {
+        const mode = @field(Mode, field.name);
+        try std.testing.expectEqual(mode, Mode.parse(field.name).?);
+        try std.testing.expectEqualStrings(field.name, mode.text());
+        try std.testing.expectEqualStrings("--" ++ field.name, mode.flag());
+    }
+}
+
 test "conf bridge emits defconfig mode argument before kconfig" {
     const Capture = struct {
         list: std.ArrayList(u8),
