@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 required_files = [
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'install-zig.py',
@@ -19,6 +20,8 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'build.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json',
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
 ]
 
