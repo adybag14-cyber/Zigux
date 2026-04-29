@@ -209,12 +209,60 @@ test "phase11 gpio_wdt registration plan summary keeps the first registration su
     try std.testing.expect(dormant_plan.blocked_on_reboot_glue);
 }
 
-test "phase11 gpio_wdt registration planning enums stay metadata-only until a real call surface lands" {
+test "phase11 gpio_wdt register-device call summary keeps the first bounded request explicit" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_call = prestarted_watchdog.registerDeviceCallSummary(true);
+    try std.testing.expectEqual(gpio_wdt.RegistrationSurface.devm_watchdog_register_device_call, prestarted_call.selected_surface);
+    try std.testing.expectEqual(gpio_wdt.ValidationFocus.register_device_call_surface, prestarted_call.validation_focus);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, prestarted_call.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, prestarted_call.start_mode);
+    try std.testing.expect(prestarted_call.always_running);
+    try std.testing.expect(prestarted_call.nowayout);
+    try std.testing.expect(prestarted_call.watchdog_info_ready);
+    try std.testing.expect(prestarted_call.watchdog_ops_ready);
+    try std.testing.expect(prestarted_call.watchdog_device_ready);
+    try std.testing.expect(prestarted_call.watchdog_drvdata_set);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_min), prestarted_call.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_default), prestarted_call.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 20), prestarted_call.max_hw_heartbeat_ms);
+    try std.testing.expect(prestarted_call.timeout_init_requested);
+    try std.testing.expect(prestarted_call.nowayout_applied);
+    try std.testing.expect(prestarted_call.parent_attached);
+    try std.testing.expect(prestarted_call.stop_on_reboot);
+    try std.testing.expect(prestarted_call.reaches_registration_running);
+    try std.testing.expect(prestarted_call.reaches_registration_line_state);
+    try std.testing.expect(prestarted_call.reaches_registration_line_is_output);
+    try std.testing.expect(prestarted_call.register_device_requested);
+    try std.testing.expect(prestarted_call.blocked_on_gpio_descriptor);
+    try std.testing.expect(prestarted_call.blocked_on_platform_registration);
+    try std.testing.expect(prestarted_call.blocked_on_reboot_glue);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_call = dormant_watchdog.registerDeviceCallSummary(false);
+    try std.testing.expectEqual(gpio_wdt.RegistrationSurface.devm_watchdog_register_device_call, dormant_call.selected_surface);
+    try std.testing.expectEqual(gpio_wdt.ValidationFocus.register_device_call_surface, dormant_call.validation_focus);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, dormant_call.requested_line);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_call.start_mode);
+    try std.testing.expect(!dormant_call.always_running);
+    try std.testing.expect(!dormant_call.nowayout);
+    try std.testing.expectEqual(@as(u32, 500), dormant_call.max_hw_heartbeat_ms);
+    try std.testing.expect(!dormant_call.reaches_registration_running);
+    try std.testing.expect(!dormant_call.reaches_registration_line_state);
+    try std.testing.expect(dormant_call.reaches_registration_line_is_output);
+    try std.testing.expect(dormant_call.register_device_requested);
+    try std.testing.expect(dormant_call.blocked_on_gpio_descriptor);
+    try std.testing.expect(dormant_call.blocked_on_platform_registration);
+    try std.testing.expect(dormant_call.blocked_on_reboot_glue);
+}
+
+test "phase11 gpio_wdt registration planning enums include the first real call surface" {
     const registration_surface_fields = @typeInfo(gpio_wdt.RegistrationSurface).@"enum".fields;
-    try std.testing.expectEqual(@as(usize, 1), registration_surface_fields.len);
+    try std.testing.expectEqual(@as(usize, 2), registration_surface_fields.len);
     try std.testing.expectEqualStrings("watchdog_device_metadata", registration_surface_fields[0].name);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device_call", registration_surface_fields[1].name);
 
     const validation_focus_fields = @typeInfo(gpio_wdt.ValidationFocus).@"enum".fields;
-    try std.testing.expectEqual(@as(usize, 1), validation_focus_fields.len);
+    try std.testing.expectEqual(@as(usize, 2), validation_focus_fields.len);
     try std.testing.expectEqualStrings("pre_registration_metadata", validation_focus_fields[0].name);
+    try std.testing.expectEqualStrings("register_device_call_surface", validation_focus_fields[1].name);
 }
