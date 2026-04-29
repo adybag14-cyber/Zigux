@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
-- scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its shipped selftest hook, lifecycle parity evidence, and machine-checkable diagnostics summary with explicit per-thread event totals without claiming loadable-module parity
+- scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its shipped selftest hook, lifecycle parity evidence, and machine-checkable diagnostics summary with explicit per-thread event totals plus explicit replay run counters without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `zigux/tests/runtime_trace_events_diff.zig`
@@ -35,10 +35,10 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `zigux/tests/runtime_trace_events_module.zig`, `zigux/tests/runtime_trace_events_diff.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now records concrete main-thread payload literals for `foo_bar`, template, conditional, template-print, and relative-location replay paths, plus explicit function-callback payload labels and the exported `iter=%d` format template.
-- the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
+- the current bounded starter also exposes a stable `RuntimeTraceEventsSummary` view for stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, `init_runs`, `selftest_runs`, and `exit_runs`, payload-presence flags, and the latest bounded main-thread and function-thread payload literals so logging diagnostics stay machine-checkable.
 - the main-thread replay now also keeps the Linux sample's `count % 5` array-shape replay explicit through the summary surface by recording the bounded vararg array length and its zero terminator alongside the selected random string.
 - the starter now makes the roadmap's shipped selftest hook explicit through `provides_selftest_hook = true` on the bounded descriptor surface.
-- the focused module, sample, and diff gates now prove the bounded replay counts, explicit per-thread event totals, payload literals, and failed-exit rollback proof through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
+- the focused module, sample, and diff gates now prove the bounded replay counts, explicit per-thread event totals, replay run counters, payload literals, and failed-exit rollback proof through the summary surface, so the stable diagnostics view stays aligned with the concrete Linux-sample replay paths instead of drifting behind raw field access.
 - the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, a delivery_evidence_catalog, an ownership_map, exact checks, and non-goals so reviewers can tell which parts of the starter are shipped contract versus still-blocked runtime substrate.
 - the repo still does not ship `samples/zigux/runtime_trace_events_loader.zig`, and the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target while runtime task ownership, polling, and event-loop substrate work remain blocked.
 - the paired module-slice note now repeats that loader-free blocked handoff explicitly so the dedicated docs cannot drift into implying a partial loader or scheduler-facing substrate before the shared runtime handoff exists.
