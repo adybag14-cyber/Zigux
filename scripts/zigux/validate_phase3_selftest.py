@@ -32,6 +32,42 @@ def run_self_test() -> int:
         for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, fixture_dir):
             path.mkdir(parents=True, exist_ok=True)
 
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=alpha-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha dump\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_c_harness.c").write_text("// alpha harness\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-slice",
+                    "files": [
+                        "Documentation/zigux/phase3-alpha-slice.md",
+                        "zigux/tests/phase3_alpha_dump.zig",
+                        "zigux/tests/fixtures/phase3_alpha/expected.json",
+                        "zigux/tests/fixtures/phase3_alpha/phase3_alpha_c_harness.c",
+                    ],
+                    "file_count": 4,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+
         for rel in ABI_REQUIRED_MANIFEST_FILES:
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -164,7 +200,13 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            'test "phase3 low-level wrappers stay inside the documented ABI surface" {}\n'
+            'test "phase3 low-level wrappers stay inside the documented ABI surface" {\n'
+            "    _ = .{\n"
+            "        atomic.fetchOr(u32, &value, 0b1000, .seq_cst),\n"
+            "        atomic.fetchAnd(u32, &value, 0b0111, .seq_cst),\n"
+            "        atomic.fetchXor(u32, &value, 0b1111, .seq_cst),\n"
+            "    };\n"
+            "}\n"
             'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
             encoding="utf-8",
             newline="\n",
