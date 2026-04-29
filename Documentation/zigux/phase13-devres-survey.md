@@ -6,7 +6,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-helper-dma-scatterlist-reviewability`
-- `PHASE13_SURVEYED_COMMIT=378906ad852f26857b23e893b47c3bab4b916b68`
+- `PHASE13_SURVEYED_COMMIT=3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`
 - scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-only DMA/scatterlist boundary pinned to the current repo state
 - product boundary:
   - `lib/devres.zig`
@@ -19,7 +19,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `378906ad852f26857b23e893b47c3bab4b916b68`
+- reviewed against live `master` `3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, and `devm_ioremap_wc()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
