@@ -114,6 +114,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "`parse_int_array()` over the bounded allocator-backed starter path");
     try expectContains(string_helpers_slice, "`parse_int_array_user()` over the bounded copy-and-parse starter path");
     try expectContains(string_helpers_slice, "`kstrdup_quotable()` over the bounded escape-then-duplicate path");
+    try expectContains(string_helpers_slice, "`kasprintf_strarray()` over the bounded sequential prefix-index ownership path");
 
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
@@ -123,6 +124,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 parseIntArray keeps the counted get_options contract explicit");
     try expectContains(string_helpers_tests, "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit");
     try expectContains(string_helpers_tests, "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication");
+    try expectContains(string_helpers_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
 
     try expectContains(escape_vectors, "pub const unescape_cases");
     try expectContains(escape_vectors, "pub const escape_cases");
