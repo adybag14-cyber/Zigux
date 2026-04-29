@@ -17,6 +17,7 @@ CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
 CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 CASES = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+CONF_ALLCONFIG_MODES = {'allnoconfig', 'allyesconfig', 'allmodconfig', 'alldefconfig', 'randconfig'}
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -185,14 +186,14 @@ def ensure_manifest_is_deterministic() -> None:
                 read_nonempty_string(case, 'arch', issues, prefix=case_prefix)
 
                 mode_arg = case.get('mode_arg')
-                allconfig = case.get('allconfig')
                 if mode in {'defconfig', 'savedefconfig'}:
                     if not isinstance(mode_arg, str) or not mode_arg:
                         issues.append(f'{case_prefix}:mode_arg:required_for_argument_mode')
                 elif mode_arg is not None:
                     issues.append(f'{case_prefix}:mode_arg:unexpected_for_mode:{mode}')
 
-                if mode in {'allnoconfig', 'allyesconfig', 'allmodconfig', 'alldefconfig', 'randconfig'}:
+                allconfig = case.get('allconfig')
+                if mode in CONF_ALLCONFIG_MODES:
                     if allconfig is not None and (not isinstance(allconfig, str) or not allconfig):
                         issues.append(f'{case_prefix}:allconfig:expected_nonempty_string')
                 elif allconfig is not None:
@@ -281,7 +282,7 @@ def main() -> int:
             ]
             if 'mode_arg' in case:
                 cmd.append(case['mode_arg'])
-            elif 'allconfig' in case:
+            if 'allconfig' in case:
                 cmd.append(case['allconfig'])
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
