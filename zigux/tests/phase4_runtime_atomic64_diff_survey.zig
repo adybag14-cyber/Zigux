@@ -22,6 +22,17 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const ThresholdPlan = struct {
+    owner: []const u8,
+    rollback_owner: []const u8,
+    posture: []const u8,
+    status: []const u8,
+    benchmark_command: []const u8,
+    acceptable_limit: []const u8,
+    scope: []const u8,
+    why_not_approved_yet: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -29,6 +40,7 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    threshold_plan: ThresholdPlan,
     gaps: []const Gap,
 };
 
@@ -98,6 +110,30 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_sample_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
     try std.testing.expect(manifest.survey_summary.tests_readme_runtime_atomic64_diff_present);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.threshold_plan.owner);
+    try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.threshold_plan.rollback_owner);
+    try std.testing.expectEqualStrings(
+        "threshold_pending_until_runtime_atomic64_scope_widens",
+        manifest.threshold_plan.posture,
+    );
+    try std.testing.expectEqualStrings(
+        "pending_scope_widening",
+        manifest.threshold_plan.status,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_runtime_atomic64_scope_widens",
+        manifest.threshold_plan.benchmark_command,
+    );
+    try std.testing.expectEqualStrings(
+        "unapproved_until_runtime_atomic64_scope_widens",
+        manifest.threshold_plan.acceptable_limit,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.threshold_plan.scope, "selftest-family plus post-selftest replay set") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.threshold_plan.why_not_approved_yet, "correctness-only coverage") != null,
+    );
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     const atomic64_test_c = try readWorkspaceFile(
@@ -243,6 +279,9 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback owner") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "threshold posture") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reversible-delivery evidence") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`lib/atomic64_test.c` anchor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared `phase4_build.zig` entrypoint") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-roadmap-path-alignment")) {
