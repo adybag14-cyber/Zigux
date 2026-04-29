@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L14",
   "phase": "Phase 11",
-  "surveyed_commit": "111cbc59882a8689ba76770aa9e5fc8c83fea15b",
+  "surveyed_commit": "e814a2b1ccd51e66839b5f9dae5f1cc348890116",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
@@ -60,6 +60,13 @@
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
       "why_now": "A tiny header-parity surface now keeps MAX_NR_HVC_CONSOLES, HVC_ALLOC_TTY_ADAPTERS, the hv_ops callback shape, and the exported hvc alloc/remove/poll/resize surface reviewable without claiming tty registration or host-backed I/O."
+    },
+    {
+      "id": "phase11-hvc-console-winsize-layout-assert",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "A driver-local layout_assert checkpoint now keeps struct winsize reviewable for the hvc resize path by pinning size 8, alignment 2, and offsets 0, 2, 4, and 6 without claiming tty-core or struct hvc_struct ownership."
     },
     {
       "id": "phase11-hvc-console-driver-tests",
