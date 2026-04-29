@@ -111,6 +111,8 @@ required_doc_readme_markers = [
     "make -C zigux phase5-validate",
     "make -C zigux phase5",
     "zigux/tests/phase5_build.zig",
+    "ships no `samples/zigux/*string*` reference sample",
+    "sample-root follow-up should not treat that absence as a missing Phase 5 port",
 ]
 
 required_checklist_markers = [
@@ -119,6 +121,8 @@ required_checklist_markers = [
     "kobject",
     "kretprobe",
     "trace-events",
+    "ships no `samples/zigux/*string*` Phase 5 reference sample",
+    "separate Phase 7 helper bundle",
 ]
 
 required_sample_root_markers = [
@@ -132,6 +136,13 @@ required_sample_root_markers = [
     "Documentation/zigux/phase5-kretprobe-sample-survey.md",
     "Documentation/zigux/phase5-trace-events-sample-survey.md",
     "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+    "current approved Phase 5 reference sample inventory still resolves to the four roadmap anchors only",
+    "later `runtime_*` starters still stay cataloged separately from the approved Phase 5 anchors",
+    "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
+    "rg '/(bytestream_fifo|kobject_example|kretprobe_example|trace_events_sample)\\.zig$'",
+    "rg '/runtime_.*\\.zig$'",
+    "rg '/.*string.*\\.zig$'",
+    "python3 scripts/zigux/validate-phase7.py",
 ]
 
 required_phase5_build_markers = [
