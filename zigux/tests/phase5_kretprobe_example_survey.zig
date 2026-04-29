@@ -34,9 +34,9 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
-    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
+    try std.testing.expectEqualStrings("b21d2dfb039484b866f247a974369b9619a2afcb", manifest.surveyed_commit);
     for (manifest.surveyed_commit) |byte| {
         try std.testing.expect(std.ascii.isLower(byte) or std.ascii.isDigit(byte));
     }
@@ -206,8 +206,9 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L16") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 1 tests passed.") != null);
