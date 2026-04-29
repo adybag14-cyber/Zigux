@@ -231,6 +231,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
             try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c:14429-14480", segment.anchor_ranges[1]);
             try expectContains(segment.why_now, "online CPU filtering");
             try expectContains(segment.why_now, "perf-event-array map updates");
+            try expectContains(segment.why_now, "timeout-driven perf-buffer polling");
             try expectContains(segment.why_now, "interrupt-routing contract");
         }
 
@@ -309,6 +310,9 @@ test "phase 8 deferred perf-buffer anchor ranges still point at the live routing
     try expectContains(parser_slice, "return parse_cpu_mask_str(buf, mask, mask_sz);");
     try expectContains(parser_slice, "int libbpf_num_possible_cpus(void)");
     try expectContains(parser_slice, "WRITE_ONCE(cpus, tmp_cpus);");
+    try expectContains(libbpf_c, "int perf_buffer__poll(struct perf_buffer *pb, int timeout_ms)");
+    try expectContains(libbpf_c, "cnt = epoll_wait(pb->epoll_fd, pb->events, pb->cpu_cnt, timeout_ms);");
+    try expectContains(libbpf_c, "return cnt;");
 }
 
 test "phase 8 docs keep the deferred libbpf boundaries explicit" {
@@ -340,7 +344,9 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "skeleton");
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "online CPU filtering");
-    try expectContains(survey_note, "interrupt-routing-sensitive boundary");
+    try expectContains(survey_note, "perf_buffer__poll(timeout_ms)");
+    try expectContains(survey_note, "ready-buffer counts");
+    try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "reused-map-name chooser");
     try expectContains(survey_note, "token-preparation planning");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
@@ -352,4 +358,6 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(bridge_boundary_note, "libbpf_num_possible_cpus()");
     try expectContains(bridge_boundary_note, "per-CPU perf-event-array map updates");
     try expectContains(bridge_boundary_note, "epoll-backed perf FD registration");
+    try expectContains(bridge_boundary_note, "perf_buffer__poll(timeout_ms)");
+    try expectContains(bridge_boundary_note, "ready-buffer counts");
 }
