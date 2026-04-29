@@ -58,7 +58,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `4d8338f1f4e8243a19f6555dc7bfffd7a189d95d` on 2026-04-29 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `13653f4147fba0a6c73a5066dfb569f552dae263` on 2026-04-29 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
