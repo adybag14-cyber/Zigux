@@ -61,7 +61,7 @@ The current starter implementation stays deliberately bounded:
 - `cpu_mask.zig` ports the string-parsing core of `parse_cpu_mask_str()`
 - the segment now includes an injected chunk-reader interface for sysfs-style buffered input without claiming direct file-descriptor parity
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
-- delimiter skipping accepts the newline-terminated `/sys/devices/system/cpu/possible` style input without widening into real file I/O
+- delimiter skipping now mirrors libbpf's comma-and-newline loop while still allowing the `sscanf()`-style leading whitespace that the C helper already consumes, without widening into real file I/O
 - the survey now keeps the separate `perf-buffer-online-cpu-routing` boundary explicit so the landed parser helper is not mistaken for online CPU selection or perf-event routing parity
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
 - `type_names.zig` ports the exported attach, link, map, and program type string tables as pure dense lookups over the current `tools/include/uapi/linux/bpf.h` ordinal space
@@ -81,10 +81,10 @@ The current starter implementation stays deliberately bounded:
 The current tests check:
 
 - mixed single-CPU and `start-end` ranges expand into the expected dense mask
-- repeated delimiters and newline-terminated inputs still parse cleanly
-- chunked reader input can split ranges and delimiters across scratch-buffer boundaries
+- repeated delimiters, newline-terminated inputs, and leading-whitespace-at-token-start inputs still parse cleanly
+- chunked reader input can split ranges, delimiters, and `sscanf()`-style leading whitespace across scratch-buffer boundaries
 - the bounded set-bit counter matches the parsed mask contents
-- empty and malformed ranges report explicit errors
+- empty, malformed, and trailing-whitespace-only ranges report explicit errors
 - reader contract failures stay explicit instead of silently truncating input
 - the manifest-backed survey now rejects dropping the deferred perf-buffer online-CPU routing boundary from the segment catalog
 - the survey summary keeps both the deferred file-path resource boundary and the blocked skeleton follow-on visible so the landed helper set is not mistaken for object-model progress
