@@ -88,10 +88,20 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
         '"' => try writer.writeAll("\\\""),
+        '\x08' => try writer.writeAll("\\b"),
+        '\x0c' => try writer.writeAll("\\f"),
         '\n' => try writer.writeAll("\\n"),
         '\r' => try writer.writeAll("\\r"),
         '\t' => try writer.writeAll("\\t"),
-        else => try writer.writeByte(c),
+        else => {
+            if (c < 0x20) {
+                var escaped: [6]u8 = undefined;
+                const rendered = try std.fmt.bufPrint(&escaped, "\\u00{x:0>2}", .{c});
+                try writer.writeAll(rendered);
+            } else {
+                try writer.writeByte(c);
+            }
+        },
     };
 }
 
@@ -648,4 +658,53 @@ test "conf bridge escapes JSON-sensitive argv and env values" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "out\\t/.config") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arm64\\nbe") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arch\\\\arm64/configs/mini\\\"defconfig") != null);
+}
+
+test "conf bridge escapes low control bytes in argv and env values" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 256), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .defconfig,
+        .kconfig = "Kconfig\x08main",
+        .config = "out\x0c/.config",
+        .arch = "arm64\x1dbe",
+        .mode_arg = "arch/arm64/configs/mini\x1fdefconfig",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "Kconfig\\bmain") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "out\\f/.config") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "arm64\\u001dbe") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "mini\\u001fdefconfig") != null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x08') == null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x0c') == null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x1d') == null);
+    try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x1f') == null);
 }
