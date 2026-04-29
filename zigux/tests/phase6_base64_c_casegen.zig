@@ -87,7 +87,7 @@ fn emitBytesDecl(writer: anytype, comptime prefix: []const u8, idx: usize, bytes
     } else {
         for (bytes, 0..) |byte, byte_idx| {
             if (byte_idx == 0) {
-                try writer.print(", 0x{x:0>2}", .{byte});
+                try writer.print(" 0x{x:0>2}", .{byte});
             } else {
                 try writer.print(", 0x{x:0>2}", .{byte});
             }
