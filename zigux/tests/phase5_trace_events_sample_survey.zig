@@ -186,11 +186,14 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,1,1") != null);
         }
         if (std.mem.eql(u8, check.id, "checked-focus-order")) {
-            saw_focus_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "string_selection") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "formatted_message") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
+            sawFocusCheck: {
+                saw_focus_check = true;
+                try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload_shape") != null);
+                try std.testing.expect(std.mem.indexOf(u8, check.expected, "string_selection") != null);
+                try std.testing.expect(std.mem.indexOf(u8, check.expected, "formatted_message") != null);
+                try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
+                break :sawFocusCheck;
+            }
         }
         if (std.mem.eql(u8, check.id, "callback-registration-balance")) {
             saw_callback_balance_check = true;
@@ -272,7 +275,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L20") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b7333da596beb116566526030047c4d3eb120ffe") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=5aac89e74d2a7adf3000c2fa24ee8554e859f7e9") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_manifest.json") != null);
