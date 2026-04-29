@@ -244,7 +244,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
 
     var saw_logging = false;
