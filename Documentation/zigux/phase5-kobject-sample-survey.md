@@ -6,6 +6,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
+- `PHASE5_LANE_KEY=P5-L10`
 - `PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
@@ -61,7 +62,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `13653f4147fba0a6c73a5066dfb569f552dae263` on 2026-04-29 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `132ee03dd8cbb8986c9ef6f7d49079083b8a0010` on 2026-04-29 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
@@ -86,7 +87,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the pre-registration ownership boundary, the initialized-only exit summary, and the post-`exit()` rejection boundaries explicit instead of implying sysfs registration?
 - do the ownership checks still keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show or store access until `registerAttributes()` claims ownership?
 - if the sample behavior changes, is the manifest updated alongside the registration, attribute-order, teardown-summary, and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
-- do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
+- do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and module registration remain out of scope for this Phase 5 sample?
 
 ## Recorded gap vs roadmap
 
