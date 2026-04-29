@@ -173,10 +173,11 @@ required_phase6_catalog_markers = [
     '`64` bytes at `20_000` reps and `1501` bytes at `4_000` reps',
     'max_slowdown_pct = 150',
     '6 imported KUnit random-prefix vectors',
-    'there is no hard formatter-cost threshold yet because the current lane only claims deterministic perf-sanity evidence',
-    '`zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds',
+    'max_slowdown_pct = 175',
+    '`fixtures.prepareExpectedLine(...)` reference path',
+    '`zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds',
     '`zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold',
-    '`zigux/tests/phase6_hexdump_perf.zig` currently remains a deterministic formatter-cost sanity harness without a numeric slowdown ceiling',
+    'the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path and rejects regressions above `max_slowdown_pct = 175`',
     '22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 16 invalid decode vectors',
     'PHASE6_BASE64_C_PARITY_CASES=90',
     'zigux/tests/phase6_base64_c_casegen.zig',
@@ -260,11 +261,14 @@ required_checksum_perf_markers = [
 
 required_hexdump_perf_markers = [
     'phase6-hexdump-perf',
-    '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000 }',
-    '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000 }',
+    '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 }',
+    '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 175 }',
     'fixtures.prepareExpectedLine',
-    'ns_per_byte',
-    'try std.testing.expect(elapsed > 0);',
+    'helper_ns_per_call',
+    'reference_ns_per_call',
+    'slowdown_pct',
+    'median3(',
+    'try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);',
 ]
 
 required_hexdump_markers = [
@@ -431,11 +435,11 @@ if shared_gates != expected_shared_gates:
     missing_markers.append('phase6_manifest:shared_gates')
 
 perf_posture = phase6_manifest.get('perf_posture', {})
-if perf_posture.get('relative_slowdown_helpers') != ['base64', 'checksum']:
+if perf_posture.get('relative_slowdown_helpers') != ['base64', 'checksum', 'hexdump']:
     missing_markers.append('phase6_manifest:perf_posture:relative_slowdown_helpers')
 if perf_posture.get('comparison_budget_helpers') != ['bsearch']:
     missing_markers.append('phase6_manifest:perf_posture:comparison_budget_helpers')
-if perf_posture.get('timing_sanity_only_helpers') != ['hexdump']:
+if perf_posture.get('timing_sanity_only_helpers') != []:
     missing_markers.append('phase6_manifest:perf_posture:timing_sanity_only_helpers')
 
 fixture_posture = phase6_manifest.get('fixture_posture', {})
