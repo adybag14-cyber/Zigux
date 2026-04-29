@@ -11,6 +11,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `zigux/tests/phase12_libbpf_manifest.json`
   - `zigux/tests/phase12_libbpf_segments.zig`
   - `zigux/tests/phase12_libbpf_reviewability.zig`
+  - `zigux/tests/phase12_libbpf_only_build.zig`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 
@@ -87,10 +88,13 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 12 build
+1. run the focused libbpf replay
+- `make -C zigux phase12-libbpf-test`
+
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
