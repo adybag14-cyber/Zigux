@@ -265,6 +265,100 @@ test "phase11 hvc console keeps khvcd worker-entry sleep and backoff boundaries 
     }));
 }
 
+test "phase11 hvc console keeps __hvc_poll drain ordering and wakeup boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(7);
+    _ = console.instantiate(0x70);
+
+    const active_drain = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .port_initialized = true,
+                .open_count_before_close = 1,
+            },
+            .read_poll_pending = true,
+            .write_poll_pending = true,
+        },
+        .buffered_write_len = 6,
+        .write_result = 0,
+        .read_result = 3,
+    });
+    try std.testing.expectEqual(@as(usize, 7), active_drain.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x70), active_drain.vtermno);
+    try std.testing.expect(active_drain.adapter_present);
+    try std.testing.expect(active_drain.final_close_wait_required);
+    try std.testing.expect(active_drain.clears_port_initialized_on_final_close);
+    try std.testing.expect(active_drain.keeps_console_binding);
+    try std.testing.expect(active_drain.tty_registration_pending);
+    try std.testing.expect(active_drain.write_drain_precedes_read_path);
+    try std.testing.expect(active_drain.write_drain_attempted);
+    try std.testing.expectEqual(@as(usize, 6), active_drain.write_remaining_len);
+    try std.testing.expect(active_drain.write_poll_pending_after_drain);
+    try std.testing.expect(!active_drain.write_progress_resets_timeout);
+    try std.testing.expect(active_drain.stalled_write_uses_min_timeout);
+    try std.testing.expect(!active_drain.releases_lock_before_read_retry);
+    try std.testing.expect(active_drain.tty_required_for_read_path);
+    try std.testing.expect(!active_drain.throttled_read_skipped);
+    try std.testing.expect(active_drain.read_poll_armed_without_irq);
+    try std.testing.expect(active_drain.read_poll_pending_after_drain);
+    try std.testing.expect(!active_drain.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 3), active_drain.read_bytes_drained);
+    try std.testing.expect(active_drain.wakeup_before_unlock);
+    try std.testing.expect(active_drain.flip_push_after_unlock);
+    try std.testing.expect(active_drain.wakeup_precedes_flip_push);
+    try std.testing.expect(active_drain.backend_handoff_pending);
+
+    const throttled_drain = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 2,
+            },
+        },
+        .may_sleep = true,
+        .tty_throttled = true,
+        .buffered_write_len = 4,
+        .write_result = 4,
+        .read_result = hvc_console.epipe,
+        .preexisting_do_wakeup = true,
+    });
+    try std.testing.expect(!throttled_drain.final_close_wait_required);
+    try std.testing.expect(!throttled_drain.clears_port_initialized_on_final_close);
+    try std.testing.expect(!throttled_drain.write_poll_pending_after_drain);
+    try std.testing.expect(!throttled_drain.write_progress_resets_timeout);
+    try std.testing.expect(!throttled_drain.stalled_write_uses_min_timeout);
+    try std.testing.expect(throttled_drain.releases_lock_before_read_retry);
+    try std.testing.expect(throttled_drain.tty_required_for_read_path);
+    try std.testing.expect(throttled_drain.throttled_read_skipped);
+    try std.testing.expect(!throttled_drain.read_poll_armed_without_irq);
+    try std.testing.expect(!throttled_drain.read_poll_pending_after_drain);
+    try std.testing.expect(!throttled_drain.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), throttled_drain.read_bytes_drained);
+    try std.testing.expect(throttled_drain.wakeup_before_unlock);
+    try std.testing.expect(!throttled_drain.flip_push_after_unlock);
+    try std.testing.expect(!throttled_drain.wakeup_precedes_flip_push);
+
+    const detached_drain = try console.summarizePollDrainOrder(.{
+        .contract = .{
+            .close = .{
+                .open_count_before_close = 1,
+            },
+        },
+        .tty_attached = false,
+        .buffered_write_len = 2,
+        .write_result = -5,
+        .preexisting_do_wakeup = true,
+    });
+    try std.testing.expect(!detached_drain.tty_required_for_read_path);
+    try std.testing.expect(!detached_drain.throttled_read_skipped);
+    try std.testing.expect(!detached_drain.read_poll_armed_without_irq);
+    try std.testing.expect(!detached_drain.read_poll_pending_after_drain);
+    try std.testing.expect(!detached_drain.read_hangup_pending);
+    try std.testing.expectEqual(@as(usize, 0), detached_drain.read_bytes_drained);
+    try std.testing.expect(!detached_drain.wakeup_before_unlock);
+    try std.testing.expect(!detached_drain.flip_push_after_unlock);
+    try std.testing.expect(!detached_drain.wakeup_precedes_flip_push);
+    try std.testing.expect(detached_drain.backend_handoff_pending);
+}
+
 test "phase11 hvc console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
