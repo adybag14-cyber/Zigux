@@ -353,7 +353,7 @@ required_rbtree_helper_markers = [
     'pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
     'pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {',
     'pub fn iterateMatches(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {',
-    'pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {',
+    'pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {',
     'test "rbtree nextMatch walks the duplicate range in order"',
     'test "rbtree cached root keeps leftmost in sync across add erase and replace"',
 ]
