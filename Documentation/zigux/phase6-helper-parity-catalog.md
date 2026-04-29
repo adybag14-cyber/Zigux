@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `be7ffab827416e8b04329235cdf24858986566b0`
+- verified head: `6ff5316f99e0dc1d45d435c510439088a6c6bfbc`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 
 ## Scope
