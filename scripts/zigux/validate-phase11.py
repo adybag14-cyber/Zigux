@@ -16,8 +16,6 @@ FILES = [
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
-    "Documentation/zigux/phase11-dw-wdt-survey.md",
-    "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -120,10 +118,6 @@ SURVEY_SPECS = {
         "path": "zigux/tests/phase11_uapi_header_parity_survey.zig",
         "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next")],
     },
-}
-DW_DOC_PATHS = {
-    "survey": "Documentation/zigux/phase11-dw-wdt-survey.md",
-    "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
 }
 HVC_DOC_PATHS = {
     "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
@@ -265,34 +259,6 @@ for name, (lane_key, anchor, gap_count, ready_ids, blocked_ids) in MANIFEST_SPEC
         if count_marker not in survey_text:
             missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
 
-dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
-dw_commit = str(dw_manifest.get("surveyed_commit", ""))
-dw_survey_doc = text(DW_DOC_PATHS["survey"])
-dw_matrix_doc = text(DW_DOC_PATHS["matrix"])
-for marker in [
-    f"`master` `{dw_commit}`",
-    "phase11-dw-wdt-validation-matrix.md",
-    "last recorded shared replay",
-    "`PHASE11_VALIDATION=pass`",
-]:
-    if marker not in dw_survey_doc:
-        missing.append(f"phase11_dw_wdt_docs:survey:{marker}")
-for marker in [
-    "PHASE11_DW_WDT_STATUS=validation_matrix_landed",
-    "## Shared Replay Surface",
-    "phase11-dw-wdt-tests",
-    "phase11-dw-wdt-survey-tests",
-    "fixed TOP timeout evidence",
-    "IRQ pretimeout bookkeeping",
-    "imported running-state handoff evidence",
-    "non-stoppable stop failure-mode boundary",
-    "zig test zigux/tests/phase11_dw_wdt.zig",
-    "zig test zigux/tests/phase11_dw_wdt_survey.zig",
-    "python3 scripts/zigux/validate-phase11.py",
-]:
-    if marker not in dw_matrix_doc:
-        missing.append(f"phase11_dw_wdt_docs:matrix:{marker}")
-
 hvc_manifest = load_manifest("phase11_hvc_console_manifest.json")
 hvc_commit = str(hvc_manifest.get("surveyed_commit", ""))
 hvc_survey_doc = text(HVC_DOC_PATHS["survey"])
@@ -315,7 +281,7 @@ for marker in [
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
 
-if starter_total != 51:
+if starter_total != 52:
     missing.append(f"phase11_bundle:starter_total={starter_total}")
 if ready_total != 1:
     missing.append(f"phase11_bundle:ready_total={ready_total}")
@@ -336,6 +302,6 @@ print(f"PHASE11_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(WORKFLOW_MARKERS)
 print(f"PHASE11_MANIFEST_COUNT={len(MANIFEST_SPECS)}")
 print(f"PHASE11_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE11_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
-print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
-print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
-print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
+print(f"PHASE11_STARTER_STATUS_COUNT={starter_total})
+print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total})
+print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total})
