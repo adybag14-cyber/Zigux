@@ -69,7 +69,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L08";
+const expected_lane_key = "P15-L07";
 const expected_surveyed_commit = "2b58a5636c7fcf3776e5960b52d1916a54ae64b4";
 
 fn isAllowedStatus(status: []const u8) bool {
