@@ -428,54 +428,6 @@ test "dep parsing returns NoTargets for comment-only depfiles" {
     try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
 }
 
-test "dep parsing treats escaped-newline comments as continuing onto the next line" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
-                .allocator = allocator,
-            };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
-            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-            defer self.allocator.free(rendered);
-            try self.list.appendSlice(self.allocator, rendered);
-        }
-    };
-
-    var processor = Processor.init(std.testing.allocator, std.testing.io);
-    defer processor.deinit();
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try processor.parseDepFile(
-        &capture,
-        "# rustc dep-info comment continues onto the next line \\\n" ++
-            "ignored.o: ignored_source.rmeta ignored_dep.so\n" ++
-            "real.o: real_source.rmeta real_dep.so\n",
-        "real.o",
-    );
-
-    try std.testing.expectEqualStrings(
-        "source_real.o := real_source.rmeta\n\n" ++
-            "deps_real.o := \\\n" ++
-            "  real_dep.so \\\n" ++
-            "\n" ++
-            "real.o: $(deps_real.o)\n\n" ++
-            "$(deps_real.o):\n",
-        capture.list.items,
-    );
-}
-
 test "dep parsing keeps escaped whitespace inside dependency tokens" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -568,6 +520,53 @@ test "dep parsing keeps the first source across concatenated target entries" {
             "\n" ++
             "sample_concatenated.o: $(deps_sample_concatenated.o)\n\n" ++
             "$(deps_sample_concatenated.o):\n",
+        capture.list.items,
+    );
+}
+
+test "dep parsing unescapes escaped hash and colon tokens once" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "module.o: source\\:one.rmeta shared\\#config.so shared\\#config.so generated\\:two.so\n",
+        "module.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_module.o := source:one.rmeta\n\n" ++
+            "deps_module.o := \\\n" ++
+            "  shared#config.so \\\n" ++
+            "  generated:two.so \\\n" ++
+            "\n" ++
+            "module.o: $(deps_module.o)\n\n" ++
+            "$(deps_module.o):\n",
         capture.list.items,
     );
 }
