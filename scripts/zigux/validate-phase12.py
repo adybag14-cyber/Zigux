@@ -22,6 +22,7 @@ FILES = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
+    "Documentation/zigux/phase12-virtio-scsi-slice.md",
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -37,6 +38,7 @@ FILES = [
     "zigux/tests/phase12_nvme_pci_survey.zig",
     "zigux/tests/phase12_virtio_scsi_survey.zig",
     "zigux/tests/phase12_libbpf_segments.zig",
+    "zigux/tests/phase12_libbpf_reviewability.zig",
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
 ]
 
