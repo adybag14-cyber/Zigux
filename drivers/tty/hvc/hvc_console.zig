@@ -434,7 +434,7 @@ fn summarizeFlushProgress(
     remaining: *[outbuf_capacity * 2]u8,
 ) FlushProgressSummary {
     if (put_result <= 0) {
-        if (put_result == eagain) {
+        if (put_result == 0 or put_result == eagain) {
             std.mem.copyForwards(u8, remaining[0..framed.len], framed);
             return .{
                 .remaining_len = framed.len,
