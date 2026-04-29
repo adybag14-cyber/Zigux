@@ -19,6 +19,18 @@ const FixtureSource = struct {
     }
 };
 
+fn runAddCmdNameWithFailingAllocator(allocator: std.mem.Allocator) !void {
+    var cmds = help.CmdNames.init(allocator);
+    defer cmds.deinit();
+
+    try cmds.addCmdName("trace", 5);
+}
+
+fn runSplitPathEntriesWithFailingAllocator(allocator: std.mem.Allocator, raw_path: []const u8) !void {
+    var entries = try help.splitPathEntries(allocator, raw_path);
+    defer entries.deinit();
+}
+
 test "phase 8 help module imports cleanly" {
     _ = help;
 }
@@ -44,6 +56,19 @@ test "phase 8 help phase-level coverage stays focused on integrated command-list
     try std.testing.expectEqual(@as(usize, 1), main_cmds.count());
     try std.testing.expect(main_cmds.isInCmdList("trace"));
     try std.testing.expectEqual(@as(usize, 5), main_cmds.longestNameLen());
+}
+
+test "phase 8 help owned-copy helpers stay leak-free when allocation fails mid-append" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runAddCmdNameWithFailingAllocator,
+        .{},
+    );
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runSplitPathEntriesWithFailingAllocator,
+        .{":/opt/perf/bin::/usr/bin:"},
+    );
 }
 
 test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice" {
