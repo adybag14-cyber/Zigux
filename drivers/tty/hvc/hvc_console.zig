@@ -396,7 +396,7 @@ pub const HvcConsoleLab = struct {
             .vtermno = handoff.vtermno,
             .adapter_present = handoff.adapter_present,
             .final_close_wait_required = handoff.final_close_wait_required,
-            .clears_port_initialized_on_final_close = handoff.clears_port_initialized_onFinalClose,
+            .clears_port_initialized_on_final_close = handoff.clears_port_initialized_on_final_close,
             .keeps_console_binding = handoff.keeps_console_binding,
             .tty_registration_pending = handoff.tty_registration_pending,
             .khvcd_polling_pending = handoff.khvcd_polling_pending,
@@ -427,7 +427,7 @@ pub const HvcConsoleLab = struct {
         const poll_mask_pending = poll_read_pending or poll_write_pending;
         const skip_sleep_due_to_kick = request.kick_pending_after_walk;
         const sleeps_without_timeout = !skip_sleep_due_to_kick and !poll_mask_pending;
-        const timeout_backoff_active = !skip_sleep_dueToKick and poll_mask_pending;
+        const timeout_backoff_active = !skip_sleep_due_to_kick and poll_mask_pending;
         const sleep_timeout_ms = if (timeout_backoff_active)
             growKhvcdTimeout(request.timeout_ms)
         else
@@ -526,7 +526,7 @@ pub const HvcConsoleLab = struct {
             @as(usize, @intCast(request.read_result))
         else
             0;
-        const read_hangup_pending = tty_required_for_readPath and
+        const read_hangup_pending = tty_required_for_read_path and
             !request.tty_throttled and
             request.read_result == epipe;
         const read_poll_pending_after_drain = read_poll_armed_without_irq or
