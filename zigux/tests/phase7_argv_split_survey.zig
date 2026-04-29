@@ -47,6 +47,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
@@ -65,6 +73,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_helper = false;
+    var saw_dedicated_tests = false;
     var saw_survey_gate = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -83,6 +92,15 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
             saw_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/argv_split.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "copied-buffer ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "null-terminated argv view") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-argv-split-dedicated-tests")) {
+            saw_dedicated_tests = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_argv_split.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "copied-buffer ownership") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-survey-gate")) {
@@ -100,5 +118,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(starter_landed_count >= 6);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_dedicated_tests);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "shared exported empty argv view for blank input without extra argv-vector allocation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`") != null);
 }
