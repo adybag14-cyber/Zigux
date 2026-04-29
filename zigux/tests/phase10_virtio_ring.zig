@@ -97,6 +97,53 @@ test "phase10 virtio ring flushes num_added before the 16-bit threshold wraps" {
     try std.testing.expect(summary.needs_kick);
 }
 
+test "phase10 virtio ring blocks publish and kick work while the queue is marked broken" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(1, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(1);
+    const broken_summary = try ring.breakQueue(1);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", broken_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.queue_index);
+    try std.testing.expect(broken_summary.broken);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.unpublished_chain_count);
+
+    try std.testing.expectError(error.QueueBroken, ring.publishDescriptorChain(1));
+    try std.testing.expectError(error.QueueBroken, ring.prepareKick(1));
+
+    const still_broken = try ring.brokenSummary(1);
+    try std.testing.expect(still_broken.broken);
+    try std.testing.expectEqual(@as(u16, 1), still_broken.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), still_broken.unpublished_chain_count);
+}
+
+test "phase10 virtio ring can resume queue-local publish and kick bookkeeping after unbreak" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(1, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(1);
+    _ = try ring.breakQueue(1);
+    const repaired_summary = try ring.unbreakQueue(1);
+    try std.testing.expect(!repaired_summary.broken);
+    try std.testing.expectEqual(@as(u16, 1), repaired_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), repaired_summary.unpublished_chain_count);
+
+    const kick_summary = try ring.prepareKick(1);
+    try std.testing.expect(kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 1), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
+
+    try ring.recordUsedChains(1, 1);
+    _ = try ring.pollUsedBuffers(1);
+    const clear_summary = try ring.brokenSummary(1);
+    try std.testing.expect(!clear_summary.broken);
+    try std.testing.expectEqual(@as(u16, 0), clear_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), clear_summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), clear_summary.unpublished_chain_count);
+}
+
 test "phase10 virtio ring rejects queue overflow and used batches beyond outstanding chains" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(4, 2, .packed_ring, false, true);
