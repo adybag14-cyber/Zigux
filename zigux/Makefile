@@ -6,7 +6,7 @@ PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test phase8
 PHONY += phase9-validate phase9-test phase9
 PHONY += phase10-validate phase10-test phase10
-PHONY += phase11-validate phase11-test phase11
+PHONY += phase11-validate phase11-test phase11-hvc-survey phase11
 PHONY += phase12-validate phase12-test phase12
 PHONY += phase13-validate phase13-test phase13
 PHONY += phase14-validate phase14-smoke phase14-test phase14
@@ -156,7 +156,10 @@ phase11-validate:
 phase11-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all
 
-phase11: phase11-validate phase11-test
+phase11-hvc-survey:
+	cd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/phase11_hvc_console_survey.zig
+
+phase11: phase11-validate phase11-test phase11-hvc-survey
 
 phase12-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-build-inventory.py
