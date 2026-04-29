@@ -103,7 +103,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.validation_entrypoint);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
-    try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_EVENTS_sample_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(!manifest.survey_summary.runtime_trace_events_loader_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
