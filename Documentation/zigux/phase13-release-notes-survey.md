@@ -16,6 +16,7 @@ This document records the current release-discipline reading for the active Phas
   - `Documentation/zigux/phase13-roadmap-traceability.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `.github/workflows/zigux-bootstrap.yml`
   - `zigux/tests/phase13_build.zig`
   - `zigux/Makefile`
   - `Documentation/zigux/phase13-libfs-survey.md`
@@ -46,6 +47,7 @@ What this record needs to say, in one place, is how to read that bundle today:
 
 - Phase 13 is active, not closed
 - the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`
+- the shared bootstrap workflow mirrors that same validator-first release path through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`, so release-facing reviewability is not hidden only in local commands
 - the validator helper itself is part of the published evidence packet through `scripts/zigux/README.md`, so the fast-check contract is documented alongside the release note instead of living only in the script and workflow wiring
 - `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` all already have manifest-backed survey packets
 - the shared release packet now needs to say plainly that `devres` is manifest-backed while still blocking live DMA-backed mappings and scatterlist ownership
@@ -60,6 +62,7 @@ The current Phase 13 release-facing reading is:
 - `lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
+- the shared bootstrap workflow replays the same validator-plus-build contract through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`
 
 - `PHASE13_ROADMAP_ANCHOR_COUNT=4`
 - `PHASE13_MANIFEST_BACKED_SURVEY_COUNT=4`
@@ -102,6 +105,7 @@ The current bounded release-evidence set is:
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_devres.zig`
