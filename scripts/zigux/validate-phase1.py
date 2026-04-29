@@ -116,6 +116,81 @@ EXPECTED_PHASE1_FIXTURE_SHAPE = {
     'vsprintf': {'scnprintf_text', 'scnprintf_len', 'pad_text', 'pad_len'},
 }
 
+EXPECTED_PHASE1_MANIFEST_SHAPE = {
+    'phase': 'Phase 1',
+    'status': 'closed',
+    'helper_count': 13,
+    'helpers': {
+        'tools/lib/argv_split.zig',
+        'tools/lib/bitmap.zig',
+        'tools/lib/cmdline.zig',
+        'tools/lib/ctype.zig',
+        'tools/lib/find_bit.zig',
+        'tools/lib/hweight.zig',
+        'tools/lib/list_sort.zig',
+        'tools/lib/rbtree.zig',
+        'tools/lib/slab.zig',
+        'tools/lib/str_error_r.zig',
+        'tools/lib/string.zig',
+        'tools/lib/vsprintf.zig',
+        'tools/lib/zalloc.zig',
+    },
+    'helper_review_notes': {
+        'tools/lib/bitmap.zig': {
+            'fixture',
+            'evidence_keys',
+            'summary',
+            'unit_test_anchor',
+            'unit_test_contract',
+        },
+        'tools/lib/find_bit.zig': {
+            'fixture',
+            'evidence_keys',
+            'summary',
+            'unit_test_anchor',
+            'unit_test_contract',
+            'set_unit_test_anchor',
+            'set_unit_test_contract',
+            'and_unit_test_anchor',
+            'and_unit_test_contract',
+            'boundary_unit_test_anchor',
+            'boundary_unit_test_contract',
+        },
+        'tools/lib/rbtree.zig': {
+            'fixture',
+            'evidence_keys',
+            'summary',
+            'unit_test_anchor',
+            'unit_test_contract',
+            'search_unit_test_anchor',
+            'search_unit_test_contract',
+            'cached_unit_test_anchor',
+            'cached_unit_test_contract',
+            'cached_duplicate_unit_test_anchor',
+            'cached_duplicate_unit_test_contract',
+            'iterator_unit_test_anchor',
+            'iterator_unit_test_contract',
+            'reverse_unit_test_anchor',
+            'reverse_unit_test_contract',
+        },
+        'tools/lib/string.zig': {
+            'fixture',
+            'evidence_keys',
+            'summary',
+            'unit_test_anchor',
+            'unit_test_contract',
+            'cstring_unit_test_anchor',
+            'cstring_unit_test_contract',
+            'alias_unit_test_anchor',
+            'alias_unit_test_contract',
+            'prefix_unit_test_anchor',
+            'prefix_unit_test_contract',
+            'suffix_unit_test_anchor',
+            'suffix_unit_test_contract',
+        },
+    },
+}
+
 
 def validate_phase1_fixture_shape(path: Path) -> list[str]:
     issues: list[str] = []
@@ -143,6 +218,68 @@ def validate_phase1_fixture_shape(path: Path) -> list[str]:
             issues.append(f'phase1_fixture:{section_name}:missing_key:{key}')
         for key in sorted(actual_keys - expected_keys):
             issues.append(f'phase1_fixture:{section_name}:unexpected_key:{key}')
+
+    return issues
+
+
+def validate_phase1_manifest_shape(path: Path) -> list[str]:
+    issues: list[str] = []
+    manifest = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(manifest, dict):
+        return [f'phase1_manifest:expected_object:{path.relative_to(ROOT)}']
+
+    if manifest.get('phase') != EXPECTED_PHASE1_MANIFEST_SHAPE['phase']:
+        issues.append('phase1_manifest:phase:mismatch')
+    if manifest.get('status') != EXPECTED_PHASE1_MANIFEST_SHAPE['status']:
+        issues.append('phase1_manifest:status:mismatch')
+    if manifest.get('helper_count') != EXPECTED_PHASE1_MANIFEST_SHAPE['helper_count']:
+        issues.append('phase1_manifest:helper_count:mismatch')
+
+    helpers = manifest.get('helpers')
+    if not isinstance(helpers, list):
+        issues.append('phase1_manifest:helpers:expected_list')
+    else:
+        actual_helpers = set(helpers)
+        expected_helpers = EXPECTED_PHASE1_MANIFEST_SHAPE['helpers']
+        for helper in sorted(expected_helpers - actual_helpers):
+            issues.append(f'phase1_manifest:helpers:missing:{helper}')
+        for helper in sorted(actual_helpers - expected_helpers):
+            issues.append(f'phase1_manifest:helpers:unexpected:{helper}')
+        if len(helpers) != len(actual_helpers):
+            issues.append('phase1_manifest:helpers:duplicate_entries')
+
+    review_notes = manifest.get('helper_review_notes')
+    if not isinstance(review_notes, dict):
+        issues.append('phase1_manifest:helper_review_notes:expected_object')
+        return issues
+
+    expected_notes = EXPECTED_PHASE1_MANIFEST_SHAPE['helper_review_notes']
+    actual_note_helpers = set(review_notes)
+    for helper in sorted(set(expected_notes) - actual_note_helpers):
+        issues.append(f'phase1_manifest:helper_review_notes:missing_helper:{helper}')
+    for helper in sorted(actual_note_helpers - set(expected_notes)):
+        issues.append(f'phase1_manifest:helper_review_notes:unexpected_helper:{helper}')
+
+    for helper, expected_fields in expected_notes.items():
+        note = review_notes.get(helper)
+        if note is None:
+            continue
+        if not isinstance(note, dict):
+            issues.append(f'phase1_manifest:{helper}:expected_object')
+            continue
+        actual_fields = set(note)
+        for field in sorted(expected_fields - actual_fields):
+            issues.append(f'phase1_manifest:{helper}:missing_field:{field}')
+        for field in sorted(actual_fields - expected_fields):
+            issues.append(f'phase1_manifest:{helper}:unexpected_field:{field}')
+
+        fixture = note.get('fixture')
+        if fixture != 'zigux/tests/fixtures/phase1_helpers.json':
+            issues.append(f'phase1_manifest:{helper}:fixture:mismatch')
+
+        evidence_keys = note.get('evidence_keys')
+        if not isinstance(evidence_keys, list) or not evidence_keys:
+            issues.append(f'phase1_manifest:{helper}:evidence_keys:expected_nonempty_list')
 
     return issues
 
@@ -190,6 +327,17 @@ if fixture_shape_issues:
     for item in fixture_shape_issues:
         print(item)
     print('MISSING_PHASE1_FIXTURE_SHAPE_END')
+    sys.exit(1)
+
+manifest_shape_issues = validate_phase1_manifest_shape(
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json'
+)
+if manifest_shape_issues:
+    print('PHASE1_VALIDATION=fail')
+    print('MISSING_PHASE1_MANIFEST_SHAPE_START')
+    for item in manifest_shape_issues:
+        print(item)
+    print('MISSING_PHASE1_MANIFEST_SHAPE_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
@@ -373,8 +521,8 @@ required_string_fixture_markers = [
 required_string_harness_markers = [
     "char remove_nul_buf[] = {'a', ' ', 'b', 0, ' ', 'x'};",
     'remove_spaces(remove_nul_buf);',
-    '\\"remove_spaces_nul\\":',
-    '\\"remove_spaces_nul_bytes\\":',
+    '\\\"remove_spaces_nul\\\":',
+    '\\\"remove_spaces_nul_bytes\\\":',
 ]
 required_string_manifest_markers = [
     '"tools/lib/string.zig"',
