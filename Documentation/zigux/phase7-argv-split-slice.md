@@ -25,6 +25,7 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 - whitespace-only argv tokenization
 - first-NUL C-string bounds on both counting and splitting
 - optional argc reporting that matches the C helper's out-parameter shape more directly
+- explicit `argv_free()` release parity via `argvFree()`
 - an explicit result object that owns the copied token buffer
 - a shared exported empty argv view for blank input without extra argv-vector allocation
 - deterministic Zig-only validation without quote or shell expansion behavior
@@ -47,6 +48,7 @@ The current landed slice covers:
 - `count_argc()`
 - `argv_split()`
 - optional `argcp` reporting through `argvSplitWithArgc()`
+- `argv_free()` via `argvFree()`
 
 The current tests check:
 
@@ -57,6 +59,7 @@ The current tests check:
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
 - optional argc reporting that stays in sync with the returned argv length
+- the explicit `argv_free()` ownership mirror through `argvFree()` over an already-split result object
 - blank-input reuse of the exported empty argv view under a four-byte fixed-buffer allocator
 - teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`
 - repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state
