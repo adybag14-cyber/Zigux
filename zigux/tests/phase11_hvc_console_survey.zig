@@ -1,4 +1,5 @@
 const std = @import("std");
+const layout_assert = @import("layout_assert");
 
 const SurveySummary = struct {
     hvc_console_c_lines: usize,
@@ -29,6 +30,13 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const WinsizeLayout = extern struct {
+    ws_row: u16,
+    ws_col: u16,
+    ws_xpixel: u16,
+    ws_ypixel: u16,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -55,7 +63,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("111cbc59882a8689ba76770aa9e5fc8c83fea15b", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("e814a2b1ccd51e66839b5f9dae5f1cc348890116", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -65,7 +73,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -76,6 +84,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_starter_gap = false;
     var saw_sleep_handoff = false;
     var saw_header_parity = false;
+    var saw_winsize_layout_assert = false;
     var saw_driver_tests = false;
     var saw_validation_matrix = false;
     var saw_tty_block = false;
@@ -151,6 +160,15 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hv_ops") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
+            saw_winsize_layout_assert = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct winsize") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "layout_assert") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offsets 0, 2, 4, and 6") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
@@ -193,7 +211,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -202,6 +220,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_starter_gap);
     try std.testing.expect(saw_sleep_handoff);
     try std.testing.expect(saw_header_parity);
+    try std.testing.expect(saw_winsize_layout_assert);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_block);
@@ -223,4 +242,15 @@ test "phase11 hvc console survey records the current shared-build boundary exact
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11_hvc_console_survey_tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "run_phase11_hvc_console_survey_tests.step") == null);
+}
+
+test "phase11 hvc console survey keeps a bounded winsize layout proof" {
+    comptime {
+        layout_assert.assertSize(WinsizeLayout, 8);
+        layout_assert.assertAlign(WinsizeLayout, 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
+        layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
+        layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
+        layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
+    }
 }
