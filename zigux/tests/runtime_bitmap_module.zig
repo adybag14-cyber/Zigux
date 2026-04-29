@@ -87,6 +87,43 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expectError(error.InvalidLifecycleTransition, module.copyFrom(&source));
 }
 
+test "runtime bitmap sample keeps post-selftest mutation replay explicit at the module boundary" {
+    var module = sample.RuntimeBitmapSample{};
+    const second_word_base = sample.RuntimeBitmapSample.bitmap_nbits / 2;
+    try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+
+    const summary_before_selftest = module.summary();
+    _ = try module.runSelftest();
+
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(u32, 4), summary_before_selftest.weight);
+
+    try module.clearRange(second_word_base, 2);
+    try module.setRange(9, 4);
+
+    const summary_after_mutation = module.summary();
+    try std.testing.expectEqual(@as(u32, 0), summary_after_mutation.first_set);
+    try std.testing.expectEqual(@as(u32, 1), summary_after_mutation.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), summary_after_mutation.weight);
+    try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, summary_after_mutation.nbits);
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(second_word_base));
+
+    var mirror = sample.RuntimeBitmapSample{};
+    try mirror.initWithSetBits(&.{});
+    try mirror.copyFrom(&module);
+
+    const mirror_summary = mirror.summary();
+    try std.testing.expectEqual(summary_after_mutation.first_set, mirror_summary.first_set);
+    try std.testing.expectEqual(summary_after_mutation.first_zero, mirror_summary.first_zero);
+    try std.testing.expectEqual(summary_after_mutation.weight, mirror_summary.weight);
+    try std.testing.expectEqual(summary_after_mutation.nbits, mirror_summary.nbits);
+    try std.testing.expect(mirror.isSet(12));
+    try std.testing.expect(mirror.isSet(second_word_base + 6));
+    try std.testing.expect(!mirror.isSet(second_word_base));
+}
+
 test "runtime bitmap sample keeps bounded errors explicit" {
     var module = sample.RuntimeBitmapSample{};
 
