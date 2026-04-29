@@ -423,6 +423,12 @@ test "extractArgv0Path splits command names from directory prefixes" {
     try std.testing.expectEqualStrings("/tmp", extracted.argv0_path.?);
     try std.testing.expectEqualStrings("perf", extracted.command_name);
 
+    var root = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
+    defer root.deinit(std.testing.allocator);
+    try std.testing.expect(root.argv0_path != null);
+    try std.testing.expectEqual(@as(usize, 0), root.argv0_path.?.len);
+    try std.testing.expectEqualStrings("perf", root.command_name);
+
     var bare = (try extractArgv0Path(std.testing.allocator, "perf")) orelse unreachable;
     defer bare.deinit(std.testing.allocator);
     try std.testing.expectEqual(@as(?[]u8, null), bare.argv0_path);
