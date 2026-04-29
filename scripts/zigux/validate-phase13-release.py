@@ -125,6 +125,17 @@ def load_json(path: str) -> dict[str, object]:
     return json.loads(text(path))
 
 
+def section_text(source: str, start_marker: str, end_marker: str) -> str | None:
+    start = source.find(start_marker)
+    if start == -1:
+        return None
+    start += len(start_marker)
+    end = source.find(end_marker, start)
+    if end == -1:
+        return None
+    return source[start:end]
+
+
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
     print("PHASE13_RELEASE_VALIDATION=fail")
@@ -148,6 +159,40 @@ for name, source, markers in [
             missing.append(f"{name}:{marker}")
 
 release_text = text("Documentation/zigux/phase13-release-notes-survey.md")
+product_boundary = section_text(release_text, "product boundary:\n", "\n## Why this record exists")
+if product_boundary is None:
+    missing.append("release:product_boundary_section")
+else:
+    for rel in [
+        "scripts/zigux/validate-phase13-release.py",
+        "scripts/zigux/README.md",
+        "Documentation/zigux/phase13-release-notes-survey.md",
+        "Documentation/zigux/phase13-roadmap-traceability.md",
+        "Documentation/zigux/README.md",
+        "Documentation/zigux/review-checklist.md",
+        ".github/workflows/zigux-bootstrap.yml",
+        "zigux/tests/phase13_build.zig",
+        "zigux/Makefile",
+        "Documentation/zigux/phase13-libfs-slice.md",
+        "Documentation/zigux/phase13-libfs-survey.md",
+        "Documentation/zigux/phase13-devres-slice.md",
+        "Documentation/zigux/phase13-devres-survey.md",
+        "Documentation/zigux/phase13-landlock-ruleset-slice.md",
+        "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+        "Documentation/zigux/phase13-landlock-syscalls-slice.md",
+        "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+        "Documentation/zigux/phase13-notifier-list-survey.md",
+        "zigux/tests/phase13_libfs_manifest.json",
+        "zigux/tests/phase13_devres_manifest.json",
+        "zigux/tests/phase13_landlock_ruleset_manifest.json",
+        "zigux/tests/phase13_landlock_syscalls_manifest.json",
+        "zigux/tests/phase13_notifier_list_manifest.json",
+        "zigux/tests/phase13_devres_reviewability.zig",
+        "zigux/tests/phase13_notifier_list_reviewability.zig",
+    ]:
+        if rel not in product_boundary:
+            missing.append(f"release:product_boundary_path:{rel}")
+
 for rel in [
     "scripts/zigux/validate-phase13-release.py",
     "scripts/zigux/README.md",
