@@ -354,8 +354,53 @@ test "runtime atomic64 sample keeps lifecycle replay and summary accounting expl
     try std.testing.expectEqual(@as(i64, 5), add_result.previous);
     try std.testing.expectEqual(@as(i64, 12), add_result.final);
 
+    const post_selftest_or = try module.orCounter(0b0100);
+    try std.testing.expectEqual(@as(i64, 12), post_selftest_or.previous);
+    try std.testing.expectEqual(@as(i64, 12), post_selftest_or.final);
+
+    const post_selftest_and = try module.andCounter(0b1110);
+    try std.testing.expectEqual(@as(i64, 12), post_selftest_and.previous);
+    try std.testing.expectEqual(@as(i64, 12), post_selftest_and.final);
+
+    const post_selftest_xor = try module.xorCounter(0b0011);
+    try std.testing.expectEqual(@as(i64, 12), post_selftest_xor.previous);
+    try std.testing.expectEqual(@as(i64, 15), post_selftest_xor.final);
+
+    const post_selftest_andnot = try module.andNotCounter(0b0100);
+    try std.testing.expectEqual(@as(i64, 15), post_selftest_andnot.previous);
+    try std.testing.expectEqual(@as(i64, 11), post_selftest_andnot.final);
+
+    const compare_mismatch = try module.compareSwapCounter(19, 31);
+    try std.testing.expect(!compare_mismatch.stored);
+    try std.testing.expectEqual(@as(i64, 11), compare_mismatch.previous);
+    try std.testing.expectEqual(@as(i64, 11), module.snapshotCounter());
+
+    const compare_stored = try module.compareSwapCounter(11, 19);
+    try std.testing.expect(compare_stored.stored);
+    try std.testing.expectEqual(@as(i64, 11), compare_stored.previous);
+    try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
+
+    const add_unless_blocked = try module.addUnlessCounter(5, 19);
+    try std.testing.expect(!add_unless_blocked.changed);
+    try std.testing.expectEqual(@as(i64, 19), add_unless_blocked.previous);
+
+    const add_unless_changed = try module.addUnlessCounter(-4, 99);
+    try std.testing.expect(add_unless_changed.changed);
+    try std.testing.expectEqual(@as(i64, 19), add_unless_changed.previous);
+    try std.testing.expectEqual(@as(i64, 15), module.snapshotCounter());
+
+    const inc_not_zero = try module.incNotZeroCounter();
+    try std.testing.expect(inc_not_zero.changed);
+    try std.testing.expectEqual(@as(i64, 15), inc_not_zero.previous);
+    try std.testing.expectEqual(@as(i64, 16), module.snapshotCounter());
+
+    const dec_if_positive = try module.decIfPositiveCounter();
+    try std.testing.expect(dec_if_positive.changed);
+    try std.testing.expectEqual(@as(i64, 15), dec_if_positive.result);
+    try std.testing.expectEqual(@as(i64, 15), module.snapshotCounter());
+
     const swapped = try module.swapCounter(19);
-    try std.testing.expectEqual(@as(i64, 12), swapped);
+    try std.testing.expectEqual(@as(i64, 15), swapped);
     try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
 
     const post_selftest_summary = module.summary();
@@ -374,7 +419,15 @@ test "runtime atomic64 sample keeps lifecycle replay and summary accounting expl
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andNotCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(19, 23));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 19));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
