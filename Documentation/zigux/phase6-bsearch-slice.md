@@ -60,9 +60,9 @@ The current tests check:
 - duplicate-key found-or-null parity without claiming stable selection across beginning, middle, and end duplicate runs
 - runtime-selected comparator function pointers preserve the same found-or-null behavior across ascending and descending sorted slices
 - runtime-selected C ABI comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices
-- representative lookup work stays inside a bounded binary-search comparison budget
+- representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup, not only on average across the perf run
 - inline sorted integer and symbol tables keep the current lookup corpus deterministic without introducing a generated fixture file
-- a replayable perf-sanity harness reports lookup cost and average comparator work for representative sorted slices
+- a replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative sorted slices
 - a representative external C-vs-Zig parity replay currently replays 15 sorted lookup cases covering integer hits and misses, singleton and empty-slice behavior, duplicate hits across beginning, middle, and end duplicate runs on a found-or-null basis without pinning a stable duplicate index, heterogeneous string-key lookup, and mutable-pointer write-through behavior
 
 ## Non-goals
