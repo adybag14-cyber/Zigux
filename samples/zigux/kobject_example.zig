@@ -38,6 +38,8 @@ pub const ReplaySummary = struct {
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
     attr_count: usize,
+    attributes_are_accessible_after_replay: bool,
+    register_runs_after_replay: usize,
     group_is_named: bool,
     uses_shared_b_handlers: bool,
     foo_value: RenderedAttribute,
@@ -188,6 +190,8 @@ pub const KobjectExampleSample = struct {
             .stage_before_replay = .initialized,
             .stage_after_replay = self.stage(),
             .attr_count = self.activeAttrCount(),
+            .attributes_are_accessible_after_replay = self.attributesAreAccessible(),
+            .register_runs_after_replay = self.register_runs,
             .group_is_named = false,
             .uses_shared_b_handlers = true,
             .foo_value = try self.showValue("foo"),
@@ -256,6 +260,8 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.registered, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
+    try std.testing.expect(replay.attributes_are_accessible_after_replay);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs_after_replay);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
     try std.testing.expectEqualStrings("foo", replay.foo_value.attr_name);
