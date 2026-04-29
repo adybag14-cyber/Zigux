@@ -55,6 +55,14 @@ The survey manifest now records:
 
 This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus PRP-shape plus pointer-selection starters are real, but the transport-heavy roadmap work is still intentionally blocked.
 
+## Rollback And Reversible Delivery
+
+- owner: `Storage Driver Lane`
+- rollback owner: `Storage Driver Lane`
+- fallback path: keep `drivers/nvme/host/pci.c` as the source of truth, keep the bounded `drivers/nvme/host/pci.zig` queue-planner, PRP-shape, and pointer-selection helpers on their current starter footing, and drop the Phase 12 nvme PCI survey packet out of `zigux/tests/phase12_build.zig` if the shared reviewability surface regresses.
+- reversible delivery evidence: this Phase 12 packet stays additive around the bounded `drivers/nvme/host/pci.zig` starter, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and this survey note, so the survey gate can be removed without mutating `drivers/nvme/host/pci.c` or claiming live PCI queue, DMA, or reset parity.
+- rollback drill: run `make -C zigux phase12-validate`; if the nvme PCI survey packet is the only failing slice, repair this note or `scripts/zigux/validate-phase12.py` first, otherwise remove the `phase12-nvme-pci-survey-tests` entry from `zigux/tests/phase12_build.zig`, keep the bounded driver starter and direct test intact, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+
 ## Non-goals
 
 This survey slice does not claim:
