@@ -157,6 +157,7 @@ required_phase6_catalog_markers = [
     'avg_compare_calls <= std.math.log2_int_ceil(len) + 1',
     '`64` bytes at `20_000` reps and `1501` bytes at `4_000` reps',
     'max_slowdown_pct = 150',
+    '6 imported KUnit random-prefix vectors',
     'there is no hard formatter-cost threshold yet because the current lane only claims deterministic perf-sanity evidence',
     '`zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds',
     '`zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded comparison budget rather than a nanosecond threshold',
@@ -283,6 +284,7 @@ required_slice_markers = {
         'zigux/tests/fixtures/phase6_checksum_vectors.zig',
         'zigux/tests/phase6_build.zig',
         'make -C zigux phase6-checksum-perf',
+        'six imported KUnit random-prefix prefix lengths',
         'replayable perf-sanity harness reports representative checksum cost per call and per byte',
     ],
     'phase6-hexdump-slice.md': [
