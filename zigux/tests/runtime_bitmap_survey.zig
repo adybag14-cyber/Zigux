@@ -22,6 +22,18 @@ const ExactCheck = struct {
     expected: []const u8,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    role: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    owns: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -33,6 +45,8 @@ const Manifest = struct {
     survey_summary: SurveySummary,
     review_prompts: []const []const u8,
     exact_checks: []const ExactCheck,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
     non_goals: []const []const u8,
 };
@@ -79,8 +93,10 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
-    try std.testing.expect(manifest.review_prompts.len >= 5);
+    try std.testing.expect(manifest.review_prompts.len >= 6);
     try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 6);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -98,9 +114,84 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_diff_fill_case = false;
     var saw_diff_cutout_case = false;
     var saw_diff_sparse_copy_case = false;
+    var saw_manifest_catalog = false;
+    var saw_shared_build_catalog = false;
+    var saw_loader_gap_note = false;
+    var saw_runtime_loader_binding_catalog = false;
+    var saw_bitmap_loader_scaffold_catalog = false;
+    var saw_loader_gap_ownership = false;
+    var saw_bitmap_diff_ownership = false;
+    var saw_bitmap_sample_ownership = false;
+    var saw_loader_gap_review_prompt = false;
 
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
+        if (std.mem.indexOf(u8, prompt, "Documentation/zigux/phase9-runtime-loader-gap-survey.md") != null) {
+            saw_loader_gap_review_prompt = true;
+        }
+    }
+
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.kind.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+
+        if (std.mem.eql(u8, entry.id, "runtime-bitmap-manifest")) {
+            saw_manifest_catalog = true;
+            try std.testing.expectEqualStrings("manifest", entry.kind);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_bitmap_manifest.json", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "delivery catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "ownership map") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "phase9-bitmap-build-gate")) {
+            saw_shared_build_catalog = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "phase9-runtime-bitmap-sample-tests") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "phase9-runtime-bitmap-loader-tests") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-loader-gap-note")) {
+            saw_loader_gap_note = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-loader-gap-survey.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "argv-policy") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-bitmap-shared-loader-binding")) {
+            saw_runtime_loader_binding_catalog = true;
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared runtime-loader request contract") != null);
+        }
+        if (std.mem.eql(u8, entry.id, "runtime-bitmap-loader-scaffold")) {
+            saw_bitmap_loader_scaffold_catalog = true;
+            try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap_loader.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "released_without_substrate") != null);
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+        }
+    }
+
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.owns.len > 0);
+
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")) {
+            saw_loader_gap_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "argv-policy") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_bitmap_diff.zig")) {
+            saw_bitmap_diff_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "differential replay") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_bitmap.zig")) {
+            saw_bitmap_sample_ownership = true;
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "selftest-hook metadata") != null);
+        }
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
+        }
     }
 
     for (manifest.exact_checks, 0..) |check, i| {
@@ -294,6 +385,15 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_diff_fill_case);
     try std.testing.expect(saw_diff_cutout_case);
     try std.testing.expect(saw_diff_sparse_copy_case);
+    try std.testing.expect(saw_manifest_catalog);
+    try std.testing.expect(saw_shared_build_catalog);
+    try std.testing.expect(saw_loader_gap_note);
+    try std.testing.expect(saw_runtime_loader_binding_catalog);
+    try std.testing.expect(saw_bitmap_loader_scaffold_catalog);
+    try std.testing.expect(saw_loader_gap_ownership);
+    try std.testing.expect(saw_bitmap_diff_ownership);
+    try std.testing.expect(saw_bitmap_sample_ownership);
+    try std.testing.expect(saw_loader_gap_review_prompt);
     try std.testing.expect(saw_direct_sample_build_leg);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
@@ -334,8 +434,12 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteratio
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-loader-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "test \"runtime bitmap sample exposes ordered set-bit replay for sparse populations\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "nthSetBit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "manifest-backed delivery catalog and ownership map") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Delivery ownership map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
