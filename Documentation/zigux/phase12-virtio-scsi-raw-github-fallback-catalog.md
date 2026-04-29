@@ -1,6 +1,6 @@
 # Phase 12 Virtio SCSI Raw GitHub Fallback Catalog
 
-This catalog records the exact read-only GitHub fallback coverage verified for `P12-L09` when connector-backed reads are flaky or incomplete.
+This catalog records the exact read-only GitHub fallback coverage verified for the historical `P12-L09` packet when connector-backed reads are flaky or incomplete.
 
 ## Verified head
 
@@ -91,7 +91,7 @@ This catalog records the exact read-only GitHub fallback coverage verified for `
 
 ## Current replay note
 
-These fields record the last replay performed for this pinned fallback packet. They can lag the live `master` head until `P12-L09` or `P12-L12` refreshes the exact inspected-head evidence again.
+These fields are historical replay metadata for this pinned fallback packet. They can lag the live `master` head until `P12-L09` or `P12-L12` refreshes the exact inspected-head evidence again, and they should not be read as the current shared Phase 12 validator state for newer commits.
 
 - current_master_replay_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
