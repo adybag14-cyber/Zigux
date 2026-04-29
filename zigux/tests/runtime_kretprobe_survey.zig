@@ -105,8 +105,8 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
-    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
@@ -114,6 +114,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
 
     var saw_loader_rollback_prompt = false;
     var saw_shared_build_prompt = false;
+    var saw_roadmap_gap_prompt = false;
     for (manifest.review_prompts) |prompt| {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "released_without_substrate") != null) {
@@ -122,6 +123,9 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
         if (std.mem.indexOf(u8, prompt, "phase9-runtime-kretprobe-module-tests") != null) {
             saw_shared_build_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "first loadable Zigux runtime modules") != null) {
+            saw_roadmap_gap_prompt = true;
+        }
     }
 
     var saw_lifecycle_summary_check = false;
@@ -129,6 +133,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     var saw_shared_build_check = false;
     var saw_delivery_packet_check = false;
     var saw_shared_controls_check = false;
+    var saw_roadmap_gap_check = false;
     for (manifest.exact_checks, 0..) |check, i| {
         try std.testing.expect(check.id.len > 0);
         try std.testing.expect(check.kind.len > 0);
@@ -164,6 +169,13 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "command-name") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "argv-policy") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "environment-derived activation handling") != null);
+        }
+        if (std.mem.eql(u8, check.id, "roadmap-gap-vs-pilot-module")) {
+            saw_roadmap_gap_check = true;
+            try std.testing.expectEqualStrings("roadmap_gap", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest hooks are landed") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "first loadable Zigux runtime modules") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runtime module lifecycle parity") != null);
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
@@ -275,6 +287,9 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "command-name") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "first loadable Zigux runtime modules") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime module lifecycle parity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest-hook surface") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -288,11 +303,13 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_loader_rollback_prompt);
     try std.testing.expect(saw_shared_build_prompt);
+    try std.testing.expect(saw_roadmap_gap_prompt);
     try std.testing.expect(saw_lifecycle_summary_check);
     try std.testing.expect(saw_loader_rollback_check);
     try std.testing.expect(saw_shared_build_check);
     try std.testing.expect(saw_delivery_packet_check);
     try std.testing.expect(saw_shared_controls_check);
+    try std.testing.expect(saw_roadmap_gap_check);
     try std.testing.expect(saw_manifest_catalog);
     try std.testing.expect(saw_build_catalog);
     try std.testing.expect(saw_sample_catalog);
@@ -336,6 +353,8 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "phase9-runtime-kretprobe-survey-tests",
         "RuntimeKretprobeSummary",
         "released_without_substrate",
+        "first loadable Zigux runtime modules",
+        "runtime module lifecycle parity",
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
         "rather than reopening already-landed survey, manifest, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
     };
