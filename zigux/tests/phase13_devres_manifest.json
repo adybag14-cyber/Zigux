@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L10",
   "phase": "Phase 13",
-  "surveyed_commit": "7f50505d85ecd5e25afa9d833310cc24002de8ae",
+  "surveyed_commit": "51d4d54b2b4207f02dde9a5b5749df41148f1e47",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -38,7 +38,7 @@
       "status": "starter_landed",
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The landed helper lab already models the pure helper-first shape of __devm_ioremap() and __devm_ioremap_resource() without claiming live device-resource ownership or live MMIO state."
+      "why_now": "The landed helper lab already models the pure helper-first shape of __devm_ioremap() and __devm_ioremap_resource() while the shipped descriptor now says explicitly that the surface still avoids live device-resource ownership, live MMIO state, live DMA-backed mappings, and scatterlist ownership."
     },
     {
       "id": "phase13-devres-tests",
