@@ -304,6 +304,7 @@ for marker in [
     f"`master` `{dw_commit}`",
     dw_preflight_marker,
     dw_resource_order_marker,
+    "summarizeTeardownLifecycle()",
     "phase11-dw-wdt-validation-matrix.md",
     "Latest verification snapshot",
     "`zig test zigux/tests/phase11_dw_wdt.zig`",
@@ -317,6 +318,7 @@ for marker in [
 for marker in [
     dw_preflight_marker,
     dw_resource_order_marker,
+    "summarizeTeardownLifecycle()",
     "blocked on platform-driver scaffold work",
 ]:
     if marker not in dw_slice_doc:
@@ -330,6 +332,7 @@ for marker in [
     "imported running-state handoff evidence",
     "platform-resource ordering surface",
     "stop and restart failure-mode boundary",
+    "summarizeTeardownLifecycle()",
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
     "zig test zigux/tests/phase11_dw_wdt.zig",
     "zig test zigux/tests/phase11_dw_wdt_survey.zig",
