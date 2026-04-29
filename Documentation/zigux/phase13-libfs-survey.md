@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-reviewability`
-- `PHASE13_SURVEYED_COMMIT=de4608e6d7660ef469a327e5053a7a2dc932be71`
+- `PHASE13_SURVEYED_COMMIT=ba763c301c69054c422b8945903eb6dd9226c35c`
 - scope: the landed `fs/libfs.zig` helper slice, its dedicated Phase 13 tests, the shared Phase 13 build wiring, and the lane notes that compare the current wrapper footing against the roadmap
 - product boundary:
   - `fs/libfs.zig`
@@ -28,8 +28,8 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 ## Survey findings
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
-- the live repo now has a landed `fs/libfs.zig` helper slice plus `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_build.zig` compiles that dedicated libfs helper test path.
-- the current survey packet is pinned to inspected `master` head `de4608e6d7660ef469a327e5053a7a2dc932be71` so future lane runs can detect note and manifest drift before widening helper coverage.
+- the live repo now has a landed `fs/libfs.zig` helper slice plus `zigux/tests/phase13_libfs.zig`, and both the explicit standalone `zig test` entrypoints with `libfs` module wiring plus `zigux/tests/phase13_build.zig` compile that helper and reviewability path.
+- the current survey packet is pinned to inspected `master` head `ba763c301c69054c422b8945903eb6dd9226c35c` so future lane runs can detect note and manifest drift before widening helper coverage.
 - the current helper slice stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, one bounded `dcache_dir_open()` / `dcache_readdir()` cursor-precondition planner, a bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner, and a pure `simple_transaction_read()` / `simple_transaction_release()` follow-up that only models private-data presence checks, read delegation intent, and release bookkeeping.
 - the reviewability gate and manifest tie the current helper slice, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
@@ -68,11 +68,25 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 13 build
-- `zig build test --build-file zigux/tests/phase13_build.zig`
+1. run the focused standalone libfs checks
+- `zig test fs/libfs.zig`
+- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`
+- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_reviewability.zig -Mlibfs=fs/libfs.zig`
 
-2. run the convenience target
+2. run the dedicated Phase 13 build
+- `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
+
+3. run the convenience target
 - `make -C zigux phase13`
+
+## Latest verification snapshot
+
+- inspected head: `ba763c301c69054c422b8945903eb6dd9226c35c`
+- `zig test fs/libfs.zig`: passed (`0` embedded tests; parse and compile check only)
+- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs.zig -Mlibfs=fs/libfs.zig`: passed (`19/19` tests)
+- `zig test --dep libfs -Mroot=zigux/tests/phase13_libfs_reviewability.zig -Mlibfs=fs/libfs.zig`: passed (`1/1` tests)
+- `zig build test --build-file zigux/tests/phase13_build.zig --summary all`: passed (`15/15` steps, `84/84` tests)
+- `python3 scripts/zigux/validate-phase13-release.py`: passed (`PHASE13_RELEASE_VALIDATION=pass`)
 
 ## Next bounded step
 
