@@ -314,6 +314,13 @@ test "trace-events sample rejects every mutable entry point after exit" {
     try sample.exit();
 
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    const lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.exited, lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), lifecycle.total_event_calls);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayMainIteration(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerFunctionCallback());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.replayFunctionIteration(1));
