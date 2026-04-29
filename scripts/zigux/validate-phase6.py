@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import re
 import sys
 
 
@@ -59,6 +60,12 @@ phase6_base64_perf = (ROOT / 'zigux' / 'tests' / 'phase6_base64_perf.zig').read_
 phase6_bsearch = (ROOT / 'zigux' / 'tests' / 'phase6_bsearch.zig').read_text(encoding='utf-8')
 phase6_bsearch_perf = (ROOT / 'zigux' / 'tests' / 'phase6_bsearch_perf.zig').read_text(encoding='utf-8')
 phase6_hexdump = (ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig').read_text(encoding='utf-8')
+
+phase6_catalog_verified_head_match = re.search(r'- verified head: `([0-9a-f]{40})`', phase6_catalog)
+if phase6_catalog_verified_head_match is None:
+    print('PHASE6_VALIDATION=fail')
+    print('PHASE6_CATALOG_HEAD_STATUS=missing')
+    sys.exit(1)
 
 slice_docs = {
     'phase6-base64-slice.md': (ROOT / 'Documentation' / 'zigux' / 'phase6-base64-slice.md').read_text(encoding='utf-8'),
