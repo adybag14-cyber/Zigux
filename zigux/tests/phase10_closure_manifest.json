@@ -95,14 +95,14 @@
   "survey_provenance": {
     "source": "manifest_derived",
     "lane_keys": {
-      "core": "P10-L02",
+      "core": "P10-L01",
       "ring": "P10-L07",
       "input": "P10-L13",
       "mmio": "P10-L18"
     },
     "surveyed_commits": {
-      "core": "32d3cb93dc1119700c39c8039526fa1797550802",
-      "ring": "42809b6eace69a1f8ec5a60ea39ca3ef6379182c",
+      "core": "c61c278199722ea3a77c7d1aa6a074eeb13a1960",
+      "ring": "b38fe50c297a00c095431d23efe2e789433a578a",
       "input": "62bd26b8ca60e51c66303ddaaa8dce1abed388e4",
       "mmio": "fd8067eb250c7d1f0e97df5a94a045ff9d899892"
     }
