@@ -50,6 +50,8 @@ required_closure_markers = [
     'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
     'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
+    'bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"`',
+    'PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset',
     'PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_FIND_BIT_REVIEW=find_bit baseline set, zero, shared-bit, and tail-clamped scans ignore bits beyond nbits while preserving the in-range mixed-tail match',
     'find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`',
@@ -183,6 +185,26 @@ if bitmap_review.get('unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap a
     missing_markers.append('manifest:bitmap.unit_test_anchor')
 if bitmap_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps bitmapAlloc(), bitmapZalloc(), and bitmapFree() honest by proving optional bitmap handles size through bitsToWords(), zero-filled allocation stays intact, and released optionals reset to null.':
     missing_markers.append('manifest:bitmap.unit_test_contract')
+if bitmap_review.get('range_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"':
+    missing_markers.append('manifest:bitmap.range_unit_test_anchor')
+if bitmap_review.get('range_unit_test_contract') != 'Direct Zig unit coverage keeps cross-word setRange() and clearRange() aligned by preserving the first-word start mask, fully covering interior words, clamping the last word, and restoring the whole window to zero on clear.':
+    missing_markers.append('manifest:bitmap.range_unit_test_contract')
+if bitmap_review.get('copy_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"':
+    missing_markers.append('manifest:bitmap.copy_unit_test_anchor')
+if bitmap_review.get('copy_unit_test_contract') != 'Direct Zig unit coverage keeps copy() and copyClearTail() aligned by preserving copied source words while forcing tail bits above nbits back to zero in the final copied word.':
+    missing_markers.append('manifest:bitmap.copy_unit_test_contract')
+if bitmap_review.get('bitwise_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"':
+    missing_markers.append('manifest:bitmap.bitwise_unit_test_anchor')
+if bitmap_review.get('bitwise_unit_test_contract') != 'Direct Zig unit coverage keeps andBits(), andNotBits(), xorBits(), equal(), intersects(), and subset() aligned on the shared caller-selected bit window instead of leaking unrelated tail bits.':
+    missing_markers.append('manifest:bitmap.bitwise_unit_test_contract')
+if bitmap_review.get('tail_mask_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"':
+    missing_markers.append('manifest:bitmap.tail_mask_unit_test_anchor')
+if bitmap_review.get('tail_mask_unit_test_contract') != 'Direct Zig unit coverage keeps andBits(), andNotBits(), equal(), intersects(), and subset() aligned by masking out-of-range tail differences while preserving the declared in-range window.':
+    missing_markers.append('manifest:bitmap.tail_mask_unit_test_contract')
+if bitmap_review.get('zero_bit_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"':
+    missing_markers.append('manifest:bitmap.zero_bit_unit_test_anchor')
+if bitmap_review.get('zero_bit_unit_test_contract') != 'Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero.':
+    missing_markers.append('manifest:bitmap.zero_bit_unit_test_contract')
 if find_bit_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:find_bit.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if find_bit_review.get('evidence_keys') != [
