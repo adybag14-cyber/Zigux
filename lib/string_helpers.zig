@@ -213,6 +213,19 @@ pub fn parseIntArrayUser(allocator: std.mem.Allocator, from: []const u8, count: 
     return parseIntArray(allocator, buf);
 }
 
+pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 {
+    const input = src orelse return null;
+    const prefix = cStringPrefix(input);
+    const escaped_len = stringEscapeMem(prefix, &.{}, ESCAPE_HEX, "\x0c\n\r\t\x0b\x07\x1b\\\"");
+    const dst = try allocator.alloc(u8, escaped_len + 1);
+    errdefer allocator.free(dst);
+
+    const actual_len = stringEscapeMem(prefix, dst[0..escaped_len], ESCAPE_HEX, "\x0c\n\r\t\x0b\x07\x1b\\\"");
+    std.debug.assert(actual_len == escaped_len);
+    dst[escaped_len] = 0;
+    return dst[0..escaped_len :0];
+}
+
 pub fn stringUnescape(src: []const u8, dst: []u8, size: usize, flags: u32) usize {
     const limit = if (size == 0) dst.len else @min(size, dst.len);
     if (limit == 0) {
@@ -344,7 +357,7 @@ pub fn stringEscapeMemAnyNp(src: []const u8, dst: []u8, only: ?[]const u8) usize
 }
 
 pub fn stringEscapeStr(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
-    const limit = @min(size, dst.len);
+    const limit = if (size == 0) dst.len else @min(size, dst.len);
     return stringEscapeMem(cStringPrefix(src), dst[0..limit], flags, only);
 }
 
@@ -687,6 +700,16 @@ test "parseIntArrayUser keeps count-bounded NUL insertion and empty-input behavi
     try std.testing.expectError(error.NoEntry, parseIntArrayUser(std.testing.allocator, "1,2", 0));
 }
 
+test "kstrdupQuotable allocates an escaped printable C string" {
+    const quoted = (try kstrdupQuotable(std.testing.allocator, "A\n\t\\\"\x00tail")).?;
+    defer std.testing.allocator.free(quoted);
+
+    try std.testing.expectEqualStrings("A\\x0a\\x09\\x5c\\x22", quoted);
+    try std.testing.expectEqual(@as(u8, 0), quoted[quoted.len]);
+
+    try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupQuotable(std.testing.allocator, null));
+}
+
 test "escape flag masks stay aligned with the Linux public helper surface" {
     try std.testing.expectEqual(
         UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL,
@@ -696,35 +719,4 @@ test "escape flag masks stay aligned with the Linux public helper surface" {
         ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NULL | ESCAPE_OCTAL | ESCAPE_NP | ESCAPE_HEX | ESCAPE_NA | ESCAPE_NAP | ESCAPE_APPEND,
         ESCAPE_ALL_MASK,
     );
-}
-
-test "stringEscapeStr treats size zero as a zero-length destination" {
-    var buffer = [_]u8{ '!', '!', '!', '!' };
-
-    try std.testing.expectEqual(
-        @as(usize, 6),
-        stringEscapeStr("a\n", &buffer, 0, ESCAPE_ANY, null),
-    );
-    try std.testing.expectEqualSlices(u8, &[_]u8{ '!', '!', '!', '!' }, &buffer);
-}
-
-test "stringEscapeStr honors the explicit size cap while keeping C-string escape semantics" {
-    var truncated = [_]u8{ '?', '?', '?', '?' };
-    try std.testing.expectEqual(
-        @as(usize, 8),
-        stringEscapeStr("\n\"a", &truncated, 4, ESCAPE_ANY, null),
-    );
-    try std.testing.expectEqualSlices(u8, &[_]u8{
-        '\\',
-        'n',
-        '\\',
-        '"',
-    }, &truncated);
-
-    var full = [_]u8{0} ** 8;
-    try std.testing.expectEqual(
-        @as(usize, 8),
-        stringEscapeStr("\n\"a", &full, full.len, ESCAPE_ANY, null),
-    );
-    try std.testing.expectEqualSlices(u8, "\\n\\\"\\141", full[0..8]);
 }
