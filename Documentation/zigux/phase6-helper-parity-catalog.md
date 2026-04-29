@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `7f328fa71ad66f5062f5dd4b324e74e430ac9a94`
+- verified head: `2e12c1222267af9dc7e95bfcb214949f1b8e80b3`
 
 ## Scope
 
@@ -69,7 +69,8 @@ The current Phase 6 perf packet is intentionally mixed. Two helpers now carry fi
 ### base64
 
 - `zigux/tests/phase6_base64_perf.zig` replays two deterministic payloads: `64B` at `20_000` reps and `1KB` at `4_000` reps.
-- the current numeric thresholds are `max_encode_slowdown_pct = 125` and `max_decode_slowdown_pct = 225` for both cases, measured against the padded `std.base64.standard` reference path.
+- the current numeric thresholds are `max_encode_slowdown_pct = 125` and `max_decode_slowdown_pct = 225` for all six replay cases: padded standard `64B` and `1KB`, unpadded URL-safe `64B` and `1KB`, and unpadded IMAP `64B` and `1KB`.
+- the harness measures those cases against the padded `std.base64.standard` reference path, the unpadded `std.base64.url_safe_no_pad` reference path, and a translated standard-to-IMAP reference path for the IMAP alphabet.
 - the harness also rechecks encode parity, decode parity, and round-trip correctness before and after the timed loops while reporting helper and reference nanoseconds per operation plus the observed slowdown percentages.
 
 ### bsearch
@@ -106,6 +107,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `make -C zigux phase6-validate` is the fail-fast shared catalog gate.
 - `make -C zigux phase6` replays the bundled Phase 6 helper tests together.
 - `zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
+- the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets instead of leaving the IMAP path outside the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded comparison budget rather than a nanosecond threshold.
 - `zigux/tests/phase6_hexdump_perf.zig` currently remains a deterministic formatter-cost sanity harness without a numeric slowdown ceiling.
 - The per-helper perf targets stay reviewable only through this same bounded packet; do not treat one helper-local perf harness as closure for the whole tranche.
