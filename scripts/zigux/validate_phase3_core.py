@@ -39,6 +39,7 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/interop_policy.zig",
     "zigux/helpers/atomic.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
@@ -62,6 +63,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
+    "PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
     "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
@@ -97,6 +99,12 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/helpers/allocator_policy.zig": (
         "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
         'test "phase3 allocator policy stays explicit"',
+    ),
+    "zigux/helpers/interop_policy.zig": (
+        "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy {",
+        "pub fn recognizes(policy: abi.InteropPolicy) bool {",
+        'test "phase3 interop policy decoder keeps the boundary typed"',
+        'test "phase3 interop policy decoder rejects invalid bytes and reserved bits"',
     ),
     "zigux/helpers/atomic.zig": (
         "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {",
@@ -164,6 +172,9 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
+        'test "phase3 policy decoder validates the whole interop record"',
+        'test "phase3 policy decoder rejects partial or reserved policy bytes"',
+        'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
         'test "phase3 policy gate enforces the declared unsafe scope"',
     ),
 }
@@ -265,7 +276,7 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
         "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
     ]
     if manifest is not None:
-        required[:0] = [f"PHASE3_STATUS={manifest.get('status')}", f"PHASE3_SLICE={manifest.get('slice')}"]
+        required[:0] = [f"PHASE3_STATUS={manifest.get('status')}", f"PHASE3_SLICE={manifest.get('slice')}" ]
     required.extend(_required_doc_markers_for_slug(slug))
     for marker in required:
         if marker not in doc:
