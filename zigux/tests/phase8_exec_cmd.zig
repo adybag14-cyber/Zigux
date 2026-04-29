@@ -156,6 +156,35 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     try std.testing.expectEqualStrings("/repo/scripts:/usr/bin", explicit_empty_path);
     try std.testing.expectEqualStrings(explicit_empty_path, explicit_empty_env.get("PATH").?);
 
+    var inherited_empty_exec_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer inherited_empty_exec_env.deinit();
+
+    var inherited_empty_exec_state = exec_cmd.ExecCmdState{};
+    defer inherited_empty_exec_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&inherited_empty_exec_env, config);
+    try inherited_empty_exec_env.set("PERF_EXEC_PATH", "");
+    try inherited_empty_exec_env.set("PATH", "/usr/bin");
+
+    const inherited_empty_exec_path = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &inherited_empty_exec_env,
+        inherited_empty_exec_state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(inherited_empty_exec_path);
+
+    try std.testing.expectEqualStrings("", inherited_empty_exec_env.get("PERF_EXEC_PATH").?);
+    try std.testing.expectEqualStrings(
+        "/usr/libexec/perf-core/libexec/perf-core:/usr/bin",
+        inherited_empty_exec_path,
+    );
+    try std.testing.expectEqualStrings(
+        inherited_empty_exec_path,
+        inherited_empty_exec_env.get("PATH").?,
+    );
+
     var inherited_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
     defer inherited_empty_env.deinit();
 
@@ -163,13 +192,7 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     defer inherited_empty_state.deinit(std.testing.allocator);
 
     try exec_cmd.execCmdInit(&inherited_empty_env, config);
-    try exec_cmd.setArgvExecPath(
-        std.testing.allocator,
-        &inherited_empty_env,
-        &inherited_empty_state,
-        config,
-        "tools/bin",
-    );
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &inherited_empty_env, &inherited_empty_state, config, "tools/bin");
     try inherited_empty_env.set("PATH", "");
 
     const inherited_empty = try exec_cmd.setupPath(
