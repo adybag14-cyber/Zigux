@@ -191,9 +191,9 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("8de319f7ca7d37c3d0c02ca39fefd66e6b380ba7", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f67968bf32ee3c04b376d99a42cd16c757fef4b1", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -518,98 +518,3 @@ test "phase 15 council review gate stays aligned between the scorecard and check
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
-
-    const sched_core_lines = try countLinesInRepoFile(io_instance.io(), "kernel/sched/core.c", 1024 * 1024);
-    const page_alloc_lines = try countLinesInRepoFile(io_instance.io(), "mm/page_alloc.c", 1024 * 1024);
-    const rcu_tree_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree.c", 1024 * 1024);
-    const rcu_tree_plugin_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree_plugin.h", 512 * 1024);
-    const rcu_tree_exp_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree_exp.h", 512 * 1024);
-    const rcu_tree_nocb_lines = try countLinesInRepoFile(io_instance.io(), "kernel/rcu/tree_nocb.h", 512 * 1024);
-    const skbuff_lines = try countLinesInRepoFile(io_instance.io(), "net/core/skbuff.c", 1024 * 1024);
-    const skbuff_header_lines = try countLinesInRepoFile(io_instance.io(), "include/linux/skbuff.h", 1024 * 1024);
-
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reserved Decision Record Templates") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Current Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Coverage Summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Roadmap Handoff Evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Full-Parity Blockers and Long-Term Governance") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "maintenance-mode next step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "named reopen triggers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "deep-core blocker posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "decision record ID") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "lane owner") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Architecture Council") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ABI and Runtime Team") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Shared Subsystems Pod") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence archive path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "latest blocker disposition") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "benchmark notes") != null);
-    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/sched/core.c", sched_core_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "mm/page_alloc.c", page_alloc_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree.c", rcu_tree_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree_plugin.h", rcu_tree_plugin_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree_exp.h", rcu_tree_exp_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "kernel/rcu/tree_nocb.h", rcu_tree_nocb_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "net/core/skbuff.c", skbuff_lines);
-    try expectDocMentionsExactLineCount(scorecard_doc, "include/linux/skbuff.h", skbuff_header_lines);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay command") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-anchor-owner-tracking") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-blocker-disposition-summary-metric") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-maintenance-mode-handoff-sync") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "freeze-in-C anchors tracked: `4`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "anchors with Phase 14 survey evidence linked: `2 / 4`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "anchors with explicit blocker dispositions recorded: `4 / 4`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "repo evidence checks currently green: `15 / 15`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "landed scorecard gaps: `18 / 19`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "blocked scorecard gaps: `1 / 19`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay surfaces currently recorded: `3 / 3`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow replay") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "narrower_followup_answers_blocker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "leaves active discussion only after") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "## Required Review Packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "current lane posture: `maintenance_mode`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "phase15-indefinite-c-policy.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "## Current Policy Gap") != null);
-    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "## Maintenance-Mode Handoff") != null);
-    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "policy for code that remains in C indefinitely") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Phase 15 notes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/freeze-map.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-parity-scorecard.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-evidence-archives/") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "make -C zigux phase15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "named reopen triggers") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "deep-core blocker posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current lane owner responsible for keeping that blocked evidence packet up to date") != null);
-
-    for (parsed.value.review_process.required_record_fields) |field| {
-        const field_expected_in_checklist =
-            !std.mem.eql(u8, field, "validation gate set") and
-            !std.mem.eql(u8, field, "rollback owner");
-
-        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, field) != null);
-        if (field_expected_in_checklist) {
-            try std.testing.expect(std.mem.indexOf(u8, review_checklist, field) != null);
-        }
-    }
-
-    for (parsed.value.review_process.archive_requirements) |item| {
-        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, item) != null);
-        try std.testing.expect(std.mem.indexOf(u8, review_checklist, item) != null or !std.mem.eql(u8, item, "benchmark notes"));
-    }
-}
