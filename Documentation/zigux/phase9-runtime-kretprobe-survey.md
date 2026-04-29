@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- surveyed inspected `master` head: `fccace1795ee04b30371c23bcc4395e843c5b143`
+- surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, a direct embedded sample replay, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
