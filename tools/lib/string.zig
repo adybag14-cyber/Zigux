@@ -68,6 +68,14 @@ pub fn strstarts(str: []const u8, prefix: []const u8) bool {
     return strStarts(str, prefix);
 }
 
+pub fn strEndsWith(str: []const u8, suffix: []const u8) bool {
+    return std.mem.endsWith(u8, str, suffix);
+}
+
+pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
+    return strEndsWith(str, suffix);
+}
+
 pub fn trimSpaces(buf: []u8) []u8 {
     if (buf.len == 0) {
         return buf[0..0];
@@ -272,15 +280,6 @@ test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, &strreplace_buf);
 }
 
-test "strstarts matches kernel prefix semantics" {
-    try std.testing.expect(strStarts("zigux", "zig"));
-    try std.testing.expect(strstarts("zigux", "zig"));
-    try std.testing.expect(strstarts("zigux", ""));
-    try std.testing.expect(strstarts("", ""));
-    try std.testing.expect(!strstarts("zig", "zigux"));
-    try std.testing.expect(!strstarts("zigux", "Zig"));
-}
-
 test "trimSpaces and strim stop at the first embedded NUL" {
     var trim_cstr_buf = [_]u8{ ' ', 'a', 0, 'x', '\n' };
     try std.testing.expectEqualStrings("a", trimSpaces(&trim_cstr_buf));
@@ -299,6 +298,24 @@ test "trimSpaces and strim trim trailing whitespace before an embedded NUL" {
     var strim_trailing_cstr_buf = [_]u8{ ' ', 'o', 'k', ' ', '\t', 0, 'x' };
     try std.testing.expectEqualStrings("ok", strim(&strim_trailing_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, '\t', 0, 'x' }, &strim_trailing_cstr_buf);
+}
+
+test "strstarts matches kernel prefix semantics" {
+    try std.testing.expect(strStarts("zigux", "zig"));
+    try std.testing.expect(strstarts("zigux", "zig"));
+    try std.testing.expect(strstarts("zigux", ""));
+    try std.testing.expect(strstarts("", ""));
+    try std.testing.expect(!strstarts("zig", "zigux"));
+    try std.testing.expect(!strstarts("zigux", "Zig"));
+}
+
+test "str_ends_with matches kernel suffix semantics" {
+    try std.testing.expect(strEndsWith("zigux", "gux"));
+    try std.testing.expect(str_ends_with("zigux", "gux"));
+    try std.testing.expect(str_ends_with("zigux", ""));
+    try std.testing.expect(str_ends_with("", ""));
+    try std.testing.expect(!str_ends_with("zig", "zigux"));
+    try std.testing.expect(!str_ends_with("zigux", "GUX"));
 }
 
 test "memdup and memchrInv preserve byte content" {
