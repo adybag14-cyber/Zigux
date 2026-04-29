@@ -45,18 +45,32 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
 
     conf_cases = data.get('conf_cases')
     if isinstance(conf_cases, list):
+        if len(conf_cases) != 16:
+            issues.append(f'kconfig_bridge:manifest:conf_cases:expected_len:16:actual:{len(conf_cases)}')
         by_name = {
             case.get('name'): case
             for case in conf_cases
             if isinstance(case, dict) and isinstance(case.get('name'), str)
         }
+        for name in ('oldaskconfig', 'listnewconfig', 'helpnewconfig', 'mod2yesconfig', 'defconfig', 'savedefconfig', 'allnoconfig', 'randconfig', 'syncconfig'):
+            if name not in by_name:
+                issues.append(f'kconfig_bridge:manifest:missing_conf_case:{name}')
+        for name in ('defconfig', 'savedefconfig'):
+            case = by_name.get(name)
+            if case is None:
+                continue
+            if not isinstance(case.get('mode_arg'), str) or not case.get('mode_arg'):
+                issues.append(f'kconfig_bridge:manifest:{name}:missing_mode_arg')
         for name in ('allnoconfig', 'randconfig'):
             case = by_name.get(name)
             if case is None:
-                issues.append(f'kconfig_bridge:manifest:missing_conf_case:{name}')
                 continue
             if not isinstance(case.get('allconfig'), str) or not case.get('allconfig'):
                 issues.append(f'kconfig_bridge:manifest:{name}:missing_allconfig')
+
+    confdata_cases = data.get('confdata_cases')
+    if isinstance(confdata_cases, list) and len(confdata_cases) != 12:
+        issues.append(f'kconfig_bridge:manifest:confdata_cases:expected_len:12:actual:{len(confdata_cases)}')
 
     return issues
 
@@ -132,11 +146,18 @@ required_closure_markers = [
     'genksyms bridge rejects reference lists beyond the bounded C harness limit',
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
     'conf bridge emits allconfig env for allconfig family modes',
+    'conf bridge requires mode arg for defconfig modes',
+    'conf bridge emits savedefconfig mode argument before kconfig',
+    'conf bridge escapes low control bytes in argv and env values',
     'confdata bridge decodes escaped control sequences in quoted strings',
     'confdata bridge escapes low control bytes in emitted json',
+    'PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=16',
+    'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=12',
     'PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json',
+    'PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json',
     'PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json',
-    'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge allconfig env and confdata escaped-control decode and low-control JSON emission anchors are required for closure',
+    'PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay',
+    'PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, and low-control JSON emission anchors are required for closure',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
