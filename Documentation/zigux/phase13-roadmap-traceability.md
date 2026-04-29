@@ -102,7 +102,7 @@ Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
-- manifest `surveyed_commit`: `4ee5cca6c2c1219fc6f267d3817d1dd0ef37e066`
+- manifest `surveyed_commit`: `c2e6f75f05a6f935d21d06d21494d71883a5fa49`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-ruleset-survey.md`
