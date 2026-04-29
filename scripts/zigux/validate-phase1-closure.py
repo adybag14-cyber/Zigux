@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 from __future__ import annotations
 
 from pathlib import Path
@@ -10,10 +9,14 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 
 required_files = [
+    ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
+    ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md',
+    ROOT / 'zigux' / 'tests' / 'build.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
     ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
