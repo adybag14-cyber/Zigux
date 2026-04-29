@@ -44,7 +44,7 @@
   },
   "segments": [
     {
-      "id": "P8-L13-S01",
+      "id": "P8-L15-S01",
       "slug": "logging-version-and-errno",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -56,7 +56,7 @@
       "why_now": "This slice is mostly string tables, log-level gating, and version reporting, so it gives Zigux a low-risk libbpf foothold with stable output semantics."
     },
     {
-      "id": "P8-L13-S02",
+      "id": "P8-L15-S02",
       "slug": "pin-path-helpers",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -68,7 +68,7 @@
       "why_now": "Path concatenation and bpffs-style pin-name sanitization are bounded helpers that can be validated without entering mkdir, statfs, unlink, or verifier-facing behavior."
     },
     {
-      "id": "P8-L13-S03",
+      "id": "P8-L15-S03",
       "slug": "cpu-mask-parsing",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -79,7 +79,7 @@
       "why_now": "The CPU mask parser is self-contained text processing that future perf-buffer and feature probes can share, which makes it a good first real port after the survey scaffold."
     },
     {
-      "id": "P8-L13-S04",
+      "id": "P8-L15-S04",
       "slug": "type-name-helpers",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -90,7 +90,7 @@
       "why_now": "The exported attach, link, map, and program type name tables are a stable userspace-to-kernel bridge surface that extends the helper-first libbpf entry without pulling in object loading, ELF state, or syscall-backed behavior."
     },
     {
-      "id": "P8-L13-S08",
+      "id": "P8-L15-S08",
       "slug": "fdinfo-map-info-helpers",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -102,7 +102,7 @@
       "why_now": "The proc fdinfo path construction, bounded map-info text parsing, and reused-map-name chooser inside bpf_map__reuse_fd() can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
     },
     {
-      "id": "P8-L14-S11",
+      "id": "P8-L15-S11",
       "slug": "map-reuse-compatibility",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -113,7 +113,7 @@
       "why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf's bounded DEVMAP readonly-flag exception as an explicit helper contract."
     },
     {
-      "id": "P8-L13-S09",
+      "id": "P8-L15-S09",
       "slug": "file-path-and-handle-bridge",
       "status": "deferred_high_risk",
       "kind": "resource_boundary",
@@ -125,7 +125,7 @@
       "why_now": "After the fdinfo pathname, reused-map-name chooser, token-preparation planner, and text parser helpers land, the remaining file-path-and-handle bridge is still the smallest libbpf surface that crosses real bpffs path opens, token creation, pinned-object reopen flows, and fd ownership, so it should stay recorded explicitly as a deferred resource boundary instead of being blurred into the larger object-loader buckets."
     },
     {
-      "id": "P8-L13-S10",
+      "id": "P8-L15-S10",
       "slug": "perf-buffer-online-cpu-routing",
       "status": "deferred_high_risk",
       "kind": "interrupt_routing_boundary",
@@ -137,7 +137,7 @@
       "why_now": "The remaining cpu-mask-adjacent perf-buffer path is the smallest libbpf surface that still crosses live /sys cpu-mask file reads, cached possible-cpu counts, online CPU filtering, perf-event-array map updates, epoll registration, timeout-driven perf-buffer polling, and the interrupt-routing contract for perf-buffer delivery, so roadmap discipline says keep it explicit as a deferred boundary instead of quietly treating the landed parser helper as broader routing or timing parity."
     },
     {
-      "id": "P8-L13-S05",
+      "id": "P8-L15-S05",
       "slug": "skeleton-population",
       "status": "blocked_on_object_model",
       "kind": "object_adjacent",
@@ -148,7 +148,7 @@
       "why_now": "This is still a bounded cluster, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
     },
     {
-      "id": "P8-L13-S06",
+      "id": "P8-L15-S06",
       "slug": "object-and-elf-loader",
       "status": "deferred_high_risk",
       "kind": "core_loader",
@@ -160,7 +160,7 @@
       "why_now": "The object-model and ELF collection surface is the first place mirror-tree sprawl becomes likely, so it should stay deferred until helper-first segments are proven."
     },
     {
-      "id": "P8-L13-S07",
+      "id": "P8-L15-S07",
       "slug": "btf-relocation-and-program-load",
       "status": "deferred_high_risk",
       "kind": "verifier_facing",
