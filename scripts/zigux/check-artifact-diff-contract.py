@@ -69,6 +69,19 @@ def main() -> int:
             ],
         )
 
+        run_contract_case(
+            ['--mode', 'text', str(expected), str(missing)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=text',
+                f'EXPECTED={expected}',
+                f'ACTUAL={missing}',
+                'EXPECTED_EXISTS=True',
+                'ACTUAL_EXISTS=False',
+            ],
+        )
+
         expected_json.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         actual_json.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         invalid_expected_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
