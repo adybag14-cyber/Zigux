@@ -92,7 +92,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings("b8d59685e5772a0476af3fd95f1319247e5f6096", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c0b38bcdba34a6e0deef3da406fe54d170d63b94", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
