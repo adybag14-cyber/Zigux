@@ -42,8 +42,8 @@ That gap matters because the current anchors are still large and deeply coupled:
 - required review-process record fields tracked in the manifest: `8`
 - reopen-trigger catalog entries tracked in the manifest: `3`
 - repo evidence checks currently green: `15 / 15`
-- landed scorecard gaps: `18 / 19`
-- blocked scorecard gaps: `1 / 19`
+- landed scorecard gaps: `17 / 18`
+- blocked scorecard gaps: `1 / 18`
 - replay surfaces currently recorded: `3 / 3`
 
 This summary is a reporting layer for the current maintenance-mode packet, not a new status claim. It says the governance bundle is fully inventoried and replay-backed across the dedicated `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow, while still keeping one explicit blocked gap for deep-core status changes.
@@ -171,7 +171,6 @@ The current lane state is:
 - landed `phase15-build-gate`
 - landed `phase15-make-target`
 - landed `phase15-evidence-archive-reporting`
-- landed `phase15-blocker-disposition-summary-metric`
 - landed `phase15-decision-record-template-followup`
 - landed `phase15-template-field-sync-followup`
 - landed `phase15-anchor-owner-tracking`
