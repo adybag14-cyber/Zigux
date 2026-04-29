@@ -102,6 +102,17 @@
       "why_now": "The proc fdinfo path construction, bounded map-info text parsing, and reused-map-name chooser inside bpf_map__reuse_fd() can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
     },
     {
+      "id": "P8-L14-S11",
+      "slug": "map-reuse-compatibility",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c:5220-5251"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The reused-map compatibility comparison is a pure field-and-flag check that extends the existing file-path bridge packet without claiming bpffs reopen flow, fd duplication, or pinned-map side effects, and it preserves libbpf's bounded DEVMAP readonly-flag exception as an explicit helper contract."
+    },
+    {
       "id": "P8-L13-S09",
       "slug": "file-path-and-handle-bridge",
       "status": "deferred_high_risk",
