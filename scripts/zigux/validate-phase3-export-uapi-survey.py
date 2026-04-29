@@ -19,8 +19,13 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UAPI_ROOT=zigux/uapi",
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
+    "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred",
     "PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry",
+)
+
+REQUIRED_SURVEY_SNIPPETS = (
+    "zigux/tests/phase3_export_uapi.zig",
 )
 
 REQUIRED_SURVEY_PATHS = (
@@ -29,6 +34,8 @@ REQUIRED_SURVEY_PATHS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "include/zigux/abi.h",
     "include/linux/zigux.h",
+    "zigux/tests/phase3_export_uapi_build.zig",
+    "zigux/tests/phase3_export_uapi.zig",
 )
 
 REQUIRED_DOCS_README_SNIPPETS = (
@@ -69,6 +76,9 @@ def validate(root: Path) -> list[str]:
         for marker in REQUIRED_SURVEY_MARKERS:
             if marker not in survey:
                 issues.append(f"missing_survey_marker:{marker}")
+        for snippet in REQUIRED_SURVEY_SNIPPETS:
+            if snippet not in survey:
+                issues.append(f"missing_survey_snippet:{snippet}")
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
@@ -105,7 +115,10 @@ def run_self_test() -> int:
             path.write_text("// ok\n", encoding="utf-8")
 
         survey_path = root / SURVEY_REL
-        survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
+        survey_path.write_text(
+            "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n",
+            encoding="utf-8",
+        )
         (root / DOCS_README_REL).write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
         (root / SCRIPTS_README_REL).write_text("\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n", encoding="utf-8")
         (root / MAKEFILE_REL).write_text("\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n", encoding="utf-8")
@@ -115,6 +128,7 @@ def run_self_test() -> int:
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
+        assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     return 0
