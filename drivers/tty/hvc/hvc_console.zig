@@ -268,6 +268,27 @@ pub const HangupDisconnectSnapshot = struct {
     keeps_console_binding: bool,
 };
 
+pub const RemoveHandoffRequest = struct {
+    tty_attached: bool = true,
+};
+
+pub const RemoveHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    console_lock_brackets_slot_clear: bool,
+    clears_vtermno_slot: bool,
+    clears_cons_ops_slot: bool,
+    keeps_irq_until_hangup: bool,
+    tty_port_put_requested: bool,
+    tty_port_put_precedes_tty_vhangup: bool,
+    console_unlock_precedes_tty_vhangup: bool,
+    tty_vhangup_requested: bool,
+    tty_kref_put_after_vhangup: bool,
+    teardown_deferred_to_hangup: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -439,7 +460,7 @@ pub const HvcConsoleLab = struct {
             .vtermno = contract.vtermno,
             .adapter_present = contract.adapter_present,
             .final_close_wait_required = contract.final_close_wait_required,
-            .clears_port_initialized_on_final_close = contract.clears_port_initialized_on_final_close,
+            .clears_port_initialized_on_final_close = contract.clears_port_initialized_onFinalClose,
             .keeps_console_binding = contract.keeps_console_binding,
             .tty_registration_pending = contract.tty_registration_pending,
             .khvcd_polling_pending = contract.khvcd_polling_pending,
@@ -484,7 +505,7 @@ pub const HvcConsoleLab = struct {
             .vtermno = entry.vtermno,
             .adapter_present = entry.adapter_present,
             .final_close_wait_required = entry.final_close_wait_required,
-            .clears_port_initialized_on_final_close = entry.clears_port_initialized_on_final_close,
+            .clears_port_initialized_on_finalClose = entry.clears_port_initialized_on_final_close,
             .keeps_console_binding = entry.keeps_console_binding,
             .tty_registration_pending = entry.tty_registration_pending,
             .khvcd_polling_pending = entry.khvcd_polling_pending,
@@ -592,6 +613,31 @@ pub const HvcConsoleLab = struct {
             .buffered_write_len_after_hangup = if (hangup_skipped) request.buffered_write_len else 0,
             .notifier_hangup_pending = !hangup_skipped and request.notifier_hangup_present,
             .keeps_console_binding = true,
+        };
+    }
+
+    pub fn summarizeRemoveHandoff(
+        self: *const Self,
+        request: RemoveHandoffRequest,
+    ) !RemoveHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .console_lock_brackets_slot_clear = true,
+            .clears_vtermno_slot = true,
+            .clears_cons_ops_slot = true,
+            .keeps_irq_until_hangup = true,
+            .tty_port_put_requested = true,
+            .tty_port_put_precedes_tty_vhangup = request.tty_attached,
+            .console_unlock_precedes_tty_vhangup = request.tty_attached,
+            .tty_vhangup_requested = request.tty_attached,
+            .tty_kref_put_after_vhangup = request.tty_attached,
+            .teardown_deferred_to_hangup = request.tty_attached,
         };
     }
 
