@@ -344,6 +344,7 @@ pub const VirtioRingLab = struct {
         slot.last_used_idx = 0;
         slot.last_polled_used_idx = 0;
         slot.callback_enabled = true;
+        slot.broken = false;
         slot.outstanding_chain_count = 0;
         slot.num_added = 0;
         slot.notification_count = 0;
