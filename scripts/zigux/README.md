@@ -75,7 +75,7 @@ Phase 3 flow
 
 Phase 4 flow
 - `artifact_diff.py --self-test` now runs as part of `make -C zigux phase4-validate` so the shared text, JSON, SHA-256, and missing-file comparison paths stay live before the rollback-readiness checks run.
-- `check-artifact-diff-contract.py` keeps one stable pass case and one missing-file failure case of the outward helper CLI reviewable beside the built-in self-test.
+- `check-artifact-diff-contract.py` keeps one stable pass case, one missing-file failure case, malformed expected and actual JSON failure shapes, and SHA-256 pass and drift cases of the outward helper CLI reviewable beside the built-in self-test, including the emitted `EXPECTED_JSON_ERROR=...`, `ACTUAL_JSON_ERROR=...`, `SHA256=...`, `EXPECTED_SHA256=...`, and `ACTUAL_SHA256=...` fields.
 - `validate-phase4.py` checks that the bounded Phase 4 differential gates, that shared artifact-diff self-test, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, the exact workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, the shared `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` replay anchors, plus the reversible-delivery evidence that ties each shipped Phase 4 gate back to its current C anchor if the shared entrypoint has to drop that Zig gate.
 
