@@ -58,10 +58,10 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0d1e336cf006e5477fc18df7df0f91520aebd647", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("4908a30b508d19e298f812fd48120c1e2222c87d", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase11_test_files);
