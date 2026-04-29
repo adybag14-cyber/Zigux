@@ -467,7 +467,7 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         io_instance.io(),
         std.testing.allocator,
         "Documentation/zigux/review-checklist.md",
-        16 * 1024,
+        32 * 1024,
     );
     defer std.testing.allocator.free(review_checklist);
 
@@ -477,7 +477,8 @@ test "runtime loader gap survey keeps the review checklist runtime guardrails ex
         "if unsafe code exists, is it narrow, visible, and review-owned?",
         "are parity tests or fixture checks included?",
         "is there a stated rollback owner and fallback path?",
-        "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
+        "if the change touches the shared Phase 9 runtime-loader evidence packet, does `zigux/tests/runtime_loader_gap_manifest.json` still keep the manifest-backed catalog and ownership map aligned with the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
+        "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     });
 }
 
