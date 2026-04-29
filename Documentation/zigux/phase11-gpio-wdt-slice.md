@@ -12,8 +12,9 @@ The starter stays intentionally narrow:
 - distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior so stop-path review does not blur policy gating with hardware gating
 - adds a tiny registration-facing handoff summary so the starter records what startup state, stop policy, timeout init, and reboot bookkeeping reach `devm_watchdog_register_device()` without claiming the registration call itself
 - records the first chosen registration surface and validation focus so the lane stays explicitly parked at watchdog-device metadata planning instead of overclaiming a real register-device call
-- now pairs that starter surface with `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` so the shared replay contract and the current metadata-only registration boundary are recorded in one reviewable place
+- adds one tiny `registerDeviceCallSummary()` helper so the starter records the exact watchdog metadata, timeout, parent, `nowayout`, and stop-on-reboot state that would reach the first bounded `devm_watchdog_register_device()` request without claiming the live call itself
+- now pairs that starter surface with `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` so the shared replay contract and the first bounded register-device call boundary are recorded in one reviewable place
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, module parameter wiring beyond summary bookkeeping, or live hardware validation yet.
 
-The next honest bounded step inside the same Phase 11 lane is to advance from that metadata-only registration plan to the first bounded `devm_watchdog_register_device()` call surface, with the minimum validation needed to keep GPIO acquisition, reboot glue, and broader watchdog integration out of scope until the call boundary itself is reviewable.
+The next honest bounded step inside the same Phase 11 lane is no longer the first register-device request summary itself. That boundary is now reviewable. If this lane reopens, keep it on one tiny descriptor-backed or probe-order preflight step that stays immediately adjacent to `devm_watchdog_register_device()` while still avoiding live GPIO execution, reboot glue, and broader watchdog integration.
