@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import json
 import sys
 
 
@@ -33,6 +34,7 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump.zig',
     ROOT / 'zigux' / 'tests' / 'phase6_hexdump_perf.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_hexdump_vectors.zig',
+    ROOT / 'zigux' / 'tests' / 'phase6_helper_parity_manifest.json',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
 ]
@@ -52,6 +54,8 @@ script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='u
 tests_readme = (ROOT / 'zigux' / 'tests' / 'README.md').read_text(encoding='utf-8')
 doc_readme = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 phase6_catalog = (ROOT / 'Documentation' / 'zigux' / 'phase6-helper-parity-catalog.md').read_text(encoding='utf-8')
+phase6_manifest_path = ROOT / 'zigux' / 'tests' / 'phase6_helper_parity_manifest.json'
+phase6_manifest = json.loads(phase6_manifest_path.read_text(encoding='utf-8'))
 phase6_build = (ROOT / 'zigux' / 'tests' / 'phase6_build.zig').read_text(encoding='utf-8')
 phase6_base64 = (ROOT / 'zigux' / 'tests' / 'phase6_base64.zig').read_text(encoding='utf-8')
 phase6_base64_perf = (ROOT / 'zigux' / 'tests' / 'phase6_base64_perf.zig').read_text(encoding='utf-8')
@@ -139,6 +143,7 @@ required_doc_readme_markers = [
 required_phase6_catalog_markers = [
     'Phase 6 Helper Parity Catalog',
     'verified head:',
+    'machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`',
     'lib/base64.zig',
     'lib/bsearch.zig',
     'scripts/zigux/check-phase6-bsearch-c-parity.py',
@@ -161,6 +166,7 @@ required_phase6_catalog_markers = [
     'Documentation/zigux/README.md',
     'scripts/zigux/README.md',
     'zigux/tests/README.md',
+    'zigux/tests/phase6_helper_parity_manifest.json',
 ]
 
 required_phase6_build_markers = [
@@ -287,6 +293,139 @@ required_slice_markers = {
 }
 
 missing_markers = []
+
+required_manifest_pairs = {
+    'phase': 'Phase 6',
+    'status': 'active',
+    'tranche': 'leaf-helper-parity',
+    'surveyed_commit': '03abc1314eb38a0888856113661e1d2c02c0792d',
+}
+
+for key, expected in required_manifest_pairs.items():
+    if phase6_manifest.get(key) != expected:
+        missing_markers.append(f'phase6_manifest:{key}={expected}')
+
+helpers = phase6_manifest.get('helpers')
+if not isinstance(helpers, list) or len(helpers) != 4:
+    missing_markers.append('phase6_manifest:helpers_len=4')
+else:
+    expected_helpers = {
+        'base64': {
+            'helper': 'lib/base64.zig',
+            'tests': {
+                'zigux/tests/phase6_base64.zig',
+                'zigux/tests/phase6_base64_perf.zig',
+                'zigux/tests/phase6_base64_c_parity.zig',
+            },
+            'fixtures': {
+                'zigux/tests/fixtures/phase6_base64_vectors.zig',
+                'zigux/tests/fixtures/phase6_base64_c_harness.c',
+            },
+            'slice_note': 'Documentation/zigux/phase6-base64-slice.md',
+            'external_parity': 'python3 scripts/zigux/check-phase6-base64-c-parity.py',
+        },
+        'bsearch': {
+            'helper': 'lib/bsearch.zig',
+            'tests': {
+                'zigux/tests/phase6_bsearch.zig',
+                'zigux/tests/phase6_bsearch_perf.zig',
+                'zigux/tests/phase6_bsearch_c_parity.zig',
+            },
+            'fixtures': {
+                'zigux/tests/fixtures/phase6_bsearch_c_harness.c',
+            },
+            'slice_note': 'Documentation/zigux/phase6-bsearch-slice.md',
+            'external_parity': 'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
+        },
+        'checksum': {
+            'helper': 'lib/checksum.zig',
+            'tests': {
+                'zigux/tests/phase6_checksum.zig',
+                'zigux/tests/phase6_checksum_perf.zig',
+            },
+            'fixtures': {
+                'zigux/tests/fixtures/phase6_checksum_vectors.zig',
+            },
+            'slice_note': 'Documentation/zigux/phase6-checksum-slice.md',
+        },
+        'hexdump': {
+            'helper': 'lib/hexdump.zig',
+            'tests': {
+                'zigux/tests/phase6_hexdump.zig',
+                'zigux/tests/phase6_hexdump_perf.zig',
+            },
+            'fixtures': {
+                'zigux/tests/fixtures/phase6_hexdump_vectors.zig',
+            },
+            'slice_note': 'Documentation/zigux/phase6-hexdump-slice.md',
+        },
+    }
+
+    seen_ids = set()
+    for helper in helpers:
+        helper_id = helper.get('id')
+        if helper_id not in expected_helpers:
+            missing_markers.append(f'phase6_manifest:unexpected_helper={helper_id}')
+            continue
+        seen_ids.add(helper_id)
+        expected = expected_helpers[helper_id]
+        if helper.get('helper') != expected['helper']:
+            missing_markers.append(f'phase6_manifest:{helper_id}:helper')
+        if set(helper.get('tests', [])) != expected['tests']:
+            missing_markers.append(f'phase6_manifest:{helper_id}:tests')
+        if set(helper.get('fixtures', [])) != expected['fixtures']:
+            missing_markers.append(f'phase6_manifest:{helper_id}:fixtures')
+        if helper.get('slice_note') != expected['slice_note']:
+            missing_markers.append(f'phase6_manifest:{helper_id}:slice_note')
+        expected_external = expected.get('external_parity')
+        if helper.get('external_parity', '') != (expected_external or ''):
+            missing_markers.append(f'phase6_manifest:{helper_id}:external_parity')
+    if seen_ids != set(expected_helpers):
+        missing_markers.append('phase6_manifest:helper_ids')
+
+shared_gates = set(phase6_manifest.get('shared_gates', []))
+expected_shared_gates = {
+    'zigux/tests/phase6_build.zig',
+    'zigux/Makefile',
+    'scripts/zigux/validate-phase6.py',
+    '.github/workflows/zigux-bootstrap.yml',
+    'Documentation/zigux/README.md',
+    'scripts/zigux/README.md',
+    'zigux/tests/README.md',
+    'Documentation/zigux/phase6-helper-parity-catalog.md',
+    'zigux/tests/phase6_helper_parity_manifest.json',
+}
+if shared_gates != expected_shared_gates:
+    missing_markers.append('phase6_manifest:shared_gates')
+
+perf_posture = phase6_manifest.get('perf_posture', {})
+if perf_posture.get('relative_slowdown_helpers') != ['base64', 'checksum']:
+    missing_markers.append('phase6_manifest:perf_posture:relative_slowdown_helpers')
+if perf_posture.get('comparison_budget_helpers') != ['bsearch']:
+    missing_markers.append('phase6_manifest:perf_posture:comparison_budget_helpers')
+if perf_posture.get('timing_sanity_only_helpers') != ['hexdump']:
+    missing_markers.append('phase6_manifest:perf_posture:timing_sanity_only_helpers')
+
+fixture_posture = phase6_manifest.get('fixture_posture', {})
+if fixture_posture.get('fixture_backed_helpers') != ['base64', 'checksum', 'hexdump']:
+    missing_markers.append('phase6_manifest:fixture_posture:fixture_backed_helpers')
+if fixture_posture.get('inline_corpus_helpers') != ['bsearch']:
+    missing_markers.append('phase6_manifest:fixture_posture:inline_corpus_helpers')
+
+exact_checks = set(phase6_manifest.get('exact_checks', []))
+expected_exact_checks = {
+    'python3 scripts/zigux/validate-phase6.py',
+    'make -C zigux phase6-validate',
+    'make -C zigux phase6',
+    'make -C zigux phase6-base64-perf',
+    'make -C zigux phase6-bsearch-perf',
+    'make -C zigux phase6-checksum-perf',
+    'make -C zigux phase6-hexdump-perf',
+    'python3 scripts/zigux/check-phase6-base64-c-parity.py',
+    'python3 scripts/zigux/check-phase6-bsearch-c-parity.py',
+}
+if exact_checks != expected_exact_checks:
+    missing_markers.append('phase6_manifest:exact_checks')
 
 for marker in required_make_markers:
     if marker not in makefile:
