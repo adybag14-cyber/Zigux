@@ -47,6 +47,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
@@ -64,6 +72,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_helper = false;
+    var saw_dedicated_tests = false;
     var saw_survey_gate = false;
     var saw_parity_follow_up = false;
 
@@ -93,6 +102,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree_survey.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-rbtree-dedicated-tests")) {
+            saw_dedicated_tests = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_rbtree.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "detached-node handling") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "eraseInit ownership reset") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase7-rbtree-parity-fixture-layer")) {
             saw_parity_follow_up = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -109,6 +126,9 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(starter_landed_count >= 6);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_dedicated_tests);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_parity_follow_up);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "erase-and-detach reuse semantics via `eraseInit()`") != null);
 }
