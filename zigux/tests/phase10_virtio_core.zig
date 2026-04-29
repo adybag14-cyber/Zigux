@@ -150,7 +150,7 @@ test "phase10 virtio core can disable and re-enable queue callbacks without tran
     try device.enableQueueCallback(0);
     try std.testing.expect(try device.notifyQueueUsed(0));
 
-    summary = try device.queueRegistrationSummary(0);
+    summary = device.queueRegistrationSummary(0);
     try std.testing.expect(summary.callback_enabled);
     try std.testing.expectEqual(@as(usize, 1), summary.callback_invocation_count);
     try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
@@ -363,6 +363,48 @@ test "phase10 virtio core records bounded driver binding around config_changed" 
     try std.testing.expect(!summary.config_changed_handler_present);
     try std.testing.expect(!summary.change_pending);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+}
+
+test "phase10 virtio core models bounded driver remove bookkeeping without transport reset" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 12 });
+
+    _ = try device.registerDeviceIdentity(5, 0x1042, 0x1AF4);
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(4);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+    try device.registerQueueCallback(1, 4, "remove_done");
+    try device.setConfigChangedHandlerPresent(true);
+    try device.noteConfigChanged();
+
+    const remove = try device.removeDriver();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", remove.anchor);
+    try std.testing.expect(remove.driver_attached_before_remove);
+    try std.testing.expectEqual(virtio_core.DeviceStatus.acknowledge, remove.status_after_remove);
+    try std.testing.expect(!remove.config_core_enabled);
+    try std.testing.expect(!remove.config_changed_handler_present);
+    try std.testing.expectEqual(@as(usize, 0), remove.registered_queue_count);
+
+    const binding = device.driverBindingSummary();
+    try std.testing.expect(!binding.driver_attached);
+    try std.testing.expect(!binding.config_changed_handler_present);
+    try std.testing.expect(!binding.change_pending);
+    try std.testing.expectEqual(@as(usize, 0), binding.delivery_count);
+
+    const config = device.configChangeSummary();
+    try std.testing.expect(!config.core_enabled);
+    try std.testing.expect(!config.driver_disabled);
+    try std.testing.expect(!config.change_pending);
+    try std.testing.expect(!config.handler_present);
+    try std.testing.expectEqual(@as(usize, 0), config.delivery_count);
+    try std.testing.expectEqual(virtio_core.ConfigChangeDisposition.none, config.last_disposition);
+
+    const identity = try device.deviceIdentitySummary();
+    try std.testing.expectEqualStrings("virtio5", identity.device_name);
+    try std.testing.expectError(error.DriverNotAttached, device.removeDriver());
+    try std.testing.expectError(error.DriverNotAttached, device.markDriverReady());
+    try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(1));
 }
 
 test "phase10 virtio core keeps config changes pending while the core path is disabled and clears them on reset" {
