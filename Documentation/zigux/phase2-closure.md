@@ -128,13 +128,16 @@ The bounded `genksyms` closure packet remains closed because both the shared bri
 The bounded `kconfig` bridge closure packet remains closed because both the shared fixture packet and the helper-local unit lane cover the published wrapper and confdata summary edges:
 
 - shared fixture packet:
-  `listnewconfig_expected.json`, `helpnewconfig_expected.json`, `duplicate_assignments_expected.json`, `escaped_control_sequences_expected.json`, `escaped_low_control_bytes_expected.json`
+  `listnewconfig_expected.json`, `helpnewconfig_expected.json`, `allnoconfig_expected.json`, `randconfig_expected.json`, `duplicate_assignments_expected.json`, `escaped_control_sequences_expected.json`, `escaped_low_control_bytes_expected.json`
+- helper-local anchors in `scripts/zigux/kconfig/conf_bridge.zig`:
+  `conf bridge emits allconfig env for allconfig family modes`
 - helper-local anchors in `scripts/zigux/kconfig/confdata_bridge.zig`:
   `confdata bridge decodes escaped control sequences in quoted strings`
   `confdata bridge escapes low control bytes in emitted json`
 
+- `PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
-- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus confdata escaped-control decode and low-control JSON emission anchors are required for closure`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge allconfig env and confdata escaped-control decode and low-control JSON emission anchors are required for closure`
 
 ## Linux-Style Entry Point
 
