@@ -114,6 +114,10 @@ pub fn argvSplitWithArgc(
     };
 }
 
+pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
+    result.deinit(allocator);
+}
+
 fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
 }
@@ -261,6 +265,19 @@ test "ArgvSplitResult deinit is idempotent after the exported views are cleared"
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvFree mirrors argv_free release ownership and stays safe after teardown" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+
+    argvFree(std.testing.allocator, &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+
+    argvFree(std.testing.allocator, &split);
 }
 
 test "argvSplit frees intermediate allocations when allocator failure interrupts setup" {
