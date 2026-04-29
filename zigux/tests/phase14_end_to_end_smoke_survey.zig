@@ -14,7 +14,9 @@ const SurveySummary = struct {
     workflow_runs_phase14_smoke_shard: bool,
     review_checklist_has_phase14_smoke_prompt: bool,
     review_checklist_has_productization_prompt: bool,
+    review_checklist_has_risk_bundle_prompt: bool,
     smoke_note_records_owner_and_rollback: bool,
+    smoke_note_records_risk_bundle: bool,
     smoke_note_records_transfer_rationale: bool,
     freeze_map_lists_workqueue_c: bool,
     freeze_map_lists_skbuff_c: bool,
@@ -28,6 +30,7 @@ const Productization = struct {
     validation_gate: []const u8,
     rollback_owner: []const u8,
     transfer_rationale: []const u8,
+    risk_bundle: []const []const u8,
 };
 
 const AnchorPacket = struct {
@@ -110,6 +113,11 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     );
     try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.productization.rollback_owner);
     try std.testing.expect(std.mem.indexOf(u8, manifest.productization.transfer_rationale, "ZAR runtime research") != null);
+    try std.testing.expectEqual(@as(usize, 4), manifest.productization.risk_bundle.len);
+    try std.testing.expectEqualStrings("hidden runtime behavior", manifest.productization.risk_bundle[0]);
+    try std.testing.expectEqualStrings("memory-ordering mistakes", manifest.productization.risk_bundle[1]);
+    try std.testing.expectEqualStrings("overpromising full parity", manifest.productization.risk_bundle[2]);
+    try std.testing.expectEqualStrings("deep-core scope creep", manifest.productization.risk_bundle[3]);
     try std.testing.expectEqual(@as(usize, 10), manifest.shared_smoke_surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
@@ -128,7 +136,9 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_smoke_shard);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_phase14_smoke_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_productization_prompt);
+    try std.testing.expect(manifest.survey_summary.review_checklist_has_risk_bundle_prompt);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_owner_and_rollback);
+    try std.testing.expect(manifest.survey_summary.smoke_note_records_risk_bundle);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_transfer_rationale);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_workqueue_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_skbuff_c);
@@ -262,6 +272,10 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, checklist, "phase14_end_to_end_smoke_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "named owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "hidden runtime behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "memory-ordering mistakes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "overpromising full parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "deep-core scope creep") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "ZAR-to-product transfer rationale") != null);
 
     const script_readme = try std.Io.Dir.cwd().readFileAlloc(
@@ -274,6 +288,11 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "make -C zigux phase14-smoke") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "focused smoke-shard replay contract") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "roadmap risk bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "hidden runtime behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "memory-ordering mistakes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "overpromising full parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "deep-core scope creep") != null);
 
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -310,6 +329,9 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
+    for (smoke_manifest.value.productization.risk_bundle) |risk| {
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, risk) != null);
+    }
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.artifact_name) != null);
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.coverage_mode) != null);
