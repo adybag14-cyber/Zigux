@@ -59,6 +59,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
+    "PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig",
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
@@ -365,6 +366,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (root / "zigux" / "helpers" / "panic_policy.zig").writeText = None
         (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
