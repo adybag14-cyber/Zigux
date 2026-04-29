@@ -8,6 +8,7 @@ from validate_phase3_core import (
     ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
     ABI_REQUIRED_MANIFEST_FILES,
+    ABI_REQUIRED_SOURCE_MARKERS,
     Phase3Paths,
     discover_phase3_slices,
     render_wrapper_stub,
@@ -199,9 +200,22 @@ def run_self_test() -> int:
             "    _ = .{ scope, base_addr, offset };\n"
             "    return 0;\n"
             "}\n\n"
+            "pub fn write16Scoped(\n"
+            "    scope: narrow.UnsafeScopeTag,\n"
+            "    base_addr: usize,\n"
+            "    offset: usize,\n"
+            "    value: u16,\n"
+            ") narrow.ScopeError!void {\n"
+            "    _ = .{ scope, base_addr, offset, value };\n"
+            "}\n\n"
+            "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {\n"
+            "    _ = .{ scope, base_addr, offset };\n"
+            "    return 0;\n"
+            "}\n\n"
             "pub fn write32(base_addr: usize, offset: usize, value: u32) void {\n"
             "    _ = .{ base_addr, offset, value };\n"
             "}\n\n"
+            'test "phase3 mmio wrapper uses bounded volatile access" {}\n'
             'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}\n',
             encoding="utf-8",
             newline="\n",
@@ -228,14 +242,18 @@ def run_self_test() -> int:
         )
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
             'test "phase3 low-level wrappers stay inside the documented ABI surface" {\n'
+            "    const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);\n"
+            "    _ = mismatch;\n"
+            "    barrier.acquire();\n"
+            "    barrier.release();\n"
+            "    barrier.full();\n"
+            "    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));\n"
+            "    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));\n"
+            "    try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);\n"
             "    _ = .{\n"
             "        atomic.fetchOr(u32, &value, 0b1000, .seq_cst),\n"
             "        atomic.fetchAnd(u32, &value, 0b0111, .seq_cst),\n"
             "        atomic.fetchXor(u32, &value, 0b1111, .seq_cst),\n"
-            "        try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef),\n"
-            "        try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0)),\n"
-            "        try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd),\n"
-            "        try std.testing.expectEqual(@as(u32, 0xaabbccdd), try mmio.read32Scoped(.volatile_mmio, base, 4)),\n"
             "    };\n"
             "}\n"
             'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
@@ -348,6 +366,32 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+
+        mmio_path = root / "zigux" / "helpers" / "mmio.zig"
+        original_mmio = mmio_path.read_text(encoding="utf-8")
+        missing_mmio_marker = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/mmio.zig"][2]
+        mmio_path.write_text(original_mmio.replace(missing_mmio_marker + "\n", "", 1), encoding="utf-8", newline="\n")
+        abi_source_issues: list[str] = []
+        validate_source_markers(root, "abi", abi_source_issues)
+        assert abi_source_issues == [
+            f"abi:missing_source_marker=zigux/helpers/mmio.zig:{missing_mmio_marker}",
+        ]
+        mmio_path.write_text(original_mmio, encoding="utf-8", newline="\n")
+
+        low_level_path = root / "zigux" / "tests" / "phase3_low_level_wrappers.zig"
+        original_low_level = low_level_path.read_text(encoding="utf-8")
+        missing_low_level_marker = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_low_level_wrappers.zig"][1]
+        low_level_path.write_text(
+            original_low_level.replace("    " + missing_low_level_marker + "\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        abi_source_issues = []
+        validate_source_markers(root, "abi", abi_source_issues)
+        assert abi_source_issues == [
+            f"abi:missing_source_marker=zigux/tests/phase3_low_level_wrappers.zig:{missing_low_level_marker}",
+        ]
+        low_level_path.write_text(original_low_level, encoding="utf-8", newline="\n")
 
         (root / "zigux" / "helpers" / "panic_policy.zig").write_text(
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
