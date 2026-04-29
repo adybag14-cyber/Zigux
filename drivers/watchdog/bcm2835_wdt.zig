@@ -103,6 +103,9 @@ pub const RemoveSummary = struct {
     system_power_controller: bool,
     poweroff_handler_present: bool,
     poweroff_handler_owned_by_driver: bool,
+    remove_callback_ready: bool,
+    watchdog_teardown_managed_by_devm: bool,
+    remove_callback_scope_limited_to_poweroff_owner: bool,
     clear_poweroff_handler_requested: bool,
     poweroff_handler_left_in_place: bool,
 };
@@ -261,6 +264,9 @@ pub const Bcm2835WatchdogLab = struct {
             .system_power_controller = system_power_controller,
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_owned_by_driver = poweroff_handler_owned_by_driver,
+            .remove_callback_ready = true,
+            .watchdog_teardown_managed_by_devm = true,
+            .remove_callback_scope_limited_to_poweroff_owner = true,
             .clear_poweroff_handler_requested = clear_poweroff_handler_requested,
             .poweroff_handler_left_in_place = poweroff_handler_present and !clear_poweroff_handler_requested,
         };
