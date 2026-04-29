@@ -57,7 +57,7 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expectEqualStrings("P10-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("351db7d1138c927ac5f9a06f4cbbc8633d586dd4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c61c278199722ea3a77c7d1aa6a074eeb13a1960", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
