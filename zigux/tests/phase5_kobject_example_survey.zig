@@ -188,6 +188,11 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-only `exit()` path returns an `abandoned_before_registration` teardown summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kobject_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 26/26 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 5 pass (5 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
