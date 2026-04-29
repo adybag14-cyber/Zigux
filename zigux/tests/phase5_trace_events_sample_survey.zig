@@ -43,11 +43,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
+    var saw_surveyed_commit_prompt = false;
     var saw_docs_prompt = false;
     var saw_payload_prompt = false;
     var saw_lifecycle_prompt = false;
@@ -73,6 +74,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "surveyed_commit") != null and
+            std.mem.indexOf(u8, prompt, "exact inspected master head") != null and
+            std.mem.indexOf(u8, prompt, "floating branch label") != null)
+        {
+            saw_surveyed_commit_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
             std.mem.indexOf(u8, prompt, "Documentation/zigux/README.md") != null and
@@ -208,6 +215,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     }
 
     try std.testing.expect(saw_descriptor_prompt);
+    try std.testing.expect(saw_surveyed_commit_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_payload_prompt);
     try std.testing.expect(saw_lifecycle_prompt);
@@ -269,6 +277,9 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9 runtime pilot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "CREATE_TRACE_POINTS") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second `registerFunctionCallback()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "replayFunctionIteration()") != null);
@@ -291,6 +302,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact surveyed commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact replay contract") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "in-memory-only") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "runtime parity is still out of scope") != null);
