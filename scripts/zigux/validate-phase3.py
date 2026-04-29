@@ -5,6 +5,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import subprocess
 import tempfile
 
 from phase3_catalog import (
@@ -17,6 +18,7 @@ from phase3_catalog import (
 from phase3_check_lib import (
     build_step_for_slug as runner_build_step_for_slug,
     description_for_slug as runner_description_for_slug,
+    find_zig,
     legacy_wrapper_gate_for_slug,
     render_wrapper_stub,
     shared_runner_gate_for_slug,
@@ -284,6 +286,53 @@ def validate_policy_unsafe_focused_build(root: Path, issues: list[str]) -> None:
         issues.append(f"abi:missing_build_step:{ABI_POLICY_UNSAFE_BUILD_FILE_REL}:phase3-policy-unsafe-test")
 
 
+def _build_smoke_issue(
+    slug: str,
+    build_file_rel: str,
+    build_step: str,
+    exc: subprocess.CalledProcessError,
+) -> str:
+    details = (exc.stderr or exc.stdout or str(exc)).strip().splitlines()
+    detail = details[-1] if details else str(exc)
+    return f"{slug}:build_smoke_failed:{build_file_rel}:{build_step}:{detail}"
+
+
+def _run_build_smoke(
+    root: Path,
+    zig: str,
+    build_file_rel: str,
+    build_step: str,
+    slug: str,
+    issues: list[str],
+) -> None:
+    try:
+        subprocess.run(
+            [zig, "build", build_step, "--build-file", str(root / build_file_rel)],
+            cwd=str(root),
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        issues.append(_build_smoke_issue(slug, build_file_rel, build_step, exc))
+
+
+def validate_build_smoke(root: Path, slices: list[object], issues: list[str], zig_path: str | None) -> None:
+    try:
+        zig = find_zig(zig_path)
+    except SystemExit as exc:
+        issues.append(f"build:zig_unavailable:{exc}")
+        return
+
+    for entry in slices:
+        _run_build_smoke(root, zig, BUILD_FILE_REL, entry.build_step, entry.slug, issues)
+
+    if any(entry.slug == "abi" for entry in slices):
+        _run_build_smoke(root, zig, ABI_LOW_LEVEL_BUILD_FILE_REL, "phase3-low-level-wrappers-test", "abi", issues)
+        _run_build_smoke(root, zig, ABI_EXPORT_UAPI_BUILD_FILE_REL, "phase3-export-uapi-test", "abi", issues)
+        _run_build_smoke(root, zig, ABI_POLICY_UNSAFE_BUILD_FILE_REL, "phase3-policy-unsafe-test", "abi", issues)
+
+
 def validate_runner_metadata(slices: list[object], issues: list[str]) -> None:
     for entry in slices:
         if runner_build_step_for_slug(entry.slug) != entry.build_step:
@@ -325,8 +374,10 @@ def validate_slices(
     slices: list[object],
     *,
     check_artifact_diff: bool = False,
+    check_build_smoke: bool = False,
     check_slug_sanity: bool = False,
     check_all_wrappers: bool = True,
+    zig_path: str | None = None,
 ) -> list[str]:
     issues: list[str] = []
     for entry in slices:
@@ -349,6 +400,8 @@ def validate_slices(
     validate_policy_unsafe_focused_build(root, issues)
     validate_runner_metadata(slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
+    if check_build_smoke:
+        validate_build_smoke(root, slices, issues, zig_path)
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
     if check_slug_sanity:
@@ -655,7 +708,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").writeText("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
@@ -677,8 +730,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
     parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
     parser.add_argument("--check-artifact-diff", action="store_true", help="Also validate the generated Current Phase 3 use section.")
+    parser.add_argument("--check-build-smoke", action="store_true", help="Also run focused Zig build smoke checks for the selected Phase 3 slices.")
     parser.add_argument("--check-slug-sanity", action="store_true", help="Also audit discovered Phase 3 slugs for naming drift.")
     parser.add_argument("--skip-obsolete-wrapper-check", action="store_true", help="Skip the stale wrapper-file scan.")
+    parser.add_argument("--zig", help="Explicit zig executable path for --check-build-smoke runs.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated validator checks.")
     args = parser.parse_args()
 
@@ -693,8 +748,10 @@ def main() -> int:
         ROOT,
         slices,
         check_artifact_diff=args.check_artifact_diff,
+        check_build_smoke=args.check_build_smoke,
         check_slug_sanity=args.check_slug_sanity,
         check_all_wrappers=not args.skip_obsolete_wrapper_check,
+        zig_path=args.zig,
     )
     if issues:
         print("PHASE3_VALIDATION=fail")
