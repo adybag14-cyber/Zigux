@@ -21,8 +21,13 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
 
+    const subtract_result = try module.subCounter(0x22);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), subtract_result.previous);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2200), subtract_result.final);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2200), module.snapshotCounter());
+
     const bitwise_or = try module.orCounter(0x00ff_0000_0000_00ff);
-    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), bitwise_or.previous);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2200), bitwise_or.previous);
     try std.testing.expectEqual(@as(i64, 0x11ff_1111_2222_22ff), bitwise_or.final);
     try std.testing.expectEqual(@as(i64, 0x11ff_1111_2222_22ff), module.snapshotCounter());
 
@@ -111,6 +116,7 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.subCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(1));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(1));
