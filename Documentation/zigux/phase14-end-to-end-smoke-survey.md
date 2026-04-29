@@ -56,9 +56,9 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `phase14-rcu-tree-survey-tests`: root `phase14_rcu_tree_survey.zig`, coverage `full_bundle_only` through `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
   - `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle` through dedicated shard `phase14-smoke` plus the shared `zig build test --build-file zigux/tests/phase14_build.zig --summary all` replay
 - anchor packets in the current smoke bundle:
-  - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `1b346dbd77659625fedfdc2a45f5016e391043f8`, ready-next `phase14-workqueue-drain-cancel-followup`, blocked `phase14-workqueue-live-execution-blocker`
+  - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `1b346dbd77659625fedfdc2a45f5016e391043f8`, ready-next `phase14-workqueue-disable-delayed-followup`, blocked `phase14-workqueue-live-execution-blocker`
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-validate-xmit-republish-followup`, blocked `phase14-skbuff-live-ownership-blocker`
-  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L06`, surveyed commit `d78223d3f1a386521769795b1cff384d83cb6a3a`, blocked `phase14-ring-buffer-zig-port-blocker`
+  - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L05`, surveyed commit `7addb3a576d8a83a542f84a83957289cfe2f72e5`, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L16`, surveyed commit `4e45e5a392cca82429228d42d89c480fd413042b`, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
