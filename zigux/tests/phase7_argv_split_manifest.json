@@ -27,7 +27,7 @@
       "status": "starter_landed",
       "kind": "runtime_leaf_helper",
       "zigux_destination": "lib/argv_split.zig",
-      "why_now": "The roadmap names lib/argv_split.zig directly, and the live helper already delivers the bounded whitespace-only countArgc and argvSplit surface with copied-buffer ownership and a null-terminated argv view."
+      "why_now": "The roadmap names lib/argv_split.zig directly, and the live helper now delivers the bounded whitespace-only countArgc and argvSplit surface together with an explicit argv_free ownership mirror, copied-buffer ownership, and a null-terminated argv view."
     },
     {
       "id": "phase7-argv-split-dedicated-tests",
