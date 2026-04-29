@@ -84,7 +84,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expectEqualStrings("P9-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
-    try std.testing.expectEqualStrings("9208a76bf6a4c6ab4f8940c3e901ef6add764beb", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b76c26b5f2a2681ba7653459da4a074a19dca906", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap.zig", manifest.sample_path);
@@ -437,11 +437,11 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteratio
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "nthSetBit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "manifest-backed delivery catalog and ownership map") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L07`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=9208a76bf6a4c6ab4f8940c3e901ef6add764beb`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=b76c26b5f2a2681ba7653459da4a074a19dca906`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Delivery ownership map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `9208a76bf6a4c6ab4f8940c3e901ef6add764beb`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `b76c26b5f2a2681ba7653459da4a074a19dca906`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`") != null);

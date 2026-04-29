@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L07",
   "phase": "Phase 9",
-  "surveyed_commit": "9208a76bf6a4c6ab4f8940c3e901ef6add764beb",
+  "surveyed_commit": "b76c26b5f2a2681ba7653459da4a074a19dca906",
   "anchor": "lib/test_bitmap.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -107,7 +107,7 @@
       "id": "runtime-bitmap-manifest",
       "kind": "manifest",
       "path": "zigux/tests/runtime_bitmap_manifest.json",
-      "role": "holds the manifest-backed exact checks, delivery catalog, and ownership map for the current runtime bitmap packet"
+      "role": "holds the manifest-backed exact checks, delivery catalog, and ownership map for the current runtime litmap packet"
     },
     {
       "id": "runtime-bitmap-survey-gate",
