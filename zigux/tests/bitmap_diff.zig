@@ -110,7 +110,7 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try std.testing.expectEqual(@as(u8, 0), trunc_buffer[trunc_len]);
 
     bitmap.fill(&map, bitmap_nbits);
-    // test_zero_clear bitmap_zero rounds the paired 35-bit checkpoint without disturbing the next word
+    // test_zero_clear bitmap_zero rounds 35 bits to one full word without disturbing the next word
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
     zeroPrefix(&map, 35);
     try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
