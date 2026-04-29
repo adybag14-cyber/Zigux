@@ -155,6 +155,7 @@ required_phase6_catalog_markers = [
     'unpadded IMAP `64B` and `1KB`',
     'translated standard-to-IMAP reference path',
     'avg_compare_calls <= std.math.log2_int_ceil(len) + 1',
+    '`1501` bytes at `4_000` reps',
     'max_slowdown_pct = 150',
     'there is no hard formatter-cost threshold yet because the current lane only claims deterministic perf-sanity evidence',
     '`zigux/tests/phase6_base64_perf.zig` and `zigux/tests/phase6_checksum_perf.zig` currently carry fixture-backed relative slowdown thresholds',
