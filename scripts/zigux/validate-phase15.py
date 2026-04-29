@@ -56,6 +56,7 @@ BUILD_MARKERS = [
     "phase15-handoff-next-steps-tests",
 ]
 
+
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
@@ -108,25 +109,71 @@ else:
         "phase15_build_present",
         "phase15_make_target_present",
         "shared_ci_phase15_present",
-        "phase15_replay_green_on_current_master",
     ]:
         if repo_evidence.get(key) is not True:
             missing.append(f"manifest:repo_evidence:{key}")
+    if repo_evidence.get("phase15_replay_green_on_current_master") is not False:
+        missing.append("manifest:repo_evidence:phase15_replay_green_on_current_master")
     if repo_evidence.get("deep_core_status_change_ready") is not False:
         missing.append("manifest:repo_evidence:deep_core_status_change_ready")
 
 remaining_gaps = manifest.get("remaining_gaps")
-if not isinstance(remaining_gaps, list) or len(remaining_gaps) != 1:
+expected_gaps = {
+    "phase15-review-process-lane-marker-drift": {
+        "status": "blocked_on_current_master_replay_drift",
+        "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
+        "phrases": [
+            "current bounded lane: `P15-L07`",
+            "current bounded lane: `P15-L08`",
+        ],
+    },
+    "phase15-parity-scorecard-review-checklist-read-limit-drift": {
+        "status": "blocked_on_current_master_replay_drift",
+        "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+        "phrases": [
+            "error.StreamTooLong",
+            "17,461",
+        ],
+    },
+    "phase15-deep-core-status-change-blocker": {
+        "status": "blocked_on_stay_in_c_evidence",
+        "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+        "phrases": [
+            "freeze-in-C posture",
+        ],
+    },
+}
+if not isinstance(remaining_gaps, list) or len(remaining_gaps) != len(expected_gaps):
     missing.append("manifest:remaining_gaps")
 else:
-    gap = remaining_gaps[0]
-    if not isinstance(gap, dict):
-        missing.append("manifest:remaining_gaps:shape")
-    else:
-        if gap.get("id") != "phase15-deep-core-status-change-blocker":
+    seen_gap_ids: set[str] = set()
+    for gap in remaining_gaps:
+        if not isinstance(gap, dict):
+            missing.append("manifest:remaining_gaps:shape")
+            continue
+        gap_id = gap.get("id")
+        if not isinstance(gap_id, str):
             missing.append("manifest:remaining_gaps:id")
-        if gap.get("status") != "blocked_on_stay_in_c_evidence":
-            missing.append("manifest:remaining_gaps:status")
+            continue
+        expected = expected_gaps.get(gap_id)
+        if expected is None:
+            missing.append(f"manifest:remaining_gaps:unexpected:{gap_id}")
+            continue
+        seen_gap_ids.add(gap_id)
+        if gap.get("status") != expected["status"]:
+            missing.append(f"manifest:remaining_gaps:status:{gap_id}")
+        if gap.get("zigux_destination") != expected["zigux_destination"]:
+            missing.append(f"manifest:remaining_gaps:zigux_destination:{gap_id}")
+        why_now = gap.get("why_now")
+        if not isinstance(why_now, str):
+            missing.append(f"manifest:remaining_gaps:why_now:{gap_id}")
+            continue
+        for phrase in expected["phrases"]:
+            if phrase not in why_now:
+                missing.append(f"manifest:remaining_gaps:why_now:{gap_id}:{phrase}")
+    for gap_id in expected_gaps:
+        if gap_id not in seen_gap_ids:
+            missing.append(f"manifest:remaining_gaps:missing:{gap_id}")
 
 if missing:
     print("PHASE15_VALIDATION=fail")
@@ -142,4 +189,4 @@ print(
     "PHASE15_REQUIRED_MARKER_COUNT="
     f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
 )
-print("PHASE15_REMAINING_BLOCKER=phase15-deep-core-status-change-blocker")
+print("PHASE15_REMAINING_BLOCKERS=phase15-review-process-lane-marker-drift,phase15-parity-scorecard-review-checklist-read-limit-drift,phase15-deep-core-status-change-blocker")
