@@ -90,6 +90,17 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try std.testing.expectEqual(@as(u8, 0), trunc_buffer[trunc_len]);
 
     bitmap.fill(&map, bitmap_nbits);
+    // test_zero_clear bitmap_zero rounds 35 bits to one full word
+    try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
+    zeroPrefix(&map, 35);
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
+    try std.testing.expectEqual(bitmap_nbits - bits_per_long, weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, bits_per_long), firstSet(&map, bitmap_nbits));
+    try expectClear(&map, 35);
+    try expectClear(&map, bits_per_long - 1);
+    try expectSet(&map, bits_per_long);
+
+    bitmap.fill(&map, bitmap_nbits);
     // test_zero_clear bitmap_zero rounds 115 bits to two full words
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
     zeroPrefix(&map, 115);
@@ -141,6 +152,22 @@ test "bitmap diff gate records exact full-width fill and zero endpoints" {
     try std.testing.expectEqual(@as(usize, 0), firstZero(&map, bitmap_nbits));
     try expectClear(&map, 0);
     try expectClear(&map, bitmap_nbits - 1);
+}
+
+test "bitmap diff survey keeps the unresolved 115-bit fill drift against lib/test_bitmap.c explicit" {
+    var map = [_]Word{0} ** word_count;
+
+    bitmap.zero(&map, bitmap_nbits);
+    // The current Zig helper fills only the requested 115 bits instead of
+    // rounding the filled prefix to the first two full words like lib/test_bitmap.c.
+    bitmap.fill(&map, 115);
+    try expectPrintedList(&map, bitmap_nbits, "0-114");
+    try std.testing.expectEqual(@as(usize, 115), weight(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
+    try std.testing.expectEqual(@as(usize, 115), firstZero(&map, bitmap_nbits));
+    try expectSet(&map, 114);
+    try expectClear(&map, 115);
+    try expectClear(&map, bits_per_long * 2 - 1);
 }
 
 test "bitmap diff gate records exact bounded copy checks" {
