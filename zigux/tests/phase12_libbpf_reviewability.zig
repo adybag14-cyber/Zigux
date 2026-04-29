@@ -38,6 +38,11 @@ const LegacyManifest = struct {
     segments: []const LegacySegment,
 };
 
+fn sharesDeferredBoundaryWithLandedHelper(gap_id: []const u8) bool {
+    return std.mem.eql(u8, gap_id, "phase12-libbpf-file-path-and-handle-bridge-boundary") or
+        std.mem.eql(u8, gap_id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary");
+}
+
 fn pathExists(io: std.Io, path: []const u8) !bool {
     std.Io.Dir.cwd().access(io, path, .{}) catch |err| switch (err) {
         error.FileNotFound => return false,
@@ -73,6 +78,9 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
     var saw_landed_file_path_handle_bridge = false;
+    var saw_landed_map_reuse = false;
+    var saw_deferred_file_path_handle_boundary = false;
+    var saw_deferred_perf_buffer_routing_boundary = false;
     var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
     var saw_blocked_relocation = false;
@@ -85,7 +93,15 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
         const exists = try pathExists(io_instance.io(), gap.zigux_destination);
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             try std.testing.expect(exists);
-        } else if (std.mem.eql(u8, gap.status, "ready_next") or std.mem.eql(u8, gap.status, "blocked_on_object_model") or std.mem.eql(u8, gap.status, "deferred_high_risk")) {
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_object_model")) {
+            try std.testing.expect(!exists);
+        } else if (std.mem.eql(u8, gap.status, "deferred_high_risk")) {
+            if (sharesDeferredBoundaryWithLandedHelper(gap.id)) {
+                try std.testing.expect(exists);
+            } else {
+                try std.testing.expect(!exists);
+            }
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
             try std.testing.expect(!exists);
         }
 
@@ -113,6 +129,18 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_file_path_handle_bridge = true;
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-helper-foundation")) {
+            saw_landed_map_reuse = true;
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge-boundary")) {
+            saw_deferred_file_path_handle_boundary = true;
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary")) {
+            saw_deferred_perf_buffer_routing_boundary = true;
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
             saw_blocked_skeleton = true;
             try std.testing.expect(!exists);
@@ -133,6 +161,9 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
     try std.testing.expect(saw_landed_file_path_handle_bridge);
+    try std.testing.expect(saw_landed_map_reuse);
+    try std.testing.expect(saw_deferred_file_path_handle_boundary);
+    try std.testing.expect(saw_deferred_perf_buffer_routing_boundary);
     try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
     try std.testing.expect(saw_blocked_relocation);
@@ -159,6 +190,10 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     try std.testing.expectEqualStrings(
         "/proc/321/fdinfo/7",
         try file_path_handle_bridge.buildFdinfoPath(&fdinfo_path_buffer, 321, 7),
+    );
+    try std.testing.expectEqualStrings(
+        "process_pinned_map",
+        file_path_handle_bridge.chooseReusedMapName("process_pinned_map", "process_pinned_"),
     );
     const optional_missing_delegation = file_path_handle_bridge.classifyTokenPreparationFailure(
         file_path_handle_bridge.planTokenPreparation(null),
@@ -191,6 +226,21 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         "/sys/fs/bpf/demo_map",
         try pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, null, "demo.map"),
     );
+    try std.testing.expect(file_path_handle_bridge.isMapReuseCompatible(.{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 9,
+    }, .{
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = file_path_handle_bridge.bpf_f_rdonly_prog,
+        .map_extra = 9,
+    }));
     try std.testing.expectError(
         error.InvalidName,
         pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, null, "demo/map"),
@@ -251,6 +301,9 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var saw_pin_path = false;
     var saw_cpu_mask = false;
     var saw_fdinfo_map_info = false;
+    var saw_map_reuse = false;
+    var saw_file_path_handle_bridge_boundary = false;
+    var saw_perf_buffer_routing_boundary = false;
     var saw_skeleton = false;
     var saw_object_loader = false;
     var saw_relocation = false;
@@ -278,6 +331,21 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
+            saw_map_reuse = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
+            saw_file_path_handle_bridge_boundary = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
+            saw_perf_buffer_routing_boundary = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, segment.slug, "skeleton-population")) {
             saw_skeleton = true;
             try std.testing.expectEqualStrings("blocked_on_object_model", segment.status);
@@ -299,6 +367,9 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     try std.testing.expect(saw_pin_path);
     try std.testing.expect(saw_cpu_mask);
     try std.testing.expect(saw_fdinfo_map_info);
+    try std.testing.expect(saw_map_reuse);
+    try std.testing.expect(saw_file_path_handle_bridge_boundary);
+    try std.testing.expect(saw_perf_buffer_routing_boundary);
     try std.testing.expect(saw_skeleton);
     try std.testing.expect(saw_object_loader);
     try std.testing.expect(saw_relocation);
