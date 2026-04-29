@@ -90,6 +90,7 @@ It is a small substrate that makes future ports measurable:
 Layout assertion policy:
 - canonical bindings only: `zigux/helpers/layout_assert.zig`
 - boundary layout checks must stay attached to the curated ABI surface
+- the shared layout-assert helper now owns the canonical `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` size, alignment, and field-offset checks so focused gates do not drift on the core ABI packet
 
 Panic policy:
 - explicit modes only: `abort`, `bug`, `warn`
