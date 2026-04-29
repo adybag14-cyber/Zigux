@@ -43,12 +43,7 @@ test "phase3 policy helpers stay ABI aligned" {
 
 test "phase3 policy layout stays explicit at the ABI boundary" {
     comptime {
-        layout_assert.assertSize(abi.InteropPolicy, 4);
-        layout_assert.assertAlign(abi.InteropPolicy, 1);
-        layout_assert.assertOffset(abi.InteropPolicy, "panic_mode", 0);
-        layout_assert.assertOffset(abi.InteropPolicy, "allocator_mode", 1);
-        layout_assert.assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
-        layout_assert.assertOffset(abi.InteropPolicy, "reserved", 3);
+        layout_assert.assertInteropPolicyLayout();
     }
 
     const policy: abi.InteropPolicy = .{
