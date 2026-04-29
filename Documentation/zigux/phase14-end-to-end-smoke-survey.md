@@ -21,7 +21,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5`
 - `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`
 - `PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests`
-- survey provenance captured against verified `master` head `f9f772e5912d57fdfd1ba77689017cc54b4d83d5`
+- survey provenance captured against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
   - `scripts/zigux/README.md`
@@ -42,9 +42,9 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 
 ## Exact evidence captured
 
-- verified `master` head: `f9f772e5912d57fdfd1ba77689017cc54b4d83d5`
+- verified `master` head: `4c889233d157960514b241bcd5aff7cac5fda312`
 - shared smoke manifest lane key: `P14-L01`
-- shared smoke manifest surveyed commit: `f9f772e5912d57fdfd1ba77689017cc54b4d83d5`
+- shared smoke manifest surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
@@ -60,9 +60,9 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle` through dedicated shard `phase14-smoke` plus the shared `zig build test --build-file zigux/tests/phase14_build.zig --summary all` replay
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-L01`, surveyed commit `1b346dbd77659625fedfdc2a45f5016e391043f8`, ready-next `phase14-workqueue-disable-delayed-followup`, blocked `phase14-workqueue-live-execution-blocker`
-  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L11`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-validate-xmit-republish-followup`, blocked `phase14-skbuff-live-ownership-blocker`
+  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L12`, surveyed commit `f65e3d897847bf205198e5c47a41782085620579`, ready-next `phase14-skbuff-validate-xmit-republish-followup`, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L05`, surveyed commit `7addb3a576d8a83a542f84a83957289cfe2f72e5`, blocked `phase14-ring-buffer-zig-port-blocker`
-  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L16`, surveyed commit `4e45e5a392cca82429228d42d89c480fd413042b`, blocked `phase14-rcu-tree-bridge-blocker`
+  - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-L16`, surveyed commit `4c889233d157960514b241bcd5aff7cac5fda312`, blocked `phase14-rcu-tree-bridge-blocker`
 
 ## Shared smoke findings
 
@@ -84,6 +84,11 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14`
 - rollback owner: `Repo Tooling Pod`
 - ZAR-to-product transfer rationale: absorb ZAR runtime research as product discipline only by keeping exported evidence packets, machine-checked surveyed commits, and explicit blocker posture, without importing ZAR runtime-core behavior into Zigux.
+- roadmap risk bundle:
+  - `hidden runtime behavior`
+  - `memory-ordering mistakes`
+  - `overpromising full parity`
+  - `deep-core scope creep`
 
 ## Non-goals
 
