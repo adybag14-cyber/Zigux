@@ -45,14 +45,15 @@ def expected_metric_keys(expectations: dict[str, object]) -> set[str]:
     )
 
 
-def unexpected_prefixed_keys(
-    parsed: dict[str, str], expectations: dict[str, object], prefix: str
+def unexpected_phase1_bench_keys(
+    parsed: dict[str, str], expectations: dict[str, object]
 ) -> list[str]:
     known_metrics = expected_metric_keys(expectations)
+    known_metrics.add('PHASE1_BENCH')
     return sorted(
         key
         for key in parsed
-        if key.startswith(prefix) and key not in known_metrics
+        if key.startswith('PHASE1_BENCH_') and key not in known_metrics
     )
 
 
@@ -78,31 +79,13 @@ def main() -> int:
         print(f"ACTUAL_STATUS={parsed.get('PHASE1_BENCH')}")
         return 1
 
-    unexpected_bitmap = unexpected_prefixed_keys(parsed, expectations, 'PHASE1_BENCH_BITMAP_')
-    if unexpected_bitmap:
+    unexpected_keys = unexpected_phase1_bench_keys(parsed, expectations)
+    if unexpected_keys:
         print('PHASE1_BENCH_CHECK=fail')
-        print('UNDECLARED_BITMAP_KEYS_START')
-        for key in unexpected_bitmap:
+        print('UNDECLARED_PHASE1_BENCH_KEYS_START')
+        for key in unexpected_keys:
             print(key)
-        print('UNDECLARED_BITMAP_KEYS_END')
-        return 1
-
-    unexpected_find_bit = unexpected_prefixed_keys(parsed, expectations, 'PHASE1_BENCH_FIND_')
-    if unexpected_find_bit:
-        print('PHASE1_BENCH_CHECK=fail')
-        print('UNDECLARED_FIND_BIT_KEYS_START')
-        for key in unexpected_find_bit:
-            print(key)
-        print('UNDECLARED_FIND_BIT_KEYS_END')
-        return 1
-
-    unexpected_rbtree = unexpected_prefixed_keys(parsed, expectations, 'PHASE1_BENCH_RBTREE_')
-    if unexpected_rbtree:
-        print('PHASE1_BENCH_CHECK=fail')
-        print('UNDECLARED_RBTREE_KEYS_START')
-        for key in unexpected_rbtree:
-            print(key)
-        print('UNDECLARED_RBTREE_KEYS_END')
+        print('UNDECLARED_PHASE1_BENCH_KEYS_END')
         return 1
 
     missing = []
