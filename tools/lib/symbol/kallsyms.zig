@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const KSYM_NAME_LEN: usize = 512;
 pub const default_reader_chunk_len: usize = 4096;
+pub const max_buffered_line_len: usize = 32 + 3 + KSYM_NAME_LEN;
 
 pub const elf_stb_local: u8 = 0;
 pub const elf_stb_global: u8 = 1;
@@ -95,22 +96,51 @@ fn processParsedLine(
     try process_symbol(context, parsed);
 }
 
+const PendingParsedLine = struct {
+    bytes: std.ArrayList(u8) = .empty,
+    discarding_tail: bool = false,
+
+    fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+        self.bytes.deinit(allocator);
+        self.* = undefined;
+    }
+
+    fn appendBounded(self: *@This(), allocator: std.mem.Allocator, byte: u8) !void {
+        if (self.discarding_tail) {
+            return;
+        }
+        if (self.bytes.items.len >= max_buffered_line_len) {
+            self.discarding_tail = true;
+            return;
+        }
+        try self.bytes.append(allocator, byte);
+    }
+
+    fn finish(
+        self: *@This(),
+        context: anytype,
+        comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
+    ) !void {
+        try processParsedLine(self.bytes.items, context, process_symbol);
+        self.bytes.clearRetainingCapacity();
+        self.discarding_tail = false;
+    }
+};
+
 fn processParsedChunk(
-    pending: *std.ArrayList(u8),
+    pending: *PendingParsedLine,
     allocator: std.mem.Allocator,
     chunk: []const u8,
     context: anytype,
     comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
 ) !void {
-    var line_start: usize = 0;
-    while (std.mem.indexOfScalarPos(u8, chunk, line_start, '\n')) |newline_index| {
-        try pending.appendSlice(allocator, chunk[line_start..newline_index]);
-        try processParsedLine(pending.items, context, process_symbol);
-        pending.clearRetainingCapacity();
-        line_start = newline_index + 1;
+    for (chunk) |byte| {
+        if (byte == '\n') {
+            try pending.finish(context, process_symbol);
+            continue;
+        }
+        try pending.appendBounded(allocator, byte);
     }
-
-    try pending.appendSlice(allocator, chunk[line_start..]);
 }
 
 pub fn forEachParsedChunked(
@@ -120,15 +150,15 @@ pub fn forEachParsedChunked(
     process_context: anytype,
     comptime process_symbol: fn (@TypeOf(process_context), ParsedSymbol) anyerror!void,
 ) !void {
-    var pending = std.ArrayList(u8).empty;
+    var pending = PendingParsedLine{};
     defer pending.deinit(allocator);
 
     while (try next_chunk(reader_context)) |chunk| {
         try processParsedChunk(&pending, allocator, chunk, process_context, process_symbol);
     }
 
-    if (pending.items.len != 0) {
-        try processParsedLine(pending.items, process_context, process_symbol);
+    if (pending.bytes.items.len != 0) {
+        try processParsedLine(pending.bytes.items, process_context, process_symbol);
     }
 }
 
@@ -143,7 +173,7 @@ pub fn forEachParsedReader(
         return error.EmptyScratchBuffer;
     }
 
-    var pending = std.ArrayList(u8).empty;
+    var pending = PendingParsedLine{};
     defer pending.deinit(allocator);
 
     while (true) {
@@ -155,8 +185,8 @@ pub fn forEachParsedReader(
         try processParsedChunk(&pending, allocator, scratch_buffer[0..bytes_read], process_context, process_symbol);
     }
 
-    if (pending.items.len != 0) {
-        try processParsedLine(pending.items, process_context, process_symbol);
+    if (pending.bytes.items.len != 0) {
+        try processParsedLine(pending.bytes.items, process_context, process_symbol);
     }
 }
 
@@ -469,6 +499,70 @@ test "forEachParsedChunked preserves line parsing across chunk boundaries" {
     try std.testing.expect(std.mem.allEqual(u8, oversized.items[0].name, 'a'));
 }
 
+test "forEachParsedChunked discards oversized line tails once the bounded callback surface is full" {
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Fixture = struct {
+        fn collect(list: *std.ArrayList(OwnedParsedSymbol), symbol: ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    const oversized_name = "a" ** (KSYM_NAME_LEN + 400);
+    const oversized_line = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}",
+        .{oversized_name},
+    );
+    defer std.testing.allocator.free(oversized_line);
+
+    const next_line = "ffffffff81000400 t next_symbol\n";
+    const split_index = max_buffered_line_len + 27;
+    var state = ChunkFixtureState{
+        .chunks = &[_][]const u8{
+            oversized_line[0..split_index],
+            oversized_line[split_index..],
+            "\n",
+            next_line,
+        },
+    };
+
+    var parsed = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (parsed.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        parsed.deinit(std.testing.allocator);
+    }
+
+    try forEachParsedChunked(
+        std.testing.allocator,
+        &state,
+        nextFixtureChunk,
+        &parsed,
+        Fixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), parsed.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), parsed.items[0].name.len);
+    try std.testing.expect(std.mem.allEqual(u8, parsed.items[0].name, 'a'));
+    try std.testing.expectEqualStrings("next_symbol", parsed.items[1].name);
+    try std.testing.expectEqual(@as(u8, 't'), parsed.items[1].symbol_type);
+}
+
 test "forEachParsedReader and path reuse the same malformed-line skipping semantics" {
     const SliceReader = struct {
         bytes: []const u8,
@@ -509,8 +603,8 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
 
     const contents =
         "ffffffff81000000 T startup_64\r\n" ++
-        "bad line\n" ++
-        "ffffffff81000400 w weak_tail\n";
+            "bad line\n" ++
+            "ffffffff81000400 w weak_tail\n";
 
     var stream = SliceReader{ .bytes = contents };
     var scratch_buffer: [11]u8 = undefined;
