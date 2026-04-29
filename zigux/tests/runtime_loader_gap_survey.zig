@@ -340,7 +340,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-loader-command-environment-controls")) {
-            saw_commandEnv_blocker = true;
+            saw_command_env_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Phase 8 tooling") != null);
