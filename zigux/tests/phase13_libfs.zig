@@ -258,6 +258,40 @@ test "phase13 libfs cursor preconditions choose first-child or cursor resume wit
     try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirCursorPreconditionsPlan(-1, true, true));
 }
 
+test "phase13 libfs seek cursor reposition planning keeps the post-scan relink bounded" {
+    const found_target = libfs.LibFsHelperLab.dcacheDirSeekCursorRepositionPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", found_target.anchor);
+    try std.testing.expectEqual(libfs.CursorRepositionMode.reanchor_behind_found, found_target.mode);
+    try std.testing.expect(found_target.unlinks_existing_cursor);
+    try std.testing.expect(found_target.requires_parent_lock);
+    try std.testing.expect(found_target.drops_found_reference);
+    try std.testing.expect(found_target.keeps_private_data);
+
+    const not_found = libfs.LibFsHelperLab.dcacheDirSeekCursorRepositionPlan(false);
+    try std.testing.expectEqual(libfs.CursorRepositionMode.unhashed, not_found.mode);
+    try std.testing.expect(not_found.unlinks_existing_cursor);
+    try std.testing.expect(not_found.requires_parent_lock);
+    try std.testing.expect(not_found.drops_found_reference);
+    try std.testing.expect(not_found.keeps_private_data);
+}
+
+test "phase13 libfs readdir cursor reposition planning distinguishes before-next from unhashed" {
+    const found_next = libfs.LibFsHelperLab.dcacheReaddirCursorRepositionPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", found_next.anchor);
+    try std.testing.expectEqual(libfs.CursorRepositionMode.reanchor_before_found, found_next.mode);
+    try std.testing.expect(found_next.unlinks_existing_cursor);
+    try std.testing.expect(found_next.requires_parent_lock);
+    try std.testing.expect(found_next.drops_found_reference);
+    try std.testing.expect(found_next.keeps_private_data);
+
+    const end_of_scan = libfs.LibFsHelperLab.dcacheReaddirCursorRepositionPlan(false);
+    try std.testing.expectEqual(libfs.CursorRepositionMode.unhashed, end_of_scan.mode);
+    try std.testing.expect(end_of_scan.unlinks_existing_cursor);
+    try std.testing.expect(end_of_scan.requires_parent_lock);
+    try std.testing.expect(end_of_scan.drops_found_reference);
+    try std.testing.expect(end_of_scan.keeps_private_data);
+}
+
 test "phase13 libfs transaction staging planner models one-write reservation and copy-fault retention" {
     const ready = libfs.LibFsHelperLab.simpleTransactionGetPlan(false, 32, true, 0);
     try std.testing.expectEqualStrings("fs/libfs.c", ready.anchor);
