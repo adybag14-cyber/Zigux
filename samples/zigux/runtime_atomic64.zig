@@ -310,3 +310,71 @@ pub const RuntimeAtomic64Sample = struct {
         self.setStage(.exited);
     }
 };
+
+test "runtime atomic64 sample keeps lifecycle replay and summary accounting explicit" {
+    const descriptor = RuntimeAtomic64Sample.descriptor();
+    try std.testing.expectEqualStrings("runtime_atomic64", descriptor.name);
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    var module = RuntimeAtomic64Sample{};
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+
+    const cold_summary = module.summary();
+    try std.testing.expectEqual(@as(i64, 0), cold_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), cold_summary.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+
+    try module.init(5);
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(@as(i64, 5), initialized_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqualStrings(descriptor.anchor, selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 5), selftest.operation_families.len);
+    try std.testing.expectEqual(OperationFamily.arithmetic, selftest.operation_families[0]);
+    try std.testing.expectEqual(OperationFamily.bitwise, selftest.operation_families[1]);
+    try std.testing.expectEqual(OperationFamily.returning_ops, selftest.operation_families[2]);
+    try std.testing.expectEqual(OperationFamily.swap_ops, selftest.operation_families[3]);
+    try std.testing.expectEqual(OperationFamily.guard_ops, selftest.operation_families[4]);
+    try std.testing.expect(selftest.checked_returning_paths);
+    try std.testing.expect(selftest.checked_guard_paths);
+
+    const add_result = try module.addCounter(7);
+    try std.testing.expectEqual(@as(i64, 5), add_result.previous);
+    try std.testing.expectEqual(@as(i64, 12), add_result.final);
+
+    const swapped = try module.swapCounter(19);
+    try std.testing.expectEqual(@as(i64, 12), swapped);
+    try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
+
+    const post_selftest_summary = module.summary();
+    try std.testing.expectEqual(@as(i64, 19), post_selftest_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest_summary.exit_runs);
+
+    try module.exit();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(@as(i64, 19), exited_summary.counter_snapshot);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+}
