@@ -8,6 +8,7 @@ pub const UnsafeScopeTag = enum(u8) {
 
 pub const ScopeError = error{
     UnsafeScopeDenied,
+    MisalignedAccess,
 };
 
 pub fn addressOf(ptr: anytype) usize {
@@ -16,6 +17,16 @@ pub fn addressOf(ptr: anytype) usize {
 
 pub fn byteOffset(base: usize, offset: usize) usize {
     return base + offset;
+}
+
+pub fn isAddressAlignedFor(comptime T: type, addr: usize) bool {
+    return addr % @alignOf(T) == 0;
+}
+
+pub fn ensureAddressAlignedFor(comptime T: type, addr: usize) ScopeError!void {
+    if (!isAddressAlignedFor(T, addr)) {
+        return error.MisalignedAccess;
+    }
 }
 
 pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
@@ -71,16 +82,20 @@ pub fn constPointerAt(comptime T: type, addr: usize) *const T {
 
 pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {
     if (!permitsVolatileMmio(scope)) return error.UnsafeScopeDenied;
-    return pointerAt(T, base, offset);
+    const addr = byteOffset(base, offset);
+    try ensureAddressAlignedFor(T, addr);
+    return @ptrFromInt(addr);
 }
 
 pub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T {
     if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
+    try ensureAddressAlignedFor(T, base);
     return constSliceAt(T, base, len);
 }
 
 pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {
     if (!permitsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
+    try ensureAddressAlignedFor(T, addr);
     return constPointerAt(T, addr);
 }
 
@@ -110,6 +125,19 @@ test "phase3 narrow unsafe scope stays explicit" {
     try std.testing.expect(!permitsRawPointerBridge(.none));
     try std.testing.expect(!permitsRawPointerBridge(.volatile_mmio));
     try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
+}
+
+test "phase3 narrow unsafe scoped helpers reject misaligned addresses" {
+    var bytes = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0 };
+    const base = addressOf(&bytes[0]);
+
+    try std.testing.expect(isAddressAlignedFor(u16, base));
+    try std.testing.expect(!isAddressAlignedFor(u32, base + 1));
+    try ensureAddressAlignedFor(u16, base);
+    try std.testing.expectError(error.MisalignedAccess, ensureAddressAlignedFor(u32, base + 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedPointerAt(u32, .volatile_mmio, base, 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
+    try std.testing.expectError(error.MisalignedAccess, scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
 }
 
 test "phase3 narrow unsafe interop policy decoding stays explicit" {
