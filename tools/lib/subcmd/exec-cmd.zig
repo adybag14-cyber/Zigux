@@ -384,6 +384,14 @@ pub fn buildDeferredExeclCall(
     return .{ .argv = argv };
 }
 
+pub fn buildDeferredExecvCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    argv: []const []const u8,
+) !DeferredExecCall {
+    return .{ .argv = try prepareExecCmd(allocator, config, argv) };
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -607,6 +615,35 @@ test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
     try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
     try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+}
+
+test "buildDeferredExecvCall keeps the execv handoff pure and launch-free" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
+
+    var empty = try buildDeferredExecvCall(std.testing.allocator, config, &.{});
+    defer empty.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), empty.argv.len);
+    try std.testing.expectEqualStrings("perf", empty.argv[0].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), empty.argv[1]);
 }
 
 test "execCmdInit and setArgvExecPath propagate the expected environment keys" {
