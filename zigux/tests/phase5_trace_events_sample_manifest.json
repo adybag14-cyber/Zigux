@@ -7,6 +7,7 @@
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the manifest keeps surveyed_commit pinned to the exact inspected master head instead of a floating branch label so reviewability stays tied to one bounded repo state",
     "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still describe the same bounded trace-events replay contract and keep this Phase 5 sample separate from the Phase 9 runtime pilot",
     "the manifest and survey test still describe the exact main-iteration, callback-iteration, vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the public lifecycle summary still exposes stage plus init or replay or exit counts, registration depth, and total event calls so ownership progression stays reviewable without private field access",
