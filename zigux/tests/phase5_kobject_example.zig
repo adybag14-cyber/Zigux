@@ -33,6 +33,8 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
+    try std.testing.expect(replay.attributes_are_accessible_after_replay);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs_after_replay);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
     try std.testing.expectEqualStrings("foo", replay.foo_value.attr_name);
