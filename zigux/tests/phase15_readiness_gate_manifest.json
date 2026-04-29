@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L08",
+  "lane_key": "P15-L01",
   "phase": "Phase 15",
-  "surveyed_commit": "d5cc3e9fa1b0c69ab8e1787db6bc2a6b58f7a129",
+  "surveyed_commit": "a34e13f2e1be8b5f4f003cb5e1ea66ab4996555a",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -25,10 +25,24 @@
     "phase15_build_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
-    "phase15_replay_green_on_current_master": true,
+    "phase15_replay_green_on_current_master": false,
     "deep_core_status_change_ready": false
   },
   "remaining_gaps": [
+    {
+      "id": "phase15-docs-index-governance-drift",
+      "status": "blocked_on_current_master_replay_drift",
+      "kind": "docs_index",
+      "zigux_destination": "Documentation/zigux/README.md",
+      "why_now": "The live repo no longer exposes the expected `Phase 15 notes` section, direct `phase15-handoff-next-steps-survey.md` pointer, or parked-next-step wording that the current Phase 15 handoff and review-process tests still require."
+    },
+    {
+      "id": "phase15-parity-scorecard-review-checklist-read-limit-drift",
+      "status": "blocked_on_current_master_replay_drift",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
+      "why_now": "The shared Phase 15 replay still fails with `error.StreamTooLong` because `phase15_parity_scorecard.zig` reads `Documentation/zigux/review-checklist.md` with `.limited(16 * 1024)` while the live checklist is now 17,461 bytes."
+    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -37,5 +51,5 @@
       "why_now": "The live repo still lacks evidence strong enough to move kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, or net/core/skbuff.c out of the freeze-in-C posture."
     }
   ],
-  "next_step": "Keep the tranche in maintenance mode with the shared Phase 15 replay treated as recovered on current master, and reopen this readiness packet only if the replay drifts again or the deep-core blocker posture changes enough to justify a narrower follow-up."
+  "next_step": "Keep the tranche out of maintenance-ready status until a replay-repair lane restores the Phase 15 docs index pointers and broadens the parity-scorecard checklist read cap enough for the shared build to pass again; after that, reopen this readiness packet only if the replay drifts again or the deep-core blocker posture changes enough to justify a narrower follow-up."
 }
