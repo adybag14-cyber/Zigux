@@ -27,6 +27,7 @@ required_files = [
     ROOT / "zigux" / "Makefile",
     ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
     ROOT / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md",
+    ROOT / "zigux-alpha" / "PHASE10_CLOSURE_LEDGER.md",
     ROOT / "drivers" / "virtio" / "virtio.zig",
     ROOT / "drivers" / "virtio" / "virtio_ring.zig",
     ROOT / "drivers" / "virtio" / "virtio_input.zig",
@@ -69,6 +70,7 @@ ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
+phase10_ledger = (ROOT / "zigux-alpha" / "PHASE10_CLOSURE_LEDGER.md").read_text(encoding="utf-8")
 manifest = load_json(ROOT / "zigux" / "tests" / "phase10_closure_manifest.json")
 core_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_core_manifest.json")
 ring_manifest = load_json(ROOT / "zigux" / "tests" / "phase10_virtio_ring_manifest.json")
@@ -159,6 +161,22 @@ required_workflow_markers = [
     "Run Phase 10 virtio helper tests",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
 ]
+required_ledger_markers = [
+    "Phase 10 Closure Ledger",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "scripts/zigux/validate-phase10-closure.py",
+    "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "PHASE10_LEDGER_STATUS=active",
+    "PHASE10_LEDGER_TRANCHE=virtio-lab-bundle",
+    "PHASE10_LEDGER_NEXT_STEP=phase10-mmio-config-write-helper",
+    "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+]
 required_checklist_markers = [
     "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, `zigux/tests/phase10_closure_manifest.json`, the four Phase 10 survey manifests, the landed `Documentation/zigux/phase10-virtio-mmio-slice.md` plus `zigux/tests/phase10_virtio_mmio.zig` starter pair, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
     "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and the current Phase 9 runtime loader-gap ownership packet still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` are not silently counted as driver-local virtio evidence?",
@@ -192,6 +210,9 @@ for marker in required_makefile_markers:
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f"workflow:{marker}")
+for marker in required_ledger_markers:
+    if marker not in phase10_ledger:
+        missing_markers.append(f"phase10_ledger:{marker}")
 for marker in required_checklist_markers:
     if marker not in review_checklist:
         missing_markers.append(f"checklist:{marker}")
@@ -484,5 +505,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers)}"
 )
