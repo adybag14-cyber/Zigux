@@ -67,7 +67,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -78,6 +78,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_lifecycle_pattern = false;
     var saw_descriptor_prompt = false;
     var saw_manifest_prompt = false;
+    var saw_surveyed_commit_prompt = false;
     var saw_helper_surface_prompt = false;
     var saw_docs_prompt = false;
     var saw_sample_root_prompt = false;
@@ -121,6 +122,12 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "phase5_build.zig") != null) {
             saw_manifest_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "surveyed_commit") != null and
+            std.mem.indexOf(u8, prompt, "PHASE5_SURVEYED_COMMIT") != null and
+            std.mem.indexOf(u8, prompt, "floating branch label") != null)
+        {
+            saw_surveyed_commit_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "phase5_bytestream_fifo.zig") != null and
             std.mem.indexOf(u8, prompt, "preview truncation") != null and
@@ -215,6 +222,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_lifecycle_pattern);
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_surveyed_commit_prompt);
     try std.testing.expect(saw_helper_surface_prompt);
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_sample_root_prompt);
@@ -274,6 +282,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=8733ce0d4e2e17ccf139a38a70fc745843c068a3") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
@@ -291,6 +300,10 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exactly seven review-focus areas") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`preview_truncation`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=8733ce0d4e2e17ccf139a38a70fc745843c068a3`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);

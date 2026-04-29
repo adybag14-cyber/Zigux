@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L04",
   "phase": "Phase 5",
-  "surveyed_commit": "c15f70418f70e3670efd8405d8bba7a697f5c832",
+  "surveyed_commit": "8733ce0d4e2e17ccf139a38a70fc745843c068a3",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -14,6 +14,7 @@
   ],
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate false while provides_selfcheck stays true, and names the fixed embedded storage backing used by the sample",
+    "the manifest keeps surveyed_commit pinned to the exact inspected master head and the sample-backed survey note carries the same PHASE5_SURVEYED_COMMIT marker instead of a floating branch label so reviewability stays tied to one bounded repo state",
     "the manifest, reference-pattern list, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "phase5_bytestream_fifo.zig still keeps the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and reset behavior stay reviewable outside the main replay path",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
