@@ -300,3 +300,35 @@ test "runtime bitmap sample keeps exit lifecycle and post-exit snapshot explicit
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
+
+test "runtime bitmap sample keeps bounds errors explicit in the direct sample leg" {
+    var module = RuntimeBitmapSample{};
+
+    try std.testing.expectError(error.BitRangeOutOfBounds, module.initWithSetBits(&.{RuntimeBitmapSample.bitmap_nbits}));
+    try module.initWithSetBits(&.{ 1, 3 });
+    try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(RuntimeBitmapSample.bitmap_nbits - 1, 2));
+    try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(RuntimeBitmapSample.bitmap_nbits, 1));
+}
+
+test "runtime bitmap sample keeps zero-length mutations and invalid copy sources explicit in the direct sample leg" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 2, 7 });
+
+    const summary_before_zero_length = module.summary();
+    try module.setRange(5, 0);
+    try module.clearRange(RuntimeBitmapSample.bitmap_nbits, 0);
+
+    const summary_after_zero_length = module.summary();
+    try std.testing.expectEqual(summary_before_zero_length.first_set, summary_after_zero_length.first_set);
+    try std.testing.expectEqual(summary_before_zero_length.first_zero, summary_after_zero_length.first_zero);
+    try std.testing.expectEqual(summary_before_zero_length.weight, summary_after_zero_length.weight);
+    try std.testing.expectEqual(summary_before_zero_length.nbits, summary_after_zero_length.nbits);
+
+    var cold_source = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&cold_source));
+
+    var exited_source = RuntimeBitmapSample{};
+    try exited_source.initWithSetBits(&.{ 9, 13 });
+    try exited_source.exit();
+    try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
+}
