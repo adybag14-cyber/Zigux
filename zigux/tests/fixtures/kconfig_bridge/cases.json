@@ -121,6 +121,7 @@
       "kconfig": "Kconfig",
       "config": "rand/.config",
       "arch": "x86",
+      "allconfig": "seed/allrandom.config",
       "expected": "randconfig_expected.json"
     },
     {
