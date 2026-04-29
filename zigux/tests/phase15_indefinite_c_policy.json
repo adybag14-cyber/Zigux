@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L15",
+  "lane_key": "P15-L16",
   "phase": "Phase 15",
-  "surveyed_commit": "271ca9aff7d84f07dee6aa93ac6bf9daf49a5096",
+  "surveyed_commit": "0a2744ddb50c9fec2cfe0699ff63895561306a8d",
   "roadmap_requirement": "policy for code that remains in C indefinitely",
   "anchors": [
     "kernel/sched/core.c",
