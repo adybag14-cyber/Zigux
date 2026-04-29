@@ -1,7 +1,7 @@
 {
   "lane_key": "P10-L13",
   "phase": "Phase 10",
-  "surveyed_commit": "0626b89ccc57cd2d579344f878be4e23fd33d691",
+  "surveyed_commit": "242977647386c9f661be8e3c64dab554ab15be20",
   "anchor": "drivers/virtio/virtio_input.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -106,10 +106,10 @@
     },
     {
       "id": "phase10-virtio-input-queue-callback-preflight-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "With registration preflight now modeled in memory, the next honest same-family follow-up is one tiny queue-callback preflight summary that records whether the event queue is filled, the status queue is configured, and the device is ready before any transport-backed callback or registration-lifecycle work."
+      "why_now": "The live repo now includes one bounded in-memory queue-callback preflight summary that records whether registration intent is staged, the event queue is filled, the status queue is configured, and the device is ready before any transport-backed callback or registration-lifecycle work."
     },
     {
       "id": "phase10-virtio-input-registration-lifecycle",

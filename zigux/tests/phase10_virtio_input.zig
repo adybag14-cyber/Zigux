@@ -411,6 +411,69 @@ test "phase10 virtio input registration preflight requires multitouch slot inten
     try std.testing.expect(summary.ready_for_registration);
 }
 
+test "phase10 virtio input records queue-callback preflight once registration and queue intent are staged" {
+    var device = try virtio_input.VirtioInputLab.init("tablet", "serial-13", 13, null);
+
+    try std.testing.expectError(
+        error.CapabilityConfigNotConfigured,
+        device.queueCallbackPreflightSummary(),
+    );
+
+    try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ 0x00, 0x01 });
+    try device.configureAbsInfo(0x00, .{
+        .minimum = -2048,
+        .maximum = 2047,
+        .resolution = 32,
+    });
+    try device.configureAbsInfo(0x01, .{
+        .minimum = 0,
+        .maximum = 4095,
+        .resolution = 48,
+    });
+
+    var summary = try device.queueCallbackPreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_input.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_input.status_queue_index), summary.status_queue_index);
+    try std.testing.expectEqual(@as(u16, 0), summary.queued_event_buffer_count);
+    try std.testing.expect(!summary.event_buffers_ready);
+    try std.testing.expect(!summary.status_queue_configured);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(summary.registration_ready);
+    try std.testing.expect(!summary.ready_for_queue_callback);
+
+    try device.configureEventQueue(16);
+    try device.configureStatusQueue(8);
+
+    summary = try device.queueCallbackPreflightSummary();
+    try std.testing.expectEqual(@as(u16, 0), summary.queued_event_buffer_count);
+    try std.testing.expect(!summary.event_buffers_ready);
+    try std.testing.expect(summary.status_queue_configured);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(summary.registration_ready);
+    try std.testing.expect(!summary.ready_for_queue_callback);
+
+    _ = try device.fillEventBuffers();
+
+    summary = try device.queueCallbackPreflightSummary();
+    try std.testing.expectEqual(@as(u16, 16), summary.queued_event_buffer_count);
+    try std.testing.expect(summary.event_buffers_ready);
+    try std.testing.expect(summary.status_queue_configured);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(summary.registration_ready);
+    try std.testing.expect(!summary.ready_for_queue_callback);
+
+    try device.markReady();
+
+    summary = try device.queueCallbackPreflightSummary();
+    try std.testing.expect(summary.event_buffers_ready);
+    try std.testing.expect(summary.status_queue_configured);
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(summary.registration_ready);
+    try std.testing.expect(summary.ready_for_queue_callback);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();

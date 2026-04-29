@@ -386,7 +386,6 @@ else:
 
 ready_transport_followups = manifest.get("ready_transport_followups")
 expected_ready_transport_followups = {
-    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-queue-callback-preflight-helper",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-config-write-helper",
 }
 if ready_transport_followups != expected_ready_transport_followups:
@@ -457,8 +456,8 @@ if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "sta
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:starter_landed")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-preflight-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-preflight-helper:starter_landed")
-if not has_gap_status(input_manifest, "phase10-virtio-input-queue-callback-preflight-helper", "ready_next"):
-    missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-queue-callback-preflight-helper:ready_next")
+if not has_gap_status(input_manifest, "phase10-virtio-input-queue-callback-preflight-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-queue-callback-preflight-helper:starter_landed")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecycle", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
 if not has_gap_status(mmio_manifest, "phase10-mmio-config-window-helper", "starter_landed"):
