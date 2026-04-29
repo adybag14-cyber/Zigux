@@ -119,7 +119,10 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/helpers/mmio.zig": (
         "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {",
         "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
+        "pub fn write16Scoped(",
+        "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
         "pub fn write32(base_addr: usize, offset: usize, value: u32) void {",
+        'test "phase3 mmio wrapper uses bounded volatile access"',
         'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
     ),
     "zigux/unsafe/narrow.zig": (
@@ -136,14 +139,17 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
+        "const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);",
+        "barrier.acquire();",
+        "barrier.release();",
+        "barrier.full();",
+        "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
+        "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));",
+        "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
         'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
         "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
         "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
         "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
-        "try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);",
-        "try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0));",
-        "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
-        "try std.testing.expectEqual(@as(u32, 0xaabbccdd), try mmio.read32Scoped(.volatile_mmio, base, 4));",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
