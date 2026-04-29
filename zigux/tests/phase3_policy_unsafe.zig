@@ -2,6 +2,7 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const panic_policy = @import("panic_policy");
 const allocator_policy = @import("allocator_policy");
+const layout_assert = @import("layout_assert");
 const narrow = @import("narrow_unsafe");
 
 test "phase3 policy helpers stay ABI aligned" {
@@ -41,21 +42,12 @@ test "phase3 policy helpers stay ABI aligned" {
 
 test "phase3 policy layout stays explicit at the ABI boundary" {
     comptime {
-        if (@sizeOf(abi.InteropPolicy) != 4) {
-            @compileError("InteropPolicy size drifted");
-        }
-        if (@offsetOf(abi.InteropPolicy, "panic_mode") != 0) {
-            @compileError("InteropPolicy.panic_mode offset drifted");
-        }
-        if (@offsetOf(abi.InteropPolicy, "allocator_mode") != 1) {
-            @compileError("InteropPolicy.allocator_mode offset drifted");
-        }
-        if (@offsetOf(abi.InteropPolicy, "unsafe_scope") != 2) {
-            @compileError("InteropPolicy.unsafe_scope offset drifted");
-        }
-        if (@offsetOf(abi.InteropPolicy, "reserved") != 3) {
-            @compileError("InteropPolicy.reserved offset drifted");
-        }
+        layout_assert.assertSize(abi.InteropPolicy, 4);
+        layout_assert.assertAlign(abi.InteropPolicy, 1);
+        layout_assert.assertOffset(abi.InteropPolicy, "panic_mode", 0);
+        layout_assert.assertOffset(abi.InteropPolicy, "allocator_mode", 1);
+        layout_assert.assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
+        layout_assert.assertOffset(abi.InteropPolicy, "reserved", 3);
     }
 
     const policy: abi.InteropPolicy = .{
