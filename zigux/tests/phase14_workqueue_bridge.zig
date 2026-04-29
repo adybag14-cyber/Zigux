@@ -191,8 +191,6 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drain_workqueue()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__flush_work()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__cancel_work_sync()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__WQ_DRAINING") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "re-enables the work item") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-workqueue-disable-delayed-followup")) {
             saw_disable_delayed_followup = true;
@@ -278,7 +276,10 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqualStrings("wq->first_flusher", audit.checkpoints[8].observed_fields[3]);
     try std.testing.expectEqualStrings("drain-reflush-and-cancel-sync", audit.checkpoints[9].id);
     try std.testing.expect(audit.checkpoints[9].guard == .drain_reflush_and_cancel_sync);
+    try std.testing.expectEqualStrings("wq->nr_drainers", audit.checkpoints[9].observed_fields[0]);
     try std.testing.expectEqualStrings("barr.done", audit.checkpoints[9].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "__WQ_DRAINING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "re-enables the work item") != null);
     try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[10].id);
     try std.testing.expect(audit.checkpoints[10].guard == .callback_execution_outside_pool_lock);
     try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[11].id);
