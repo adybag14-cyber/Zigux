@@ -74,7 +74,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
     - `2/2 phase5_kretprobe_example_survey.test.phase 5 kretprobe contributor docs stay aligned with the shipped review surface...OK`
     - `All 2 tests passed.`
   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-    - `Build Summary: 17/17 steps succeeded; 26/26 tests passed`
+    - `Build Summary: 17/17 steps succeeded; 27/27 tests passed`
     - `phase5-kretprobe-example-tests 4 pass (4 total)`
     - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
 
