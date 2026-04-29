@@ -6,7 +6,7 @@ The Phase 13 roadmap names `fs/libfs.c`, `lib/devres.c`, and the Landlock slices
 
 Current repo state on `master`:
 
-- reviewed against live `master` `91ca66a2209b858fe4e141e853647a170da0a29c`
+- reviewed against live `master` `f3ddaceb1eaba27078e6e9197cf7f38fe54b8f78`
 - `zigux/bindings/abi.zig` already exposes `ListHeadRef` and `HListHeadRef`, so list-shaped interop has a reusable ABI foothold
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already summarize bounded `list_head` and `hlist_head` traversal without touching live mutation
 - `zigux/tests/build.zig` already replays those list helpers under the Phase 3 helper bundle
@@ -23,7 +23,7 @@ Why this matters for Phase 13:
 - the current list side is reusable enough to survey today, and there is now concrete driver-local evidence that notifier callbacks can coexist with `list_head` linkage without yet implying a shared helper contract
 - the generic header anchor narrows the remaining gap: upstream C already exposes a reusable `notifier_block` contract, but Zigux still lacks the tiny read-only ABI and helper surfaces that would make that contract reviewable on the Zig side
 - the field-level notifier layout anchor makes that remaining gap sharper: the missing Zigux ABI is no longer just about naming the contract, but about mirroring a specific read-only chain shape without over-claiming registration or execution semantics
-- the public list-plus-notifier coexistence anchor sharpens the adjacency question further: shared public headers already keep `list_head`, `raw_notifier_head`, and `notifier_block` shapes near each other, so the missing Zigux work is now clearly about mirroring those read-only shapes rather than discovering whether the upstream surface exists
+- the public list-plus-notifier coexistence anchor sharpens the adjacency question further: shared public headers already keep `list_head`, `raw_notifier_head`, and `notifier_block` shapes near each other, and this survey packet now records that DSA header explicitly instead of leaving it prose-only, so the missing Zigux work is clearly about mirroring those read-only shapes rather than discovering whether the upstream surface exists
 - that mismatch means later helper work such as list-backed cursor or chain bookkeeping can accidentally overstate notifier readiness unless the gap is recorded explicitly
 
 The next honest bounded step in this same lane is a tiny generic notifier ABI foothold, paired with one helper-first survey of notifier-chain linkage against the existing list and hlist view surface. That follow-up must stay out of live callback registration, chain execution, SRCU or blocking semantics, and any new chrdev delivery expansion.
