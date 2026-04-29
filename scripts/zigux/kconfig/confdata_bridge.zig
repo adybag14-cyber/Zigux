@@ -261,11 +261,11 @@ pub fn main(init: std.process.Init) !void {
 test "confdata bridge parses bounded config states" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_ALPHA=y
-        \\\CONFIG_BETA=m
-        \\\CONFIG_COUNT=7
-        \\\CONFIG_NAME="zigux"
-        \\\# CONFIG_DEBUG is not set
+        \\CONFIG_ALPHA=y
+        \\CONFIG_BETA=m
+        \\CONFIG_COUNT=7
+        \\CONFIG_NAME="zigux"
+        \\# CONFIG_DEBUG is not set
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -312,8 +312,8 @@ test "confdata bridge emits bounded json output" {
     defer capture.deinit();
 
     try runConfdataBridge(std.testing.allocator,
-        \\\CONFIG_ALPHA=y
-        \\\# CONFIG_DEBUG is not set
+        \\CONFIG_ALPHA=y
+        \\# CONFIG_DEBUG is not set
         \\
     , &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"set\":1") != null);
@@ -354,11 +354,10 @@ test "confdata bridge escapes low control bytes in emitted json" {
 
     try runConfdataBridge(
         std.testing.allocator,
-        "CONFIG_CTRL=\"a\x08b\x0cc\x1dd\"\n",
+        "CONFIG_CTRL=\"a\\bb\\fc\x1dd\"\n",
         &capture,
     );
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\b") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\f") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"value\":\"abbfc\\u001dd\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\\u00") != null);
     try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x08') == null);
     try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x0c') == null);
@@ -400,6 +399,19 @@ test "confdata bridge keeps escaped control letters literal in quoted strings" {
     try std.testing.expectEqualStrings("line1fline2", summary.entries[4].value);
 }
 
+test "confdata bridge preserves literal low control bytes distinct from escaped letters" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_CTRL=\"a\\bb\\fc\x1dd\"\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("abbfc\x1dd", summary.entries[0].value);
+}
+
 test "confdata bridge accepts CRLF config lines" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
@@ -420,8 +432,8 @@ test "confdata bridge accepts CRLF config lines" {
 test "confdata bridge keeps explicit n assignments as tristate values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_ALPHA=n
-        \\\CONFIG_BETA=y
+        \\CONFIG_ALPHA=n
+        \\CONFIG_BETA=y
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -437,8 +449,8 @@ test "confdata bridge keeps explicit n assignments as tristate values" {
 test "confdata bridge keeps empty quoted strings as string values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_EMPTY=""
-        \\\CONFIG_LABEL="zigux"
+        \\CONFIG_EMPTY=\"\"
+        \\CONFIG_LABEL=\"zigux\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -454,8 +466,8 @@ test "confdata bridge keeps empty quoted strings as string values" {
 test "confdata bridge skips malformed quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_BROKEN="zigux
-        \\\CONFIG_LABEL="ok"
+        \\CONFIG_BROKEN=\"zigux
+        \\CONFIG_LABEL=\"ok\"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -471,11 +483,11 @@ test "confdata bridge skips malformed quoted strings" {
 test "confdata bridge ignores non-CONFIG lines" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_ALPHA=y
-        \\\BROKEN_ALPHA=y
-        \\\# BROKEN_BETA is not set
-        \\\CONFIG_NAME="zigux"
-        \\\# CONFIG_DEBUG is not set
+        \\CONFIG_ALPHA=y
+        \\BROKEN_ALPHA=y
+        \\# BROKEN_BETA is not set
+        \\CONFIG_NAME=\"zigux\"
+        \\# CONFIG_DEBUG is not set
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -491,11 +503,11 @@ test "confdata bridge ignores non-CONFIG lines" {
 test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_DECIMAL=42
-        \\\CONFIG_SIGNED=-7
-        \\\CONFIG_HEX=0x2A
-        \\\CONFIG_UPPER_HEX=0XFF
-        \\\CONFIG_RAW=alpha_beta
+        \\CONFIG_DECIMAL=42
+        \\CONFIG_SIGNED=-7
+        \\CONFIG_HEX=0x2A
+        \\CONFIG_UPPER_HEX=0XFF
+        \\CONFIG_RAW=alpha_beta
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -511,12 +523,12 @@ test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
 test "confdata bridge keeps the last assignment for duplicate symbols" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_ALPHA=y
-        \\\CONFIG_ALPHA=m
-        \\\# CONFIG_BETA is not set
-        \\\CONFIG_BETA=y
-        \\\CONFIG_COUNT=7
-        \\\# CONFIG_COUNT is not set
+        \\CONFIG_ALPHA=y
+        \\CONFIG_ALPHA=m
+        \\# CONFIG_BETA is not set
+        \\CONFIG_BETA=y
+        \\CONFIG_COUNT=7
+        \\# CONFIG_COUNT is not set
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -538,10 +550,10 @@ test "confdata bridge keeps the last assignment for duplicate symbols" {
 test "confdata bridge recognizes explicit plus-signed integers and hex values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\\CONFIG_POSITIVE_DECIMAL=+42
-        \\\CONFIG_POSITIVE_HEX=+0x2A
-        \\\CONFIG_POSITIVE_UPPER_HEX=+0XFF
-        \\\CONFIG_RAW=plus_alpha
+        \\CONFIG_POSITIVE_DECIMAL=+42
+        \\CONFIG_POSITIVE_HEX=+0x2A
+        \\CONFIG_POSITIVE_UPPER_HEX=+0XFF
+        \\CONFIG_RAW=plus_alpha
         \\
     );
     defer deinitSummary(allocator, &summary);
