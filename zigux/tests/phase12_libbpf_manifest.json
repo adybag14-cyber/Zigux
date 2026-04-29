@@ -101,7 +101,7 @@
       "status": "starter_landed",
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The landed file-path-and-fdinfo helper keeps `/proc/<pid>/fdinfo/<fd>` path construction plus bounded map-info text parsing explicit and reviewable before any direct procfs reads, pinned-object reopen flows, token creation, or fd-ownership behavior enters the lane."
+      "why_now": "The landed file-path-and-fdinfo helper keeps `/proc/<pid>/fdinfo/<fd>` path construction, bounded map-info text parsing, and the token-preparation recovery split explicit and reviewable before any direct procfs reads, pinned-object reopen flows, token creation, or fd-ownership behavior enters the lane."
     },
     {
       "id": "phase12-libbpf-skeleton-population",
