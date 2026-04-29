@@ -385,6 +385,9 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "map reuse compatibility");
     try expectContains(survey_note, "DEVMAP readonly-prog");
     try expectContains(survey_note, "token-preparation planning");
+    try expectContains(survey_note, "classifyTokenPreparationFailure()");
+    try expectContains(survey_note, "skip_optional_missing_delegation");
+    try expectContains(survey_note, "mandatory token setup remains an explicit fail-fast boundary");
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
     try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
@@ -398,10 +401,50 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(bridge_boundary_note, "ready-buffer counts");
     try expectContains(bridge_boundary_note, "no standalone timer helper");
     try expectContains(bridge_boundary_note, "no standalone clockevent helper");
+    try expectContains(bridge_boundary_note, "classifyTokenPreparationFailure()");
+    try expectContains(bridge_boundary_note, "skip_optional_missing_delegation");
+    try expectContains(bridge_boundary_note, "mandatory `fail`");
 }
 
 test "phase 8 deferred perf-buffer boundary still ships no standalone timer helper packet" {
     try std.testing.expect(!workspacePathExists("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"));
     try std.testing.expect(!workspacePathExists("zigux/tests/phase8_perf_buffer_poll.zig"));
     try std.testing.expect(!workspacePathExists("Documentation/zigux/phase8-perf-buffer-poll-slice.md"));
+}
+
+test "phase 8 token-preparation failure boundary stays aligned between helper and docs" {
+    const helper = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(helper);
+
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const bridge_boundary_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_boundary_note);
+
+    try expectContains(helper, "pub fn classifyTokenPreparationFailure(");
+    try expectContains(helper, ".skip_optional_missing_delegation");
+    try expectContains(helper, ".skip_optional");
+    try expectContains(helper, ".fail");
+    try expectContains(helper, "token_create and err_code ==");
+    try expectContains(helper, "shouldContinueWithoutToken");
+
+    try expectContains(survey_note, "classifyTokenPreparationFailure()");
+    try expectContains(survey_note, "skip_optional_missing_delegation");
+    try expectContains(survey_note, "mandatory token setup remains an explicit fail-fast boundary");
+    try expectContains(bridge_boundary_note, "classifyTokenPreparationFailure()");
+    try expectContains(bridge_boundary_note, "skip_optional_missing_delegation");
+    try expectContains(bridge_boundary_note, "mandatory `fail`");
 }
