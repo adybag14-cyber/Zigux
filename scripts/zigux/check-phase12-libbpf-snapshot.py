@@ -30,21 +30,31 @@ def file_digest(path: Path) -> dict[str, object]:
     }
 
 
-def load_surveyed_commit() -> str:
+def load_manifest_packet() -> dict[str, str]:
     manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
+    lane_key = manifest.get("lane_key")
+    phase = manifest.get("phase")
     surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(lane_key, str) or not lane_key:
+        raise SystemExit("invalid Phase 12 libbpf lane_key")
+    if not isinstance(phase, str) or phase != "Phase 12":
+        raise SystemExit("invalid Phase 12 libbpf phase")
     if not isinstance(surveyed_commit, str) or len(surveyed_commit) != 40:
         raise SystemExit("invalid Phase 12 libbpf surveyed_commit")
-    return surveyed_commit
+    return {
+        "lane_key": lane_key,
+        "phase": phase,
+        "surveyed_commit": surveyed_commit,
+    }
 
 
 def render_snapshot() -> dict[str, object]:
-    surveyed_commit = load_surveyed_commit()
+    manifest_packet = load_manifest_packet()
     files = [file_digest(ROOT / rel_path) for rel_path in TRACKED_PATHS]
     return {
-        "lane_key": "P12-L17",
-        "phase": "Phase 12",
-        "surveyed_commit": surveyed_commit,
+        "lane_key": manifest_packet["lane_key"],
+        "phase": manifest_packet["phase"],
+        "surveyed_commit": manifest_packet["surveyed_commit"],
         "tracked_file_count": len(files),
         "files": files,
     }
