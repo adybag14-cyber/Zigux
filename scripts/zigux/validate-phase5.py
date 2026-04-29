@@ -219,6 +219,25 @@ manifest_expectations = {
     },
 }
 
+survey_note_expectations = {
+    "phase5_bytestream_fifo_manifest.json": {
+        "note_path": ROOT / "Documentation" / "zigux" / "phase5-kfifo-sample-survey.md",
+        "survey_test": "phase5_bytestream_fifo_survey.zig",
+    },
+    "phase5_kobject_example_manifest.json": {
+        "note_path": ROOT / "Documentation" / "zigux" / "phase5-kobject-sample-survey.md",
+        "survey_test": "phase5_kobject_example_survey.zig",
+    },
+    "phase5_kretprobe_example_manifest.json": {
+        "note_path": ROOT / "Documentation" / "zigux" / "phase5-kretprobe-sample-survey.md",
+        "survey_test": "phase5_kretprobe_example_survey.zig",
+    },
+    "phase5_trace_events_sample_manifest.json": {
+        "note_path": ROOT / "Documentation" / "zigux" / "phase5-trace-events-sample-survey.md",
+        "survey_test": "phase5_trace_events_sample_survey.zig",
+    },
+}
+
 for manifest_name, expected in manifest_expectations.items():
     manifest = json.loads((ROOT / "zigux" / "tests" / manifest_name).read_text(encoding="utf-8"))
     if manifest.get("phase") != "Phase 5":
@@ -232,6 +251,22 @@ for manifest_name, expected in manifest_expectations.items():
     if manifest.get("validation_entrypoint") != "zig build test --build-file zigux/tests/phase5_build.zig --summary all":
         missing_markers.append(f"{manifest_name}:validation_entrypoint")
 
+    survey_expectation = survey_note_expectations[manifest_name]
+    survey_note = survey_expectation["note_path"].read_text(encoding="utf-8")
+    required_survey_markers = [
+        "PHASE5_STATUS=active",
+        f"PHASE5_LANE_KEY={expected['lane_key']}",
+        f"PHASE5_SURVEYED_COMMIT={manifest.get('surveyed_commit', '')}",
+        manifest_name,
+        survey_expectation["survey_test"],
+        "phase5_build.zig",
+        "samples/zigux/README.md",
+        "Documentation/zigux/review-checklist.md",
+    ]
+    for marker in required_survey_markers:
+        if marker not in survey_note:
+            missing_markers.append(f"{survey_expectation['note_path'].relative_to(ROOT)}:{marker}")
+
 if missing_markers:
     print("PHASE5_VALIDATION=fail")
     print("MISSING_PHASE5_MARKERS_START")
@@ -244,5 +279,5 @@ print("PHASE5_VALIDATION=pass")
 print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(8 for _ in survey_note_expectations)}"
 )
