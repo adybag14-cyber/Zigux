@@ -178,4 +178,8 @@ test "phase3 policy gate enforces the declared unsafe scope" {
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstPointerAt(u32, .volatile_mmio, base));
     const raw_ptr = try narrow.scopedConstPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 17), raw_ptr.*);
+
+    try std.testing.expectError(error.MisalignedAccess, narrow.scopedPointerAt(u32, .volatile_mmio, base, 1));
+    try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
+    try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
 }
