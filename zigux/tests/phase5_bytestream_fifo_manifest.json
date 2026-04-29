@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L06",
+  "lane_key": "P5-L04",
   "phase": "Phase 5",
   "surveyed_commit": "c15f70418f70e3670efd8405d8bba7a697f5c832",
   "anchor": "samples/kfifo/bytestream-example.c",
