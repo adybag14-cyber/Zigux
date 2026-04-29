@@ -59,7 +59,7 @@ Use this checklist before opening or merging Zigux product work.
 
 ## ABI and Runtime
 - are bindings and ABI assumptions centralized?
-- does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?
+- does the change avoid hidden runtime services, implicit allocation, or unclear panic or unsafe ownership behavior?
 - if unsafe code exists, is it narrow, visible, and review-owned?
 
 ## Product Discipline
