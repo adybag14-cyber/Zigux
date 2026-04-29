@@ -27,11 +27,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_atomic64_sample_module.addImport("atomic", atomic_module);
-    // The live repo currently carries the bounded atomic64 replay gate under the
-    // runtime_* name, so Phase 4 wires that shipped file rather than inventing
-    // a second parallel broad gate.
+    // Phase 4 now uses the roadmap-named wrapper while keeping the existing
+    // runtime_* implementation as the single underlying replay body.
     const atomic64_diff_module = b.createModule(.{
-        .root_source_file = b.path("runtime_atomic64_diff.zig"),
+        .root_source_file = b.path("atomic64_diff.zig"),
         .target = target,
         .optimize = optimize,
     });
