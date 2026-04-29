@@ -61,7 +61,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("42809b6eace69a1f8ec5a60ea39ca3ef6379182c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("32d3cb93dc1119700c39c8039526fa1797550802", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase10_test_files);
@@ -90,6 +90,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     var saw_callback_delay_helper = false;
     var saw_notify_prepare_helper = false;
     var saw_queue_reset_guard_helper = false;
+    var saw_queue_reset_helper = false;
     var saw_mmio_register_window = false;
     var saw_mmio_queue_register = false;
     var saw_mmio_queue_notify = false;
@@ -163,6 +164,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notify-prepare helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_kick_prepare()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "num_added") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wrap silently") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-queue-reset-guard-helper")) {
@@ -171,6 +173,14 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-reset guard helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "follow-up poll debt") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-queue-reset-helper")) {
+            saw_queue_reset_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drained-queue reset helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "preserving queue shape metadata") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
@@ -245,6 +255,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     try std.testing.expect(saw_callback_delay_helper);
     try std.testing.expect(saw_notify_prepare_helper);
     try std.testing.expect(saw_queue_reset_guard_helper);
+    try std.testing.expect(saw_queue_reset_helper);
     try std.testing.expect(saw_mmio_register_window);
     try std.testing.expect(saw_mmio_queue_register);
     try std.testing.expect(saw_mmio_queue_notify);
