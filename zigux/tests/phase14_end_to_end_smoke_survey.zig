@@ -15,9 +15,12 @@ const SurveySummary = struct {
     review_checklist_has_phase14_smoke_prompt: bool,
     review_checklist_has_productization_prompt: bool,
     review_checklist_has_risk_bundle_prompt: bool,
+    review_checklist_has_rollback_threshold_prompt: bool,
     smoke_note_records_owner_and_rollback: bool,
     smoke_note_records_risk_bundle: bool,
+    smoke_note_records_rollback_threshold: bool,
     smoke_note_records_transfer_rationale: bool,
+    scripts_readme_records_rollback_threshold: bool,
     freeze_map_lists_workqueue_c: bool,
     freeze_map_lists_skbuff_c: bool,
     freeze_map_lists_ring_buffer_c: bool,
@@ -31,6 +34,16 @@ const Productization = struct {
     rollback_owner: []const u8,
     transfer_rationale: []const u8,
     risk_bundle: []const []const u8,
+};
+
+const RollbackThreshold = struct {
+    status_bucket: []const u8,
+    review_blocker_status: []const u8,
+    owner: []const u8,
+    rollback_owner: []const u8,
+    fallback_path: []const u8,
+    required_evidence: []const []const u8,
+    rollback_triggers: []const []const u8,
 };
 
 const AnchorPacket = struct {
@@ -57,6 +70,7 @@ const Manifest = struct {
     phase: []const u8,
     surveyed_commit: []const u8,
     productization: Productization,
+    rollback_threshold: RollbackThreshold,
     shared_smoke_surfaces: []const []const u8,
     anchor_packets: []const AnchorPacket,
     smoke_commands: []const []const u8,
@@ -104,7 +118,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("4c889233d157960514b241bcd5aff7cac5fda312", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d439e5349fe57b8f59f7229cc02fa77eb825c154", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -118,6 +132,13 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqualStrings("memory-ordering mistakes", manifest.productization.risk_bundle[1]);
     try std.testing.expectEqualStrings("overpromising full parity", manifest.productization.risk_bundle[2]);
     try std.testing.expectEqualStrings("deep-core scope creep", manifest.productization.risk_bundle[3]);
+    try std.testing.expectEqualStrings("study_only", manifest.rollback_threshold.status_bucket);
+    try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", manifest.rollback_threshold.review_blocker_status);
+    try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.rollback_threshold.owner);
+    try std.testing.expectEqualStrings("Repo Tooling Pod", manifest.rollback_threshold.rollback_owner);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.rollback_threshold.fallback_path, "source of truth") != null);
+    try std.testing.expectEqual(@as(usize, 3), manifest.rollback_threshold.required_evidence.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.rollback_threshold.rollback_triggers.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.shared_smoke_surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.smoke_commands.len);
@@ -137,9 +158,12 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.review_checklist_has_phase14_smoke_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_productization_prompt);
     try std.testing.expect(manifest.survey_summary.review_checklist_has_risk_bundle_prompt);
+    try std.testing.expect(manifest.survey_summary.review_checklist_has_rollback_threshold_prompt);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_owner_and_rollback);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_risk_bundle);
+    try std.testing.expect(manifest.survey_summary.smoke_note_records_rollback_threshold);
     try std.testing.expect(manifest.survey_summary.smoke_note_records_transfer_rationale);
+    try std.testing.expect(manifest.survey_summary.scripts_readme_records_rollback_threshold);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_workqueue_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_skbuff_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_ring_buffer_c);
@@ -277,6 +301,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, checklist, "overpromising full parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "deep-core scope creep") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "ZAR-to-product transfer rationale") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback threshold") != null);
 
     const script_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -293,6 +318,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "memory-ordering mistakes") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "overpromising full parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, script_readme, "deep-core scope creep") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "rollback threshold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, script_readme, "automatic return-to-blocked trigger catalog") != null);
 
     const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -329,8 +356,15 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "ZAR runtime research") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.rollback_threshold.fallback_path) != null);
     for (smoke_manifest.value.productization.risk_bundle) |risk| {
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, risk) != null);
+    }
+    for (smoke_manifest.value.rollback_threshold.required_evidence) |required_evidence| {
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, required_evidence) != null);
+    }
+    for (smoke_manifest.value.rollback_threshold.rollback_triggers) |rollback_trigger| {
+        try std.testing.expect(std.mem.indexOf(u8, smoke_note, rollback_trigger) != null);
     }
     for (smoke_manifest.value.compile_shards) |shard| {
         try std.testing.expect(std.mem.indexOf(u8, smoke_note, shard.artifact_name) != null);
