@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "Dedicated tests already exercise managed ioremap, managed resource, ioport, device-tree iomap, WC token, and WC memtype bookkeeping so the helper slice is observable on master."
+      "why_now": "Dedicated tests already exercise managed ioremap, the UC, WC, and NP lifetime wrappers, managed resource planning, ioport, device-tree iomap, WC token, and WC memtype bookkeeping so the helper slice is observable on master."
     },
     {
       "id": "phase13-devres-slice-note",
@@ -53,97 +53,4 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-slice.md",
       "why_now": "The slice note already keeps the current helper boundary explicit so the lane does not overstate itself as live devres teardown or live MMIO parity."
-    },
-    {
-      "id": "phase13-devres-reviewability-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "A dedicated reviewability gate ties the helper lab, dedicated tests, slice note, and survey note together so the helper-only DMA/scatterlist boundary stays machine-checkable."
-    },
-    {
-      "id": "phase13-devres-survey-note",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
-      "why_now": "The survey note records the current helper-first devres boundary and names the remaining live MMIO, DMA, scatterlist, device-tree, and arch memtype blockers explicitly."
-    },
-    {
-      "id": "phase13-devres-managed-ioremap-lifetime",
-      "status": "starter_landed",
-      "kind": "resource_helper_wrapper",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now keeps __devm_ioremap(), devm_ioremap_uc(), and devm_iounmap() in pure lifetime-planning form around retained release records, free-on-failure cleanup, and exact detach pointer matching."
-    },
-    {
-      "id": "phase13-devres-managed-resource-planner",
-      "status": "starter_landed",
-      "kind": "resource_helper_wrapper",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now models __devm_ioremap_resource(), devm_ioremap_resource(), and devm_ioremap_resource_wc() around memory-resource validation, pretty-name construction, request-region gating, remap cleanup, and non-posted resolution."
-    },
-    {
-      "id": "phase13-devres-devicetree-iomap-planner",
-      "status": "starter_landed",
-      "kind": "resource_helper_wrapper",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now keeps devm_of_iomap() bounded to of_address_to_resource() translated-resource selection, optional size reporting, and delegation into the managed-resource planner without pretending to walk a live device tree or map duplicate regions."
-    },
-    {
-      "id": "phase13-devres-ioport-lifetime-planner",
-      "status": "starter_landed",
-      "kind": "resource_helper_wrapper",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now models devm_ioport_map() and devm_ioport_unmap() around release-record retention, free-on-failure cleanup, and exact pointer-match release bookkeeping without claiming live port-space side effects."
-    },
-    {
-      "id": "phase13-devres-arch-phys-wc-token-planner",
-      "status": "starter_landed",
-      "kind": "resource_helper_wrapper",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now keeps devm_arch_phys_wc_add() helper-first by retaining the returned WC token for detach-time cleanup through arch_phys_wc_del() and freeing the release record on failure."
-    },
-    {
-      "id": "phase13-devres-arch-io-memtype-planner",
-      "status": "starter_landed",
-      "kind": "resource_helper_wrapper",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now keeps devm_arch_io_reserve_memtype_wc() helper-first by retaining the reserved range for detach-time release through arch_io_free_memtype_wc() and freeing the release record on failure."
-    },
-    {
-      "id": "phase13-devres-live-mmio-side-effects",
-      "status": "blocked_on_live_mmio_state",
-      "kind": "blocked_runtime_behavior",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The current lane still does not claim live devres_alloc_node() ownership, devres_add() installation, devm_request_mem_region() side effects, or direct ioremap() / iounmap() execution against real MMIO state."
-    },
-    {
-      "id": "phase13-devres-live-dma-mappings",
-      "status": "blocked_on_dma_state",
-      "kind": "blocked_runtime_behavior",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The current helper lab does not claim dmam_alloc_coherent(), dmam_free_coherent(), dma_map_resource(), dma_unmap_resource(), dma_map_sgtable(), or any other live DMA-backed mapping, unmapping, or ownership state."
-    },
-    {
-      "id": "phase13-devres-live-scatterlist-ownership",
-      "status": "blocked_on_scatterlist_state",
-      "kind": "blocked_runtime_behavior",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The current helper lab does not claim live struct scatterlist, sg_table, sg_* traversal, or other scatter-gather ownership, iteration, merging, or detach-time cleanup beyond the existing helper-first MMIO and memtype planners."
-    },
-    {
-      "id": "phase13-devres-live-device-tree-walk",
-      "status": "blocked_on_device_tree_state",
-      "kind": "blocked_runtime_behavior",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The current helper lab does not claim live struct device_node traversal, reg-property address translation, or overlapping-device-tree coordination beyond the pure devm_of_iomap() planner boundary."
-    },
-    {
-      "id": "phase13-devres-live-arch-memtype-state",
-      "status": "blocked_on_arch_memtype_state",
-      "kind": "blocked_runtime_behavior",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "The current helper lab does not claim live arch_phys_wc_add(), arch_io_reserve_memtype_wc(), or global memtype-state mutation beyond the token-style and range-style detach bookkeeping planners."
-    }
-  ]
-}
+    },{
