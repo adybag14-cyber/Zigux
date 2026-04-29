@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
+import contextlib
+import io
 import json
 from pathlib import Path
-import argparse
 import re
 import shutil
 import subprocess
@@ -16,7 +18,6 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
 CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
-CASES = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
 CONF_ALLCONFIG_MODES = {'allnoconfig', 'allyesconfig', 'allmodconfig', 'alldefconfig', 'randconfig'}
 
 
@@ -53,8 +54,12 @@ def compare_json_artifacts(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(expected), str(actual)], cwd=str(ROOT))
 
 
-def supported_conf_modes_in_order() -> list[str]:
-    source = CONF_BRIDGE.read_text(encoding='utf-8')
+def load_cases(fixture_dir: Path = FIXTURE_DIR) -> object:
+    return json.loads((fixture_dir / 'cases.json').read_text(encoding='utf-8'))
+
+
+def supported_conf_modes_in_order(conf_bridge_path: Path = CONF_BRIDGE) -> list[str]:
+    source = conf_bridge_path.read_text(encoding='utf-8')
     match = re.search(r'pub const Mode = enum \{(.*?)\n\s*pub fn parse', source, re.S)
     if not match:
         raise SystemExit('failed to parse conf bridge Mode enum')
@@ -73,9 +78,10 @@ def supported_conf_modes_in_order() -> list[str]:
     return modes
 
 
-def ensure_manifest_matches_bridge_modes() -> None:
-    bridge_modes = supported_conf_modes_in_order()
-    manifest_modes = [case['mode'] for case in CASES['conf_cases']]
+def ensure_manifest_matches_bridge_modes(cases: object, conf_bridge_path: Path = CONF_BRIDGE) -> None:
+    bridge_modes = supported_conf_modes_in_order(conf_bridge_path)
+    manifest = cases
+    manifest_modes = [case['mode'] for case in manifest['conf_cases']]
 
     missing = sorted(set(manifest_modes) - set(bridge_modes))
     if missing:
@@ -95,8 +101,9 @@ def ensure_manifest_matches_bridge_modes() -> None:
         )
 
 
-def ensure_confdata_case_order_is_sorted() -> None:
-    manifest_names = [case['name'] for case in CASES['confdata_cases']]
+def ensure_confdata_case_order_is_sorted(cases: object) -> None:
+    manifest = cases
+    manifest_names = [case['name'] for case in manifest['confdata_cases']]
     expected_names = sorted(manifest_names)
 
     if manifest_names != expected_names:
@@ -120,19 +127,20 @@ def read_nonempty_string(case: dict[str, object], field_name: str, issues: list[
     return value
 
 
-def ensure_manifest_shape() -> None:
-    if not isinstance(CASES, dict):
+def ensure_manifest_shape(cases: object) -> None:
+    manifest = cases
+    if not isinstance(manifest, dict):
         raise SystemExit('kconfig bridge cases manifest must be a JSON object')
 
     issues: list[str] = []
     expected_top_level = {'conf_cases', 'confdata_cases'}
-    actual_top_level = set(CASES)
+    actual_top_level = set(manifest)
     unexpected_top_level = sorted(actual_top_level - expected_top_level)
     if unexpected_top_level:
         issues.extend(f'top_level:unexpected_key:{name}' for name in unexpected_top_level)
 
     for group_name in ('conf_cases', 'confdata_cases'):
-        group = CASES.get(group_name)
+        group = manifest.get(group_name)
         if not isinstance(group, list):
             issues.append(f'{group_name}:expected_list')
         elif not group:
@@ -142,7 +150,8 @@ def ensure_manifest_shape() -> None:
         fail_check('INVALID_KCONFIG_MANIFEST', sorted(issues))
 
 
-def ensure_manifest_is_deterministic() -> None:
+def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_DIR) -> None:
+    manifest = cases
     issues: list[str] = []
     seen_names: dict[str, str] = {}
     duplicate_names: list[str] = []
@@ -151,7 +160,7 @@ def ensure_manifest_is_deterministic() -> None:
     referenced_files: set[str] = {'cases.json'}
 
     for group_name in ('conf_cases', 'confdata_cases'):
-        for case in CASES[group_name]:
+        for case in manifest[group_name]:
             if not isinstance(case, dict):
                 issues.append(f'{group_name}:non_object_case')
                 continue
@@ -226,21 +235,21 @@ def ensure_manifest_is_deterministic() -> None:
         issues.extend(f'duplicate_case_name:{value}' for value in sorted(duplicate_names))
 
     missing_paths: list[str] = []
-    for case in CASES['conf_cases']:
+    for case in manifest['conf_cases']:
         rel_path = case['expected']
-        if not (FIXTURE_DIR / rel_path).exists():
+        if not (fixture_dir / rel_path).exists():
             missing_paths.append(f"{case['name']}:expected:{rel_path}")
-    for case in CASES['confdata_cases']:
+    for case in manifest['confdata_cases']:
         for field_name in ('input', 'expected'):
             rel_path = case[field_name]
-            if not (FIXTURE_DIR / rel_path).exists():
+            if not (fixture_dir / rel_path).exists():
                 missing_paths.append(f"{case['name']}:{field_name}:{rel_path}")
     if missing_paths:
         issues.extend(f'missing_path:{value}' for value in sorted(missing_paths))
 
     orphaned_files = sorted(
         path.name
-        for path in FIXTURE_DIR.iterdir()
+        for path in fixture_dir.iterdir()
         if path.is_file() and path.name not in referenced_files
     )
     if orphaned_files:
@@ -250,15 +259,153 @@ def ensure_manifest_is_deterministic() -> None:
         fail_check('INVALID_KCONFIG_MANIFEST', sorted(issues))
 
 
+def capture_failure(callback, *args) -> list[str]:
+    stream = io.StringIO()
+    with contextlib.redirect_stdout(stream):
+        try:
+            callback(*args)
+        except SystemExit as exc:
+            if exc.code != 1:
+                raise AssertionError(f'expected exit code 1, got {exc.code}') from exc
+        else:
+            raise AssertionError('expected the checker to fail')
+    return stream.getvalue().splitlines()
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_selftest_') as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        fixture_dir = tmp_dir / 'fixtures'
+        fixture_dir.mkdir()
+        conf_bridge_path = tmp_dir / 'conf_bridge.zig'
+        conf_bridge_path.write_text(
+            (
+                'pub const Mode = enum {\n'
+                '    oldaskconfig,\n'
+                '    defconfig,\n'
+                '    syncconfig,\n'
+                '\n'
+                '    pub fn parse(input_text: []const u8) ?Mode {\n'
+                '        _ = input_text;\n'
+                '        return null;\n'
+                '    }\n'
+                '};\n'
+            ),
+            encoding='utf-8',
+            newline='\n',
+        )
+
+        valid_cases = {
+            'conf_cases': [
+                {
+                    'name': 'oldaskconfig',
+                    'mode': 'oldaskconfig',
+                    'kconfig': 'Kconfig',
+                    'config': '.config',
+                    'arch': 'x86_64',
+                    'expected': 'oldaskconfig_expected.json',
+                },
+                {
+                    'name': 'defconfig',
+                    'mode': 'defconfig',
+                    'kconfig': 'Kconfig',
+                    'config': 'out/.config',
+                    'arch': 'arm64',
+                    'mode_arg': 'arch/arm64/configs/defconfig',
+                    'expected': 'defconfig_expected.json',
+                },
+                {
+                    'name': 'syncconfig',
+                    'mode': 'syncconfig',
+                    'kconfig': 'Kconfig',
+                    'config': 'out/.config',
+                    'arch': 'riscv64',
+                    'expected': 'syncconfig_expected.json',
+                },
+            ],
+            'confdata_cases': [
+                {
+                    'name': 'alpha',
+                    'input': 'alpha.config',
+                    'expected': 'alpha_expected.json',
+                },
+                {
+                    'name': 'beta',
+                    'input': 'beta.config',
+                    'expected': 'beta_expected.json',
+                },
+            ],
+        }
+
+        for name in (
+            'oldaskconfig_expected.json',
+            'defconfig_expected.json',
+            'syncconfig_expected.json',
+            'alpha_expected.json',
+            'beta_expected.json',
+        ):
+            (fixture_dir / name).write_text('{}\n', encoding='utf-8', newline='\n')
+        for name in ('alpha.config', 'beta.config'):
+            (fixture_dir / name).write_text('# test fixture\n', encoding='utf-8', newline='\n')
+        (fixture_dir / 'cases.json').write_text(json.dumps(valid_cases, indent=2) + '\n', encoding='utf-8', newline='\n')
+
+        cases = load_cases(fixture_dir)
+        ensure_manifest_shape(cases)
+        ensure_manifest_matches_bridge_modes(cases, conf_bridge_path)
+        ensure_confdata_case_order_is_sorted(cases)
+        ensure_manifest_is_deterministic(cases, fixture_dir)
+
+        unsorted_conf_cases = json.loads(json.dumps(valid_cases))
+        unsorted_conf_cases['conf_cases'][0], unsorted_conf_cases['conf_cases'][1] = (
+            unsorted_conf_cases['conf_cases'][1],
+            unsorted_conf_cases['conf_cases'][0],
+        )
+        assert capture_failure(ensure_manifest_matches_bridge_modes, unsorted_conf_cases, conf_bridge_path) == [
+            'KCONFIG_BRIDGE_DIFF=fail',
+            'UNSORTED_CONF_CASE_ORDER_START',
+            'manifest=defconfig,oldaskconfig,syncconfig',
+            'expected=oldaskconfig,defconfig,syncconfig',
+            'UNSORTED_CONF_CASE_ORDER_END',
+        ]
+
+        unsorted_confdata_cases = json.loads(json.dumps(valid_cases))
+        unsorted_confdata_cases['confdata_cases'][0], unsorted_confdata_cases['confdata_cases'][1] = (
+            unsorted_confdata_cases['confdata_cases'][1],
+            unsorted_confdata_cases['confdata_cases'][0],
+        )
+        assert capture_failure(ensure_confdata_case_order_is_sorted, unsorted_confdata_cases) == [
+            'KCONFIG_BRIDGE_DIFF=fail',
+            'UNSORTED_CONFDATA_CASE_ORDER_START',
+            'manifest=beta,alpha',
+            'expected=alpha,beta',
+            'UNSORTED_CONFDATA_CASE_ORDER_END',
+        ]
+
+        (fixture_dir / 'orphaned_expected.json').write_text('{}\n', encoding='utf-8', newline='\n')
+        failure_lines = capture_failure(ensure_manifest_is_deterministic, cases, fixture_dir)
+        assert failure_lines[0] == 'KCONFIG_BRIDGE_DIFF=fail'
+        assert failure_lines[1] == 'INVALID_KCONFIG_MANIFEST_START'
+        assert 'orphaned_fixture:orphaned_expected.json' in failure_lines
+        assert failure_lines[-1] == 'INVALID_KCONFIG_MANIFEST_END'
+
+    print('KCONFIG_BRIDGE_SELF_TEST=pass')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded kconfig bridge fixture parity.')
     parser.add_argument('--zig', help='Explicit zig executable path')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in manifest and determinism checks.')
     args = parser.parse_args()
 
-    ensure_manifest_shape()
-    ensure_manifest_matches_bridge_modes()
-    ensure_confdata_case_order_is_sorted()
-    ensure_manifest_is_deterministic()
+    if args.self_test:
+        return run_self_test()
+
+    cases = load_cases()
+    ensure_manifest_shape(cases)
+    ensure_manifest_matches_bridge_modes(cases)
+    ensure_confdata_case_order_is_sorted(cases)
+    ensure_manifest_is_deterministic(cases)
     zig = find_zig(args.zig)
 
     with tempfile.TemporaryDirectory(prefix='zigux_kconfig_bridge_') as tmp_dir_str:
@@ -270,7 +417,7 @@ def main() -> int:
         compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)
         compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)
 
-        for case in CASES['conf_cases']:
+        for case in cases['conf_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
             cmd = [
@@ -291,7 +438,7 @@ def main() -> int:
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(actual, repeat)
 
-        for case in CASES['confdata_cases']:
+        for case in cases['confdata_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
             rebuild = tmp_dir / f"{case['name']}.rebuild.json"
