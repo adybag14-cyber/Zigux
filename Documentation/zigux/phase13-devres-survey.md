@@ -4,8 +4,9 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `7f50505d85ecd5e25afa9d833310cc24002de8ae`
+- reviewed against live `master` `51d4d54b2b4207f02dde9a5b5749df41148f1e47`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
+- the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the `devm_ioremap_uc()` and `devm_ioremap_wc()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - the current helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, so the Phase 13 packet remains outside DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
 - `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, but until this packet landed the MMIO safety posture was not recorded in the same manifest-backed survey shape as the other active Phase 13 anchors
