@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-survey`
-- scope: survey manifest, dedicated runtime survey gate, direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
+- scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -15,13 +15,15 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
   - `zigux/tests/runtime_bitmap_module.zig`
   - `zigux/tests/runtime_bitmap_diff.zig`
   - `zigux/tests/phase9_build.zig`
+  - `zigux/kernel/runtime_loader.zig`
   - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
+  - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
 
 ## Why this slice exists
 
 The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
+The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, direct sample-test leg, direct loader-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
 ## Survey findings
 
@@ -72,15 +74,30 @@ The exact checks now recorded in `zigux/tests/runtime_bitmap_manifest.json` and 
 - the diff gate replays a full-set then `clearRange(79, 19)` cutout with `first_zero = 79`, weight `bitmap_nbits - 19`, and bits `79` through `97` cleared while bit `98` and the last bit stay set
 - the diff gate replays a sparse population at bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123` plus a 109-bit copy case whose copied summary is `first_set = 0`, `first_zero = 109`, and `weight = 109`
 
+## Delivery ownership map
+
+The manifest-backed ownership packet for this slice now keeps the current delivery surfaces explicit:
+
+- `Documentation/zigux/phase9-runtime-bitmap-survey.md` owns the roadmap anchor note, shipped starter scope, ownership packet summary, and remaining shared-loader blocker wording
+- `zigux/tests/runtime_bitmap_manifest.json` owns the exact checks plus the delivery catalog and ownership map for the current runtime bitmap packet
+- `zigux/tests/runtime_bitmap_survey.zig` owns the machine-checkable replay of that ownership packet and the adjacent blocked shared-loader note
+- `zigux/tests/runtime_bitmap_module.zig` owns the bounded starter lifecycle, sparse `nthSetBit()` replay, selftest, range-mutation, and copy surface
+- `zigux/tests/runtime_bitmap_diff.zig` owns the bounded differential replay for first-set, first-zero, weight, sparse nth-bit iteration, cutout, and copy expectations
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 replay entrypoint for the direct bitmap sample and loader legs plus the survey, module, diff, loader, and shared-loader checks
+- `samples/zigux/runtime_bitmap.zig` owns the bounded two-word in-memory bitmap starter contract, lifecycle staging, sparse iteration, summary, and selftest-hook metadata
+- `samples/zigux/runtime_bitmap_loader.zig` owns the sample-side loader projection, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and bitmap payload summary
+- `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff, allocator posture, and staged entry and exit symbols
+- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution
+
 ## Contributor refresh prompts
 
 When a contributor updates `samples/zigux/runtime_bitmap.zig` or its directly coupled Phase 9 review files, keep these prompts explicit:
 
 - does the descriptor still keep the Linux anchor path explicit, leave `requires_runtime_substrate = true` while `provides_selftest_hook = true`, and still name the bounded two-word bitmap backing?
-- do `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, the loader scaffold, and the direct `phase9-runtime-bitmap-loader-tests` shared-build leg still describe the exact lifecycle, summary, sparse `nthSetBit()` replay, post-selftest mutation replay, copy, loader handoff, and diff-case contract run through `zigux/tests/phase9_build.zig`?
+- do the manifest-backed delivery catalog and ownership map still keep `zigux/tests/runtime_bitmap_manifest.json`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `zigux/kernel/runtime_loader.zig`, and the direct `phase9-runtime-bitmap-loader-tests` shared-build leg describing one exact lifecycle, summary, sparse `nthSetBit()` replay, post-selftest mutation replay, copy, loader handoff, and diff-case packet run through `zigux/tests/phase9_build.zig`?
 - if the runtime bitmap sample behavior changes, is the manifest updated alongside the module and diff checks instead of leaving reviewers to infer the new contract from code alone?
 - does the review packet still keep this bounded starter visibly separate from the still-blocked shared runtime-loader control surface rather than implying a loadable module or real command-path parity?
-- do the docs and tests still say clearly that real runtime execution, shared loader controls, and full `lib/test_bitmap.c` parity remain out of scope?
+- do the docs and tests still say clearly that real runtime execution, shared loader controls, and full `lib/test_bitmap.c` parity remain out of scope, with `Documentation/zigux/phase9-runtime-loader-gap-survey.md` still owning the blocked command-name, argv-policy, and environment-derived activation-control posture?
 
 ## Recorded gaps
 
@@ -96,7 +113,7 @@ The manifest now records:
 - the landed `runtime-bitmap-live-loader-binding`
 - the still-blocked `runtime-bitmap-shared-loader-controls`
 
-This keeps the survey useful after the first starter, direct sample-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime bitmap module or the full shared runtime control surface needed for real execution.
+This keeps the survey useful after the first starter, direct sample-test leg, direct loader-test leg, module gate, diff gate, loader scaffold, and shared loader-request binding landed without pretending that Zigux already has a loadable runtime bitmap module or the full shared runtime control surface needed for real execution. It also keeps ownership for the shipped evidence packet explicit so the survey note, manifest, survey gate, module gate, diff gate, sample-side loader, shared loader contract, and shared Phase 9 replay entrypoint cannot drift independently by eye.
 
 ## Gates
 
