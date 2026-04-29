@@ -227,7 +227,7 @@ pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
     replaceNode(victim, new, &root.root);
 }
 
-pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
+pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
     var link = &root.root.node;
     var parent: ?*Node = null;
     var leftmost = true;
@@ -244,6 +244,7 @@ pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColorCached(node, root, leftmost);
+    return if (leftmost) node else null;
 }
 
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
@@ -1086,10 +1087,14 @@ test "rbtree cached root keeps leftmost in sync across add erase and replace" {
 
     try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
 
-    for (&entries) |*entry| {
-        addCached(&entry.node, &root, less);
-        try expectValidTree(&root.root);
-    }
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), addCached(&entries[0].node, &root, less));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&entries[1].node, &root, less));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), addCached(&entries[2].node, &root, less));
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&entries[3].node, &root, less));
+    try expectValidTree(&root.root);
 
     const leftmost_entry: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
     try std.testing.expectEqual(@as(i32, 5), leftmost_entry.key);
@@ -1133,7 +1138,7 @@ test "rbtree cached root tracks duplicate minima through erase and non-leftmost 
     var root = RootCached.init();
 
     for (&entries) |*entry| {
-        addCached(&entry.node, &root, less);
+        _ = addCached(&entry.node, &root, less);
         try expectValidTree(&root.root);
         try std.testing.expectEqual(first(&root.root), firstCached(&root));
     }
