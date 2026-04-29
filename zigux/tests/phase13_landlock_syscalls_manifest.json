@@ -62,6 +62,13 @@
       "why_now": "The survey note compares the 592-line `syscalls.c` anchor against the new starter and keeps the remaining gap around rule insertion, file descriptors, path import, and credential changes explicit."
     },
     {
+      "id": "phase13-landlock-copy-min-struct-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one small in-memory planner around `copy_min_struct_from_user()` so Zigux makes the null-user rejection, minimum-size and page-limit checks, and copy-then-zero-fill intent explicit before any live user-memory access is attempted."
+    },
+    {
       "id": "phase13-landlock-add-rule-followup",
       "status": "starter_landed",
       "kind": "security_helper_pilot",
