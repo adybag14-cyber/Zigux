@@ -60,6 +60,8 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_SET_UNIT_REVIEW=find_bit same-word set-scan start masking keeps inclusive starts honest, skips earlier same-word set matches after the search advances, and still clamps tail results to nbits',
     'find_bit and unit-test anchor: `tools/lib/find_bit.zig:test "find next and bit skips earlier shared matches in the same word"`',
     'PHASE1_FIND_BIT_AND_UNIT_REVIEW=find_bit same-word shared-bit start masking keeps inclusive starts honest, skips earlier same-word overlaps after the search advances, and still clamps tail AND results to nbits',
+    'find_bit mask unit-test anchor: `tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"`',
+    'PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit word-mask helpers keep bitsToWords, firstWordMask, and lastWordMask aligned across whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage',
     'find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`',
     'PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
@@ -239,6 +241,10 @@ if find_bit_review.get('and_unit_test_anchor') != 'tools/lib/find_bit.zig:test "
     missing_markers.append('manifest:find_bit.and_unit_test_anchor')
 if find_bit_review.get('and_unit_test_contract') != 'Direct Zig unit coverage keeps same-word shared-bit start masking aligned so inclusive starts can return the current shared bit, later starts skip earlier same-word overlaps, and tail-clamped AND scans still stop at nbits.':
     missing_markers.append('manifest:find_bit.and_unit_test_contract')
+if find_bit_review.get('mask_unit_test_anchor') != 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"':
+    missing_markers.append('manifest:find_bit.mask_unit_test_anchor')
+if find_bit_review.get('mask_unit_test_contract') != 'Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.':
+    missing_markers.append('manifest:find_bit.mask_unit_test_contract')
 if find_bit_review.get('boundary_unit_test_anchor') != 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"':
     missing_markers.append('manifest:find_bit.boundary_unit_test_anchor')
 if find_bit_review.get('boundary_unit_test_contract') != 'Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.':
@@ -280,7 +286,7 @@ if rbtree_review.get('iterator_unit_test_contract') != 'Direct Zig unit coverage
     missing_markers.append('manifest:rbtree.iterator_unit_test_contract')
 if rbtree_review.get('reverse_unit_test_anchor') != 'tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"':
     missing_markers.append('manifest:rbtree.reverse_unit_test_anchor')
-if rbtree_review.get('reverse_unit_test_contract') != 'Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.':
+if rbtree_review.get('reverse_unit_test_contract') != 'Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly reports no match for missing keys.':
     missing_markers.append('manifest:rbtree.reverse_unit_test_contract')
 if string_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:string.fixture=zigux/tests/fixtures/phase1_helpers.json')
