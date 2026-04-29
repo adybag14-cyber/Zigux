@@ -69,6 +69,9 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const expected_lane_key = "P15-L07";
+const expected_surveyed_commit = "3156353bb605fae0337e56968fb00e9977c898f8";
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -91,9 +94,9 @@ test "phase 15 architecture council review-process manifest records current trig
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings(expected_lane_key, manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("2b58a5636c7fcf3776e5960b52d1916a54ae64b4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Architecture Council review process", manifest.roadmap_requirement);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.anchor);
     try std.testing.expectEqualStrings("no_freeze_map_status_change_approved", manifest.current_approval_state);
@@ -153,9 +156,9 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "P15-L08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "no-approval posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "lane-owner plus rollback-owner evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_lane_key) != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current no-approval posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "parity scorecard and anchor templates") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
 
@@ -247,7 +250,13 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "indefinite-C policy link or applicability note") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_process, "current bounded lane: `P15-L08`") != null);
+    const expected_lane_line = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "current bounded lane: `{s}`",
+        .{expected_lane_key},
+    );
+    defer std.testing.allocator.free(expected_lane_line);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
