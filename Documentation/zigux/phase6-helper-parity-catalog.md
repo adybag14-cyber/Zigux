@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `bfa0b3ff6ae4e4958aca3d7c436ba8af2b78a832`
+- verified head: `ca830cc8d0d0aa9666cd90c3944b3ba981864ad4`
 
 ## Scope
 
@@ -98,7 +98,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/fixtures/phase6_base64_c_harness.c` plus `zigux/tests/phase6_base64_c_parity.zig` replay that same representative base64 surface through `python3 scripts/zigux/check-phase6-base64-c-parity.py`, which currently passes with `PHASE6_BASE64_C_PARITY_CASES=90`.
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig` is the current static checksum corpus with 5 compute vectors, 2 composition vectors, 3 seeded vectors, 1 pseudo-header vector, and 4 carry-discipline vectors.
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 7 parity vectors, 4 overflow vectors, and 7 required-length vectors, and it normalizes non-canonical formatter inputs through `normalizedRowsize()` and `normalizedGroupsizeForLen()` before expected-text generation.
-- `zigux/tests/phase6_bsearch.zig` keeps the bsearch corpus inline as sorted integer and symbol tables rather than a generated fixture file, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=13`.
+- `zigux/tests/phase6_bsearch.zig` keeps the bsearch corpus inline as sorted integer and symbol tables rather than a generated fixture file, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=15`.
 - No generated Phase 6 fixture artifact is committed today; current corpus determinism comes from these committed literals, normalization helpers, and sorted external parity replays.
 
 ## Review posture
