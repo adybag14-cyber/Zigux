@@ -5,6 +5,8 @@ const SurveySummary = struct {
     phase14_validate_entrypoint_present: bool,
     phase14_build_has_shared_smoke_step: bool,
     phase14_build_has_smoke_shard_step: bool,
+    phase14_build_full_bundle_routes_all_compile_artifacts: bool,
+    phase14_build_smoke_shard_routes_only_smoke_survey: bool,
     phase14_make_target_present: bool,
     phase14_make_smoke_target_present: bool,
     workflow_runs_phase14_validate: bool,
@@ -99,7 +101,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b015859cb0f364612d4c6ec8f5382b3de5484724", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -117,6 +119,8 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.phase14_validate_entrypoint_present);
     try std.testing.expect(manifest.survey_summary.phase14_build_has_shared_smoke_step);
     try std.testing.expect(manifest.survey_summary.phase14_build_has_smoke_shard_step);
+    try std.testing.expect(manifest.survey_summary.phase14_build_full_bundle_routes_all_compile_artifacts);
+    try std.testing.expect(manifest.survey_summary.phase14_build_smoke_shard_routes_only_smoke_survey);
     try std.testing.expect(manifest.survey_summary.phase14_make_target_present);
     try std.testing.expect(manifest.survey_summary.phase14_make_smoke_target_present);
     try std.testing.expect(manifest.survey_summary.workflow_runs_phase14_validate);
@@ -197,6 +201,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-end-to-end-smoke-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_end_to_end_smoke_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14-smoke") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase14_smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);") != null);
     var focused_shard_count: usize = 0;
     var full_bundle_only_count: usize = 0;
     for (smoke_manifest.value.compile_shards) |shard| {
@@ -218,6 +223,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     }
     try std.testing.expectEqual(@as(usize, 1), focused_shard_count);
     try std.testing.expectEqual(@as(usize, 4), full_bundle_only_count);
+    try std.testing.expectEqual(@as(usize, 5), std.mem.count(u8, build_file, "test_step.dependOn(&run_phase14_"));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, build_file, "phase14_smoke_step.dependOn(&run_phase14_"));
 
     const makefile = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -296,6 +303,9 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_COMPILE_ARTIFACT_COUNT=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_COUNT=1") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.rollback_owner) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, smoke_manifest.value.productization.validation_gate) != null);
@@ -309,6 +319,8 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     }
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "only the shared smoke survey has a dedicated shard today") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "four anchor-local artifacts still replay only through the broader `test` bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "phase14_smoke_step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "run_phase14_end_to_end_smoke_tests.step") != null);
 
     for (smoke_manifest.value.anchor_packets) |packet| {
         const anchor_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
