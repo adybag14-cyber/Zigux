@@ -40,6 +40,22 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(string_helpers_slice);
 
+    const string_helpers_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_string_helpers.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(string_helpers_tests);
+
+    const escape_vectors = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(escape_vectors);
+
     const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/README.md",
@@ -94,7 +110,20 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
     try expectContains(string_helpers_slice, "Current `master` keeps string-helper reviewability in the helper and test bundle");
     try expectContains(string_helpers_slice, "the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.");
+    try expectContains(string_helpers_slice, "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig");
+    try expectContains(string_helpers_slice, "`parse_int_array()` over the bounded allocator-backed starter path");
+    try expectContains(string_helpers_slice, "`parse_int_array_user()` over the bounded copy-and-parse starter path");
+    try expectContains(string_helpers_slice, "`kstrdup_quotable()` over the bounded escape-then-duplicate path");
 
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
+    try expectContains(phase7_build, "phase7-string-helpers-tests");
     try expectContains(phase7_build, "phase7-string-helpers-survey-tests");
+
+    try expectContains(string_helpers_tests, "fixtures/phase7_string_helpers_escape_vectors.zig");
+    try expectContains(string_helpers_tests, "phase 7 parseIntArray keeps the counted get_options contract explicit");
+    try expectContains(string_helpers_tests, "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit");
+    try expectContains(string_helpers_tests, "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication");
+
+    try expectContains(escape_vectors, "pub const unescape_cases");
+    try expectContains(escape_vectors, "pub const escape_cases");
 }
