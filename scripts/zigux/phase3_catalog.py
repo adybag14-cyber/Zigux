@@ -411,8 +411,6 @@ def _pick_manifest(slug: str, candidates: Iterable[Path]) -> Path | None:
             best_score = score
             best_path = path
         elif score == best_score and best_path is not None:
-            # Prefer the shared top-level manifest path when duplicate
-            # fixture-local copies carry the same payload.
             if path.parent == ROOT / "zigux" / "tests" / "fixtures" and best_path.parent != path.parent:
                 best_path = path
     if best_path is not None:
@@ -542,6 +540,15 @@ def discover_artifact_diff_phase3_order(
     return ordered_entries
 
 
+def _artifact_diff_phase3_bounds(lines: list[str]) -> tuple[int, int]:
+    start = lines.index("Current Phase 3 use")
+    try:
+        end = lines.index("Current Phase 4 use")
+    except ValueError:
+        end = lines.index("Rules")
+    return start, end
+
+
 def artifact_diff_phase3_lines(
     entries: list[Phase3Slice],
     artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
@@ -564,12 +571,11 @@ def rewrite_artifact_diff_phase3_section(
     original = artifact_diff_path.read_text(encoding="utf-8")
     lines = original.splitlines()
     try:
-        start = lines.index("Current Phase 3 use")
-        end = lines.index("Rules")
+        start, end = _artifact_diff_phase3_bounds(lines)
     except ValueError as exc:
         raise ValueError(f"artifact diff headings missing in {artifact_diff_path}") from exc
-    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries), "", "Rules"]
-    updated_lines = [*lines[:start], *replacement, *lines[end + 1 :]]
+    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries), ""]
+    updated_lines = [*lines[:start], *replacement, *lines[end:]]
     updated = "\n".join(updated_lines) + "\n"
     if updated == original:
         return False
@@ -587,12 +593,11 @@ def artifact_diff_phase3_section_needs_rewrite(
         return True
     lines = original.splitlines()
     try:
-        start = lines.index("Current Phase 3 use")
-        end = lines.index("Rules")
+        start, end = _artifact_diff_phase3_bounds(lines)
     except ValueError:
         return True
-    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries, artifact_diff_path), "", "Rules"]
-    updated_lines = [*lines[:start], *replacement, *lines[end + 1 :]]
+    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries, artifact_diff_path), ""]
+    updated_lines = [*lines[:start], *replacement, *lines[end:]]
     updated = "\n".join(updated_lines) + "\n"
     return updated != original
 
