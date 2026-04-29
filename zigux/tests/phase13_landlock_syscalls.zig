@@ -30,7 +30,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "05a762ea272fa488b877178987418c54c030b239";
+const expected_surveyed_commit = "c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d";
+const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-ruleset-release-handoff";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -75,9 +76,10 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_syscalls_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_slice_marker) != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -87,6 +89,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     var saw_test_gate = false;
     var saw_slice_note = false;
     var saw_survey_note = false;
+    var saw_copy_min_struct = false;
     var saw_add_rule = false;
     var saw_fd_followup = false;
     var saw_path_followup = false;
@@ -137,6 +140,13 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             saw_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-landlock-syscalls-survey.md", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-copy-min-struct-followup")) {
+            saw_copy_min_struct = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "copy_min_struct_from_user()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zero-fill") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-add-rule-followup")) {
             saw_add_rule = true;
@@ -193,7 +203,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -201,6 +211,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_copy_min_struct);
     try std.testing.expect(saw_add_rule);
     try std.testing.expect(saw_fd_followup);
     try std.testing.expect(saw_path_followup);
@@ -216,6 +227,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_abi_shape_reporting);
+    try std.testing.expect(descriptor.provides_min_struct_copy_planning);
     try std.testing.expect(descriptor.provides_create_ruleset_query_planning);
     try std.testing.expect(descriptor.provides_restrict_self_flag_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
@@ -229,6 +241,61 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_domains);
+}
+
+test "phase13 landlock syscalls copy_min_struct planning models size checks and tail zero-fill intent" {
+    const plan = try syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .ksize = 24,
+        .ksize_min = 8,
+        .usize = 16,
+    });
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expectEqual(@as(usize, 24), plan.kernel_size);
+    try std.testing.expectEqual(@as(usize, 8), plan.kernel_min_size);
+    try std.testing.expectEqual(@as(usize, 16), plan.user_size);
+    try std.testing.expect(plan.checks_buffer_consistency);
+    try std.testing.expect(plan.checks_size_ranges);
+    try std.testing.expectEqual(@as(usize, 16), plan.copies_user_bytes);
+    try std.testing.expect(plan.zero_fills_tail);
+
+    const exact_plan = try syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .ksize = 24,
+        .ksize_min = 8,
+        .usize = 24,
+    });
+    try std.testing.expectEqual(@as(usize, 24), exact_plan.copies_user_bytes);
+    try std.testing.expect(!exact_plan.zero_fills_tail);
+}
+
+test "phase13 landlock syscalls copy_min_struct planning rejects null buffers and invalid size ranges" {
+    try std.testing.expectError(error.MissingKernelBuffer, syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .dst_present = false,
+        .ksize = 24,
+        .ksize_min = 8,
+        .usize = 24,
+    }));
+    try std.testing.expectError(error.BadUserPointer, syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .src_present = false,
+        .ksize = 24,
+        .ksize_min = 8,
+        .usize = 24,
+    }));
+    try std.testing.expectError(error.InvalidKernelSizeRange, syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .ksize = 4,
+        .ksize_min = 8,
+        .usize = 8,
+    }));
+    try std.testing.expectError(error.StructTooSmall, syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .ksize = 24,
+        .ksize_min = 8,
+        .usize = 4,
+    }));
+    try std.testing.expectError(error.StructTooLarge, syscalls.SyscallsHelperLab.planCopyMinStructFromUser(.{
+        .ksize = 24,
+        .ksize_min = 8,
+        .usize = syscalls.page_size_limit + 1,
+    }));
 }
 
 test "phase13 landlock syscalls abi shape report matches build_check_abi expectations" {
