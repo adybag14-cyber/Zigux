@@ -204,6 +204,11 @@ required_loader_gap_survey_markers = [
 
 required_phase9_build_markers = [
     "runtime_loader_gap_survey.zig",
+    "phase9-runtime-atomic64-sample-tests",
+    "phase9-runtime-atomic64-module-tests",
+    "phase9-runtime-atomic64-diff-tests",
+    "phase9-runtime-atomic64-loader-tests",
+    "phase9-runtime-atomic64-survey-tests",
     "phase9-runtime-bitmap-sample-tests",
     "phase9-runtime-bitmap-module-tests",
     "phase9-runtime-bitmap-diff-tests",
@@ -211,6 +216,7 @@ required_phase9_build_markers = [
     "phase9-runtime-bitmap-survey-tests",
     "phase9-runtime-loader-tests",
     "phase9-runtime-bitmap-loader-tests",
+    "phase9-runtime-kretprobe-sample-tests",
     "phase9-runtime-kretprobe-module-tests",
     "phase9-runtime-kretprobe-diff-tests",
     "phase9-runtime-kretprobe-loader-tests",
