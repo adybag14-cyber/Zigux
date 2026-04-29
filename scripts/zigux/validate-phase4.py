@@ -271,7 +271,7 @@ REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS = [
 REQUIRED_BITMAP_DIFF_MARKERS = [
     'test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations"',
     'test_fill_set bitmap_fill rounds 35 bits to one full word',
-    'test_zero_clear bitmap_zero rounds the paired 35-bit checkpoint without disturbing the next word',
+    'test_zero_clear bitmap_zero rounds 35 bits to one full word',
     'test_zero_clear bitmap_zero rounds 115 bits to two full words',
     'test "bitmap diff survey keeps the unresolved 115-bit fill drift against lib/test_bitmap.c explicit"',
     'The current Zig helper fills only the requested 115 bits instead of',
