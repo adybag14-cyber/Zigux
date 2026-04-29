@@ -80,9 +80,11 @@ pub const Request = struct {
     allconfig: ?[]const u8 = null,
 };
 
-const ValidateModeArgError = error{
+const ValidateExtraArgError = error{
     MissingModeArg,
     UnexpectedModeArg,
+    EmptyModeArg,
+    EmptyAllConfig,
 };
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
@@ -142,11 +144,29 @@ fn supportsAllConfig(mode: Mode) bool {
     };
 }
 
-fn validateModeArg(mode: Mode, mode_arg: ?[]const u8) ValidateModeArgError!void {
-    if ((mode == .defconfig or mode == .savedefconfig) and mode_arg == null) {
-        return error.MissingModeArg;
+fn requiresModeArg(mode: Mode) bool {
+    return mode == .defconfig or mode == .savedefconfig;
+}
+
+fn validateExtraArg(mode: Mode, extra_arg: ?[]const u8) ValidateExtraArgError!void {
+    if (requiresModeArg(mode)) {
+        const mode_arg = extra_arg orelse return error.MissingModeArg;
+        if (mode_arg.len == 0) {
+            return error.EmptyModeArg;
+        }
+        return;
     }
-    if (mode != .defconfig and mode != .savedefconfig and mode_arg != null and !supportsAllConfig(mode)) {
+
+    if (supportsAllConfig(mode)) {
+        if (extra_arg) |allconfig| {
+            if (allconfig.len == 0) {
+                return error.EmptyAllConfig;
+            }
+        }
+        return;
+    }
+
+    if (extra_arg != null) {
         return error.UnexpectedModeArg;
     }
 }
@@ -173,9 +193,7 @@ pub fn main(init: std.process.Init) !void {
     };
 
     const extra_arg = if (args.len == 6) args[5] else null;
-    const mode_arg = if (mode == .defconfig or mode == .savedefconfig) extra_arg else null;
-    const allconfig = if (supportsAllConfig(mode)) extra_arg else null;
-    validateModeArg(mode, mode_arg) catch |err| switch (err) {
+    validateExtraArg(mode, extra_arg) catch |err| switch (err) {
         error.MissingModeArg => {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
@@ -190,7 +208,23 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
+        error.EmptyModeArg => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: mode argument must not be empty\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.EmptyAllConfig => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: allconfig path must not be empty\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
     };
+    const mode_arg = if (requiresModeArg(mode)) extra_arg.? else null;
+    const allconfig = if (supportsAllConfig(mode)) extra_arg else null;
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
@@ -596,20 +630,27 @@ test "conf bridge emits allconfig env for allconfig family modes" {
 }
 
 test "conf bridge requires mode arg for defconfig modes" {
-    try std.testing.expectError(error.MissingModeArg, validateModeArg(.defconfig, null));
-    try std.testing.expectError(error.MissingModeArg, validateModeArg(.savedefconfig, null));
+    try std.testing.expectError(error.MissingModeArg, validateExtraArg(.defconfig, null));
+    try std.testing.expectError(error.MissingModeArg, validateExtraArg(.savedefconfig, null));
 }
 
 test "conf bridge rejects mode arg for non-argument modes" {
-    try std.testing.expectError(error.UnexpectedModeArg, validateModeArg(.olddefconfig, "unexpected"));
-    try std.testing.expectError(error.UnexpectedModeArg, validateModeArg(.syncconfig, "unexpected"));
+    try std.testing.expectError(error.UnexpectedModeArg, validateExtraArg(.olddefconfig, "unexpected"));
+    try std.testing.expectError(error.UnexpectedModeArg, validateExtraArg(.syncconfig, "unexpected"));
 }
 
 test "conf bridge accepts valid mode arg combinations" {
-    try validateModeArg(.defconfig, "arch/arm64/configs/defconfig");
-    try validateModeArg(.savedefconfig, "arch/arm64/configs/minimal_defconfig");
-    try validateModeArg(.allnoconfig, "arch/arm64/configs/all.config");
-    try validateModeArg(.oldconfig, null);
+    try validateExtraArg(.defconfig, "arch/arm64/configs/defconfig");
+    try validateExtraArg(.savedefconfig, "arch/arm64/configs/minimal_defconfig");
+    try validateExtraArg(.allnoconfig, "arch/arm64/configs/all.config");
+    try validateExtraArg(.oldconfig, null);
+}
+
+test "conf bridge rejects empty extra arguments" {
+    try std.testing.expectError(error.EmptyModeArg, validateExtraArg(.defconfig, ""));
+    try std.testing.expectError(error.EmptyModeArg, validateExtraArg(.savedefconfig, ""));
+    try std.testing.expectError(error.EmptyAllConfig, validateExtraArg(.allnoconfig, ""));
+    try std.testing.expectError(error.EmptyAllConfig, validateExtraArg(.randconfig, ""));
 }
 
 test "conf bridge mode text and flag stay aligned with enum tags" {
