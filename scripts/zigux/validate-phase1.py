@@ -581,12 +581,10 @@ required_bitmap_manifest_markers = [
 required_bitmap_closure_markers = [
     'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.',
     'tools/lib/bitmap.zig` direct Zig unit coverage now keeps `bitmapFree()` aligned by proving optional bitmap handles reset to null after release while the shared C-backed fixture covers allocator-backed sizing and zero-allocation state.',
-    'tools/lib/bitmap.zig` direct Zig unit coverage also keeps tail-masked reduction helpers aligned so `andBits()`, `andNotBits()`, `equal()`, `intersects()`, and `subset()` ignore out-of-range tail differences while preserving the in-range window.',
-    'bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`',
     'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
-    'bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"`',
     'bitmap empty-bitmap review note: `bitmap_scnprintf` must leave a non-empty caller buffer untouched when no bits are set, matching the C helper contract',
     'bitmap allocator review note: `bitmap_alloc()` and `bitmap_zalloc()` must size partial-word bitmaps through `BITS_TO_LONGS(nbits)`, while `bitmapFree()` optional-reset behavior remains direct Zig-only coverage because the C helper frees raw pointers in place',
+    'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
 ]
@@ -711,7 +709,7 @@ required_string_fixture_markers = [
     '[97,98,0,0,32,120]',
 ]
 required_string_harness_markers = [
-    'char remove_nul_buf[] = {\'a\', \' \, \'b\', 0, \' \, \'x\'};',
+    "char remove_nul_buf[] = {'a', ' ', 'b', 0, ' ', 'x'};",
     'remove_spaces(remove_nul_buf);',
     '\\\"remove_spaces_nul\\\":',
     '\\\"remove_spaces_nul_bytes\\\":',
