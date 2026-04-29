@@ -60,8 +60,9 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 - repeat-run determinism is required for both the bounded C tool and the Zig tool before closure evidence stays green
 
-6. bounded kconfig bridge parity
+6. bounded kconfig bridge parity and determinism
 - `python3 scripts/zigux/check-kconfig-bridge.py`
+- conf and confdata repeat-run JSON determinism is required before closure evidence stays green, and confdata replay must also stay stable across a second binary rebuild in the same check packet
 
 7. bounded phase2 cross-target compile gate
 - `python3 scripts/zigux/check-phase2-cross.py`
@@ -86,6 +87,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_MK_ELFCONFIG_GATE=python3 scripts/zigux/check-mk-elfconfig-diff.py`
 - `PHASE2_MK_ELFCONFIG_DETERMINISM=check-mk-elfconfig-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
+- `PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts`
 - `PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
