@@ -232,6 +232,96 @@ test "phase12 virtio net queue resume planning keeps active multiqueue scope vis
     try std.testing.expect(resume_plan.requires_rss_reapply);
 }
 
+test "phase12 virtio net recovery summaries preserve clamp versus single-queue fallback" {
+    var clamp_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_rss,
+    });
+    const clamp_snapshot = try clamp_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 6,
+        .max_queue_pairs = 4,
+    });
+    try std.testing.expectEqual(@as(u16, 4), clamp_snapshot.planned_queue_pairs);
+    try std.testing.expectEqual(virtio_net.RssSummary.active, clamp_snapshot.rss_summary);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.clamp_queue_pairs,
+        clamp_snapshot.queue_recovery_action,
+    );
+
+    _ = try clamp_lab.freezeForRecovery();
+    const clamp_resume = try clamp_lab.planQueueResume();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, clamp_resume.readiness);
+    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_control_and_rss, clamp_resume.rebuild_scope);
+    try std.testing.expectEqual(@as(u16, 4), clamp_resume.resume_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 9), clamp_resume.resume_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 8), clamp_resume.resume_control_queue_index);
+    try std.testing.expectEqual(virtio_net.RssSummary.active, clamp_resume.remembered_rss_summary);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.clamp_queue_pairs,
+        clamp_resume.remembered_queue_recovery_action,
+    );
+    try std.testing.expect(clamp_resume.requires_control_queue_restore);
+    try std.testing.expect(clamp_resume.requires_rss_reapply);
+
+    var single_queue_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_rss,
+    });
+    const single_queue_snapshot = try single_queue_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 4,
+        .max_queue_pairs = 8,
+    });
+    try std.testing.expectEqual(@as(u16, 1), single_queue_snapshot.planned_queue_pairs);
+    try std.testing.expectEqual(
+        virtio_net.RssSummary.downgraded_single_queue,
+        single_queue_snapshot.rss_summary,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        single_queue_snapshot.queue_recovery_action,
+    );
+
+    _ = try single_queue_lab.freezeForRecovery();
+    const single_queue_resume = try single_queue_lab.planQueueResume();
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeReadiness.ready,
+        single_queue_resume.readiness,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeScope.data_queues_only,
+        single_queue_resume.rebuild_scope,
+    );
+    try std.testing.expectEqual(@as(u16, 1), single_queue_resume.resume_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), single_queue_resume.resume_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), single_queue_resume.resume_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.RssSummary.downgraded_single_queue,
+        single_queue_resume.remembered_rss_summary,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        single_queue_resume.remembered_queue_recovery_action,
+    );
+    try std.testing.expect(!single_queue_resume.requires_control_queue_restore);
+    try std.testing.expect(!single_queue_resume.requires_rss_reapply);
+}
+
 test "phase12 virtio net queue resume planning distinguishes renegotiation from reset" {
     var renegotiate_lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_control_vq,
