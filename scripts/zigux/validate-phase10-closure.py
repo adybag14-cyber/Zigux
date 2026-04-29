@@ -67,7 +67,7 @@ closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").rea
 freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 docs_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
-ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").readText(encoding="utf-8")
+ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
