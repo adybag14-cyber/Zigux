@@ -3,13 +3,14 @@
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
   "roadmap_command_environment_phase": "Phase 8",
-  "surveyed_commit": "114a012f9025bf9181d6de93a376baf0cf232628",
+  "surveyed_commit": "9bb604c900b9ae13e7291841470e8326639b4f4e",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
     "runtime_loader_plan_count": 3,
     "phase8_command_environment_surface_count": 2,
+    "cross_phase_non_owner_surface_count": 4,
     "shared_runtime_loader_present": true,
     "allocator_policy_present": true,
     "shared_init_exit_contract_present": true,
@@ -50,6 +51,32 @@
     "samples/zigux/runtime_atomic64_loader.zig",
     "samples/zigux/runtime_bitmap_loader.zig",
     "samples/zigux/runtime_kretprobe_loader.zig"
+  ],
+  "non_owner_surfaces": [
+    {
+      "surface": "scripts/zigux/kconfig/conf_bridge.zig",
+      "owning_phase": "Phase 2",
+      "boundary_kind": "config_surface_bridge",
+      "why_non_owner": "The live Kconfig config-surface bridge stays in the Phase 2 config-surface bridge packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."
+    },
+    {
+      "surface": "scripts/zigux/kconfig/confdata_bridge.zig",
+      "owning_phase": "Phase 2",
+      "boundary_kind": "config_surface_bridge",
+      "why_non_owner": "The live Kconfig confdata bridge stays in the Phase 2 config-surface bridge packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."
+    },
+    {
+      "surface": "rust/exports.c",
+      "owning_phase": "Phase 3",
+      "boundary_kind": "export_boundary",
+      "why_non_owner": "The current export anchor stays in the Phase 3 export-boundary packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."
+    },
+    {
+      "surface": "zigux/kernel/export_shim.zig",
+      "owning_phase": "Phase 3",
+      "boundary_kind": "export_boundary",
+      "why_non_owner": "The Zig export shim stays in the Phase 3 export-boundary packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."
+    }
   ],
   "delivery_evidence_catalog": [
     {
