@@ -140,7 +140,6 @@ def run_self_test() -> int:
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
 
-        survey_path.writeText if False else None
         survey_path.write_text("\n".join(REQUIRED_SURVEY_MARKERS) + "\n", encoding="utf-8")
         stale_phase3_doc = root / "Documentation" / "zigux" / "phase3-rbtree-slice.md"
         stale_phase3_doc.write_text("# stale\n", encoding="utf-8")
