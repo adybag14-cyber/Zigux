@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "d0569a734c9bb11b315837010a4a8ed565c472bf",
+  "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -58,7 +58,7 @@
     {
       "lane_key": "P14-L16",
       "anchor": "kernel/rcu/tree.c",
-      "surveyed_commit": "4e45e5a392cca82429228d42d89c480fd413042b",
+      "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
       "manifest_path": "zigux/tests/phase14_rcu_tree_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-rcu-tree-survey.md",
       "ready_next_gap": "",
