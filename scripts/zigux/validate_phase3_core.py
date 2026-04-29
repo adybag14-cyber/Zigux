@@ -67,7 +67,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
     "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
-    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub",
+    "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
     "PHASE3_MMIO_SCOPE=range-read16-read32-write16-write32-plus-scoped-read16-write16-read32-write32",
 )
@@ -130,6 +130,9 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
         'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
+        "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
+        "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
+        "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
