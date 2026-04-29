@@ -103,12 +103,13 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
         return DecodeError.DestinationTooSmall;
     }
 
+    const map = reverseMap(variant);
     var out_index: usize = 0;
     var src_index: usize = 0;
 
     while (src_index + 4 <= src.len) : (src_index += 4) {
-        const a = try decodeValue(src[src_index], variant);
-        const b = try decodeValue(src[src_index + 1], variant);
+        const a = try decodeValueFromMap(map, src[src_index]);
+        const b = try decodeValueFromMap(map, src[src_index + 1]);
         const third_char = src[src_index + 2];
         const fourth_char = src[src_index + 3];
 
@@ -117,12 +118,12 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
                 src[src_index .. src_index + 2]
             else
                 src[src_index .. src_index + 3];
-            out_index += try decodeTail(dst[out_index..], tail_src, variant);
+            out_index += try decodeTailFromMap(dst[out_index..], tail_src, map);
             return out_index;
         }
 
-        const c = try decodeValue(third_char, variant);
-        const d = try decodeValue(fourth_char, variant);
+        const c = try decodeValueFromMap(map, third_char);
+        const d = try decodeValueFromMap(map, fourth_char);
 
         const value = (@as(u32, a) << 18) |
             (@as(u32, b) << 12) |
@@ -138,7 +139,7 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
     if (tail == 0) {
         return out_index;
     }
-    out_index += try decodeTail(dst[out_index..], src[src_index..], variant);
+    out_index += try decodeTailFromMap(dst[out_index..], src[src_index..], map);
     return out_index;
 }
 
@@ -177,13 +178,14 @@ fn initReverseMap(comptime ch_62: u8, comptime ch_63: u8) [256]i8 {
 }
 
 fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    const map = reverseMap(variant);
     var out_len: usize = 0;
     var src_index: usize = 0;
 
     while (src_index + 4 <= src.len) : (src_index += 4) {
         const quartet = src[src_index .. src_index + 4];
-        const a = decodeValue(quartet[0], variant) catch return DecodeError.InvalidInput;
-        const b = decodeValue(quartet[1], variant) catch return DecodeError.InvalidInput;
+        const a = decodeValueFromMap(map, quartet[0]) catch return DecodeError.InvalidInput;
+        const b = decodeValueFromMap(map, quartet[1]) catch return DecodeError.InvalidInput;
         _ = a;
         _ = b;
 
@@ -196,16 +198,16 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
             }
 
             if (c == '=') {
-                out_len += try validateTail(src[src_index .. src_index + 2], variant);
+                out_len += try validateTailFromMap(src[src_index .. src_index + 2], map);
             } else {
-                _ = decodeValue(c, variant) catch return DecodeError.InvalidInput;
-                out_len += try validateTail(src[src_index .. src_index + 3], variant);
+                _ = decodeValueFromMap(map, c) catch return DecodeError.InvalidInput;
+                out_len += try validateTailFromMap(src[src_index .. src_index + 3], map);
             }
             return out_len;
         }
 
-        _ = decodeValue(c, variant) catch return DecodeError.InvalidInput;
-        _ = decodeValue(d, variant) catch return DecodeError.InvalidInput;
+        _ = decodeValueFromMap(map, c) catch return DecodeError.InvalidInput;
+        _ = decodeValueFromMap(map, d) catch return DecodeError.InvalidInput;
         out_len += 3;
     }
 
@@ -216,16 +218,20 @@ fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!u
     if (padding or tail == 1) {
         return DecodeError.InvalidInput;
     }
-    return out_len + try validateTail(src[src_index..], variant);
+    return out_len + try validateTailFromMap(src[src_index..], map);
 }
 
 fn decodeTail(dst: []u8, src: []const u8, variant: Variant) DecodeError!usize {
+    return decodeTailFromMap(dst, src, reverseMap(variant));
+}
+
+fn decodeTailFromMap(dst: []u8, src: []const u8, map: *const [256]i8) DecodeError!usize {
     if (src.len < 2 or src.len > 3) {
         return DecodeError.InvalidInput;
     }
 
-    const a = try decodeValue(src[0], variant);
-    const b = try decodeValue(src[1], variant);
+    const a = try decodeValueFromMap(map, src[0]);
+    const b = try decodeValueFromMap(map, src[1]);
     var value = (@as(u32, a) << 12) | (@as(u32, b) << 6);
 
     if (src.len == 2) {
@@ -236,7 +242,7 @@ fn decodeTail(dst: []u8, src: []const u8, variant: Variant) DecodeError!usize {
         return 1;
     }
 
-    const c = try decodeValue(src[2], variant);
+    const c = try decodeValueFromMap(map, src[2]);
     value |= @as(u32, c);
     if ((value & 0x3) != 0) {
         return DecodeError.InvalidInput;
@@ -247,16 +253,24 @@ fn decodeTail(dst: []u8, src: []const u8, variant: Variant) DecodeError!usize {
 }
 
 fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
-    var scratch: [2]u8 = undefined;
-    return decodeTail(scratch[0..], src, variant);
+    return validateTailFromMap(src, reverseMap(variant));
 }
 
-fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
-    const value = reverseMap(variant).*[ch];
+fn validateTailFromMap(src: []const u8, map: *const [256]i8) DecodeError!usize {
+    var scratch: [2]u8 = undefined;
+    return decodeTailFromMap(scratch[0..], src, map);
+}
+
+fn decodeValueFromMap(map: *const [256]i8, ch: u8) DecodeError!u8 {
+    const value = map[ch];
     if (value < 0) {
         return DecodeError.InvalidInput;
     }
     return @intCast(value);
+}
+
+fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
+    return decodeValueFromMap(reverseMap(variant), ch);
 }
 
 fn expectedDecodeValueForTest(ch: u8, variant: Variant) ?u8 {
