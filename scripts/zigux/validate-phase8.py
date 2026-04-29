@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from pathlib import Path
 import sys
 
@@ -69,7 +70,20 @@ phase8_exec_cmd_slice = (ROOT / "Documentation" / "zigux" / "phase8-exec-cmd-sli
 phase8_cpu_mask = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-cpu-mask-slice.md").read_text(encoding="utf-8")
 phase8_type_names = (ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-slice.md").read_text(encoding="utf-8")
 manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json").read_text(encoding="utf-8")
+phase8_libbpf_segments_test = (ROOT / "zigux" / "tests" / "phase8_libbpf_segments.zig").read_text(encoding="utf-8")
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
+
+
+def require_match(pattern: str, text: str, label: str) -> str:
+    match = re.search(pattern, text, re.MULTILINE)
+    if match is None:
+        print("PHASE8_VALIDATION=fail")
+        print("MISSING_PHASE8_COMMIT_SYNC_START")
+        print(label)
+        print("MISSING_PHASE8_COMMIT_SYNC_END")
+        sys.exit(1)
+    return match.group(1)
+
 
 required_make_markers = [
     "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-test phase8",
@@ -391,6 +405,34 @@ if missing_markers:
     for marker in missing_markers:
         print(marker)
     print("MISSING_PHASE8_MARKERS_END")
+    sys.exit(1)
+
+surveyed_commit_from_note = require_match(
+    r"survey checkpoint: refreshed against inspected `master` head `([0-9a-f]{40})`",
+    phase8_survey,
+    "survey_note:missing_or_invalid_surveyed_commit",
+)
+surveyed_commit_from_manifest = require_match(
+    r'"surveyed_commit"\s*:\s*"([0-9a-f]{40})"',
+    manifest,
+    "manifest:missing_or_invalid_surveyed_commit",
+)
+surveyed_commit_from_test = require_match(
+    r'const current_surveyed_commit = "([0-9a-f]{40})";',
+    phase8_libbpf_segments_test,
+    "phase8_libbpf_segments_test:missing_or_invalid_current_surveyed_commit",
+)
+
+if (
+    surveyed_commit_from_note != surveyed_commit_from_manifest
+    or surveyed_commit_from_note != surveyed_commit_from_test
+):
+    print("PHASE8_VALIDATION=fail")
+    print("MISMATCHED_PHASE8_COMMIT_SYNC_START")
+    print(f"survey_note:{surveyed_commit_from_note}")
+    print(f"manifest:{surveyed_commit_from_manifest}")
+    print(f"phase8_libbpf_segments_test:{surveyed_commit_from_test}")
+    print("MISMATCHED_PHASE8_COMMIT_SYNC_END")
     sys.exit(1)
 
 print("PHASE8_VALIDATION=pass")
