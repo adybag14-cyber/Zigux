@@ -414,7 +414,10 @@ def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issu
     try:
         lines = artifact_diff_path.read_text(encoding="utf-8").splitlines()
         start = lines.index("Current Phase 3 use")
-        end = lines.index("Rules")
+        try:
+            end = lines.index("Current Phase 4 use")
+        except ValueError:
+            end = lines.index("Rules")
     except FileNotFoundError:
         issues.append("artifact_diff:missing_doc:Documentation/zigux/artifact-diff.md")
         return
