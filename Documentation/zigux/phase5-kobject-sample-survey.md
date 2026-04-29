@@ -48,7 +48,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 - the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
 - the replay summary keeps the Linux attribute array order `foo`, `baz`, `bar` explicit
 - the replay summary keeps the Linux `foo`, `baz`, and `bar` attribute mode pattern explicit as `0664` for all three attributes
-- `runAnchorReplay()` requires `init()` first, registers exactly three attributes, and leaves the sample in the `registered` stage
+- `runAnchorReplay()` requires `init()` first, claims attribute ownership through exactly one `register_runs` increment, registers exactly three attributes, and leaves the sample in the `registered` stage with attributes accessible
 - the initialized-but-not-registered stage keeps the active attribute count at `0` and rejects show or store calls until `registerAttributes()` claims ownership
 - the initialized-only `exit()` path returns an `abandoned_before_registration` teardown summary, keeps `register_runs` at `0`, and still leaves the sample exited with no active attributes
 - storing `42` into `foo` renders back as `42\n`
@@ -70,14 +70,14 @@ The exact verification commands and observed results were:
   - observed result: `phase5-kobject-example-tests 5 pass (5 total)`
   - observed result: `phase5-kobject-example-survey-tests 2 pass (2 total)`
 
-Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, the initialized-but-not-registered stage still keeps the active attribute count at `0` while rejecting show or store access, the initialized-only `exit()` path still reports `abandoned_before_registration`, and the registered teardown still clears tracked values while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
+Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, makes the single `register_runs` ownership claim visible before leaving the sample registered with attributes accessible, keeps the initialized-but-not-registered stage at an active attribute count of `0` while rejecting show or store access, reports `abandoned_before_registration` for the initialized-only `exit()` path, and clears registered teardown state while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
 
 ## Contributor refresh prompts for the landed sample
 
 When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, Linux `foo`/`baz`/`bar` attribute order, shared `0664` attribute mode pattern, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, single `register_runs` ownership claim, Linux `foo`/`baz`/`bar` attribute order, shared `0664` attribute mode pattern, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
 - does this sample-backed survey note stay aligned with the manifest-backed survey, `Documentation/zigux/review-checklist.md`, and the shared `zigux/tests/phase5_build.zig` entrypoint so reviewers can see the whole shipped kobject review surface in one place?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the pre-registration ownership boundary, the initialized-only exit summary, and the post-`exit()` rejection boundaries explicit instead of implying sysfs registration?
 - do the ownership checks still keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show or store access until `registerAttributes()` claims ownership?
@@ -88,11 +88,11 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 
 The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
-- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
+- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, a single replay-side ownership claim, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, initialized-only abandonment path, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
-This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle, initialized-only abandonment path, attribute-order, shared `0664` attribute mode, and non-goal cues reviewers should check before approving future edits, without reopening the closed Phase 5 sample-delivery gap.
+This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle, replay-side ownership claim, initialized-only abandonment path, attribute-order, shared `0664` attribute mode, and non-goal cues reviewers should check before approving future edits, without reopening the closed Phase 5 sample-delivery gap.
 
 ## Review gates for this survey
 
