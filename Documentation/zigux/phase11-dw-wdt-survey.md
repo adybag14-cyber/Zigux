@@ -1,6 +1,6 @@
 # Phase 11 DesignWare Watchdog Survey
 
-This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `e078a6f17710c8095c1ba9557651897d7eb615f1`.
+This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `2e54098e1bf01307c29421a4040537a7e49b8831`.
 
 The live repo state is now:
 
