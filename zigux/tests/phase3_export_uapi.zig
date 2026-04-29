@@ -18,6 +18,8 @@ test "phase3 export shim and uapi stay aligned" {
 
     const header = export_shim.header(0x44);
     try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));
+    try std.testing.expect(export_shim.isCanonicalHeader(header));
+    try std.testing.expect(uapi_version.isCanonical(header));
     try std.testing.expect(export_shim.isCompatibleHeader(header));
     try std.testing.expect(uapi_version.isCompatible(header));
 
@@ -36,6 +38,16 @@ test "phase3 export shim and uapi stay aligned" {
     };
     try std.testing.expect(!export_shim.isCompatibleHeader(mismatched_version_header));
     try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));
+
+    const future_compatible_header: abi.BoundaryHeader = .{
+        .size = @sizeOf(abi.BoundaryHeader) + 8,
+        .abi_version = abi.ABI_VERSION,
+        .flags = 0x44,
+    };
+    try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));
+    try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));
+    try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));
+    try std.testing.expect(uapi_version.isCompatible(future_compatible_header));
 
     try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);
 }
