@@ -54,7 +54,7 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-const surveyed_commit = "441272f3c588f0df5a02d813d7bae8ef4ea389b8";
+const surveyed_commit = "fa0b74ea2d3884ac60f88bbe3a5fd74f3de16738";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -95,7 +95,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
@@ -378,7 +378,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "manifest-backed delivery catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_trace_events_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/phase9_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L10`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L11`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
@@ -407,10 +407,10 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "study-boundary note rather than a freeze-map reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Architecture Council") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `441272f3c588f0df5a02d813d7bae8ef4ea389b8`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `fa0b74ea2d3884ac60f88bbe3a5fd74f3de16738`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L10`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L11`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`") != null);
