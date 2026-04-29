@@ -226,6 +226,7 @@ required_bsearch_perf_markers = [
     '.{ .label = "4096", .len = 4096, .reps = 500 }',
     'avg_compare_calls',
     'max_compare_calls',
+    'max_compare_budget',
     'std.math.log2_int_ceil',
     'try std.testing.expect(compare_calls <= max_compare_budget);',
     'try std.testing.expect(avg_compare_calls <= @as(f64, @floatFromInt(max_compare_budget)));',
