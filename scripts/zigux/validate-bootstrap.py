@@ -83,6 +83,22 @@ if missing_workflow_markers:
     print('MISSING_WORKFLOW_MARKERS_END')
     sys.exit(1)
 
+makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
+required_make_markers = [
+    'phase6-validate:',
+    'scripts/zigux/validate-phase6.py',
+    'phase6-test:',
+    'zigux/tests/phase6_build.zig',
+]
+missing_make_markers = [marker for marker in required_make_markers if marker not in makefile]
+if missing_make_markers:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_MAKE_MARKERS_START')
+    for marker in missing_make_markers:
+        print(marker)
+    print('MISSING_MAKE_MARKERS_END')
+    sys.exit(1)
+
 print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers) + len(required_workflow_markers)}')
+print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers) + len(required_workflow_markers) + len(required_make_markers)}')
