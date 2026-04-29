@@ -123,6 +123,12 @@ required_doc_readme_markers = [
     "selftest-hook markers",
     "bounded lifecycle-parity posture",
     "existing atomic64, bitmap, or kretprobe loader plans",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+    "rust/exports.c",
+    "zigux/kernel/export_shim.zig",
+    "Phase 2 or Phase 3 non-owner references",
+    "Phase 9 runtime evidence",
 ]
 
 required_freeze_map_markers = [
@@ -135,6 +141,7 @@ required_review_checklist_markers = [
     "if the change is a Phase 9 runtime slice, do the module or sample note, the manifest-backed survey or loader-gap survey, and the shared `phase9_build.zig` entrypoint still agree on the same Linux anchor, bounded blocker posture, and replay scope?",
     "if the change is a Phase 9 runtime slice, do the shipped sample, manifest-backed survey, and shared `phase9_build.zig` evidence still keep the roadmap's selftest-hook markers and bounded lifecycle-parity posture explicit instead of implying a loadable module path that the runtime substrate does not support yet?",
     "if the change touches the shared Phase 9 runtime-loader evidence packet, does the manifest-backed catalog and ownership map still keep the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint in one reviewable ownership packet?",
+    "if the change touches the shared Phase 9 runtime-loader evidence packet, do `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `rust/exports.c`, and `zigux/kernel/export_shim.zig` still stay explicit as Phase 2 or Phase 3 non-owner references instead of being silently counted as Phase 9 runtime evidence?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
     "if a Phase 9 runtime trace-events change touches the frozen trace-core boundary, do `Documentation/zigux/freeze-map.md`, the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `kernel/trace/ring_buffer.c` as `Study / Boundary Only` and require an Architecture Council decision before any status change?",
     "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
@@ -170,6 +177,11 @@ required_loader_gap_survey_markers = [
     "environment-derived activation cues",
     "allocator-handoff contract",
     "pre-execution",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
+    "rust/exports.c",
+    "zigux/kernel/export_shim.zig",
+    "boundary references instead of Phase 9 runtime evidence",
 ]
 
 required_phase9_build_markers = [
@@ -221,9 +233,32 @@ required_loader_gap_survey_test_markers = [
     'std.mem.indexOf(u8, survey_note, "PATH")',
     'std.mem.indexOf(u8, survey_note, "LINES")',
     'std.mem.indexOf(u8, survey_note, "COLUMNS")',
+    'try std.testing.expectEqual(@as(usize, 4), manifest.non_owner_surfaces.len);',
+    'try std.testing.expectEqualStrings("scripts/zigux/kconfig/conf_bridge.zig", manifest.non_owner_surfaces[0].surface);',
+    'try std.testing.expectEqualStrings("scripts/zigux/kconfig/confdata_bridge.zig", manifest.non_owner_surfaces[1].surface);',
+    'try std.testing.expectEqualStrings("rust/exports.c", manifest.non_owner_surfaces[2].surface);',
+    'try std.testing.expectEqualStrings("zigux/kernel/export_shim.zig", manifest.non_owner_surfaces[3].surface);',
+    'std.mem.indexOf(u8, survey_note, "scripts/zigux/kconfig/conf_bridge.zig")',
+    'std.mem.indexOf(u8, survey_note, "scripts/zigux/kconfig/confdata_bridge.zig")',
+    'std.mem.indexOf(u8, survey_note, "rust/exports.c")',
+    'std.mem.indexOf(u8, survey_note, "zigux/kernel/export_shim.zig")',
+    'std.mem.indexOf(u8, review_checklist, "scripts/zigux/kconfig/conf_bridge.zig")',
+    'std.mem.indexOf(u8, review_checklist, "zigux/kernel/export_shim.zig")',
 ]
 
 required_loader_gap_manifest_markers = [
+    '"cross_phase_non_owner_surface_count": 4',
+    '"non_owner_surfaces": [',
+    '"surface": "scripts/zigux/kconfig/conf_bridge.zig"',
+    '"surface": "scripts/zigux/kconfig/confdata_bridge.zig"',
+    '"surface": "rust/exports.c"',
+    '"surface": "zigux/kernel/export_shim.zig"',
+    '"owning_phase": "Phase 2"',
+    '"owning_phase": "Phase 3"',
+    '"boundary_kind": "config_surface_bridge"',
+    '"boundary_kind": "export_boundary"',
+    '"why_non_owner": "The live Kconfig config-surface bridge stays in the Phase 2 config-surface bridge packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."',
+    '"why_non_owner": "The Zig export shim stays in the Phase 3 export-boundary packet and is recorded here only as a boundary reference instead of Phase 9 runtime evidence."',
     '"roadmap_command_environment_phase": "Phase 8"',
     '"phase8_command_environment_surface_count": 2',
     '"shared_command_environment_control_present": false',
