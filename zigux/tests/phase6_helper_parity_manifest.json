@@ -2,7 +2,7 @@
   "phase": "Phase 6",
   "status": "active",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "6ff5316f99e0dc1d45d435c510439088a6c6bfbc",
+  "surveyed_commit": "74b8b7554433805e20f56facc18adbfc5b634808",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -81,14 +81,13 @@
   "perf_posture": {
     "relative_slowdown_helpers": [
       "base64",
-      "checksum"
+      "checksum",
+      "hexdump"
     ],
     "comparison_budget_helpers": [
       "bsearch"
     ],
-    "timing_sanity_only_helpers": [
-      "hexdump"
-    ]
+    "timing_sanity_only_helpers": []
   },
   "fixture_posture": {
     "fixture_backed_helpers": [
