@@ -6,7 +6,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010`
+- `PHASE5_SURVEYED_COMMIT=13653f4147fba0a6c73a5066dfb569f552dae263`
 - scope: roadmap-vs-repo sample delivery, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -59,7 +59,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `132ee03dd8cbb8986c9ef6f7d49079083b8a0010` on 2026-04-29 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `13653f4147fba0a6c73a5066dfb569f552dae263` on 2026-04-29 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
@@ -72,8 +72,6 @@ The exact verification commands and observed results were:
   - observed result: `phase5-kobject-example-survey-tests 2 pass (2 total)`
 
 Those live runs confirmed that the shipped kobject sample still matches the exact bounded checks above: the in-memory replay keeps the Linux `foo`/`baz`/`bar` attribute order and shared `0664` mode pattern explicit, makes the single `register_runs` ownership claim visible before leaving the sample registered with attributes accessible, keeps the initialized-but-not-registered stage at an active attribute count of `0` while rejecting show or store access, reports `abandoned_before_registration` for the initialized-only `exit()` path, and clears registered teardown state while rejecting later `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls.
-
-The approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010` so future survey refreshes can tell whether the verification record drifted or the sample behavior itself changed.
 
 ## Contributor refresh prompts for the landed sample
 
@@ -92,6 +90,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The roadmap delivery gap is already closed. The more precise ongoing review job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, a single replay-side ownership claim, attribute order, shared `0664` attribute mode, initialized-only abandonment, dispatch, parse failures, and teardown
+- this approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=13653f4147fba0a6c73a5066dfb569f552dae263` so the survey note, manifest-backed checks, and contributor review path all point at the same inspected `master` head
 - the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kobject slice as one approved ownership-and-lifetime idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - contributor guidance still needs to keep the in-memory directory, unnamed-group shape, attribute-array order, initialized-only abandonment path, and pre-registration ownership boundary visibly separate from real sysfs or module substrate claims and from the later runtime pilot families
 
