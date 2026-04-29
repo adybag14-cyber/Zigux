@@ -2,7 +2,7 @@
 const std = @import("std");
 
 pub fn Comparator(comptime Key: type, comptime T: type) type {
-    return *const fn (*const Key, *const T) i32;
+    return *const fn (*const Key, *const T) callconv(.c) i32;
 }
 
 pub fn searchIndex(
@@ -55,7 +55,7 @@ pub fn searchMutable(
     return &items[index];
 }
 
-fn compareInt(key: *const i32, item: *const i32) i32 {
+fn compareInt(key: *const i32, item: *const i32) callconv(.c) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
         .eq => 0,
@@ -63,7 +63,7 @@ fn compareInt(key: *const i32, item: *const i32) i32 {
     };
 }
 
-fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
+fn compareDescendingInt(key: *const i32, item: *const i32) callconv(.c) i32 {
     return compareInt(item, key);
 }
 
@@ -72,7 +72,7 @@ const Entry = struct {
     value: u32,
 };
 
-fn compareName(key: *const []const u8, item: *const Entry) i32 {
+fn compareName(key: *const []const u8, item: *const Entry) callconv(.c) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
         .eq => 0,
@@ -177,7 +177,7 @@ test "search supports heterogeneous keys through the comparator" {
     try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
 }
 
-test "search accepts runtime-selected comparator function pointers" {
+test "search accepts runtime-selected c-abi comparator function pointers" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
     const comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
