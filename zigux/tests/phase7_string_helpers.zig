@@ -184,6 +184,16 @@ test "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit" {
     try std.testing.expectError(error.NoEntry, string_helpers.parseIntArrayUser(std.testing.allocator, "1,2", 0));
 }
 
+test "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe duplication" {
+    const quoted = (try string_helpers.kstrdupQuotable(std.testing.allocator, "A\n\t\\\"\x00tail")).?;
+    defer std.testing.allocator.free(quoted);
+
+    try std.testing.expectEqualStrings("A\\x0a\\x09\\x5c\\x22", quoted);
+    try std.testing.expectEqual(@as(u8, 0), quoted[quoted.len]);
+
+    try std.testing.expectEqual(@as(?[:0]u8, null), try string_helpers.kstrdupQuotable(std.testing.allocator, null));
+}
+
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     var out = [_]u8{0} ** 32;
 
