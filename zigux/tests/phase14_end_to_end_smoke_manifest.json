@@ -1,13 +1,19 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "78ff9f7f2ad41b0aea29de8246ca5c8410ff7a36",
+  "surveyed_commit": "d0569a734c9bb11b315837010a4a8ed565c472bf",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
     "validation_gate": "zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14",
     "rollback_owner": "Repo Tooling Pod",
-    "transfer_rationale": "Absorb ZAR runtime research as product discipline only: keep exported evidence packets, machine-checked surveyed commits, and explicit blocker posture without importing ZAR runtime-core behavior into Zigux."
+    "transfer_rationale": "Absorb ZAR runtime research as product discipline only: keep exported evidence packets, machine-checked surveyed commits, and explicit blocker posture without importing ZAR runtime-core behavior into Zigux.",
+    "risk_bundle": [
+      "hidden runtime behavior",
+      "memory-ordering mistakes",
+      "overpromising full parity",
+      "deep-core scope creep"
+    ]
   },
   "shared_smoke_surfaces": [
     "scripts/zigux/validate-phase14.py",
@@ -32,7 +38,7 @@
       "blocked_gap": "phase14-workqueue-live-execution-blocker"
     },
     {
-      "lane_key": "P14-L11",
+      "lane_key": "P14-L12",
       "anchor": "net/core/skbuff.c",
       "surveyed_commit": "f65e3d897847bf205198e5c47a41782085620579",
       "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
@@ -124,7 +130,9 @@
     "workflow_runs_phase14_smoke_shard": true,
     "review_checklist_has_phase14_smoke_prompt": true,
     "review_checklist_has_productization_prompt": true,
+    "review_checklist_has_risk_bundle_prompt": true,
     "smoke_note_records_owner_and_rollback": true,
+    "smoke_note_records_risk_bundle": true,
     "smoke_note_records_transfer_rationale": true,
     "freeze_map_lists_workqueue_c": true,
     "freeze_map_lists_skbuff_c": true,
