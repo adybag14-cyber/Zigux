@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L13",
   "phase": "Phase 12",
-  "surveyed_commit": "0b472ee501f0999f82840c7feaa872e6152764f8",
+  "surveyed_commit": "45bb0868561b3bf37a597c6e51e5fa777f05dd9b",
   "anchor": "tools/lib/bpf/libbpf.c",
   "roadmap_destinations": [
     "tools/lib/bpf/zigux_segments/",
@@ -59,7 +59,7 @@
       "status": "starter_landed",
       "kind": "helper_first",
       "zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-      "why_now": "The landed CPU mask helper now covers bounded string parsing, set-bit counting, and a deferred chunk-reader interface for sysfs-style buffered input while keeping the same fixed-width input ceiling that the current libbpf cpu-mask file path uses, so future perf-buffer and feature-probe work can share it without widening into direct file I/O or runtime loader behavior."
+      "why_now": "The landed CPU mask helper now covers bounded string parsing, set-bit counting, the deferred chunk-reader interface for sysfs-style buffered input, and the automatic perf-buffer CPU-budget clamp while keeping the same fixed-width input ceiling that the current libbpf cpu-mask file path uses, so future perf-buffer and feature-probe work can share it without widening into direct file I/O, epoll wiring, or runtime loader behavior."
     },
     {
       "id": "phase12-libbpf-survey-gate",
