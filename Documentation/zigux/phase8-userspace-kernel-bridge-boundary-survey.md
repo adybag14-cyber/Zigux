@@ -34,7 +34,7 @@ The current libbpf bridge packet is also helper-first:
 
 - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` only claims `/proc/<pid>/fdinfo/<fd>` path construction plus bounded fdinfo text parsing from `bpf_get_map_info_from_fdinfo()`
 - `Documentation/zigux/phase8-libbpf-segment-survey.md` keeps the deferred `file-path-and-handle-bridge` boundary explicit around `bpf_object_prepare_token()`, `bpf_object__reuse_map()`, `bpf_obj_get()` reopen flows, and `open()` or `close()` ownership, even after the bounded `planTokenPreparation()` helper made the optional-versus-mandatory token-path intent reviewable
-- the same survey keeps the separate `perf-buffer-online-cpu-routing` boundary explicit around `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts from `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, epoll-backed perf FD registration, and timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts, so the landed helper-first rollout still does not claim direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, bpffs path opens, `bpf_token_create()` handle lifecycle parity, or interrupt-routing-sensitive perf-buffer behavior
+- the same survey keeps the separate `perf-buffer-online-cpu-routing` boundary explicit around `/sys/devices/system/cpu/online` reads, cached `/sys/devices/system/cpu/possible` counts from `libbpf_num_possible_cpus()`, online CPU filtering, per-CPU perf-event-array map updates, epoll-backed perf FD registration, and timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts, so the landed helper-first rollout still does not claim direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, bpffs path opens, `bpf_token_create()` handle lifecycle parity, or interrupt-routing-sensitive perf-buffer behavior. Phase 8 still ships no standalone timer helper and no standalone clockevent helper for this poll-adjacent path, so any future `perf_buffer__poll(timeout_ms)` packet needs its own manifest-backed slice instead of being inferred from the current cpu-mask and bridge notes.
 
 ## Review gate
 
@@ -59,6 +59,7 @@ This survey does not reopen or claim:
 - direct `/sys/devices/system/cpu/online` reads or cached `libbpf_num_possible_cpus()` parity
 - direct per-CPU perf-event-array updates or epoll-backed perf FD registration
 - direct `perf_buffer__poll(timeout_ms)` timeout handling or ready-buffer count parity
+- any standalone timer helper or standalone clockevent helper for perf-buffer polling
 - object-model, ELF-loader, or perf-buffer runtime parity
 
 ## Next bounded step
