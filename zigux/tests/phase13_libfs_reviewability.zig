@@ -139,7 +139,7 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_lookup") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-tests")) {
-            sawTests = true;
+            saw_tests = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_libfs.zig", gap.zigux_destination);
         }
