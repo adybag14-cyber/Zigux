@@ -71,7 +71,9 @@ phase8_cpu_mask = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-cpu-mask-sl
 phase8_type_names = (ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-slice.md").read_text(encoding="utf-8")
 manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json").read_text(encoding="utf-8")
 phase8_libbpf_segments_test = (ROOT / "zigux" / "tests" / "phase8_libbpf_segments.zig").read_text(encoding="utf-8")
+phase8_bpf_type_names_test = (ROOT / "zigux" / "tests" / "phase8_bpf_type_names.zig").read_text(encoding="utf-8")
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
+type_names_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "type_names.zig").read_text(encoding="utf-8")
 
 
 def require_match(pattern: str, text: str, label: str) -> str:
@@ -321,6 +323,46 @@ required_type_name_markers = [
     "tools/lib/bpf/zigux_segments/type_names.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "make -C zigux phase8",
+    "dense attach, link, map, and program type string helpers only",
+    "every table entry is reachable through the corresponding helper",
+    "representative late enum ordinals from `tools/include/uapi/linux/bpf.h` still resolve to the expected names",
+    "deprecated-but-still-addressable map ordinals preserve the shipped libbpf names",
+    "out-of-range negative and oversized values are rejected cleanly",
+]
+
+required_phase8_bpf_type_names_markers = [
+    'test "phase 8 bpf type-name segment keeps live libbpf tables aligned with current UAPI ordinals"',
+    'test "phase 8 bpf type-name segment still exposes the current live enum ceilings"',
+    "tools/include/uapi/linux/bpf.h",
+    "tools/lib/bpf/libbpf.c",
+    "static const char * const attach_type_name[] = {",
+    "static const char * const link_type_name[] = {",
+    "static const char * const map_type_name[] = {",
+    "static const char * const prog_type_name[] = {",
+    "enum bpf_attach_type {",
+    "enum bpf_link_type {",
+    "enum bpf_map_type {",
+    "enum bpf_prog_type {",
+    '"trace_fsession"',
+    '"sockmap"',
+    '"insn_array"',
+    '"netfilter"',
+]
+
+required_type_names_helper_markers = [
+    "pub const attach_type_names =",
+    "pub const link_type_names =",
+    "pub const map_type_names =",
+    "pub const prog_type_names =",
+    "pub fn libbpfBpfAttachTypeStr",
+    "pub fn libbpfBpfLinkTypeStr",
+    "pub fn libbpfBpfMapTypeStr",
+    "pub fn libbpfBpfProgTypeStr",
+    'try std.testing.expectEqualStrings("trace_fsession", libbpfBpfAttachTypeStr(58).?);',
+    'try std.testing.expectEqualStrings("sockmap", libbpfBpfLinkTypeStr(14).?);',
+    'try std.testing.expectEqualStrings("insn_array", libbpfBpfMapTypeStr(34).?);',
+    'try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
+    'test "type-name helpers reject out-of-range values the same way as libbpf.c"',
 ]
 
 required_manifest_markers = [
@@ -410,6 +452,12 @@ for marker in required_cpu_mask_markers:
 for marker in required_type_name_markers:
     if marker not in phase8_type_names:
         missing_markers.append(f"phase8_type_names:{marker}")
+for marker in required_phase8_bpf_type_names_markers:
+    if marker not in phase8_bpf_type_names_test:
+        missing_markers.append(f"phase8_bpf_type_names:{marker}")
+for marker in required_type_names_helper_markers:
+    if marker not in type_names_helper:
+        missing_markers.append(f"type_names_helper:{marker}")
 for marker in required_manifest_markers:
     if marker not in manifest:
         missing_markers.append(f"manifest:{marker}")
@@ -454,5 +502,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
 )
