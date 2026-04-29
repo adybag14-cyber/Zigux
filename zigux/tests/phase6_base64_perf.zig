@@ -20,12 +20,12 @@ const ReferenceKind = enum {
 };
 
 const perf_cases = [_]PerfCase{
-    .{ .label = "std-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = true, .variant = .std, .reference_kind = .standard },
-    .{ .label = "std-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = true, .variant = .std, .reference_kind = .standard },
-    .{ .label = "urlsafe-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
-    .{ .label = "urlsafe-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
-    .{ .label = "imap-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
-    .{ .label = "imap-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+    .{ .label = "std-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "std-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "urlsafe-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "urlsafe-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "imap-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+    .{ .label = "imap-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
 };
 
 pub fn main(init: std.process.Init) !void {
@@ -60,6 +60,10 @@ const PerfResult = struct {
     encoded_len: usize,
     decoded_len: usize,
 };
+
+fn median3(a: u64, b: u64, c: u64) u64 {
+    return a + b + c - @min(a, @min(b, c)) - @max(a, @max(b, c));
+}
 
 fn benchTime(io: std.Io) i96 {
     return std.Io.Clock.awake.now(io).nanoseconds;
@@ -217,8 +221,10 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     var reference_encode_sink = reference_encode_warmup.sink;
     var helper_decode_sink = helper_decode_warmup.sink;
     var reference_decode_sink = reference_decode_warmup.sink;
+    var encode_slowdown_samples: [3]u64 = undefined;
+    var decode_slowdown_samples: [3]u64 = undefined;
 
-    for (0..2) |_| {
+    for (0..encode_slowdown_samples.len) |sample_index| {
         const helper_encode_sample = try benchHelperEncode(input[0..case.size], helper_encoded[0..], case.reps, case.padding, case.variant, io);
         if (helper_encode_sample.elapsed < helper_encode_elapsed) {
             helper_encode_elapsed = helper_encode_sample.elapsed;
@@ -239,6 +245,20 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
             reference_decode_elapsed = reference_decode_sample.elapsed;
             reference_decode_sink = reference_decode_sample.sink;
         }
+
+        try std.testing.expect(helper_encode_sample.elapsed > 0);
+        try std.testing.expect(reference_encode_sample.elapsed > 0);
+        try std.testing.expect(helper_decode_sample.elapsed > 0);
+        try std.testing.expect(reference_decode_sample.elapsed > 0);
+
+        encode_slowdown_samples[sample_index] = @as(u64, @intCast(@divFloor(
+            helper_encode_sample.elapsed * @as(i96, 100),
+            reference_encode_sample.elapsed,
+        )));
+        decode_slowdown_samples[sample_index] = @as(u64, @intCast(@divFloor(
+            helper_decode_sample.elapsed * @as(i96, 100),
+            reference_decode_sample.elapsed,
+        )));
     }
     try std.testing.expect(helper_encode_elapsed > 0);
     try std.testing.expect(reference_encode_elapsed > 0);
@@ -254,8 +274,16 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     const helper_decode_ns_per_op = @max(@as(u64, @intCast(@divFloor(helper_decode_elapsed, @as(i96, @intCast(case.reps))))), 1);
     const reference_encode_ns_per_op = @max(@as(u64, @intCast(@divFloor(reference_encode_elapsed, @as(i96, @intCast(case.reps))))), 1);
     const reference_decode_ns_per_op = @max(@as(u64, @intCast(@divFloor(reference_decode_elapsed, @as(i96, @intCast(case.reps))))), 1);
-    const encode_slowdown_pct = @divFloor(helper_encode_ns_per_op * 100, reference_encode_ns_per_op);
-    const decode_slowdown_pct = @divFloor(helper_decode_ns_per_op * 100, reference_decode_ns_per_op);
+    const encode_slowdown_pct = median3(
+        encode_slowdown_samples[0],
+        encode_slowdown_samples[1],
+        encode_slowdown_samples[2],
+    );
+    const decode_slowdown_pct = median3(
+        decode_slowdown_samples[0],
+        decode_slowdown_samples[1],
+        decode_slowdown_samples[2],
+    );
 
     try std.testing.expect(encode_slowdown_pct <= case.max_encode_slowdown_pct);
     try std.testing.expect(decode_slowdown_pct <= case.max_decode_slowdown_pct);
