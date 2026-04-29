@@ -31,8 +31,10 @@ pub const ReplaySummary = struct {
     function_callback_iteration_count: i32,
     formatted_message: []const u8,
     selected_string: []const u8,
+    selected_string_slot: usize,
     array_prefix: [2]i32,
     array_prefix_len: usize,
+    payload_len: usize,
     array_sentinel: i32,
     bitmask_word: usize,
     main_thread_event_calls: usize,
@@ -78,6 +80,7 @@ pub const TraceEventsReferenceSample = struct {
     last_function_count: i32 = -1,
     array_payload: [6]i32 = [_]i32{0} ** 6,
     selected_string: []const u8 = "",
+    selected_string_slot: usize = 0,
     bitmask_word: usize = 0,
     saw_vararg_payload: bool = false,
     saw_rel_loc_payload: bool = false,
@@ -123,6 +126,7 @@ pub const TraceEventsReferenceSample = struct {
         self.last_function_count = -1;
         self.array_payload = [_]i32{0} ** 6;
         self.selected_string = "";
+        self.selected_string_slot = 0;
         self.bitmask_word = 0;
         self.saw_vararg_payload = false;
         self.saw_rel_loc_payload = false;
@@ -154,6 +158,7 @@ pub const TraceEventsReferenceSample = struct {
 
         self.last_main_count = count;
         self.selected_string = random_strings[len];
+        self.selected_string_slot = len;
         self.bitmask_word = 0xdeadbeef;
         const message = try std.fmt.bufPrint(&self.message_buffer, "iter={d}", .{count});
         self.message_len = message.len;
@@ -202,8 +207,10 @@ pub const TraceEventsReferenceSample = struct {
             .function_callback_iteration_count = self.last_function_count,
             .formatted_message = self.formattedMessage(),
             .selected_string = self.selected_string,
+            .selected_string_slot = self.selected_string_slot,
             .array_prefix = .{ self.array_payload[0], self.array_payload[1] },
             .array_prefix_len = 2,
+            .payload_len = self.selected_string_slot,
             .array_sentinel = self.array_payload[2],
             .bitmask_word = self.bitmask_word,
             .main_thread_event_calls = event_family_count,
@@ -257,8 +264,10 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(i32, 9), replay.function_callback_iteration_count);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), replay.selected_string_slot);
     try std.testing.expectEqualSlices(i32, &.{ 1, 2 }, replay.array_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 2), replay.array_prefix_len);
+    try std.testing.expectEqual(@as(usize, 2), replay.payload_len);
     try std.testing.expectEqual(@as(i32, 0), replay.array_sentinel);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), replay.bitmask_word);
     try std.testing.expectEqual(@as(usize, 6), replay.main_thread_event_calls);
@@ -296,6 +305,7 @@ test "trace-events sample replays every modulo-selected string and formatted mes
         try sample.replayMainIteration(@intCast(count));
 
         try std.testing.expectEqualStrings(expected_string, sample.selected_string);
+        try std.testing.expectEqual(@as(usize, count), sample.selected_string_slot);
         try std.testing.expectEqualStrings(
             try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
             sample.formattedMessage(),
