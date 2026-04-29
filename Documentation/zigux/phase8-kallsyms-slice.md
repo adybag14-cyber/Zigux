@@ -16,7 +16,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
 
-The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local review drift was explicit proof for overlong symbol handling in the chunk-reconstructed and direct-wrapper paths: `kallsyms.c` keeps parsing and passes a bounded name buffer onward, so the Zig starter needs those higher-level routes covered explicitly rather than only relying on the line parser's truncation behavior.
+The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local review drift was explicit proof that the chunked path stays bounded the same way as `kallsyms.c`: the C helper stops filling `symbol_name[KSYM_NAME_LEN + 1]`, discards the rest of the oversized line, and still reaches the next symbol. The Zig starter now needs that discard-after-boundary behavior and its higher-level review note to be explicit rather than only relying on the line parser's truncation behavior after buffering the full line.
 
 ## Gates
 
@@ -42,6 +42,7 @@ The current starter slice covers:
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
 - one direct `kallsymsParse()` wrapper that accepts a plain filename plus a C-shaped callback contract while `kallsymsParseInDir()` keeps the narrower injected-dir variant available for tests and callers that need it
 - bounded symbol-name truncation that keeps the starter parser inside `KSYM_NAME_LEN` while preserving the same continue-parsing shape as the C helper
+- chunked overlong-line handling that now stops buffering after the bounded callback surface is full, discards the remainder of that one line until newline, and still reaches the next symbol record the same way the fixed-size C buffer does
 
 The current tests check:
 
@@ -52,7 +53,7 @@ The current tests check:
 - split records also preserve callback-stop behavior unchanged when a failing symbol spans buffered chunk boundaries in the dedicated Phase 8 gate
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrappers preserve both the cwd-based filename contract and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
-- oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked and direct-wrapper routes, so the starter slice now matches the C helper's bounded callback contract instead of failing early
+- oversized symbol names are truncated to `KSYM_NAME_LEN` in direct, line-by-line, and chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked discard path and direct-wrapper routes, so the starter slice now matches the C helper's bounded callback contract without buffering the whole overlong line first
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
 ## Non-goals
@@ -65,4 +66,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the `kallsyms` lane unless a fresh parity gap appears; the starter slice now covers bounded overlong-name handling as well as the direct wrappers, so the next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
+Park the `kallsyms` lane unless a fresh parity gap appears; the starter slice now covers bounded overlong-name handling, chunked discard-after-boundary behavior, and the direct wrappers, so the next honest follow-up should only reopen this lane for another exact parser or callback-contract edge rather than widening into ELF emission or downstream symbol plumbing.
