@@ -84,6 +84,10 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
 test "phase 7 stringGetSize covers SI, binary, and formatting flag cases" {
     var out = [_]u8{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+    const zero_len = string_helpers.stringGetSize(0, 1, string_helpers.STRING_UNITS_10, &out);
+    try std.testing.expectEqual(@as(usize, 3), zero_len);
+    try std.testing.expectEqualStrings("0 B", cStringPrefix(&out));
+
     const si_len = string_helpers.stringGetSize(1500, 1, string_helpers.STRING_UNITS_10, &out);
     try std.testing.expectEqual(@as(usize, 7), si_len);
     try std.testing.expectEqualStrings("1.50 kB", cStringPrefix(&out));
@@ -100,6 +104,10 @@ test "phase 7 stringGetSize covers SI, binary, and formatting flag cases" {
     );
     try std.testing.expectEqual(@as(usize, 6), compact_len);
     try std.testing.expectEqualStrings("1.50Ki", cStringPrefix(&out));
+
+    const multiplied_len = string_helpers.stringGetSize(10, 512, string_helpers.STRING_UNITS_10, &out);
+    try std.testing.expectEqual(@as(usize, 7), multiplied_len);
+    try std.testing.expectEqualStrings("5.12 kB", cStringPrefix(&out));
 }
 
 test "phase 7 stringGetSize returns snprintf-style length on truncation" {
@@ -108,6 +116,11 @@ test "phase 7 stringGetSize returns snprintf-style length on truncation" {
 
     try std.testing.expectEqual(@as(usize, 7), len);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '1', '.', '5', '0', 0 }, &out);
+
+    try std.testing.expectEqual(
+        @as(usize, 7),
+        string_helpers.stringGetSize(1500, 1, string_helpers.STRING_UNITS_10, &.{}),
+    );
 }
 
 test "phase 7 escape flag masks stay aligned with the Linux helper contract" {
@@ -195,6 +208,12 @@ test "phase 7 stringUnescape supports in-place and bounded destination behavior"
     try std.testing.expectEqualSlices(u8, "\n\r", bounded[0..2]);
     try std.testing.expectEqual(@as(u8, 0), bounded[2]);
     try std.testing.expectEqual(@as(u8, '!'), bounded[3]);
+
+    var exact = [_]u8{ '!', '!', '!' };
+    const exact_len = string_helpers.stringUnescape("\\n\\r", &exact, exact.len, string_helpers.UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 2), exact_len);
+    try std.testing.expectEqualSlices(u8, "\n\r", exact[0..2]);
+    try std.testing.expectEqual(@as(u8, 0), exact[2]);
 }
 
 test "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules" {
@@ -252,4 +271,9 @@ test "phase 7 stringEscapeMem reports truncated output length without forcing a 
 
     try std.testing.expectEqual(@as(usize, 4), len);
     try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
+
+    try std.testing.expectEqual(
+        @as(usize, 2),
+        string_helpers.stringEscapeMem("\n", &.{}, string_helpers.ESCAPE_SPACE, null),
+    );
 }
