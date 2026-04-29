@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
 const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};
+var empty_storage_null_terminated = [_:0]u8{0};
 
 pub const ArgvSplitResult = struct {
     storage: [:0]u8,
@@ -16,7 +17,7 @@ pub const ArgvSplitResult = struct {
         }
         allocator.free(self.storage);
         self.* = .{
-            .storage = undefined,
+            .storage = empty_storage_null_terminated[0..0 :0],
             .argv = &.{},
             .argv_null_terminated = empty_argv_null_terminated,
         };
@@ -209,14 +210,18 @@ test "argvSplit reuses the exported empty argv view for blank input" {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
-test "ArgvSplitResult deinit leaves exported argv views empty and null terminated" {
+test "ArgvSplitResult deinit clears exported storage and argv views" {
     var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
 
+    try std.testing.expect(split.storage.len != 0);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 2), split.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
 
     split.deinit(std.testing.allocator);
 
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
