@@ -88,9 +88,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         {
             saw_docs_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "vararg-payload") != null and
+        if (std.mem.indexOf(u8, prompt, "selected-string-slot") != null and
+            std.mem.indexOf(u8, prompt, "payload-length") != null and
             std.mem.indexOf(u8, prompt, "main-iteration") != null and
             std.mem.indexOf(u8, prompt, "callback-iteration") != null and
+            std.mem.indexOf(u8, prompt, "vararg-payload") != null and
+            std.mem.indexOf(u8, prompt, "lifecycle-summary") != null and
             std.mem.indexOf(u8, prompt, "relative-location") != null and
             std.mem.indexOf(u8, prompt, "callback-path") != null)
         {
@@ -137,6 +140,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             saw_message_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=7") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Gandalf") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "slot 2") != null);
         }
         if (std.mem.eql(u8, check.id, "descriptor-anchor")) {
             saw_descriptor_check = true;
@@ -158,6 +162,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "array-and-sentinel-shape")) {
             saw_array_shape_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload length 2") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,2 payload prefix") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero sentinel") != null);
         }
@@ -289,6 +294,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Mother Goose") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "One ring to rule them all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "counts `0` through `4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-string slot `2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "payload length `2`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`lifecycleSummary()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "private field access") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`checked_focus`") != null);
