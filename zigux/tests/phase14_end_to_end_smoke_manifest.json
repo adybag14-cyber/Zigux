@@ -28,7 +28,7 @@
       "surveyed_commit": "1b346dbd77659625fedfdc2a45f5016e391043f8",
       "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
-      "ready_next_gap": "phase14-workqueue-drain-cancel-followup",
+      "ready_next_gap": "phase14-workqueue-disable-delayed-followup",
       "blocked_gap": "phase14-workqueue-live-execution-blocker"
     },
     {
@@ -41,9 +41,9 @@
       "blocked_gap": "phase14-skbuff-live-ownership-blocker"
     },
     {
-      "lane_key": "P14-L06",
+      "lane_key": "P14-L05",
       "anchor": "kernel/trace/ring_buffer.c",
-      "surveyed_commit": "d78223d3f1a386521769795b1cff384d83cb6a3a",
+      "surveyed_commit": "7addb3a576d8a83a542f84a83957289cfe2f72e5",
       "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
       "ready_next_gap": "",
