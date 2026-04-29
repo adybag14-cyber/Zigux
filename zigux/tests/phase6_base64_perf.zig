@@ -16,6 +16,7 @@ const PerfCase = struct {
 const ReferenceKind = enum {
     standard,
     url_safe_no_pad,
+    imap_no_pad,
 };
 
 const perf_cases = [_]PerfCase{
@@ -23,6 +24,8 @@ const perf_cases = [_]PerfCase{
     .{ .label = "std-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = true, .variant = .std, .reference_kind = .standard },
     .{ .label = "urlsafe-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
     .{ .label = "urlsafe-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "imap-64B", .size = fixtures.perf_cases[0].size, .reps = fixtures.perf_cases[0].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+    .{ .label = "imap-1KB", .size = fixtures.perf_cases[1].size, .reps = fixtures.perf_cases[1].reps, .max_encode_slowdown_pct = 125, .max_decode_slowdown_pct = 225, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
 };
 
 pub fn main(init: std.process.Init) !void {
@@ -78,7 +81,25 @@ fn referenceEncode(kind: ReferenceKind, dst: []u8, src: []const u8) []const u8 {
     return switch (kind) {
         .standard => std.base64.standard.Encoder.encode(dst, src),
         .url_safe_no_pad => std.base64.url_safe_no_pad.Encoder.encode(dst, src),
+        .imap_no_pad => encodeImapReference(dst, src, false),
     };
+}
+
+fn encodeImapReference(dst: []u8, src: []const u8, padding: bool) []const u8 {
+    const standard_encoded = std.base64.standard.Encoder.encode(dst, src);
+    var len = standard_encoded.len;
+    if (!padding) {
+        while (len > 0 and dst[len - 1] == '=') {
+            len -= 1;
+        }
+    }
+
+    for (dst[0..len]) |*byte| {
+        if (byte.* == '/') {
+            byte.* = ',';
+        }
+    }
+    return dst[0..len];
 }
 
 fn benchReferenceEncode(kind: ReferenceKind, src: []const u8, dst: []u8, reps: usize, io: std.Io) struct { elapsed: i96, sink: u32 } {
@@ -106,25 +127,51 @@ fn benchHelperDecode(encoded: []const u8, dst: []u8, expected_len: usize, reps: 
     return .{ .elapsed = benchTime(io) - started_at, .sink = sink };
 }
 
-fn referenceDecodedLen(kind: ReferenceKind, encoded: []const u8) !usize {
+fn referenceDecodedLen(kind: ReferenceKind, encoded: []const u8, scratch: []u8) !usize {
     return switch (kind) {
         .standard => std.base64.standard.Decoder.calcSizeForSlice(encoded),
         .url_safe_no_pad => std.base64.url_safe_no_pad.Decoder.calcSizeForSlice(encoded),
+        .imap_no_pad => std.base64.standard.Decoder.calcSizeForSlice(try normalizeImapDecodeInput(scratch, encoded)),
     };
 }
 
-fn referenceDecode(kind: ReferenceKind, dst: []u8, encoded: []const u8) !void {
+fn referenceDecode(kind: ReferenceKind, dst: []u8, encoded: []const u8, scratch: []u8) !void {
     switch (kind) {
         .standard => try std.base64.standard.Decoder.decode(dst, encoded),
         .url_safe_no_pad => try std.base64.url_safe_no_pad.Decoder.decode(dst, encoded),
+        .imap_no_pad => try std.base64.standard.Decoder.decode(dst, try normalizeImapDecodeInput(scratch, encoded)),
     }
+}
+
+fn normalizeImapDecodeInput(scratch: []u8, encoded: []const u8) ![]const u8 {
+    if (encoded.len > scratch.len) {
+        return error.InvalidInput;
+    }
+
+    @memcpy(scratch[0..encoded.len], encoded);
+    for (scratch[0..encoded.len]) |*byte| {
+        if (byte.* == ',') {
+            byte.* = '/';
+        }
+    }
+
+    var normalized_len = encoded.len;
+    while ((normalized_len % 4) != 0) : (normalized_len += 1) {
+        if (normalized_len >= scratch.len) {
+            return error.InvalidInput;
+        }
+        scratch[normalized_len] = '=';
+    }
+
+    return scratch[0..normalized_len];
 }
 
 fn benchReferenceDecode(kind: ReferenceKind, encoded: []const u8, dst: []u8, expected_len: usize, reps: usize, io: std.Io) !struct { elapsed: i96, sink: u32 } {
     var sink: u32 = 0;
+    var scratch: [1368]u8 = undefined;
     const started_at = benchTime(io);
     for (0..reps) |_| {
-        try referenceDecode(kind, dst[0..expected_len], encoded);
+        try referenceDecode(kind, dst[0..expected_len], encoded, scratch[0..]);
         sink +%= @as(u32, @intCast(expected_len));
         sink +%= dst[0];
         sink +%= dst[@max(expected_len, 1) - 1];
@@ -136,6 +183,7 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     var input: [1024]u8 = undefined;
     var helper_encoded: [1368]u8 = undefined;
     var reference_encoded: [1368]u8 = undefined;
+    var reference_decode_input: [1368]u8 = undefined;
     var helper_decoded: [1024]u8 = undefined;
     var reference_decoded: [1024]u8 = undefined;
 
@@ -146,8 +194,8 @@ fn runPerfCase(case: PerfCase, io: std.Io) !PerfResult {
     const encoded_len = try base64.encode(helper_encoded[0..], input[0..case.size], case.padding, case.variant);
     const reference_encoded_slice = referenceEncode(case.reference_kind, reference_encoded[0..], input[0..case.size]);
     const decoded_len = try base64.decode(helper_decoded[0..], helper_encoded[0..encoded_len], case.padding, case.variant);
-    const reference_decoded_len = try referenceDecodedLen(case.reference_kind, reference_encoded_slice);
-    try referenceDecode(case.reference_kind, reference_decoded[0..reference_decoded_len], reference_encoded_slice);
+    const reference_decoded_len = try referenceDecodedLen(case.reference_kind, reference_encoded_slice, reference_decode_input[0..]);
+    try referenceDecode(case.reference_kind, reference_decoded[0..reference_decoded_len], reference_encoded_slice, reference_decode_input[0..]);
 
     try std.testing.expectEqual(encoded_len, reference_encoded_slice.len);
     try std.testing.expectEqual(case.size, decoded_len);
