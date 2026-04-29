@@ -199,6 +199,31 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         error.InvalidRootPath,
         pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, "tmp/bpf", "demo.map"),
     );
+
+    const OversizeReader = struct {
+        returned: bool = false,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.returned) {
+                return null;
+            }
+
+            self.returned = true;
+            @memset(buffer, '1');
+            return buffer.len;
+        }
+    };
+
+    var oversize_reader = OversizeReader{};
+    var cpu_mask_buffer: [cpu_mask.cpu_mask_file_read_limit + 1]u8 = undefined;
+    try std.testing.expectError(
+        error.InputTooLarge,
+        cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &cpu_mask_buffer, .{
+            .context = &oversize_reader,
+            .readFn = OversizeReader.read,
+        }),
+    );
 }
 
 test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog" {
