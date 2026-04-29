@@ -15,6 +15,8 @@ Key entrypoints
 - `zigux/tests/phase4_build.zig`
 - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
+- `zigux/tests/phase4_test_fsmount_survey.zig`
+- `zigux/tests/phase4_test_fsmount_manifest.json`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
@@ -107,6 +109,7 @@ Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
+- keep the Phase 4 rollback-readiness packet reviewable through `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `scripts/zigux/validate-phase4.py`, and the current `make M=samples/vfs` C-anchor-only survey posture instead of treating the still-absent `samples/zigux/test_fsmount.zig` as landed
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
 - keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
 - keep the Phase 7 handoff explicit: the helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`, while `zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`
