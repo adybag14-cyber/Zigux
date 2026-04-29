@@ -93,10 +93,12 @@ Layout assertion policy:
 
 Panic policy:
 - explicit modes only: `abort`, `bug`, `warn`
+- helpers now decode raw `InteropPolicy.panic_mode` bytes explicitly before deciding whether return is permitted
 - no implicit panic behavior in boundary helpers
 
 Allocator policy:
 - explicit modes only: `caller_provided`, `kernel_heap`, `arena`
+- helpers now decode raw `InteropPolicy.allocator_mode` bytes explicitly before deciding caller ownership, fallback, and reset requirements
 - boundary code must be able to state whether it requires a caller allocator
 
 Unsafe policy:
