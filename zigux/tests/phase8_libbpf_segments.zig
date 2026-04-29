@@ -62,6 +62,15 @@ fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usiz
     );
 }
 
+fn workspacePathExists(path: []const u8) bool {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const file = std.Io.Dir.cwd().openFile(io_instance.io(), path, .{}) catch return false;
+    file.close(io_instance.io());
+    return true;
+}
+
 fn parseAnchorRange(text: []const u8) !AnchorRange {
     const colon = std.mem.lastIndexOfScalar(u8, text, ':') orelse return error.InvalidAnchorRange;
     const dash = std.mem.indexOfScalar(u8, text[colon + 1 ..], '-') orelse return error.InvalidAnchorRange;
@@ -346,6 +355,8 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "online CPU filtering");
     try expectContains(survey_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(survey_note, "ready-buffer counts");
+    try expectContains(survey_note, "no standalone timer helper");
+    try expectContains(survey_note, "no standalone clockevent helper");
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "reused-map-name chooser");
     try expectContains(survey_note, "token-preparation planning");
@@ -360,4 +371,12 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(bridge_boundary_note, "epoll-backed perf FD registration");
     try expectContains(bridge_boundary_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(bridge_boundary_note, "ready-buffer counts");
+    try expectContains(bridge_boundary_note, "no standalone timer helper");
+    try expectContains(bridge_boundary_note, "no standalone clockevent helper");
+}
+
+test "phase 8 deferred perf-buffer boundary still ships no standalone timer helper packet" {
+    try std.testing.expect(!workspacePathExists("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"));
+    try std.testing.expect(!workspacePathExists("zigux/tests/phase8_perf_buffer_poll.zig"));
+    try std.testing.expect(!workspacePathExists("Documentation/zigux/phase8-perf-buffer-poll-slice.md"));
 }
