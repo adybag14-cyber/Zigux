@@ -34,7 +34,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through config-window follow-up" {
+test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -229,9 +229,9 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {
             saw_mmio_config_write = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "write-planning helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write planning helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
@@ -253,7 +253,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     }
 
     try std.testing.expect(starter_landed_count >= 5);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_core_progress_note);
     try std.testing.expect(saw_ring_helper);
