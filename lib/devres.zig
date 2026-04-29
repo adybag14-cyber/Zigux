@@ -16,6 +16,8 @@ pub const ModuleDescriptor = struct {
     provides_arch_io_wc_memtype_planning: bool,
     touches_live_device_lists: bool,
     touches_live_mmio: bool,
+    touches_live_dma: bool,
+    touches_live_scatterlist: bool,
     touches_live_arch_memtype: bool,
 };
 
@@ -302,6 +304,8 @@ pub const DevresHelperLab = struct {
             .provides_arch_io_wc_memtype_planning = true,
             .touches_live_device_lists = false,
             .touches_live_mmio = false,
+            .touches_live_dma = false,
+            .touches_live_scatterlist = false,
             .touches_live_arch_memtype = false,
         };
     }
