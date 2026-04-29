@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L01",
   "phase": "Phase 12",
-  "surveyed_commit": "92b48d9b9192716393eb6d38cd8c0bb8d3a1a36d",
+  "surveyed_commit": "b58fd1c469aa9d7744822f7cb31e7e4c24691cb5",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -103,6 +103,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
       "why_now": "The new receive-path summary keeps one bounded throughput-facing handoff from `virtnet_probe()` by recording whether probe should expect small buffers, mergeable receive buffers, or big-packet refill pressure, whether `any_header_sg` keeps header and data combined, and whether an XDP request stays ready or blocked by split-header or big-packet constraints before any live DMA, refill, or NAPI execution."
+    },
+    {
+      "id": "phase12-virtio-net-mergeable-refill-summary",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The landed mergeable-refill summary keeps one bounded refill-planning handoff from the probe snapshot by recording rx queue entry count, packet budget bytes, minimum buffer length, and required headroom before any live page-pool DMA, refill, or NAPI execution."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
