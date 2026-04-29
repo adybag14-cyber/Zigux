@@ -29,8 +29,10 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expectEqual(@as(i32, 9), replay.function_callback_iteration_count);
     try std.testing.expectEqualStrings("iter=7", replay.formatted_message);
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
+    try std.testing.expectEqual(@as(usize, 2), replay.selected_string_slot);
     try std.testing.expectEqualSlices(i32, &.{ 1, 2 }, replay.array_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 2), replay.array_prefix_len);
+    try std.testing.expectEqual(@as(usize, 2), replay.payload_len);
     try std.testing.expectEqual(@as(i32, 0), replay.array_sentinel);
     try std.testing.expectEqual(@as(usize, 0xdeadbeef), replay.bitmask_word);
     try std.testing.expectEqual(@as(usize, sample.TraceEventsReferenceSample.event_family_count), replay.main_thread_event_calls);
@@ -66,6 +68,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try std.testing.expectEqual(@as(i32, 4), module.array_payload[3]);
     try std.testing.expectEqual(@as(i32, 0), module.array_payload[4]);
     try std.testing.expectEqualStrings("One ring to rule them all", module.selected_string);
+    try std.testing.expectEqual(@as(usize, 4), module.selected_string_slot);
     try std.testing.expectEqualStrings("iter=4", module.formattedMessage());
     try std.testing.expect(module.saw_vararg_payload);
     try std.testing.expect(module.saw_rel_loc_payload);
@@ -98,6 +101,7 @@ test "phase 5 trace-events sample keeps the full string and formatting cycle exp
     for (expected_strings, 0..) |expected_string, count| {
         try module.replayMainIteration(@intCast(count));
         try std.testing.expectEqualStrings(expected_string, module.selected_string);
+        try std.testing.expectEqual(@as(usize, count), module.selected_string_slot);
         try std.testing.expectEqualStrings(
             try std.fmt.bufPrint(&message_buffer, "iter={d}", .{count}),
             module.formattedMessage(),
