@@ -95,7 +95,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings("bb6df96e14224c5da2ccf3d368bfe2ac935cf89c", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("5847e90ed482a97d1dcce3bf0c4a3d21fd048633", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
