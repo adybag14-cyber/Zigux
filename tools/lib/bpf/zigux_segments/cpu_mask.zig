@@ -15,7 +15,10 @@ pub const CpuMask = struct {
 pub const ParseCpuMaskError = error{
     EmptyCpuRange,
     InvalidCpuRange,
+    InputTooLarge,
 };
+
+pub const cpu_mask_file_read_limit: usize = 127;
 
 pub const ChunkReader = struct {
     context: ?*anyopaque,
@@ -115,6 +118,9 @@ pub fn parseCpuMaskFromReader(
         }
         if (count > scratch.len) {
             return error.InvalidReadCount;
+        }
+        if (collected.items.len + count > cpu_mask_file_read_limit) {
+            return error.InputTooLarge;
         }
 
         try collected.appendSlice(allocator, scratch[0..count]);
@@ -240,6 +246,31 @@ test "parseCpuMaskFromReader rejects invalid reader contracts" {
     }));
     try std.testing.expectError(error.EmptyReadBuffer, parseCpuMaskFromReader(std.testing.allocator, &.{}, .{
         .context = &empty_state,
+        .readFn = ReaderState.read,
+    }));
+}
+
+test "parseCpuMaskFromReader keeps the libbpf fixed-width cpu-mask ceiling explicit" {
+    const ReaderState = struct {
+        returned: bool = false,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.returned) {
+                return null;
+            }
+
+            self.returned = true;
+            @memset(buffer, '1');
+            return buffer.len;
+        }
+    };
+
+    var state = ReaderState{};
+    var scratch: [cpu_mask_file_read_limit + 1]u8 = undefined;
+
+    try std.testing.expectError(error.InputTooLarge, parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &state,
         .readFn = ReaderState.read,
     }));
 }
