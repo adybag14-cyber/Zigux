@@ -427,6 +427,25 @@ def validate_kconfig_checker_confdata_gate(checker_script: Path) -> list[str]:
             issues.append(f'kconfig_checker:{issue_name}')
     return issues
 
+
+def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'repeat_c_stdout': 'diff_text(c_actual, c_repeat)',
+        'repeat_zig_stdout': 'diff_text(zig_actual, zig_repeat)',
+        'repeat_c_stderr': 'diff_text(c_actual_stderr, c_repeat_stderr)',
+        'repeat_zig_stderr': 'diff_text(zig_actual_stderr, zig_repeat_stderr)',
+        'expected_stderr_fallback': "expected_stderr_path = expected_stderr or implicit_expected_stderr",
+        'quiet_success_stderr_gate': "implicit_expected_stderr.write_text('', encoding='utf-8')",
+        'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'fixdep_checker:{issue_name}')
+    return issues
+
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
@@ -537,6 +556,15 @@ if kconfig_checker_issues:
     for item in kconfig_checker_issues:
         print(item)
     print('MISSING_PHASE2_KCONFIG_CHECKER_GATES_END')
+    sys.exit(1)
+
+fixdep_checker_issues = validate_fixdep_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py')
+if fixdep_checker_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_FIXDEP_CHECKER_GATES_START')
+    for item in fixdep_checker_issues:
+        print(item)
+    print('MISSING_PHASE2_FIXDEP_CHECKER_GATES_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
