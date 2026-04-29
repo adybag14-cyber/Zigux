@@ -8,10 +8,11 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_LANE_KEY=P5-L15`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
 - `PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb`
-- scope: roadmap-vs-repo sample reviewability, approved probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
+- scope: roadmap-vs-repo sample reviewability, approved non-runtime probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kretprobe_example.zig`
@@ -22,7 +23,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kprobes/kretprobe_example.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `kretprobe_example` slice. The kretprobe-specific job is no longer missing sample delivery; it is to keep this probe-lifecycle idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
+Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `kretprobe_example` slice. The kretprobe-specific job is no longer missing sample delivery; it is to keep this approved non-runtime probe-lifecycle idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
 
 ## Survey findings
 
@@ -96,6 +97,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 The current gap is no longer "Zigux has no kretprobe sample guidance." The more precise state is:
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, pre-init retargeting, skip behavior, private-data shape, timestamp-order rejection and recovery, return timing, fixed `maxactive`, summary recording, and teardown
+- the full four-anchor Phase 5 reference-sample set is already landed on current `master`, so this note should describe the kretprobe slice as one approved non-runtime probe-lifecycle idiom inside that completed anchor set rather than as a placeholder for a still-missing tranche item
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
