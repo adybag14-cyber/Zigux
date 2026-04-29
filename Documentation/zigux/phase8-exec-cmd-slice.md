@@ -47,7 +47,7 @@ The current parked slice covers:
 - `extract_argv0_path()` splitting for directory-prefixed tool invocations
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization, including the inherited-empty-`PATH` trailing-`:` shape from the C helper and the skipped empty explicit exec-path segment when only `argv0_path` remains
-- a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location
+- a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location and still ignores an explicitly empty `PWD`
 - a tiny `FileIdentity` plus `sameFileLocation()`, `samePathIdentity()`, `choosePwdCwdFromFileIdentity()`, and `choosePwdCwdFromIdentities()` layer that mirrors the C helper's stat-backed same-location proof without introducing direct filesystem calls
 - `setupPathWithPwd()` as the bounded wrapper that applies that stat-backed `PWD` proof directly to `setupPath()` before relative search-path normalization
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
@@ -60,9 +60,9 @@ The current tests check:
 - relative search-path entries become absolute against the current working directory input
 - directory-prefixed `argv[0]` values split cleanly into path and command name
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge and the skipped empty explicit exec-path segment
-- `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
+- `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd and still falls back cleanly when `PWD` is explicitly empty
 - the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly for mismatched or missing optional `PWD` stat input
-- `setupPathWithPwd()` reuses the logical `PWD` only when the injected stat identities match and otherwise falls back to the physical cwd before rebuilding `PATH`
+- `setupPathWithPwd()` reuses the logical `PWD` only when the injected stat identities match and otherwise falls back to the physical cwd before rebuilding `PATH`, including the empty-`PWD` case
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, accepts only the last null-terminated shape that stays below `MAX_ARGS`, rejects the C helper's legacy null-slot overflow shape where the terminating null itself lands in slot `MAX_ARGS`, rejects a missing terminator, and still stops before any real `execvp()` call exists
 - the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
@@ -81,4 +81,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, while the deferred `execl_cmd()` handoff now keeps the C helper's legacy null-slot `MAX_ARGS` overflow edge aligned with `exec-cmd.c` without widening into launch behavior, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review finds one more tiny helper-only guard inside this file family; the `get_pwd_cwd()` stat-backed same-location proof now flows through both the helper-local choice layer and the bounded `setupPathWithPwd()` wrapper, including the explicit-empty-`PWD` fallback edge, while the deferred `execl_cmd()` handoff now keeps the C helper's legacy null-slot `MAX_ARGS` overflow edge aligned with `exec-cmd.c` without widening into launch behavior, so future Phase 8 work should usually continue in sibling files instead of smuggling `execvp()` ownership, retry or queue semantics, or any `kernel/workqueue.c` boundary claim into this parked tooling slice.
