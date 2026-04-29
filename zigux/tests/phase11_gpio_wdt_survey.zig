@@ -79,6 +79,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-gpio-wdt-survey-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_gpio_wdt_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "teardown-facing stop evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "nowayout failure-mode evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "register-device call surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "descriptor-facing registration handoff") == null);
@@ -119,6 +120,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             saw_doc_gate = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-validation posture") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-driver-starter")) {
@@ -127,18 +130,21 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hw_algo") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "heartbeat margin") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-driver-tests")) {
             saw_test_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-validation-matrix")) {
@@ -146,6 +152,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 replay path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing stop evidence") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device call surface") != null);
         }
 
@@ -160,6 +167,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog-core stop") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-facing") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-registration-handoff-followup")) {
@@ -183,6 +191,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device request summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown-adjacent startup state") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-platform-registration")) {
