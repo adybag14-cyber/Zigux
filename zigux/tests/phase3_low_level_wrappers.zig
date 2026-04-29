@@ -47,6 +47,10 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Scoped(.raw_pointer_bridge, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Scoped(.none, base, 0, 0x99));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));
+    try std.testing.expectError(error.MisalignedAccess, mmio.write16Scoped(.volatile_mmio, base, 1, 0x99));
+    try std.testing.expectError(error.MisalignedAccess, mmio.read16Scoped(.volatile_mmio, base, 1));
+    try std.testing.expectError(error.MisalignedAccess, mmio.write32Scoped(.volatile_mmio, base, 2, 0x99));
+    try std.testing.expectError(error.MisalignedAccess, mmio.read32Scoped(.volatile_mmio, base, 2));
     try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);
     try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0));
     try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);
@@ -80,4 +84,5 @@ test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" 
     try std.testing.expect(!narrow.permitsRawPointerBridge(.none));
     try std.testing.expect(!narrow.permitsRawPointerBridge(.volatile_mmio));
     try std.testing.expect(narrow.permitsRawPointerBridge(.raw_pointer_bridge));
+    try std.testing.expectError(error.MisalignedAccess, narrow.scopedPointerAt(u32, .volatile_mmio, 1, 0));
 }
