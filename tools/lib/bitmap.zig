@@ -464,6 +464,31 @@ test "bitmap and andnot equal intersects subset" {
     try std.testing.expect(subset(&rhs, &lhs, 8));
 }
 
+test "bitmap tail-masked helpers ignore out-of-range differences" {
+    const nbits = bits_per_long + 5;
+    const in_range_tail = @as(Word, 1) << 3;
+    const out_of_range_lhs = @as(Word, 1) << 9;
+    const out_of_range_rhs = @as(Word, 1) << 11;
+    const lhs = [_]Word{ 0b1010, in_range_tail | out_of_range_lhs };
+    const rhs = [_]Word{ 0b1010, in_range_tail | out_of_range_rhs };
+    var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+
+    try std.testing.expect(equal(&lhs, &rhs, nbits));
+    try std.testing.expect(intersects(&lhs, &rhs, nbits));
+    try std.testing.expect(subset(&lhs, &rhs, nbits));
+
+    try std.testing.expect(andBits(&dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0b1010, in_range_tail }, &dst);
+
+    try std.testing.expect(!andNotBits(&dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
+
+    const outside_only = [_]Word{ 0, out_of_range_lhs };
+    try std.testing.expect(equal(&outside_only, &[_]Word{ 0, 0 }, nbits));
+    try std.testing.expect(!intersects(&outside_only, &outside_only, nbits));
+    try std.testing.expect(subset(&outside_only, &[_]Word{ 0, 0 }, nbits));
+}
+
 test "bitmap xor keeps caller-selected bit window" {
     const lhs = [_]Word{0b1_1111};
     const rhs = [_]Word{0b1_0001};
