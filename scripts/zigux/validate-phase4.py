@@ -84,6 +84,37 @@ PHASE4_GATE_EXPECTATIONS = {
     },
 }
 
+PHASE4_HOST_GATE_EXPECTATIONS = {
+    'scripts/zigux/artifact_diff.py --self-test': {
+        'heading': 'scripts/zigux/artifact_diff.py --self-test',
+        'owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'phase_bucket': 'Phase 4 deterministic artifact-diff preflight for host-side tools',
+        'fallback_path': 'keep the shared self-test wired into `make -C zigux phase4-validate` and fail closed before the rollback-readiness packet claims the host-side diff tooling is aligned',
+        'threshold_status': 'deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
+        'matrix_purpose': 'deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling',
+        'threshold_posture': 'deterministic_preflight_required_for_host_side_diff_tools',
+        'local_replay_markers': [
+            'python3 scripts/zigux/artifact_diff.py --self-test',
+        ],
+        'reversible_delivery': '`scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks',
+    },
+    'python3 scripts/zigux/check-artifact-diff-contract.py': {
+        'heading': 'python3 scripts/zigux/check-artifact-diff-contract.py',
+        'owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'phase_bucket': 'Phase 4 external artifact-diff CLI contract replay for host-side tools',
+        'fallback_path': "keep the external contract replay wired into `make -C zigux phase4-validate` so one stable pass case, one missing-file failure shape, malformed expected and actual JSON failure shapes, and SHA-256 pass and drift cases stay measurable outside the helper's built-in self-test",
+        'threshold_status': 'deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
+        'matrix_purpose': 'external replay of the shared artifact-diff CLI contract covering one stable pass case, one missing-file failure shape, malformed expected and actual JSON failure shapes, and SHA-256 pass and drift cases for the bounded host-side diff tooling packet',
+        'threshold_posture': 'deterministic_preflight_required_for_host_side_diff_tools',
+        'local_replay_markers': [
+            'python3 scripts/zigux/check-artifact-diff-contract.py',
+        ],
+        'reversible_delivery': "`scripts/zigux/check-artifact-diff-contract.py` keeps the published `ARTIFACT_DIFF=...`, `MODE=...`, `EXPECTED_JSON_ERROR=...`, `ACTUAL_JSON_ERROR=...`, `SHA256=...`, `EXPECTED_SHA256=...`, `ACTUAL_SHA256=...`, and exit-code surface measurable outside the helper's built-in self-test, and removing it from `phase4-validate` would leave the rollback-readiness packet without that external proof",
+    },
+}
+
 REQUIRED_FILES = [
     'scripts/zigux/artifact_diff.py',
     'scripts/zigux/check-artifact-diff-contract.py',
@@ -216,12 +247,12 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
 
 ROADMAP_GAP_EXPECTATIONS = {
     'samples/zigux/kprobe_example.zig': {
-        'current_repo_state': 'not present on `master`; validator-backed absence check keeps that true today, and the current anchor remains `samples/kprobes/kprobe_example.c` through `samples/kprobes/Makefile` and `CONFIG_SAMPLE_KPROBES`',
+        'current_repo_state': 'not present on `master`; the current anchor remains `samples/kprobes/kprobe_example.c` through `samples/kprobes/Makefile` and `CONFIG_SAMPLE_KPROBES`',
         'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
         'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
     },
     'samples/zigux/test_fsmount.zig': {
-        'current_repo_state': 'not present on `master`; validator-backed absence check keeps that true today, and the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
+        'current_repo_state': 'not present on `master`; the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
         'measurability_gap': 'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
         'next_bounded_step': 'land one bounded survey manifest or starter gate under `samples/zigux/` that keeps the same owner, rollback owner, and replay command before claiming this anchor as active Phase 4 work',
     },
@@ -414,6 +445,72 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
     return missing
 
 
+def check_host_gate_matrix_alignment(
+    phase4_matrix: str, surface_name: str, expectation: dict[str, object]
+) -> list[str]:
+    gate_heading = f"### `{expectation['heading']}`"
+    gate_heading_index = phase4_matrix.find(gate_heading)
+    if gate_heading_index == -1:
+        return [f'phase4_matrix:missing_gate_heading:{surface_name}']
+
+    next_heading_index = phase4_matrix.find('\n### `', gate_heading_index + len(gate_heading))
+    matrix_heading_index = phase4_matrix.find('\n## Lab And CI Matrix', gate_heading_index + len(gate_heading))
+    gate_block_end = matrix_heading_index
+    if next_heading_index != -1 and next_heading_index < matrix_heading_index:
+        gate_block_end = next_heading_index
+    gate_block = phase4_matrix[gate_heading_index:gate_block_end]
+
+    row_prefix = f"| `{surface_name}` |"
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+
+    missing = []
+    if f"- phase bucket: `{expectation['phase_bucket']}`" not in gate_block:
+        missing.append(
+            f"phase4_matrix:phase_bucket:{surface_name}:{expectation['phase_bucket']}"
+        )
+    if f"- owner: `{expectation['owner']}`" not in gate_block:
+        missing.append(f"phase4_matrix:owner:{surface_name}:{expectation['owner']}")
+    if f"- rollback owner: `{expectation['rollback_owner']}`" not in gate_block:
+        missing.append(
+            f"phase4_matrix:rollback_owner:{surface_name}:{expectation['rollback_owner']}"
+        )
+    if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:fallback_path:{surface_name}:{expectation['fallback_path']}"
+        )
+    if f"- perf threshold status: {expectation['threshold_status']}" not in gate_block:
+        missing.append(
+            f"phase4_matrix:threshold_status:{surface_name}:{expectation['threshold_status']}"
+        )
+    if expectation['matrix_purpose'] not in row:
+        missing.append(
+            f"phase4_matrix:matrix_purpose:{surface_name}:{expectation['matrix_purpose']}"
+        )
+    if expectation['threshold_posture'] not in row:
+        missing.append(
+            f"phase4_matrix:threshold_posture:{surface_name}:{expectation['threshold_posture']}"
+        )
+    if expectation['owner'] not in row:
+        missing.append(f"phase4_matrix:matrix_owner:{surface_name}:{expectation['owner']}")
+    if expectation['rollback_owner'] not in row:
+        missing.append(
+            f"phase4_matrix:matrix_rollback_owner:{surface_name}:{expectation['rollback_owner']}"
+        )
+    for local_replay_marker in expectation['local_replay_markers']:
+        if local_replay_marker not in row:
+            missing.append(
+                f"phase4_matrix:local_replay:{surface_name}:{local_replay_marker}"
+            )
+    if expectation['reversible_delivery'] not in row:
+        missing.append(
+            f"phase4_matrix:reversible_delivery:{surface_name}:{expectation['reversible_delivery']}"
+        )
+    return missing
+
+
 def check_roadmap_gap_alignment(phase4_matrix: str, item_name: str, expectation: dict[str, str]) -> list[str]:
     row_prefixes = [
         f'| `{item_name}`',
@@ -549,6 +646,11 @@ def validate_root(root: Path) -> list[str]:
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
 
+    for surface_name, expectation in PHASE4_HOST_GATE_EXPECTATIONS.items():
+        missing_markers.extend(
+            check_host_gate_matrix_alignment(phase4_matrix, surface_name, expectation)
+        )
+
     for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
         missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
 
@@ -597,6 +699,7 @@ def build_phase4_matrix_fixture() -> str:
         "- the external CLI-contract replay that keeps the current `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code surface reviewable outside the helper's built-in self-test",
         '- one isolated runtime atomic64 replay command that can be run without depending on the bitmap lane staying green on the same head',
         '- the survey-backed atomic64 replay that keeps the current roadmap-path and broader-surface gaps measurable inside the shared Phase 4 build',
+        '- one isolated bitmap replay command that can be run without depending on the atomic64 lane or the shared `phase4-test` bundle on the same head',
         '',
         '## Gate Ownership',
         '',
@@ -612,10 +715,10 @@ def build_phase4_matrix_fixture() -> str:
         '### `python3 scripts/zigux/check-artifact-diff-contract.py`',
         '',
         '- anchor: `scripts/zigux/` host-side diff and layout tooling',
-        '- phase bucket: `Phase 4 external CLI-contract replay for host-side tools`',
+        '- phase bucket: `Phase 4 external artifact-diff CLI contract replay for host-side tools`',
         '- owner: `Validation and Perf Team`',
         '- rollback owner: `Validation and Perf Team`',
-        '- fallback path: keep the external CLI-contract replay wired into `make -C zigux phase4-validate` so one stable pass case and one missing-file failure shape stay reviewable outside the helper-internal self-test',
+        "- fallback path: keep the external contract replay wired into `make -C zigux phase4-validate` so one stable pass case, one missing-file failure shape, malformed expected and actual JSON failure shapes, and SHA-256 pass and drift cases stay measurable outside the helper's built-in self-test",
         '- perf threshold status: deterministic correctness-only preflight today; no timing threshold is relevant until a future Phase 4 lane adds a benchmarked host-tool diff workload',
         '',
     ]
@@ -652,7 +755,7 @@ def build_phase4_matrix_fixture() -> str:
             '| lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | reversible delivery evidence | threshold posture |',
             '| --- | --- | --- | --- | --- | --- | --- | --- |',
             '| `scripts/zigux/artifact_diff.py --self-test` | deterministic text, JSON, SHA-256, and missing-file comparison self-test for the shared host-side diff tooling | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the shared self-test before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/artifact_diff.py --self-test` replay when the helper changes | `scripts/zigux/artifact_diff.py` stays the shared comparator for the bounded Phase 4 host-side tooling packet, and removing its self-test from `phase4-validate` would drop the roadmap-backed deterministic preflight that now guards the rollback-readiness docs and diff checks | `deterministic_preflight_required_for_host_side_diff_tools` |',
-            '| `python3 scripts/zigux/check-artifact-diff-contract.py` | outward `ARTIFACT_DIFF=...`, `MODE=...`, path, and exit-code replay for one stable pass case plus one missing-file failure shape | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the external host-tool contract replay before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/check-artifact-diff-contract.py` replay when the helper CLI contract changes | `scripts/zigux/check-artifact-diff-contract.py` keeps the outward `artifact_diff.py` CLI contract reviewable outside the built-in self-test, and removing it from `phase4-validate` would leave the shipped host-tool rollback packet with only internal helper coverage for that bounded pass/fail surface | `deterministic_cli_contract_required_for_host_side_diff_tools` |',
+            "| `python3 scripts/zigux/check-artifact-diff-contract.py` | external replay of the shared artifact-diff CLI contract covering one stable pass case, one missing-file failure shape, malformed expected and actual JSON failure shapes, and SHA-256 pass and drift cases for the bounded host-side diff tooling packet | `Validation and Perf Team` | `Validation and Perf Team` | workflow step `Validate Phase 4 diff gates`, which calls `make -C zigux phase4-validate` and therefore reruns the external contract replay before the shipped rollback gates | `make -C zigux phase4-validate` or direct `python3 scripts/zigux/check-artifact-diff-contract.py` replay when the outward CLI contract changes | `scripts/zigux/check-artifact-diff-contract.py` keeps the published `ARTIFACT_DIFF=...`, `MODE=...`, `EXPECTED_JSON_ERROR=...`, `ACTUAL_JSON_ERROR=...`, `SHA256=...`, `EXPECTED_SHA256=...`, `ACTUAL_SHA256=...`, and exit-code surface measurable outside the helper's built-in self-test, and removing it from `phase4-validate` would leave the rollback-readiness packet without that external proof | `deterministic_preflight_required_for_host_side_diff_tools` |",
         ]
     )
 
@@ -763,6 +866,25 @@ def run_self_test() -> int:
             'sample_vfs_test_fsmount:if (move_mount(mfd, "", AT_FDCWD, "/mnt", MOVE_MOUNT_F_EMPTY_PATH) < 0) {'
             in missing
         ), missing
+        sample_vfs_test_fsmount.write_text(
+            '\n'.join(REQUIRED_SAMPLE_VFS_SOURCE_MARKERS) + '\n',
+            encoding='utf-8',
+        )
+
+        phase4_matrix = tmp_root / 'Documentation/zigux/phase4-validation-matrix.md'
+        phase4_matrix.write_text(
+            phase4_matrix.read_text(encoding='utf-8').replace(
+                'Phase 4 external artifact-diff CLI contract replay for host-side tools',
+                'Phase 4 external contract replay for host-side tools',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert (
+            'phase4_matrix:phase_bucket:python3 scripts/zigux/check-artifact-diff-contract.py:Phase 4 external artifact-diff CLI contract replay for host-side tools'
+            in missing
+        ), missing
 
     print('PHASE4_VALIDATOR_SELF_TEST=pass')
     return 0
@@ -793,6 +915,10 @@ def required_marker_count() -> int:
             + (1 if expectation.get('rollback_evidence_gap') is not None else 0)
             + len(expectation.get('local_replay_markers', []))
             for expectation in PHASE4_GATE_EXPECTATIONS.values()
+        )
+        + sum(
+            7 + len(expectation.get('local_replay_markers', []))
+            for expectation in PHASE4_HOST_GATE_EXPECTATIONS.values()
         )
     )
 
