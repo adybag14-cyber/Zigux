@@ -18,7 +18,7 @@
   },
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate true while provides_selftest_hook stays true, and still names the bounded in-memory counter starter rather than implying a loadable module",
-    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, direct phase9-runtime-atomic64-sample-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
+    "the manifest-backed delivery_evidence_catalog and ownership_map still keep the survey note, direct phase9-runtime-atomic64-sample-tests leg, direct phase9-runtime-atomic64-loader-tests leg, module tests, diff gate, loader scaffold, shared runtime-loader request binding, and blocked shared-loader note in one reviewable packet",
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter",
@@ -71,6 +71,11 @@
       "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, kernel_heap allocator flow, and the four-field atomic64 payload summary machine-checkable through the shared runtime-loader request surface"
     },
     {
+      "id": "loader-build-leg",
+      "kind": "shared_build_contract",
+      "expected": "the shared Phase 9 build keeps the dedicated phase9-runtime-atomic64-loader-tests leg alongside the direct phase9-runtime-atomic64-sample-tests leg so the loader scaffold remains first-class review evidence"
+    },
+    {
       "id": "shared-loader-freeze-map-boundary",
       "kind": "governance_surface",
       "expected": "the atomic64 survey packet keeps Documentation/zigux/freeze-map.md and the study-only kernel/workqueue.c boundary explicit, with no parity scorecard entry or Architecture Council status-change request attached to this lane"
@@ -121,7 +126,7 @@
       "id": "phase9-atomic64-build-gate",
       "kind": "validation",
       "path": "zigux/tests/phase9_build.zig",
-      "role": "keeps the direct phase9-runtime-atomic64-sample-tests leg and the surrounding atomic64 survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint"
+      "role": "keeps the direct phase9-runtime-atomic64-sample-tests and phase9-runtime-atomic64-loader-tests legs plus the surrounding atomic64 survey, module, diff, loader, and shared-loader checks replayable as one shared Phase 9 entrypoint"
     },
     {
       "id": "runtime-atomic64-sample",
@@ -171,7 +176,7 @@
     },
     {
       "surface": "zigux/tests/phase9_build.zig",
-      "owns": "the shared Phase 9 runtime entrypoint that replays the direct atomic64 sample leg plus the survey, module, diff, loader, and shared-loader checks"
+      "owns": "the shared Phase 9 runtime entrypoint that replays the direct atomic64 sample and loader legs plus the survey, module, diff, loader, and shared-loader checks"
     },
     {
       "surface": "samples/zigux/runtime_atomic64.zig",
@@ -196,7 +201,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step is the narrowest honest place to keep runtime atomic64 reviewable, and it now runs the direct `phase9-runtime-atomic64-sample-tests` leg so the bounded sample contract stays first-class beside the survey, module, diff, loader, and shared loader checks."
+      "why_now": "The existing Phase 9 build step is the narrowest honest place to keep runtime atomic64 reviewable, and it now runs the direct `phase9-runtime-atomic64-sample-tests` plus `phase9-runtime-atomic64-loader-tests` legs so the bounded sample and loader contracts stay first-class beside the survey, module, diff, loader, and shared loader checks."
     },
     {
       "id": "runtime-atomic64-survey-gate",
