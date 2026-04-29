@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L06",
   "phase": "Phase 5",
-  "surveyed_commit": "57562e5294eaba3a8ce01bacd3c52fc09c1d6350",
+  "surveyed_commit": "c15f70418f70e3670efd8405d8bba7a697f5c832",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -85,7 +85,7 @@
     {
       "id": "checked-focus-list",
       "kind": "review_surface",
-      "expected": "the replay advertises exactly six focus areas: bounded_fifo_order, wraparound_requeue, peek_and_skip, non_destructive_snapshot, reset_and_replay, and ownership_and_lifetime"
+      "expected": "the replay advertises exactly seven focus areas: bounded_fifo_order, wraparound_requeue, peek_and_skip, non_destructive_snapshot, preview_truncation, reset_and_replay, and ownership_and_lifetime"
     },
     {
       "id": "lifecycle-boundary",
