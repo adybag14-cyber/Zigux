@@ -11,6 +11,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
+  - `zigux/tests/phase8_help_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -24,10 +25,13 @@ This lane keeps the shipped `help.zig` starter slice aligned with the stable com
 1. run the focused Zig module tests
 - `zig test tools/lib/subcmd/help.zig`
 
-2. run the dedicated Phase 8 tooling gate
+2. run the focused Phase 8 help replay
+- `zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all`
+
+3. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -71,4 +75,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park the bounded `help.zig` lane unless a fresh helper-only parity gap appears; the section renderer now has explicit coverage for both shared-width output and empty-section suppression, so the next honest follow-up should only reopen this lane for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
+The current bounded gap versus the broader Phase 8 tooling packet is now the focused replay path rather than missing helper behavior: `help.zig` can be reviewed through its own `phase8_help_only_build.zig` shard without hiding inside the full shared bundle. Park this lane unless a fresh helper-only parity gap appears; the next honest follow-up should only reopen it for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
