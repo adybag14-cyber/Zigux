@@ -39,7 +39,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
 
-test "phase13 devres manifest records the landed helper-first MMIO safety surface and explicit blockers" {
+test "phase13 devres manifest records the landed helper-first dma/scatterlist boundary surface and explicit blockers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -55,10 +55,10 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("94c9958fc58eb9042167d8381324e97d2997f383", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("378906ad852f26857b23e893b47c3bab4b916b68", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
