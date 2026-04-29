@@ -176,6 +176,9 @@ jobs:
       - name: Run Phase 4 diff tests
         run: make -C zigux phase4-test
 
+      - name: Validate Phase 5 reference sample packet
+        run: make -C zigux phase5-validate
+
       - name: Run Phase 5 reference sample tests
         run: zig build test --build-file zigux/tests/phase5_build.zig --summary all
 
