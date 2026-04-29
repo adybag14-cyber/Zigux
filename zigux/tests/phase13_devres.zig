@@ -19,6 +19,8 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
+    try std.testing.expect(!descriptor.touches_live_dma);
+    try std.testing.expect(!descriptor.touches_live_scatterlist);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
 }
 
