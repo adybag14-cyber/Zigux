@@ -10,6 +10,7 @@
     "the manifest keeps surveyed_commit pinned to the exact inspected master head instead of a floating branch label so reviewability stays tied to one bounded repo state",
     "the manifest and survey test still describe the exact skip, pre-init retargeting, timestamp-order boundary, return-value, duration, and missed-summary contract run through phase5_build.zig",
     "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still keep the landed Phase 5 kretprobe slice tied to the shared phase5_build.zig entrypoint and distinct from the separate Phase 9 runtime starter",
+    "the landed Phase 5 kretprobe packet stays framed as an approved non-runtime probe-lifecycle idiom inside the completed four-anchor reference set instead of a placeholder for missing sample delivery or a Phase 9 runtime claim",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "the sample keeps the Linux maxactive budget explicit as the fixed reviewable ceiling for this in-memory-only reference slice instead of implying runtime pressure tuning",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
