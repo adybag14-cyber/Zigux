@@ -436,6 +436,21 @@ test "hexDumpToBuffer emits grouped and ascii text" {
     try std.testing.expectEqualSlices(u8, grouped8, std.mem.sliceTo(linebuf[0..], 0));
 }
 
+test "hexDumpToBuffer proves exact 4-byte grouped ascii output" {
+    var linebuf: [160]u8 = undefined;
+    const required = hexDumpToBuffer(test_data_b[0..16], 16, 4, linebuf[0..], true);
+
+    try std.testing.expectEqual(@as(usize, 53), required);
+    try std.testing.expectEqualSlices(
+        u8,
+        if (builtin.cpu.arch.endian() == .big)
+            "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4."
+        else
+            "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
+        std.mem.sliceTo(linebuf[0..], 0),
+    );
+}
+
 test "hexDumpToBuffer keeps normalization and truncation contracts" {
     try std.testing.expectEqual(@as(usize, 61), hexDumpToBuffer(test_data_b[0..12], 99, 3, &[_]u8{}, true));
     try std.testing.expectEqual(@as(usize, 26), hexDumpToBuffer(test_data_b[0..9], 32, 4, &[_]u8{}, false));
