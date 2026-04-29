@@ -27,7 +27,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - `drivers/net/virtio_net.c` is present on `master` and is much larger than the earlier Phase 10 and Phase 11 starter anchors, which makes a direct first-pass Zig port a poor fit for the roadmap's bounded-delivery rule.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
-- this checkpoint has now been re-verified against surveyed `master` snapshot `b58fd1c469aa9d7744822f7cb31e7e4c24691cb5`, with the same probe snapshot, queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill helpers still defining the live bounded footing.
+- this checkpoint has now been re-verified against surveyed `master` snapshot `7779444ab1617e7d21224396c2de66fe8e9bd3d0`, with the same probe snapshot, queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill helpers still defining the live bounded footing.
 - the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and a focused direct test for the new starter. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice.
 - the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, an explicit RSS outcome summary that distinguishes active, downgraded, hash-report-only, and unavailable states, and whether probe should treat the device as stable, renegotiate features, or reset-required.
 - the lane now also lands one small queue-recovery follow-up: the probe snapshot records an explicit queue recovery action that distinguishes bounded queue-pair clamping from true single-queue fallback, plus renegotiating features and requiring reset when the control-virtqueue path or negotiated feature set cannot support the requested topology.
@@ -80,3 +80,8 @@ This survey slice does not claim:
 ## Next bounded step
 
 Keep this lane parked unless the survey packet drifts again or the roadmap-approved DMA and queueing substrate changes enough to justify a truthful follow-up beyond the current probe snapshot, queue-recovery summary, queue-resume summary, `hdr_len`, receive-path, and mergeable-refill helpers.
+
+Latest verification snapshot:
+
+- lane key refreshed to `P12-L04` while keeping the same bounded virtio_net survey-packet scope
+- latest carried-forward focused replay remains the existing Phase 12 virtio_net survey and build packet, with this run only refreshing the published lane key and surveyed-commit evidence on current `master`
