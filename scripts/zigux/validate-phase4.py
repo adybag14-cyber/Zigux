@@ -90,6 +90,10 @@ REQUIRED_FILES = [
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/artifact-diff.md',
     'Documentation/zigux/phase4-validation-matrix.md',
+    'samples/kprobes/Makefile',
+    'samples/kprobes/kprobe_example.c',
+    'samples/vfs/Makefile',
+    'samples/vfs/test-fsmount.c',
     'zigux/Makefile',
     '.github/workflows/zigux-bootstrap.yml',
     'zigux/tests/runtime_atomic64_diff.zig',
@@ -300,6 +304,28 @@ REQUIRED_BITMAP_DIFF_MARKERS = [
     'weight',
 ]
 
+REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS = [
+    'obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o',
+]
+
+REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS = [
+    'static char symbol[KSYM_NAME_LEN] = "kernel_clone";',
+    'register_kprobe(&kp);',
+    'unregister_kprobe(&kp);',
+    'MODULE_DESCRIPTION("sample kernel module showing the use of kprobes");',
+]
+
+REQUIRED_SAMPLE_VFS_MAKE_MARKERS = [
+    'userprogs-always-y += test-fsmount',
+]
+
+REQUIRED_SAMPLE_VFS_SOURCE_MARKERS = [
+    'static inline int fsmount(int fsfd, unsigned int flags, unsigned int ms_flags)',
+    'return syscall(__NR_fsmount, fsfd, flags, ms_flags);',
+    'mfd = fsmount(fsfd, 0, MOUNT_ATTR_RDONLY);',
+    'if (move_mount(mfd, "", AT_FDCWD, "/mnt", MOVE_MOUNT_F_EMPTY_PATH) < 0) {',
+]
+
 
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding='utf-8')
@@ -431,6 +457,10 @@ def validate_root(root: Path) -> list[str]:
         root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json'
     )
     bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
+    sample_kprobes_makefile = read_text(root, 'samples/kprobes/Makefile')
+    sample_kprobe_example = read_text(root, 'samples/kprobes/kprobe_example.c')
+    sample_vfs_makefile = read_text(root, 'samples/vfs/Makefile')
+    sample_vfs_test_fsmount = read_text(root, 'samples/vfs/test-fsmount.c')
     roadmap_atomic64_diff_present = (root / 'zigux/tests/atomic64_diff.zig').exists()
 
     missing_markers: list[str] = []
@@ -478,6 +508,34 @@ def validate_root(root: Path) -> list[str]:
     )
     missing_markers.extend(
         collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            sample_kprobes_makefile,
+            'sample_kprobes_make',
+            REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            sample_kprobe_example,
+            'sample_kprobe_example',
+            REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            sample_vfs_makefile,
+            'sample_vfs_make',
+            REQUIRED_SAMPLE_VFS_MAKE_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            sample_vfs_test_fsmount,
+            'sample_vfs_test_fsmount',
+            REQUIRED_SAMPLE_VFS_SOURCE_MARKERS,
+        )
     )
     if not roadmap_atomic64_diff_present:
         missing_markers.append(
@@ -639,6 +697,11 @@ def write_fixture_tree(root: Path) -> None:
         )
         + '\n',
         'Documentation/zigux/phase4-validation-matrix.md': build_phase4_matrix_fixture(),
+        'samples/kprobes/Makefile': '\n'.join(REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS) + '\n',
+        'samples/kprobes/kprobe_example.c': '\n'.join(REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS)
+        + '\n',
+        'samples/vfs/Makefile': '\n'.join(REQUIRED_SAMPLE_VFS_MAKE_MARKERS) + '\n',
+        'samples/vfs/test-fsmount.c': '\n'.join(REQUIRED_SAMPLE_VFS_SOURCE_MARKERS) + '\n',
         'Documentation/zigux/README.md': '\n'.join(REQUIRED_DOC_README_MARKERS) + '\n',
         'scripts/zigux/README.md': '\n'.join(REQUIRED_SCRIPT_README_MARKERS) + '\n',
         'zigux/tests/README.md': '\n'.join(REQUIRED_TESTS_README_MARKERS) + '\n',
@@ -698,6 +761,10 @@ def required_marker_count() -> int:
         + len(REQUIRED_RUNTIME_ATOMIC64_MARKERS)
         + len(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
         + len(REQUIRED_BITMAP_DIFF_MARKERS)
+        + len(REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS)
+        + len(REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS)
+        + len(REQUIRED_SAMPLE_VFS_MAKE_MARKERS)
+        + len(REQUIRED_SAMPLE_VFS_SOURCE_MARKERS)
         + sum(
             len(expectation.get('exact_check_markers', []))
             + (1 if expectation.get('rollback_evidence_gap') is not None else 0)
