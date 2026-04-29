@@ -47,7 +47,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha dump\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").writeText("{}", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("// alpha harness\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
@@ -134,34 +134,7 @@ def run_self_test() -> int:
         )
         (root / "zigux" / "helpers" / "atomic.zig").write_text(
             "const std = @import(\"std\");\n\n"
-            "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {\n"
-            "    _ = .{ T, ptr, order };\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn store(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) void {\n"
-            "    _ = .{ T, ptr, value, order };\n"
-            "}\n\n"
-            "pub fn exchange(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
-            "    _ = .{ T, ptr, value, order };\n"
-            "    return undefined;\n"
-            "}\n\n"
             "pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
-            "    _ = .{ T, ptr, value, order };\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
-            "    _ = .{ T, ptr, value, order };\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn fetchAnd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
-            "    _ = .{ T, ptr, value, order };\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn fetchOr(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
-            "    _ = .{ T, ptr, value, order };\n"
-            "    return undefined;\n"
-            "}\n\n"
-            "pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {\n"
             "    _ = .{ T, ptr, value, order };\n"
             "    return undefined;\n"
             "}\n\n"
@@ -228,13 +201,40 @@ def run_self_test() -> int:
         )
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
             'test "phase3 low-level wrappers stay inside the documented ABI surface" {\n'
-            "    _ = .{\n"
-            "        atomic.fetchOr(u32, &value, 0b1000, .seq_cst),\n"
-            "        atomic.fetchAnd(u32, &value, 0b0111, .seq_cst),\n"
-            "        atomic.fetchXor(u32, &value, 0b1111, .seq_cst),\n"
-            "    };\n"
+            "    _ = atomic.load(u32, &value, .seq_cst);\n"
+            "    atomic.store(u32, &value, 8, .seq_cst);\n"
+            "    _ = atomic.exchange(u32, &value, 13, .seq_cst);\n"
+            "    _ = atomic.fetchAdd(u32, &value, 2, .seq_cst);\n"
+            "    _ = atomic.fetchSub(u32, &value, 4, .seq_cst);\n"
+            "    _ = atomic.fetchOr(u32, &value, 0b1000, .seq_cst);\n"
+            "    _ = atomic.fetchAnd(u32, &value, 0b0111, .seq_cst);\n"
+            "    _ = atomic.fetchXor(u32, &value, 0b1111, .seq_cst);\n"
+            "    _ = atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst);\n"
+            "    barrier.acquire();\n"
+            "    barrier.release();\n"
+            "    barrier.full();\n"
+            "    const desc = mmio.range(base, 12, 4);\n"
+            "    _ = desc;\n"
+            "    mmio.write16(base, 2, 0xabcd);\n"
+            "    _ = mmio.read16(base, 2);\n"
+            "    mmio.write32(base, 8, 0x12345678);\n"
+            "    _ = mmio.read32(base, 8);\n"
+            "    try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);\n"
+            "    _ = try mmio.read16Scoped(.volatile_mmio, base, 0);\n"
+            "    try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);\n"
+            "    _ = try mmio.read32Scoped(.volatile_mmio, base, 4);\n"
             "}\n"
-            'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
+            'test "phase3 low-level wrapper ABI range shape stays stable" {\n'
+            "    comptime {\n"
+            "        _ = @sizeOf(abi.MmioRange);\n"
+            '        _ = @offsetOf(abi.MmioRange, "length");\n'
+            '        _ = @offsetOf(abi.MmioRange, "stride");\n'
+            "    }\n"
+            "}\n"
+            'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {\n'
+            "    _ = narrow.permitsVolatileMmio(.volatile_mmio);\n"
+            "    _ = narrow.permitsRawPointerBridge(.raw_pointer_bridge);\n"
+            "}\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -326,6 +326,23 @@ def run_self_test() -> int:
             newline="\n",
         )
         assert validate_abi_expected_fixture(root, []) is None
+
+        low_level_marker_drift = (paths.tests_dir / "phase3_low_level_wrappers.zig").read_text(encoding="utf-8")
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            low_level_marker_drift.replace("    _ = mmio.read16(base, 2);\n", ""),
+            encoding="utf-8",
+            newline="\n",
+        )
+        low_level_marker_issues: list[str] = []
+        validate_source_markers(root, "abi", low_level_marker_issues)
+        assert low_level_marker_issues == [
+            "abi:missing_source_marker=zigux/tests/phase3_low_level_wrappers.zig:mmio.read16(base, 2)",
+        ]
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            low_level_marker_drift,
+            encoding="utf-8",
+            newline="\n",
+        )
 
         abi_expected_drift = json.loads(abi_expected_fixture.read_text(encoding="utf-8"))
         del abi_expected_drift["constants"]["panic_abort"]
