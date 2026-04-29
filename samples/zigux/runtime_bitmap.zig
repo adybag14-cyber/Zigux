@@ -98,6 +98,49 @@ pub const RuntimeBitmapSample = struct {
         self.stage_state = .initialized;
     }
 
+    pub fn initFromBitList(self: *Self, bit_list: []const u8) !void {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        @memset(self.words[0..], 0);
+
+        const trimmed = std.mem.trim(u8, bit_list, &std.ascii.whitespace);
+        if (trimmed.len != 0) {
+            var saw_any = false;
+            var tokens = std.mem.tokenizeScalar(u8, trimmed, ',');
+            while (tokens.next()) |raw_token| {
+                const token = std.mem.trim(u8, raw_token, &std.ascii.whitespace);
+                if (token.len == 0) return error.InvalidBitList;
+
+                const bit = std.fmt.parseUnsigned(u32, token, 10) catch return error.InvalidBitList;
+                if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
+
+                self.assignBit(bit, true);
+                saw_any = true;
+            }
+            if (!saw_any) return error.InvalidBitList;
+        }
+
+        self.init_runs += 1;
+        self.stage_state = .initialized;
+    }
+
+    pub fn formatSetBits(self: *const Self, allocator: std.mem.Allocator) ![]u8 {
+        var output: std.ArrayList(u8) = .empty;
+        errdefer output.deinit(allocator);
+
+        var first = true;
+        var bit: u32 = 0;
+        while (bit < bitmap_nbits) : (bit += 1) {
+            if (!self.isSet(bit)) continue;
+
+            if (!first) try output.append(allocator, ',');
+            first = false;
+            try output.print(allocator, "{}", .{bit});
+        }
+
+        return output.toOwnedSlice(allocator);
+    }
+
     pub fn setRange(self: *Self, start: u32, len: u32) !void {
         try self.ensureMutable();
         try validateRange(start, len);
@@ -205,6 +248,33 @@ test "runtime bitmap sample exposes ordered set-bit replay for sparse population
         try std.testing.expectEqual(bit, module.nthSetBit(@intCast(index)) orelse return error.ExpectedNthSetBit);
     }
     try std.testing.expectEqual(@as(?u32, null), module.nthSetBit(@intCast(expected.len)));
+}
+
+test "runtime bitmap sample keeps parse-and-print replay explicit" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+
+    try std.testing.expectEqualStrings("0,5,64,70", formatted);
+
+    var parsed = RuntimeBitmapSample{};
+    try parsed.initFromBitList("0, 5, 64, 70");
+
+    const parsed_summary = parsed.summary();
+    const module_summary = module.summary();
+    try std.testing.expectEqual(module_summary.first_set, parsed_summary.first_set);
+    try std.testing.expectEqual(module_summary.first_zero, parsed_summary.first_zero);
+    try std.testing.expectEqual(module_summary.weight, parsed_summary.weight);
+    try std.testing.expectEqual(module_summary.nbits, parsed_summary.nbits);
+    try std.testing.expect(parsed.isSet(0));
+    try std.testing.expect(parsed.isSet(5));
+    try std.testing.expect(parsed.isSet(bitmap_view.bits_per_long));
+    try std.testing.expect(parsed.isSet(bitmap_view.bits_per_long + 6));
+
+    var invalid = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList("0, nope"));
 }
 
 test "runtime bitmap sample selftest keeps the bounded review contract explicit" {
