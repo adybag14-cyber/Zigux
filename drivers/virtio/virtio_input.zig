@@ -146,6 +146,18 @@ pub const RegistrationPreflightSummary = struct {
     ready_for_registration: bool,
 };
 
+pub const QueueCallbackPreflightSummary = struct {
+    anchor: []const u8,
+    event_queue_index: u16,
+    status_queue_index: u16,
+    queued_event_buffer_count: u16,
+    event_buffers_ready: bool,
+    status_queue_configured: bool,
+    device_ready: bool,
+    registration_ready: bool,
+    ready_for_queue_callback: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -447,6 +459,24 @@ pub const VirtioInputLab = struct {
             .multitouch_slots_ready = multitouch_slots_ready,
             .multitouch_slot_count = multitouch_slot_count,
             .ready_for_registration = identity_ready and capability_summary.staged_capability_count != 0 and multitouch_slots_ready,
+        };
+    }
+
+    pub fn queueCallbackPreflightSummary(self: *const Self) !QueueCallbackPreflightSummary {
+        const registration_summary = try self.registrationPreflightSummary();
+        const event_buffers_ready = self.queued_event_buffer_count != 0;
+        const status_queue_configured = self.status_descriptor_count != 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .event_queue_index = event_queue_index,
+            .status_queue_index = status_queue_index,
+            .queued_event_buffer_count = self.queued_event_buffer_count,
+            .event_buffers_ready = event_buffers_ready,
+            .status_queue_configured = status_queue_configured,
+            .device_ready = self.ready,
+            .registration_ready = registration_summary.ready_for_registration,
+            .ready_for_queue_callback = registration_summary.ready_for_registration and event_buffers_ready and status_queue_configured and self.ready,
         };
     }
 
