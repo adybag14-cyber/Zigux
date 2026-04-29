@@ -206,7 +206,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "unsafe" / "narrow.zig").write_text(
+        (root / "zigux" / "unsafe" / "narrow.zig").writeText(
             "pub const UnsafeScopeTag = enum(u8) {\n"
             "    none = 0,\n"
             "    volatile_mmio = 1,\n"
@@ -232,6 +232,10 @@ def run_self_test() -> int:
             "        atomic.fetchOr(u32, &value, 0b1000, .seq_cst),\n"
             "        atomic.fetchAnd(u32, &value, 0b0111, .seq_cst),\n"
             "        atomic.fetchXor(u32, &value, 0b1111, .seq_cst),\n"
+            "        try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef),\n"
+            "        try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0)),\n"
+            "        try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd),\n"
+            "        try std.testing.expectEqual(@as(u32, 0xaabbccdd), try mmio.read32Scoped(.volatile_mmio, base, 4)),\n"
             "    };\n"
             "}\n"
             'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
@@ -251,7 +255,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
+        (paths.tests_dir / "phase3_export_uapi_build.zig").writeText(
             'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");\n',
             encoding="utf-8",
             newline="\n",
@@ -327,7 +331,7 @@ def run_self_test() -> int:
         )
         assert validate_abi_expected_fixture(root, []) is None
 
-        abi_expected_drift = json.loads(abi_expected_fixture.read_text(encoding="utf-8"))
+        abi_expected_drift = json.loads(abi_expected_fixture.readText(encoding="utf-8"))
         del abi_expected_drift["constants"]["panic_abort"]
         abi_expected_fixture.write_text(
             json.dumps(abi_expected_drift),
@@ -339,7 +343,7 @@ def run_self_test() -> int:
         assert abi_expected_issues == [
             "abi:expected_constant=panic_abort:None",
         ]
-        abi_expected_fixture.write_text(
+        abi_expected_fixture.writeText(
             json.dumps({"constants": dict(ABI_REQUIRED_EXPECTED_CONSTANTS)}),
             encoding="utf-8",
             newline="\n",
