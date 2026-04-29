@@ -172,6 +172,38 @@ pub const KhvcdWorkerEntrySnapshot = struct {
     backend_handoff_pending: bool,
 };
 
+pub const KhvcdSleepHandoffRequest = struct {
+    entry: KhvcdWorkerEntryRequest = .{},
+    kick_pending_after_interruptible_state: bool = false,
+};
+
+pub const KhvcdSleepHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    final_close_wait_required: bool,
+    clears_port_initialized_on_final_close: bool,
+    keeps_console_binding: bool,
+    tty_registration_pending: bool,
+    khvcd_polling_pending: bool,
+    poll_read_pending: bool,
+    poll_write_pending: bool,
+    checks_kick_before_sleep_state: bool,
+    kick_short_circuits_before_sleep_state: bool,
+    sets_interruptible_before_sleep_recheck: bool,
+    checks_kick_after_interruptible_state: bool,
+    skip_schedule_due_to_post_state_kick: bool,
+    schedule_without_timeout: bool,
+    schedule_timeout_interruptible: bool,
+    timeout_backoff_grows_before_timed_sleep: bool,
+    sleep_timeout_ms: u32,
+    timeout_capped_at_max: bool,
+    timed_sleep_uses_guard_tick: bool,
+    restores_running_state_after_handoff: bool,
+    backend_handoff_pending: bool,
+};
+
 pub const PollDrainOrderRequest = struct {
     contract: KhvcdPollingContractRequest = .{},
     may_sleep: bool = false,
@@ -403,6 +435,51 @@ pub const HvcConsoleLab = struct {
             .sleep_timeout_ms = sleep_timeout_ms,
             .timeout_capped_at_max = timeout_backoff_active and sleep_timeout_ms == max_khvcd_timeout_ms,
             .backend_handoff_pending = contract.teardown_host_io_pending or poll_mask_pending,
+        };
+    }
+
+    pub fn summarizeKhvcdSleepHandoff(
+        self: *const Self,
+        request: KhvcdSleepHandoffRequest,
+    ) !KhvcdSleepHandoffSnapshot {
+        const entry = try self.summarizeKhvcdWorkerEntry(request.entry);
+        const kick_short_circuits_before_sleep_state = request.entry.kick_pending_after_walk;
+        const sets_interruptible_before_sleep_recheck = !kick_short_circuits_before_sleep_state;
+        const checks_kick_after_interruptible_state = sets_interruptible_before_sleep_recheck;
+        const skip_schedule_due_to_post_state_kick = checks_kick_after_interruptible_state and
+            request.kick_pending_after_interruptible_state;
+        const schedule_without_timeout = checks_kick_after_interruptible_state and
+            !request.kick_pending_after_interruptible_state and
+            entry.sleeps_without_timeout;
+        const schedule_timeout_interruptible = checks_kick_after_interruptible_state and
+            !request.kick_pending_after_interruptible_state and
+            entry.timeout_backoff_active;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = entry.slot_index,
+            .vtermno = entry.vtermno,
+            .adapter_present = entry.adapter_present,
+            .final_close_wait_required = entry.final_close_wait_required,
+            .clears_port_initialized_on_final_close = entry.clears_port_initialized_on_final_close,
+            .keeps_console_binding = entry.keeps_console_binding,
+            .tty_registration_pending = entry.tty_registration_pending,
+            .khvcd_polling_pending = entry.khvcd_polling_pending,
+            .poll_read_pending = entry.poll_read_pending,
+            .poll_write_pending = entry.poll_write_pending,
+            .checks_kick_before_sleep_state = true,
+            .kick_short_circuits_before_sleep_state = kick_short_circuits_before_sleep_state,
+            .sets_interruptible_before_sleep_recheck = sets_interruptible_before_sleep_recheck,
+            .checks_kick_after_interruptible_state = checks_kick_after_interruptible_state,
+            .skip_schedule_due_to_post_state_kick = skip_schedule_due_to_post_state_kick,
+            .schedule_without_timeout = schedule_without_timeout,
+            .schedule_timeout_interruptible = schedule_timeout_interruptible,
+            .timeout_backoff_grows_before_timed_sleep = schedule_timeout_interruptible,
+            .sleep_timeout_ms = if (schedule_timeout_interruptible) entry.sleep_timeout_ms else 0,
+            .timeout_capped_at_max = schedule_timeout_interruptible and entry.timeout_capped_at_max,
+            .timed_sleep_uses_guard_tick = schedule_timeout_interruptible,
+            .restores_running_state_after_handoff = !kick_short_circuits_before_sleep_state,
+            .backend_handoff_pending = entry.backend_handoff_pending,
         };
     }
 
