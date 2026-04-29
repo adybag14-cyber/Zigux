@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L01",
   "phase": "Phase 15",
-  "surveyed_commit": "2b58a5636c7fcf3776e5960b52d1916a54ae64b4",
+  "surveyed_commit": "7095a02f382e919b535b5e5c3fa8985ded58268e",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -25,24 +25,10 @@
     "phase15_build_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
-    "phase15_replay_green_on_current_master": false,
+    "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
   },
   "remaining_gaps": [
-    {
-      "id": "phase15-review-process-lane-marker-drift",
-      "status": "blocked_on_current_master_replay_drift",
-      "kind": "docs_note",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The shared Phase 15 replay still fails because the live review-process note keeps `current bounded lane: `P15-L07`` while `zigux/tests/phase15_architecture_council_review_process.zig` now expects the later maintenance stamp `current bounded lane: `P15-L08``."
-    },
-    {
-      "id": "phase15-parity-scorecard-review-checklist-read-limit-drift",
-      "status": "blocked_on_current_master_replay_drift",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
-      "why_now": "The shared Phase 15 replay still fails with `error.StreamTooLong` because `phase15_parity_scorecard.zig` reads `Documentation/zigux/review-checklist.md` with `.limited(16 * 1024)` while the live checklist is now 17,461 bytes."
-    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -51,5 +37,5 @@
       "why_now": "The live repo still lacks evidence strong enough to move kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, or net/core/skbuff.c out of the freeze-in-C posture."
     }
   ],
-  "next_step": "Keep the tranche out of maintenance-ready status until a replay-repair lane refreshes the review-process lane marker and broadens the parity-scorecard checklist read cap enough for the shared build to pass again; after that, reopen this readiness packet only if the replay drifts again or the deep-core blocker posture changes enough to justify a narrower follow-up."
+  "next_step": "Leave the tranche in maintenance-ready governance mode unless the shared Phase 15 replay drifts again or the deep-core blocker posture changes enough to justify a narrower follow-up; if one of those named reopen triggers fires, rerun the dedicated readiness guard plus the shared Phase 15 build before editing neighboring governance packets."
 }
