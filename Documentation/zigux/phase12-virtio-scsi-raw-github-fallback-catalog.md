@@ -93,13 +93,9 @@ This catalog records the exact read-only GitHub fallback coverage verified for t
 
 These fields are historical replay metadata for this pinned fallback packet. They can lag the live `master` head until `P12-L09` or `P12-L12` refreshes the exact inspected-head evidence again, and they should not be read as the current shared Phase 12 validator state for newer commits.
 
-- current_master_replay_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`
+- current_master_replay_head: `3541e474daa91ceb7cfa9fb2f4e9aa0d9be948e5`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
-- current_shared_validator_result: `PHASE12_VALIDATION=fail`
+- current_shared_validator_result: `PHASE12_VALIDATION=pass`
 - current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
-- current_shared_validator_missing_markers:
-  - `review_checklist:if the change touches the shared Phase 12 libbpf snapshot packet, do `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet and exact surveyed commit instead of leaving repeat-run stability in run memory only?`
-  - `phase12_nvme_pci_manifest.json:lane_key`
-  - `phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_segments.zig`
-  - `phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_segments.zig`
+- current_shared_validator_missing_markers: `[]`
 - current_focused_survey_result: `All 1 tests passed.`

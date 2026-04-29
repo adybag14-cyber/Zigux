@@ -194,14 +194,14 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "adde5f101084dcd4c571bbc0b645d6fa95805e22b5a9f67828582e68664b8ad") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "c168ca3572f6c1756955ae9f01fcc56e39df477cc2fe1ee79a60be482b1fc5c0") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "shared_validator_result: `PHASE12_VALIDATION=fail`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_master_replay_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_result: `PHASE12_VALIDATION=fail`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_master_replay_head: `3541e474daa91ceb7cfa9fb2f4e9aa0d9be948e5`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_result: `PHASE12_VALIDATION=pass`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "shared_validator_missing_markers:") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "review_checklist:if the change touches the shared Phase 12 libbpf snapshot packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_nvme_pci_manifest.json:lane_key") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_segments.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_segments.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_missing_markers:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_missing_markers: `[]`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_focused_survey_result: `All 1 tests passed.`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "focused_survey_result: `All 1 tests passed.`") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_module") != null);
