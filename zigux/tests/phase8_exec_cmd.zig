@@ -496,7 +496,9 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "kernel/workqueue.c");
     try expectContains(slice_note, "`execv_cmd()`");
     try expectContains(slice_note, "`execvp()`");
+    try expectContains(slice_note, "queue ownership");
     try expectContains(slice_note, "scheduler-facing transport ownership");
+    try expectContains(slice_note, "buildDeferredExeclCall()");
     try expectContains(slice_note, "buildDeferredExecvCall()");
 }
 
@@ -509,10 +511,12 @@ test "phase 8 exec-cmd review checklist keeps deferred handoff review wording al
     defer std.testing.allocator.free(review_checklist);
 
     try expectContains(review_checklist, "parked Phase 8 `exec-cmd` helper packet");
-    try expectContains(review_checklist, "deferred `execv_cmd()` and `execl_cmd()` handoff helpers");
-    try expectContains(review_checklist, "direct `execvp()` side effects");
+    try expectContains(review_checklist, "deferred execution helper-only");
     try expectContains(review_checklist, "kernel/workqueue.c");
+    try expectContains(review_checklist, "`execv_cmd()`");
+    try expectContains(review_checklist, "`execvp()`");
     try expectContains(review_checklist, "queue ownership");
+    try expectContains(review_checklist, "scheduler-facing transport claims");
 }
 
 test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
