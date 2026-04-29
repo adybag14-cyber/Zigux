@@ -301,9 +301,15 @@ for index, shard in enumerate(compile_shards):
 survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 if surveyed_commit and surveyed_commit not in survey_note:
     missing.append("survey:surveyed_commit")
-expected_shared_manifest_line = f"- shared smoke manifest surveyed commit: `{surveyed_commit}`"
-if expected_shared_manifest_line not in survey_note:
-    missing.append("survey:shared_manifest_line")
+expected_provenance_line = f"- survey provenance captured against verified `master` head `{surveyed_commit}`"
+if expected_provenance_line not in survey_note:
+    missing.append("survey:provenance_line")
+expected_verified_head_line = f"- verified `master` head: `{surveyed_commit}`"
+if expected_verified_head_line not in survey_note:
+    missing.append("survey:verified_master_head_line")
+expected_manifest_commit_line = f"- shared smoke manifest surveyed commit: `{surveyed_commit}`"
+if expected_manifest_commit_line not in survey_note:
+    missing.append("survey:shared_manifest_commit_line")
 for key, value in PRODUCTIZATION_KEYS.items():
     if value not in survey_note:
         missing.append(f"survey:productization:{key}")
