@@ -55,9 +55,9 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("90d341dfde2beb1fd191e6389c0fc49cd5877cc1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("271ca9aff7d84f07dee6aa93ac6bf9daf49a5096", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
@@ -241,6 +241,7 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
     );
     defer std.testing.allocator.free(scorecard);
 
+    try std.testing.expect(std.mem.indexOf(u8, policy_note, "PHASE15_LANE_KEY=P15-L15") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## When the indefinite-C policy applies") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Required recorded fields") != null);
     try std.testing.expect(std.mem.indexOf(u8, policy_note, "## Allowed work after an indefinite-C outcome") != null);
