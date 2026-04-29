@@ -80,7 +80,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P4-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
