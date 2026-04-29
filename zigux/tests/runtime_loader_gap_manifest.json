@@ -3,17 +3,22 @@
   "schedule_phase": "Phase 6",
   "roadmap_runtime_phase": "Phase 9",
   "roadmap_command_environment_phase": "Phase 8",
-  "surveyed_commit": "7960334108294bda99551d7d612d1c28f8874743",
+  "surveyed_commit": "534de54d6a07730b707966e8d0470bd119f5a376",
   "anchor": "shared runtime loader boundary between samples/zigux/runtime_* and zigux/kernel/runtime_loader.zig",
   "survey_summary": {
     "phase6_leaf_helper_count": 4,
     "runtime_sample_count": 4,
     "runtime_loader_plan_count": 3,
+    "phase8_command_environment_surface_count": 2,
     "shared_runtime_loader_present": true,
     "allocator_policy_present": true,
     "shared_init_exit_contract_present": true,
     "shared_command_environment_control_present": false
   },
+  "phase8_command_environment_surfaces": [
+    "tools/lib/subcmd/exec-cmd.zig",
+    "tools/lib/subcmd/help.zig"
+  ],
   "phase6_leaf_helpers": [
     "lib/base64.zig",
     "lib/bsearch.zig",
@@ -190,7 +195,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_control_surface",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "The roadmap's first command and environment plumbing surfaces live in Phase 8 tooling, and the shared runtime loader now carries a shared command_name field, but argv-policy and environment-derived activation handling still remain blocked."
+      "why_now": "The roadmap's first command and environment plumbing surfaces live in Phase 8 tooling, with the live repo now landing `tools/lib/subcmd/exec-cmd.zig` and `tools/lib/subcmd/help.zig` around `ExtractArgv0Result.command_name`, `Config.exec_path_env`, `PERF_EXEC_PATH`, `PATH`, `LINES`, and `COLUMNS`, and the shared runtime loader now carries a shared command_name field, but argv-policy and environment-derived activation handling still remain blocked."
     },
     {
       "id": "runtime-loader-allocator-handoff",
