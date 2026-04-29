@@ -4,11 +4,11 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L12`
+- `PHASE15_LANE_KEY=P15-L11`
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=maintenance-mode-handoff-synthesis`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and the maintenance-mode handoff now that the landed Phase 15 governance bundle already replays in the shared workflow
-- survey provenance refreshed against verified `master` head `8de319f7ca7d37c3d0c02ca39fefd66e6b380ba7`
+- survey provenance refreshed against verified `master` head `f67968bf32ee3c04b376d99a42cd16c757fef4b1`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
