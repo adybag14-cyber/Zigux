@@ -90,7 +90,7 @@ It is a small substrate that makes future ports measurable:
 Layout assertion policy:
 - canonical bindings only: `zigux/helpers/layout_assert.zig`
 - boundary layout checks must stay attached to the curated ABI surface
-- the shared layout-assert helper now owns the canonical `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` size, alignment, and field-offset checks so focused gates do not drift on the core ABI packet
+- the shared layout-assert helper now owns the canonical `BoundaryHeader`, `ExportStatus`, `InteropPolicy`, and `MmioRange` size, alignment, and field-offset checks so focused gates do not drift on the core ABI packet
 
 Panic policy:
 - explicit modes only: `abort`, `bug`, `warn`
@@ -116,7 +116,7 @@ Unsafe policy:
 Low-level wrapper survey:
 - atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state
-- MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read16`, `read32`, `write16`, and `write32`, plus scoped `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer and now reject misaligned scoped addresses before pointer formation
+- MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read16`, `read32`, `write16`, and `write32`, plus scoped `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer, reject misaligned scoped addresses before pointer formation, and now share the canonical `MmioRange` layout assertions with the focused low-level wrapper gate through `zigux/helpers/layout_assert.zig`
 - focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps the atomic, barrier, MMIO, and scoped narrow-unsafe helper contract on its own compile-and-test path, while the dedicated `zigux/tests/phase3_policy_unsafe.zig` gate owns layout, panic, allocator, and interop-policy unsafe-byte decoding
 
 ## Boundary
