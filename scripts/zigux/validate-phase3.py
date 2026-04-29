@@ -71,12 +71,16 @@ ABI_REQUIRED_DOC_MARKERS = (
 )
 ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/kernel/export_shim.zig": (
+        "pub fn header(flags: u16) abi.BoundaryHeader {",
+        "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {",
         "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
         'test "phase3 export shim keeps failure encoding explicit"',
         'test "phase3 export shim normalizes explicit status decoding"',
     ),
     "zigux/uapi/version.zig": (
+        "pub const abi_version: u16 = abi.ABI_VERSION;",
         "pub fn boundaryHeader(flags: u16) Header {",
+        "pub fn isCompatible(header: Header) bool {",
         'test "phase3 uapi boundary header stays explicit and compatible"',
     ),
     "zigux/helpers/layout_assert.zig": (
@@ -115,6 +119,10 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_export_uapi.zig": (
         'test "phase3 export shim and uapi stay aligned"',
+        "try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
+        "try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));",
+        "try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));",
+        "try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);",
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
@@ -441,6 +449,14 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / "zigux" / "kernel" / "export_shim.zig").write_text(
+            "pub fn header(flags: u16) abi.BoundaryHeader {\n"
+            "    _ = flags;\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {\n"
+            "    _ = boundary_header;\n"
+            "    return true;\n"
+            "}\n\n"
             "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {\n"
             "    return status;\n"
             "}\n\n"
@@ -450,9 +466,14 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / "zigux" / "uapi" / "version.zig").write_text(
+            "pub const abi_version: u16 = abi.ABI_VERSION;\n\n"
             "pub fn boundaryHeader(flags: u16) Header {\n"
             "    _ = flags;\n"
             "    return undefined;\n"
+            "}\n\n"
+            "pub fn isCompatible(header: Header) bool {\n"
+            "    _ = header;\n"
+            "    return true;\n"
             "}\n\n"
             'test "phase3 uapi boundary header stays explicit and compatible" {}\n',
             encoding="utf-8",
@@ -534,7 +555,12 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_export_uapi.zig").write_text(
-            'test "phase3 export shim and uapi stay aligned" {}\n',
+            'test "phase3 export shim and uapi stay aligned" {\n'
+            "    try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));\n"
+            "    try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));\n"
+            "    try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));\n"
+            "    try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);\n"
+            "}\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -671,6 +697,14 @@ def run_self_test() -> int:
             newline="\n",
         )
         (root / "zigux" / "kernel" / "export_shim.zig").write_text(
+            "pub fn header(flags: u16) abi.BoundaryHeader {\n"
+            "    _ = flags;\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {\n"
+            "    _ = boundary_header;\n"
+            "    return true;\n"
+            "}\n\n"
             "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {\n"
             "    return status;\n"
             "}\n\n"
@@ -685,11 +719,42 @@ def run_self_test() -> int:
             'abi:missing_source_marker=zigux/kernel/export_shim.zig:test "phase3 export shim normalizes explicit status decoding"',
         ]
         (root / "zigux" / "kernel" / "export_shim.zig").write_text(
+            "pub fn header(flags: u16) abi.BoundaryHeader {\n"
+            "    _ = flags;\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {\n"
+            "    _ = boundary_header;\n"
+            "    return true;\n"
+            "}\n\n"
             "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {\n"
             "    return status;\n"
             "}\n\n"
             'test "phase3 export shim keeps failure encoding explicit" {}\n'
             'test "phase3 export shim normalizes explicit status decoding" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_export_uapi.zig").write_text(
+            'test "phase3 export shim and uapi stay aligned" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        export_uapi_drift_issues: list[str] = []
+        validate_source_markers(root, "abi", export_uapi_drift_issues)
+        assert export_uapi_drift_issues == [
+            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
+            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));",
+            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));",
+            "abi:missing_source_marker=zigux/tests/phase3_export_uapi.zig:try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);",
+        ]
+        (paths.tests_dir / "phase3_export_uapi.zig").write_text(
+            'test "phase3 export shim and uapi stay aligned" {\n'
+            "    try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));\n"
+            "    try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));\n"
+            "    try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));\n"
+            "    try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);\n"
+            "}\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -708,7 +773,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").writeText("// alpha\n", encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
