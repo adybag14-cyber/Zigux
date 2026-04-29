@@ -68,6 +68,8 @@ struct invalid_case {
     size_t input_len;
 };
 
+#include "phase6_base64_c_generated_cases.inc"
+
 static int base64_encode(const unsigned char *src, int srclen, char *dst, bool padding, enum base64_variant variant)
 {
     uint32_t ac = 0;
@@ -246,116 +248,6 @@ static const char *variant_name(enum base64_variant variant)
 
 int main(void)
 {
-    static const unsigned char empty_input[] = "";
-    static const unsigned char one_byte[] = "f";
-    static const unsigned char two_bytes[] = "fo";
-    static const unsigned char foobar[] = "foobar";
-    static const unsigned char hello_world[] = "Hello, world!";
-    static const unsigned char upper_alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    static const unsigned char lower_alpha[] = "abcdefghijklmnopqrstuvwxyz";
-    static const unsigned char digits_and_symbols[] = "0123456789+/";
-    static const unsigned char variant_one_byte[] = { 0xfb };
-    static const unsigned char variant_two_byte[] = { 0xff, 0xf0 };
-    static const unsigned char variant_sample[] = { 0x00, 0xfb, 0xff, 0x7f, 0x80 };
-    static const unsigned char invalid_with_nul[] = { 'Z', 'g', 0, '=' };
-
-    static const struct encode_case encode_cases[] = {
-        { BASE64_STD, true, empty_input, 0 },
-        { BASE64_STD, true, one_byte, 1 },
-        { BASE64_STD, true, two_bytes, 2 },
-        { BASE64_STD, true, (const unsigned char *)"foo", 3 },
-        { BASE64_STD, true, (const unsigned char *)"foob", 4 },
-        { BASE64_STD, true, (const unsigned char *)"fooba", 5 },
-        { BASE64_STD, true, foobar, 6 },
-        { BASE64_STD, true, variant_sample, sizeof(variant_sample) },
-        { BASE64_STD, false, empty_input, 0 },
-        { BASE64_STD, false, one_byte, 1 },
-        { BASE64_STD, false, two_bytes, 2 },
-        { BASE64_STD, false, (const unsigned char *)"foo", 3 },
-        { BASE64_STD, false, (const unsigned char *)"foob", 4 },
-        { BASE64_STD, false, (const unsigned char *)"fooba", 5 },
-        { BASE64_STD, false, foobar, 6 },
-        { BASE64_STD, true, hello_world, 13 },
-        { BASE64_STD, true, upper_alpha, 26 },
-        { BASE64_STD, true, lower_alpha, 26 },
-        { BASE64_STD, true, digits_and_symbols, 12 },
-        { BASE64_STD, false, hello_world, 13 },
-        { BASE64_STD, false, upper_alpha, 26 },
-        { BASE64_STD, false, lower_alpha, 26 },
-        { BASE64_STD, false, digits_and_symbols, 12 },
-        { BASE64_STD, false, variant_sample, sizeof(variant_sample) },
-        { BASE64_URLSAFE, false, variant_sample, sizeof(variant_sample) },
-        { BASE64_URLSAFE, true, variant_sample, sizeof(variant_sample) },
-        { BASE64_IMAP, false, variant_sample, sizeof(variant_sample) },
-        { BASE64_IMAP, true, variant_sample, sizeof(variant_sample) },
-        { BASE64_STD, false, variant_one_byte, sizeof(variant_one_byte) },
-        { BASE64_STD, true, variant_one_byte, sizeof(variant_one_byte) },
-        { BASE64_URLSAFE, false, variant_one_byte, sizeof(variant_one_byte) },
-        { BASE64_URLSAFE, true, variant_one_byte, sizeof(variant_one_byte) },
-        { BASE64_IMAP, false, variant_one_byte, sizeof(variant_one_byte) },
-        { BASE64_IMAP, true, variant_one_byte, sizeof(variant_one_byte) },
-        { BASE64_STD, false, variant_two_byte, sizeof(variant_two_byte) },
-        { BASE64_STD, true, variant_two_byte, sizeof(variant_two_byte) },
-        { BASE64_URLSAFE, false, variant_two_byte, sizeof(variant_two_byte) },
-        { BASE64_URLSAFE, true, variant_two_byte, sizeof(variant_two_byte) },
-        { BASE64_IMAP, false, variant_two_byte, sizeof(variant_two_byte) },
-        { BASE64_IMAP, true, variant_two_byte, sizeof(variant_two_byte) },
-    };
-    static const struct decode_case decode_cases[] = {
-        { BASE64_STD, true, (const unsigned char *)"", 0 },
-        { BASE64_STD, true, (const unsigned char *)"Zg==", 4 },
-        { BASE64_STD, true, (const unsigned char *)"Zm8=", 4 },
-        { BASE64_STD, true, (const unsigned char *)"Zm9v", 4 },
-        { BASE64_STD, true, (const unsigned char *)"Zm9vYg==", 8 },
-        { BASE64_STD, true, (const unsigned char *)"Zm9vYmE=", 8 },
-        { BASE64_STD, true, (const unsigned char *)"Zm9vYmFy", 8 },
-        { BASE64_STD, false, (const unsigned char *)"", 0 },
-        { BASE64_STD, false, (const unsigned char *)"Zg", 2 },
-        { BASE64_STD, false, (const unsigned char *)"Zm8", 3 },
-        { BASE64_STD, false, (const unsigned char *)"Zm9v", 4 },
-        { BASE64_STD, false, (const unsigned char *)"Zm9vYg", 6 },
-        { BASE64_STD, false, (const unsigned char *)"Zm9vYmE", 7 },
-        { BASE64_STD, false, (const unsigned char *)"Zm9vYmFy", 8 },
-        { BASE64_STD, false, (const unsigned char *)"TWFu", 4 },
-        { BASE64_STD, true, (const unsigned char *)"SGVsbG8sIHdvcmxkIQ==", 20 },
-        { BASE64_STD, true, (const unsigned char *)"QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo=", 36 },
-        { BASE64_STD, true, (const unsigned char *)"YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=", 36 },
-        { BASE64_STD, false, (const unsigned char *)"SGVsbG8sIHdvcmxkIQ", 18 },
-        { BASE64_STD, false, (const unsigned char *)"QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo", 35 },
-        { BASE64_STD, false, (const unsigned char *)"YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo", 35 },
-        { BASE64_STD, false, (const unsigned char *)"MDEyMzQ1Njc4OSsv", 16 },
-        { BASE64_URLSAFE, false, (const unsigned char *)"APv_f4A", 7 },
-        { BASE64_URLSAFE, true, (const unsigned char *)"APv_f4A=", 8 },
-        { BASE64_IMAP, false, (const unsigned char *)"APv,f4A", 7 },
-        { BASE64_IMAP, true, (const unsigned char *)"APv,f4A=", 8 },
-        { BASE64_URLSAFE, false, (const unsigned char *)"-w", 2 },
-        { BASE64_URLSAFE, true, (const unsigned char *)"-w==", 4 },
-        { BASE64_IMAP, false, (const unsigned char *)"+w", 2 },
-        { BASE64_IMAP, true, (const unsigned char *)"+w==", 4 },
-        { BASE64_URLSAFE, false, (const unsigned char *)"__A", 3 },
-        { BASE64_URLSAFE, true, (const unsigned char *)"__A=", 4 },
-        { BASE64_IMAP, false, (const unsigned char *)",,A", 3 },
-        { BASE64_IMAP, true, (const unsigned char *)",,A=", 4 },
-    };
-    static const struct invalid_case invalid_cases[] = {
-        { BASE64_STD, true, (const unsigned char *)"Zg=!", 4 },
-        { BASE64_STD, true, (const unsigned char *)"Zm$=", 4 },
-        { BASE64_STD, true, (const unsigned char *)"Z===", 4 },
-        { BASE64_STD, true, (const unsigned char *)"Zg", 2 },
-        { BASE64_STD, true, (const unsigned char *)"Zm9v====", 8 },
-        { BASE64_STD, true, (const unsigned char *)"Zm==A", 5 },
-        { BASE64_STD, false, (const unsigned char *)"Zg=!", 4 },
-        { BASE64_STD, false, (const unsigned char *)"Zm$=", 4 },
-        { BASE64_STD, false, (const unsigned char *)"Z===", 4 },
-        { BASE64_STD, false, (const unsigned char *)"Zm9v====", 8 },
-        { BASE64_STD, false, (const unsigned char *)"Zg=", 3 },
-        { BASE64_STD, false, (const unsigned char *)"Zm==v", 5 },
-        { BASE64_STD, true, invalid_with_nul, sizeof(invalid_with_nul) },
-        { BASE64_STD, false, invalid_with_nul, sizeof(invalid_with_nul) },
-        { BASE64_URLSAFE, false, (const unsigned char *)"Zg==", 4 },
-        { BASE64_IMAP, false, (const unsigned char *)"Zg==", 4 },
-    };
-
     char encoded[128];
     unsigned char decoded[128];
     size_t i;
