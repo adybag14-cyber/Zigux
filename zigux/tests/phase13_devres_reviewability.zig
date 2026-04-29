@@ -58,7 +58,7 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     try std.testing.expectEqualStrings("P13-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("7f50505d85ecd5e25afa9d833310cc24002de8ae", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("51d4d54b2b4207f02dde9a5b5749df41148f1e47", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -85,6 +85,8 @@ test "phase13 devres manifest records the landed helper-first MMIO safety surfac
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
+    try std.testing.expect(!descriptor.touches_live_dma);
+    try std.testing.expect(!descriptor.touches_live_scatterlist);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
 
     var starter_landed_count: usize = 0;
