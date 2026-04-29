@@ -80,7 +80,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 5);
-    try std.testing.expectEqual(@as(usize, 13), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 6);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
@@ -88,6 +88,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_initial_summary = false;
     var saw_range_mutation_copy = false;
     var saw_selftest_surface = false;
+    var saw_sparse_nth_set_bit_replay = false;
     var saw_post_selftest_mutation_replay = false;
     var saw_exit_lifecycle = false;
     var saw_bounds_errors = false;
@@ -130,6 +131,13 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expectEqualStrings("selftest_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "clear_set") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iteration_and_ranges") != null);
+        }
+        if (std.mem.eql(u8, check.id, "sparse-nth-set-bit-replay")) {
+            saw_sparse_nth_set_bit_replay = true;
+            try std.testing.expectEqualStrings("iteration_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "nthSetBit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "bits 10, 20, 30, 40, 50, 60, 80, and 123") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "returns null") != null);
         }
         if (std.mem.eql(u8, check.id, "post-selftest-mutation-replay")) {
             saw_post_selftest_mutation_replay = true;
@@ -276,6 +284,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_initial_summary);
     try std.testing.expect(saw_range_mutation_copy);
     try std.testing.expect(saw_selftest_surface);
+    try std.testing.expect(saw_sparse_nth_set_bit_replay);
     try std.testing.expect(saw_post_selftest_mutation_replay);
     try std.testing.expect(saw_exit_lifecycle);
     try std.testing.expect(saw_bounds_errors);
@@ -293,17 +302,9 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_shared_loader_controls_blocker);
 }
 
-test "phase 9 runtime bitmap survey doc keeps the direct sample and loader build legs explicit" {
+test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteration, and loader build legs explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
-
-    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/review-checklist.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(review_checklist);
 
     const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -312,6 +313,14 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample and loader build
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(survey_doc);
+
+    const sample_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_bitmap.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_source);
 
     const phase9_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -323,10 +332,11 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample and loader build
 
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-loader-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "`samples/zigux/runtime_bitmap.zig` or `samples/zigux/runtime_bitmap_loader.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "the bitmap pair is the separate Phase 9 runtime pilot and not a Phase 5 approved `samples/zigux/` reference idiom") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "test \"runtime bitmap sample exposes ordered set-bit replay for sparse populations\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "nthSetBit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs") != null);
