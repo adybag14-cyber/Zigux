@@ -160,6 +160,11 @@ fn expectFixture(fixture: ArgvFixture) !void {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), c_argv[fixture.expected.len]);
 }
 
+fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const u8) !void {
+    var split = try argvSplit(allocator, text);
+    defer split.deinit(allocator);
+}
+
 test "argvSplit matches focused parity fixtures" {
     try expectFixture(.{
         .input = " alpha  beta\tgamma\n",
@@ -241,4 +246,12 @@ test "ArgvSplitResult deinit is idempotent after the exported views are cleared"
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvSplit frees intermediate allocations when allocator failure interrupts setup" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runArgvSplitWithFailingAllocator,
+        .{"console=ttyS0 root=/dev/vda rw"},
+    );
 }
