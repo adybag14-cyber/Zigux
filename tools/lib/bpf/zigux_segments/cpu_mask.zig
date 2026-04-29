@@ -129,6 +129,14 @@ pub fn parseCpuMaskFromReader(
     return parseCpuMaskString(allocator, collected.items);
 }
 
+pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: u32) usize {
+    if (map_max_entries != 0 and map_max_entries < possible_cpu_count) {
+        return @as(usize, map_max_entries);
+    }
+
+    return possible_cpu_count;
+}
+
 pub fn countPossibleCpus(mask: []const bool) usize {
     var count: usize = 0;
     for (mask) |present| {
@@ -273,4 +281,10 @@ test "parseCpuMaskFromReader keeps the libbpf fixed-width cpu-mask ceiling expli
         .context = &state,
         .readFn = ReaderState.read,
     }));
+}
+
+test "derivePerfBufferAutoCpuCount keeps perf-buffer auto sizing within the map budget" {
+    try std.testing.expectEqual(@as(usize, 8), derivePerfBufferAutoCpuCount(8, 0));
+    try std.testing.expectEqual(@as(usize, 4), derivePerfBufferAutoCpuCount(8, 4));
+    try std.testing.expectEqual(@as(usize, 8), derivePerfBufferAutoCpuCount(8, 16));
 }
