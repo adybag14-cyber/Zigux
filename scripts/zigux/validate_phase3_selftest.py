@@ -47,7 +47,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha dump\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").writeText("{}", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("// alpha harness\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
