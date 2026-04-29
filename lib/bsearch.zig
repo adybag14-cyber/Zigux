@@ -2,7 +2,35 @@
 const std = @import("std");
 
 pub fn Comparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) i32;
+}
+
+pub fn CComparator(comptime Key: type, comptime T: type) type {
     return *const fn (*const Key, *const T) callconv(.c) i32;
+}
+
+fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
+    const fn_info = switch (@typeInfo(Compare)) {
+        .@"fn" => |info| info,
+        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
+            .@"fn" => |info| info,
+            else => @compileError("bsearch comparator must be a function or function pointer"),
+        },
+        else => @compileError("bsearch comparator must be a function or function pointer"),
+    };
+
+    if (fn_info.params.len != 2) {
+        @compileError("bsearch comparator must accept exactly two parameters");
+    }
+    if (fn_info.params[0].type orelse @compileError("bsearch comparator key parameter must be typed") != *const Key) {
+        @compileError("bsearch comparator first parameter must be *const Key");
+    }
+    if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
+        @compileError("bsearch comparator second parameter must be *const T");
+    }
+    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != i32) {
+        @compileError("bsearch comparator return type must be i32");
+    }
 }
 
 pub fn searchIndex(
@@ -10,8 +38,9 @@ pub fn searchIndex(
     comptime T: type,
     key: *const Key,
     items: []const T,
-    compare: Comparator(Key, T),
+    compare: anytype,
 ) ?usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
     var base: usize = 0;
     var num = items.len;
 
@@ -38,8 +67,9 @@ pub fn search(
     comptime T: type,
     key: *const Key,
     items: []const T,
-    compare: Comparator(Key, T),
+    compare: anytype,
 ) ?*const T {
+    comptime validateComparator(Key, T, @TypeOf(compare));
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
 }
@@ -49,13 +79,14 @@ pub fn searchMutable(
     comptime T: type,
     key: *const Key,
     items: []T,
-    compare: Comparator(Key, T),
+    compare: anytype,
 ) ?*T {
+    comptime validateComparator(Key, T, @TypeOf(compare));
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
 }
 
-fn compareInt(key: *const i32, item: *const i32) callconv(.c) i32 {
+fn compareInt(key: *const i32, item: *const i32) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
         .eq => 0,
@@ -63,7 +94,15 @@ fn compareInt(key: *const i32, item: *const i32) callconv(.c) i32 {
     };
 }
 
-fn compareDescendingInt(key: *const i32, item: *const i32) callconv(.c) i32 {
+fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
+    return compareInt(item, key);
+}
+
+fn compareCInt(key: *const i32, item: *const i32) callconv(.c) i32 {
+    return compareInt(key, item);
+}
+
+fn compareCDescendingInt(key: *const i32, item: *const i32) callconv(.c) i32 {
     return compareInt(item, key);
 }
 
@@ -72,7 +111,7 @@ const Entry = struct {
     value: u32,
 };
 
-fn compareName(key: *const []const u8, item: *const Entry) callconv(.c) i32 {
+fn compareName(key: *const []const u8, item: *const Entry) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
         .eq => 0,
@@ -177,12 +216,25 @@ test "search supports heterogeneous keys through the comparator" {
     try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
 }
 
-test "search accepts runtime-selected c-abi comparator function pointers" {
+test "search accepts runtime-selected comparator function pointers" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
     const comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
     const slices = [_][]const i32{ ascending[0..], descending[0..] };
     const targets = [_]i32{ 23, 7 };
+
+    for (comparators, slices, targets) |compare, items, target| {
+        const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(target, found.*);
+    }
+}
+
+test "search accepts runtime-selected C ABI comparator function pointers" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]CComparator(i32, i32){ compareCInt, compareCDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 16, 11 };
 
     for (comparators, slices, targets) |compare, items, target| {
         const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
