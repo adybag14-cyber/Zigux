@@ -2,6 +2,7 @@
 const std = @import("std");
 const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};
 var empty_storage_null_terminated = [_:0]u8{0};
+const empty_storage_view = empty_storage_null_terminated[0..0 :0];
 
 pub const ArgvSplitResult = struct {
     storage: [:0]u8,
@@ -15,9 +16,11 @@ pub const ArgvSplitResult = struct {
         if (self.argv.len != 0) {
             allocator.free(self.argv);
         }
-        allocator.free(self.storage);
+        if (self.storage.ptr != empty_storage_view.ptr) {
+            allocator.free(self.storage);
+        }
         self.* = .{
-            .storage = empty_storage_null_terminated[0..0 :0],
+            .storage = empty_storage_view,
             .argv = &.{},
             .argv_null_terminated = empty_argv_null_terminated,
         };
@@ -218,6 +221,19 @@ test "ArgvSplitResult deinit clears exported storage and argv views" {
     try std.testing.expectEqual(@as(usize, 2), split.argv.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
 
+    split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "ArgvSplitResult deinit is idempotent after the exported views are cleared" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+
+    split.deinit(std.testing.allocator);
     split.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(@as(usize, 0), split.storage.len);

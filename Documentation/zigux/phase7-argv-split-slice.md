@@ -59,6 +59,7 @@ The current tests check:
 - optional argc reporting that stays in sync with the returned argv length
 - blank-input reuse of the exported empty argv view under a four-byte fixed-buffer allocator
 - teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`
+- repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state
 - a machine-checked survey record that keeps the Phase 7 roadmap anchor and landed review surfaces explicit without advertising active same-lane work
 
 The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`.
