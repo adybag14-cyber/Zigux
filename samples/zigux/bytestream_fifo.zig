@@ -18,6 +18,7 @@ pub const SampleFocus = enum {
     wraparound_requeue,
     peek_and_skip,
     non_destructive_snapshot,
+    preview_truncation,
     reset_and_replay,
     ownership_and_lifetime,
 };
@@ -227,6 +228,7 @@ pub const BytestreamFifoSample = struct {
                 .wraparound_requeue,
                 .peek_and_skip,
                 .non_destructive_snapshot,
+                .preview_truncation,
                 .reset_and_replay,
                 .ownership_and_lifetime,
             },
@@ -267,6 +269,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
         .wraparound_requeue,
         .peek_and_skip,
         .non_destructive_snapshot,
+        .preview_truncation,
         .reset_and_replay,
         .ownership_and_lifetime,
     };
