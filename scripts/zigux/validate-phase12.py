@@ -126,7 +126,7 @@ MANIFEST_SPECS = {
         "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
     },
     "phase12_nvme_pci_manifest.json": {
-        "lane_key": "P12-L05",
+        "lane_key": "P12-L08",
         "anchor": "drivers/nvme/host/pci.c",
         "gap_count": 12,
         "roadmap_destinations": ["drivers/nvme/host/pci.zig", "zigux/tests/", "Documentation/zigux/"],
