@@ -10,6 +10,12 @@ const FixdepError = error{
     OutputWrite,
 };
 
+const DependencyFileFailure = enum {
+    open,
+    stat,
+    read,
+};
+
 fn isIdentByte(ch: u8) bool {
     return std.ascii.isAlphanumeric(ch) or ch == '_';
 }
@@ -28,6 +34,7 @@ fn describeFileReadError(err: anyerror) []const u8 {
     return switch (err) {
         error.FileNotFound => "No such file or directory",
         error.AccessDenied => "Permission denied",
+        error.PermissionDenied => "Permission denied",
         error.IsDir => "Is a directory",
         error.NotDir => "Not a directory",
         error.NameTooLong => "File name too long",
@@ -42,15 +49,37 @@ fn describeFileReadError(err: anyerror) []const u8 {
     };
 }
 
-fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
+fn formatDependencyFileErrorMessage(
+    buffer: []u8,
+    kind: DependencyFileFailure,
+    path: []const u8,
+    err: anyerror,
+) ![]const u8 {
+    return switch (kind) {
+        .open => std.fmt.bufPrint(buffer, "fixdep: error opening file: {s}: {s}\n", .{
+            path,
+            describeFileReadError(err),
+        }),
+        .stat => std.fmt.bufPrint(buffer, "fixdep: error fstat'ing file: {s}: {s}\n", .{
+            path,
+            describeFileReadError(err),
+        }),
+        .read => std.fmt.bufPrint(buffer, "fixdep: read: {s}\n", .{describeFileReadError(err)}),
+    };
+}
+
+fn emitDependencyFileError(
+    io: std.Io,
+    kind: DependencyFileFailure,
+    path: []const u8,
+    err: anyerror,
+) !noreturn {
     var stderr_buffer: [512]u8 = undefined;
     var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
     const stderr = &stderr_writer.interface;
-    try stderr.writeAll("fixdep: error opening file: ");
-    try stderr.writeAll(path);
-    try stderr.writeAll(": ");
-    try stderr.writeAll(describeFileReadError(err));
-    try stderr.writeAll("\n");
+    var message_buffer: [512]u8 = undefined;
+    const message = try formatDependencyFileErrorMessage(&message_buffer, kind, path, err);
+    try stderr.writeAll(message);
     try stderr.flush();
     std.process.exit(2);
 }
@@ -99,6 +128,7 @@ const Processor = struct {
     file_seen: std.ArrayListUnmanaged([]const u8),
     last_file_error_path: []const u8,
     last_file_error: ?anyerror,
+    last_file_error_kind: DependencyFileFailure,
 
     pub fn init(backing_allocator: std.mem.Allocator, io: std.Io) Processor {
         var self: Processor = undefined;
@@ -108,6 +138,7 @@ const Processor = struct {
         self.file_seen = .empty;
         self.last_file_error_path = "";
         self.last_file_error = null;
+        self.last_file_error_kind = .open;
         return self;
     }
 
@@ -136,6 +167,13 @@ const Processor = struct {
         try writer.print("    $(wildcard include/config/{s}) \\\n", .{token});
     }
 
+    fn rememberFileError(self: *Processor, path: []const u8, err: anyerror, kind: DependencyFileFailure) FixdepError {
+        self.last_file_error_path = path;
+        self.last_file_error = err;
+        self.last_file_error_kind = kind;
+        return error.ReadDependencyFile;
+    }
+
     fn parseConfigFile(self: *Processor, writer: anytype, text: []const u8) !void {
         var index: usize = 0;
         while (std.mem.indexOfPos(u8, text, index, "CONFIG_")) |start| {
@@ -161,7 +199,7 @@ const Processor = struct {
     }
 
     fn readDependencyFile(self: *Processor, path: []const u8) ![]const u8 {
-        return Io.Dir.cwd().readFileAlloc(self.io, path, self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
+        var file = Io.Dir.cwd().openFile(self.io, path, .{ .allow_directory = true }) catch |err| switch (err) {
             error.FileNotFound,
             error.AccessDenied,
             error.IsDir,
@@ -174,13 +212,25 @@ const Processor = struct {
             error.DeviceBusy,
             error.NoDevice,
             error.FileTooBig,
-            error.InputOutput,
-            => {
-                self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
-                self.last_file_error = err;
-                return error.ReadDependencyFile;
-            },
+            => return self.rememberFileError(path, err, .open),
             else => return err,
+        };
+        defer file.close(self.io);
+
+        _ = file.stat(self.io) catch |err| switch (err) {
+            error.AccessDenied,
+            error.PermissionDenied,
+            error.Streaming,
+            error.SystemResources,
+            error.Canceled,
+            error.Unexpected,
+            => return self.rememberFileError(path, err, .stat),
+        };
+
+        var reader = file.reader(self.io, &.{});
+        return reader.interface.allocRemaining(self.arena.allocator(), .limited(max_file_bytes)) catch |err| switch (err) {
+            error.ReadFailed => return self.rememberFileError(path, reader.err.?, .read),
+            error.OutOfMemory, error.StreamTooLong => |e| return e,
         };
     }
 
@@ -303,14 +353,14 @@ pub fn runFixdep(allocator: std.mem.Allocator, io: std.Io, writer: anytype, depf
     const dep_text = processor.readDependencyFile(depfile) catch |err| switch (err) {
         error.ReadDependencyFile => {
             flushOutputPreservingPrimaryError(writer);
-            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+            try emitDependencyFileError(io, processor.last_file_error_kind, processor.last_file_error_path, processor.last_file_error.?);
         },
         else => return err,
     };
     processor.parseDepFile(writer, dep_text, target) catch |err| switch (err) {
         error.ReadDependencyFile => {
             flushOutputPreservingPrimaryError(writer);
-            try emitOpenFileError(io, processor.last_file_error_path, processor.last_file_error.?);
+            try emitDependencyFileError(io, processor.last_file_error_kind, processor.last_file_error_path, processor.last_file_error.?);
         },
         else => return err,
     };
@@ -589,6 +639,23 @@ test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
     try std.testing.expectEqualStrings("File too large", describeFileReadError(error.FileTooBig));
+}
+
+test "dependency file error messages keep C helper wording" {
+    var buffer: [512]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "fixdep: error opening file: sample.d: No such file or directory\n",
+        try formatDependencyFileErrorMessage(&buffer, .open, "sample.d", error.FileNotFound),
+    );
+    try std.testing.expectEqualStrings(
+        "fixdep: error fstat'ing file: sample.d: Permission denied\n",
+        try formatDependencyFileErrorMessage(&buffer, .stat, "sample.d", error.PermissionDenied),
+    );
+    try std.testing.expectEqualStrings(
+        "fixdep: read: Input/output error\n",
+        try formatDependencyFileErrorMessage(&buffer, .read, "sample.d", error.InputOutput),
+    );
 }
 
 test "output writer maps print and flush failures to fixdep output-write errors" {
