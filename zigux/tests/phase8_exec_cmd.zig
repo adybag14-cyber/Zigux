@@ -1,4 +1,5 @@
 const std = @import("std");
+const build_options = @import("build_options");
 const exec_cmd = @import("exec_cmd");
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
@@ -6,12 +7,15 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
 }
 
 fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    const full_path = try std.fs.path.join(allocator, &.{ build_options.repo_root, path });
+    defer allocator.free(full_path);
+
     var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
 
     return std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        path,
+        full_path,
         allocator,
         .limited(limit),
     );
@@ -494,6 +498,21 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "`execvp()`");
     try expectContains(slice_note, "scheduler-facing transport ownership");
     try expectContains(slice_note, "buildDeferredExecvCall()");
+}
+
+test "phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned" {
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContains(review_checklist, "parked Phase 8 `exec-cmd` helper packet");
+    try expectContains(review_checklist, "deferred `execv_cmd()` and `execl_cmd()` handoff helpers");
+    try expectContains(review_checklist, "direct `execvp()` side effects");
+    try expectContains(review_checklist, "kernel/workqueue.c");
+    try expectContains(review_checklist, "queue ownership");
 }
 
 test "phase 8 exec-cmd evidence still matches the live C helper anchors" {
