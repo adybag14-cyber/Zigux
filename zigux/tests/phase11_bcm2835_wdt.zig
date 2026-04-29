@@ -22,6 +22,25 @@ test "phase11 bcm2835_wdt reports bounded timeout limits and descriptor state" {
     try std.testing.expectEqual(@as(u32, 15_999), config.max_hw_heartbeat_ms);
 }
 
+test "phase11 bcm2835_wdt keeps watchdog metadata and ops surface reviewable" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(12);
+    const metadata = watchdog.watchdogMetadataSummary();
+
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", metadata.anchor);
+    try std.testing.expectEqualStrings("Broadcom BCM2835 Watchdog timer", metadata.identity);
+    try std.testing.expect(metadata.supports_set_timeout);
+    try std.testing.expect(metadata.supports_magic_close);
+    try std.testing.expect(metadata.supports_keepalive_ping);
+    try std.testing.expect(metadata.start_op_ready);
+    try std.testing.expect(metadata.stop_op_ready);
+    try std.testing.expect(metadata.get_timeleft_op_ready);
+    try std.testing.expect(metadata.restart_op_ready);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.min_timeout_sec), metadata.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_timeout_sec), metadata.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_timeout_sec), metadata.max_timeout_sec);
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.max_hw_heartbeat_ms), metadata.max_hw_heartbeat_ms);
+}
+
 test "phase11 bcm2835_wdt mirrors running-state detection and start or stop register writes" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
@@ -106,7 +125,7 @@ test "phase11 bcm2835_wdt probe summary keeps probe-time watchdog-core bookkeepi
     const stopped_probe = watchdog.probeSummary(false, false, false);
     try std.testing.expect(!stopped_probe.nowayout);
     try std.testing.expect(!stopped_probe.bootloader_running);
-    try std.testing.expect(!stopped_probe.framework_marks_hw_running);
+    try std.testing.expect(!stopped_probe.framework_marks_hw_RUNNING);
     try std.testing.expect(!stopped_probe.framework_ping_expected);
     try std.testing.expect(stopped_probe.heartbeat_init_requested);
     try std.testing.expect(stopped_probe.parent_attached);
