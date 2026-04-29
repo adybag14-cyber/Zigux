@@ -58,6 +58,22 @@ pub fn copyClearTail(dst: []Word, src: []const Word, nbits: usize) void {
     }
 }
 
+pub fn copyAndExtend(dst: []Word, src: []const Word, count: usize, size: usize) void {
+    std.debug.assert(size >= count);
+    assertBitmapLen(dst, size);
+    assertBitmapLen(src, count);
+
+    const copied_words = bitsToWords(count);
+    if (copied_words != 0) {
+        @memcpy(dst[0..copied_words], src[0..copied_words]);
+        if ((count & (bits_per_long - 1)) != 0) {
+            dst[copied_words - 1] &= lastWordMask(count);
+        }
+    }
+
+    @memset(dst[copied_words..bitsToWords(size)], 0);
+}
+
 pub fn empty(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
     return find_bit.findFirstBit(src, nbits) == nbits;
@@ -405,6 +421,30 @@ test "bitmap copyClearTail clears out-of-range bits in the last copied word" {
     copyClearTail(&dst, &src, nbits);
     try std.testing.expectEqual(~@as(Word, 0), dst[0]);
     try std.testing.expectEqual(lastWordMask(nbits), dst[1]);
+    try std.testing.expectEqual(@as(Word, 0), dst[2]);
+}
+
+test "bitmap copyAndExtend masks a partial tail and zeroes the extended words" {
+    const count = bits_per_long + 5;
+    const size = bits_per_long * 3;
+    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+    var dst = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
+
+    copyAndExtend(&dst, &src, count, size);
+    try std.testing.expectEqual(~@as(Word, 0), dst[0]);
+    try std.testing.expectEqual(lastWordMask(count), dst[1]);
+    try std.testing.expectEqual(@as(Word, 0), dst[2]);
+}
+
+test "bitmap copyAndExtend keeps whole copied words and clears the rest" {
+    const count = bits_per_long * 2;
+    const size = bits_per_long * 3;
+    const src = [_]Word{ 0x55aa, 0xaa55, ~@as(Word, 0) };
+    var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+
+    copyAndExtend(&dst, &src, count, size);
+    try std.testing.expectEqual(src[0], dst[0]);
+    try std.testing.expectEqual(src[1], dst[1]);
     try std.testing.expectEqual(@as(Word, 0), dst[2]);
 }
 
