@@ -8,7 +8,7 @@ const Symbol = struct {
 
 var counted_compare_calls: usize = 0;
 
-fn compareU32(key: *const u32, item: *const u32) callconv(.c) i32 {
+fn compareU32(key: *const u32, item: *const u32) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
         .eq => 0,
@@ -16,11 +16,19 @@ fn compareU32(key: *const u32, item: *const u32) callconv(.c) i32 {
     };
 }
 
-fn compareDescendingU32(key: *const u32, item: *const u32) callconv(.c) i32 {
+fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
     return compareU32(item, key);
 }
 
-fn compareSymbolName(key: *const []const u8, item: *const Symbol) callconv(.c) i32 {
+fn compareCU32(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareU32(key, item);
+}
+
+fn compareCDescendingU32(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareU32(item, key);
+}
+
+fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
         .eq => 0,
@@ -28,7 +36,7 @@ fn compareSymbolName(key: *const []const u8, item: *const Symbol) callconv(.c) i
     };
 }
 
-fn compareU32Counted(key: *const u32, item: *const u32) callconv(.c) i32 {
+fn compareU32Counted(key: *const u32, item: *const u32) i32 {
     counted_compare_calls += 1;
     return compareU32(key, item);
 }
@@ -139,12 +147,25 @@ test "phase 6 bsearch keeps representative lookup work inside a binary-search bu
     try std.testing.expect(counted_compare_calls <= 4);
 }
 
-test "phase 6 bsearch accepts runtime-selected c-abi comparator function pointers" {
+test "phase 6 bsearch accepts runtime-selected comparator function pointers" {
     const ascending = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
     const descending = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
     const comparators = [_]bsearch.Comparator(u32, u32){ compareU32, compareDescendingU32 };
     const slices = [_][]const u32{ ascending[0..], descending[0..] };
     const targets = [_]u32{ 34, 13 };
+
+    for (comparators, slices, targets) |compare, items, target| {
+        const found = bsearch.search(u32, u32, &target, items, compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(target, found.*);
+    }
+}
+
+test "phase 6 bsearch accepts runtime-selected C ABI comparator pointers" {
+    const ascending = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const descending = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const comparators = [_]bsearch.CComparator(u32, u32){ compareCU32, compareCDescendingU32 };
+    const slices = [_][]const u32{ ascending[0..], descending[0..] };
+    const targets = [_]u32{ 55, 34 };
 
     for (comparators, slices, targets) |compare, items, target| {
         const found = bsearch.search(u32, u32, &target, items, compare) orelse return error.TestUnexpectedResult;
