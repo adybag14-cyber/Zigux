@@ -67,6 +67,11 @@ SCRIPT_README_MARKERS = [
     "shared Phase 14 smoke packet",
     "focused smoke-shard replay contract",
     "stay-in-C boundary",
+    "roadmap risk bundle",
+    "hidden runtime behavior",
+    "memory-ordering mistakes",
+    "overpromising full parity",
+    "deep-core scope creep",
 ]
 
 RELEASE_MARKERS = [
@@ -221,7 +226,9 @@ required_summary_keys = [
     "workflow_runs_phase14_smoke_shard",
     "review_checklist_has_phase14_smoke_prompt",
     "review_checklist_has_productization_prompt",
+    "review_checklist_has_risk_bundle_prompt",
     "smoke_note_records_owner_and_rollback",
+    "smoke_note_records_risk_bundle",
     "smoke_note_records_transfer_rationale",
     "freeze_map_lists_workqueue_c",
     "freeze_map_lists_skbuff_c",
