@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "f9f772e5912d57fdfd1ba77689017cc54b4d83d5",
+  "surveyed_commit": "78ff9f7f2ad41b0aea29de8246ca5c8410ff7a36",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -115,6 +115,8 @@
     "phase14_validate_entrypoint_present": true,
     "phase14_build_has_shared_smoke_step": true,
     "phase14_build_has_smoke_shard_step": true,
+    "phase14_build_full_bundle_routes_all_compile_artifacts": true,
+    "phase14_build_smoke_shard_routes_only_smoke_survey": true,
     "phase14_make_target_present": true,
     "phase14_make_smoke_target_present": true,
     "workflow_runs_phase14_validate": true,
