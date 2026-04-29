@@ -11,8 +11,8 @@
     },
     {
       "path": "zigux/tests/phase12_libbpf_segments.zig",
-      "bytes": 6147,
-      "sha256": "7468420375e66f12617550026052756e6421140e9ca44e4d19521831a4563000"
+      "bytes": 7021,
+      "sha256": "427913fe3fce660249841cbf7bb86359c850aa96bbbec04704f8ac7f86063561"
     },
     {
       "path": "zigux/tests/phase12_libbpf_reviewability.zig",
@@ -27,7 +27,7 @@
     {
       "path": "tools/lib/bpf/zigux_segments/manifest.json",
       "bytes": 7509,
-      "sha256": "a54b38d7f8eaccc1ee802d497ff3e8ba4833df9f3437de19e59a23a0113a8d6d"
+      "sha256": "0eeda0e30caffb88d62472e1c84100a5fd2b59c457a8e9b152674e67f8de7bef"
     }
   ]
 }
