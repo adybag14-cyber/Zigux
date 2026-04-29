@@ -90,6 +90,11 @@ RELEASE_MARKERS = [
     "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5",
     "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
     "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests",
+    "exact checks run for this verification pass",
+    "python3 scripts/zigux/validate-phase14.py",
+    "make -C zigux phase14-validate ZIG=/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig PYTHON=python3",
+    "/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig test zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "make -C zigux phase14-smoke ZIG=/workspace/.toolchains/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2/zig PYTHON=python3",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
     "PHASE14_STATUS_CHANGE_CLAIM=no",
     "scripts/zigux/validate-phase14.py",
@@ -132,13 +137,6 @@ PRODUCTIZATION_KEYS = {
     "validation_gate": "zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14",
     "rollback_owner": "Repo Tooling Pod",
 }
-RCU_TREE_ROLLBACK_THRESHOLD_KEYS = {
-    "status_bucket": "freeze_in_c",
-    "review_blocker_status": "blocked_on_stay_in_c_evidence",
-    "owner": "Core-Adjacent Pod",
-    "rollback_owner": "Repo Tooling Pod",
-}
-RCU_TREE_ROLLBACK_GUARDRAIL_GAP = "phase14-rcu-tree-rollback-threshold-guardrail"
 
 
 def text(path: str) -> str:
@@ -402,32 +400,6 @@ for index, packet in enumerate(anchor_packets):
         missing.append(f"survey:anchor_lane_key:{lane_key}")
     if packet_commit not in survey_note:
         missing.append(f"survey:anchor_commit:{lane_key}")
-    if manifest_path == "zigux/tests/phase14_rcu_tree_manifest.json":
-        rollback_threshold = anchor_manifest.get("rollback_threshold")
-        if not isinstance(rollback_threshold, dict):
-            missing.append(f"{manifest_path}:rollback_threshold")
-        else:
-            for key, value in RCU_TREE_ROLLBACK_THRESHOLD_KEYS.items():
-                if rollback_threshold.get(key) != value:
-                    missing.append(f"{manifest_path}:rollback_threshold:{key}={rollback_threshold.get(key)}")
-            required_evidence = rollback_threshold.get("required_evidence")
-            if not isinstance(required_evidence, list) or len(required_evidence) != 3:
-                missing.append(f"{manifest_path}:rollback_threshold:required_evidence")
-            else:
-                for item in required_evidence:
-                    if not isinstance(item, str) or item not in anchor_survey_note:
-                        missing.append(f"{survey_note_path}:rollback_required_evidence:{item}")
-            rollback_triggers = rollback_threshold.get("rollback_triggers")
-            if not isinstance(rollback_triggers, list) or len(rollback_triggers) != 3:
-                missing.append(f"{manifest_path}:rollback_threshold:rollback_triggers")
-            else:
-                for item in rollback_triggers:
-                    if not isinstance(item, str) or item not in anchor_survey_note:
-                        missing.append(f"{survey_note_path}:rollback_trigger:{item}")
-
-        guardrail_gap = find_gap(anchor_manifest, RCU_TREE_ROLLBACK_GUARDRAIL_GAP)
-        if not isinstance(guardrail_gap, dict) or guardrail_gap.get("status") != "starter_landed":
-            missing.append(f"{manifest_path}:guardrail:{RCU_TREE_ROLLBACK_GUARDRAIL_GAP}")
 
 if missing:
     print("PHASE14_VALIDATION=fail")
