@@ -93,6 +93,8 @@ required_closure_markers = [
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
     'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
+    'PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, and same-word start-mask checksums so helper-local scan regressions cannot hide behind a generic positive checksum',
+    'PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM',
     'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
 ]
 required_workflow_markers = [
