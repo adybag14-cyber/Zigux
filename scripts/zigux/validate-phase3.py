@@ -92,10 +92,14 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/helpers/panic_policy.zig": (
         "pub fn actionFor(mode: abi.PanicMode) Action {",
+        "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode {",
+        "pub fn canReturnPolicyByte(panic_mode: u8) bool {",
         'test "phase3 panic policy stays explicit"',
     ),
     "zigux/helpers/allocator_policy.zig": (
         "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
+        "pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode {",
+        "pub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool {",
         'test "phase3 allocator policy stays explicit"',
     ),
     "zigux/helpers/atomic.zig": (
@@ -118,7 +122,11 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/unsafe/narrow.zig": (
         "pub const UnsafeScopeTag = enum(u8) {",
         "raw_pointer_bridge = 2,",
+        "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+        "pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {",
         'test "phase3 narrow unsafe scope stays explicit"',
+        'test "phase3 narrow unsafe interop policy decoding stays explicit"',
+        'test "phase3 scoped unsafe helpers require the declared scope"',
     ),
     "zigux/tests/phase3_export_uapi.zig": (
         'test "phase3 export shim and uapi stay aligned"',
@@ -134,6 +142,8 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
+        'test "phase3 policy layout stays explicit at the ABI boundary"',
+        'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
         'test "phase3 policy gate enforces the declared unsafe scope"',
     ),
 }
@@ -488,6 +498,14 @@ def run_self_test() -> int:
             "    _ = mode;\n"
             "    return .abort_now;\n"
             "}\n\n"
+            "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode {\n"
+            "    _ = panic_mode;\n"
+            "    return .abort;\n"
+            "}\n\n"
+            "pub fn canReturnPolicyByte(panic_mode: u8) bool {\n"
+            "    _ = panic_mode;\n"
+            "    return false;\n"
+            "}\n\n"
             'test "phase3 panic policy stays explicit" {}\n',
             encoding="utf-8",
             newline="\n",
@@ -496,6 +514,14 @@ def run_self_test() -> int:
             "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {\n"
             "    _ = mode;\n"
             "    return .caller_prepared;\n"
+            "}\n\n"
+            "pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode {\n"
+            "    _ = allocator_mode;\n"
+            "    return .caller_provided;\n"
+            "}\n\n"
+            "pub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool {\n"
+            "    _ = allocator_mode;\n"
+            "    return false;\n"
             "}\n\n"
             'test "phase3 allocator policy stays explicit" {}\n',
             encoding="utf-8",
@@ -554,7 +580,17 @@ def run_self_test() -> int:
             "    volatile_mmio = 1,\n"
             "    raw_pointer_bridge = 2,\n"
             "};\n\n"
-            'test "phase3 narrow unsafe scope stays explicit" {}\n',
+            "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {\n"
+            "    _ = .{ unsafe_scope, reserved };\n"
+            "    return .volatile_mmio;\n"
+            "}\n\n"
+            "pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {\n"
+            "    _ = .{ T, scope, addr };\n"
+            "    return undefined;\n"
+            "}\n\n"
+            'test "phase3 narrow unsafe scope stays explicit" {}\n'
+            'test "phase3 narrow unsafe interop policy decoding stays explicit" {}\n'
+            'test "phase3 scoped unsafe helpers require the declared scope" {}\n',
             encoding="utf-8",
             newline="\n",
         )
@@ -577,6 +613,8 @@ def run_self_test() -> int:
         )
         (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
             'test "phase3 policy helpers stay ABI aligned" {}\n'
+            'test "phase3 policy layout stays explicit at the ABI boundary" {}\n'
+            'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}\n'
             'test "phase3 policy gate enforces the declared unsafe scope" {}\n',
             encoding="utf-8",
             newline="\n",
@@ -661,6 +699,14 @@ def run_self_test() -> int:
             "    _ = mode;\n"
             "    return .abort_now;\n"
             "}\n\n"
+            "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode {\n"
+            "    _ = panic_mode;\n"
+            "    return .abort;\n"
+            "}\n\n"
+            "pub fn canReturnPolicyByte(panic_mode: u8) bool {\n"
+            "    _ = panic_mode;\n"
+            "    return false;\n"
+            "}\n\n"
             'test "phase3 panic modes drifted" {}\n',
             encoding="utf-8",
             newline="\n",
@@ -674,6 +720,14 @@ def run_self_test() -> int:
             "pub fn actionFor(mode: abi.PanicMode) Action {\n"
             "    _ = mode;\n"
             "    return .abort_now;\n"
+            "}\n\n"
+            "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode {\n"
+            "    _ = panic_mode;\n"
+            "    return .abort;\n"
+            "}\n\n"
+            "pub fn canReturnPolicyByte(panic_mode: u8) bool {\n"
+            "    _ = panic_mode;\n"
+            "    return false;\n"
             "}\n\n"
             'test "phase3 panic policy stays explicit" {}\n',
             encoding="utf-8",
@@ -793,6 +847,26 @@ def run_self_test() -> int:
             "    try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));\n"
             "    try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);\n"
             "}\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
+            'test "phase3 policy helpers stay ABI aligned" {}\n'
+            'test "phase3 policy layout stays explicit at the ABI boundary" {}\n'
+            'test "phase3 policy gate enforces the declared unsafe scope" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        policy_unsafe_drift_issues: list[str] = []
+        validate_source_markers(root, "abi", policy_unsafe_drift_issues)
+        assert policy_unsafe_drift_issues == [
+            'abi:missing_source_marker=zigux/tests/phase3_policy_unsafe.zig:test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
+        ]
+        (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
+            'test "phase3 policy helpers stay ABI aligned" {}\n'
+            'test "phase3 policy layout stays explicit at the ABI boundary" {}\n'
+            'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}\n'
+            'test "phase3 policy gate enforces the declared unsafe scope" {}\n',
             encoding="utf-8",
             newline="\n",
         )
