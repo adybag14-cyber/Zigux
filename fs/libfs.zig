@@ -126,6 +126,21 @@ pub const CursorPreconditionsPlan = struct {
     defers_cursor_reposition: bool,
 };
 
+pub const CursorRepositionMode = enum {
+    unhashed,
+    reanchor_before_found,
+    reanchor_behind_found,
+};
+
+pub const CursorRepositionPlan = struct {
+    anchor: []const u8,
+    mode: CursorRepositionMode,
+    unlinks_existing_cursor: bool,
+    requires_parent_lock: bool,
+    drops_found_reference: bool,
+    keeps_private_data: bool,
+};
+
 pub const TransactionAcquireMode = enum {
     ready,
     request_too_large,
@@ -423,6 +438,28 @@ pub const LibFsHelperLab = struct {
             .can_scan_positives = true,
             .keeps_private_data = true,
             .defers_cursor_reposition = true,
+        };
+    }
+
+    pub fn dcacheDirSeekCursorRepositionPlan(found_target: bool) CursorRepositionPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = if (found_target) .reanchor_behind_found else .unhashed,
+            .unlinks_existing_cursor = true,
+            .requires_parent_lock = true,
+            .drops_found_reference = true,
+            .keeps_private_data = true,
+        };
+    }
+
+    pub fn dcacheReaddirCursorRepositionPlan(found_next: bool) CursorRepositionPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = if (found_next) .reanchor_before_found else .unhashed,
+            .unlinks_existing_cursor = true,
+            .requires_parent_lock = true,
+            .drops_found_reference = true,
+            .keeps_private_data = true,
         };
     }
 
