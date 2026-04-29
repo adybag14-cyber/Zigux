@@ -103,6 +103,22 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
 - `runAnchorReplay()` fails before `init()` and after `exit()`, `init()` fails if repeated outside the cold state, `exit()` fails if repeated after teardown, and one successful pass leaves `init_runs = 1` plus `exit_runs = 1`
 
+## Latest verification snapshot
+
+Current sample behavior was re-verified against `master` commit `0dac2ada2cb5064cc03b60ea61c6c1c0ec999c34` on 2026-04-29 with the attached Zig toolchain.
+
+The exact verification commands and observed results were:
+
+- `zig test samples/zigux/bytestream_fifo.zig`
+  - observed result: `1/1 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
+  - observed result: `All 1 tests passed.`
+- `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+  - observed result: `Build Summary: 17/17 steps succeeded; 26/26 tests passed`
+  - observed result: `phase5-bytestream-fifo-tests 5 pass (5 total)`
+  - observed result: `phase5-bytestream-fifo-survey-tests 2 pass (2 total)`
+
+Those live runs confirmed that the shipped bytestream FIFO sample still matches the exact bounded checks above: the embedded 32-byte queue reaches length `15` after the initial replay setup, drains `"hello"` first, drains and requeues `0` and `1`, skips `2`, peeks `3`, preserves the truncated replay preview prefix `[3,4,5,6,7,8,9,0]`, preserves the exact 32-byte snapshot and final drain sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, and keeps the helper-only preview truncation, reset, and lifecycle guards green under the shared Phase 5 build entrypoint.
+
 ## Contributor refresh prompts for the landed sample
 
 When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
