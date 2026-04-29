@@ -356,7 +356,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "first loadable Zigux runtime modules",
         "runtime module lifecycle parity",
         "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-        "rather than reopening already-landed survey, manifest, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
+        "rather than reopening already-landed sample, survey, manifest, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
     };
     for (required_survey_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
@@ -371,8 +371,8 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "phase9-runtime-kretprobe-loader-tests",
         "phase9-runtime-kretprobe-survey-tests",
         "manifest-backed survey packet",
-        "this shared build keeps the dedicated kretprobe module, diff, loader, and survey legs explicit",
-        "rather than reopening already-landed survey, manifest, loader, module, or diff scaffolding",
+        "this shared build keeps the dedicated kretprobe sample, module, diff, loader, and survey legs explicit",
+        "rather than reopening already-landed sample, survey, manifest, loader, module, or diff scaffolding",
     };
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
