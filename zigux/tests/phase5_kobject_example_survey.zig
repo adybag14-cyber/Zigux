@@ -195,7 +195,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=4d8338f1f4e8243a19f6555dc7bfffd7a189d95d") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `0664` attribute mode pattern") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
@@ -207,7 +207,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-tests 5 pass (5 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kobject-example-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "The roadmap delivery gap is already closed.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=4d8338f1f4e8243a19f6555dc7bfffd7a189d95d`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom is now pinned to `PHASE5_SURVEYED_COMMIT=132ee03dd8cbb8986c9ef6f7d49079083b8a0010`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved ownership-and-lifetime idiom inside that completed anchor set") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope") != null);
 
