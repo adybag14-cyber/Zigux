@@ -135,7 +135,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "samples/zigux/README.md") != null and
             std.mem.indexOf(u8, prompt, "four Phase 5 reference samples") != null and
-            std.mem.indexOf(u8, prompt, "runtime starters") != null)
+            std.mem.indexOf(u8, prompt, "runtime starters") != null and
+            std.mem.indexOf(u8, prompt, "review-packet stanza") != null and
+            std.mem.indexOf(u8, prompt, "helper-only review surface") != null and
+            std.mem.indexOf(u8, prompt, "out-of-scope runtime claims") != null)
         {
             saw_sample_root_prompt = true;
         }
@@ -298,6 +301,17 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, readme, "procfs, user-copy, locking, and module registration parity") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "Phase 5 reference samples") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "Bytestream FIFO review packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_bytestream_fifo_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_bytestream_fifo_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5-kfifo-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "exact queue-order replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "transfer counts") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "helper-only review surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "capacity ceiling") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "kfifo_from_user()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, samples_readme, "runtime module claim") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "Later runtime starters and loader-side follow-ons") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "samples/zigux/bytestream_fifo.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, samples_readme, "samples/zigux/kobject_example.zig") != null);

@@ -18,7 +18,7 @@
     "phase5_bytestream_fifo.zig still keeps the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and reset behavior stay reviewable outside the main replay path",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "the review checklist still points reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared phase5_build.zig entrypoint for this exact replay contract",
-    "samples/zigux/README.md still separates the four Phase 5 reference samples from the later runtime starters that share the same directory so runtime follow-ons do not read like approved reference idioms",
+    "samples/zigux/README.md still separates the four Phase 5 reference samples from the later runtime starters that share the same directory, and its dedicated bytestream FIFO review-packet stanza still calls out the exact replay contract, helper-only review surface, and out-of-scope runtime claims so runtime follow-ons do not read like approved reference idioms",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
