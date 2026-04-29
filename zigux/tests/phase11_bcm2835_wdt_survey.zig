@@ -90,6 +90,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "WDIOF_SETTIMEOUT") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "full platform registration") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PM base ioremap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "devm-managed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -141,7 +143,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-registration and PM-base handoff summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-watchdog-metadata")) {
@@ -159,7 +161,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-handoff prerequisites") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership outcomes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership plus devm-managed teardown outcomes") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-slice-note")) {
@@ -168,7 +170,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform handoff summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-validation-matrix")) {
@@ -178,6 +180,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog metadata surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed platform-handoff review surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown scope") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay commands") != null);
         }
 
@@ -209,7 +212,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             saw_remove_followup = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm-managed") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "currently owns it") != null);
         }
 
