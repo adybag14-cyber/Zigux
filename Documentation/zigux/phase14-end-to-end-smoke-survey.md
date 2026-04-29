@@ -44,7 +44,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 
 - verified `master` head: `b015859cb0f364612d4c6ec8f5382b3de5484724`
 - shared smoke manifest lane key: `P14-L01`
-- shared smoke manifest surveyed commit: `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
+- shared smoke manifest surveyed commit: `b015859cb0f364612d4c6ec8f5382b3de5484724`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
