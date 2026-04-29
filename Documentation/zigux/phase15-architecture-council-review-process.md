@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-checklist-roadmap-phase-rationale-return-to-blocked-sync`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and one bounded return-to-blocked review-rule follow-up that keeps the already-landed roadmap-phase and written-rationale checklist sync inside the same explicit Architecture Council packet
-- survey provenance refreshed against verified `master` head `9271ebb2e2f39c045f70e4e37cb029090070f3c5`
+- survey provenance refreshed against verified `master` head `09606ab3a477c4f3817ab4e00f699e4729c096d2`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
@@ -50,6 +50,7 @@ Every Architecture Council request in this lane family must carry:
 - the automatic return-to-blocked trigger naming which missing field, stale evidence, contradictory scorecard link, or rollback-threshold breach forces the anchor back to blocked review posture
 - the explicit `Documentation/zigux/phase15-indefinite-c-policy.md` link, or a note saying why the packet is not yet entering that policy posture
 - the reopen triggers that cite one or more catalog items naming which evidence changes can reopen the discussion later without implying approval
+- the trigger-specific refreshed evidence by path for every named reopen trigger, together with the blocker disposition that reopened evidence is trying to change
 - refreshed lane-owner and rollback-owner evidence whenever the reopen trigger is `ownership_or_validation_changed`
 - a parity scorecard link, or an explicit blocker record saying why the scorecard is not ready yet
 - explicit non-goals so the request does not quietly widen into deep-core delivery
@@ -69,6 +70,7 @@ The bounded outcomes for this review process are:
 - every decision must leave a written rationale in a reviewable artifact
 - the lane note must record the current status bucket, the chosen decision bucket, the decision record ID, the owner, the validation gate, the evidence archive path, the latest blocker disposition, the current benchmark-notes status, the replay command, the retained discussion state, the automatic return-to-blocked trigger, the indefinite-C policy link or applicability note, the reopen triggers, and the rollback owner
 - if a packet reopens under `ownership_or_validation_changed`, active review cannot resume until the note refreshes both the current lane owner and the rollback owner in the reopened record
+- if a packet reopens under any named trigger, the reopened note must cite the trigger-specific refreshed evidence by path and restate the current blocker disposition instead of naming the trigger alone
 - if active status review begins, the packet must keep one automatic return-to-blocked trigger explicit so missing review fields, stale evidence, contradictory scorecard state, replay drift, blocker drift, or rollback-threshold breaches send the anchor back to blocked posture instead of relying on implied reviewer memory
 - if the council keeps the code in C, the blocker must remain explicit rather than disappearing into prose
 - if the council keeps the code in C, the review record must either link `Documentation/zigux/phase15-indefinite-c-policy.md` or say plainly why the packet is not yet using the indefinite-C policy surface
@@ -85,6 +87,16 @@ The bounded reopen-trigger catalog for a retired stay-in-C packet is:
 
 Every retained stay-in-C closeout must cite at least one of these catalog items in its evidence archive so the scorecard, review-process note, and future exception records keep the same reopen vocabulary.
 
+## Reopen Evidence Matrix
+
+Every reopen request must do more than repeat a catalog trigger name. The packet must point reviewers at the trigger-specific refreshed evidence by path and restate the current blocker disposition that the reopened evidence is trying to change.
+
+- `narrower_followup_answers_blocker`: cite the new narrower seam inventory, the updated validation plan, the rollback owner for that narrower seam, and the still-blocked boundary that remains in C unless the reopen request is approved
+- `evidence_packet_stale_or_contradictory`: cite the exact linked evidence that went stale or contradictory, the refreshed blocker disposition, and the replacement validation or benchmark record that now reflects current repo truth
+- `ownership_or_validation_changed`: cite the old and new owner or validation records, refresh the lane owner and rollback owner when ownership changed, and name the validation-gate or replay-command change that invalidates the closed packet
+
+If multiple triggers are cited together, each trigger's minimum evidence must stay explicit in the same reopen packet instead of collapsing into one vague exception claim.
+
 ## Current Approval Posture
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
@@ -99,7 +111,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L07` keeps the review-process handoff synced by verifying that the current no-approval posture and the linked lane-owner plus rollback-owner evidence still match the parity scorecard and anchor templates on current `master`, while refreshing the surveyed head and lane marker without reopening nearby policy or scorecard work
+- current bounded lane: `P15-L11` keeps the review-process handoff synced by verifying that the current no-approval posture and the linked lane-owner plus rollback-owner evidence still match the parity scorecard and anchor templates on current `master`, while tightening the reopened-packet evidence rule to match the current checklist and indefinite-C policy without reopening nearby policy or scorecard work
 - maintenance-mode next step: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
@@ -129,8 +141,9 @@ The current lane state is:
 - landed `phase15-automatic-return-to-blocked-gate`
 - landed `phase15-indefinite-c-policy-review-gate`
 - landed `phase15-review-process-roadmap-handoff-evidence`
+- landed `phase15-review-process-reopen-evidence-matrix-gate`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, makes the automatic return-to-blocked trigger explicit in the review packet, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, requires trigger-specific reopened evidence by path instead of trigger-name-only reopen requests, makes the automatic return-to-blocked trigger explicit in the review packet, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
