@@ -1107,3 +1107,59 @@ test "rbtree cached root keeps leftmost in sync across add erase and replace" {
     try std.testing.expectEqual(@as(i32, 7), after_replace_entry.key);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
+
+test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 5, .serial = 0 },
+        .{ .key = 10, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 15, .serial = 3 },
+    };
+    var replacement = Entry{ .key = 12, .serial = 4 };
+    var root = RootCached.init();
+
+    for (&entries) |*entry| {
+        addCached(&entry.node, &root, less);
+        try expectValidTree(&root.root);
+        try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    }
+
+    const initial_leftmost: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 5), initial_leftmost.key);
+    try std.testing.expectEqual(@as(usize, 0), initial_leftmost.serial);
+
+    eraseCached(&entries[0].node, &root);
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    const after_first_erase: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 5), after_first_erase.key);
+    try std.testing.expectEqual(@as(usize, 2), after_first_erase.serial);
+
+    eraseCached(&entries[2].node, &root);
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    const after_second_erase: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 10), after_second_erase.key);
+    try std.testing.expectEqual(@as(usize, 1), after_second_erase.serial);
+
+    replaceNodeCached(&entries[3].node, &replacement.node, &root);
+    try expectValidTree(&root.root);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    const after_replace: *const Entry = @fieldParentPtr("node", firstCached(&root).?);
+    try std.testing.expectEqual(@as(i32, 10), after_replace.key);
+    try std.testing.expectEqual(@as(usize, 1), after_replace.serial);
+}
