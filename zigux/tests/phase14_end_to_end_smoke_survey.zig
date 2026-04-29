@@ -104,7 +104,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("b015859cb0f364612d4c6ec8f5382b3de5484724", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f9f772e5912d57fdfd1ba77689017cc54b4d83d5", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
