@@ -258,7 +258,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     defer std.testing.allocator.free(expected_lane_line);
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, and indefinite-C policy link or explicit non-applicability note explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "current roadmap phase") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "written rationale") != null);
