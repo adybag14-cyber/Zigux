@@ -70,8 +70,8 @@ PHASE4_GATE_EXPECTATIONS = {
             '97-bit aligned-copy',
             '`bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract',
             'full-width nth-7 and nth-8 outcomes',
-            'bit 123 for nth 6',
-            'cutoff width for nth 7',
+            'bit 123 for nth 7',
+            'cutoff width for nth 8',
         ],
         'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, rounded-prefix, cross-boundary set-clear, summary, exact nth-lookup, and copy-behavior checkpoints',
         'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
@@ -240,7 +240,7 @@ REQUIRED_ARTIFACT_DIFF_MARKERS = [
 ]
 
 REQUIRED_PHASE4_BUILD_MARKERS = [
-    'runtime_atomic64_diff.zig',
+    'atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'bitmap_diff.zig',
     'phase4-runtime-atomic64-diff-tests',
@@ -477,13 +477,11 @@ def validate_root(root: Path) -> list[str]:
     missing_markers.extend(
         collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
     )
-    if roadmap_atomic64_diff_present:
+    if not roadmap_atomic64_diff_present:
+        missing_markers.append('phase4_atomic64_path:missing_roadmap_gate:zigux/tests/atomic64_diff.zig')
+    if '"roadmap_atomic64_diff_present": true' not in runtime_atomic64_manifest:
         missing_markers.append(
-            'phase4_atomic64_path:unexpected_parallel_gate:zigux/tests/atomic64_diff.zig'
-        )
-    if '"roadmap_atomic64_diff_present": false' not in runtime_atomic64_manifest:
-        missing_markers.append(
-            'runtime_atomic64_manifest:"roadmap_atomic64_diff_present": false'
+            'runtime_atomic64_manifest:"roadmap_atomic64_diff_present": true'
         )
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
@@ -642,10 +640,11 @@ def write_fixture_tree(root: Path) -> None:
         'zigux/tests/README.md': '\n'.join(REQUIRED_TESTS_README_MARKERS) + '\n',
         'zigux/Makefile': '\n'.join(REQUIRED_MAKE_MARKERS) + '\n',
         '.github/workflows/zigux-bootstrap.yml': '\n'.join(REQUIRED_WORKFLOW_MARKERS) + '\n',
+        'zigux/tests/atomic64_diff.zig': 'const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");\n',
         'zigux/tests/runtime_atomic64_diff.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_MARKERS) + '\n',
         'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
-        + '\nroadmap_atomic64_diff_present = false\n',
-        'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": false\n}\n',
+        + '\nroadmap_atomic64_diff_present = true\n',
+        'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": true\n}\n',
         'zigux/tests/bitmap_diff.zig': '\n'.join(REQUIRED_BITMAP_DIFF_MARKERS) + '\n',
         'zigux/tests/phase4_build.zig': '\n'.join(REQUIRED_PHASE4_BUILD_MARKERS) + '\n',
     }
