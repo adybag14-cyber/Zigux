@@ -190,6 +190,28 @@ test "bitmap diff survey keeps the unresolved 115-bit fill drift against lib/tes
     try expectClear(&map, bits_per_long * 2 - 1);
 }
 
+test "bitmap diff gate keeps zero-bit no-op boundaries explicit" {
+    const empty = [_]Word{};
+    var src = [_]Word{0x1234_5678};
+    var dst = [_]Word{~@as(Word, 0)};
+    var buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+
+    bitmap.zero(dst[0..0], 0);
+    bitmap.fill(dst[0..0], 0);
+    copyFrom(dst[0..0], src[0..0], 0);
+    bitmap.copyClearTail(dst[0..0], src[0..0], 0);
+
+    try std.testing.expectEqual(~@as(Word, 0), dst[0]);
+    try std.testing.expect(bitmap.empty(&empty, 0));
+    try std.testing.expect(bitmap.full(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), weight(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), firstSet(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), firstZero(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), findNthSet(&empty, 0, 0));
+    try std.testing.expectEqual(@as(usize, 0), bitmap.scnprintf(&empty, 0, &buffer));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa, 0xaa }, &buffer);
+}
+
 test "bitmap diff gate records exact bounded copy checks" {
     const copy_nbits = bits_per_long * 3;
     var small_src = [_]Word{ 0, 0 };
