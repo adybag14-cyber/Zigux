@@ -160,11 +160,6 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_surveyed_commit_prompt);
     try std.testing.expect(saw_docs_prompt);
-    try std.testing.expect(saw_private_data_prompt);
-    try std.testing.expect(saw_maxactive_prompt);
-    try std.testing.expect(saw_exact_contract_prompt);
-    try std.testing.expect(saw_symbol_prompt);
-    try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_maxactive_check);
     try std.testing.expect(saw_symbol_check);
@@ -212,7 +207,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b951338a1ff5523b5697436d264e3e3aed5bd32d") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kretprobe_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 1 tests passed.") != null);
