@@ -595,14 +595,22 @@ def validate_kconfig_bridge_manifest(case_manifest: Path, conf_bridge: Path) -> 
     return issues
 
 
-def validate_kconfig_checker_confdata_gate(checker_script: Path) -> list[str]:
+def validate_kconfig_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
+        'conf_bridge_constant': "CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'",
+        'conf_bridge_compile': 'compile_tool(zig, CONF_BRIDGE, conf_exe)',
+        'conf_cases_loop': "for case in CASES['conf_cases']:",
+        'conf_repeat_artifact_compare': 'compare_json_artifacts(actual, repeat)',
         'confdata_bridge_constant': "CONFDATA_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig'",
         'confdata_bridge_compile': 'compile_tool(zig, CONFDATA_BRIDGE, confdata_exe)',
         'confdata_cases_loop': "for case in CASES['confdata_cases']:",
         'confdata_case_order_gate': 'UNSORTED_CONFDATA_CASE_ORDER',
         'confdata_bridge_replay': "result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)",
+        'confdata_repeat_artifact_compare': 'compare_json_artifacts(actual, repeat)',
+        'confdata_rebuild_compile': 'compile_tool(zig, CONFDATA_BRIDGE, confdata_rebuild_exe)',
+        'confdata_rebuild_compare': 'compare_json_artifacts(actual, rebuild)',
+        'determinism_marker': "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
     }
 
     issues: list[str] = []
@@ -733,7 +741,7 @@ if kconfig_bridge_issues:
     print('MISSING_PHASE2_KCONFIG_BRIDGE_CASES_END')
     sys.exit(1)
 
-kconfig_checker_issues = validate_kconfig_checker_confdata_gate(CHECK_KCONFIG_BRIDGE)
+kconfig_checker_issues = validate_kconfig_checker_gate(CHECK_KCONFIG_BRIDGE)
 if kconfig_checker_issues:
     print('PHASE2_VALIDATION=fail')
     print('MISSING_PHASE2_KCONFIG_CHECKER_GATES_START')
@@ -795,6 +803,7 @@ required_doc_markers = [
     'genksyms_crc',
     'zigux/tests/fixtures/genksyms_crc/expected.json',
     'kconfig_bridge',
+    'conf and confdata repeat-run JSON determinism',
     'mk_elfconfig',
     'check-mk-elfconfig-diff.py',
     'repeat-run JSON determinism',
