@@ -350,15 +350,17 @@ pub fn collectExeclArgs(
     try collected.append(allocator, cmd);
 
     for (argv_tail) |arg| {
-        if (arg == null) {
-            try collected.append(allocator, null);
-            return collected.toOwnedSlice(allocator);
-        }
-        if (argc + 1 >= max_execl_slots) {
-            return error.TooManyArguments;
-        }
         try collected.append(allocator, arg);
         argc += 1;
+
+        // `execl_cmd()` increments `argc` immediately after each `va_arg()`
+        // fetch, so a terminating null in slot `MAX_ARGS` still overflows.
+        if (argc >= max_execl_slots) {
+            return error.TooManyArguments;
+        }
+        if (arg == null) {
+            return collected.toOwnedSlice(allocator);
+        }
     }
 
     return error.MissingNullTerminator;
@@ -537,28 +539,28 @@ test "collectExeclArgs keeps the command head and first null terminator" {
     try std.testing.expectEqual(@as(?[]const u8, null), collected[3]);
 }
 
-test "collectExeclArgs accepts the exact MAX_ARGS boundary when the last slot is null" {
+test "collectExeclArgs accepts the last null-terminated shape that stays below MAX_ARGS" {
+    var argv_tail: [30]?[]const u8 = undefined;
+    for (argv_tail[0..29]) |*slot| {
+        slot.* = "x";
+    }
+    argv_tail[29] = null;
+
+    const collected = try collectExeclArgs(std.testing.allocator, "record", &argv_tail);
+    defer std.testing.allocator.free(collected);
+
+    try std.testing.expectEqual(@as(usize, max_execl_slots - 1), collected.len);
+    try std.testing.expectEqualStrings("record", collected[0].?);
+    try std.testing.expectEqualStrings("x", collected[max_execl_slots - 3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), collected[max_execl_slots - 2]);
+}
+
+test "collectExeclArgs rejects the C helper's MAX_ARGS null-slot overflow shape" {
     var argv_tail: [31]?[]const u8 = undefined;
     for (argv_tail[0..30]) |*slot| {
         slot.* = "x";
     }
     argv_tail[30] = null;
-
-    const collected = try collectExeclArgs(std.testing.allocator, "record", &argv_tail);
-    defer std.testing.allocator.free(collected);
-
-    try std.testing.expectEqual(@as(usize, max_execl_slots), collected.len);
-    try std.testing.expectEqualStrings("record", collected[0].?);
-    try std.testing.expectEqualStrings("x", collected[max_execl_slots - 2].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), collected[max_execl_slots - 1]);
-}
-
-test "collectExeclArgs rejects the C helper's too-many-args shape" {
-    var argv_tail: [32]?[]const u8 = undefined;
-    for (argv_tail[0..31]) |*slot| {
-        slot.* = "x";
-    }
-    argv_tail[31] = null;
 
     try std.testing.expectError(
         error.TooManyArguments,
