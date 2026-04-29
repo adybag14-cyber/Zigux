@@ -81,6 +81,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase11_hvc_console_module.addImport("hvc_console", hvc_console_module);
+    const phase11_hvc_console_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase11_hvc_console_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase11_hvc_console_survey_module.addImport("layout_assert", layout_assert_module);
 
     const phase11_gpio_wdt_tests = b.addTest(.{
         .name = "phase11-gpio-wdt-tests",
