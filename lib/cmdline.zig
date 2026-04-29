@@ -453,6 +453,18 @@ test "getOptions stops on descending ranges and unparseable suffixes" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 8, 0 }, &partial);
 }
 
+test "getOptions stops at array capacity even when a range still has an upper bound pending" {
+    var limited = [_]i32{ 0, 0, 0 };
+    const limited_rest = getOptions("1-4,8", limited.len, &limited);
+    try std.testing.expectEqualStrings("4,8", limited_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 1, 2 }, &limited);
+
+    var validate = [_]i32{0} ** 8;
+    const validate_rest = getOptions("1-4,8", 0, &validate);
+    try std.testing.expectEqualStrings("", validate_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 0, 0, 0, 0, 0, 0, 0 }, &validate);
+}
+
 test "memparse handles size suffixes and reports where parsing stopped" {
     var index: usize = 999;
     try std.testing.expectEqual(@as(u64, 2 * 1024 * 1024), memparse("2M", &index));
