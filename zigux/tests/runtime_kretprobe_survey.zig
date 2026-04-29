@@ -361,6 +361,8 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     for (required_survey_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
     }
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
 
     const required_module_markers = [_][]const u8{
         "surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
@@ -375,6 +377,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);
