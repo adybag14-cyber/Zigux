@@ -49,6 +49,8 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_TEST_COUNT=9`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
+The shared closure manifest now carries explicit landed-helper evidence for both the core config summaries and the input preflight pair, so the scoreboard does not reduce the current `virtio_input` packet to only its remaining lifecycle blocker.
+
 ## Roadmap Parity Scoreboard
 
 This scoreboard records the current parity evidence against the Phase 10 roadmap requirements rather than against full driver parity.
@@ -160,7 +162,7 @@ This means the current evidence bundle is reviewable, but Phase 10 is not global
 - the blocked transport claim set stays explicit: `queue_setup_reset_paths`, `irq_parity`, `dma_paths`, `input_registration_lifecycle`, and `probe_remove_lifecycle`
 - the current lane manifests may only point at `drivers/virtio/*.zig` and `zigux/helpers/` as roadmap destinations while the freeze-boundary status remains aligned
 - `Documentation/zigux/freeze-map.md` and `Documentation/zigux/review-checklist.md` remain the shared guardrails for transport-facing claims in this tranche
-- the current manifest-backed transport boundary stays explicit because the core survey records the landed `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, the input manifest-backed packet records the landed `phase10-virtio-input-registration-preflight-helper` and `phase10-virtio-input-queue-callback-preflight-helper`, the MMIO survey packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, `phase10-mmio-queue-notify-helper`, `phase10-mmio-queue-address-helper`, and `phase10-mmio-config-window-helper`, and `phase10-mmio-config-write-helper`, `phase10-virtio-input-registration-lifecycle`, plus `phase10-mmio-lifecycle-and-irq-paths` must stay constrained until those smaller helpers land first
+- the shared closure manifest now records the landed input preflight pair directly alongside the core helper evidence, so the current manifest-backed transport boundary stays explicit because the core survey records the landed `phase10-config-generation-summary-helper` and `phase10-config-delivery-disposition-helper`, the input manifest-backed packet records the landed `phase10-virtio-input-registration-preflight-helper` and `phase10-virtio-input-queue-callback-preflight-helper`, the MMIO survey packet records the landed `phase10-mmio-register-window-helper`, `phase10-mmio-queue-register-helper`, `phase10-mmio-queue-notify-helper`, `phase10-mmio-queue-address-helper`, and `phase10-mmio-config-window-helper`, and `phase10-mmio-config-write-helper`, `phase10-virtio-input-registration-lifecycle`, plus `phase10-mmio-lifecycle-and-irq-paths` must stay constrained until those smaller helpers land first
 
 ## Boundary
 
