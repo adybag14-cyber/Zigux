@@ -432,6 +432,16 @@ for name, spec in MANIFEST_SPECS.items():
         missing.append(f"{name}:survey_note_commit_pin")
     if "make -C zigux phase12" not in survey_note_text:
         missing.append(f"{name}:survey_note_make_target")
+    for rollback_marker in (
+        "## Rollback And Reversible Delivery",
+        "- owner:",
+        "- rollback owner:",
+        "- fallback path:",
+        "- reversible delivery evidence:",
+        "- rollback drill:",
+    ):
+        if rollback_marker not in survey_note_text:
+            missing.append(f"{name}:survey_note_rollback_marker:{rollback_marker}")
 
     raw_fallback_catalog_path = spec.get("raw_fallback_catalog_path")
     if isinstance(raw_fallback_catalog_path, str):
