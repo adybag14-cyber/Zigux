@@ -179,7 +179,7 @@ if len(depend_steps) != 7:
     missing.append(f"build:depend_step_count={len(depend_steps)}")
 
 for manifest_path, lane_key, anchor in [
-    ("zigux/tests/phase13_libfs_manifest.json", "P13-L04", "fs/libfs.c"),
+    ("zigux/tests/phase13_libfs_manifest.json", "P13-L02", "fs/libfs.c"),
     ("zigux/tests/phase13_devres_manifest.json", "P13-L10", "lib/devres.c"),
     ("zigux/tests/phase13_landlock_ruleset_manifest.json", "P13-L12", "security/landlock/ruleset.c"),
     ("zigux/tests/phase13_landlock_syscalls_manifest.json", "P13-L16", "security/landlock/syscalls.c"),

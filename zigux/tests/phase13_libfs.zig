@@ -11,6 +11,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
+    try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
@@ -290,6 +291,19 @@ test "phase13 libfs readdir cursor reposition planning distinguishes before-next
     try std.testing.expect(end_of_scan.requires_parent_lock);
     try std.testing.expect(end_of_scan.drops_found_reference);
     try std.testing.expect(end_of_scan.keeps_private_data);
+}
+
+test "phase13 libfs cursor close planning keeps dput bookkeeping pure" {
+    const release = libfs.LibFsHelperLab.dcacheDirClosePlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", release.anchor);
+    try std.testing.expect(release.returns_zero);
+    try std.testing.expect(release.releases_private_cursor);
+    try std.testing.expect(release.had_private_data);
+
+    const empty_close = libfs.LibFsHelperLab.dcacheDirClosePlan(false);
+    try std.testing.expect(empty_close.returns_zero);
+    try std.testing.expect(!empty_close.releases_private_cursor);
+    try std.testing.expect(!empty_close.had_private_data);
 }
 
 test "phase13 libfs transaction staging planner models one-write reservation and copy-fault retention" {
