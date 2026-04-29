@@ -19,6 +19,7 @@ const iterations_bitmap_window = 20_000;
 const iterations_bitmap_copy = 20_000;
 const iterations_bitmap_scnprintf = 12_000;
 const iterations_find_bit = 20_000;
+const iterations_find_bit_same_word = 20_000;
 const iterations_find_zero_bit = 20_000;
 const iterations_find_and_bit = 20_000;
 const iterations_string = 40_000;
@@ -161,7 +162,7 @@ fn bitmapScnprintfBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn findBitBench() struct { next_checksum: u64, family_checksum: u64, tail_window_checksum: u64 } {
+fn findBitBench() struct { next_checksum: u64, family_checksum: u64, tail_window_checksum: u64, same_word_checksum: u64 } {
     var map = [_]find_bit.Word{0} ** find_bit.bitsToWords(4096);
     map[0] |= (@as(find_bit.Word, 1) << 3);
     map[7] |= (@as(find_bit.Word, 1) << 9);
@@ -183,6 +184,26 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64, tail_window
         (@as(find_bit.Word, 1) << 2),
     };
 
+    const same_word_nbits = find_bit.bits_per_long + 6;
+    const same_word_set = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 6),
+        @as(find_bit.Word, 1) << 4,
+    };
+    var same_word_zero = [_]find_bit.Word{ full, full };
+    same_word_zero[0] &= ~(@as(find_bit.Word, 1) << 1);
+    same_word_zero[0] &= ~(@as(find_bit.Word, 1) << 6);
+    same_word_zero[1] &= ~(@as(find_bit.Word, 1) << 4);
+    const same_word_and_lhs = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 1) | (@as(find_bit.Word, 1) << 6),
+        @as(find_bit.Word, 1) << 4,
+    };
+    const same_word_and_rhs = [_]find_bit.Word{
+        (@as(find_bit.Word, 1) << 6) | (@as(find_bit.Word, 1) << 9),
+        @as(find_bit.Word, 1) << 4,
+    };
+    const same_word_set_starts = [_]usize{ 1, 2, 7, find_bit.bits_per_long + 5 };
+    const same_word_and_starts = [_]usize{ 2, 6, 7, find_bit.bits_per_long + 5 };
+
     var tail_set = [_]find_bit.Word{ 0, (@as(find_bit.Word, 1) << 3) | (@as(find_bit.Word, 1) << 10) };
     var tail_zero = [_]find_bit.Word{ full, find_bit.lastWordMask(tail_nbits) };
     const tail_and_lhs = [_]find_bit.Word{
@@ -197,6 +218,7 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64, tail_window
     var next_checksum: u64 = 0;
     var family_checksum: u64 = 0;
     var tail_window_checksum: u64 = 0;
+    var same_word_checksum: u64 = 0;
     var idx: usize = 0;
     while (idx < iterations_find_bit) : (idx += 1) {
         const start = idx % 1024;
@@ -223,12 +245,19 @@ fn findBitBench() struct { next_checksum: u64, family_checksum: u64, tail_window
         tail_window_checksum +%= @intCast(find_bit.findNextZeroBit(&tail_zero, tail_nbits, find_bit.bits_per_long + (idx % 5)));
         tail_window_checksum +%= @intCast(find_bit.findFirstAndBit(&tail_and_lhs, &tail_and_rhs, tail_nbits));
         tail_window_checksum +%= @intCast(find_bit.findNextAndBit(&tail_and_lhs, &tail_and_rhs, tail_nbits, find_bit.bits_per_long + (idx % 5)));
+
+        if (idx < iterations_find_bit_same_word) {
+            same_word_checksum +%= @intCast(find_bit.findNextBit(&same_word_set, same_word_nbits, same_word_set_starts[idx % same_word_set_starts.len]));
+            same_word_checksum +%= @intCast(find_bit.findNextZeroBit(&same_word_zero, same_word_nbits, same_word_set_starts[idx % same_word_set_starts.len]));
+            same_word_checksum +%= @intCast(find_bit.findNextAndBit(&same_word_and_lhs, &same_word_and_rhs, same_word_nbits, same_word_and_starts[idx % same_word_and_starts.len]));
+        }
     }
 
     return .{
         .next_checksum = next_checksum,
         .family_checksum = family_checksum,
         .tail_window_checksum = tail_window_checksum,
+        .same_word_checksum = same_word_checksum,
     };
 }
 
@@ -410,6 +439,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(find_bit_result.next_checksum != 0);
     std.debug.assert(find_bit_result.family_checksum != 0);
     std.debug.assert(find_bit_result.tail_window_checksum != 0);
+    std.debug.assert(find_bit_result.same_word_checksum != 0);
     std.debug.assert(find_zero_bit_result.checksum != 0);
     std.debug.assert(find_and_bit_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
@@ -430,6 +460,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.next_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM={d}\n", .{find_bit_result.family_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM={d}\n", .{find_bit_result.tail_window_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS={d}\n", .{iterations_find_bit_same_word});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM={d}\n", .{find_bit_result.same_word_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS={d}\n", .{iterations_find_zero_bit});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM={d}\n", .{find_zero_bit_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS={d}\n", .{iterations_find_and_bit});
