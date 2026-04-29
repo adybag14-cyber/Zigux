@@ -13,6 +13,8 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
     ROOT / "zigux" / "Makefile",
@@ -20,6 +22,11 @@ required_files = [
     ROOT / "zigux" / "tests" / "phase9_build.zig",
     ROOT / "zigux" / "tests" / "runtime_atomic64_manifest.json",
     ROOT / "zigux" / "tests" / "runtime_atomic64_survey.zig",
+    ROOT / "zigux" / "tests" / "runtime_bitmap_manifest.json",
+    ROOT / "zigux" / "tests" / "runtime_bitmap_survey.zig",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-module-slice.md",
+    ROOT / "zigux" / "tests" / "runtime_kretprobe_manifest.json",
+    ROOT / "zigux" / "tests" / "runtime_kretprobe_survey.zig",
     ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json",
     ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig",
     ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json",
@@ -45,6 +52,13 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
 atomic64_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md").read_text(encoding="utf-8")
+bitmap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-survey.md").read_text(encoding="utf-8")
+kretprobe_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-survey.md").read_text(encoding="utf-8")
+bitmap_manifest = (ROOT / "zigux" / "tests" / "runtime_bitmap_manifest.json").read_text(encoding="utf-8")
+bitmap_survey_test = (ROOT / "zigux" / "tests" / "runtime_bitmap_survey.zig").read_text(encoding="utf-8")
+kretprobe_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-module-slice.md").read_text(encoding="utf-8")
+kretprobe_manifest = (ROOT / "zigux" / "tests" / "runtime_kretprobe_manifest.json").read_text(encoding="utf-8")
+kretprobe_survey_test = (ROOT / "zigux" / "tests" / "runtime_kretprobe_survey.zig").read_text(encoding="utf-8")
 trace_events_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md").read_text(encoding="utf-8")
 trace_events_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md").read_text(encoding="utf-8")
 phase9_build = (ROOT / "zigux" / "tests" / "phase9_build.zig").read_text(encoding="utf-8")
@@ -149,10 +163,17 @@ required_loader_gap_survey_markers = [
 
 required_phase9_build_markers = [
     "runtime_loader_gap_survey.zig",
+    "phase9-runtime-bitmap-sample-tests",
+    "phase9-runtime-bitmap-module-tests",
+    "phase9-runtime-bitmap-diff-tests",
     "phase9-runtime-loader-gap-survey-tests",
+    "phase9-runtime-bitmap-survey-tests",
     "phase9-runtime-loader-tests",
     "phase9-runtime-bitmap-loader-tests",
+    "phase9-runtime-kretprobe-module-tests",
+    "phase9-runtime-kretprobe-diff-tests",
     "phase9-runtime-kretprobe-loader-tests",
+    "phase9-runtime-kretprobe-survey-tests",
     "phase9-runtime-trace-events-module-tests",
     "phase9-runtime-trace-events-sample-tests",
     "phase9-runtime-trace-events-diff-tests",
@@ -234,6 +255,59 @@ required_atomic64_survey_test_markers = [
     'std.mem.indexOf(u8, entry.role, "ownership map")',
     'std.mem.indexOf(u8, entry.owns, "argv-policy")',
     'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
+]
+
+required_bitmap_survey_markers = [
+    "selftest-hook metadata",
+    "phase9-runtime-bitmap-sample-tests",
+    "phase9-runtime-bitmap-loader-tests",
+    "command-name, argv-policy, and environment-derived activation handling",
+    "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`",
+]
+
+required_bitmap_manifest_markers = [
+    '"id": "runtime-bitmap-survey-gate"',
+    '"zigux_destination": "zigux/tests/runtime_bitmap_survey.zig"',
+    '"id": "runtime-bitmap-loader-scaffold"',
+    '"zigux_destination": "samples/zigux/runtime_bitmap_loader.zig"',
+    '"id": "runtime-bitmap-live-loader-binding"',
+    '"zigux_destination": "zigux/kernel/runtime_loader.zig"',
+    '"id": "runtime-bitmap-shared-loader-controls"',
+    '"status": "blocked_on_runtime_substrate"',
+]
+
+required_bitmap_survey_test_markers = [
+    'std.mem.indexOf(u8, check.expected, "phase9-runtime-bitmap-loader-tests")',
+    'std.mem.indexOf(u8, check.expected, "phase9-runtime-bitmap-sample-tests")',
+    'std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg")',
+    'std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg")',
+    'std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`")',
+]
+
+required_kretprobe_survey_markers = [
+    "RuntimeKretprobeSummary",
+    "released_without_substrate",
+    "command-name, argv-policy, or environment-derived activation handling",
+    "bounded lifecycle, bookkeeping, loader-handoff behavior",
+]
+
+required_kretprobe_manifest_markers = [
+    '"id": "runtime-kretprobe-survey-gate"',
+    '"zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig"',
+    '"id": "runtime-kretprobe-loader-scaffold"',
+    '"zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig"',
+    '"id": "runtime-kretprobe-live-loader-binding"',
+    '"zigux_destination": "zigux/kernel/runtime_loader.zig"',
+    '"id": "runtime-kretprobe-shared-loader-controls"',
+    '"status": "blocked_on_runtime_substrate"',
+]
+
+required_kretprobe_survey_test_markers = [
+    'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
+    'std.mem.indexOf(u8, check.expected, "command-name")',
+    'std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary")',
+    'std.mem.indexOf(u8, survey_doc, "released_without_substrate")',
+    'std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary")',
 ]
 
 required_trace_events_survey_markers = [
@@ -341,6 +415,30 @@ for marker in required_atomic64_manifest_markers:
 for marker in required_atomic64_survey_test_markers:
     if marker not in atomic64_survey_test:
         missing_markers.append(f"atomic64_survey_test:{marker}")
+for marker in required_bitmap_survey_markers:
+    if marker not in bitmap_survey:
+        missing_markers.append(f"bitmap_survey:{marker}")
+for marker in required_bitmap_manifest_markers:
+    if marker not in bitmap_manifest:
+        missing_markers.append(f"bitmap_manifest:{marker}")
+for marker in required_bitmap_survey_test_markers:
+    if marker not in bitmap_survey_test:
+        missing_markers.append(f"bitmap_survey_test:{marker}")
+for marker in required_kretprobe_survey_markers:
+    if marker not in kretprobe_survey:
+        missing_markers.append(f"kretprobe_survey:{marker}")
+for marker in required_kretprobe_manifest_markers:
+    if marker not in kretprobe_manifest:
+        missing_markers.append(f"kretprobe_manifest:{marker}")
+for marker in required_kretprobe_survey_test_markers:
+    if marker not in kretprobe_survey_test:
+        missing_markers.append(f"kretprobe_survey_test:{marker}")
+for marker in [
+    "RuntimeKretprobeSummary",
+    "released_without_substrate",
+]:
+    if marker not in kretprobe_module_slice:
+        missing_markers.append(f"kretprobe_module_slice:{marker}")
 for marker in required_trace_events_survey_markers:
     if marker not in trace_events_survey:
         missing_markers.append(f"trace_events_survey:{marker}")
@@ -366,5 +464,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_bitmap_survey_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_survey_test_markers) + len(required_kretprobe_survey_markers) + len(required_kretprobe_manifest_markers) + len(required_kretprobe_survey_test_markers) + 2 + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
 )
