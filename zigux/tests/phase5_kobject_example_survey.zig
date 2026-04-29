@@ -54,9 +54,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_docs_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_pre_registration_prompt = false;
+    var saw_registration_prompt = false;
     var saw_exit_terminal_prompt = false;
     var saw_directory = false;
     var saw_order = false;
+    var saw_registration = false;
     var saw_mode = false;
     var saw_pre_registration = false;
     var saw_initialized_exit = false;
@@ -70,6 +72,9 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.indexOf(u8, prompt, "foo/baz/bar attribute order") != null) {
             saw_order_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "single register_runs ownership claim") != null) {
+            saw_registration_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "0664 attribute mode pattern") != null) {
             saw_mode_prompt = true;
@@ -116,6 +121,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             saw_mode = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0664") != null);
         }
+        if (std.mem.eql(u8, check.id, "registration-step")) {
+            saw_registration = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly one register_runs increment") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "leaves the sample registered with attributes accessible") != null);
+        }
         if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
             saw_pre_registration = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "active attribute count at zero") != null);
@@ -147,9 +157,11 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_docs_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
+    try std.testing.expect(saw_registration_prompt);
     try std.testing.expect(saw_exit_terminal_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_order);
+    try std.testing.expect(saw_registration);
     try std.testing.expect(saw_mode);
     try std.testing.expect(saw_pre_registration);
     try std.testing.expect(saw_initialized_exit);
