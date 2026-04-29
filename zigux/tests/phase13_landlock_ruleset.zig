@@ -48,6 +48,14 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-ruleset-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -55,7 +63,8 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expectEqualStrings("P13-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", manifest.anchor);
-    try std.testing.expectEqualStrings("4ee5cca6c2c1219fc6f267d3817d1dd0ef37e066", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c2e6f75f05a6f935d21d06d21494d71883a5fa49", manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=c2e6f75f05a6f935d21d06d21494d71883a5fa49") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ruleset_c_lines >= 700);
     try std.testing.expectEqual(@as(usize, 33), manifest.survey_summary.landlock_security_file_count);
