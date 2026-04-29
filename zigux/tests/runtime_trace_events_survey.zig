@@ -111,8 +111,8 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_summary_surface_present);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 5);
     try std.testing.expectEqual(@as(usize, 7), manifest.non_goals.len);
@@ -137,6 +137,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var saw_freeze_map_boundary = false;
     var saw_manifest_catalog = false;
     var saw_shared_build_catalog = false;
+    var saw_module_slice_catalog = false;
     var saw_freeze_map_catalog = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -171,6 +172,13 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "shared Phase 9 runtime bundle entrypoint") != null);
         }
+        if (std.mem.eql(u8, entry.id, "runtime-trace-events-module-slice")) {
+            saw_module_slice_catalog = true;
+            try std.testing.expectEqualStrings("documentation", entry.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-module-slice.md", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "landed starter surface summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "loader-free blocker") != null);
+        }
         if (std.mem.eql(u8, entry.id, "runtime-trace-events-freeze-map")) {
             saw_freeze_map_catalog = true;
             try std.testing.expectEqualStrings("governance", entry.kind);
@@ -198,6 +206,10 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
         }
         if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
             try std.testing.expect(std.mem.indexOf(u8, entry.owns, "shared Phase 9 runtime bundle entrypoint") != null);
+        }
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")) {
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "landed starter surface summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "loader-free blocker") != null);
         }
 
         for (manifest.ownership_map[i + 1 ..]) |other| {
@@ -339,6 +351,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(saw_freeze_map_prompt);
     try std.testing.expect(saw_manifest_catalog);
     try std.testing.expect(saw_shared_build_catalog);
+    try std.testing.expect(saw_module_slice_catalog);
     try std.testing.expect(saw_freeze_map_catalog);
     try std.testing.expect(saw_descriptor_contract);
     try std.testing.expect(saw_summary_surface);
@@ -378,6 +391,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "manifest-backed delivery catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/runtime_trace_events_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L11`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
