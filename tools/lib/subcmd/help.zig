@@ -41,8 +41,11 @@ pub const CmdNames = struct {
             return error.InvalidCommandLength;
         }
 
+        const owned_name = try self.allocator.dupe(u8, name[0..len]);
+        errdefer self.allocator.free(owned_name);
+
         try self.names.append(self.allocator, .{
-            .name = try self.allocator.dupe(u8, name[0..len]),
+            .name = owned_name,
         });
     }
 
@@ -189,7 +192,10 @@ pub fn splitPathEntries(allocator: std.mem.Allocator, raw_path: []const u8) !Pat
     while (true) {
         const maybe_colon = std.mem.indexOfScalarPos(u8, raw_path, start, ':');
         const end = maybe_colon orelse raw_path.len;
-        try entries.entries.append(allocator, try allocator.dupe(u8, raw_path[start..end]));
+        const owned_entry = try allocator.dupe(u8, raw_path[start..end]);
+        errdefer allocator.free(owned_entry);
+
+        try entries.entries.append(allocator, owned_entry);
         if (maybe_colon == null) {
             break;
         }
