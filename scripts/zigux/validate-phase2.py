@@ -656,6 +656,7 @@ def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
 
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
+    ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
     ROOT / 'scripts' / 'zigux' / 'fixdep.zig',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
     ROOT / 'scripts' / 'zigux' / 'genksyms.zig',
@@ -792,6 +793,7 @@ required_ledger_markers = [
 ]
 required_workflow_markers = [
     'python3 scripts/zigux/validate-phase2.py',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
@@ -809,6 +811,7 @@ required_workflow_markers = [
 ]
 required_doc_markers = [
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'fixdep',
     'repeat-run artifact determinism',
     'sample_multi_target_expected.txt',
@@ -828,6 +831,7 @@ required_doc_markers = [
 ]
 required_script_markers = [
     'artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'check-fixdep-diff.py',
     'repeat-run artifact determinism',
     'check-genksyms-bridge.py',
@@ -845,6 +849,7 @@ required_script_markers = [
 required_makefile_markers = [
     'phase2-validate:',
     'scripts/zigux/artifact_diff.py --self-test',
+    'scripts/zigux/check-artifact-diff-contract.py',
 ]
 
 missing_markers = []
