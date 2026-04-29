@@ -88,6 +88,7 @@
       "kconfig": "Kconfig",
       "config": "none/.config",
       "arch": "arm64",
+      "allconfig": "arch/arm64/configs/tiny.config",
       "expected": "allnoconfig_expected.json"
     },
     {
