@@ -403,7 +403,19 @@ def validate_runner_metadata(slices: list[object], issues: list[str]) -> None:
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
     if not check_all_wrappers:
         return
-    expected = {entry.check_script.resolve() for entry in slices}
+    # Wrapper cleanup is a repo-wide invariant, not a property of the currently
+    # selected slug subset. Focused runs like `--slug abi` should not flag
+    # valid wrappers that belong to other discovered Phase 3 slices.
+    expected = {
+        entry.check_script.resolve()
+        for entry in discover_phase3_slices(Phase3Paths(
+            root=root,
+            docs_dir=root / "Documentation" / "zigux",
+            scripts_dir=root / "scripts" / "zigux",
+            tests_dir=root / "zigux" / "tests",
+            fixtures_dir=root / "zigux" / "tests" / "fixtures",
+        ))
+    }
     for path in sorted((root / "scripts" / "zigux").glob("check-phase3-*.py")):
         if path.resolve() not in expected:
             issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}" )
