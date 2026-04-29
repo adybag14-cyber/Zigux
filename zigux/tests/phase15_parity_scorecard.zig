@@ -59,6 +59,7 @@ const ScorecardMetrics = struct {
     freeze_in_c_anchor_count: usize,
     anchors_with_phase14_survey_evidence: usize,
     reserved_evidence_archive_templates: usize,
+    anchors_with_explicit_blocker_dispositions: usize,
     required_review_process_record_fields: usize,
     reopen_trigger_catalog_entries: usize,
     repo_evidence_checks_green: usize,
@@ -190,9 +191,9 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("0baf9b87cf6856f138b85cef7822504272a7b8de", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("7095a02f382e919b535b5e5c3fa8985ded58268e", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -222,10 +223,11 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.freeze_in_c_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.reserved_evidence_archive_templates);
+    try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.anchors_with_explicit_blocker_dispositions);
     try std.testing.expectEqual(@as(usize, 8), manifest.scorecard_metrics.required_review_process_record_fields);
     try std.testing.expectEqual(@as(usize, 3), manifest.scorecard_metrics.reopen_trigger_catalog_entries);
     try std.testing.expectEqual(@as(usize, 15), manifest.scorecard_metrics.repo_evidence_checks_green);
-    try std.testing.expectEqual(@as(usize, 17), manifest.scorecard_metrics.landed_scorecard_gaps);
+    try std.testing.expectEqual(@as(usize, 18), manifest.scorecard_metrics.landed_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 1), manifest.scorecard_metrics.blocked_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 3), manifest.scorecard_metrics.replay_surfaces_available);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
@@ -238,7 +240,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_note_present);
     try std.testing.expect(manifest.repo_evidence.phase15_evidence_archive_templates_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_anchor_owner_tracking_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_anchor_ownerTracking_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_test_present);
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
@@ -246,7 +248,7 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.phase15_workflow_replay_present);
     try std.testing.expectEqualStrings("retained discussion state", manifest.review_process.required_record_fields[6]);
     try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[7]);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
 
     const sched_core_lines = try countLinesInRepoFile(io_instance.io(), "kernel/sched/core.c", 1024 * 1024);
     const page_alloc_lines = try countLinesInRepoFile(io_instance.io(), "mm/page_alloc.c", 1024 * 1024);
@@ -340,6 +342,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     var saw_scorecard_note = false;
     var saw_council_review_gate = false;
     var saw_archive_reporting = false;
+    var saw_blocker_disposition_summary_metric = false;
     var saw_template_followup = false;
     var saw_sync_followup = false;
     var saw_anchor_owner_tracking = false;
@@ -380,6 +383,12 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark-notes status") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay command") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase15-blocker-disposition-summary-metric")) {
+            saw_blocker_disposition_summary_metric = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "latest blocker dispositions") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "frozen anchor") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-decision-record-template-followup")) {
             saw_template_followup = true;
@@ -437,12 +446,13 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 17), landed_count);
+    try std.testing.expectEqual(@as(usize, 18), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_scorecard_note);
     try std.testing.expect(saw_council_review_gate);
     try std.testing.expect(saw_archive_reporting);
+    try std.testing.expect(saw_blocker_disposition_summary_metric);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
     try std.testing.expect(saw_anchor_owner_tracking);
@@ -549,15 +559,17 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try expectDocMentionsExactLineCount(scorecard_doc, "include/linux/skbuff.h", skbuff_header_lines);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay command") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-anchor-owner-tracking") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-blocker-disposition-summary-metric") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-maintenance-mode-handoff-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "freeze-in-C anchors tracked: `4`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "anchors with Phase 14 survey evidence linked: `2 / 4`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "anchors with explicit blocker dispositions recorded: `4 / 4`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "repo evidence checks currently green: `15 / 15`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "landed scorecard gaps: `17 / 18`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "blocked scorecard gaps: `1 / 18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "landed scorecard gaps: `18 / 19`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "blocked scorecard gaps: `1 / 19`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay surfaces currently recorded: `3 / 3`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "shared bootstrap workflow replay") != null);
