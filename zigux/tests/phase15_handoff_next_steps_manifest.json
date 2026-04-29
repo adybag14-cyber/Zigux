@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L07",
+  "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "d1fee0d1454572b8ba1cfe79b29f1cb9ddb19e71",
+  "surveyed_commit": "9664a44abf0daec8b89c0bcc4c732571c90f60d0",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -32,7 +32,7 @@
     }
   ],
   "pending_next_steps": [
-    "Wait for new deep-core evidence that changes a current blocker disposition.",
-    "Refresh the parked handoff packet only if a named reopen trigger fires or the current governance packet drifts."
+    "Leave the tranche in maintenance-ready governance mode unless the shared Phase 15 replay drifts again or deep-core evidence changes a current blocker disposition.",
+    "If a named reopen trigger fires, rerun the dedicated readiness guard plus the shared Phase 15 build before editing neighboring governance packets."
   ]
 }
