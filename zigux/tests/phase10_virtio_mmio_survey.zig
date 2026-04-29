@@ -41,7 +41,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio mmio survey manifest records the live transport gap" {
+test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -103,7 +103,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     var saw_mmio_queue_notify_helper = false;
     var saw_mmio_queue_address_helper = false;
     var saw_mmio_config_window_helper = false;
-    var saw_mmio_config_write_ready_next = false;
+    var saw_mmio_config_write_landed = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -197,11 +197,11 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {
-            saw_mmio_config_write_ready_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_mmio_config_write_landed = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "write-planning helper") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config field window") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write planning helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "previous and planned values") != null or std.mem.indexOf(u8, gap.why_now, "byte, halfword, and word") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
@@ -210,7 +210,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-window helpers") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write helpers are landed") != null or std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -219,7 +219,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     }
 
     try std.testing.expect(starter_landed_count >= 11);
-    try std.testing.expect(ready_next_count >= 1);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_ring_callback_delay);
@@ -229,7 +229,7 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expect(saw_mmio_queue_notify_helper);
     try std.testing.expect(saw_mmio_queue_address_helper);
     try std.testing.expect(saw_mmio_config_window_helper);
-    try std.testing.expect(saw_mmio_config_write_ready_next);
+    try std.testing.expect(saw_mmio_config_write_landed);
     try std.testing.expect(saw_mmio_survey_gate);
     try std.testing.expect(saw_mmio_survey_note);
     try std.testing.expect(saw_mmio_blocker);
