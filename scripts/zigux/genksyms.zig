@@ -22,6 +22,7 @@ pub const ParseFailure = union(enum) {
     invalid_option: []const u8,
     missing_option_argument: []const u8,
     unexpected_option_argument: []const u8,
+    too_many_reference_files,
     ambiguous_option: struct {
         option: []const u8,
         possibilities: []const []const u8,
@@ -48,6 +49,7 @@ const usage_text =
     "  -V, --version         Print the release version\n";
 
 const version_text = "genksyms version 2.5.60\n";
+const max_reference_files = 16;
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
@@ -114,6 +116,14 @@ fn writeAmbiguousOptionError(writer: anytype, option: []const u8, possibilities:
         }
     }
     try writer.writeByte('\n');
+}
+
+fn appendReferenceFile(allocator: std.mem.Allocator, references: *std.ArrayList([]const u8), value: []const u8) !ParseAction {
+    if (references.items.len >= max_reference_files) {
+        return .{ .failure = .too_many_reference_files };
+    }
+    try references.append(allocator, value);
+    return .none;
 }
 
 pub fn renderGenksymsBridge(writer: anytype, request: Request) !void {
@@ -260,7 +270,7 @@ fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index
                         break :blk args[index.*];
                     };
                     if (spec.kind == .reference) {
-                        try references.append(allocator, value);
+                        return try appendReferenceFile(allocator, references, value);
                     } else {
                         request.dump_types_file = value;
                     }
@@ -294,7 +304,7 @@ fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, ind
                     break :blk args[index.*];
                 };
                 if (option == 'r') {
-                    try references.append(allocator, value);
+                    return try appendReferenceFile(allocator, references, value);
                 } else {
                     request.dump_types_file = value;
                 }
@@ -388,6 +398,7 @@ pub fn main(init: std.process.Init) !void {
                 .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
                 .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
                 .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
+                .too_many_reference_files => try stderr_writer.interface.writeAll("too many reference files\n"),
                 .ambiguous_option => |details| try writeAmbiguousOptionError(&stderr_writer.interface, details.option, details.possibilities),
             }
             try stderr_writer.interface.flush();
@@ -578,6 +589,35 @@ test "genksyms bridge canonicalizes abbreviated long option unexpected-argument 
     switch (outcome) {
         .failure => |failure| switch (failure) {
             .unexpected_option_argument => |option| try std.testing.expectEqualStrings("debug", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
+    }
+}
+
+test "genksyms bridge rejects reference lists beyond the bounded C harness limit" {
+    const outcome = try parseArgs(std.testing.allocator, &.{
+        "-r", "ref00.symref",
+        "-r", "ref01.symref",
+        "-r", "ref02.symref",
+        "-r", "ref03.symref",
+        "-r", "ref04.symref",
+        "-r", "ref05.symref",
+        "-r", "ref06.symref",
+        "-r", "ref07.symref",
+        "-r", "ref08.symref",
+        "-r", "ref09.symref",
+        "-r", "ref10.symref",
+        "-r", "ref11.symref",
+        "-r", "ref12.symref",
+        "-r", "ref13.symref",
+        "-r", "ref14.symref",
+        "-r", "ref15.symref",
+        "-r", "ref16.symref",
+    });
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .too_many_reference_files => {},
             else => return error.UnexpectedFailure,
         },
         .command => return error.UnexpectedCommand,
