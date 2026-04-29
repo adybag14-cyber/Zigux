@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-survey`
-- surveyed inspected `master` head: `42809b6eace69a1f8ec5a60ea39ca3ef6379182c`
+- surveyed inspected `master` head: `32d3cb93dc1119700c39c8039526fa1797550802`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what has now landed plus the remaining MMIO follow-up ladder against the roadmap
 - product boundary:
   - `zigux/tests/phase10_virtio_ring_manifest.json`
@@ -18,15 +18,15 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback disable and re-enable, callback enable-prepare, delayed-callback pacing, notify-prepare, and queue-reset guard follow-ups without pretending queue lifecycle parity is complete.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback disable and re-enable, callback enable-prepare, delayed-callback pacing, notify-prepare with rollover flushing, and queue-reset guard plus drained-queue reset follow-ups without pretending queue lifecycle parity is complete.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_ring.c` is present on `master` at 3940 lines and spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
 - the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_build.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`, and that core slice now covers queue callback bookkeeping, descriptor-shape metadata, and notification accounting.
-- the current Zigux VirtIO surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, callback enable-prepare snapshots, delayed-callback pacing bookkeeping, notify-prepare bookkeeping, and reset-guard discipline that refuses queue resets while unpublished or unpolled work remains.
+- the current Zigux VirtIO surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback disable and re-enable bookkeeping, callback enable-prepare snapshots, delayed-callback pacing bookkeeping, notify-prepare bookkeeping with a 16-bit rollover flush, and reset discipline that both refuses unsafe resets and clears drained queues without dropping shape metadata.
 - the adjacent MMIO lane has now already landed the bounded register-window, queue-register, queue-notify, and queue-address helpers in `drivers/virtio/virtio_mmio.zig`, so the remaining honest cross-lane follow-up is the tiny config-window helper rather than the older queue-register step.
-- the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed queue reset execution.
+- the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed MMIO queue reset execution.
 - this means the roadmap's "virtqueue wrappers first, MMIO wrappers later" rule is still satisfied, and the next tiny cross-lane follow-up after the ring foothold is the `virtio_mmio` config-window helper rather than more speculative in-memory ring work.
 
 ## Recorded gaps
@@ -45,6 +45,7 @@ The survey manifest now records:
 - the landed `phase10-callback-delay-helper`
 - the landed `phase10-notify-prepare-helper`
 - the landed `phase10-queue-reset-guard-helper`
+- the landed `phase10-queue-reset-helper`
 - the landed `phase10-virtio-ring-slice-note`
 - the landed `phase10-mmio-register-window-helper`
 - the landed `phase10-mmio-queue-register-helper`
@@ -53,7 +54,7 @@ The survey manifest now records:
 - the ready-next `phase10-mmio-config-window-helper`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback disable and re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping, and queue-reset guard discipline are landed, the cross-lane MMIO ladder now truthfully records the landed register-window, queue-register, queue-notify, and queue-address steps, and only the bounded config-window helper plus the broader transport-facing lifecycle and IRQ work remain intentionally constrained.
+This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback disable and re-enable, callback enable-prepare snapshots, delayed-callback pacing, notify-prepare bookkeeping with rollover flushing, and queue-reset guard plus drained-queue reset discipline are landed, the cross-lane MMIO ladder now truthfully records the landed register-window, queue-register, queue-notify, and queue-address steps, and only the bounded config-window helper plus the broader transport-facing lifecycle and IRQ work remain intentionally constrained.
 
 ## Non-goals
 
