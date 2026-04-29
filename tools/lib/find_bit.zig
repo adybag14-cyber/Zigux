@@ -216,6 +216,18 @@ test "tail mask ignores zero bits beyond nbits" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 2), findFirstZeroBit(&with_clear, nbits));
 }
 
+test "find next zero bit masks earlier and out-of-range tail matches" {
+    const nbits = bits_per_long + 5;
+    var bitmap = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) };
+    bitmap[1] &= ~(@as(Word, 1) << 1);
+    bitmap[1] &= ~(@as(Word, 1) << 4);
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextZeroBit(&bitmap, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&bitmap, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&bitmap, nbits, bits_per_long + 4));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&bitmap, nbits, bits_per_long + 5));
+}
+
 test "tail mask keeps the in-range shared bit for and scans" {
     const nbits = bits_per_long + 5;
     const lhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
