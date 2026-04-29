@@ -123,11 +123,11 @@ The current tests check:
 
 - verified against inspected `master` head `ba507b1f2e16af8983c61802e07bcbc95592aef4`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
-  - all `5/5` focused libbpf segment tests passed
+  - all `6/6` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-  - `Build Summary: 3/3 steps succeeded; 5/5 tests passed`
+  - `Build Summary: 3/3 steps succeeded; 6/6 tests passed`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-  - `Build Summary: 20/20 steps succeeded; 63/63 tests passed`
+  - `Build Summary: 20/20 steps succeeded; 68/68 tests passed`
 - `python3 scripts/zigux/validate-phase8.py`
   - `PHASE8_VALIDATION=pass`
 
