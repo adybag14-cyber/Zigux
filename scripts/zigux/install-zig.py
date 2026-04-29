@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import tarfile
 import tempfile
@@ -16,6 +17,10 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 INDEX_URL = 'https://ziglang.org/download/index.json'
+VERSION_KEY_RE = re.compile(
+    r'^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)'
+    r'(?:-dev\.(?P<dev>\d+)(?:\+[0-9A-Za-z.-]+)?)?$'
+)
 
 
 def normalize_os(name: str) -> str:
@@ -84,6 +89,38 @@ def append_github_path(path: Path) -> None:
         fh.write(str(path.resolve()) + '\n')
 
 
+def is_version_key(value: str) -> bool:
+    return VERSION_KEY_RE.fullmatch(value.strip()) is not None
+
+
+def direct_download_url(version: str, target_key: str) -> str:
+    base = 'https://ziglang.org/builds' if '-dev.' in version else f'https://ziglang.org/download/{version}'
+    if target_key.endswith('-windows'):
+        filename = f'zig-{target_key}-{version}.zip'
+    else:
+        filename = f'zig-{target_key}-{version}.tar.xz'
+    return f'{base}/{filename}'
+
+
+def resolve_entry(index: dict, channel: str, target_key: str) -> tuple[dict, str]:
+    if channel in index:
+        return index[channel], 'channel-key'
+
+    for key, entry in index.items():
+        if isinstance(entry, dict) and entry.get('version') == channel:
+            return entry, f'version-match:{key}'
+
+    if is_version_key(channel):
+        return {
+            'version': channel,
+            target_key: {
+                'tarball': direct_download_url(channel, target_key),
+            },
+        }, 'direct-url-fallback'
+
+    raise SystemExit(f'unknown Zig channel/version key: {channel}')
+
+
 def run_self_test() -> int:
     assert normalize_os('Linux') == 'linux'
     assert normalize_os('Darwin') == 'macos'
@@ -98,6 +135,35 @@ def run_self_test() -> int:
             'minimum_version': '0.17.0-dev.87+9b177a7d2',
         }
     ) == ('0.17.0-dev.87+9b177a7d2', '0.17.0-dev.87+9b177a7d2')
+    assert is_version_key('0.17.0-dev.87+9b177a7d2')
+    assert not is_version_key('master')
+    assert direct_download_url('0.17.0-dev.87+9b177a7d2', 'x86_64-linux') == (
+        'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz'
+    )
+    assert direct_download_url('0.16.0', 'x86_64-windows') == (
+        'https://ziglang.org/download/0.16.0/zig-x86_64-windows-0.16.0.zip'
+    )
+    entry, resolution = resolve_entry(
+        {
+            'master': {
+                'version': '0.17.0-dev.90+abcdef',
+                'x86_64-linux': {'tarball': 'https://example.invalid/master.tar.xz'},
+            },
+            'stable': {
+                'version': '0.16.0',
+                'x86_64-linux': {'tarball': 'https://example.invalid/stable.tar.xz'},
+            },
+        },
+        '0.16.0',
+        'x86_64-linux',
+    )
+    assert resolution == 'version-match:stable'
+    assert entry['version'] == '0.16.0'
+    entry, resolution = resolve_entry({}, '0.17.0-dev.87+9b177a7d2', 'x86_64-linux')
+    assert resolution == 'direct-url-fallback'
+    assert entry['x86_64-linux']['tarball'] == (
+        'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz'
+    )
     try:
         parse_policy_data({'channel': '', 'minimum_version': '0.17.0-dev.87+9b177a7d2'})
     except ValueError:
@@ -139,9 +205,7 @@ def main() -> int:
     target_key = f'{arch_key}-{system_key}'
 
     index = read_index()
-    if channel not in index:
-        raise SystemExit(f'unknown Zig channel/version key: {channel}')
-    entry = index[channel]
+    entry, resolution = resolve_entry(index, channel, target_key)
     if target_key not in entry:
         raise SystemExit(f'Zig download index has no target {target_key} under {channel}')
 
@@ -158,6 +222,7 @@ def main() -> int:
     print(f'ZIG_INSTALL_VERSION={version}')
     print(f'ZIG_INSTALL_TARGET={target_key}')
     print(f'ZIG_INSTALL_URL={tarball_url}')
+    print(f'ZIG_INSTALL_RESOLUTION={resolution}')
     if policy_channel is not None:
         print(f'ZIG_INSTALL_POLICY={policy_path}')
 
