@@ -22,7 +22,7 @@ Current repo state on `master`:
 - reviewed against live `master` `378906ad852f26857b23e893b47c3bab4b916b68`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
-- `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the `devm_ioremap_uc()` and `devm_ioremap_wc()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
+- `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - the current helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, so the Phase 13 packet remains outside DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
 - `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, but until this packet landed the DMA/scatterlist boundary posture was not recorded in the same manifest-backed survey shape as the other active Phase 13 anchors
 - `zigux/Makefile` and `zigux/tests/phase13_build.zig` already expose the shared Phase 13 replay entrypoints that this survey now joins
@@ -38,6 +38,7 @@ What is landed today:
 - managed `__devm_ioremap()` lifetime planning, including retained release records on success and free-on-failure cleanup when mapping returns `NULL`
 - the `devm_ioremap_uc()` wrapper path and exact `devm_iounmap()` pointer-match release behavior
 - the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
+- the `devm_ioremap_np()` wrapper path without widening into live non-posted mappings
 - managed `__devm_ioremap_resource()` planning around memory-resource validation, inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
 - the adjacent `devm_ioremap_resource_wc()` wrapper path without widening into live write-combined mappings
 - `devm_of_iomap()` planning around translated resource selection, optional size reporting, and delegation into the managed-resource planner without walking a live device tree
