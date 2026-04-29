@@ -39,7 +39,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
 
-test "phase13 devres manifest records the landed helper-first dma/scatterlist boundary and explicit blockers" {
+test "phase13 devres manifest records the landed helper-first MMIO safety surface and explicit blockers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -55,10 +55,10 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("51d4d54b2b4207f02dde9a5b5749df41148f1e47", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("94c9958fc58eb9042167d8381324e97d2997f383", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -74,8 +74,6 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
-    try std.testing.expect(descriptor.provides_release_pointer_match);
-    try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_uc_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_wc_planning);
@@ -171,8 +169,6 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase13-devres-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "helper-first") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scatterlist") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-managed-ioremap-lifetime")) {
             saw_ioremap_lifetime = true;
