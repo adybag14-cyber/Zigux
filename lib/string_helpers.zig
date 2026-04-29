@@ -8,6 +8,7 @@ pub const UNESCAPE_OCTAL: u32 = 1 << 1;
 pub const UNESCAPE_HEX: u32 = 1 << 2;
 pub const UNESCAPE_SPECIAL: u32 = 1 << 3;
 pub const UNESCAPE_ANY: u32 = UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL;
+pub const UNESCAPE_ALL_MASK: u32 = UNESCAPE_ANY;
 pub const ESCAPE_SPACE: u32 = 1 << 0;
 pub const ESCAPE_SPECIAL: u32 = 1 << 1;
 pub const ESCAPE_NULL: u32 = 1 << 2;
@@ -19,6 +20,7 @@ pub const ESCAPE_HEX: u32 = 1 << 5;
 pub const ESCAPE_NA: u32 = 1 << 6;
 pub const ESCAPE_NAP: u32 = 1 << 7;
 pub const ESCAPE_APPEND: u32 = 1 << 8;
+pub const ESCAPE_ALL_MASK: u32 = ESCAPE_ANY | ESCAPE_NP | ESCAPE_HEX | ESCAPE_NA | ESCAPE_NAP | ESCAPE_APPEND;
 pub const STRING_UNITS_10: u32 = 0;
 pub const STRING_UNITS_2: u32 = 1;
 pub const STRING_UNITS_MASK: u32 = 1 << 0;
@@ -683,4 +685,15 @@ test "parseIntArrayUser keeps count-bounded NUL insertion and empty-input behavi
     try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 7, 9 }, counted);
 
     try std.testing.expectError(error.NoEntry, parseIntArrayUser(std.testing.allocator, "1,2", 0));
+}
+
+test "escape flag masks stay aligned with the Linux public helper surface" {
+    try std.testing.expectEqual(
+        UNESCAPE_SPACE | UNESCAPE_OCTAL | UNESCAPE_HEX | UNESCAPE_SPECIAL,
+        UNESCAPE_ALL_MASK,
+    );
+    try std.testing.expectEqual(
+        ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NULL | ESCAPE_OCTAL | ESCAPE_NP | ESCAPE_HEX | ESCAPE_NA | ESCAPE_NAP | ESCAPE_APPEND,
+        ESCAPE_ALL_MASK,
+    );
 }
