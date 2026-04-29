@@ -741,6 +741,29 @@ def run_self_test() -> int:
         missing = validate_root(tmp_root)
         assert 'make:scripts/zigux/validate-phase4.py --self-test' in missing, missing
 
+        sample_kprobes_makefile = tmp_root / 'samples/kprobes/Makefile'
+        sample_kprobes_makefile.write_text('', encoding='utf-8')
+        missing = validate_root(tmp_root)
+        assert (
+            'sample_kprobes_make:obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o'
+            in missing
+        ), missing
+        sample_kprobes_makefile.write_text(
+            '\n'.join(REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS) + '\n',
+            encoding='utf-8',
+        )
+
+        sample_vfs_test_fsmount = tmp_root / 'samples/vfs/test-fsmount.c'
+        sample_vfs_test_fsmount.write_text(
+            '\n'.join(REQUIRED_SAMPLE_VFS_SOURCE_MARKERS[:-1]) + '\n',
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert (
+            'sample_vfs_test_fsmount:if (move_mount(mfd, "", AT_FDCWD, "/mnt", MOVE_MOUNT_F_EMPTY_PATH) < 0) {'
+            in missing
+        ), missing
+
     print('PHASE4_VALIDATOR_SELF_TEST=pass')
     return 0
 
