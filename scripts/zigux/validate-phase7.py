@@ -91,9 +91,11 @@ required_script_readme_markers = [
     "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     "zigux/tests/phase7_build.zig",
     "phase7_string_helpers_survey.zig",
+    "phase7_cmdline_survey.zig",
     "phase7_argv_split_manifest.json",
     "phase7_rbtree_manifest.json",
     "phase7-rbtree-slice.md",
+    "helper-only string and cmdline slices keep their roadmap-backed review notes explicit",
 ]
 
 required_tests_readme_markers = [
@@ -136,8 +138,10 @@ required_doc_readme_markers = [
     "the current Phase 7 build handoff is intentionally split",
     "explicit `addImport(...)` aliases",
     "zigux/tests/phase7_string_helpers_survey.zig",
+    "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/phase7_rbtree_manifest.json",
+    "helper-only string and cmdline slices keep their roadmap and sample-root boundary explicit",
 ]
 
 required_phase7_build_markers = [
