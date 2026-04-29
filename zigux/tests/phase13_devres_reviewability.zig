@@ -78,6 +78,8 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_uc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
+    try std.testing.expect(descriptor.provides_ioremap_np_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioport_lifetime_planning);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
@@ -198,6 +200,8 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_uc") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_wc") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_np") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_iounmap") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-managed-resource-planner")) {
