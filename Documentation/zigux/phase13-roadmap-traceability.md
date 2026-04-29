@@ -81,7 +81,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_devres.zig`
 - reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
 - manifest: `zigux/tests/phase13_devres_manifest.json`
-- manifest `surveyed_commit`: `378906ad852f26857b23e893b47c3bab4b916b68`
+- manifest `surveyed_commit`: `3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-devres-slice.md`
 - survey note: `Documentation/zigux/phase13-devres-survey.md`
