@@ -123,8 +123,9 @@ required_closure_markers = [
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
     'dep parsing keeps the first source across concatenated target entries',
+    'dep parsing unescapes escaped hash and colon tokens once',
     'output writer maps print and flush failures to fixdep output-write errors',
-    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target and output-write unit anchors are required for closure',
+    'PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, and output-write unit anchors are required for closure',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
 required_workflow_markers = [
