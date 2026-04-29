@@ -256,6 +256,7 @@ required_makefile_markers = [
     'check-artifact-diff-contract.py',
     'phase2-tools:',
     'phase2-kconfig:',
+    'check-kconfig-bridge.py --self-test',
     'phase2-cross:',
     'check-fixdep-diff.py',
     'check-genksyms-bridge.py',
