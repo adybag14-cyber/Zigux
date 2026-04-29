@@ -1,6 +1,22 @@
 const std = @import("std");
 const help = @import("help");
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        allocator,
+        .limited(limit),
+    );
+}
+
 const FixtureDir = struct {
     path: []const u8,
     entries: []const help.DirectoryEntry,
@@ -338,4 +354,61 @@ test "phase 8 help section rendering suppresses empty sections without stray hea
 
         try std.testing.expectEqualStrings("", rendered_empty.writer.buffered());
     }
+}
+
+test "phase 8 help docs keep the parked stable-output boundary explicit" {
+    const slice_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-help-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "PHASE8_STATUS=parked");
+    try expectContains(slice_note, "PHASE8_SLICE=help-command-source-and-terminal-starter");
+    try expectContains(slice_note, "tools/lib/subcmd/help.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_help.zig");
+    try expectContains(slice_note, "stable command-list manipulation logic");
+    try expectContains(slice_note, "section-level output stays testable");
+    try expectContains(slice_note, "list_commands()");
+    try expectContains(slice_note, "does not yet claim:");
+    try expectContains(slice_note, "cmd_help()");
+}
+
+test "phase 8 help review checklist keeps the parked stable-output packet reviewable" {
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContains(review_checklist, "parked Phase 8 `help` packet");
+    try expectContains(review_checklist, "Documentation/zigux/phase8-help-slice.md");
+    try expectContains(review_checklist, "zigux/tests/phase8_help.zig");
+    try expectContains(review_checklist, "`load_command_list()`");
+    try expectContains(review_checklist, "`pretty_print_string_list()`");
+    try expectContains(review_checklist, "`list_commands()`");
+    try expectContains(review_checklist, "`opendir()` or `readdir()` parity");
+    try expectContains(review_checklist, "raw `ioctl()` terminal probing");
+}
+
+test "phase 8 help evidence still matches the live C helper anchors" {
+    const help_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/subcmd/help.c",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(help_c);
+
+    try expectContains(help_c, "void add_cmdname(struct cmdnames *cmds, const char *name, size_t len)");
+    try expectContains(help_c, "void uniq(struct cmdnames *cmds)");
+    try expectContains(help_c, "void exclude_cmds(struct cmdnames *cmds, struct cmdnames *excludes)");
+    try expectContains(help_c, "static void get_term_dimensions(struct winsize *ws)");
+    try expectContains(help_c, "static void pretty_print_string_list(struct cmdnames *cmds, int longest)");
+    try expectContains(help_c, "void load_command_list(const char *prefix,");
+    try expectContains(help_c, "list_commands_in_dir(main_cmds, exec_path, prefix);");
+    try expectContains(help_c, "void list_commands(const char *title, struct cmdnames *main_cmds,");
+    try expectContains(help_c, "printf(\"available %s in '%s'\\n\", title, exec_path);");
+    try expectContains(help_c, "printf(\"%s available from elsewhere on your $PATH\\n\", title);");
 }
