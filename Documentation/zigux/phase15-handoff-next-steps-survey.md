@@ -7,7 +7,7 @@ This document records the bounded Phase 15 handoff lane for synthesizing the rem
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
 - scope: one dedicated handoff note, one manifest, one Zig test, one shared `phase15_build.zig` follow-up, and one docs-index refresh that keep the roadmap contract, the bootstrap ledger anchor, the current governance packet, the open handoff gaps, and the parked next steps reviewable in one place
-- survey provenance refreshed against verified `master` head `d1fee0d1454572b8ba1cfe79b29f1cb9ddb19e71`
+- survey provenance refreshed against verified `master` head `9664a44abf0daec8b89c0bcc4c732571c90f60d0`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
@@ -56,7 +56,7 @@ This note exists to answer those questions directly and keep the Phase 15 tranch
 - `Documentation/zigux/phase15-architecture-council-review-process.md` now records the required review packet, retained stay-in-C closeout state, and reopen-trigger catalog
 - `Documentation/zigux/phase15-parity-scorecard.md` records the four deep-core anchors, their owners, archive paths, retained stay-in-C closeout state, reopen-trigger catalog, and the aligned maintenance-mode handoff for the shared replay-covered governance packet
 - `Documentation/zigux/phase15-indefinite-c-policy.md` now records the explicit long-term stay-in-C posture and exception rules
-- `Documentation/zigux/phase15-readiness-gate-survey.md` now records that the roadmap-required governance bundle is landed, the bootstrap ledger anchor is still visible, the shared bootstrap workflow replays the current Phase 15 gate, and the remaining blocker is deep-core status-change evidence
+- `Documentation/zigux/phase15-readiness-gate-survey.md` now records that the roadmap-required governance bundle is landed, the bootstrap ledger anchor is still visible, the shared bootstrap workflow replays the current Phase 15 gate, the broader Phase 15 replay is green on current `master`, and the tranche is maintenance-ready pending deep-core status-change evidence
 - `zigux/tests/phase15_build.zig` now replays the dedicated handoff packet alongside the other Phase 15 governance tests
 - `Documentation/zigux/README.md` now points at this handoff packet so reviewers can open the parked-next-step synthesis from the top-level docs index
 
@@ -71,15 +71,16 @@ The remaining open handoff gap is not missing governance scaffolding and it is n
 - `kernel/rcu/tree.c`: still blocked because the published Phase 14 follow-up remains wider than the allowed RCU seam
 - `net/core/skbuff.c`: still blocked because the published Phase 14 follow-up remains wider than the allowed packet-lifetime boundary
 
-That means the Phase 15 tranche is governance-landed, shared-replay-covered, and handoff-ready, but it is still not status-change-ready.
+That means the Phase 15 tranche is governance-landed, maintenance-ready on current `master`, and still not status-change-ready.
 
 ## Pending Next Steps
 
 The next honest bounded step inside this lane is to stay parked until one of these things becomes true:
 
-1. new deep-core evidence changes one of the current blocker dispositions
-2. one of the named reopen triggers now applies to a retained stay-in-C packet
-3. the current Phase 15 governance packet drifts enough that the handoff note, readiness packet, and docs index need a synchronized maintenance refresh
+1. the shared Phase 15 replay drifts again and breaks the current maintenance-ready posture
+2. new deep-core evidence changes one of the current blocker dispositions
+3. one of the named reopen triggers now applies to a retained stay-in-C packet
+4. the current Phase 15 governance packet drifts enough that the handoff note, readiness packet, and docs index need a synchronized maintenance refresh
 
 If none of those conditions is true, the right action is not another new Phase 15 slice. The right action is to leave the tranche in maintenance mode.
 
