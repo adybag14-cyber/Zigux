@@ -296,6 +296,7 @@ def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
         'abbreviated_missing_long_reference_argument': 'abbreviated_missing_long_reference_argument_expected.json',
         'missing_long_dump_types_argument': 'missing_long_dump_types_argument_expected.json',
         'abbreviated_missing_long_dump_types_argument': 'abbreviated_missing_long_dump_types_argument_expected.json',
+        'too_many_reference_files': 'too_many_reference_files_expected.json',
     }
     process_json_cases = {
         'help',
@@ -311,6 +312,7 @@ def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
         'abbreviated_missing_long_reference_argument',
         'missing_long_dump_types_argument',
         'abbreviated_missing_long_dump_types_argument',
+        'too_many_reference_files',
     }
     normalize_stderr_cases = {
         'invalid_option',
