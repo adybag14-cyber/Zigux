@@ -69,8 +69,8 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_lane_key = "P15-L07";
-const expected_surveyed_commit = "9271ebb2e2f39c045f70e4e37cb029090070f3c5";
+const expected_lane_key = "P15-L11";
+const expected_surveyed_commit = "09606ab3a477c4f3817ab4e00f699e4729c096d2";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -105,12 +105,12 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqual(@as(usize, 6), manifest.approval_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.ownership_evidence_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.trigger_conditions.len);
-    try std.testing.expectEqual(@as(usize, 19), manifest.required_review_packet_fields.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.required_review_packet_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.reopen_trigger_catalog.len);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
@@ -129,8 +129,9 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("decision record ID", manifest.required_review_packet_fields[4]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.required_review_packet_fields[13]);
     try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.required_review_packet_fields[14]);
-    try std.testing.expectEqualStrings("explicit non-goals", manifest.required_review_packet_fields[17]);
-    try std.testing.expectEqualStrings("written rationale", manifest.required_review_packet_fields[18]);
+    try std.testing.expectEqualStrings("trigger-specific refreshed evidence by path", manifest.required_review_packet_fields[16]);
+    try std.testing.expectEqualStrings("explicit non-goals", manifest.required_review_packet_fields[18]);
+    try std.testing.expectEqualStrings("written rationale", manifest.required_review_packet_fields[19]);
     try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.reopen_trigger_catalog[0]);
     try std.testing.expectEqualStrings("evidence_packet_stale_or_contradictory", manifest.reopen_trigger_catalog[1]);
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.reopen_trigger_catalog[2]);
@@ -193,7 +194,7 @@ test "phase 15 architecture council review-process manifest records current trig
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 15), landed_count);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -228,6 +229,7 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Decision Buckets") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Reopen Trigger Catalog") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "## Reopen Evidence Matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Maintenance-Mode Handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "current lane posture: `maintenance_mode`") != null);
@@ -243,6 +245,8 @@ test "phase 15 architecture council review-process note stays aligned with check
     try std.testing.expect(std.mem.indexOf(u8, review_process, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "ownership_or_validation_changed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "trigger-specific refreshed evidence by path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "restate the current blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "refreshes both the current lane owner and the rollback owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "automatic return-to-blocked trigger") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "blocked review posture") != null);
@@ -258,11 +262,12 @@ test "phase 15 architecture council review-process note stays aligned with check
     defer std.testing.allocator.free(expected_lane_line);
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, and indefinite-C policy link or explicit non-applicability note explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "current roadmap phase") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "written rationale") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet refresh both the current lane owner and the rollback owner before active review resumes?") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "trigger-specific refreshed evidence by path") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "retained discussion state, the indefinite-C policy link or explicit non-applicability note, and the reopen triggers explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the evidence archive cite one or more named reopen-trigger catalog items so the parked packet stays reviewable later?") != null);
 
