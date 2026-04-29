@@ -33,7 +33,7 @@ This shared catalog exists so reviewers can confirm, in one place, that the road
 - tests: `zigux/tests/phase6_base64.zig`
 - perf: `zigux/tests/phase6_base64_perf.zig`
 - external parity: `scripts/zigux/check-phase6-base64-c-parity.py`
-- external parity harnesses: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`
+- external parity harnesses: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`
 - fixtures: `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
 
@@ -78,7 +78,6 @@ The current Phase 6 perf packet is intentionally mixed. Two helpers now carry fi
 - `zigux/tests/phase6_bsearch_perf.zig` replays two representative sorted slices: `256` entries at `2_000` reps and `4096` entries at `500` reps.
 - the machine-checked threshold is algorithmic rather than time-based: `avg_compare_calls <= std.math.log2_int_ceil(len) + 1`.
 - the harness still prints `ns_per_lookup`, but no stable nanosecond ceiling is claimed today.
-- the shipped helper surface now includes both `Comparator` and `CComparator`, and the current Zig test packet keeps runtime-selected native and C ABI comparator-pointer coverage in the same found-or-null contract.
 
 ### checksum
 
@@ -97,7 +96,7 @@ The current Phase 6 perf packet is intentionally mixed. Two helpers now carry fi
 The committed Phase 6 fixture corpus is deterministic today because every shipped helper replay hangs off committed literals or sorted parity output instead of generated snapshot files.
 
 - `zigux/tests/fixtures/phase6_base64_vectors.zig` is the current static base64 corpus with 22 standard encode vectors, 18 variant encode vectors, 22 standard decode vectors, 12 variant decode vectors, and 16 invalid decode vectors.
-- `zigux/tests/fixtures/phase6_base64_c_harness.c` plus `zigux/tests/phase6_base64_c_parity.zig` replay that same representative base64 surface through `python3 scripts/zigux/check-phase6-base64-c-parity.py`, which currently passes with `PHASE6_BASE64_C_PARITY_CASES=90`.
+- `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/phase6_base64_c_casegen.zig`, and `zigux/tests/phase6_base64_c_parity.zig` replay that same representative base64 surface through `python3 scripts/zigux/check-phase6-base64-c-parity.py`, where the committed case generator rebuilds the C include payload from `zigux/tests/fixtures/phase6_base64_vectors.zig` before the current `PHASE6_BASE64_C_PARITY_CASES=90` spot check runs.
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig` is the current static checksum corpus with 5 compute vectors, 2 composition vectors, 3 seeded vectors, 1 pseudo-header vector, and 4 carry-discipline vectors.
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 7 parity vectors, 4 overflow vectors, and 7 required-length vectors, and it normalizes non-canonical formatter inputs through `normalizedRowsize()` and `normalizedGroupsizeForLen()` before expected-text generation.
 - `zigux/tests/phase6_bsearch.zig` keeps the bsearch corpus inline as sorted integer and symbol tables rather than a generated fixture file, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=15`.
