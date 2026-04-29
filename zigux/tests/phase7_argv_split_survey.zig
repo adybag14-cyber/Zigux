@@ -47,6 +47,30 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const argv_split_helper = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/argv_split.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(argv_split_helper);
+
+    const argv_split_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_argv_split.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(argv_split_tests);
+
+    const argv_split_slice = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(argv_split_slice);
+
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P7-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
@@ -101,4 +125,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);
 }
