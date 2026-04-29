@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`
-- scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker
+- scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated survey and diff gates, the bounded loader-handoff scaffold, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -34,6 +34,7 @@ The live repo now has a bounded `runtime_kretprobe` starter, dedicated module te
 - `samples/kprobes/kretprobe_example.c` is present on `master` at 108 lines.
 - the Linux sample is module-oriented, centered on `register_kretprobe`, `unregister_kretprobe`, `entry_handler`, `ret_handler`, `maxactive`, and `nmissed`.
 - the live repo now ships `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, a shared loader-request binding in `zigux/kernel/runtime_loader.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
+- against the Phase 9 roadmap feature list, the live packet already lands the explicit selftest-hook surface and keeps starter lifecycle transitions reviewable, but it still does not satisfy `first loadable Zigux runtime modules` or `runtime module lifecycle parity` because the shared runtime-loader control surface and real `register_kretprobe()` or `unregister_kretprobe()` execution remain blocked.
 - the current bounded symbol surface remains sample-side rather than Kconfig-backed: `samples/zigux/runtime_kretprobe.zig` still defaults `symbol_name` to `kernel_clone`, only allows retargeting before init, and does not expose any `CONFIG_` or `Kconfig` gate in this packet.
 - the bounded starter now also keeps the Linux sample's fixed `KSYM_NAME_LEN` symbol buffer explicit by rejecting symbol retargets at or above 512 bytes, so the pilot does not silently widen the module-parameter contract while runtime loading is still blocked.
 - the bounded starter now keeps per-instance private entry timestamps explicit under concurrent active probes, matching the Linux anchor's `struct my_data` shape more closely without claiming real `kretprobe_instance` substrate support.
@@ -77,6 +78,8 @@ The survey manifest now records:
 - the still-blocked `runtime-kretprobe-shared-loader-controls`
 
 This keeps the lane concrete without pretending that Zigux already has real `register_kretprobe()` substrate support or the broader shared runtime-loader controls needed for execution.
+
+It also keeps the roadmap comparison explicit: this packet now has the landed selftest-hook marker and starter lifecycle evidence, but the `first loadable Zigux runtime modules` and `runtime module lifecycle parity` steps remain open until the broader shared runtime-loader controls can drive a real registration path.
 
 The manifest-backed review prompts for this lane now also keep one rollback question explicit: does the current packet still name the no-substrate fallback path, or did a code change silently turn the bounded handoff into an implied live loader?
 
