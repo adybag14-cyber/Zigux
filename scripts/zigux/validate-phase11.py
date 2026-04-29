@@ -93,7 +93,7 @@ MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
-    "phase11_hvc_console_manifest.json": ("P11-L15", "drivers/tty/hvc/hvc_console.c", 10, [], []),
+    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 12, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
 ALLOWED_STATUSES = {
@@ -277,15 +277,16 @@ hvc_matrix_doc = text(HVC_DOC_PATHS["matrix"])
 for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
     "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
-    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free handoff; otherwise avoid widening straight into notifier execution, sysrq handling, or live khvcd worker behavior.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier or sysrq handoff; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.",
 ]:
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
 for marker in [
-    "PHASE11_HVC_CONSOLE_STATUS=poll_drain_order_landed",
+    "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay",
-    "leave this handoff parked unless another comparably small host-free khvcd split is obvious",
+    "`zigux/tests/phase11_hvc_console.zig` now keeps the tty-attached and tty-detached remove-handoff assertions inside the shared Phase 11 replay",
+    "leave this helper parked unless another comparably small host-free notifier or sysrq split becomes obvious",
     "the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`",
     "the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
 ]:
@@ -337,7 +338,7 @@ for marker in [
     if marker not in dw_matrix_doc:
         missing.append(f"phase11_dw_wdt_docs:matrix:{marker}")
 
-if starter_total != 52:
+if starter_total != 54:
     missing.append(f"phase11_bundle:starter_total={starter_total}")
 if ready_total != 1:
     missing.append(f"phase11_bundle:ready_total={ready_total}")
