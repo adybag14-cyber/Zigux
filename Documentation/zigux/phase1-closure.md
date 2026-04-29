@@ -84,7 +84,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_RBTREE_CACHED_UNIT_REVIEW=rbtree RootCached leftmost tracking stays aligned across addCached, eraseCached, and replaceNodeCached so the cached first node matches the underlying tree root`
 - `PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys`
 
-- `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, C-string-aware `strlcpy` length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL `remove_spaces` handling, and first-mismatch `memchrInv` detection.
+- `tools/lib/string.zig` closure includes committed C-backed parity coverage for Linux-style bool parsing, bounded `strlcpy` truncation, in-place whitespace and replacement helpers including `removeSpaces` stop-at-NUL behavior, and first-mismatch `memchrInv` detection.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strlcpy` aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `trimSpaces` and `strim` aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.
@@ -99,7 +99,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`
 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
-- `PHASE1_STRING_REVIEW=string parity covers bool parsing, C-string-aware strlcpy length and truncation, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection`
+- `PHASE1_STRING_REVIEW=string parity covers bool parsing, bounded strlcpy, whitespace cleanup including removeSpaces stop-at-NUL handling, replacement, and memchrInv mismatch detection`
 - `PHASE1_STRING_CSTRING_UNIT_REVIEW=string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves zero-sized destinations untouched`
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
 - `PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator`
