@@ -81,6 +81,7 @@ The current tests check:
 - duplicate-key lookup ranges via `findFirst()`, `nextMatch()`, and `iterateMatches()`
 - duplicate-aware find-or-insert behavior via `findAdd()`
 - erase-and-replace consistency after structural updates
+- detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true
 - erase-and-detach reuse semantics via `eraseInit()`
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
