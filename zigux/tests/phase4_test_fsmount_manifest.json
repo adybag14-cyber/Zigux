@@ -1,0 +1,48 @@
+{
+  "lane_key": "P4-L19",
+  "phase": "Phase 4",
+  "surveyed_commit": "3bc5720cd9aa4f85acd6f6b907d716a213b4c421",
+  "anchor": "samples/vfs/test-fsmount.c",
+  "roadmap_destinations": [
+    "samples/zigux/test_fsmount.zig"
+  ],
+  "current_replay": "make M=samples/vfs",
+  "survey_summary": {
+    "test_fsmount_c_lines": 129,
+    "vfs_makefile_replay_present": true,
+    "zig_sample_present": false,
+    "phase4_build_present": true,
+    "phase4_validator_present": true,
+    "phase4_validation_matrix_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase4-test-fsmount-survey-manifest",
+      "status": "starter_landed",
+      "kind": "survey_manifest",
+      "zigux_destination": "zigux/tests/phase4_test_fsmount_manifest.json",
+      "why_now": "The roadmap gap is still sample-side, so the narrowest honest progress is a manifest-backed survey packet that records the current owner, rollback owner, C-anchor replay, and C-anchor-only lab posture without pretending the Zig sample already exists."
+    },
+    {
+      "id": "phase4-test-fsmount-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase4_test_fsmount_survey.zig",
+      "why_now": "A dedicated Phase 4 survey gate keeps the current `test-fsmount` roadmap row measurable inside the shared Phase 4 build instead of leaving the row as prose-only matrix guidance."
+    },
+    {
+      "id": "phase4-test-fsmount-c-anchor-replay",
+      "status": "starter_landed",
+      "kind": "c_anchor_replay",
+      "zigux_destination": "samples/vfs/test-fsmount.c",
+      "why_now": "The live replay still stays on the C anchor through `make M=samples/vfs`, so the survey packet has to keep that exact command explicit while the Zig lab matrix remains C-anchor-only."
+    },
+    {
+      "id": "phase4-test-fsmount-zig-sample",
+      "status": "ready_next",
+      "kind": "sample_port",
+      "zigux_destination": "samples/zigux/test_fsmount.zig",
+      "why_now": "The actual Zig sample is still absent on `master`, so the next bounded step is a starter under `samples/zigux/` that keeps the same owner, rollback owner, and `make M=samples/vfs` replay contract instead of widening into broader VFS behavior."
+    }
+  ]
+}
