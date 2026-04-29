@@ -1,7 +1,7 @@
 {
-  "lane_key": "P10-L01",
+  "lane_key": "P10-L02",
   "phase": "Phase 10",
-  "surveyed_commit": "0b472ee501f0999f82840c7feaa872e6152764f8",
+  "surveyed_commit": "32d3cb93dc1119700c39c8039526fa1797550802",
   "anchor": "drivers/virtio/virtio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -85,6 +85,13 @@
       "why_now": "The live helper already records whether a bound driver exposes config_changed, which mirrors the drv && drv->config_changed branch closely enough for review without pretending probe or remove lifecycle parity."
     },
     {
+      "id": "phase10-driver-remove-bookkeeping-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The live helper now models one bounded virtio_dev_remove() handoff by disabling the core-side config path, clearing queue and handler bookkeeping, and returning the in-memory status word to ACKNOWLEDGE without claiming transport reset, MMIO, or full remove lifecycle parity."
+    },
+    {
       "id": "phase10-config-generation-summary-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
@@ -103,7 +110,7 @@
       "status": "blocked_on_risky_transport",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "Broader virtio.c parity still mixes probe, remove, reset, and transport-backed device lifecycle paths, which remain too wide to claim even after the landed config-generation summary helper because that broader lifecycle still crosses risky transport state."
+      "why_now": "Broader virtio.c parity still mixes probe, full remove, reset, and transport-backed device lifecycle paths, which remain too wide to claim even after the landed remove-side bookkeeping helper because that broader lifecycle still crosses risky transport state."
     }
   ]
 }
