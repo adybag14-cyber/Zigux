@@ -57,7 +57,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
     try std.testing.expectEqualStrings("f65e3d897847bf205198e5c47a41782085620579", manifest.surveyed_commit);
@@ -232,4 +232,22 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[7].guard == .segmentation_checksum_data_offset_crossover);
     try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_contract);
     try std.testing.expect(audit.checkpoints[9].guard == .validate_xmit_list_consumer_reset_contract);
+}
+
+test "phase14 skbuff bridge survey note records the active lane marker" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-validate-xmit-list-reset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
 }
