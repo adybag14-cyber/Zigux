@@ -206,7 +206,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (root / "zigux" / "unsafe" / "narrow.zig").writeText(
+        (root / "zigux" / "unsafe" / "narrow.zig").write_text(
             "pub const UnsafeScopeTag = enum(u8) {\n"
             "    none = 0,\n"
             "    volatile_mmio = 1,\n"
@@ -255,7 +255,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.tests_dir / "phase3_export_uapi_build.zig").writeText(
+        (paths.tests_dir / "phase3_export_uapi_build.zig").write_text(
             'const phase3_export_uapi_step = b.step("phase3-export-uapi-test", "Run Phase 3 export shim and uapi smoke tests");\n',
             encoding="utf-8",
             newline="\n",
@@ -331,7 +331,7 @@ def run_self_test() -> int:
         )
         assert validate_abi_expected_fixture(root, []) is None
 
-        abi_expected_drift = json.loads(abi_expected_fixture.readText(encoding="utf-8"))
+        abi_expected_drift = json.loads(abi_expected_fixture.read_text(encoding="utf-8"))
         del abi_expected_drift["constants"]["panic_abort"]
         abi_expected_fixture.write_text(
             json.dumps(abi_expected_drift),
@@ -343,7 +343,7 @@ def run_self_test() -> int:
         assert abi_expected_issues == [
             "abi:expected_constant=panic_abort:None",
         ]
-        abi_expected_fixture.writeText(
+        abi_expected_fixture.write_text(
             json.dumps({"constants": dict(ABI_REQUIRED_EXPECTED_CONSTANTS)}),
             encoding="utf-8",
             newline="\n",
