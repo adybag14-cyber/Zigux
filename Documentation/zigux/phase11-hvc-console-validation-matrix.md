@@ -5,6 +5,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 ## Status
 
 - `PHASE11_HVC_CONSOLE_STATUS=khvcd_sleep_handoff_landed`
+- reviewed against live `master` `0980ef63e2e9ff3ee3befe56215b6786a215bb3a`
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/tty/hvc/hvc_console.zig`
