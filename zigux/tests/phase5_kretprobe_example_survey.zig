@@ -34,7 +34,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L14", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
@@ -211,6 +211,16 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b951338a1ff5523b5697436d264e3e3aed5bd32d") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 1 tests passed.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 26/26 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-tests 4 pass (4 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "do_sys_openat2") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "199") != null);
