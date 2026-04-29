@@ -68,16 +68,16 @@ The current tests check:
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
-- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that compares the helper against the padded `std.base64.standard` reference path and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets while rechecking round-trip correctness
+- a deterministic 64-byte and 1-kibibyte encode/decode timing harness that reuses the shared `zigux/tests/fixtures/phase6_base64_vectors.zig` payload corpus, compares the helper against the padded `std.base64.standard` reference path and the unpadded `std.base64.url_safe_no_pad` reference path, and rejects regressions beyond the current fixture-backed encode and decode slowdown budgets while rechecking round-trip correctness
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - KUnit integration
-- variant-wide or architecture-specific performance thresholds beyond the current padded standard-path slowdown gate
+- architecture-specific performance thresholds beyond the current padded standard-path and URL-safe no-padding slowdown gates
 - a full generated external fixture corpus beyond the current representative C-vs-Zig spot-check harness
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity or padded-standard perf drift. If Phase 6 base64 reopens, keep the next step narrow: either widen the representative external C-vs-Zig corpus into a generated fixture flow, extend the same slowdown-gate discipline to another clearly justified variant path, or retire the current spot check if a better shared parity substrate replaces it.
+Leave this helper parked unless fresh repo inspection shows a concrete parity or slowdown drift in the current standard or URL-safe packet. If Phase 6 base64 reopens, keep the next step narrow: either widen the representative external C-vs-Zig corpus into a generated fixture flow, extend the same slowdown-gate discipline to another clearly justified variant path, or retire the current spot check if a better shared parity substrate replaces it.
