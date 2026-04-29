@@ -149,12 +149,24 @@ test "phase 7 nextArg matches serialized edge fixtures" {
 test "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus" {
     const cases = [_]GetOptionCase{
         .{ .input = "\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
+        .{ .input = "", .expected_rc = 0, .expected_rest = "" },
+        .{ .input = "=", .expected_rc = 0, .expected_rest = "=" },
+        .{ .input = "\"-", .expected_rc = 0, .expected_rest = "\"-" },
+        .{ .input = ",", .expected_rc = 0, .expected_rest = "," },
         .{ .input = "-,", .expected_rc = 0, .expected_rest = "," },
+        .{ .input = ",-", .expected_rc = 0, .expected_rest = ",-" },
         .{ .input = "-", .expected_rc = 0, .expected_rest = "" },
+        .{ .input = "+,", .expected_rc = 0, .expected_rest = "+," },
         .{ .input = "--", .expected_rc = 0, .expected_rest = "-" },
+        .{ .input = ",,", .expected_rc = 0, .expected_rest = ",," },
+        .{ .input = "''", .expected_rc = 0, .expected_rest = "''" },
+        .{ .input = "\"\",", .expected_rc = 0, .expected_rest = "\"\"," },
+        .{ .input = "\",\"", .expected_rc = 0, .expected_rest = "\",\"" },
         .{ .input = "-\"\"", .expected_rc = 0, .expected_rest = "\"\"" },
+        .{ .input = "\"", .expected_rc = 0, .expected_rest = "\"" },
         .{ .input = "37,", .expected_rc = 2, .expected_rest = "" },
         .{ .input = "37--", .expected_rc = 3, .expected_rest = "--" },
+        .{ .input = "\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
         .{ .input = "-21", .expected_rc = 1, .expected_rest = "" },
     };
 
@@ -163,17 +175,47 @@ test "phase 7 getOption matches malformed-token classification from the Linux KU
     }
 }
 
-test "phase 7 getOption keeps KUnit pointer-advance semantics around leading and trailing integers" {
+test "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus" {
     const cases = [_]GetOptionCase{
+        .{ .input = "37\"\"", .expected_rc = 1, .expected_rest = "\"\"" },
+        .{ .input = "37=", .expected_rc = 1, .expected_rest = "=" },
+        .{ .input = "37\"-", .expected_rc = 1, .expected_rest = "\"-" },
+        .{ .input = "37,", .expected_rc = 2, .expected_rest = "" },
         .{ .input = "37-,", .expected_rc = 3, .expected_rest = "-," },
         .{ .input = "37,-", .expected_rc = 2, .expected_rest = "-" },
+        .{ .input = "37-", .expected_rc = 3, .expected_rest = "-" },
+        .{ .input = "37+,", .expected_rc = 1, .expected_rest = "+," },
         .{ .input = "37--", .expected_rc = 3, .expected_rest = "--" },
         .{ .input = "37,,", .expected_rc = 2, .expected_rest = "," },
+        .{ .input = "37''", .expected_rc = 1, .expected_rest = "''" },
+        .{ .input = "37\"\",", .expected_rc = 1, .expected_rest = "\"\"," },
+        .{ .input = "37\",\"", .expected_rc = 1, .expected_rest = "\",\"" },
         .{ .input = "37\"", .expected_rc = 1, .expected_rest = "\"" },
+        .{ .input = "37-\"\"", .expected_rc = 3, .expected_rest = "-\"\"" },
+    };
+
+    for (cases) |case| {
+        try expectGetOptionCase(case);
+    }
+}
+
+test "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus" {
+    const cases = [_]GetOptionCase{
+        .{ .input = "\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = "=37", .expected_rc = 0, .expected_rest = "=37" },
+        .{ .input = "\"-37", .expected_rc = 0, .expected_rest = "\"-37" },
+        .{ .input = ",37", .expected_rc = 0, .expected_rest = ",37" },
         .{ .input = "-,37", .expected_rc = 0, .expected_rest = ",37" },
-        .{ .input = "--37", .expected_rc = 0, .expected_rest = "-37" },
-        .{ .input = "-\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = ",-37", .expected_rc = 0, .expected_rest = ",-37" },
         .{ .input = "-37", .expected_rc = 1, .expected_rest = "" },
+        .{ .input = "+,37", .expected_rc = 0, .expected_rest = "+,37" },
+        .{ .input = "--37", .expected_rc = 0, .expected_rest = "-37" },
+        .{ .input = ",,37", .expected_rc = 0, .expected_rest = ",,37" },
+        .{ .input = "''37", .expected_rc = 0, .expected_rest = "''37" },
+        .{ .input = "\"\",37", .expected_rc = 0, .expected_rest = "\"\",37" },
+        .{ .input = "\",\"37", .expected_rc = 0, .expected_rest = "\",\"37" },
+        .{ .input = "-\"\"37", .expected_rc = 0, .expected_rest = "\"\"37" },
+        .{ .input = "\"37", .expected_rc = 0, .expected_rest = "\"37" },
         .{ .input = "37", .expected_rc = 1, .expected_rest = "" },
     };
 
