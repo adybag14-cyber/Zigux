@@ -99,6 +99,7 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
+    ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
@@ -193,6 +194,7 @@ required_closure_markers = [
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test',
+    'PHASE2_ARTIFACT_DIFF_CONTRACT=python3 scripts/zigux/check-artifact-diff-contract.py',
     'dep parsing keeps the first source across concatenated target entries',
     'dep parsing unescapes escaped hash and colon tokens once',
     'output writer maps print and flush failures to fixdep output-write errors',
@@ -201,6 +203,7 @@ required_closure_markers = [
 ]
 required_workflow_markers = [
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
@@ -226,6 +229,7 @@ required_ledger_markers = [
 ]
 required_readme_markers = [
     'artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
     'check-kconfig-bridge.py',
@@ -239,6 +243,7 @@ required_readme_markers = [
 ]
 required_doc_markers = [
     'python3 scripts/zigux/artifact_diff.py --self-test',
+    'python3 scripts/zigux/check-artifact-diff-contract.py',
     'genksyms_bridge',
     'genksyms_crc',
     'kconfig_bridge',
@@ -248,6 +253,7 @@ required_doc_markers = [
 required_makefile_markers = [
     'phase2-validate:',
     'artifact_diff.py --self-test',
+    'check-artifact-diff-contract.py',
     'phase2-tools:',
     'phase2-kconfig:',
     'phase2-cross:',
