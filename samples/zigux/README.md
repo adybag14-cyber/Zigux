@@ -28,3 +28,10 @@ Review rules
 - do not treat the later `runtime_*` files in this directory as Phase 5 approved reference idioms
 - keep sample-root notes aligned with `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; keep string-helper evidence under the separate Phase 7 helper bundle
+
+String-work boundary checks
+- verify the current Phase 5 sample-root inventory stays the four roadmap anchors only: `find samples/zigux -maxdepth 1 -type f | sort`
+- verify no Phase 5 string sample has appeared under this sample root: `find samples/zigux -maxdepth 1 -type f | sort | rg 'string'`
+- verify the shared docs still keep string-helper evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*string\\*|Phase 7 helper bundle|helper-only under \`lib/string_helpers.zig\`" Documentation/zigux/README.md Documentation/zigux/review-checklist.md samples/zigux/README.md`
+- verify the four shipped Phase 5 sample packets still pass together: `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
+- verify the shipped string-helper evidence still lives under the separate Phase 7 helper bundle: `python3 scripts/zigux/validate-phase7.py`
