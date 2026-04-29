@@ -47,11 +47,13 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(tests_readme, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(tests_readme, "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`");
+    try expectContains(tests_readme, "cannot import fixtures outside the helper module path");
 
     try expectContains(cmdline_slice, "zigux/tests/phase7_cmdline.zig");
     try expectContains(cmdline_slice, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(cmdline_slice, "zig build test --build-file zigux/tests/phase7_build.zig");
+    try expectContains(cmdline_slice, "helper-local test runs cannot import that fixture from outside the helper module path");
 
     try expectContains(phase7_build, "phase7_cmdline_survey.zig");
     try expectContains(phase7_build, "phase7-cmdline-survey-tests");
