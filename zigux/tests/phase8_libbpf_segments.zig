@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "9bb604c900b9ae13e7291841470e8326639b4f4e";
+const current_surveyed_commit = "ba507b1f2e16af8983c61802e07bcbc95592aef4";
 
 const CompanionFile = struct {
     path: []const u8,
@@ -140,7 +140,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
@@ -362,6 +362,13 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     defer std.testing.allocator.free(bridge_boundary_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
+    try expectContains(survey_note, "Latest verification snapshot");
+    try expectContains(survey_note, "zig test zigux/tests/phase8_libbpf_segments.zig");
+    try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
+    try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
+    try expectContains(survey_note, "python3 scripts/zigux/validate-phase8.py");
+    try expectContains(survey_note, "Build Summary: 20/20 steps succeeded; 63/63 tests passed");
+    try expectContains(survey_note, "PHASE8_VALIDATION=pass");
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
     try expectContains(survey_note, "blocked object-model");
