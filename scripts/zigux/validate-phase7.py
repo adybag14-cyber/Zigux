@@ -96,6 +96,7 @@ required_script_readme_markers = [
     "phase7_rbtree_manifest.json",
     "phase7-rbtree-slice.md",
     "helper-only string and cmdline slices keep their roadmap-backed review notes explicit",
+    "setting those survey runs to `repo_root`",
 ]
 
 required_tests_readme_markers = [
@@ -120,6 +121,7 @@ required_tests_readme_markers = [
     "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
     "`zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone so the helper-only string and cmdline slices keep their roadmap-backed review notes explicit without widening into extra helper-local bootstrap rules or later-phase sample claims",
     "`zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_rbtree_survey.zig` rely on repo-root reads of `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json`",
+    "phase7_build.zig` keeps those survey runs rooted at `repo_root`",
 ]
 
 required_doc_readme_markers = [
@@ -142,12 +144,14 @@ required_doc_readme_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/phase7_rbtree_manifest.json",
     "helper-only string and cmdline slices keep their roadmap and sample-root boundary explicit",
+    "running those survey steps from `repo_root`",
 ]
 
 required_phase7_build_markers = [
     "fn createImportedTestRoot(",
     "fn createStandaloneTestRoot(",
     "fn addTestRun(",
+    'const repo_root = b.path("../..");',
     "../../lib/string_helpers.zig",
     "../../lib/cmdline.zig",
     "../../lib/argv_split.zig",
@@ -227,6 +231,17 @@ expected_phase7_run_labels = {
     "phase7-argv-split-survey-tests",
     "phase7-rbtree-tests",
     "phase7-rbtree-survey-tests",
+}
+
+expected_phase7_run_cwds = {
+    "phase7-string-helpers-tests": "null",
+    "phase7-cmdline-tests": "null",
+    "phase7-cmdline-survey-tests": "repo_root",
+    "phase7-argv-split-tests": "null",
+    "phase7-argv-split-survey-tests": "repo_root",
+    "phase7-string-helpers-survey-tests": "repo_root",
+    "phase7-rbtree-tests": "null",
+    "phase7-rbtree-survey-tests": "repo_root",
 }
 
 unexpected_phase7_build_markers = [
@@ -337,6 +352,26 @@ if missing_run_labels:
     for label in missing_run_labels:
         print(label)
     print("PHASE7_BUILD_RUN_LABEL_DRIFT_END")
+    sys.exit(1)
+
+run_call_pattern = re.compile(
+    r'const\s+\w+\s*=\s*addTestRun\(\s*'
+    r'b,\s*"([^"]+)",\s*\w+,\s*(null|repo_root)\s*,?\s*\)',
+    re.S,
+)
+actual_run_cwds = {label: cwd for label, cwd in run_call_pattern.findall(phase7_build)}
+if actual_run_cwds != expected_phase7_run_cwds:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_CWD_DRIFT_START")
+    for label in sorted(expected_phase7_run_cwds):
+        actual = actual_run_cwds.get(label)
+        expected = expected_phase7_run_cwds[label]
+        if actual != expected:
+            print(f"{label}: expected={expected} actual={actual or 'missing'}")
+    for label in sorted(actual_run_cwds):
+        if label not in expected_phase7_run_cwds:
+            print(f"{label}: unexpected={actual_run_cwds[label]}")
+    print("PHASE7_BUILD_CWD_DRIFT_END")
     sys.exit(1)
 
 unexpected_build_hits = [
