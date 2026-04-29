@@ -235,11 +235,13 @@ test "word helpers keep linux-style mask and sizing boundaries" {
 
     try std.testing.expectEqual(~@as(Word, 0), firstWordMask(0));
     try std.testing.expectEqual((~@as(Word, 0)) << 1, firstWordMask(1));
+    try std.testing.expectEqual((~@as(Word, 0)) << 1, firstWordMask(bits_per_long + 1));
     try std.testing.expectEqual((~@as(Word, 0)) << 5, firstWordMask(bits_per_long + 5));
     try std.testing.expectEqual(~@as(Word, 0), firstWordMask(bits_per_long));
 
     try std.testing.expectEqual(@as(Word, 0), lastWordMask(0));
     try std.testing.expectEqual(@as(Word, 1), lastWordMask(1));
+    try std.testing.expectEqual(@as(Word, 1), lastWordMask(bits_per_long + 1));
     try std.testing.expectEqual((@as(Word, 1) << 5) - 1, lastWordMask(bits_per_long + 5));
     try std.testing.expectEqual(~@as(Word, 0), lastWordMask(bits_per_long));
     try std.testing.expectEqual(~@as(Word, 0), lastWordMask(bits_per_long * 2));
