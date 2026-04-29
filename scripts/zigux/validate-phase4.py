@@ -169,10 +169,12 @@ REQUIRED_SCRIPT_README_MARKERS = [
     'artifact_diff.py --self-test',
     'check-artifact-diff-contract.py',
     'make -C zigux phase4-validate',
+    'make -C zigux phase4-test-fsmount-survey',
     'validate-phase4.py',
     'Phase 4 flow',
     'phase4_build.zig',
     'phase4-validation-matrix.md',
+    'phase4-test-fsmount-survey',
     'phase4-runtime-atomic64-diff-survey-tests',
     'reversible-delivery evidence',
 ]
@@ -186,6 +188,7 @@ REQUIRED_DOC_README_MARKERS = [
     'phase4-validation-matrix.md',
     'Validate Phase 4 diff gates',
     'Run Phase 4 diff tests',
+    'phase4-test-fsmount-survey',
     'phase4-runtime-atomic64-diff-survey-tests',
     'reversible-delivery evidence',
 ]
@@ -210,7 +213,10 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'make -C zigux phase4-test',
     'phase4-runtime-atomic64-diff-tests',
     'phase4-runtime-atomic64-diff-survey-tests',
+    'phase4-test-fsmount-survey-tests',
     'phase4-bitmap-diff-tests',
+    'make -C zigux phase4-test-fsmount-survey',
+    'c_anchor_only_until_test_fsmount_starter_lands',
     'Remaining Measurability Gaps Vs Roadmap',
     'samples/zigux/kprobe_example.zig',
     'samples/zigux/test_fsmount.zig',
@@ -234,6 +240,29 @@ ROADMAP_GAP_EXPECTATIONS = {
         'current_repo_state': '`zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` are still correctness-only gates today',
         'measurability_gap': 'benchmark command and acceptable limit are still unapproved for both landed gates',
         'next_bounded_step': 'land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage',
+    },
+}
+
+PHASE4_SURVEY_MATRIX_EXPECTATIONS = {
+    'zigux/tests/phase4_test_fsmount_survey.zig': {
+        'owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'bootstrap_ci_replay_markers': [
+            'Validate Phase 4 diff gates',
+            'Run Phase 4 diff tests',
+            'phase4-test-fsmount-survey-tests',
+        ],
+        'local_lab_replay_markers': [
+            'make -C zigux phase4-test-fsmount-survey',
+            'zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig',
+            'make M=samples/vfs',
+        ],
+        'reversible_delivery_markers': [
+            '`samples/vfs/test-fsmount.c` stays the source of truth',
+            'C-anchor-only until a bounded `samples/zigux/test_fsmount.zig` starter lands',
+            'returns this roadmap row to matrix-only tracking without overstating a landed Zig sample',
+        ],
+        'threshold_posture': 'c_anchor_only_until_test_fsmount_starter_lands',
     },
 }
 
@@ -444,6 +473,48 @@ def check_roadmap_gap_alignment(phase4_matrix: str, item_name: str, expectation:
     return missing
 
 
+def check_survey_matrix_alignment(
+    phase4_matrix: str,
+    lane_surface: str,
+    expectation: dict[str, object],
+) -> list[str]:
+    row_prefix = f'| `{lane_surface}` |'
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+    if not row:
+        return [f'phase4_matrix:missing_survey_row:{lane_surface}']
+
+    missing = []
+    if expectation['owner'] not in row:
+        missing.append(f"phase4_matrix:survey_owner:{lane_surface}:{expectation['owner']}")
+    if expectation['rollback_owner'] not in row:
+        missing.append(
+            f"phase4_matrix:survey_rollback_owner:{lane_surface}:{expectation['rollback_owner']}"
+        )
+    for marker in expectation['bootstrap_ci_replay_markers']:
+        if marker not in row:
+            missing.append(
+                f'phase4_matrix:survey_bootstrap_ci:{lane_surface}:{marker}'
+            )
+    for marker in expectation['local_lab_replay_markers']:
+        if marker not in row:
+            missing.append(
+                f'phase4_matrix:survey_local_lab:{lane_surface}:{marker}'
+            )
+    for marker in expectation['reversible_delivery_markers']:
+        if marker not in row:
+            missing.append(
+                f'phase4_matrix:survey_reversible_delivery:{lane_surface}:{marker}'
+            )
+    if expectation['threshold_posture'] not in row:
+        missing.append(
+            f"phase4_matrix:survey_threshold_posture:{lane_surface}:{expectation['threshold_posture']}"
+        )
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
@@ -555,6 +626,11 @@ def validate_root(root: Path) -> list[str]:
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
+
+    for lane_surface, expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.items():
+        missing_markers.extend(
+            check_survey_matrix_alignment(phase4_matrix, lane_surface, expectation)
+        )
 
     for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
         missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
@@ -679,6 +755,10 @@ def build_phase4_matrix_fixture() -> str:
                 threshold_posture=expectation['threshold_posture'],
             )
         )
+
+    lines.append(
+        '| `zigux/tests/phase4_test_fsmount_survey.zig` | manifest-backed survey gate for the still-absent `samples/zigux/test_fsmount.zig` roadmap row while the current replay stays on the `samples/vfs/test-fsmount.c` C anchor | `Validation and Perf Team` | `Validation and Perf Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, with the shared `phase4-test-fsmount-survey-tests` entry in `zigux/tests/phase4_build.zig` keeping the survey packet live | `make -C zigux phase4-test-fsmount-survey`, direct `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the current `make M=samples/vfs` C-anchor replay | `samples/vfs/test-fsmount.c` stays the source of truth, the survey packet remains C-anchor-only until a bounded `samples/zigux/test_fsmount.zig` starter lands, and removing `phase4_test_fsmount_survey.zig` from the shared `phase4_build.zig` entrypoint returns this roadmap row to matrix-only tracking without overstating a landed Zig sample | `c_anchor_only_until_test_fsmount_starter_lands` |'
+    )
 
     lines.extend(
         [
@@ -829,6 +909,13 @@ def required_marker_count() -> int:
             + (1 if expectation.get('rollback_evidence_gap') is not None else 0)
             + len(expectation.get('local_replay_markers', []))
             for expectation in PHASE4_GATE_EXPECTATIONS.values()
+        )
+        + sum(
+            len(expectation.get('bootstrap_ci_replay_markers', []))
+            + len(expectation.get('local_lab_replay_markers', []))
+            + len(expectation.get('reversible_delivery_markers', []))
+            + 1
+            for expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.values()
         )
     )
 
