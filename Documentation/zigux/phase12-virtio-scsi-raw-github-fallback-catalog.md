@@ -85,7 +85,7 @@ This catalog records the exact read-only GitHub fallback coverage originally ver
 
 ## Current replay note
 
-- current_master_replay_head: `cf92730c0711f5d0705b5c35aa8dfbf777219bcc`
+- current_master_replay_head: `145972f2b522a36b8074bc114df6d3a9f7675264`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
 - current_shared_validator_result: `PHASE12_VALIDATION=pass`
 - current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
