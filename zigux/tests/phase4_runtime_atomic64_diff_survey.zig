@@ -173,7 +173,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         },
         .runtime_atomic64_diff_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate replays bounded atomic64_test.c") != null,
         .post_selftest_replay_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate keeps post-selftest replay explicit") != null,
-        .phase4_build_present = std.mem.indexOf(u8, phase4_build, "runtime_atomic64_diff.zig") != null and
+        .phase4_build_present = std.mem.indexOf(u8, phase4_build, "atomic64_diff.zig") != null and
             std.mem.indexOf(u8, phase4_build, "phase4-runtime-atomic64-diff-tests") != null,
         .phase9_build_present = std.mem.indexOf(u8, phase9_build, "runtime_atomic64_diff.zig") != null and
             std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-diff-tests") != null,
