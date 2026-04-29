@@ -11,6 +11,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
+  - `zigux/tests/phase7_string_helpers_survey.zig`
   - `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
@@ -25,7 +26,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
-This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` keeps string-helper reviewability in the helper and test bundle under `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`, while the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.
 
 ## Gates
 
@@ -34,6 +35,9 @@ This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Curr
 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
+
+3. keep the helper-only roadmap and sample-root boundary explicit
+- `zigux/tests/phase7_string_helpers_survey.zig`
 
 ## Current parity surface
 
