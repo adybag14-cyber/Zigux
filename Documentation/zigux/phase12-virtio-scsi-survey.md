@@ -54,6 +54,14 @@ The survey manifest now records:
 
 This keeps the lane explicit without overstating progress: Zigux now has a bounded virtio_scsi queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters plus an exact raw fallback evidence packet, but it still does not claim command submission, event completion, TMF flow, SCSI-host registration, PM callback wiring, or DMA-backed virtqueue ownership.
 
+## Rollback And Reversible Delivery
+
+- owner: `Storage Driver Lane`
+- rollback owner: `Storage Driver Lane`
+- fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth, keep the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, probe snapshot, host-limit, queue-depth, and io-queue-map helpers on their current starter footing, keep the raw fallback catalog as the degraded-read path, and drop the Phase 12 virtio_scsi survey packet out of `zigux/tests/phase12_build.zig` if the shared reviewability surface regresses.
+- reversible delivery evidence: this Phase 12 packet stays additive around the bounded `drivers/scsi/virtio_scsi.zig` starter, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, the raw fallback catalog, and this survey note, so the survey gate can be removed without mutating `drivers/scsi/virtio_scsi.c` or claiming command, scan, or DMA-backed transport parity.
+- rollback drill: run `make -C zigux phase12-validate`; if the virtio_scsi survey packet is the only failing slice, repair this note, the raw fallback catalog, or `scripts/zigux/validate-phase12.py` first, otherwise remove the `phase12-virtio-scsi-survey-tests` entry from `zigux/tests/phase12_build.zig`, keep the bounded driver starter, direct test, and fallback catalog intact, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+
 ## Non-goals
 
 This survey slice does not claim:
