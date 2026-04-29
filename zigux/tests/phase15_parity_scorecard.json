@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L11",
+  "lane_key": "P15-L10",
   "phase": "Phase 15",
-  "surveyed_commit": "0baf9b87cf6856f138b85cef7822504272a7b8de",
+  "surveyed_commit": "7095a02f382e919b535b5e5c3fa8985ded58268e",
   "review_process": {
     "decision_record_required": true,
     "required_record_fields": [
@@ -256,6 +256,13 @@
       "why_now": "The scorecard now reserves one per-anchor evidence-archive report with a decision record path, linked evidence, benchmark-notes status, replay command, and latest blocker disposition."
     },
     {
+      "id": "phase15-blocker-disposition-summary-metric",
+      "status": "starter_landed",
+      "kind": "reporting",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The coverage summary now counts anchors with explicit latest blocker dispositions so the maintenance-mode packet can show that every frozen anchor still carries a concrete blocked status instead of relying only on per-anchor prose."
+    },
+    {
       "id": "phase15-decision-record-template-followup",
       "status": "starter_landed",
       "kind": "policy",
@@ -323,10 +330,11 @@
     "freeze_in_c_anchor_count": 4,
     "anchors_with_phase14_survey_evidence": 2,
     "reserved_evidence_archive_templates": 4,
+    "anchors_with_explicit_blocker_dispositions": 4,
     "required_review_process_record_fields": 8,
     "reopen_trigger_catalog_entries": 3,
     "repo_evidence_checks_green": 15,
-    "landed_scorecard_gaps": 17,
+    "landed_scorecard_gaps": 18,
     "blocked_scorecard_gaps": 1,
     "replay_surfaces_available": 3
   }
