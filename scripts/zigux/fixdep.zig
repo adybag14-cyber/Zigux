@@ -168,7 +168,7 @@ const Processor = struct {
     }
 
     fn rememberFileError(self: *Processor, path: []const u8, err: anyerror, kind: DependencyFileFailure) FixdepError {
-        self.last_file_error_path = path;
+        self.last_file_error_path = self.arena.allocator().dupe(u8, path) catch path;
         self.last_file_error = err;
         self.last_file_error_kind = kind;
         return error.ReadDependencyFile;
