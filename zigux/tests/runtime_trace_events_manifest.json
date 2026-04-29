@@ -20,7 +20,7 @@
   },
   "review_prompts": [
     "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit instead of implying a live trace-events loader or ring-buffer parity",
-    "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, payload-summary visibility, and the frozen runtime-substrate boundary",
+    "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit main-thread and function-thread event totals, replay run counters, payload-summary visibility, and the frozen runtime-substrate boundary",
     "the manifest-backed delivery catalog and ownership map still keep the sample, module gate, diff gate, survey gate, shared build entrypoint, survey note, and freeze-map boundary in one reviewable packet",
     "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
     "broader runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring stay blocked until a separate runtime-substrate lane lands a real handoff"
@@ -118,7 +118,12 @@
     {
       "id": "diagnostics-summary-surface",
       "kind": "summary_contract",
-      "expected": "RuntimeTraceEventsSummary keeps lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, payload-presence flags, and the latest bounded main-thread and function-thread payload literals machine-checkable"
+      "expected": "RuntimeTraceEventsSummary keeps lifecycle stage, registration depth, iteration counts, explicit main-thread and function-thread event totals, replay run counters, payload-presence flags, and the latest bounded main-thread and function-thread payload literals machine-checkable"
+    },
+    {
+      "id": "summary-run-counters",
+      "kind": "observability_contract",
+      "expected": "RuntimeTraceEventsSummary keeps init_runs, selftest_runs, and exit_runs machine-checkable across direct replay, selftest, and exit paths so diagnostics can distinguish startup, shipped selftest coverage, and completed teardown"
     },
     {
       "id": "main-thread-payload-surface",
