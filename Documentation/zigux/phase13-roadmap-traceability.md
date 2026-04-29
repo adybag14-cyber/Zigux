@@ -35,6 +35,19 @@ Adjacent Phase 13 reviewability evidence already present on `master`:
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 
+## Lane and validation map
+
+The roadmap asks each active commit series to stay reviewable through an explicit phase, status bucket, and validation gate. For the current Phase 13 shared-helper tranche, those details are already carried by the per-anchor manifests plus the shared release and replay entrypoints:
+
+- `fs/libfs.c`: manifest lane `P13-L04` in `zigux/tests/phase13_libfs_manifest.json`; dedicated gates `zigux/tests/phase13_libfs.zig` and `zigux/tests/phase13_libfs_reviewability.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
+- `lib/devres.c`: manifest lane `P13-L08` in `zigux/tests/phase13_devres_manifest.json`; dedicated gates `zigux/tests/phase13_devres.zig` and `zigux/tests/phase13_devres_reviewability.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
+- `security/landlock/ruleset.c`: manifest lane `P13-L12` in `zigux/tests/phase13_landlock_ruleset_manifest.json`; dedicated gate `zigux/tests/phase13_landlock_ruleset.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
+- `security/landlock/syscalls.c`: manifest lane `P13-L16` in `zigux/tests/phase13_landlock_syscalls_manifest.json`; dedicated gate `zigux/tests/phase13_landlock_syscalls.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
+
+The adjacent notifier-list reviewability packet stays separate from the four roadmap anchors, but its current release-facing ownership is also explicit through manifest lane `P13-L17` in `zigux/tests/phase13_notifier_list_manifest.json`, its dedicated gate `zigux/tests/phase13_notifier_list_reviewability.zig`, and the same shared Phase 13 validator-plus-replay entrypoints.
+
+This traceability note does not add a new rollback-owner record. It only surfaces the lane-key and validation-gate evidence that is already present in the published Phase 13 packet.
+
 ## Anchor-to-repo map
 
 ### `fs/libfs.c`
@@ -148,6 +161,7 @@ What is fully traceable today:
 - the roadmap-to-repo path for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
 - the shared Phase 13 tranche entrypoints through `zigux/tests/phase13_build.zig` and `make -C zigux phase13`
 - the exact shared replay inventory of seven named test or reviewability steps inside `zigux/tests/phase13_build.zig`
+- the per-anchor lane-key owners and dedicated-versus-shared validation gates carried by the four roadmap-anchor manifests
 - the per-anchor manifest `surveyed_commit` anchors for `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls`
 - the current landed versus blocked follow-ups for all four manifest-backed roadmap anchors
 
@@ -164,4 +178,4 @@ What stays intentionally blocked today:
 
 ## Next bounded step
 
-If the Phase 13 traceability lane reopens, the next honest follow-up is to keep this note aligned with the shared release-discipline packet and any future manifest-backed status changes inside the four roadmap anchors, without widening into new helper behavior.
+If the Phase 13 traceability lane reopens, the next honest follow-up is to keep this note aligned with the shared release-discipline packet and any future manifest-backed status, lane-key, or validation-gate changes inside the four roadmap anchors, without widening into new helper behavior.
