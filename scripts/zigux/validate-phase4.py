@@ -92,6 +92,7 @@ REQUIRED_FILES = [
     '.github/workflows/zigux-bootstrap.yml',
     'zigux/tests/runtime_atomic64_diff.zig',
     'zigux/tests/phase4_runtime_atomic64_diff_survey.zig',
+    'zigux/tests/phase4_runtime_atomic64_diff_manifest.json',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
 ]
@@ -182,6 +183,8 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'scripts/zigux/artifact_diff.py --self-test',
     'python3 scripts/zigux/check-artifact-diff-contract.py',
     'deterministic_preflight_required_for_host_side_diff_tools',
+    'roadmap names `zigux/tests/atomic64_diff.zig`',
+    'bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig`',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'bitmap_diff.zig',
@@ -254,6 +257,7 @@ REQUIRED_RUNTIME_ATOMIC64_MARKERS = [
 ]
 
 REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS = [
+    'roadmap_atomic64_diff_present',
     'phase4_validation_matrix_present',
     'phase4_build_present',
     'phase4-runtime-atomic64-diff-gate',
@@ -410,7 +414,11 @@ def validate_root(root: Path) -> list[str]:
     phase4_build = read_text(root, 'zigux/tests/phase4_build.zig')
     runtime_atomic64_diff = read_text(root, 'zigux/tests/runtime_atomic64_diff.zig')
     runtime_atomic64_diff_survey = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig')
+    runtime_atomic64_manifest = read_text(
+        root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json'
+    )
     bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
+    roadmap_atomic64_diff_present = (root / 'zigux/tests/atomic64_diff.zig').exists()
 
     missing_markers: list[str] = []
     missing_markers.extend(collect_missing_markers(makefile, 'make', REQUIRED_MAKE_MARKERS))
@@ -458,6 +466,14 @@ def validate_root(root: Path) -> list[str]:
     missing_markers.extend(
         collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
     )
+    if roadmap_atomic64_diff_present:
+        missing_markers.append(
+            'phase4_atomic64_path:unexpected_parallel_gate:zigux/tests/atomic64_diff.zig'
+        )
+    if '"roadmap_atomic64_diff_present": false' not in runtime_atomic64_manifest:
+        missing_markers.append(
+            'runtime_atomic64_manifest:"roadmap_atomic64_diff_present": false'
+        )
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
@@ -485,6 +501,7 @@ def build_phase4_matrix_fixture() -> str:
         '  - `zigux/tests/phase4_build.zig`',
         '  - `scripts/zigux/validate-phase4.py`',
         '  - `.github/workflows/zigux-bootstrap.yml`',
+        '- roadmap note: the roadmap names `zigux/tests/atomic64_diff.zig`, but live `master` currently carries the bounded atomic64 replay gate at `zigux/tests/runtime_atomic64_diff.zig`; this record follows the shipped tree instead of inventing a second parallel gate',
         '- rollback owner',
         '- lab and CI matrix',
         '- reversible delivery evidence',
@@ -612,7 +629,9 @@ def write_fixture_tree(root: Path) -> None:
         'zigux/Makefile': '\n'.join(REQUIRED_MAKE_MARKERS) + '\n',
         '.github/workflows/zigux-bootstrap.yml': '\n'.join(REQUIRED_WORKFLOW_MARKERS) + '\n',
         'zigux/tests/runtime_atomic64_diff.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_MARKERS) + '\n',
-        'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS) + '\n',
+        'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
+        + '\nroadmap_atomic64_diff_present = false\n',
+        'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": false\n}\n',
         'zigux/tests/bitmap_diff.zig': '\n'.join(REQUIRED_BITMAP_DIFF_MARKERS) + '\n',
         'zigux/tests/phase4_build.zig': '\n'.join(REQUIRED_PHASE4_BUILD_MARKERS) + '\n',
     }
