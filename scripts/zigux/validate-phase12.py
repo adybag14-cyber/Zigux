@@ -187,7 +187,7 @@ MANIFEST_SPECS = {
         ],
     },
     "phase12_libbpf_manifest.json": {
-        "lane_key": "P12-L13",
+        "lane_key": "P12-L16",
         "anchor": "tools/lib/bpf/libbpf.c",
         "gap_count": 17,
         "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
