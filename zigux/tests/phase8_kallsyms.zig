@@ -228,6 +228,87 @@ test "phase 8 kallsyms chunked reader slice preserves callback failures across s
     try std.testing.expectEqual(@as(u8, 'T'), symbols.items[0].symbol_type);
 }
 
+test "phase 8 kallsyms chunked reader slice discards oversized tails once the bounded callback surface is full" {
+    const ChunkFixtureState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+    };
+
+    const ChunkFixture = struct {
+        fn next(state: *ChunkFixtureState) anyerror!?[]const u8 {
+            if (state.index >= state.chunks.len) {
+                return null;
+            }
+
+            const chunk = state.chunks[state.index];
+            state.index += 1;
+            return chunk;
+        }
+    };
+
+    const OwnedParsedSymbol = struct {
+        name: []u8,
+        symbol_type: u8,
+        start: u64,
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            allocator.free(self.name);
+            self.* = undefined;
+        }
+    };
+
+    const Collector = struct {
+        fn append(list: *std.ArrayList(OwnedParsedSymbol), symbol: kallsyms.ParsedSymbol) !void {
+            try list.append(std.testing.allocator, .{
+                .name = try std.testing.allocator.dupe(u8, symbol.name),
+                .symbol_type = symbol.symbol_type,
+                .start = symbol.start,
+            });
+        }
+    };
+
+    const oversized_name = "a" ** (kallsyms.KSYM_NAME_LEN + 400);
+    const oversized_line = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "1 T {s}",
+        .{oversized_name},
+    );
+    defer std.testing.allocator.free(oversized_line);
+
+    const next_line = "ffffffff81000400 t next_symbol\n";
+    const split_index = kallsyms.max_buffered_line_len + 27;
+    var state = ChunkFixtureState{
+        .chunks = &[_][]const u8{
+            oversized_line[0..split_index],
+            oversized_line[split_index..],
+            "\n",
+            next_line,
+        },
+    };
+
+    var symbols = std.ArrayList(OwnedParsedSymbol).empty;
+    defer {
+        for (symbols.items) |*symbol| {
+            symbol.deinit(std.testing.allocator);
+        }
+        symbols.deinit(std.testing.allocator);
+    }
+
+    try kallsyms.forEachParsedChunked(
+        std.testing.allocator,
+        &state,
+        ChunkFixture.next,
+        &symbols,
+        Collector.append,
+    );
+
+    try std.testing.expectEqual(@as(usize, 2), symbols.items.len);
+    try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), symbols.items[0].name.len);
+    try std.testing.expect(std.mem.allEqual(u8, symbols.items[0].name, 'a'));
+    try std.testing.expectEqualStrings("next_symbol", symbols.items[1].name);
+    try std.testing.expectEqual(@as(u8, 't'), symbols.items[1].symbol_type);
+}
+
 test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser contract" {
     const SliceReader = struct {
         bytes: []const u8,
