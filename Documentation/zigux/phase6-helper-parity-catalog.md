@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `1867a399413cc412953d76c097c212056b216556`
+- verified head: `b9fec81cdee7dd9745cec3299cdefa1a3c0cb2de`
 
 ## Scope
 
@@ -81,7 +81,7 @@ The current Phase 6 perf packet is intentionally mixed. Two helpers now carry fi
 
 ### checksum
 
-- `zigux/tests/phase6_checksum_perf.zig` replays two deterministic payloads from `zigux/tests/fixtures/phase6_checksum_vectors.zig`: `64` bytes at `20_000` reps and `1501` bytes at `2_000` reps.
+- `zigux/tests/phase6_checksum_perf.zig` replays two deterministic payloads from `zigux/tests/fixtures/phase6_checksum_vectors.zig`: `64` bytes at `20_000` reps and `1501` bytes at `4_000` reps.
 - the current numeric threshold is `max_slowdown_pct = 150` for both fixture cases, checked against the widened-accumulator `referencePartial` path.
 - the harness also records helper and reference nanoseconds per call, helper and reference nanoseconds per byte, the observed `slowdown_pct`, and the folded checksum result.
 
