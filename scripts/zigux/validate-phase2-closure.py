@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
+FIXDEP_CASES = FIXDEP_DIR / 'cases.json'
 
 
 def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -21,6 +22,13 @@ def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> l
             if rel:
                 discovered.append(cases_path.parent / rel)
     return discovered
+
+
+def count_fixdep_cases(cases_path: Path) -> int:
+    data = json.loads(cases_path.read_text(encoding='utf-8'))
+    if not isinstance(data, list):
+        raise SystemExit('fixdep cases manifest must be a JSON list')
+    return len(data)
 
 
 def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
@@ -86,7 +94,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
     ROOT / 'zigux' / 'Makefile',
-    FIXDEP_DIR / 'cases.json',
+    FIXDEP_CASES,
     FIXDEP_DIR / 'sample_concatenated_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.txt',
     FIXDEP_DIR / 'sample_output_write_expected.stderr.txt',
@@ -124,6 +132,7 @@ artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 tool_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json').read_text(encoding='utf-8'))
 targets_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json').read_text(encoding='utf-8'))
+fixdep_case_count = count_fixdep_cases(FIXDEP_CASES)
 
 required_closure_markers = [
     'PHASE2_STATUS=closed',
@@ -132,7 +141,7 @@ required_closure_markers = [
     'PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py',
     'PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors',
-    'PHASE2_FIXDEP_CASE_COUNT=7',
+    f'PHASE2_FIXDEP_CASE_COUNT={fixdep_case_count}',
     'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
     'PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=24',
