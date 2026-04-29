@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "ba507b1f2e16af8983c61802e07bcbc95592aef4";
+const current_surveyed_commit = "36092f6bfcc18da5630d7b5a535a41d9064bb7e1";
 
 const CompanionFile = struct {
     path: []const u8,
@@ -368,7 +368,7 @@ test "phase 8 docs keep the deferred libbpf boundaries explicit" {
     try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
     try expectContains(survey_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
     try expectContains(survey_note, "python3 scripts/zigux/validate-phase8.py");
-    try expectContains(survey_note, "Build Summary: 20/20 steps succeeded; 68/68 tests passed");
+    try expectContains(survey_note, "Build Summary: 20/20 steps succeeded; 71/71 tests passed");
     try expectContains(survey_note, "PHASE8_VALIDATION=pass");
     try expectContains(survey_note, "deferred resource boundary");
     try expectContains(survey_note, "file-path-and-handle-bridge");
