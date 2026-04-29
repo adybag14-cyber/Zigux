@@ -5,9 +5,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
-- `PHASE5_LANE_KEY=P5-L16`
+- `PHASE5_LANE_KEY=P5-L18`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb`
+- `PHASE5_SURVEYED_COMMIT=bfa0b3ff6ae4e4958aca3d7c436ba8af2b78a832`
 - scope: roadmap-vs-repo sample reviewability, approved non-runtime probe-lifecycle guidance, and exact bounded checks for the landed `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
@@ -63,7 +63,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 
 ## Latest verification snapshot
 
-- inspected `master` head: `b21d2dfb039484b866f247a974369b9619a2afcb`
+- inspected `master` head: `bfa0b3ff6ae4e4958aca3d7c436ba8af2b78a832`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/kretprobe_example.zig`
