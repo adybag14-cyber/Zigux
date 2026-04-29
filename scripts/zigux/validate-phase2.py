@@ -850,6 +850,9 @@ required_makefile_markers = [
     'phase2-validate:',
     'scripts/zigux/artifact_diff.py --self-test',
     'scripts/zigux/check-artifact-diff-contract.py',
+    'phase2-kconfig:',
+    'scripts/zigux/check-kconfig-bridge.py --self-test',
+    'scripts/zigux/check-kconfig-bridge.py',
 ]
 
 missing_markers = []
