@@ -1,6 +1,6 @@
 const std = @import("std");
 const checksum = @import("checksum");
-const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
+const fixtures = @import("phase6_checksum_vectors");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
