@@ -96,6 +96,15 @@ def main() -> int:
         print('UNDECLARED_FIND_BIT_KEYS_END')
         return 1
 
+    unexpected_rbtree = unexpected_prefixed_keys(parsed, expectations, 'PHASE1_BENCH_RBTREE_')
+    if unexpected_rbtree:
+        print('PHASE1_BENCH_CHECK=fail')
+        print('UNDECLARED_RBTREE_KEYS_START')
+        for key in unexpected_rbtree:
+            print(key)
+        print('UNDECLARED_RBTREE_KEYS_END')
+        return 1
+
     missing = []
     for key, value in expectations['iterations'].items():
         actual = parsed.get(key)

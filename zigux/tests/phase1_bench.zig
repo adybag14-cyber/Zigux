@@ -379,9 +379,14 @@ fn listSortBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn rbtreeBench() struct { checksum: u64 } {
+fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64 } {
     const RbEntry = struct {
         key: i32,
+        node: rbtree.Node = rbtree.Node.init(),
+    };
+    const RbDuplicateEntry = struct {
+        key: i32,
+        serial: usize,
         node: rbtree.Node = rbtree.Node.init(),
     };
 
@@ -392,8 +397,25 @@ fn rbtreeBench() struct { checksum: u64 } {
             return lhs_entry.key < rhs_entry.key;
         }
     }.compare;
+    const duplicateLess = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const RbDuplicateEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const RbDuplicateEntry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const rbtree.Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const RbDuplicateEntry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
 
     var checksum: u64 = 0;
+    var duplicate_checksum: u64 = 0;
     var iter: usize = 0;
     while (iter < iterations_rbtree) : (iter += 1) {
         var entries = [_]RbEntry{
@@ -426,9 +448,63 @@ fn rbtreeBench() struct { checksum: u64 } {
             const entry: *const RbEntry = @fieldParentPtr("node", node);
             checksum +%= @intCast(entry.key + 17);
         }
+
+        var duplicate_entries = [_]RbDuplicateEntry{
+            .{ .key = 10, .serial = 0 },
+            .{ .key = 5, .serial = 1 },
+            .{ .key = 10, .serial = 2 },
+            .{ .key = 20, .serial = 3 },
+            .{ .key = 10, .serial = 4 },
+            .{ .key = 15, .serial = 5 },
+        };
+        var duplicate_root = rbtree.Root.init();
+        for (&duplicate_entries) |*entry| {
+            rbtree.add(&entry.node, &duplicate_root, duplicateLess);
+        }
+
+        const wanted = @as(i32, 10);
+        var forward_matches = rbtree.iterateMatches(&wanted, &duplicate_root, cmpKey);
+        while (forward_matches.next()) |node| {
+            const entry: *const RbDuplicateEntry = @fieldParentPtr("node", node);
+            duplicate_checksum +%= entry.serial + 41;
+        }
+        var reverse_matches = rbtree.iterateMatchesReverse(&wanted, &duplicate_root, cmpKey);
+        while (reverse_matches.next()) |node| {
+            const entry: *const RbDuplicateEntry = @fieldParentPtr("node", node);
+            duplicate_checksum +%= entry.serial + 53;
+        }
+        duplicate_checksum +%= @intFromBool(rbtree.find(&wanted, &duplicate_root, cmpKey) != null);
+        duplicate_checksum +%= @intFromBool(rbtree.findFirst(&wanted, &duplicate_root, cmpKey) != null);
+        duplicate_checksum +%= @intFromBool(rbtree.findLast(&wanted, &duplicate_root, cmpKey) != null);
+
+        var cached_entries = [_]RbDuplicateEntry{
+            .{ .key = 5, .serial = 0 },
+            .{ .key = 10, .serial = 1 },
+            .{ .key = 5, .serial = 2 },
+            .{ .key = 15, .serial = 3 },
+        };
+        var cached_replacement = RbDuplicateEntry{ .key = 12, .serial = 4 };
+        var cached_root = rbtree.RootCached.init();
+        for (&cached_entries) |*entry| {
+            _ = rbtree.addCached(&entry.node, &cached_root, duplicateLess);
+            const leftmost_entry: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+            duplicate_checksum +%= @intCast(leftmost_entry.key + @as(i32, @intCast(leftmost_entry.serial)));
+        }
+
+        rbtree.eraseCached(&cached_entries[0].node, &cached_root);
+        const after_first_erase: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        duplicate_checksum +%= @intCast(after_first_erase.key + @as(i32, @intCast(after_first_erase.serial)));
+
+        rbtree.eraseCached(&cached_entries[2].node, &cached_root);
+        const after_second_erase: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        duplicate_checksum +%= @intCast(after_second_erase.key + @as(i32, @intCast(after_second_erase.serial)));
+
+        rbtree.replaceNodeCached(&cached_entries[3].node, &cached_replacement.node, &cached_root);
+        const after_replace: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        duplicate_checksum +%= @intCast(after_replace.key + @as(i32, @intCast(after_replace.serial)));
     }
 
-    return .{ .checksum = checksum };
+    return .{ .checksum = checksum, .duplicate_checksum = duplicate_checksum };
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -462,6 +538,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(hweight_result.checksum != 0);
     std.debug.assert(list_sort_result.checksum != 0);
     std.debug.assert(rbtree_result.checksum != 0);
+    std.debug.assert(rbtree_result.duplicate_checksum != 0);
 
     try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\n", .{iterations_bitmap});
@@ -490,5 +567,6 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_LIST_SORT_CHECKSUM={d}\n", .{list_sort_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_ITERATIONS={d}\n", .{iterations_rbtree});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CHECKSUM={d}\n", .{rbtree_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM={d}\n", .{rbtree_result.duplicate_checksum});
     try stdout_writer.interface.flush();
 }
