@@ -488,6 +488,8 @@ required_find_bit_test_markers = [
 ]
 required_find_bit_helper_markers = [
     'test "find next zero bit skips earlier matches in the same word"',
+    'test "find next bit skips earlier matches in the same word"',
+    'test "find next and bit skips earlier shared matches in the same word"',
     'test "empty and boundary scans return nbits"',
 ]
 required_find_bit_fixture_markers = [
@@ -523,10 +525,20 @@ required_find_bit_manifest_markers = [
     '"find_bit.tail_and_mixed_first"',
     '"find_bit.tail_and_mixed_next"',
     'mixed-tail case where one shared bit remains in range while another lives past nbits.',
+    '"set_unit_test_anchor": "tools/lib/find_bit.zig:test \\\"find next bit skips earlier matches in the same word\\\""',
+    '"set_unit_test_contract": "Direct Zig unit coverage keeps same-word set-scan start masking aligned so inclusive starts can return the current set bit, later starts skip earlier same-word matches, and tail scans still clamp to nbits."',
+    '"and_unit_test_anchor": "tools/lib/find_bit.zig:test \\\"find next and bit skips earlier shared matches in the same word\\\""',
+    '"and_unit_test_contract": "Direct Zig unit coverage keeps same-word shared-bit start masking aligned so inclusive starts can return the current shared bit, later starts skip earlier same-word overlaps, and tail-clamped AND scans still stop at nbits."',
     '"boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \\\"empty and boundary scans return nbits\\\""',
     '"boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range."',
 ]
 required_find_bit_closure_markers = [
+    'tools/lib/find_bit.zig` direct Zig unit coverage also keeps same-word set-scan start masking aligned so inclusive starts can return the current set bit, later starts skip earlier same-word matches, and tail scans still clamp to `nbits`.',
+    'tools/lib/find_bit.zig` direct Zig unit coverage also keeps same-word shared-bit start masking aligned so inclusive starts can return the current shared bit, later starts skip earlier same-word overlaps, and tail-clamped AND scans still stop at `nbits`.',
+    'find_bit set unit-test anchor: `tools/lib/find_bit.zig:test "find next bit skips earlier matches in the same word"`',
+    'find_bit and unit-test anchor: `tools/lib/find_bit.zig:test "find next and bit skips earlier shared matches in the same word"`',
+    'PHASE1_FIND_BIT_SET_UNIT_REVIEW=find_bit same-word set-scan start masking keeps inclusive starts honest, skips earlier same-word set matches after the search advances, and still clamps tail results to nbits',
+    'PHASE1_FIND_BIT_AND_UNIT_REVIEW=find_bit same-word shared-bit start masking keeps inclusive starts honest, skips earlier same-word overlaps after the search advances, and still clamps tail AND results to nbits',
     'tools/lib/find_bit.zig` direct Zig unit coverage also keeps empty and out-of-range scan boundaries aligned by returning `nbits` for zero-length bitmaps, start-at-`nbits` searches, and fully set zero-bit windows that must not report past the declared range.',
     'find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`',
     'PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range',
