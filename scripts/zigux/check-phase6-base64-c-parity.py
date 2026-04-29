@@ -11,6 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"
+CASE_GENERATOR = ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig"
+GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig"
 
 
@@ -41,6 +43,8 @@ def main() -> int:
 
     if not C_HARNESS.exists():
         raise SystemExit(f"missing harness: {C_HARNESS}")
+    if not CASE_GENERATOR.exists():
+        raise SystemExit(f"missing case generator: {CASE_GENERATOR}")
     if not ZIG_RUNNER.exists():
         raise SystemExit(f"missing runner: {ZIG_RUNNER}")
 
@@ -48,6 +52,9 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     c_bin = out_dir / "phase6_base64_c_harness"
     zig_build = out_dir / "build.zig"
+
+    generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout
+    GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")
 
     zig_build.write_text(
         textwrap.dedent(
