@@ -1,13 +1,13 @@
 {
   "lane_key": "P5-L19",
   "phase": "Phase 5",
-  "surveyed_commit": "f3a3c2c1ae5f3b97f47073a108fcb39b38f30644",
+  "surveyed_commit": "5aac89e74d2a7adf3000c2fa24ee8554e859f7e9",
   "anchor": "samples/trace_events/trace-events-sample.c",
   "sample_path": "samples/zigux/trace_events_sample.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest keeps surveyed_commit pinned to the exact inspected master head instead of a floating branch label so reviewability stays tied to one bounded repo state",
+    "the manifest keeps surveyed_commit pinned to the exact inspected master head and the sample-backed survey note carries the same PHASE5_SURVEYED_COMMIT marker instead of a floating branch label so reviewability stays tied to one bounded repo state",
     "the sample-backed survey note, Documentation/zigux/README.md, and Documentation/zigux/review-checklist.md still describe the same bounded trace-events replay contract and keep this Phase 5 sample separate from the Phase 9 runtime pilot",
     "the manifest and survey test still describe the exact main-iteration, callback-iteration, vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the public lifecycle summary still exposes stage plus init or replay or exit counts, registration depth, and total event calls so ownership progression stays reviewable without private field access",
