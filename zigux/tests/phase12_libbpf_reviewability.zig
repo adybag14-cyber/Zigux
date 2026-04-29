@@ -184,6 +184,8 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     var error_buffer: [64]u8 = undefined;
 
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(parsed.values));
+    try std.testing.expectEqual(@as(usize, 3), cpu_mask.derivePerfBufferAutoCpuCount(6, 3));
+    try std.testing.expectEqual(@as(usize, 6), cpu_mask.derivePerfBufferAutoCpuCount(6, 0));
     try std.testing.expectEqualStrings("xdp", bpf_type_names.libbpfBpfAttachTypeStr(37).?);
     try std.testing.expectEqualStrings("ringbuf", bpf_type_names.libbpfBpfMapTypeStr(27).?);
     try std.testing.expectEqual(@as(u32, 2), fdinfo_map_info.map_type);
