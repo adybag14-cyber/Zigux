@@ -76,6 +76,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `Documentation/zigux/review-checklist.md` now carries a dedicated prompt for the shared Phase 14 smoke packet so later edits have to keep the four anchor-local manifests, survey notes, and shared replay contract aligned.
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted shared-lane marker plus per-anchor surveyed commits as machine-checked evidence, so future shared or anchor-manifest refreshes cannot silently leave the shared smoke note behind.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` now also records which compile artifacts are `full_bundle_only` versus `focused_and_full_bundle`, so later build-file churn cannot silently overstate the number of dedicated Phase 14 shards.
+- the shared smoke manifest, note, checklist, and `scripts/zigux/README.md` now also carry one explicit rollback threshold, fallback path, and automatic return-to-blocked trigger catalog, so the packet fails closed if its stay-in-C review contract drifts.
 
 ## Productization evidence
 
@@ -83,12 +84,23 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - status bucket: `study_only`
 - validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all && make -C zigux phase14`
 - rollback owner: `Repo Tooling Pod`
-- ZAR-to-product transfer rationale: absorb ZAR runtime research as product discipline only by keeping exported evidence packets, machine-checked surveyed commits, and explicit blocker posture, without importing ZAR runtime-core behavior into Zigux.
 - roadmap risk bundle:
   - `hidden runtime behavior`
   - `memory-ordering mistakes`
   - `overpromising full parity`
   - `deep-core scope creep`
+- ZAR-to-product transfer rationale: absorb ZAR runtime research as product discipline only by keeping exported evidence packets, machine-checked surveyed commits, and explicit blocker posture, without importing ZAR runtime-core behavior into Zigux.
+- rollback threshold: keep the shared smoke packet in `study_only` posture and return it to blocked shared-packet maintenance if the validation gate, rollback owner, stay-in-C boundary, fallback path, or quoted anchor posture stops being explicit.
+- fallback path: Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth, keep the shared smoke packet limited to validator-backed survey evidence, and fall back to blocked shared-packet maintenance if the rollback contract stops being explicit.
+- required evidence:
+  - named owner, validation gate, and rollback owner recorded together in the shared smoke manifest and survey note
+  - shared smoke validator, focused `phase14-smoke` shard, and full `phase14` replay commands recorded together beside the same stay-in-C boundary
+  - anchor packet surveyed commits plus ready-next versus blocked posture refreshed in the shared smoke packet whenever any Phase 14 anchor-local manifest moves
+- automatic return-to-blocked triggers:
+  - any shared smoke packet edit that drops the named validation gate or rollback owner
+  - missing fallback path or study-only stay-in-C wording in the shared manifest, survey note, review checklist, or `scripts/zigux/README.md`
+  - any anchor-local manifest refresh that changes a quoted surveyed commit or lane key without refreshing the shared smoke packet
+  - loss of the focused `phase14-smoke` replay contract or the validator-backed `make -C zigux phase14-validate` entrypoint from the shared packet
 
 ## Non-goals
 
