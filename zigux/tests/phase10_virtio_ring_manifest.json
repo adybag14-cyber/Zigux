@@ -138,17 +138,24 @@
     },
     {
       "id": "phase10-mmio-config-window-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "With queue-address planning now landed, the next honest bounded MMIO follow-up was a tiny config-window snapshot helper, and the live helper now records read-only config-window snapshots against the current config-generation without claiming config writes, queue setup, IRQ delivery, or lifecycle glue."
+    },
+    {
+      "id": "phase10-mmio-config-write-helper",
       "status": "ready_next",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "After the landed queue-address planning helper, the next honest cross-lane MMIO follow-up is the tiny config-window helper rather than more speculative ring work, queue setup, IRQ delivery, or lifecycle glue."
+      "why_now": "After bounded config-window snapshots landed, the next small MMIO follow-up is a write-planning helper for a tiny config field window rather than full config-space parity, queue setup, IRQ delivery, probe, or remove lifecycle work."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Broader `virtio_mmio.c` parity still mixes interrupt acknowledgement, queue setup, reset, and probe or remove lifecycle paths, which remain too transport-facing to claim before the bounded queue-address and config-window helpers are reviewed."
+      "why_now": "Broader `virtio_mmio.c` parity still mixes interrupt acknowledgement, queue setup, reset, and probe or remove lifecycle paths, which remain too transport-facing to claim before the bounded queue-address, config-window, and config-write helpers are reviewed."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
