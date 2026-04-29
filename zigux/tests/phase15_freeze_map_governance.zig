@@ -245,8 +245,8 @@ test "phase 15 freeze-map governance note and checklist record the current block
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no Architecture Council decision record currently claims a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "narrower freeze-map governance packet is runnable") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "README.md` still lacks the dedicated `Phase 15 notes` block expected by the neighboring review-process packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-neighboring-maintenance-drift`: `docs_root_missing_phase15_notes_block`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "README.md` now exposes the dedicated `Phase 15 notes` block expected by the neighboring review-process packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-neighboring-maintenance-drift`: `none_on_current_master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "phase15-shared-bundle-green-claim`: `out_of_scope_for_this_freeze_map_packet`") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "dedicated freeze-map governance-packet drift gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned") != null);
