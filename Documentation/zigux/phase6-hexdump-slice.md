@@ -62,7 +62,7 @@ The current tests check:
 - serialized fixture vectors derived from `lib/test_hexdump.c`
 - serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`
 - kernel-style one-line hex and ASCII formatting
-- native-endian grouped output for 2, 4, and 8 byte cases
+- native-endian grouped output for 2, 4, and 8 byte cases, including the previously missing 4-byte review gate
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
