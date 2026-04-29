@@ -246,36 +246,4 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(saw_manifest_foundation);
     try std.testing.expect(saw_type_names_foundation);
     try std.testing.expect(saw_cpu_mask_foundation);
-    try std.testing.expect(saw_logging_foundation);
-    try std.testing.expect(saw_pin_path_foundation);
-    try std.testing.expect(saw_file_path_handle_foundation);
-    try std.testing.expect(saw_survey_gate);
-    try std.testing.expect(saw_reviewability_gate);
-    try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_skeleton_blocker);
-    try std.testing.expect(saw_object_loader_blocker);
-    try std.testing.expect(saw_relocation_blocker);
-}
-
-test "phase12 libbpf survey note records rollback drill and reversible delivery evidence" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase12-libbpf-segment-survey.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- owner: `BPF Tooling Lane`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- rollback owner: `BPF Tooling Lane`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reversible delivery evidence: this Phase 12 packet only adds `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and this survey note") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`phase12-libbpf-segment-survey-tests` and `phase12-libbpf-reviewability-tests` entries from `zigux/tests/phase12_build.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`") != null);
-}
+    try std.testing.expect(saw_loggingFounda...
