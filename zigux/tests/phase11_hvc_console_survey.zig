@@ -1,6 +1,4 @@
 const std = @import("std");
-const layout_assert = @import("layout_assert");
-
 const SurveySummary = struct {
     hvc_console_c_lines: usize,
     preexisting_phase11_build_present: bool,
@@ -246,11 +244,11 @@ test "phase11 hvc console survey records the current shared-build boundary exact
 
 test "phase11 hvc console survey keeps a bounded winsize layout proof" {
     comptime {
-        layout_assert.assertSize(WinsizeLayout, 8);
-        layout_assert.assertAlign(WinsizeLayout, 2);
-        layout_assert.assertOffset(WinsizeLayout, "ws_row", 0);
-        layout_assert.assertOffset(WinsizeLayout, "ws_col", 2);
-        layout_assert.assertOffset(WinsizeLayout, "ws_xpixel", 4);
-        layout_assert.assertOffset(WinsizeLayout, "ws_ypixel", 6);
+        if (@sizeOf(WinsizeLayout) != 8) @compileError("WinsizeLayout size drifted");
+        if (@alignOf(WinsizeLayout) != 2) @compileError("WinsizeLayout alignment drifted");
+        if (@offsetOf(WinsizeLayout, "ws_row") != 0) @compileError("WinsizeLayout.ws_row offset drifted");
+        if (@offsetOf(WinsizeLayout, "ws_col") != 2) @compileError("WinsizeLayout.ws_col offset drifted");
+        if (@offsetOf(WinsizeLayout, "ws_xpixel") != 4) @compileError("WinsizeLayout.ws_xpixel offset drifted");
+        if (@offsetOf(WinsizeLayout, "ws_ypixel") != 6) @compileError("WinsizeLayout.ws_ypixel offset drifted");
     }
 }
