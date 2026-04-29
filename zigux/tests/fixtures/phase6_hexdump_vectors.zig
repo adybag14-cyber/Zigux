@@ -199,6 +199,30 @@ pub const parity_cases = [_]ParityCase{
         },
     },
     .{
+        .name = "plain rowsize-16 group-4",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = false,
+        .expected_length = 35,
+        .expected_text = .{
+            .little = "7bdb32be b293180a 24c4ba70 9b34837d",
+            .big = "be32db7b 0a1893b2 70bac424 7d83349b",
+        },
+    },
+    .{
+        .name = "ascii rowsize-16 group-4",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = true,
+        .expected_length = 53,
+        .expected_text = .{
+            .little = "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
+            .big = "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4.",
+        },
+    },
+    .{
         .name = "ascii rowsize-32 group-2",
         .len = 32,
         .rowsize = 32,
@@ -312,6 +336,22 @@ pub const length_cases = [_]LengthCase{
         .groupsize = 1,
         .ascii = true,
         .expected_length = 65,
+    },
+    .{
+        .name = "plain rowsize-16 group-4 line length",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = false,
+        .expected_length = 35,
+    },
+    .{
+        .name = "ascii rowsize-16 group-4 line length",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 4,
+        .ascii = true,
+        .expected_length = 53,
     },
     .{
         .name = "ascii rowsize-32 group-1 line length",
