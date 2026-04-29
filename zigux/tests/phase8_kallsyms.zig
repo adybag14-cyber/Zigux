@@ -1,11 +1,27 @@
 const std = @import("std");
 const kallsyms = @import("kallsyms");
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        allocator,
+        .limited(limit),
+    );
+}
+
 test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
 
-test "phase 8 kallsyms starter slice covers symbol helpers and injected record parsing" {
+test "phase 8 kallsyms parked parser packet covers symbol helpers and injected record parsing" {
     try std.testing.expectEqual(kallsyms.elf_stb_weak, kallsyms.kallsyms2ElfBinding('W'));
     try std.testing.expectEqual(kallsyms.elf_stb_global, kallsyms.kallsyms2ElfBinding('T'));
     try std.testing.expectEqual(kallsyms.elf_stb_local, kallsyms.kallsyms2ElfBinding('t'));
@@ -586,4 +602,59 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" 
     try std.testing.expect(std.mem.allEqual(u8, oversized_state.names.items[0], 'b'));
     try std.testing.expectEqual(@as(u8, 'T'), oversized_state.symbol_types.items[0]);
     try std.testing.expectEqual(@as(u64, 1), oversized_state.starts.items[0]);
+}
+
+test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
+    const slice_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-kallsyms-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "PHASE8_STATUS=parked");
+    try expectContains(slice_note, "PHASE8_SLICE=kallsyms-parse-wrapper-starter");
+    try expectContains(slice_note, "tools/lib/symbol/kallsyms.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_kallsyms.zig");
+    try expectContains(slice_note, "chunked overlong-line handling");
+    try expectContains(slice_note, "stops buffering after the bounded callback surface is full");
+    try expectContains(slice_note, "kallsymsParse()");
+    try expectContains(slice_note, "kallsymsParseInDir()");
+    try expectContains(slice_note, "does not yet claim:");
+    try expectContains(slice_note, "api/io.h");
+}
+
+test "phase 8 kallsyms review checklist keeps the parked parser packet reviewable" {
+    const review_checklist = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    try expectContains(review_checklist, "parked Phase 8 `kallsyms` parser packet");
+    try expectContains(review_checklist, "Documentation/zigux/phase8-kallsyms-slice.md");
+    try expectContains(review_checklist, "zigux/tests/phase8_kallsyms.zig");
+    try expectContains(review_checklist, "chunked discard-after-boundary handling");
+    try expectContains(review_checklist, "`kallsyms__parse()`");
+    try expectContains(review_checklist, "`api/io.h`");
+}
+
+test "phase 8 kallsyms evidence still matches the live C helper anchors" {
+    const kallsyms_c = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/symbol/kallsyms.c",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(kallsyms_c);
+
+    try expectContains(kallsyms_c, "u8 kallsyms2elf_type(char type)");
+    try expectContains(kallsyms_c, "bool kallsyms__is_function(char symbol_type)");
+    try expectContains(kallsyms_c, "static void read_to_eol(struct io *io)");
+    try expectContains(kallsyms_c, "int kallsyms__parse(const char *filename, void *arg,");
+    try expectContains(kallsyms_c, "io.fd = open(filename, O_RDONLY, 0);");
+    try expectContains(kallsyms_c, "if (io__get_hex(&io, &start) != ' ')");
+    try expectContains(kallsyms_c, "char symbol_name[KSYM_NAME_LEN + 1];");
+    try expectContains(kallsyms_c, "err = process_symbol(arg, symbol_name, symbol_type, start);");
+    try expectContains(kallsyms_c, "close(io.fd);");
 }
