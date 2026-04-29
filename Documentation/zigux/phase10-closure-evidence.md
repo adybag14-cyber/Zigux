@@ -46,7 +46,7 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_DOC_COUNT=9`
 - `PHASE10_MANIFEST_COUNT=4`
 - `PHASE10_DRIVER_COUNT=4`
-- `PHASE10_TEST_COUNT=8`
+- `PHASE10_TEST_COUNT=9`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
 ## Roadmap Parity Scoreboard
