@@ -25,6 +25,8 @@
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "zigux/tests/fixtures/phase3_abi/expected.json",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/phase3_catalog.py",
@@ -32,5 +34,5 @@
     "Documentation/zigux/phase3-abi-slice.md",
     "zigux/tests/build.zig"
   ],
-  "file_count": 28
+  "file_count": 30
 }
