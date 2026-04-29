@@ -238,6 +238,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "preview truncation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "initial string copy count is `5`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kfifo_in()` and `kfifo_out()` transfer sizes stay reviewable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "capacity ceiling") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "outside the main replay path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
