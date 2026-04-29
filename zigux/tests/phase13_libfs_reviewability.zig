@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "ba763c301c69054c422b8945903eb6dd9226c35c";
+const expected_surveyed_commit = "ff87456109937e1ffbe7f2a91a79c2661874ef88";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -38,7 +38,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed cursor-precondition slice and remaining reposition gap" {
+test "phase13 libfs manifest records the landed cursor reposition slice and the next close-bookkeeping gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -75,7 +75,7 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
@@ -108,6 +108,7 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
     var saw_transaction_followup = false;
     var saw_cursor_preconditions = false;
     var saw_cursor_reposition = false;
+    var saw_close_release = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -199,11 +200,18 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-reposition-bookkeeping")) {
             saw_cursor_reposition = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_del_init") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_add_before") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_add_behind") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-dir-close-release-bookkeeping")) {
+            saw_close_release = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_close") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dput(file->private_data)") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -211,7 +219,7 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -227,4 +235,5 @@ test "phase13 libfs manifest records the landed cursor-precondition slice and re
     try std.testing.expect(saw_transaction_followup);
     try std.testing.expect(saw_cursor_preconditions);
     try std.testing.expect(saw_cursor_reposition);
+    try std.testing.expect(saw_close_release);
 }
