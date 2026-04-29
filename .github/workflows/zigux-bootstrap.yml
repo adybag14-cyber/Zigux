@@ -134,6 +134,9 @@ jobs:
       - name: Check bounded genksyms CRC artifact parity and determinism
         run: python3 scripts/zigux/check-genksyms-crc-diff.py
 
+      - name: Self-test bounded kconfig bridge checker
+        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
+
       - name: Check bounded kconfig bridge parity
         run: python3 scripts/zigux/check-kconfig-bridge.py
 
