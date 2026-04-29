@@ -158,3 +158,15 @@ Phase 13 notes
 - `zigux/tests/phase13_build.zig`, `make -C zigux phase13`, `Documentation/zigux/phase13-roadmap-traceability.md`, and `Documentation/zigux/phase13-release-notes-survey.md` now expose the same shared tranche entrypoints and release-facing readout, so this docs index stays aligned with the validator-first replay path already used elsewhere in the Phase 13 packet.
 - all four roadmap anchors now carry manifest-backed survey packets, while the adjacent notifier-list reviewability packet stays explicit as supporting shared-helper evidence rather than a fifth roadmap anchor.
 - the same top-level Phase 13 packet still keeps the helper-only `devres` boundary honest: live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state remain intentionally blocked even though `lib/devres.c` is now manifest-backed.
+
+Phase 15 notes
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/phase15-evidence-archives/`
+- the active Phase 15 governance packet now keeps the freeze map, the Architecture Council review-process note, the parity scorecard, the indefinite-C policy note, the readiness-gate survey, the parked-next-step synthesis, and the reserved evidence-archive templates visible from the top-level docs index instead of leaving the maintenance-mode handoff discoverable only through deeper Phase 15 notes and tests.
+- `zigux/tests/phase15_build.zig`, `make -C zigux phase15`, and the shared bootstrap workflow still replay the current governance bundle, so this docs index keeps the published Phase 15 reviewability path aligned with the same local and shared gates that the handoff packet names.
+- the same top-level Phase 15 packet keeps the named reopen triggers, the current deep-core blocker posture, and the maintenance mode handoff explicit, so future maintenance work does not overstate the still-blocked status-change path for `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`.
