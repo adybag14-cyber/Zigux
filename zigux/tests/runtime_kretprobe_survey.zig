@@ -51,6 +51,8 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";
+
 fn readWorkspaceFile(
     io: anytype,
     allocator: std.mem.Allocator,
@@ -92,7 +94,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
-    try std.testing.expectEqualStrings("c0b38bcdba34a6e0deef3da406fe54d170d63b94", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -325,6 +327,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     defer std.testing.allocator.free(module_doc);
 
     const required_survey_markers = [_][]const u8{
+        "surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
         "manifest-backed delivery catalog and ownership map",
         "Delivery ownership map",
         "phase9-runtime-kretprobe-module-tests",
@@ -341,6 +344,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     }
 
     const required_module_markers = [_][]const u8{
+        "surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
         "phase9-runtime-kretprobe-module-tests",
         "phase9-runtime-kretprobe-diff-tests",
         "phase9-runtime-kretprobe-loader-tests",
@@ -352,4 +356,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     for (required_module_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_doc, marker) != null);
     }
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);
 }
