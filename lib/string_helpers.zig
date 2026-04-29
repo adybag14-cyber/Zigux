@@ -344,7 +344,7 @@ pub fn stringEscapeMemAnyNp(src: []const u8, dst: []u8, only: ?[]const u8) usize
 }
 
 pub fn stringEscapeStr(src: []const u8, dst: []u8, size: usize, flags: u32, only: ?[]const u8) usize {
-    const limit = if (size == 0) dst.len else @min(size, dst.len);
+    const limit = @min(size, dst.len);
     return stringEscapeMem(cStringPrefix(src), dst[0..limit], flags, only);
 }
 
@@ -696,4 +696,35 @@ test "escape flag masks stay aligned with the Linux public helper surface" {
         ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NULL | ESCAPE_OCTAL | ESCAPE_NP | ESCAPE_HEX | ESCAPE_NA | ESCAPE_NAP | ESCAPE_APPEND,
         ESCAPE_ALL_MASK,
     );
+}
+
+test "stringEscapeStr treats size zero as a zero-length destination" {
+    var buffer = [_]u8{ '!', '!', '!', '!' };
+
+    try std.testing.expectEqual(
+        @as(usize, 6),
+        stringEscapeStr("a\n", &buffer, 0, ESCAPE_ANY, null),
+    );
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '!', '!', '!', '!' }, &buffer);
+}
+
+test "stringEscapeStr honors the explicit size cap while keeping C-string escape semantics" {
+    var truncated = [_]u8{ '?', '?', '?', '?' };
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        stringEscapeStr("\n\"a", &truncated, 4, ESCAPE_ANY, null),
+    );
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        '\\',
+        'n',
+        '\\',
+        '"',
+    }, &truncated);
+
+    var full = [_]u8{0} ** 8;
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        stringEscapeStr("\n\"a", &full, full.len, ESCAPE_ANY, null),
+    );
+    try std.testing.expectEqualSlices(u8, "\\n\\\"\\141", full[0..8]);
 }
