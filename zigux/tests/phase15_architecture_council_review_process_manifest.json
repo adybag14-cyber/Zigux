@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L07",
+  "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "3156353bb605fae0337e56968fb00e9977c898f8",
+  "surveyed_commit": "2b58a5636c7fcf3776e5960b52d1916a54ae64b4",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -87,7 +87,7 @@
     "roadmap_handoff": "The Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step.",
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
     "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
-    "current_bounded_lane": "P15-L07 keeps the review-process handoff synced by verifying that the current no-approval posture and the linked lane-owner plus rollback-owner evidence still match the parity scorecard and anchor templates on current master, while refreshing the surveyed head and lane marker without reopening nearby policy or scorecard work.",
+    "current_bounded_lane": "P15-L08 keeps the review-process handoff synced by verifying that the current no-approval posture and the linked lane-owner plus rollback-owner evidence still match the parity scorecard and anchor templates on current master, while refreshing the surveyed head and lane marker without reopening nearby policy or scorecard work.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
   "handoff": {
