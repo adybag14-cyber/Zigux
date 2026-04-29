@@ -97,23 +97,28 @@ fn processParsedLine(
 }
 
 const PendingParsedLine = struct {
-    bytes: std.ArrayList(u8) = .empty,
+    bytes: [max_buffered_line_len]u8 = undefined,
+    len: usize = 0,
     discarding_tail: bool = false,
 
-    fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
-        self.bytes.deinit(allocator);
+    fn deinit(self: *@This()) void {
         self.* = undefined;
     }
 
-    fn appendBounded(self: *@This(), allocator: std.mem.Allocator, byte: u8) !void {
+    fn appendBounded(self: *@This(), byte: u8) void {
         if (self.discarding_tail) {
             return;
         }
-        if (self.bytes.items.len >= max_buffered_line_len) {
+        if (self.len >= self.bytes.len) {
             self.discarding_tail = true;
             return;
         }
-        try self.bytes.append(allocator, byte);
+        self.bytes[self.len] = byte;
+        self.len += 1;
+    }
+
+    fn items(self: *const @This()) []const u8 {
+        return self.bytes[0..self.len];
     }
 
     fn finish(
@@ -121,15 +126,14 @@ const PendingParsedLine = struct {
         context: anytype,
         comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
     ) !void {
-        try processParsedLine(self.bytes.items, context, process_symbol);
-        self.bytes.clearRetainingCapacity();
+        try processParsedLine(self.items(), context, process_symbol);
+        self.len = 0;
         self.discarding_tail = false;
     }
 };
 
 fn processParsedChunk(
     pending: *PendingParsedLine,
-    allocator: std.mem.Allocator,
     chunk: []const u8,
     context: anytype,
     comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
@@ -139,7 +143,7 @@ fn processParsedChunk(
             try pending.finish(context, process_symbol);
             continue;
         }
-        try pending.appendBounded(allocator, byte);
+        pending.appendBounded(byte);
     }
 }
 
@@ -150,15 +154,16 @@ pub fn forEachParsedChunked(
     process_context: anytype,
     comptime process_symbol: fn (@TypeOf(process_context), ParsedSymbol) anyerror!void,
 ) !void {
+    _ = allocator;
     var pending = PendingParsedLine{};
-    defer pending.deinit(allocator);
+    defer pending.deinit();
 
     while (try next_chunk(reader_context)) |chunk| {
-        try processParsedChunk(&pending, allocator, chunk, process_context, process_symbol);
+        try processParsedChunk(&pending, chunk, process_context, process_symbol);
     }
 
-    if (pending.bytes.items.len != 0) {
-        try processParsedLine(pending.bytes.items, process_context, process_symbol);
+    if (pending.len != 0) {
+        try processParsedLine(pending.items(), process_context, process_symbol);
     }
 }
 
@@ -173,8 +178,9 @@ pub fn forEachParsedReader(
         return error.EmptyScratchBuffer;
     }
 
+    _ = allocator;
     var pending = PendingParsedLine{};
-    defer pending.deinit(allocator);
+    defer pending.deinit();
 
     while (true) {
         const bytes_read = try reader.read(scratch_buffer);
@@ -182,11 +188,11 @@ pub fn forEachParsedReader(
             break;
         }
 
-        try processParsedChunk(&pending, allocator, scratch_buffer[0..bytes_read], process_context, process_symbol);
+        try processParsedChunk(&pending, scratch_buffer[0..bytes_read], process_context, process_symbol);
     }
 
-    if (pending.bytes.items.len != 0) {
-        try processParsedLine(pending.bytes.items, process_context, process_symbol);
+    if (pending.len != 0) {
+        try processParsedLine(pending.items(), process_context, process_symbol);
     }
 }
 
@@ -603,8 +609,8 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
 
     const contents =
         "ffffffff81000000 T startup_64\r\n" ++
-            "bad line\n" ++
-            "ffffffff81000400 w weak_tail\n";
+        "bad line\n" ++
+        "ffffffff81000400 w weak_tail\n";
 
     var stream = SliceReader{ .bytes = contents };
     var scratch_buffer: [11]u8 = undefined;
