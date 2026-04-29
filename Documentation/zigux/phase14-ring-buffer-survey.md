@@ -4,11 +4,12 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 ## Status
 
+- `PHASE14_LANE_KEY=P14-L05`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- `PHASE14_SURVEYED_COMMIT=d78223d3f1a386521769795b1cff384d83cb6a3a`
+- `PHASE14_SURVEYED_COMMIT=7addb3a576d8a83a542f84a83957289cfe2f72e5`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
-- survey provenance refreshed against verified `master` head `d78223d3f1a386521769795b1cff384d83cb6a3a`
+- survey provenance refreshed against verified `master` head `7addb3a576d8a83a542f84a83957289cfe2f72e5`
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -98,6 +99,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - The splice path stays under the same ownership. `tracing_buffers_splice_read()` allocates a fresh read page, passes it into `ring_buffer_read_page(..., full = 1)`, and only hands the page downstream after the read succeeds, so the caller-visible lifecycle is still "allocate from the buffer contract, consume through the buffer contract, free back through the buffer contract."
 - The sleep and wake responsibility remains deliberately outside the allocator itself. `ring_buffer_read_page()` says the calling layer must decide when to sleep or wake because the ring buffer is shared across kernel contexts, and `tracing_buffers_read()` is the code that turns a negative read into `wait_on_pipe()` or `-EAGAIN`, which confirms that allocation, reuse, and wake policy still have to be reviewed as one C-owned tracefs contract.
 
+## Sub-buffer order reconfiguration audit
+
+- `ring_buffer_subbuf_order_set()` is still a stay-in-C resize transaction, not a wrapper seam. It validates the requested order against both the per-page header size and the ring-buffer write-counter ceiling, records the old order and payload size, blocks concurrent mutation under `buffer->mutex`, and raises `record_disabled` before `synchronize_rcu()` so in-flight commits clear before any page layout changes.
+- The per-CPU rebuild is coupled to mapping state and reader-page replacement. For every active CPU buffer the function refuses to proceed when `cpu_buffer->mapped` is set, computes a new page count from the previous payload footprint, preallocates a replacement list including a fresh reader page, then swaps that list under `reader_lock` while resetting `head_page`, `tail_page`, `commit_page`, and `nr_pages_to_update`, which means resize-time topology, reader handoff, and mapping lockout still move as one C-owned operation.
+- Cached read-page reuse is explicitly invalidated during that same transition. After the new list is installed, `ring_buffer_subbuf_order_set()` clears `cpu_buffer->free_page` and frees the old cached page by `old_order`, and `ring_buffer_free_read_page()` separately refuses to recycle any page whose saved `order` no longer matches `buffer->subbuf_order`, so stale spare pages are not allowed to leak across a sub-buffer-order change.
+- The tracefs control path keeps that same contract intact instead of introducing a friendlier outer API. `buffer_subbuf_size_write()` stops tracing, converts the requested kilobyte size into an order, updates the main buffer through `ring_buffer_subbuf_order_set()`, and then attempts the same change on the snapshot buffer when one exists; if the snapshot resize fails it tries to roll the main buffer back to `old_order`, and if that rollback also fails it disables tracing outright rather than claiming a partially resized state is safe.
+- `tracing_buffers_read()` closes the loop on open file descriptors. It re-reads the current `ring_buffer_subbuf_size_get()` result for each read, frees any cached spare page when `page_size != info->spare_size`, and only then allocates a new read page and refreshes `spare_cpu` or `spare_size`, which confirms that resize-time reader-page invalidation is shared between the core buffer transaction and the tracefs caller contract instead of being an isolated helper concern.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -115,6 +124,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-extraction-followup`
 - landed `phase14-ring-buffer-read-page-allocation-contract-followup`
+- landed `phase14-ring-buffer-subbuf-order-reconfig-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -141,4 +151,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and, if this packet needs another step, keep it study-only and limited to the sub-buffer-order reconfiguration path around `ring_buffer_subbuf_order_set()`, tracefs size reconfiguration in `trace.c`, and the conditions that invalidate cached read pages before anyone proposes `kernel/trace/ring_buffer.zig`.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing resize, reader-page, and mapped-reader audits; the next honest follow-up would be a bounded review of the rare rollback path that disables tracing when snapshot sub-buffer reconfiguration cannot be restored cleanly.
