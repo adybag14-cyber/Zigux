@@ -7,7 +7,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - `PHASE7_STATUS=landed`
 - `PHASE7_SLICE=string-helpers-runtime-leaf`
 - scope: first low-risk runtime-safe string helper batch only
-- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, small allocator-backed `parse_int_array()` and `parse_int_array_user()` starters, one log-safe `kstrdup_quotable()` duplication helper, and one ownership-safe `kstrdup_and_replace()` duplication helper landed; parked unless a new `string_helpers.c` parity issue appears
+- lane state: helper slice plus shared deterministic escape fixtures, shared wrapper-entrypoint coverage, small allocator-backed `parse_int_array()` and `parse_int_array_user()` starters, one log-safe `kstrdup_quotable()` duplication helper, one ownership-safe `kstrdup_and_replace()` duplication helper, and one sequential string-array allocator plus teardown starter landed; parked unless a new `string_helpers.c` parity issue appears
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
@@ -66,6 +66,8 @@ The current starter slice covers:
 - `parse_int_array_user()` over the bounded copy-and-parse starter path
 - `kstrdup_quotable()` over the bounded escape-then-duplicate path for log-safe printable strings
 - `kstrdup_and_replace()` over the bounded duplicate-then-rewrite ownership-safe path
+- `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
+- `kfree_strarray()` over the bounded repeated-teardown-safe release path
 
 The current tests check:
 
@@ -92,14 +94,16 @@ The current tests check:
 - shared `parse_int_array_user()` coverage that keeps the bounded copy window explicit before parsing, inserts a first-NUL terminator at the requested count boundary, and returns a no-entry error when the requested window is empty
 - one allocator-backed `kstrdup_quotable()` proof that escapes newline, tab, backslash, and double-quote bytes through the existing bounded `ESCAPE_HEX` surface, preserves a trailing sentinel NUL, and keeps Linux's null-input behavior explicit
 - one allocator-backed `kstrdup_and_replace()` proof that duplicates the first-NUL prefix before reusing `strreplace()`, preserves a trailing sentinel NUL on the returned owned string, keeps null input explicit, and leaves the source bytes untouched
+- one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
+- one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, and repeated teardown safe
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - integer parsing beyond the current formatter, bounded count-backed array starters, and escape surface
-- the broader allocation-backed duplication family beyond the current `kstrdup_quotable()` and `kstrdup_and_replace()` starters
+- the broader allocation-backed duplication family beyond the current `kstrdup_quotable()`, `kstrdup_and_replace()`, and string-array starter helpers
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded formatter, escape, counted integer-array starter surface, and bounded duplication helpers, such as a tightly scoped follow-up on the string-array allocator helpers.
+Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded formatter, escape, counted integer-array starter surface, bounded duplication helpers, and bounded string-array ownership helpers.
