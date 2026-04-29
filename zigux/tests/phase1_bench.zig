@@ -86,6 +86,8 @@ fn bitmapCopyBench() struct { checksum: u64 } {
     const full_nbits = bitmap.bits_per_long * 3;
     const aligned_copy_nbits = bitmap.bits_per_long + 33;
     const partial_tail_nbits = bitmap.bits_per_long + 45;
+    const extend_partial_count = bitmap.bits_per_long + 5;
+    const extend_full_count = bitmap.bits_per_long * 2;
 
     var sparse_src = [_]bitmap.Word{0} ** bitmap.bitsToWords(full_nbits);
     var dense_src = [_]bitmap.Word{
@@ -93,6 +95,8 @@ fn bitmapCopyBench() struct { checksum: u64 } {
         ~@as(bitmap.Word, 0),
         0,
     };
+    const extend_sparse_src = [_]bitmap.Word{ ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0), ~@as(bitmap.Word, 0) };
+    const extend_dense_src = [_]bitmap.Word{ 0x55aa, 0xaa55, ~@as(bitmap.Word, 0) };
     var dst = [_]bitmap.Word{0} ** bitmap.bitsToWords(full_nbits);
 
     bitmap.setRange(&sparse_src, 0, 109);
@@ -113,6 +117,15 @@ fn bitmapCopyBench() struct { checksum: u64 } {
 
         bitmap.fill(&dst, full_nbits);
         bitmap.copyClearTail(&dst, &dense_src, partial_tail_nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
+        checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+
+        bitmap.copyAndExtend(&dst, &extend_sparse_src, extend_partial_count, full_nbits);
+        checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
+        checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+
+        bitmap.fill(&dst, full_nbits);
+        bitmap.copyAndExtend(&dst, &extend_dense_src, extend_full_count, full_nbits);
         checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
         checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
     }
