@@ -194,6 +194,7 @@ if fixture_shape_issues:
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+bitmap_root = (ROOT / 'tools' / 'lib' / 'bitmap.zig').read_text(encoding='utf-8')
 string_root = (ROOT / 'tools' / 'lib' / 'string.zig').read_text(encoding='utf-8')
 rbtree_root = (ROOT / 'tools' / 'lib' / 'rbtree.zig').read_text(encoding='utf-8')
 test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
@@ -246,6 +247,52 @@ required_bitmap_diff_build_markers = [
     'diff_root.addImport("bitmap", bitmap_module)',
     'diff_root.addImport("find_bit", find_bit_module)',
 ]
+required_bitmap_helper_markers = [
+    'test "bitmap scnprintf truncates and keeps a terminator slot"',
+    'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    'test "bitmap allocation helpers size zero fill and reset optionals"',
+]
+required_bitmap_test_markers = [
+    'fixture.bitmap.scnprintf_trunc_len',
+    'fixture.bitmap.scnprintf_trunc',
+    'fixture.bitmap.scnprintf_empty_len',
+    'fixture.bitmap.scnprintf_empty_bytes',
+]
+required_bitmap_harness_markers = [
+    'unsigned long alloc_nbits = BITS_PER_LONG + 5;',
+    'size_t empty_len = bitmap_scnprintf(empty_map, 8, empty_buffer, sizeof(empty_buffer));',
+    'alloc_map = bitmap_alloc(alloc_nbits, 0);',
+    'zero_map = bitmap_zalloc(alloc_nbits);',
+    'printf("\\\"alloc_nbits\\\":%lu,", alloc_nbits);',
+    'printf("\\\"scnprintf_empty_len\\\":%zu,", empty_len);',
+    'printf("\\\"scnprintf_empty_bytes\\\":"); emit_word_array(empty_bytes, 4); printf(",");',
+    'printf("\\\"scnprintf_trunc_len\\\":%zu,", trunc_len);',
+    'printf("\\\"scnprintf_trunc\\\":\\\"%s\\\"", trunc_buffer);',
+]
+required_bitmap_manifest_markers = [
+    '"tools/lib/bitmap.zig"',
+    '"bitmap.alloc_nbits"',
+    '"bitmap.alloc_values"',
+    '"bitmap.scnprintf_empty_len"',
+    '"bitmap.scnprintf_empty_bytes"',
+    '"bitmap.scnprintf_trunc_len"',
+    '"bitmap.scnprintf_trunc"',
+    '"bitmap.zalloc_nbits"',
+    '"bitmap.zalloc_values"',
+    '"summary": "Committed C-backed parity coverage includes allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and truncation behavior that preserves the trailing terminator slot."',
+    '"unit_test_anchor": "tools/lib/bitmap.zig:test \\\"bitmap allocation helpers size zero fill and reset optionals\\\""',
+    '"unit_test_contract": "Direct Zig unit coverage keeps bitmapFree() honest by proving optional bitmap handles reset to null after release while allocator-backed bitmap sizing and zero-allocation state stay aligned with the committed C-backed fixture."',
+]
+required_bitmap_closure_markers = [
+    'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.',
+    'tools/lib/bitmap.zig` direct Zig unit coverage now keeps `bitmapFree()` aligned by proving optional bitmap handles reset to null after release while the shared C-backed fixture covers allocator-backed sizing and zero-allocation state.',
+    'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
+    'bitmap empty-bitmap review note: `bitmap_scnprintf` must leave a non-empty caller buffer untouched when no bits are set, matching the C helper contract',
+    'bitmap allocator review note: `bitmap_alloc()` and `bitmap_zalloc()` must size partial-word bitmaps through `BITS_TO_LONGS(nbits)`, while `bitmapFree()` optional-reset behavior remains direct Zig-only coverage because the C helper frees raw pointers in place',
+    'PHASE1_BITMAP_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
+    'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
+    'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
+]
 required_find_bit_test_markers = [
     'fixture.find_bit.tail_clamped_first',
     'fixture.find_bit.tail_zero_clamped_first',
@@ -292,7 +339,7 @@ required_find_bit_manifest_markers = [
     '"find_bit.tail_and_mixed_first"',
     '"find_bit.tail_and_mixed_next"',
     'mixed-tail case where one shared bit remains in range while another lives past nbits.',
-    '"boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \\"empty and boundary scans return nbits\\""',
+    '"boundary_unit_test_anchor": "tools/lib/find_bit.zig:test \\\"empty and boundary scans return nbits\\\""',
     '"boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range."',
 ]
 required_find_bit_closure_markers = [
@@ -334,15 +381,15 @@ required_string_manifest_markers = [
     '"string.remove_spaces_nul"',
     '"string.remove_spaces_nul_bytes"',
     '"summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection."',
-    '"cstring_unit_test_anchor": "tools/lib/string.zig:test \\"strlcpy stops at the first embedded NUL in the source\\""',
+    '"cstring_unit_test_anchor": "tools/lib/string.zig:test \\\"strlcpy stops at the first embedded NUL in the source\\\""',
     '"cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched."',
-    '"unit_test_anchor": "tools/lib/string.zig:test \\"memchrInv scans aligned and misaligned long buffers\\""',
+    '"unit_test_anchor": "tools/lib/string.zig:test \\\"memchrInv scans aligned and misaligned long buffers\\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
-    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\""',
+    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\\""',
     '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
-    '"prefix_unit_test_anchor": "tools/lib/string.zig:test \\"strstarts matches kernel prefix semantics\\""',
+    '"prefix_unit_test_anchor": "tools/lib/string.zig:test \\\"strstarts matches kernel prefix semantics\\\""',
     '"prefix_unit_test_contract": "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons."',
-    '"suffix_unit_test_anchor": "tools/lib/string.zig:test \\"str_ends_with matches kernel suffix semantics\\""',
+    '"suffix_unit_test_anchor": "tools/lib/string.zig:test \\\"str_ends_with matches kernel suffix semantics\\\""',
     '"suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith and str_ends_with aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons."',
 ]
 required_string_closure_markers = [
@@ -373,17 +420,17 @@ required_rbtree_helper_markers = [
 required_rbtree_manifest_markers = [
     '"tools/lib/rbtree.zig"',
     '"summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks."',
-    '"unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree findAdd keeps the first duplicate and inserts new keys\\""',
+    '"unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree findAdd keeps the first duplicate and inserts new keys\\\""',
     '"unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree."',
-    '"search_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree nextMatch walks the duplicate range in order\\""',
+    '"search_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree nextMatch walks the duplicate range in order\\\""',
     '"search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key."',
-    '"cached_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree cached root keeps leftmost in sync across add erase and replace\\""',
+    '"cached_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree cached root keeps leftmost in sync across add erase and replace\\\""',
     '"cached_unit_test_contract": "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root."',
-    '"cached_duplicate_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree cached root tracks duplicate minima through erase and non-leftmost replace\\""',
+    '"cached_duplicate_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree cached root tracks duplicate minima through erase and non-leftmost replace\\\""',
     '"cached_duplicate_unit_test_contract": "Direct Zig unit coverage keeps RootCached duplicate minima aligned so eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged when a non-leftmost node is replaced."',
-    '"iterator_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree iterateMatches streams only the duplicate range\\""',
+    '"iterator_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree iterateMatches streams only the duplicate range\\\""',
     '"iterator_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys."',
-    '"reverse_unit_test_anchor": "tools/lib/rbtree.zig:test \\"rbtree iterateMatchesReverse streams only the duplicate range in reverse\\""',
+    '"reverse_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree iterateMatchesReverse streams only the duplicate range in reverse\\\""',
     '"reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys."',
 ]
 required_rbtree_closure_markers = [
@@ -425,6 +472,21 @@ for marker in required_bitmap_diff_markers:
 for marker in required_bitmap_diff_build_markers:
     if marker not in bitmap_diff_build_root:
         missing_markers.append(f'bitmap_diff_build:{marker}')
+for marker in required_bitmap_helper_markers:
+    if marker not in bitmap_root:
+        missing_markers.append(f'bitmap_helper:{marker}')
+for marker in required_bitmap_test_markers:
+    if marker not in test_root:
+        missing_markers.append(f'bitmap_test:{marker}')
+for marker in required_bitmap_harness_markers:
+    if marker not in find_bit_harness:
+        missing_markers.append(f'bitmap_harness:{marker}')
+for marker in required_bitmap_manifest_markers:
+    if marker not in find_bit_manifest:
+        missing_markers.append(f'bitmap_manifest:{marker}')
+for marker in required_bitmap_closure_markers:
+    if marker not in phase1_closure:
+        missing_markers.append(f'bitmap_closure:{marker}')
 for marker in required_find_bit_test_markers:
     if marker not in test_root:
         missing_markers.append(f'find_bit_test:{marker}')
@@ -483,5 +545,5 @@ print('PHASE1_VALIDATION=pass')
 print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_find_bit_test_markers) + len(required_find_bit_helper_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_find_bit_closure_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
+    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_bitmap_helper_markers) + len(required_bitmap_test_markers) + len(required_bitmap_harness_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_closure_markers) + len(required_find_bit_test_markers) + len(required_find_bit_helper_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_find_bit_closure_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
 )
