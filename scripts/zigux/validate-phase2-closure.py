@@ -11,6 +11,19 @@ GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
 FIXDEP_CASES = FIXDEP_DIR / 'cases.json'
+EXPECTED_TOOL_MANIFEST_TOOLS = [
+    'scripts/zigux/fixdep.zig',
+    'scripts/zigux/genksyms.zig',
+    'scripts/zigux/genksyms_crc.zig',
+    'scripts/zigux/mk_elfconfig.zig',
+    'scripts/zigux/kconfig/conf_bridge.zig',
+    'scripts/zigux/kconfig/confdata_bridge.zig',
+]
+EXPECTED_CROSS_TARGETS = [
+    'x86_64-linux-musl',
+    'aarch64-linux-musl',
+    'riscv64-linux-musl',
+]
 
 
 def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -277,9 +290,12 @@ if tool_manifest.get('status') != 'closed':
     missing_markers.append('manifest:status=closed')
 if tool_manifest.get('tool_count') != 6:
     missing_markers.append('manifest:tool_count=6')
-if len(tool_manifest.get('tools', [])) != 6:
-    missing_markers.append(f'manifest:tools_len={len(tool_manifest.get("tools", []))}')
-for rel in tool_manifest.get('tools', []):
+tool_manifest_tools = tool_manifest.get('tools', [])
+if len(tool_manifest_tools) != 6:
+    missing_markers.append(f'manifest:tools_len={len(tool_manifest_tools)}')
+if tool_manifest_tools != EXPECTED_TOOL_MANIFEST_TOOLS:
+    missing_markers.append('manifest:tools=exact_phase2_tool_list')
+for rel in tool_manifest_tools:
     if not (ROOT / rel).exists():
         missing_markers.append(f'manifest_file:{rel}')
 
@@ -289,8 +305,11 @@ if targets_manifest.get('status') != 'closed':
     missing_markers.append('targets:status=closed')
 if targets_manifest.get('target_count') != 3:
     missing_markers.append('targets:target_count=3')
-if len(targets_manifest.get('targets', [])) != 3:
-    missing_markers.append(f'targets:len={len(targets_manifest.get("targets", []))}')
+target_manifest_targets = targets_manifest.get('targets', [])
+if len(target_manifest_targets) != 3:
+    missing_markers.append(f'targets:len={len(target_manifest_targets)}')
+if target_manifest_targets != EXPECTED_CROSS_TARGETS:
+    missing_markers.append('targets:list=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl')
 
 missing_markers.extend(validate_kconfig_bridge_manifest_shape(KCONFIG_BRIDGE_DIR / 'cases.json'))
 
