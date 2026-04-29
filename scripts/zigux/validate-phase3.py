@@ -81,6 +81,7 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "pub const abi_version: u16 = abi.ABI_VERSION;",
         "pub fn boundaryHeader(flags: u16) Header {",
         "pub fn isCompatible(header: Header) bool {",
+        'test "phase3 uapi version follows abi version"',
         'test "phase3 uapi boundary header stays explicit and compatible"',
     ),
     "zigux/helpers/layout_assert.zig": (
@@ -475,6 +476,7 @@ def run_self_test() -> int:
             "    _ = header;\n"
             "    return true;\n"
             "}\n\n"
+            'test "phase3 uapi version follows abi version" {}\n'
             'test "phase3 uapi boundary header stays explicit and compatible" {}\n',
             encoding="utf-8",
             newline="\n",
@@ -732,6 +734,40 @@ def run_self_test() -> int:
             "}\n\n"
             'test "phase3 export shim keeps failure encoding explicit" {}\n'
             'test "phase3 export shim normalizes explicit status decoding" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        (root / "zigux" / "uapi" / "version.zig").write_text(
+            "pub const abi_version: u16 = abi.ABI_VERSION;\n\n"
+            "pub fn boundaryHeader(flags: u16) Header {\n"
+            "    _ = flags;\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn isCompatible(header: Header) bool {\n"
+            "    _ = header;\n"
+            "    return true;\n"
+            "}\n\n"
+            'test "phase3 uapi boundary header stays explicit and compatible" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
+        uapi_drift_issues: list[str] = []
+        validate_source_markers(root, "abi", uapi_drift_issues)
+        assert uapi_drift_issues == [
+            'abi:missing_source_marker=zigux/uapi/version.zig:test "phase3 uapi version follows abi version"',
+        ]
+        (root / "zigux" / "uapi" / "version.zig").write_text(
+            "pub const abi_version: u16 = abi.ABI_VERSION;\n\n"
+            "pub fn boundaryHeader(flags: u16) Header {\n"
+            "    _ = flags;\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn isCompatible(header: Header) bool {\n"
+            "    _ = header;\n"
+            "    return true;\n"
+            "}\n\n"
+            'test "phase3 uapi version follows abi version" {}\n'
+            'test "phase3 uapi boundary header stays explicit and compatible" {}\n',
             encoding="utf-8",
             newline="\n",
         )
