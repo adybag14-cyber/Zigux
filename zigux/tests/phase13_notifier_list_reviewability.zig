@@ -13,6 +13,7 @@ const SurveySummary = struct {
     preexisting_generic_notifier_layout_anchor_present: bool,
     preexisting_public_list_notifier_coexistence_anchor_present: bool,
     preexisting_generic_notifier_abi_present: bool,
+    preexisting_generic_notifier_build_surface_present: bool,
     preexisting_generic_notifier_helper_present: bool,
 };
 
@@ -63,6 +64,13 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer std.testing.allocator.free(list_view_text);
     const hlist_view_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/helpers/hlist_view.zig");
     defer std.testing.allocator.free(hlist_view_text);
+    const notifier_helper_missing = blk: {
+        std.Io.Dir.cwd().access(io_instance.io(), "zigux/helpers/notifier_chain_view.zig", .{}) catch |err| switch (err) {
+            error.FileNotFound => break :blk true,
+            else => return err,
+        };
+        break :blk false;
+    };
     const chrdev_notify_text = try readRepoFile(io_instance.io(), std.testing.allocator, "zigux/helpers/chrdev_notify_plan.zig");
     defer std.testing.allocator.free(chrdev_notify_text);
     const hvc_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "drivers/tty/hvc/hvc_console.h");
@@ -106,17 +114,21 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_layout_anchor_present);
     try std.testing.expect(manifest.survey_summary.preexisting_public_list_notifier_coexistence_anchor_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_abi_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_build_surface_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_helper_present);
     try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_notifier_list_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase13_build, "notifier_chain_view") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/list_view.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/hlist_view.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/notifier_chain_view.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase3_build, "../helpers/chrdev_notify_plan.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const ListHeadRef = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const HListHeadRef = extern struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const NotifierBlockRef") == null);
     try std.testing.expect(std.mem.indexOf(u8, abi_text, "pub const BlockingNotifierHeadRef") == null);
+    try std.testing.expect(notifier_helper_missing);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn viewFromHead") != null);
     try std.testing.expect(std.mem.indexOf(u8, list_view_text, "pub fn summarize") != null);
     try std.testing.expect(std.mem.indexOf(u8, hlist_view_text, "pub fn viewFromHead") != null);
@@ -156,6 +168,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier header anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "field-level read-only shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public list-plus-notifier coexistence anchor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no shared notifier helper file or build replay hook") != null);
 
     var starter_landed_count: usize = 0;
     var preexisting_phase3_count: usize = 0;
@@ -183,7 +196,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         try std.testing.expect(isAllowedStatus(gap.status));
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
-        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface")) preexisting_phase3_count += 1;
+        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface") != false) preexisting_phase3_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_header_surface")) preexisting_header_count += 1;
