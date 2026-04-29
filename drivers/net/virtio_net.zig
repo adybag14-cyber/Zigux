@@ -17,6 +17,10 @@ pub const feature_guest_uso6: u16 = 55;
 pub const feature_guest_udp_tunnel_gso: u16 = 65;
 pub const feature_host_udp_tunnel_gso: u16 = 67;
 pub const ethernet_default_mtu: u16 = 1500;
+pub const ethernet_header_len: u16 = 14;
+pub const vlan_header_len: u16 = 4;
+pub const good_packet_len: u16 = ethernet_header_len + vlan_header_len + ethernet_default_mtu;
+pub const ip_max_mtu: u16 = 65_535;
 
 pub const RecoveryAction = enum {
     freeze,
@@ -130,6 +134,7 @@ pub const ProbeSnapshot = struct {
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
     queue_recovery_action: QueueRecoveryAction,
+    requested_mtu: u16,
 };
 
 pub const QueueRecoverySummary = struct {
@@ -172,6 +177,16 @@ pub const QueueResumeSummary = struct {
     remembered_queue_recovery_action: QueueRecoveryAction,
     requires_control_queue_restore: bool,
     requires_rss_reapply: bool,
+};
+
+pub const MergeableReceiveRefillSummary = struct {
+    anchor: []const u8,
+    rx_queue_entries: u16,
+    uses_mergeable_buffers: bool,
+    packet_budget_bytes: u32,
+    min_buf_len_bytes: u32,
+    required_headroom_bytes: u16,
+    big_packet_reason: BigPacketReason,
 };
 
 pub const VirtioNetProbeLab = struct {
@@ -329,6 +344,7 @@ pub const VirtioNetProbeLab = struct {
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
             .queue_recovery_action = queue_recovery_action,
+            .requested_mtu = request.mtu,
         };
         self.last_snapshot = snapshot;
         return snapshot;
@@ -361,6 +377,16 @@ pub const VirtioNetProbeLab = struct {
 
         const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
         return summarizeQueueResume(snapshot, self.recovery_generation);
+    }
+
+    pub fn planMergeableReceiveRefill(
+        self: *Self,
+        rx_queue_entries: u16,
+    ) !MergeableReceiveRefillSummary {
+        if (rx_queue_entries == 0) return error.InvalidRxQueueEntries;
+
+        const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
+        return summarizeMergeableReceiveRefill(snapshot, rx_queue_entries);
     }
 
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
@@ -465,6 +491,36 @@ pub const VirtioNetProbeLab = struct {
             .remembered_queue_recovery_action = snapshot.queue_recovery_action,
             .requires_control_queue_restore = requires_control_queue_restore,
             .requires_rss_reapply = requires_rss_reapply,
+        };
+    }
+
+    fn summarizeMergeableReceiveRefill(
+        snapshot: ProbeSnapshot,
+        rx_queue_entries: u16,
+    ) MergeableReceiveRefillSummary {
+        const packet_payload_bytes: u16 = switch (snapshot.big_packet_reason) {
+            .guest_gso => ip_max_mtu,
+            .none, .mtu_above_default => snapshot.requested_mtu,
+        };
+        const packet_budget_bytes = @as(u32, snapshot.hdr_len_bytes) +
+            ethernet_header_len +
+            vlan_header_len +
+            packet_payload_bytes;
+        const per_buffer_budget = std.math.divCeil(u32, packet_budget_bytes, rx_queue_entries) catch unreachable;
+        const hdr_len_bytes = @as(u32, snapshot.hdr_len_bytes);
+        const min_buf_len_bytes = if (snapshot.mergeable_rx_buffers)
+            @max(@max(per_buffer_budget, hdr_len_bytes) - hdr_len_bytes, good_packet_len)
+        else
+            good_packet_len;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .rx_queue_entries = rx_queue_entries,
+            .uses_mergeable_buffers = snapshot.mergeable_rx_buffers,
+            .packet_budget_bytes = packet_budget_bytes,
+            .min_buf_len_bytes = min_buf_len_bytes,
+            .required_headroom_bytes = snapshot.required_headroom_bytes,
+            .big_packet_reason = snapshot.big_packet_reason,
         };
     }
 
