@@ -77,11 +77,13 @@ pub const Request = struct {
     config: []const u8,
     arch: []const u8,
     mode_arg: ?[]const u8 = null,
+    allconfig: ?[]const u8 = null,
 };
 
-const ValidateModeArgError = error{
+const ValidateRequestError = error{
     MissingModeArg,
     UnexpectedModeArg,
+    UnexpectedAllconfig,
 };
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
@@ -123,18 +125,33 @@ pub fn runConfBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("\",\"KCONFIG_CONFIG\":\"");
     try writeJsonEscaped(writer, request.config);
     try writer.writeAll("\"");
+    if (request.allconfig) |allconfig| {
+        try writer.writeAll(",\"KCONFIG_ALLCONFIG\":\"");
+        try writeJsonEscaped(writer, allconfig);
+        try writer.writeAll("\"");
+    }
     if (request.mode == .syncconfig) {
         try writer.writeAll(",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\"");
     }
     try writer.writeAll("}}\n");
 }
 
-fn validateModeArg(mode: Mode, mode_arg: ?[]const u8) ValidateModeArgError!void {
+fn allowsAllconfig(mode: Mode) bool {
+    return switch (mode) {
+        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig, .randconfig => true,
+        else => false,
+    };
+}
+
+fn validateRequest(mode: Mode, mode_arg: ?[]const u8, allconfig: ?[]const u8) ValidateRequestError!void {
     if ((mode == .defconfig or mode == .savedefconfig) and mode_arg == null) {
         return error.MissingModeArg;
     }
     if (mode != .defconfig and mode != .savedefconfig and mode_arg != null) {
         return error.UnexpectedModeArg;
+    }
+    if (!allowsAllconfig(mode) and allconfig != null) {
+        return error.UnexpectedAllconfig;
     }
 }
 
@@ -159,8 +176,10 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     };
 
-    const mode_arg = if (args.len == 6) args[5] else null;
-    validateModeArg(mode, mode_arg) catch |err| switch (err) {
+    const extra_arg = if (args.len == 6) args[5] else null;
+    const mode_arg = if (mode == .defconfig or mode == .savedefconfig) extra_arg else null;
+    const allconfig = if (allowsAllconfig(mode)) extra_arg else null;
+    validateRequest(mode, mode_arg, allconfig) catch |err| switch (err) {
         error.MissingModeArg => {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
@@ -175,6 +194,7 @@ pub fn main(init: std.process.Init) !void {
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
+        error.UnexpectedAllconfig => unreachable,
     };
 
     var stdout_buffer: [1024]u8 = undefined;
@@ -185,6 +205,7 @@ pub fn main(init: std.process.Init) !void {
         .config = args[3],
         .arch = args[4],
         .mode_arg = mode_arg,
+        .allconfig = allconfig,
     });
     try stdout_writer.interface.flush();
 }
@@ -377,6 +398,43 @@ test "conf bridge emits alldefconfig argv and env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"arm64\"") != null);
 }
 
+test "conf bridge emits optional allconfig env for allnoconfig" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allnoconfig,
+        .kconfig = "Kconfig",
+        .config = "none/.config",
+        .arch = "arm64",
+        .allconfig = "arch/arm64/configs/tiny.config",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--allnoconfig\",\"Kconfig\"]") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"arch/arm64/configs/tiny.config\"") != null);
+}
+
 test "conf bridge emits allmodconfig argv and env" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -530,19 +588,24 @@ test "conf bridge emits mod2noconfig argv and env" {
 }
 
 test "conf bridge requires mode arg for defconfig modes" {
-    try std.testing.expectError(error.MissingModeArg, validateModeArg(.defconfig, null));
-    try std.testing.expectError(error.MissingModeArg, validateModeArg(.savedefconfig, null));
+    try std.testing.expectError(error.MissingModeArg, validateRequest(.defconfig, null, null));
+    try std.testing.expectError(error.MissingModeArg, validateRequest(.savedefconfig, null, null));
 }
 
 test "conf bridge rejects mode arg for non-argument modes" {
-    try std.testing.expectError(error.UnexpectedModeArg, validateModeArg(.olddefconfig, "unexpected"));
-    try std.testing.expectError(error.UnexpectedModeArg, validateModeArg(.syncconfig, "unexpected"));
+    try std.testing.expectError(error.UnexpectedModeArg, validateRequest(.olddefconfig, "unexpected", null));
+    try std.testing.expectError(error.UnexpectedModeArg, validateRequest(.syncconfig, "unexpected", null));
 }
 
-test "conf bridge accepts valid mode arg combinations" {
-    try validateModeArg(.defconfig, "arch/arm64/configs/defconfig");
-    try validateModeArg(.savedefconfig, "arch/arm64/configs/minimal_defconfig");
-    try validateModeArg(.oldconfig, null);
+test "conf bridge rejects unexpected allconfig for unsupported modes" {
+    try std.testing.expectError(error.UnexpectedAllconfig, validateRequest(.oldconfig, null, "all.config"));
+}
+
+test "conf bridge accepts valid optional extra argument combinations" {
+    try validateRequest(.defconfig, "arch/arm64/configs/defconfig", null);
+    try validateRequest(.savedefconfig, "arch/arm64/configs/minimal_defconfig", null);
+    try validateRequest(.oldconfig, null, null);
+    try validateRequest(.allnoconfig, null, "arch/arm64/configs/tiny.config");
 }
 
 test "conf bridge emits defconfig mode argument before kconfig" {
