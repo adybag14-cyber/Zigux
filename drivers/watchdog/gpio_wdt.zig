@@ -23,10 +23,12 @@ pub const ProbeStartMode = enum {
 
 pub const RegistrationSurface = enum {
     watchdog_device_metadata,
+    devm_watchdog_register_device_call,
 };
 
 pub const ValidationFocus = enum {
     pre_registration_metadata,
+    register_device_call_surface,
 };
 
 pub const ModuleDescriptor = struct {
@@ -131,6 +133,35 @@ pub const RegistrationPlanSummary = struct {
     watchdog_ops_ready: bool,
     watchdog_device_ready: bool,
     timeout_init_requested: bool,
+    parent_attached: bool,
+    stop_on_reboot: bool,
+    reaches_registration_running: bool,
+    reaches_registration_line_state: bool,
+    reaches_registration_line_is_output: bool,
+    register_device_requested: bool,
+    blocked_on_gpio_descriptor: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_reboot_glue: bool,
+};
+
+pub const RegisterDeviceCallSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    selected_surface: RegistrationSurface,
+    validation_focus: ValidationFocus,
+    requested_line: ProbeLineRequest,
+    start_mode: ProbeStartMode,
+    always_running: bool,
+    nowayout: bool,
+    watchdog_info_ready: bool,
+    watchdog_ops_ready: bool,
+    watchdog_device_ready: bool,
+    watchdog_drvdata_set: bool,
+    min_timeout_sec: u32,
+    default_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+    timeout_init_requested: bool,
+    nowayout_applied: bool,
     parent_attached: bool,
     stop_on_reboot: bool,
     reaches_registration_running: bool,
@@ -376,6 +407,38 @@ pub const GpioWatchdogLab = struct {
             .reaches_registration_line_state = handoff.reaches_registration_line_state,
             .reaches_registration_line_is_output = handoff.reaches_registration_line_is_output,
             .register_device_requested = false,
+            .blocked_on_gpio_descriptor = true,
+            .blocked_on_platform_registration = true,
+            .blocked_on_reboot_glue = true,
+        };
+    }
+
+    pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {
+        const plan = self.registrationPlanSummary(nowayout);
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .selected_surface = .devm_watchdog_register_device_call,
+            .validation_focus = .register_device_call_surface,
+            .requested_line = plan.requested_line,
+            .start_mode = plan.start_mode,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .watchdog_info_ready = plan.watchdog_info_ready,
+            .watchdog_ops_ready = plan.watchdog_ops_ready,
+            .watchdog_device_ready = plan.watchdog_device_ready,
+            .watchdog_drvdata_set = true,
+            .min_timeout_sec = soft_timeout_min,
+            .default_timeout_sec = soft_timeout_default,
+            .max_hw_heartbeat_ms = self.hw_margin_ms,
+            .timeout_init_requested = plan.timeout_init_requested,
+            .nowayout_applied = true,
+            .parent_attached = plan.parent_attached,
+            .stop_on_reboot = plan.stop_on_reboot,
+            .reaches_registration_running = plan.reaches_registration_running,
+            .reaches_registration_line_state = plan.reaches_registration_line_state,
+            .reaches_registration_line_is_output = plan.reaches_registration_line_is_output,
+            .register_device_requested = true,
             .blocked_on_gpio_descriptor = true,
             .blocked_on_platform_registration = true,
             .blocked_on_reboot_glue = true,
