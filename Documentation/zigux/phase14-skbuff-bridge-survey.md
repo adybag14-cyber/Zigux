@@ -4,6 +4,7 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 
 ## Status
 
+- `PHASE14_LANE_KEY=P14-L12`
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=skbuff-validate-xmit-list-reset`
 - scope: the landed `net/core/skbuff_bridge.zig` boundary map plus its expanded lifetime audit outline, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
