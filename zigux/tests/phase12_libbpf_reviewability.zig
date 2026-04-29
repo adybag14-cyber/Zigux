@@ -69,7 +69,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
 
     var saw_landed_manifest = false;
