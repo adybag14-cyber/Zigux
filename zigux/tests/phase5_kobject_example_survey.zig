@@ -44,8 +44,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -55,11 +55,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_group_boundary_prompt = false;
     var saw_pre_registration_prompt = false;
     var saw_registration_prompt = false;
+    var saw_static_name_prompt = false;
     var saw_exit_terminal_prompt = false;
     var saw_directory = false;
     var saw_order = false;
     var saw_registration = false;
     var saw_mode = false;
+    var saw_static_name = false;
     var saw_pre_registration = false;
     var saw_initialized_exit = false;
     var saw_dispatch = false;
@@ -84,6 +86,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "phase5_build.zig") != null)
         {
             saw_docs_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "static directory-name cue") != null and
+            std.mem.indexOf(u8, prompt, "emits_uevent false") != null and
+            std.mem.indexOf(u8, prompt, "dynamic kobjects stay out of scope") != null)
+        {
+            saw_static_name_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group") != null and
             std.mem.indexOf(u8, prompt, "pre-registration") != null and
@@ -126,6 +134,12 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly one register_runs increment") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "leaves the sample registered with attributes accessible") != null);
         }
+        if (std.mem.eql(u8, check.id, "static-name-no-uevent-boundary")) {
+            saw_static_name = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "static directory name explicit") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "no uevent delivery") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "dynamic kobjects out of scope") != null);
+        }
         if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
             saw_pre_registration = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "active attribute count at zero") != null);
@@ -155,6 +169,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_order_prompt);
     try std.testing.expect(saw_mode_prompt);
     try std.testing.expect(saw_docs_prompt);
+    try std.testing.expect(saw_static_name_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_registration_prompt);
@@ -163,6 +178,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_order);
     try std.testing.expect(saw_registration);
     try std.testing.expect(saw_mode);
+    try std.testing.expect(saw_static_name);
     try std.testing.expect(saw_pre_registration);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_dispatch);
@@ -219,6 +235,9 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "unnamed attribute group shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `0664` attribute mode pattern") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "static directory-name cue explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no uevent delivery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "dynamic kobjects out of scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-but-not-registered stage keeps the active attribute count at `0`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-only `exit()` path returns an `abandoned_before_registration` teardown summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
