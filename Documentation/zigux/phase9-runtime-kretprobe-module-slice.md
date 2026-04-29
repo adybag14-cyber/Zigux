@@ -7,15 +7,18 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
 - surveyed inspected `master` head: `b8d59685e5772a0476af3fd95f1319247e5f6096`
-- scope: lifecycle starter, bounded return-probe bookkeeping, a tiny differential gate, a loader-handoff scaffold, a landed shared loader-request binding, dedicated Phase 9 test wiring, and survey-manifest closure only
+- scope: lifecycle starter, bounded return-probe bookkeeping, explicit `phase9-runtime-kretprobe-{module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, a landed shared loader-request binding, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
+  - `zigux/kernel/runtime_loader.zig`
   - `zigux/tests/runtime_kretprobe_module.zig`
   - `zigux/tests/runtime_kretprobe_diff.zig`
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
   - `zigux/tests/phase9_build.zig`
+  - `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`
+  - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
 
 ## Why this slice exists
 
@@ -34,7 +37,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - a bounded `runtime_kretprobe_loader` scaffold that makes the planned `register_kretprobe()` and `unregister_kretprobe()` lifecycle, entry or exit symbol names, and per-instance private-data size explicit while the runtime substrate remains unavailable
 - the same loader scaffold now keeps the no-substrate rollback path explicit through `releaseSharedRuntimeLoadWithoutSubstrate()` and the shared `released_without_substrate` request state, so fallback review does not rely on prose alone
 - a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig` that consumes the kretprobe loader handoff through explicit allocator posture, staged entry and exit symbols, and a machine-checkable kretprobe payload
-- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate through the explicit `phase9-runtime-kretprobe-module-tests`, `phase9-runtime-kretprobe-diff-tests`, `phase9-runtime-kretprobe-loader-tests`, and `phase9-runtime-kretprobe-survey-tests` legs plus the manifest-backed survey packet
 
 ## Non-goals
 
@@ -43,15 +46,17 @@ This slice does not yet claim:
 - a kernel-loadable Zigux kretprobe module
 - real `register_kretprobe()` or `unregister_kretprobe()` parity
 - architecture-specific register extraction parity for `regs_return_value()`
+- shared runtime-loader command-name, argv-policy, or environment-derived activation controls
 
 ## Gates
 
 1. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
+- this shared build keeps the dedicated kretprobe module, diff, loader, and survey legs explicit
 
 2. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until the shared runtime-loader control surface grows a real owner for command-name, argv-policy, or environment-derived activation handling.
+Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until the shared runtime-loader control surface grows a real owner for command-name, argv-policy, or environment-derived activation handling, rather than reopening already-landed survey, manifest, loader, module, or diff scaffolding.
