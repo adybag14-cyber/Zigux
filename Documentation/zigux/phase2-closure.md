@@ -38,8 +38,9 @@ The bounded Phase 2 cross-target compile set is:
 
 Phase 2 is only considered closed when all of the following are green:
 
-1. shared artifact diff self-test
+1. shared artifact diff self-test and CLI contract replay
 - `python3 scripts/zigux/artifact_diff.py --self-test`
+- `python3 scripts/zigux/check-artifact-diff-contract.py`
 
 2. bounded fixdep artifact parity and deterministic failure coverage
 - `python3 scripts/zigux/check-fixdep-diff.py`
@@ -79,6 +80,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_ARTIFACT_DIFF_SELF_TEST=python3 scripts/zigux/artifact_diff.py --self-test`
+- `PHASE2_ARTIFACT_DIFF_CONTRACT=python3 scripts/zigux/check-artifact-diff-contract.py`
 - `PHASE2_FIXDEP_GATE=python3 scripts/zigux/check-fixdep-diff.py`
 - `PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts`
 - `PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors`
