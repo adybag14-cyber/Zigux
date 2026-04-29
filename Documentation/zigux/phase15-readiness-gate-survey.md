@@ -7,7 +7,7 @@ This document records the bounded Phase 15 readiness lane for surveying the rema
 - `PHASE15_STATUS=readiness_gate_survey_landed`
 - `PHASE15_SLICE=tranche-readiness-gap-survey`
 - scope: one readiness survey note, one dedicated manifest and Zig test, one shared `phase15_build.zig` follow-up, one shared bootstrap-workflow replay step, and the later handoff-and-next-step packet that together keep the roadmap requirements, bootstrap ledger anchor, current repo evidence, and remaining blocked readiness gaps reviewable in one place
-- survey provenance refreshed against verified `master` head `d5cc3e9fa1b0c69ab8e1787db6bc2a6b58f7a129`
+- survey provenance refreshed against verified `master` head `a34e13f2e1be8b5f4f003cb5e1ea66ab4996555a`
 - product boundary:
   - `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
@@ -36,7 +36,7 @@ What was still missing was one dedicated readiness packet that compares those th
 - what the bootstrap ledger originally anchored
 - what the live repo has actually landed and what remains blocked
 
-That comparison still matters because the remaining Phase 15 gaps are no longer "missing governance documents" or missing shared replay wiring. The shared bootstrap workflow still runs the Phase 15 governance bundle, the full shared Phase 15 replay is green on current `master`, and no deep-core anchor yet has evidence strong enough to leave the freeze-in-C posture.
+That comparison still matters because the remaining Phase 15 gaps are no longer "missing governance documents" or missing shared replay wiring. The shared bootstrap workflow still runs the Phase 15 governance bundle, but the full shared Phase 15 replay is currently red on `master`, and no deep-core anchor yet has evidence strong enough to leave the freeze-in-C posture.
 
 The honest bounded step therefore remains maintenance of the existing readiness packet, not another new governance policy surface or a neighboring replay-fix lane.
 
@@ -59,13 +59,22 @@ The honest bounded step therefore remains maintenance of the existing readiness 
 - `Documentation/zigux/phase15-parity-scorecard.md` is present and records the four freeze-in-C anchors, their lane owners, evidence thresholds, rollback owners, archive paths, and blocker dispositions
 - `Documentation/zigux/phase15-indefinite-c-policy.md` is present and records the source-of-truth, exception, reopen, and retained-closeout posture for long-term C ownership
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` is present and records the parked handoff contract, named reopen conditions, and maintenance-mode next step for the already-landed governance bundle
-- `zigux/tests/phase15_build.zig` is present, and focused replay on current `master` is green with `Build Summary: 13/13 steps succeeded; 16/16 tests passed`
+- `zigux/tests/phase15_build.zig` is present, but focused replay on current `master` is currently red with `Build Summary: 9/13 steps succeeded (3 failed); 13/16 tests passed (3 failed)`
 - `zigux/Makefile` is present and exposes `make -C zigux phase15`, and the target remains aligned with the same shared replay path
-- `.github/workflows/zigux-bootstrap.yml` is present and still runs `Run Phase 15 governance tests`, and that shared replay surface is once again reviewable as green on current `master`
+- `.github/workflows/zigux-bootstrap.yml` is present and still runs `Run Phase 15 governance tests`, and that shared replay surface is still the published Phase 15 gate even though the current run is red on `master`
 
-That means the roadmap-required governance bundle is landed locally on current `master`, the bootstrap ledger anchor has already been carried forward into a fuller Phase 15 review surface, and the parked next-step handoff is also explicit inside the same governance family. It also means the tranche is governance-landed and replay-clean on current `master`, but deep-core status changes remain blocked.
+That means the roadmap-required governance bundle is landed locally on current `master`, the bootstrap ledger anchor has already been carried forward into a fuller Phase 15 review surface, and the parked next-step handoff is also explicit inside the same governance family. It also means the tranche is governance-landed, but not replay-clean on current `master`, and deep-core status changes remain blocked.
 
 ## Remaining Readiness Gaps
+
+### Shared Replay Drift Still Blocked
+
+The current shared replay failure is no longer a missing governance artifact. It is current-master drift inside adjacent Phase 15 packet surfaces.
+
+- `Documentation/zigux/README.md` no longer includes the expected `Phase 15 notes` section, the direct `phase15-handoff-next-steps-survey.md` pointer, or the parked-next-step synthesis wording that the current review-process and handoff tests still require
+- `zigux/tests/phase15_parity_scorecard.zig` still reads `Documentation/zigux/review-checklist.md` with `.limited(16 * 1024)`, but the live checklist is now `17,461` bytes, so the current replay fails with `error.StreamTooLong` before the scorecard alignment assertions can run
+
+Those drifts are enough to make both `zig build test --build-file zigux/tests/phase15_build.zig --summary all` and `make -C zigux phase15` fail on current `master`, so the tranche is not yet maintenance-ready.
 
 ### Deep-Core Status Changes Still Blocked
 
@@ -76,7 +85,7 @@ The live repo still does not have evidence strong enough to move any freeze-in-C
 - `kernel/rcu/tree.c`: blocked because the published Phase 14 follow-up is still wider than the allowed RCU seam
 - `net/core/skbuff.c`: blocked because the published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary
 
-This means the Phase 15 tranche is governance-landed, replay-clean, and maintenance-ready on current `master`, but it is still not status-change-ready.
+This means the Phase 15 tranche is governance-landed, but not replay-clean or maintenance-ready on current `master`, and it is still not status-change-ready.
 
 ## Readiness Gate
 
@@ -86,9 +95,10 @@ The current readiness gate for trusting the Phase 15 tranche is:
 2. the bootstrap ledger anchor is still visible as the originating documentation root and freeze-map step
 3. the local and shared-bootstrap Phase 15 replay surfaces stay present and green on current `master`
 4. the parked handoff-and-next-step packet stays aligned with the same governance bundle
-5. the remaining gaps stay explicit as blocked deep-core status changes pending stronger stay-in-C exception evidence
+5. the docs index and checklist-size drift no longer break the shared Phase 15 replay
+6. the remaining gaps stay explicit as blocked deep-core status changes pending stronger stay-in-C exception evidence
 
-If any of those five conditions stops being true, the tranche is no longer ready for maintenance-mode governance.
+If any of those six conditions stops being true, the tranche is no longer ready for maintenance-mode governance.
 
 ## Recorded Gaps
 
@@ -100,10 +110,11 @@ The current lane state is:
 - landed `phase15-build-gate-readiness`
 - landed `phase15-shared-ci-coverage`
 - landed `phase15-handoff-next-steps-synthesis`
-- landed `phase15-shared-replay-recovery`
+- blocked `phase15-docs-index-governance-drift`
+- blocked `phase15-parity-scorecard-review-checklist-read-limit-drift`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight. Zigux now has one reviewable readiness packet that says the roadmap bundle is landed, the ledger anchor is still visible, the shared bootstrap workflow still points at the current Phase 15 gate, the parked handoff-and-next-step packet is present in the same governance family, the broader replay path is green on current `master`, and the remaining Phase 15 readiness blocker is the still-blocked deep-core status-change posture.
+This keeps the lane tight. Zigux now has one reviewable readiness packet that says the roadmap bundle is landed, the ledger anchor is still visible, the shared bootstrap workflow still points at the current Phase 15 gate, the parked handoff-and-next-step packet is present in the same governance family, the broader replay path is currently blocked by docs-index and checklist-size drift on current `master`, and the remaining Phase 15 readiness blocker after replay repair is still the deep-core status-change posture.
 
 ## Non-goals
 
@@ -123,4 +134,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance tranche in maintenance mode and treat the shared replay as recovered on current `master`. Reopen this readiness packet only if the shared Phase 15 replay drifts again or if the deep-core blocker posture changes enough to justify a narrower follow-up.
+Keep the Phase 15 governance tranche out of maintenance-ready status until a replay-repair lane restores the Phase 15 docs index pointers and broadens the parity-scorecard checklist read cap enough for the shared build to pass again. After that, reopen this readiness packet only if the shared Phase 15 replay drifts again or if the deep-core blocker posture changes enough to justify a narrower follow-up.
