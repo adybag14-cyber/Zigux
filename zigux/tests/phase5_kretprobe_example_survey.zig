@@ -18,6 +18,10 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 5 kretprobe manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -75,9 +79,9 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_surveyed_commit_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "sample-backed survey note") != null and
-            std.mem.indexOf(u8, prompt, "samples/zigux/README.md") != null and
-            std.mem.indexOf(u8, prompt, "Documentation/zigux/README.md") != null and
-            std.mem.indexOf(u8, prompt, "Documentation/zigux/review-checklist.md") != null and
+            std.mem.indexOf(u8, prompt, "shared sample-root catalog") != null and
+            std.mem.indexOf(u8, prompt, "top-level Phase 5 README note") != null and
+            std.mem.indexOf(u8, prompt, "shared review checklist") != null and
             std.mem.indexOf(u8, prompt, "Phase 9 runtime starter") != null)
         {
             saw_docs_prompt = true;
@@ -181,6 +185,19 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_kretprobe_example_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kretprobe-sample-survey.md",
@@ -213,47 +230,68 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     );
     defer std.testing.allocator.free(review_checklist);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/README.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/review-checklist.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_kretprobe_example_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "separate Phase 9 runtime starter") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L17") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b21d2dfb039484b866f247a974369b9619a2afcb") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kretprobe_example.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 1 tests passed.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-tests 4 pass (4 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "register_kretprobe()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "do_sys_openat2") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "199") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "260") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "recordMissedInstance()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "entryHandler()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "retHandler()") != null);
+    try expectContains(survey_note, "sample-backed survey note");
+    try expectContains(survey_note, "samples/zigux/README.md");
+    try expectContains(survey_note, "Documentation/zigux/README.md");
+    try expectContains(survey_note, "Documentation/zigux/review-checklist.md");
+    try expectContains(survey_note, "phase5_kretprobe_example_manifest.json");
+    try expectContains(survey_note, "phase5_kretprobe_example_survey.zig");
+    try expectContains(survey_note, "phase5_build.zig");
+    try expectContains(survey_note, "separate Phase 9 runtime starter");
+    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L17");
+    {
+        const surveyed_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "PHASE5_SURVEYED_COMMIT={s}",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(surveyed_commit_line);
+        try expectContains(survey_note, surveyed_commit_line);
+    }
+    try expectContains(survey_note, "- `Documentation/zigux/review-checklist.md`");
+    try expectContains(survey_note, "shared sample-root catalog in `samples/zigux/README.md`");
+    try expectContains(survey_note, "shared `Documentation/zigux/review-checklist.md` prompts are part of that boundary now");
+    try expectContains(survey_note, "Latest verification snapshot");
+    try expectContains(survey_note, "zig test samples/zigux/kretprobe_example.zig");
+    try expectContains(survey_note, "All 1 tests passed.");
+    try expectContains(survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig");
+    try expectContains(survey_note, "All 2 tests passed.");
+    try expectContains(survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed");
+    try expectContains(survey_note, "phase5-kretprobe-example-tests 4 pass (4 total)");
+    try expectContains(survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)");
+    try expectContains(survey_note, "register_kretprobe()");
+    try expectContains(survey_note, "do_sys_openat2");
+    try expectContains(survey_note, "199");
+    try expectContains(survey_note, "260");
+    try expectContains(survey_note, "recordMissedInstance()");
+    try expectContains(survey_note, "entryHandler()");
+    try expectContains(survey_note, "retHandler()");
+    {
+        const pinned_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(pinned_commit_line);
+        try expectContains(survey_note, pinned_commit_line);
+    }
 
-    try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kretprobe-sample-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/kretprobe_example.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readme, "separate Phase 9 runtime starter") != null);
+    try expectContains(readme, "phase5-kretprobe-sample-survey.md");
+    try expectContains(readme, "samples/zigux/kretprobe_example.zig");
+    try expectContains(readme, "shared sample-root catalog, shared review checklist, manifest, and shared `phase5_build.zig` entrypoint prompts");
+    try expectContains(readme, "separate Phase 9 runtime starter");
 
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Kretprobe review packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_kretprobe_example_manifest.json") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_kretprobe_example_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5-kretprobe-sample-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "maxactive = 20") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Phase 9 starter claim") != null);
+    try expectContains(sample_root_readme, "Kretprobe review packet");
+    try expectContains(sample_root_readme, "phase5_kretprobe_example_manifest.json");
+    try expectContains(sample_root_readme, "phase5_kretprobe_example_survey.zig");
+    try expectContains(sample_root_readme, "phase5-kretprobe-sample-survey.md");
+    try expectContains(sample_root_readme, "maxactive = 20");
+    try expectContains(sample_root_readme, "Phase 9 starter claim");
 
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "manifest-backed survey") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "sample-backed survey note") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "exact surveyed commit") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "in-memory-only") != null);
-    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "runtime parity is still out of scope") != null);
+    try expectContains(review_checklist, "manifest-backed survey");
+    try expectContains(review_checklist, "sample-backed survey note");
+    try expectContains(review_checklist, "phase5_build.zig");
+    try expectContains(review_checklist, "exact surveyed commit");
+    try expectContains(review_checklist, "in-memory-only");
+    try expectContains(review_checklist, "runtime parity is still out of scope");
 }
