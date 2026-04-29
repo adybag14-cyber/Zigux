@@ -99,7 +99,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - empty-queue peek and skip return `null`, `snapshotInto()` leaves queue order intact, pushing past capacity returns `false`, and `reset()` restores an empty queue
 - after the wraparound replay setup, `snapshotInto()` truncates to the destination length, so an 8-byte preview yields `[2,3,4,5,6,7,8,9]` while leaving the queue length at `10`
 - queue-only reset clears buffered bytes back to an empty queue but does not rewind lifecycle state or the `init_runs` and `exit_runs` bookkeeping counters
-- the replay advertises exactly six review-focus areas: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `reset_and_replay`, and `ownership_and_lifetime`
+- the replay advertises exactly seven review-focus areas: `bounded_fifo_order`, `wraparound_requeue`, `peek_and_skip`, `non_destructive_snapshot`, `preview_truncation`, `reset_and_replay`, and `ownership_and_lifetime`
 - the sample starts in a cold state, requires `init()` before replay, records `replay_complete` after the self-check, and `exit()` returns it to an empty bounded state
 - `runAnchorReplay()` fails before `init()` and after `exit()`, `init()` fails if repeated outside the cold state, `exit()` fails if repeated after teardown, and one successful pass leaves `init_runs = 1` plus `exit_runs = 1`
 
