@@ -6,6 +6,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=end-to-end-smoke-verification`
+- `PHASE14_SHARED_LANE=P14-L01`
 - `PHASE14_SMOKE_VALIDATOR=present`
 - `PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py`
 - `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`
@@ -39,6 +40,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Exact evidence captured
 
 - verified `master` head: `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
+- shared smoke manifest lane key: `P14-L01`
 - shared smoke manifest surveyed commit: `1b6cbbcac6e0144ec6ca0a1e954b38f5de748c95`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
@@ -68,7 +70,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - `.github/workflows/zigux-bootstrap.yml` now runs the validator-backed shared smoke packet, the focused smoke shard, and the full Phase 14 build command, so the shared packet gets both a fast contract check and the existing end-to-end replay.
 - `Documentation/zigux/freeze-map.md` still names the four Phase 14 anchors, which keeps the smoke packet grounded in the roadmap's study-only and freeze posture rather than implying a bridge-first expansion.
 - `Documentation/zigux/review-checklist.md` now carries a dedicated prompt for the shared Phase 14 smoke packet so later edits have to keep the four anchor-local manifests, survey notes, and shared replay contract aligned.
-- `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted per-anchor surveyed commits as machine-checked evidence, so future anchor-manifest refreshes cannot silently leave the shared smoke note behind.
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig` now treats the shared note's quoted shared-lane marker plus per-anchor surveyed commits as machine-checked evidence, so future shared or anchor-manifest refreshes cannot silently leave the shared smoke note behind.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` now also records which compile artifacts are `full_bundle_only` versus `focused_and_full_bundle`, so later build-file churn cannot silently overstate the number of dedicated Phase 14 shards.
 
 ## Productization evidence
