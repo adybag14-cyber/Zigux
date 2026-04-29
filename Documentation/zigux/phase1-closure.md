@@ -156,9 +156,13 @@ Instead, Phase 1 uses:
 
 - a benchmark smoke executable for representative helper paths
 - representative bitmap smoke for weight, tail-window bitwise ops, tail-sensitive copy and `copyClearTail` replay, and range rendering
+- representative `find_bit` smoke for baseline next-bit scans, the wider set/zero/AND family mix, tail-clamped search windows, and same-word start masking
 - stable checksum and iteration outputs so the benchmark cannot silently optimize away the hot loops
 - machine-readable benchmark expectations in `zigux/tests/fixtures/phase1_bench_expectations.json`
 - manual review of timing deltas before expanding helper scope
+
+- `PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, and same-word start-mask checksums so helper-local scan regressions cannot hide behind a generic positive checksum`
+- `PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM`
 
 This is a smoke-grade performance gate, not a release-grade perf contract.
 
