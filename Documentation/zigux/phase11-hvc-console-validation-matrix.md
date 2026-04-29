@@ -4,7 +4,7 @@ This document records the bounded kernel-integration validation matrix for the Z
 
 ## Status
 
-- `PHASE11_HVC_CONSOLE_STATUS=khvcd_sleep_handoff_landed`
+- `PHASE11_HVC_CONSOLE_STATUS=poll_drain_order_landed`
 - reviewed against live `master` `0980ef63e2e9ff3ee3befe56215b6786a215bb3a`
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
@@ -23,7 +23,7 @@ The bounded starter now covers slot validation, CRLF framing, flush-progress int
 - which khvcd-facing behaviors are already reviewable in bounded form versus still deferred
 - which areas must remain out of scope until a later kernel-facing handoff lands
 
-Without this matrix, the slice names the right next step but does not preserve the validation posture in one place.
+Without this matrix, the slice preserves the parked boundary but does not keep the validation posture in one place.
 
 ## Kernel-Integration Matrix
 
@@ -43,11 +43,11 @@ Without this matrix, the slice names the right next step but does not preserve t
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
 - the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane
-- this bounded worker-entry, sleep-handoff, and drain-order follow-up stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
+- this bounded worker-entry, sleep-handoff, and drain-order evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until another comparably small host-free khvcd or notifier handoff actually lands
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not claim khvcd execution, sysrq, notifier callbacks, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
-- after this landed khvcd sleep-and-reschedule handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, or sysrq split actually lands so the lane keeps one truthful next step
+- after this landed `__hvc_poll()` drain-order handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, or sysrq split actually lands so the lane keeps one truthful next step
