@@ -110,21 +110,24 @@ test "phase 8 file-path-handle bridge keeps reused-map name selection bounded an
     );
 }
 
-test "phase 8 file-path-handle bridge keeps missing duplicate and malformed fdinfo fields explicit" {
-    try std.testing.expectError(error.MissingMaxEntries, file_path_handle_bridge.parseMapInfoFromFdinfo(
+test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wins fdinfo fallback" {
+    const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_type:\t3\n" ++
             "key_size:\t4\n" ++
             "value_size:\t8\n" ++
-            "map_flags:\t0x20\n",
-    ));
-    try std.testing.expectError(error.DuplicateField, file_path_handle_bridge.parseMapInfoFromFdinfo(
-        "map_type:\t3\n" ++
-            "key_size:\t4\n" ++
-            "value_size:\t8\n" ++
-            "max_entries:\t256\n" ++
+            "map_type:\t7\n" ++
             "map_flags:\t0x20\n" ++
             "map_flags:\t0x40\n",
-    ));
+    );
+
+    try std.testing.expectEqual(@as(u32, 7), info.map_type);
+    try std.testing.expectEqual(@as(u32, 4), info.key_size);
+    try std.testing.expectEqual(@as(u32, 8), info.value_size);
+    try std.testing.expectEqual(@as(u32, 0), info.max_entries);
+    try std.testing.expectEqual(@as(u32, 0x40), info.map_flags);
+}
+
+test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
     try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_type:\t3\n" ++
             "key_size:\t4\n" ++
