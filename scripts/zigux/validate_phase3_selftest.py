@@ -229,9 +229,27 @@ def run_self_test() -> int:
         (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
             'test "phase3 low-level wrappers stay inside the documented ABI surface" {\n'
             "    _ = .{\n"
+            "        atomic.fetchSub(u32, &value, 4, .seq_cst),\n"
+            "        atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst),\n"
             "        atomic.fetchOr(u32, &value, 0b1000, .seq_cst),\n"
             "        atomic.fetchAnd(u32, &value, 0b0111, .seq_cst),\n"
             "        atomic.fetchXor(u32, &value, 0b1111, .seq_cst),\n"
+            "    };\n"
+            "}\n"
+            'test "phase3 low-level wrapper ABI range shape stays stable" {\n'
+            "    _ = .{\n"
+            "        barrier.acquire(),\n"
+            "        barrier.release(),\n"
+            "        barrier.full(),\n"
+            "        desc = mmio.range(base, 12, 4),\n"
+            "        mmio.write16(base, 2, 0xabcd),\n"
+            "        mmio.read16(base, 2),\n"
+            "        mmio.write32(base, 8, 0x12345678),\n"
+            "        mmio.read32(base, 8),\n"
+            "        mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef),\n"
+            "        mmio.read16Scoped(.volatile_mmio, base, 0),\n"
+            "        mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd),\n"
+            "        mmio.read32Scoped(.volatile_mmio, base, 4),\n"
             "    };\n"
             "}\n"
             'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit" {}\n',
