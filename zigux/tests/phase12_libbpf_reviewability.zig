@@ -5,6 +5,8 @@ const file_path_handle_bridge = @import("file_path_handle_bridge");
 const logging = @import("logging");
 const pin_path = @import("pin_path");
 
+const linux_errno = std.os.linux.E;
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -158,11 +160,33 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         "/proc/321/fdinfo/7",
         try file_path_handle_bridge.buildFdinfoPath(&fdinfo_path_buffer, 321, 7),
     );
+    const optional_missing_delegation = file_path_handle_bridge.classifyTokenPreparationFailure(
+        file_path_handle_bridge.planTokenPreparation(null),
+        .token_create,
+        -@as(i32, @intFromEnum(linux_errno.NOENT)),
+    );
+    const mandatory_failure = file_path_handle_bridge.classifyTokenPreparationFailure(
+        file_path_handle_bridge.planTokenPreparation("/custom/bpffs"),
+        .bpffs_open,
+        -@as(i32, @intFromEnum(linux_errno.ACCES)),
+    );
     try std.testing.expectEqualStrings("v1.8", logging.libbpfVersionString());
     try std.testing.expectEqualStrings(
         "Internal error in libbpf",
         try logging.formatErrorString(&error_buffer, -4004),
     );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationFailureDisposition.skip_optional_missing_delegation,
+        optional_missing_delegation.disposition,
+    );
+    try std.testing.expect(optional_missing_delegation.shouldContinueWithoutToken());
+    try std.testing.expectEqualStrings("", optional_missing_delegation.message_suffix);
+    try std.testing.expectEqual(
+        file_path_handle_bridge.TokenPreparationFailureDisposition.fail,
+        mandatory_failure.disposition,
+    );
+    try std.testing.expect(!mandatory_failure.shouldContinueWithoutToken());
+    try std.testing.expectEqualStrings("", mandatory_failure.message_suffix);
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/demo_map",
         try pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, null, "demo.map"),
