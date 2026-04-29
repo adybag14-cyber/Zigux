@@ -19,6 +19,18 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+fn expectedReplayFocus() [7][]const u8 {
+    return .{
+        "bounded_fifo_order",
+        "wraparound_requeue",
+        "peek_and_skip",
+        "non_destructive_snapshot",
+        "preview_truncation",
+        "reset_and_replay",
+        "ownership_and_lifetime",
+    };
+}
+
 test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -31,10 +43,19 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const sample_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/bytestream_fifo.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_source);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const expected_focus = expectedReplayFocus();
     try std.testing.expectEqualStrings("P5-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
@@ -168,8 +189,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "checked-focus-list")) {
             saw_focus_list = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "exactly seven focus areas") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "preview_truncation") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
+            for (expected_focus) |focus_name| {
+                try std.testing.expect(std.mem.indexOf(u8, check.expected, focus_name) != null);
+                try std.testing.expect(std.mem.indexOf(u8, sample_source, focus_name) != null);
+            }
         }
         if (std.mem.eql(u8, check.id, "lifecycle-guards-and-counters")) {
             saw_lifecycle_guards = true;
@@ -262,6 +285,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "capacity ceiling") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "outside the main replay path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "exactly seven review-focus areas") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`preview_truncation`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);
