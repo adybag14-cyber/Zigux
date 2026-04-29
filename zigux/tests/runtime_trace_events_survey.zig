@@ -111,7 +111,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 5);
     try std.testing.expectEqual(@as(usize, 7), manifest.non_goals.len);
 
@@ -124,6 +124,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var saw_ownership_prompt = false;
     var saw_descriptor_contract = false;
     var saw_summary_surface = false;
+    var saw_summary_run_counters = false;
     var saw_main_payload_surface = false;
     var saw_function_balance = false;
     var saw_selftest_family_order = false;
@@ -218,6 +219,14 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("summary_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "RuntimeTraceEventsSummary") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "explicit main-thread and function-thread event totals") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "replay run counters") != null);
+        }
+        if (std.mem.eql(u8, check.id, "summary-run-counters")) {
+            saw_summary_run_counters = true;
+            try std.testing.expectEqualStrings("observability_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "init_runs") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest_runs") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "exit_runs") != null);
         }
         if (std.mem.eql(u8, check.id, "main-thread-payload-surface")) {
             saw_main_payload_surface = true;
@@ -331,6 +340,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(saw_freeze_map_catalog);
     try std.testing.expect(saw_descriptor_contract);
     try std.testing.expect(saw_summary_surface);
+    try std.testing.expect(saw_summary_run_counters);
     try std.testing.expect(saw_main_payload_surface);
     try std.testing.expect(saw_function_balance);
     try std.testing.expect(saw_selftest_family_order);
@@ -369,6 +379,9 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit per-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "explicit main-thread and function-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`init_runs`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`selftest_runs`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "array-shape replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "latest bounded main-thread and function-thread payload literals") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-trace-events-sample-tests") != null);
@@ -393,6 +406,9 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`selftest_runs`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "`exit_runs`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit per-thread event-total") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "array-shape replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "latest bounded main-thread and function-thread payload literals") != null);
