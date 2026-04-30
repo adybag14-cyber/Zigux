@@ -138,6 +138,10 @@ fn isMalformedQuotedString(raw_value: []const u8) bool {
     return (raw_value[0] == '"') != (raw_value[raw_value.len - 1] == '"');
 }
 
+fn hasEmptyConfigSymbolName(name: []const u8) bool {
+    return name.len == "CONFIG_".len;
+}
+
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
     errdefer entries.deinit(allocator);
@@ -152,6 +156,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         if (std.mem.startsWith(u8, line, "# CONFIG_") and std.mem.endsWith(u8, line, " is not set")) {
             const name = line[2 .. line.len - " is not set".len];
+            if (hasEmptyConfigSymbolName(name)) continue;
             if (findEntryIndex(entries.items, name)) |index| {
                 decrementCounts(entries.items[index].kind, &set_count, &unset_count);
                 allocator.free(entries.items[index].value);
@@ -172,6 +177,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         const eq_index = std.mem.indexOfScalar(u8, line, '=') orelse continue;
         const name = line[0..eq_index];
+        if (hasEmptyConfigSymbolName(name)) continue;
         const raw_value = line[eq_index + 1 ..];
 
         // Match upstream confdata's invalid-string handling closely enough for the
@@ -519,6 +525,28 @@ test "confdata bridge ignores non-CONFIG lines" {
     try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
     try std.testing.expectEqualStrings("CONFIG_NAME", summary.entries[1].name);
     try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[2].name);
+}
+
+test "confdata bridge skips entries with empty symbol names" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_=y
+        \\# CONFIG_ is not set
+        \\CONFIG_VALID=m
+        \\# CONFIG_OTHER is not set
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_VALID", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("m", summary.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_OTHER", summary.entries[1].name);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("n", summary.entries[1].value);
 }
 
 test "confdata bridge distinguishes integer, hex, and fallback scalar values" {
