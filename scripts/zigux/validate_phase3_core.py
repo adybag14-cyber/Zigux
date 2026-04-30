@@ -48,6 +48,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate_phase3_core.py",
+    "scripts/zigux/validate_phase3_selftest.py",
 )
 ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header",
