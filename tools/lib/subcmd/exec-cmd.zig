@@ -431,11 +431,22 @@ test "extractArgv0Path splits command names from directory prefixes" {
     try std.testing.expectEqualStrings("/tmp", extracted.argv0_path.?);
     try std.testing.expectEqualStrings("perf", extracted.command_name);
 
+    var directory_only = (try extractArgv0Path(std.testing.allocator, "/tmp/")) orelse unreachable;
+    defer directory_only.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/tmp", directory_only.argv0_path.?);
+    try std.testing.expectEqualStrings("", directory_only.command_name);
+
     var root = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
     defer root.deinit(std.testing.allocator);
     try std.testing.expect(root.argv0_path != null);
     try std.testing.expectEqual(@as(usize, 0), root.argv0_path.?.len);
     try std.testing.expectEqualStrings("perf", root.command_name);
+
+    var root_directory_only = (try extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
+    defer root_directory_only.deinit(std.testing.allocator);
+    try std.testing.expect(root_directory_only.argv0_path != null);
+    try std.testing.expectEqual(@as(usize, 0), root_directory_only.argv0_path.?.len);
+    try std.testing.expectEqualStrings("", root_directory_only.command_name);
 
     var bare = (try extractArgv0Path(std.testing.allocator, "perf")) orelse unreachable;
     defer bare.deinit(std.testing.allocator);
