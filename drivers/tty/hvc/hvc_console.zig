@@ -90,6 +90,30 @@ pub const CloseBoundarySnapshot = struct {
     tty_registration_pending: bool,
 };
 
+pub const CloseTeardownRequest = struct {
+    close: CloseRequest = .{},
+    hupcl: bool = false,
+    dtr_rts_present: bool = false,
+    notifier_del_present: bool = false,
+};
+
+pub const CloseTeardownSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    final_close: bool,
+    close_skipped: bool,
+    tty_detached: bool,
+    dtr_rts_drop_requested: bool,
+    notifier_del_pending: bool,
+    cancel_resize_pending: bool,
+    wait_until_sent_required: bool,
+    close_wait_hz_divisor: usize,
+    clears_port_initialized: bool,
+    keeps_console_binding: bool,
+};
+
 pub const TtyRegistrationHandoffSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -398,6 +422,31 @@ pub const HvcConsoleLab = struct {
             .khvcd_polling_pending = true,
             .notifier_callbacks_pending = true,
             .host_io_pending = true,
+        };
+    }
+
+    pub fn summarizeCloseTeardown(
+        self: *const Self,
+        request: CloseTeardownRequest,
+    ) !CloseTeardownSnapshot {
+        const close = try self.summarizeCloseBoundary(request.close);
+        const teardown_active = close.final_close and close.port_initialized;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = close.slot_index,
+            .vtermno = close.vtermno,
+            .adapter_present = close.adapter_present,
+            .final_close = close.final_close,
+            .close_skipped = close.close_skipped,
+            .tty_detached = close.final_close and !close.close_skipped,
+            .dtr_rts_drop_requested = teardown_active and request.hupcl and request.dtr_rts_present,
+            .notifier_del_pending = teardown_active and request.notifier_del_present,
+            .cancel_resize_pending = teardown_active,
+            .wait_until_sent_required = teardown_active,
+            .close_wait_hz_divisor = close.close_wait_hz_divisor,
+            .clears_port_initialized = close.clears_port_initialized,
+            .keeps_console_binding = close.keeps_console_binding,
         };
     }
 
