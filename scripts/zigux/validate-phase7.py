@@ -222,6 +222,7 @@ def run_self_test() -> int:
             tmp_root,
             'zigux/tests/phase7_argv_split_survey.zig: try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
         )
+        argv_split_survey_path.write_text(original_argv_split_survey, encoding="utf-8")
 
         rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
@@ -238,9 +239,30 @@ def run_self_test() -> int:
             tmp_root,
             'zigux/tests/phase7_rbtree_survey.zig: try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);',
         )
+        rbtree_survey_path.write_text(original_rbtree_survey, encoding="utf-8")
+
+        phase7_build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
+        original_phase7_build = phase7_build_path.read_text(encoding="utf-8")
+        phase7_build_path.write_text(
+            original_phase7_build.replace(
+                "    test_step.dependOn(&run_rbtree_survey_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        result = run_validator(tmp_root, env=fake_make_env)
+        if result.returncode == 0:
+            raise SystemExit("phase7-self-test:dependency_edge_drift:unexpected_pass")
+        if "phase7-test-step: missing expected dependency edge" not in result.stdout:
+            actual = result.stdout.strip() or "none"
+            raise SystemExit(
+                "phase7-self-test:dependency_edge_drift:expected_dependency_failure:"
+                f"actual:{actual}"
+            )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -588,6 +610,17 @@ expected_phase7_run_cwds = {
     "phase7-rbtree-survey-tests": "repo_root",
 }
 
+expected_phase7_test_step_dependencies = {
+    "run_string_helpers_tests",
+    "run_cmdline_tests",
+    "run_cmdline_survey_tests",
+    "run_argv_split_tests",
+    "run_argv_split_survey_tests",
+    "run_string_helpers_survey_tests",
+    "run_rbtree_tests",
+    "run_rbtree_survey_tests",
+}
+
 unexpected_phase7_build_markers = [
     "../../tools/lib/",
     "zigux/tests/build.zig",
@@ -877,6 +910,23 @@ if actual_run_cwds != expected_phase7_run_cwds:
         if label not in expected_phase7_run_cwds:
             print(f"{label}: unexpected={actual_run_cwds[label]}")
     print("PHASE7_BUILD_CWD_DRIFT_END")
+    sys.exit(1)
+
+actual_test_step_dependencies = set(
+    re.findall(r"test_step\.dependOn\(&(\w+)\.step\);", phase7_build)
+)
+if actual_test_step_dependencies != expected_phase7_test_step_dependencies:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_BUILD_DEPENDENCY_DRIFT_START")
+    for dependency in sorted(
+        expected_phase7_test_step_dependencies - actual_test_step_dependencies
+    ):
+        print(f"phase7-test-step: missing expected dependency edge {dependency}")
+    for dependency in sorted(
+        actual_test_step_dependencies - expected_phase7_test_step_dependencies
+    ):
+        print(f"phase7-test-step: unexpected dependency edge {dependency}")
+    print("PHASE7_BUILD_DEPENDENCY_DRIFT_END")
     sys.exit(1)
 
 unexpected_build_hits = [
