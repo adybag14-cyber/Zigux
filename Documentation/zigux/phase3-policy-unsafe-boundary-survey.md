@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=f26523884cad04fbc73c7c411cf9056a27719503`
+- `PHASE3_SURVEYED_COMMIT=1b7f8a5d18afad9da90c394d6d6d99c2ca45fc64`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -39,7 +39,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `f26523884cad04fbc73c7c411cf9056a27719503` for the directly coupled policy-and-unsafe packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` head `1b7f8a5d18afad9da90c394d6d6d99c2ca45fc64` for the directly coupled policy-and-unsafe packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
