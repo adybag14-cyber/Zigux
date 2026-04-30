@@ -299,6 +299,8 @@ required_loader_gap_manifest_markers = [
 
 required_atomic64_survey_markers = [
     "manifest-backed delivery catalog and ownership map",
+    "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
+    "the current survey packet is pinned to `master` commit `5dab7ee45d2664801211fb9e2ccba28e1a127071`",
     "Delivery ownership map",
     "zigux/tests/runtime_atomic64_manifest.json",
     "zigux/tests/runtime_atomic64_survey.zig",
@@ -340,6 +342,7 @@ required_atomic64_manifest_markers = [
 required_atomic64_survey_test_markers = [
     'const DeliveryEvidence = struct {',
     'const OwnershipEntry = struct {',
+    'const surveyed_commit = "5dab7ee45d2664801211fb9e2ccba28e1a127071";',
     'manifest.delivery_evidence_catalog.len',
     'manifest.ownership_map.len',
     'std.mem.eql(u8, entry.id, "runtime-atomic64-manifest")',
@@ -349,6 +352,7 @@ required_atomic64_survey_test_markers = [
     'std.mem.eql(u8, entry.surface, "samples/zigux/runtime_atomic64.zig")',
     'std.mem.indexOf(u8, entry.role, "ownership map")',
     'std.mem.indexOf(u8, entry.owns, "argv-policy")',
+    'std.mem.indexOf(u8, survey_doc, surveyed_commit) != null',
     'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
 ]
 
