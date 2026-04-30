@@ -54,6 +54,7 @@ The current tests check:
 
 - repeated-whitespace collapsing into distinct argv entries
 - blank-input handling
+- leading-NUL truncation to zero argv entries before any later bytes are considered
 - first-NUL stop behavior for both `count_argc()` and `argv_split()`
 - strict non-goal behavior where quote characters stay inside the returned tokens
 - null-terminated pointer-vector access through `cArgv()`
@@ -61,6 +62,7 @@ The current tests check:
 - optional argc reporting that stays in sync with the returned argv length
 - the explicit `argv_free()` ownership mirror through `argvFree()` over an already-split result object
 - blank-input reuse of the exported empty argv view under a four-byte fixed-buffer allocator
+- repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing
 - teardown cleanup that clears the exported storage handle alongside the argv views after `ArgvSplitResult.deinit()`
 - repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state
 - allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests
