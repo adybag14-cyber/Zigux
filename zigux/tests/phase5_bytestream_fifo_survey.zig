@@ -248,7 +248,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_preview_prefix);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_preview_truncation);
-    try std.testing.expect(saw_queue_only_reset);
+    try std.testing.expect(saw_queue_ONLY_RESET);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(saw_lifecycle_guards);
@@ -280,7 +280,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(readme);
 
@@ -288,7 +288,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(samples_readme);
 
@@ -296,7 +296,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
