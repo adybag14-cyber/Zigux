@@ -1,10 +1,10 @@
 {
-  "lane_key": "P5-L11",
+  "lane_key": "P5-L09",
   "phase": "Phase 5",
-  "surveyed_commit": "d9a76f93ff1ad1fe97ba899a4e1667206e44064a",
+  "surveyed_commit": "0f512415f8c7d0c844861139648eacb96d727a56",
   "anchor": "samples/kobject/kobject-example.c",
   "sample_path": "samples/zigux/kobject_example.zig",
-  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+  "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_kobject_only_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact registration, single register_runs ownership claim, Linux foo/baz/bar attribute order, shared 0664 attribute mode pattern, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
