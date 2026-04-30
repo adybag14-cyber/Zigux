@@ -92,10 +92,19 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/helpers/panic_policy.zig": (
         "pub fn actionFor(mode: abi.PanicMode) Action {",
+        "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode {",
+        "pub fn recognizesInteropPolicyByte(panic_mode: u8) bool {",
+        "pub fn canReturnPolicyByte(panic_mode: u8) bool {",
         'test "phase3 panic policy stays explicit"',
     ),
     "zigux/helpers/allocator_policy.zig": (
         "pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {",
+        "pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode {",
+        "pub fn recognizesInteropPolicyByte(allocator_mode: u8) bool {",
+        "pub fn requiresExplicitCallerPolicyByte(allocator_mode: u8) bool {",
+        "pub fn permitsGlobalFallbackPolicyByte(allocator_mode: u8) bool {",
+        "pub fn initializesOwnedStatePolicyByte(allocator_mode: u8) bool {",
+        "pub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool {",
         'test "phase3 allocator policy stays explicit"',
     ),
     "zigux/helpers/interop_policy.zig": (
@@ -148,6 +157,9 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
+        "panic_policy.canReturnPolicyByte(@intFromEnum(abi.PanicMode.warn))",
+        "allocator_policy.permitsGlobalFallbackPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap))",
+        "allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena))",
         'test "phase3 policy decoder validates the whole interop record"',
         'test "phase3 policy decoder rejects partial or reserved policy bytes"',
         'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
