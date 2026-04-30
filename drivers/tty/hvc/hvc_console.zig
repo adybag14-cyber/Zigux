@@ -313,6 +313,24 @@ pub const RemoveHandoffSnapshot = struct {
     teardown_deferred_to_hangup: bool,
 };
 
+pub const CleanupHandoffRequest = struct {
+    close_skipped: bool = false,
+    final_close: bool = true,
+};
+
+pub const CleanupHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    close_skipped: bool,
+    final_close: bool,
+    tty_port_put_requested: bool,
+    drops_tty_port_reference: bool,
+    defers_final_release_to_port_destruct: bool,
+    keeps_console_binding: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -687,6 +705,27 @@ pub const HvcConsoleLab = struct {
             .tty_vhangup_requested = request.tty_attached,
             .tty_kref_put_after_vhangup = request.tty_attached,
             .teardown_deferred_to_hangup = request.tty_attached,
+        };
+    }
+
+    pub fn summarizeCleanupHandoff(
+        self: *const Self,
+        request: CleanupHandoffRequest,
+    ) !CleanupHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .close_skipped = request.close_skipped,
+            .final_close = request.final_close,
+            .tty_port_put_requested = true,
+            .drops_tty_port_reference = true,
+            .defers_final_release_to_port_destruct = true,
+            .keeps_console_binding = true,
         };
     }
 
