@@ -27,6 +27,9 @@ REQUIRED_SURVEY_MARKERS = (
 )
 
 REQUIRED_SURVEY_PATHS = (
+    "include/zigux/abi.h",
+    "zigux/bindings/abi.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/helpers/bitmap_view.zig",
@@ -38,6 +41,12 @@ REQUIRED_SURVEY_PATHS = (
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
+)
+
+RBTREE_FREE_BOUNDARY_PATHS = (
+    "include/zigux/abi.h",
+    "zigux/bindings/abi.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
 DISALLOWED_PHASE3_RBTREE_PATH_PATTERNS = (
@@ -96,6 +105,11 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_repo_path:{rel}")
 
+    for rel in RBTREE_FREE_BOUNDARY_PATHS:
+        text = _read_text(root, rel, issues)
+        if text and "rbtree" in text.lower():
+            issues.append(f"stale_rbtree_gap_claim_in_boundary:{rel}")
+
     for base_rel, needle in DISALLOWED_PHASE3_RBTREE_PATH_PATTERNS:
         for rel in _find_matching_relpaths(root, base_rel, needle):
             issues.append(f"stale_rbtree_gap_claim:{rel}")
@@ -145,6 +159,12 @@ def run_self_test() -> int:
         stale_phase3_doc.write_text("# stale\n", encoding="utf-8")
         issues = validate(root)
         assert "stale_rbtree_gap_claim:Documentation/zigux/phase3-rbtree-slice.md" in issues
+        stale_phase3_doc.unlink()
+
+        abi_header = root / "include" / "zigux" / "abi.h"
+        abi_header.write_text("// rbtree drift\n", encoding="utf-8")
+        issues = validate(root)
+        assert "stale_rbtree_gap_claim_in_boundary:include/zigux/abi.h" in issues
 
     print("PHASE3_ROADMAP_GAP_SURVEY_SELF_TEST=pass")
     return 0
