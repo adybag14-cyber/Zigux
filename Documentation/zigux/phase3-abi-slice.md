@@ -115,9 +115,9 @@ Whole-policy decode policy:
 
 Unsafe policy:
 - raw pointer and volatile access stay inside `zigux/unsafe/narrow.zig` and `zigux/helpers/mmio.zig`
-- `zigux/unsafe/narrow.zig` now mirrors that boundary with a local `UnsafeScopeTag` for `none`, `volatile_mmio`, and `raw_pointer_bridge`, plus explicit permit helpers, alignment checks on scoped entry points, and Zig tests
+- `zigux/unsafe/narrow.zig` now mirrors that boundary with a local `UnsafeScopeTag` for `none`, `volatile_mmio`, and `raw_pointer_bridge`, plus explicit permit helpers, overflow-checked byte and span math, alignment checks on scoped entry points, and Zig tests
 - new unsafe entry points must be justified and reviewed as boundary expansion
-- focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
+- focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, overflow rejection, and declared-scope enforcement aligned on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
 - the validator self-test now proves that removing the narrow-unsafe misalignment guard marker fails the focused Phase 3 source audit before broader ABI replay runs
 
 Low-level wrapper survey:
