@@ -6,7 +6,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`
-- `PHASE13_SURVEYED_COMMIT=b967ad6bc0f58c912232df1249217f0dbff9389f`
+- `PHASE13_SURVEYED_COMMIT=10d0915b81c307b48c93c49f6e54ba43d8ad8704`
 - scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-only iomap/mmio safety surface and explicit DMA/scatterlist blockers pinned to the current repo state
 - product boundary:
   - `lib/devres.zig`
@@ -19,10 +19,10 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `b967ad6bc0f58c912232df1249217f0dbff9389f`
+- reviewed against live `master` `10d0915b81c307b48c93c49f6e54ba43d8ad8704`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
-- compared against the earlier surveyed head `26e5f8101d3546c7942c93757ecc3fdfaa6ee264`, the current helper packet now advances by adding the direct non-posted managed wrapper instead of staying byte-for-byte unchanged; the refreshed `lib/devres.zig` helper surface now hashes to `sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda`
-- compared against that same earlier surveyed head, the refreshed dedicated `zigux/tests/phase13_devres.zig` replay now hashes to `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476` because the focused Phase 13 replay now covers the direct non-posted wrapper too
+- compared against the earlier surveyed head `b967ad6bc0f58c912232df1249217f0dbff9389f`, the current helper packet stays byte-for-byte unchanged; `lib/devres.zig` still hashes to `sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda`
+- compared against that same earlier surveyed head, the dedicated `zigux/tests/phase13_devres.zig` replay also stays byte-for-byte unchanged and still hashes to `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476`
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
 - a direct token scan of current `lib/devres.zig` finds only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers and no `dmam_alloc_coherent`, `dmam_free_coherent`, `dma_map_resource`, `dma_unmap_resource`, `dma_map_sgtable`, `struct scatterlist`, or `sg_table` helper entrypoints
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
