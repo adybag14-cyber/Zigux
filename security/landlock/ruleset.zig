@@ -250,14 +250,48 @@ pub const RulesetHelperLab = struct {
         return true;
     }
 
-    fn makeRulePlan(base_layers: []const Layer, appended_layer: ?Layer) !RulePlan {
-        if (base_layers.len == 0) {
+    fn validateRuleLayers(rule_layers: []const Layer) !void {
+        if (rule_layers.len == 0) {
             return error.MissingLayers;
         }
+
+        if (rule_layers[0].level == 0) {
+            if (rule_layers.len != 1) {
+                return error.InvalidLayerShape;
+            }
+            return;
+        }
+
+        var previous_level: u16 = 0;
+        for (rule_layers) |layer| {
+            if (layer.level == 0 or layer.level > max_num_layers) {
+                return error.InvalidLayer;
+            }
+            if (layer.level <= previous_level) {
+                return error.InvalidLayerShape;
+            }
+            previous_level = layer.level;
+        }
+    }
+
+    fn makeRulePlan(base_layers: []const Layer, appended_layer: ?Layer) !RulePlan {
+        try validateRuleLayers(base_layers);
         const extra_layers: usize = if (appended_layer == null) 0 else 1;
         const resulting_num_layers = base_layers.len + extra_layers;
         if (resulting_num_layers > max_num_layers) {
             return error.TooManyLayers;
+        }
+
+        if (appended_layer) |layer| {
+            if (base_layers[0].level == 0) {
+                return error.InvalidLayerShape;
+            }
+            if (layer.level == 0 or layer.level > max_num_layers) {
+                return error.InvalidLayer;
+            }
+            if (layer.level <= base_layers[base_layers.len - 1].level) {
+                return error.InvalidLayerShape;
+            }
         }
 
         var copied = RulePlan{

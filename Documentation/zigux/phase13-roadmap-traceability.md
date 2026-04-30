@@ -20,7 +20,6 @@ Recommended Zigux destinations:
 Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
-- `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
 
 ## Anchor-to-repo map
 
@@ -54,19 +53,13 @@ Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
-- manifest `surveyed_commit`: `c2e6f75f05a6f935d21d06d21494d71883a5fa49`
-- shared build entry: `zigux/tests/phase13_build.zig`
-- slice note: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- slice notes: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 
 Current lane state recorded in the manifest:
-- landed `phase13-landlock-ruleset-starter`
-- landed `phase13-landlock-rule-layer-merge-followup`
-- landed `phase13-landlock-tree-search-followup`
-- landed `phase13-landlock-tree-link-followup`
 - landed `phase13-landlock-rule-materialization-followup`
 - landed `phase13-landlock-rule-release-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers helper-only ruleset creation planning, access-mask accounting, matching-rule insertion planning, no-match tree-link planning, and the bounded `phase13-landlock-rule-materialization-followup` plus `phase13-landlock-rule-release-followup` review packet while still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work remains explicitly out of scope.
+- this anchor stays helper-first and reviewable: the current ruleset helper lab now includes canonical layer-shape validation around `create_rule()`-style copied or appended layer stacks beside the earlier materialization and release planners, while the still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work remains outside this pure in-memory slice.
