@@ -8,9 +8,24 @@ ROOT = Path(__file__).resolve().parents[2]
 GENKSYMS_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
 KCONFIG_BRIDGE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge'
 FIXDEP_CASES = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json'
+PHASE2_TOOL_MANIFEST = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json'
+PHASE2_CROSS_TARGETS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json'
 CONF_BRIDGE = ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig'
 CHECK_KCONFIG_BRIDGE = ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py'
 GENKSYMS_BRIDGE_CASES = GENKSYMS_BRIDGE_DIR / 'cases.json'
+EXPECTED_PHASE2_TOOL_MANIFEST_TOOLS = [
+    'scripts/zigux/fixdep.zig',
+    'scripts/zigux/genksyms.zig',
+    'scripts/zigux/genksyms_crc.zig',
+    'scripts/zigux/mk_elfconfig.zig',
+    'scripts/zigux/kconfig/conf_bridge.zig',
+    'scripts/zigux/kconfig/confdata_bridge.zig',
+]
+EXPECTED_PHASE2_CROSS_TARGETS = [
+    'x86_64-linux-musl',
+    'aarch64-linux-musl',
+    'riscv64-linux-musl',
+]
 
 
 def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -685,6 +700,52 @@ def validate_artifact_diff_contract_gate(checker_script: Path) -> list[str]:
             issues.append(f'artifact_diff_contract:{issue_name}')
     return issues
 
+
+def validate_phase2_tooling_manifests(tool_manifest_path: Path, cross_targets_path: Path) -> list[str]:
+    issues: list[str] = []
+
+    tool_manifest = json.loads(tool_manifest_path.read_text(encoding='utf-8'))
+    if not isinstance(tool_manifest, dict):
+        issues.append('phase2_tool_manifest:expected_object')
+    else:
+        if tool_manifest.get('phase') != 'Phase 2':
+            issues.append(f"phase2_tool_manifest:phase={tool_manifest.get('phase')!r},expected='Phase 2'")
+        if tool_manifest.get('status') != 'closed':
+            issues.append(f"phase2_tool_manifest:status={tool_manifest.get('status')!r},expected='closed'")
+        tools = tool_manifest.get('tools')
+        if not isinstance(tools, list):
+            issues.append('phase2_tool_manifest:tools:expected_list')
+        else:
+            if tool_manifest.get('tool_count') != len(EXPECTED_PHASE2_TOOL_MANIFEST_TOOLS):
+                issues.append(
+                    'phase2_tool_manifest:tool_count='
+                    f"{tool_manifest.get('tool_count')!r},expected={len(EXPECTED_PHASE2_TOOL_MANIFEST_TOOLS)}"
+                )
+            if tools != EXPECTED_PHASE2_TOOL_MANIFEST_TOOLS:
+                issues.append('phase2_tool_manifest:tools=expected_exact_phase2_tool_list')
+
+    cross_targets = json.loads(cross_targets_path.read_text(encoding='utf-8'))
+    if not isinstance(cross_targets, dict):
+        issues.append('phase2_cross_targets:expected_object')
+    else:
+        if cross_targets.get('phase') != 'Phase 2':
+            issues.append(f"phase2_cross_targets:phase={cross_targets.get('phase')!r},expected='Phase 2'")
+        if cross_targets.get('status') != 'closed':
+            issues.append(f"phase2_cross_targets:status={cross_targets.get('status')!r},expected='closed'")
+        targets = cross_targets.get('targets')
+        if not isinstance(targets, list):
+            issues.append('phase2_cross_targets:targets:expected_list')
+        else:
+            if cross_targets.get('target_count') != len(EXPECTED_PHASE2_CROSS_TARGETS):
+                issues.append(
+                    'phase2_cross_targets:target_count='
+                    f"{cross_targets.get('target_count')!r},expected={len(EXPECTED_PHASE2_CROSS_TARGETS)}"
+                )
+            if targets != EXPECTED_PHASE2_CROSS_TARGETS:
+                issues.append('phase2_cross_targets:targets=expected_exact_phase2_cross_target_list')
+
+    return issues
+
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
@@ -700,6 +761,8 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
+    PHASE2_TOOL_MANIFEST,
+    PHASE2_CROSS_TARGETS,
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample.d',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample.c',
@@ -816,6 +879,18 @@ if artifact_diff_contract_issues:
     for item in artifact_diff_contract_issues:
         print(item)
     print('MISSING_PHASE2_ARTIFACT_DIFF_GATES_END')
+    sys.exit(1)
+
+phase2_tooling_manifest_issues = validate_phase2_tooling_manifests(
+    PHASE2_TOOL_MANIFEST,
+    PHASE2_CROSS_TARGETS,
+)
+if phase2_tooling_manifest_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_TOOLING_MANIFEST_GATES_START')
+    for item in phase2_tooling_manifest_issues:
+        print(item)
+    print('MISSING_PHASE2_TOOLING_MANIFEST_GATES_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
