@@ -84,7 +84,6 @@ const ValidateExtraArgError = error{
     MissingModeArg,
     UnexpectedModeArg,
     EmptyModeArg,
-    EmptyAllConfig,
 };
 
 const ParseRequestArgsError = ValidateExtraArgError || error{
@@ -163,11 +162,6 @@ fn validateExtraArg(mode: Mode, extra_arg: ?[]const u8) ValidateExtraArgError!vo
     }
 
     if (supportsAllConfig(mode)) {
-        if (extra_arg) |allconfig| {
-            if (allconfig.len == 0) {
-                return error.EmptyAllConfig;
-            }
-        }
         return;
     }
 
@@ -240,13 +234,6 @@ pub fn main(init: std.process.Init) !void {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
             try stderr_writer.interface.writeAll("Error: mode argument must not be empty\n");
-            try stderr_writer.interface.flush();
-            std.process.exit(1);
-        },
-        error.EmptyAllConfig => {
-            var stderr_buffer: [160]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll("Error: allconfig path must not be empty\n");
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
@@ -661,6 +648,7 @@ test "conf bridge rejects mode arg for non-argument modes" {
 test "conf bridge accepts valid mode arg combinations" {
     try validateExtraArg(.defconfig, "arch/arm64/configs/defconfig");
     try validateExtraArg(.savedefconfig, "arch/arm64/configs/minimal_defconfig");
+    try validateExtraArg(.allnoconfig, "");
     try validateExtraArg(.allnoconfig, "arch/arm64/configs/all.config");
     try validateExtraArg(.oldconfig, null);
 }
@@ -668,8 +656,6 @@ test "conf bridge accepts valid mode arg combinations" {
 test "conf bridge rejects empty extra arguments" {
     try std.testing.expectError(error.EmptyModeArg, validateExtraArg(.defconfig, ""));
     try std.testing.expectError(error.EmptyModeArg, validateExtraArg(.savedefconfig, ""));
-    try std.testing.expectError(error.EmptyAllConfig, validateExtraArg(.allnoconfig, ""));
-    try std.testing.expectError(error.EmptyAllConfig, validateExtraArg(.randconfig, ""));
 }
 
 test "conf bridge defaults to oldaskconfig when mode is omitted" {
@@ -887,4 +873,41 @@ test "conf bridge escapes low control bytes in argv and env values" {
     try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x0c') == null);
     try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x1d') == null);
     try std.testing.expect(std.mem.indexOfScalar(u8, capture.list.items, '\x1f') == null);
+}
+
+test "conf bridge preserves empty KCONFIG_ALLCONFIG for default seed lookup" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 176), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allnoconfig,
+        .kconfig = "Kconfig",
+        .config = "none/.config",
+        .arch = "arm64",
+        .allconfig = "",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--allnoconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 }
