@@ -326,6 +326,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "One ring to rule them all") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "counts `0` through `4`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-string slot `2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "main iteration `7`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "function-callback iteration `9`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "payload length `2`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`lifecycleSummary()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "private field access") != null);
