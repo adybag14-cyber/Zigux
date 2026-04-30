@@ -222,6 +222,7 @@ manifest_expectations = {
             "second-drain-and-requeue",
             "transfer-count-contract",
             "skip-and-peek",
+            "wrapped-preview-prefix",
             "snapshot-before-final-drain",
             "fill-to-capacity",
             "final-drain-sequence",
@@ -236,11 +237,11 @@ manifest_expectations = {
         ],
     },
     "phase5_kobject_example_manifest.json": {
-        "lane_key": "P5-L09",
+        "lane_key": "P5-L10",
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
-        "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_kobject_only_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
+        "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
         "non_goals": [
             "sysfs file creation parity",
             "kernel_kobj integration",
@@ -262,11 +263,11 @@ manifest_expectations = {
         ],
     },
     "phase5_kretprobe_example_manifest.json": {
-        "lane_key": "P5-L17",
+        "lane_key": "P5-L22",
         "anchor": "samples/kprobes/kretprobe_example.c",
         "sample_path": "samples/zigux/kretprobe_example.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         "non_goals": [
             "register_kretprobe parity",
             "unregister_kretprobe parity",
@@ -287,11 +288,11 @@ manifest_expectations = {
         ],
     },
     "phase5_trace_events_sample_manifest.json": {
-        "lane_key": "P5-L13",
+        "lane_key": "P5-L24",
         "anchor": "samples/trace_events/trace-events-sample.c",
         "sample_path": "samples/zigux/trace_events_sample.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         "non_goals": [
             "CREATE_TRACE_POINTS parity",
             "tracepoint macro parity from trace-events-sample.h",
@@ -348,8 +349,7 @@ survey_note_expectations = {
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
             "phase5_build.zig",
-            "phase5_kobject_only_build.zig",
-            "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
+            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
         ],
     },
     "phase5_kretprobe_example_manifest.json": {
@@ -366,7 +366,7 @@ survey_note_expectations = {
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
             "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+            "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         ],
     },
     "phase5_trace_events_sample_manifest.json": {
@@ -383,7 +383,7 @@ survey_note_expectations = {
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
             "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+            "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
         ],
     },
 }
