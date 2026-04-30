@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "c2e6f75f05a6f935d21d06d21494d71883a5fa49";
+const current_surveyed_commit = "211c8a950500e9b79e4562506d26d677b33b0d8f";
 
 const SurveySummary = struct {
     libbpf_c_lines: usize,
