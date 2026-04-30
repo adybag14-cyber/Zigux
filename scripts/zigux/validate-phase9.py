@@ -423,6 +423,8 @@ required_kretprobe_survey_test_markers = [
 
 required_trace_events_survey_markers = [
     "Documentation/zigux/freeze-map.md",
+    "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+    "the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`.",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "Delivery ownership map",
@@ -440,6 +442,7 @@ required_trace_events_survey_markers = [
 
 required_trace_events_module_slice_markers = [
     "Documentation/zigux/freeze-map.md",
+    "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "runtime task ownership or event-loop substrate parity",
@@ -452,6 +455,7 @@ required_trace_events_module_slice_markers = [
 ]
 
 required_trace_events_manifest_markers = [
+    '"surveyed_commit": "',
     '"delivery_evidence_catalog": [',
     '"id": "runtime-trace-events-manifest"',
     '"path": "zigux/tests/runtime_trace_events_manifest.json"',
@@ -473,6 +477,7 @@ required_trace_events_manifest_markers = [
 required_trace_events_survey_test_markers = [
     'const DeliveryEvidence = struct {',
     'const OwnershipEntry = struct {',
+    'const surveyed_commit = "aa26a0ac29c7b690f8575c7b3004025df4716aaa";',
     'var saw_freeze_map_boundary = false;',
     'var saw_manifest_catalog = false;',
     'var saw_shared_build_catalog = false;',
@@ -480,6 +485,7 @@ required_trace_events_survey_test_markers = [
     'var saw_summary_run_counters = false;',
     'test "phase 9 runtime trace-events survey keeps the starter descriptor blocked on runtime substrate"',
     'const descriptor = sample.RuntimeTraceEventsSample.descriptor();',
+    'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
     'try std.testing.expectEqualStrings("runtime_trace_events", descriptor.name);',
     'try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", descriptor.anchor);',
     'try std.testing.expect(descriptor.requires_runtime_substrate);',
@@ -495,9 +501,12 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md")',
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
+    'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
+    'std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`")',
     'std.mem.indexOf(u8, survey_doc, "`init_runs`")',
     'std.mem.indexOf(u8, survey_doc, "`selftest_runs`")',
     'std.mem.indexOf(u8, survey_doc, "`exit_runs`")',
+    'std.mem.indexOf(u8, module_doc, surveyed_commit)',
     'std.mem.indexOf(u8, module_doc, "`init_runs`")',
     'std.mem.indexOf(u8, module_doc, "`selftest_runs`")',
     'std.mem.indexOf(u8, module_doc, "`exit_runs`")',
