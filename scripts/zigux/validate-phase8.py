@@ -76,12 +76,14 @@ phase8_type_names = (ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-s
 manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json").read_text(encoding="utf-8")
 phase8_libbpf_segments_test = (ROOT / "zigux" / "tests" / "phase8_libbpf_segments.zig").read_text(encoding="utf-8")
 phase8_bpf_type_names_test = (ROOT / "zigux" / "tests" / "phase8_bpf_type_names.zig").read_text(encoding="utf-8")
+phase8_file_path_handle_bridge_test = (ROOT / "zigux" / "tests" / "phase8_file_path_handle_bridge.zig").read_text(encoding="utf-8")
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
 phase8_help_test = (ROOT / "zigux" / "tests" / "phase8_help.zig").read_text(encoding="utf-8")
 phase8_kallsyms_test = (ROOT / "zigux" / "tests" / "phase8_kallsyms.zig").read_text(encoding="utf-8")
 phase8_logging_test = (ROOT / "zigux" / "tests" / "phase8_logging.zig").read_text(encoding="utf-8")
 phase8_pin_path_test = (ROOT / "zigux" / "tests" / "phase8_pin_path.zig").read_text(encoding="utf-8")
 logging_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "logging.zig").read_text(encoding="utf-8")
+file_path_handle_bridge_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "file_path_handle_bridge.zig").read_text(encoding="utf-8")
 pin_path_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "pin_path.zig").read_text(encoding="utf-8")
 type_names_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "type_names.zig").read_text(encoding="utf-8")
 
@@ -335,9 +337,9 @@ required_exec_cmd_slice_markers = [
 ]
 
 required_phase8_exec_cmd_markers = [
-    'test "phase 8 exec-cmd docs keep the deferred execution boundary explicit"',
-    'test "phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned"',
-    'test "phase 8 exec-cmd evidence still matches the live C helper anchors"',
+    "test \"phase 8 exec-cmd docs keep the deferred execution boundary explicit\"",
+    "test \"phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned\"",
+    "test \"phase 8 exec-cmd evidence still matches the live C helper anchors\"",
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "tools/lib/subcmd/exec-cmd.c",
     "kernel/workqueue.c",
@@ -356,9 +358,9 @@ required_help_slice_markers = [
 ]
 
 required_phase8_help_markers = [
-    'test "phase 8 help docs keep the parked stable-output boundary explicit"',
-    'test "phase 8 help review checklist keeps the parked stable-output packet reviewable"',
-    'test "phase 8 help evidence still matches the live C helper anchors"',
+    "test \"phase 8 help docs keep the parked stable-output boundary explicit\"",
+    "test \"phase 8 help review checklist keeps the parked stable-output packet reviewable\"",
+    "test \"phase 8 help evidence still matches the live C helper anchors\"",
     "Documentation/zigux/phase8-help-slice.md",
     "Documentation/zigux/review-checklist.md",
     "tools/lib/subcmd/help.c",
@@ -378,9 +380,9 @@ required_kallsyms_slice_markers = [
 ]
 
 required_phase8_kallsyms_markers = [
-    'test "phase 8 kallsyms docs keep the parked parser boundary explicit"',
-    'test "phase 8 kallsyms review checklist keeps the parked parser packet reviewable"',
-    'test "phase 8 kallsyms evidence still matches the live C helper anchors"',
+    "test \"phase 8 kallsyms docs keep the parked parser boundary explicit\"",
+    "test \"phase 8 kallsyms review checklist keeps the parked parser packet reviewable\"",
+    "test \"phase 8 kallsyms evidence still matches the live C helper anchors\"",
     "Documentation/zigux/phase8-kallsyms-slice.md",
     "Documentation/zigux/review-checklist.md",
     "tools/lib/symbol/kallsyms.c",
@@ -408,20 +410,20 @@ required_logging_survey_markers = [
 ]
 
 required_phase8_logging_markers = [
-    'test "phase 8 logging segment keeps libbpf log-level parsing bounded and explicit"',
-    'test "phase 8 logging segment reports the bounded libbpf version helpers"',
-    'test "phase 8 logging segment keeps libbpf-specific error text stable"',
-    'logging.resolveMinPrintLevel("warn")',
+    "test \"phase 8 logging segment keeps libbpf log-level parsing bounded and explicit\"",
+    "test \"phase 8 logging segment reports the bounded libbpf version helpers\"",
+    "test \"phase 8 logging segment keeps libbpf-specific error text stable\"",
+    "logging.resolveMinPrintLevel(\"warn\")",
     "logging.libbpfVersionString()",
     "logging.libbpfCustomErrorMessage(4007).?",
 ]
 
 required_logging_helper_markers = [
-    'pub const libbpf_log_level_env_var = "LIBBPF_LOG_LEVEL";',
+    "pub const libbpf_log_level_env_var = \"LIBBPF_LOG_LEVEL\";",
     "pub fn resolveMinPrintLevel(env_value: ?[]const u8) ResolvedMinLevel {",
     "pub fn formatInvalidLogLevelWarning(",
-    'test "formatInvalidLogLevelWarning matches libbpf\'s explicit invalid envvar guidance"',
-    'test "formatInvalidLogLevelWarning keeps buffer exhaustion explicit"',
+    "test \"formatInvalidLogLevelWarning matches libbpf's explicit invalid envvar guidance\"",
+    "test \"formatInvalidLogLevelWarning keeps buffer exhaustion explicit\"",
 ]
 
 required_pin_path_survey_markers = [
@@ -431,21 +433,45 @@ required_pin_path_survey_markers = [
 ]
 
 required_phase8_pin_path_markers = [
-    'test "phase 8 pin-path segment keeps map-path joining bounded and explicit"',
-    'test "phase 8 pin-path segment sanitizes dots the same way bpffs pin names do"',
-    'test "phase 8 pin-path segment keeps validation and path-shape checks bounded"',
-    'test "phase 8 pin-path segment keeps overflow failures explicit"',
-    'test "phase 8 pin-path segment resolves stored versus requested pin paths"',
-    'test "phase 8 pin-path segment resolves stored versus requested unpin paths"',
+    "test \"phase 8 pin-path segment keeps map-path joining bounded and explicit\"",
+    "test \"phase 8 pin-path segment sanitizes dots the same way bpffs pin names do\"",
+    "test \"phase 8 pin-path segment keeps validation and path-shape checks bounded\"",
+    "test \"phase 8 pin-path segment keeps overflow failures explicit\"",
+    "test \"phase 8 pin-path segment resolves stored versus requested pin paths\"",
+    "test \"phase 8 pin-path segment resolves stored versus requested unpin paths\"",
 ]
 
 required_pin_path_helper_markers = [
-    'pub const default_bpf_fs_path = "/sys/fs/bpf";',
+    "pub const default_bpf_fs_path = \"/sys/fs/bpf\";",
     "pub fn buildValidatedSanitizedMapPinPath(buffer: []u8, root_path: ?[]const u8, map_name: []const u8) PinPathError![]u8 {",
     "pub fn resolveMapPinRequest(",
     "pub fn resolveMapUnpinRequest(",
-    'test "pin-path helpers resolve stored and requested map pin paths without widening into syscalls"',
-    'test "pin-path helpers resolve stored and requested unpin paths explicitly"',
+    "test \"pin-path helpers resolve stored and requested map pin paths without widening into syscalls\"",
+    "test \"pin-path helpers resolve stored and requested unpin paths explicitly\"",
+]
+
+required_phase8_file_path_handle_bridge_markers = [
+    "test \"phase 8 file-path-handle bridge builds proc fdinfo paths without widening into io\"",
+    "test \"phase 8 file-path-handle bridge keeps the current-process fdinfo helper aligned\"",
+    "test \"phase 8 file-path-handle bridge plans token preparation without claiming live bpffs io\"",
+    "test \"phase 8 file-path-handle bridge keeps token failure recovery discipline explicit\"",
+    "test \"phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wins fdinfo fallback\"",
+    "test \"phase 8 file-path-handle bridge keeps the DEVMAP readonly-prog compatibility exception explicit\"",
+    "buildCurrentProcessFdinfoPath(&actual, 11)",
+    "skip_optional_missing_delegation",
+    "normalizeReuseCompatibilityMapFlags(expected.map_type, actual.map_flags)",
+]
+
+required_file_path_handle_bridge_helper_markers = [
+    "pub fn buildCurrentProcessFdinfoPath(buffer: []u8, fd: i32) FilePathHandleBridgeError![]u8 {",
+    "pub fn planTokenPreparation(token_path: ?[]const u8) TokenPreparationPlan {",
+    "pub fn classifyTokenPreparationFailure(",
+    "pub fn chooseReusedMapName(requested_name: []const u8, info_name: []const u8) []const u8 {",
+    "pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {",
+    "pub fn normalizeReuseCompatibilityMapFlags(expected_map_type: u32, actual_map_flags: u32) u32 {",
+    "pub fn isMapReuseCompatible(expected: FdInfoMapInfo, actual: FdInfoMapInfo) bool {",
+    "test \"parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fallback\"",
+    "test \"normalizeReuseCompatibilityMapFlags mirrors libbpf's DEVMAP readonly-prog exception\"",
 ]
 
 required_type_name_markers = [
@@ -461,8 +487,8 @@ required_type_name_markers = [
 ]
 
 required_phase8_bpf_type_names_markers = [
-    'test "phase 8 bpf type-name segment keeps live libbpf tables aligned with current UAPI ordinals"',
-    'test "phase 8 bpf type-name segment still exposes the current live enum ceilings"',
+    "test \"phase 8 bpf type-name segment keeps live libbpf tables aligned with current UAPI ordinals\"",
+    "test \"phase 8 bpf type-name segment still exposes the current live enum ceilings\"",
     "tools/include/uapi/linux/bpf.h",
     "tools/lib/bpf/libbpf.c",
     "static const char * const attach_type_name[] = {",
@@ -473,10 +499,10 @@ required_phase8_bpf_type_names_markers = [
     "enum bpf_link_type {",
     "enum bpf_map_type {",
     "enum bpf_prog_type {",
-    '"trace_fsession"',
-    '"sockmap"',
-    '"insn_array"',
-    '"netfilter"',
+    "\"trace_fsession\"",
+    "\"sockmap\"",
+    "\"insn_array\"",
+    "\"netfilter\"",
 ]
 
 required_type_names_helper_markers = [
@@ -488,48 +514,48 @@ required_type_names_helper_markers = [
     "pub fn libbpfBpfLinkTypeStr",
     "pub fn libbpfBpfMapTypeStr",
     "pub fn libbpfBpfProgTypeStr",
-    'try std.testing.expectEqualStrings("trace_fsession", libbpfBpfAttachTypeStr(58).?);',
-    'try std.testing.expectEqualStrings("sockmap", libbpfBpfLinkTypeStr(14).?);',
-    'try std.testing.expectEqualStrings("insn_array", libbpfBpfMapTypeStr(34).?);',
-    'try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);',
-    'test "type-name helpers reject out-of-range values the same way as libbpf.c"',
+    "try std.testing.expectEqualStrings(\"trace_fsession\", libbpfBpfAttachTypeStr(58).?);",
+    "try std.testing.expectEqualStrings(\"sockmap\", libbpfBpfLinkTypeStr(14).?);",
+    "try std.testing.expectEqualStrings(\"insn_array\", libbpfBpfMapTypeStr(34).?);",
+    "try std.testing.expectEqualStrings(\"netfilter\", libbpfBpfProgTypeStr(32).?);",
+    "test \"type-name helpers reject out-of-range values the same way as libbpf.c\"",
 ]
 
 required_manifest_markers = [
-    '"slug": "cpu-mask-parsing"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/cpu_mask.zig"',
-    '"slug": "logging-version-and-errno"',
-    '"status": "starter_landed"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/logging.zig"',
-    '"slug": "pin-path-helpers"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/pin_path.zig"',
-    '"slug": "fdinfo-map-info-helpers"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
-    '"kind": "helper_first"',
-    '"tools/lib/bpf/libbpf.c:4956-4987"',
-    'path construction',
-    'text parsing',
-    '"slug": "file-path-and-handle-bridge"',
-    '"slug": "file-path-and-handle-bridge",\n      "status": "deferred_high_risk"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"',
-    '"kind": "resource_boundary"',
-    '"tools/lib/bpf/libbpf.c:5112-5157"',
-    '"tools/lib/bpf/libbpf.c:5255-5286"',
-    'token-preparation planner',
-    'real bpffs path opens',
-    'bpffs path opens',
-    'token creation',
-    'pinned-object reopen flows',
-    'fd ownership',
-    '"slug": "type-name-helpers"',
-    '"zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig"',
-    '"slug": "perf-buffer-online-cpu-routing"',
-    '"kind": "interrupt_routing_boundary"',
-    '"tools/lib/bpf/libbpf.c:14049-14110"',
-    '"tools/lib/bpf/libbpf.c:14429-14480"',
-    'online CPU filtering',
-    'perf-event-array map updates',
-    'interrupt-routing contract',
+    "\"slug\": \"cpu-mask-parsing\"",
+    "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/cpu_mask.zig\"",
+    "\"slug\": \"logging-version-and-errno\"",
+    "\"status\": \"starter_landed\"",
+    "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/logging.zig\"",
+    "\"slug\": \"pin-path-helpers\"",
+    "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/pin_path.zig\"",
+    "\"slug\": \"fdinfo-map-info-helpers\"",
+    "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig\"",
+    "\"kind\": \"helper_first\"",
+    "\"tools/lib/bpf/libbpf.c:4956-4987\"",
+    "path construction",
+    "text parsing",
+    "\"slug\": \"file-path-and-handle-bridge\"",
+    "\"slug\": \"file-path-and-handle-bridge\",\n      \"status\": \"deferred_high_risk\"",
+    "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig\"",
+    "\"kind\": \"resource_boundary\"",
+    "\"tools/lib/bpf/libbpf.c:5112-5157\"",
+    "\"tools/lib/bpf/libbpf.c:5255-5286\"",
+    "token-preparation planner",
+    "real bpffs path opens",
+    "bpffs path opens",
+    "token creation",
+    "pinned-object reopen flows",
+    "fd ownership",
+    "\"slug\": \"type-name-helpers\"",
+    "\"zigux_destination\": \"tools/lib/bpf/zigux_segments/type_names.zig\"",
+    "\"slug\": \"perf-buffer-online-cpu-routing\"",
+    "\"kind\": \"interrupt_routing_boundary\"",
+    "\"tools/lib/bpf/libbpf.c:14049-14110\"",
+    "\"tools/lib/bpf/libbpf.c:14429-14480\"",
+    "online CPU filtering",
+    "perf-event-array map updates",
+    "interrupt-routing contract",
 ]
 
 missing_markers = []
@@ -612,6 +638,12 @@ for marker in required_phase8_pin_path_markers:
 for marker in required_pin_path_helper_markers:
     if marker not in pin_path_helper:
         missing_markers.append(f"pin_path_helper:{marker}")
+for marker in required_phase8_file_path_handle_bridge_markers:
+    if marker not in phase8_file_path_handle_bridge_test:
+        missing_markers.append(f"phase8_file_path_handle_bridge:{marker}")
+for marker in required_file_path_handle_bridge_helper_markers:
+    if marker not in file_path_handle_bridge_helper:
+        missing_markers.append(f"file_path_handle_bridge_helper:{marker}")
 for marker in required_type_name_markers:
     if marker not in phase8_type_names:
         missing_markers.append(f"phase8_type_names:{marker}")
@@ -665,5 +697,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_logging_survey_markers) + len(required_phase8_logging_markers) + len(required_logging_helper_markers) + len(required_pin_path_survey_markers) + len(required_phase8_pin_path_markers) + len(required_pin_path_helper_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_logging_survey_markers) + len(required_phase8_logging_markers) + len(required_logging_helper_markers) + len(required_pin_path_survey_markers) + len(required_phase8_pin_path_markers) + len(required_pin_path_helper_markers) + len(required_phase8_file_path_handle_bridge_markers) + len(required_file_path_handle_bridge_helper_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
 )
