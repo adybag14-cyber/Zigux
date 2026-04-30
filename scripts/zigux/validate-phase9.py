@@ -13,7 +13,9 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-module-slice.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-survey.md",
+    ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-module-slice.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
@@ -69,7 +71,9 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
 atomic64_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md").read_text(encoding="utf-8")
+atomic64_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-module-slice.md").read_text(encoding="utf-8")
 bitmap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-survey.md").read_text(encoding="utf-8")
+bitmap_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-module-slice.md").read_text(encoding="utf-8")
 kretprobe_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-survey.md").read_text(encoding="utf-8")
 bitmap_manifest = (ROOT / "zigux" / "tests" / "runtime_bitmap_manifest.json").read_text(encoding="utf-8")
 bitmap_survey_test = (ROOT / "zigux" / "tests" / "runtime_bitmap_survey.zig").read_text(encoding="utf-8")
@@ -328,6 +332,13 @@ required_atomic64_survey_markers = [
     "shared Phase 9 replay entrypoint",
 ]
 
+required_atomic64_module_slice_markers = [
+    "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
+    "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
+    "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+    "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker",
+]
+
 required_atomic64_manifest_markers = [
     '"surveyed_commit": "',
     '"delivery_evidence_catalog": [',
@@ -366,6 +377,16 @@ required_bitmap_survey_markers = [
     "phase9-runtime-bitmap-loader-tests",
     "command-name, argv-policy, and environment-derived activation handling",
     "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`",
+]
+
+required_bitmap_module_slice_markers = [
+    "adjacent loader scaffold plus shared loader-request binding",
+    "zigux/kernel/runtime_loader.zig",
+    "direct post-selftest mutation replay proof",
+    "direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs",
+    "shared runtime-loader request binding in `zigux/kernel/runtime_loader.zig`",
+    "bounded two-word runtime bitmap backing store",
+    "bounded parse-and-print replay",
 ]
 
 required_bitmap_manifest_markers = [
@@ -554,6 +575,9 @@ for marker in required_loader_gap_manifest_markers:
 for marker in required_atomic64_survey_markers:
     if marker not in atomic64_survey:
         missing_markers.append(f"atomic64_survey:{marker}")
+for marker in required_atomic64_module_slice_markers:
+    if marker not in atomic64_module_slice:
+        missing_markers.append(f"atomic64_module_slice:{marker}")
 for marker in required_atomic64_manifest_markers:
     if marker not in atomic64_manifest:
         missing_markers.append(f"atomic64_manifest:{marker}")
@@ -563,6 +587,9 @@ for marker in required_atomic64_survey_test_markers:
 for marker in required_bitmap_survey_markers:
     if marker not in bitmap_survey:
         missing_markers.append(f"bitmap_survey:{marker}")
+for marker in required_bitmap_module_slice_markers:
+    if marker not in bitmap_module_slice:
+        missing_markers.append(f"bitmap_module_slice:{marker}")
 for marker in required_bitmap_manifest_markers:
     if marker not in bitmap_manifest:
         missing_markers.append(f"bitmap_manifest:{marker}")
@@ -609,5 +636,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_bitmap_survey_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_survey_test_markers) + len(required_kretprobe_survey_markers) + len(required_kretprobe_manifest_markers) + len(required_kretprobe_survey_test_markers) + 2 + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_module_slice_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_bitmap_survey_markers) + len(required_bitmap_module_slice_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_survey_test_markers) + len(required_kretprobe_survey_markers) + len(required_kretprobe_manifest_markers) + len(required_kretprobe_survey_test_markers) + 2 + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
 )
