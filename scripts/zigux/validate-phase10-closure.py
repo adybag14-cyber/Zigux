@@ -67,8 +67,10 @@ closure = (ROOT / "Documentation" / "zigux" / "phase10-closure-evidence.md").rea
 freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 docs_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
+core_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_core_survey.zig").read_text(encoding="utf-8")
 ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
+input_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_input_survey.zig").read_text(encoding="utf-8")
 mmio_helper = (ROOT / "drivers" / "virtio" / "virtio_mmio.zig").read_text(encoding="utf-8")
 mmio_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio.zig").read_text(encoding="utf-8")
 mmio_slice = (ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md").read_text(encoding="utf-8")
@@ -199,12 +201,30 @@ required_docs_readme_markers = [
     "`Documentation/zigux/phase10-closure-evidence.md` now records the exact current roadmap-aligned virtio lab bundle and keeps Phase 10 explicit as active rather than prematurely closed while `drivers/virtio/virtio_mmio.zig`, its bounded MMIO starter test, and the remaining risky transport gaps stay visible together.",
     "`python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the four Phase 10 survey manifests, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.",
 ]
+required_core_survey_test_markers = [
+    'test "phase10 virtio core survey manifest records the live core validation bundle" {',
+    'try std.testing.expectEqualStrings("P10-L03", manifest.lane_key);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-delivery-disposition-helper") != null);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
+    'if (std.mem.eql(u8, gap.id, "phase10-config-generation-summary-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-config-delivery-disposition-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-core-probe-remove-lifecycle")) {',
+]
 required_ring_survey_markers = [
     "remaining MMIO follow-up ladder against the roadmap",
     "phase10-mmio-queue-register-helper",
 ]
 required_ring_survey_test_markers = [
     'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {',
+]
+required_input_survey_test_markers = [
+    'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
+    'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-preflight-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
 required_mmio_slice_markers = [
     "PHASE10_SLICE=virtio-mmio-config-write-helper",
@@ -285,12 +305,18 @@ for marker in required_checklist_markers:
 for marker in required_docs_readme_markers:
     if marker not in docs_readme:
         missing_markers.append(f"docs_readme:{marker}")
+for marker in required_core_survey_test_markers:
+    if marker not in core_survey_test:
+        missing_markers.append(f"core_survey_test:{marker}")
 for marker in required_ring_survey_markers:
     if marker not in ring_survey:
         missing_markers.append(f"ring_survey:{marker}")
 for marker in required_ring_survey_test_markers:
     if marker not in ring_survey_test:
         missing_markers.append(f"ring_survey_test:{marker}")
+for marker in required_input_survey_test_markers:
+    if marker not in input_survey_test:
+        missing_markers.append(f"input_survey_test:{marker}")
 for marker in required_mmio_slice_markers:
     if marker not in mmio_slice:
         missing_markers.append(f"mmio_slice:{marker}")
@@ -613,5 +639,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_core_survey_test_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_input_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers)}"
 )
