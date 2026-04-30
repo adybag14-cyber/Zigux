@@ -112,6 +112,10 @@ test "phase10 virtio mmio plans queue address windows without claiming queue set
     _ = try window.selectQueue(1);
     _ = try window.writeSelectedQueueSize(12);
 
+    try std.testing.expectError(error.LegacyGuestPageSizeMustBeNonZero, window.planLegacyQueueAddress(0, 4096, 0x1234));
+    try std.testing.expectError(error.LegacyQueueAlignMustBeNonZero, window.planLegacyQueueAddress(4096, 0, 0x1234));
+    try std.testing.expectError(error.LegacyQueuePfnMustBeNonZero, window.planLegacyQueueAddress(4096, 4096, 0));
+
     const legacy = try window.planLegacyQueueAddress(4096, 4096, 0x1234);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", legacy.anchor);
     try std.testing.expectEqual(@as(u32, 1), legacy.selected_queue);
@@ -123,12 +127,20 @@ test "phase10 virtio mmio plans queue address windows without claiming queue set
     try std.testing.expectEqual(@as(u16, 12), legacy.queue_size);
     try std.testing.expect(!legacy.queue_ready);
 
+    try std.testing.expectError(error.ModernQueueDescMustBeNonZero, window.planModernQueueAddress(0, 0x2000, 0x3000));
+    try std.testing.expectError(error.ModernQueueAvailMustBeNonZero, window.planModernQueueAddress(0x1000, 0, 0x3000));
+    try std.testing.expectError(error.ModernQueueUsedMustBeNonZero, window.planModernQueueAddress(0x1000, 0x2000, 0));
+
     const modern = try window.planModernQueueAddress(0x1000, 0x2000, 0x3000);
     try std.testing.expectEqual(virtio_mmio.QueueAddressKind.modern, modern.kind);
     try std.testing.expectEqual(@as(?u32, null), modern.legacy_guest_page_size);
+    try std.testing.expectEqual(@as(?u32, null), modern.legacy_queue_align);
+    try std.testing.expectEqual(@as(?u32, null), modern.legacy_queue_pfn);
     try std.testing.expectEqual(@as(?u64, 0x1000), modern.modern_desc);
     try std.testing.expectEqual(@as(?u64, 0x2000), modern.modern_avail);
     try std.testing.expectEqual(@as(?u64, 0x3000), modern.modern_used);
+    try std.testing.expectEqual(@as(u16, 12), modern.queue_size);
+    try std.testing.expect(!modern.queue_ready);
 
     _ = try window.writeSelectedQueueReady(true);
     try std.testing.expectError(error.QueueReadyBlocksAddressRewrite, window.planModernQueueAddress(0x4000, 0x5000, 0x6000));
