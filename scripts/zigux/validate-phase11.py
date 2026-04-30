@@ -307,8 +307,22 @@ def run_self_test() -> int:
         )
         dw_test_path.write_text(original_dw_test, encoding="utf-8")
 
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expect(!stale_hangup.notifier_hangup_pending);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_stale_hangup_failure_mode_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expect(!stale_hangup.notifier_hangup_pending);",
+        )
+
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -530,6 +544,7 @@ for marker in [
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the worker-entry sleep and backoff assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay",
+    "`zigux/tests/phase11_hvc_console.zig` now keeps the active-hangup and stale-hangup assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the tty-attached and tty-detached remove-handoff assertions inside the shared Phase 11 replay",
     "leave this helper parked unless another comparably small host-free notifier or sysrq split becomes obvious",
     "the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`",
@@ -548,6 +563,9 @@ for marker in [
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:failure_modes:{marker}")
 for marker in [
+    'test "phase11 hvc console keeps hvc_hangup disconnect boundaries reviewable" {',
+    "    try std.testing.expect(active_hangup.notifier_hangup_pending);",
+    "    try std.testing.expect(!stale_hangup.notifier_hangup_pending);",
     'test "phase11 hvc console keeps khvcd worker-entry sleep and backoff boundaries reviewable" {',
     "        .timeout_ms = 0,",
     "    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);",
