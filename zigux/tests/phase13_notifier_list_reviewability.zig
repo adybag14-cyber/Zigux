@@ -12,6 +12,7 @@ const SurveySummary = struct {
     preexisting_generic_notifier_header_anchor_present: bool,
     preexisting_generic_notifier_layout_anchor_present: bool,
     preexisting_public_list_notifier_coexistence_anchor_present: bool,
+    preexisting_public_same_struct_list_notifier_anchor_present: bool,
     preexisting_generic_notifier_abi_present: bool,
     preexisting_generic_notifier_build_surface_present: bool,
     preexisting_generic_notifier_helper_present: bool,
@@ -83,6 +84,8 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer std.testing.allocator.free(acpi_wbrf_header_text);
     const dsa_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "include/net/dsa.h");
     defer std.testing.allocator.free(dsa_header_text);
+    const watchdog_header_text = try readRepoFile(io_instance.io(), std.testing.allocator, "include/linux/watchdog.h");
+    defer std.testing.allocator.free(watchdog_header_text);
     const survey_note = try readRepoFile(io_instance.io(), std.testing.allocator, "Documentation/zigux/phase13-notifier-list-survey.md");
     defer std.testing.allocator.free(survey_note);
 
@@ -90,14 +93,15 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("1c2e7a4d0e4d39a89351a6a9222dd7efff613836", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
+    try std.testing.expectEqualStrings("4c43e1083bd8601d21750c433f65473bdab744ed", manifest.surveyed_commit);
+    try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
     try std.testing.expectEqualStrings("include/linux/acpi_amd_wbrf.h", manifest.anchors[2]);
     try std.testing.expectEqualStrings("include/net/dsa.h", manifest.anchors[3]);
+    try std.testing.expectEqualStrings("include/linux/watchdog.h", manifest.anchors[4]);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "shared helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "libfs, devres, and Landlock") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_scope, "generic notifier header anchors") != null);
@@ -113,10 +117,11 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_header_anchor_present);
     try std.testing.expect(manifest.survey_summary.preexisting_generic_notifier_layout_anchor_present);
     try std.testing.expect(manifest.survey_summary.preexisting_public_list_notifier_coexistence_anchor_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_public_same_struct_list_notifier_anchor_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_abi_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_build_surface_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_generic_notifier_helper_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_notifier_list_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "notifier_chain_view") == null);
@@ -161,6 +166,11 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, dsa_header_text, "struct raw_notifier_head\tnh;") != null);
     try std.testing.expect(std.mem.indexOf(u8, dsa_header_text, "struct list_head list;") != null);
     try std.testing.expect(std.mem.indexOf(u8, dsa_header_text, "struct notifier_block\tnb;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct watchdog_device {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block reboot_nb;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block restart_nb;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct notifier_block pm_nb;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, watchdog_header_text, "struct list_head deferred;") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier ABI surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "roadmap-adjacent reviewability evidence only") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "list and hlist view surface") != null);
@@ -168,6 +178,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "generic notifier header anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "field-level read-only shape") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "public list-plus-notifier coexistence anchor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "same-struct public notifier-plus-list anchor") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no shared notifier helper file or build replay hook") != null);
 
     var starter_landed_count: usize = 0;
@@ -186,6 +197,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     var saw_generic_notifier_header_anchor = false;
     var saw_generic_notifier_layout_anchor = false;
     var saw_public_list_notifier_coexistence_anchor = false;
+    var saw_public_same_struct_list_notifier_anchor = false;
     var saw_generic_notifier_abi_gap = false;
     var saw_generic_notifier_helper_gap = false;
 
@@ -196,7 +208,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         try std.testing.expect(isAllowedStatus(gap.status));
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
-        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface")) preexisting_phase3_count += 1;
+        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface") ) preexisting_phase3_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_header_surface")) preexisting_header_count += 1;
@@ -252,6 +264,11 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
             try std.testing.expectEqualStrings("preexisting_header_surface", gap.status);
             try std.testing.expectEqualStrings("include/net/dsa.h", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "linux-public-same-struct-list-notifier-anchor")) {
+            saw_public_same_struct_list_notifier_anchor = true;
+            try std.testing.expectEqualStrings("preexisting_header_surface", gap.status);
+            try std.testing.expectEqualStrings("include/linux/watchdog.h", gap.zigux_destination);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-generic-notifier-abi-gap")) {
             saw_generic_notifier_abi_gap = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
@@ -272,7 +289,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expectEqual(@as(usize, 3), preexisting_phase3_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_chrdev_count);
     try std.testing.expectEqual(@as(usize, 1), preexisting_phase11_count);
-    try std.testing.expectEqual(@as(usize, 3), preexisting_header_count);
+    try std.testing.expectEqual(@as(usize, 4), preexisting_header_count);
     try std.testing.expectEqual(@as(usize, 2), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_reviewability_gate);
@@ -284,6 +301,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     try std.testing.expect(saw_generic_notifier_header_anchor);
     try std.testing.expect(saw_generic_notifier_layout_anchor);
     try std.testing.expect(saw_public_list_notifier_coexistence_anchor);
+    try std.testing.expect(saw_public_same_struct_list_notifier_anchor);
     try std.testing.expect(saw_generic_notifier_abi_gap);
     try std.testing.expect(saw_generic_notifier_helper_gap);
 }
