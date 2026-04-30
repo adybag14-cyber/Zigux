@@ -140,9 +140,18 @@ required_closure_markers = [
     "phase10-mmio-config-window-helper",
     "phase10-mmio-config-write-helper",
     "phase10-config-delivery-disposition-helper",
+    "phase10-virtqueue-shape-helper",
+    "phase10-used-buffer-polling-helper",
+    "phase10-callback-disable-helper",
+    "phase10-callback-enable-helper",
+    "phase10-callback-enable-prepare-helper",
+    "phase10-callback-delay-helper",
+    "phase10-notify-prepare-helper",
+    "phase10-queue-reset-guard-helper",
+    "phase10-queue-reset-helper",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
-    "landed input preflight pair and MMIO helper ladder directly alongside the core helper evidence",
+    "landed ring queue-discipline ladder, input preflight pair, and MMIO helper ladder directly alongside the core helper evidence",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
     "blocked_on_risky_transport",
@@ -194,7 +203,7 @@ required_ledger_markers = [
     ".github/workflows/zigux-bootstrap.yml",
 ]
 required_checklist_markers = [
-    "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, `zigux/tests/phase10_closure_manifest.json`, the four Phase 10 survey manifests, the landed `Documentation/zigux/phase10-virtio-mmio-slice.md` plus `zigux/tests/phase10_virtio_mmio.zig` starter pair, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
+    "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, `zigux/tests/phase10_closure_manifest.json`, the four Phase 10 survey manifests, the landed ring queue-discipline helper ladder, the landed `Documentation/zigux/phase10-virtio-mmio-slice.md` plus `zigux/tests/phase10_virtio_mmio.zig` starter pair, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
     "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and the current Phase 9 runtime loader-gap ownership packet still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` are not silently counted as driver-local virtio evidence?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
 ]
@@ -589,6 +598,23 @@ expected_landed_core_helper_evidence = {
 if landed_core_helper_evidence != expected_landed_core_helper_evidence:
     missing_markers.append("manifest:landed_core_helper_evidence:mismatch")
 
+landed_ring_helper_evidence = manifest.get("landed_ring_helper_evidence")
+expected_landed_ring_helper_evidence = {
+    "zigux/tests/phase10_virtio_ring_manifest.json": [
+        "phase10-virtqueue-shape-helper",
+        "phase10-used-buffer-polling-helper",
+        "phase10-callback-disable-helper",
+        "phase10-callback-enable-helper",
+        "phase10-callback-enable-prepare-helper",
+        "phase10-callback-delay-helper",
+        "phase10-notify-prepare-helper",
+        "phase10-queue-reset-guard-helper",
+        "phase10-queue-reset-helper",
+    ]
+}
+if landed_ring_helper_evidence != expected_landed_ring_helper_evidence:
+    missing_markers.append("manifest:landed_ring_helper_evidence:mismatch")
+
 landed_input_helper_evidence = manifest.get("landed_input_helper_evidence")
 expected_landed_input_helper_evidence = {
     "zigux/tests/phase10_virtio_input_manifest.json": [
@@ -664,6 +690,24 @@ if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper",
     missing_markers.append("phase10_virtio_core_manifest:phase10-config-generation-summary-helper:starter_landed")
 if not has_gap_status(core_manifest, "phase10-config-delivery-disposition-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_core_manifest:phase10-config-delivery-disposition-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-virtqueue-shape-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-virtqueue-shape-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-used-buffer-polling-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-used-buffer-polling-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-callback-disable-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-callback-disable-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-callback-enable-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-callback-enable-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-callback-enable-prepare-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-callback-enable-prepare-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-callback-delay-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-callback-delay-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-notify-prepare-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-notify-prepare-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-queue-reset-guard-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-queue-reset-guard-helper:starter_landed")
+if not has_gap_status(ring_manifest, "phase10-queue-reset-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_ring_manifest:phase10-queue-reset-helper:starter_landed")
 if not has_gap_status(ring_manifest, "phase10-mmio-register-window-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_ring_manifest:phase10-mmio-register-window-helper:starter_landed")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-preflight-helper", "starter_landed"):
