@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 const std = @import("std");
-const fixtures = @import("phase6_checksum_vectors");
-
 pub fn add(sum: u32, addend: u32) u32 {
     const result = sum +% addend;
     return result + @intFromBool(result < addend);
@@ -136,99 +134,77 @@ fn referencePartial(bytes: []const u8, seed: u32) u32 {
     return @intCast(sum);
 }
 
-fn appendBigEndianU16(buffer: []u8, value: u16) void {
-    const pair: *[2]u8 = @ptrCast(buffer[0..2]);
-    std.mem.writeInt(u16, pair, value, .big);
-}
-
 fn appendBigEndianU32(buffer: []u8, value: u32) void {
     const pair: *[4]u8 = @ptrCast(buffer[0..4]);
     std.mem.writeInt(u32, pair, value, .big);
 }
 
-test "compute matches the shared checksum edge-case matrix" {
-    for (fixtures.compute_cases) |case| {
-        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, 0));
-        try std.testing.expectEqual(case.expected_partial, partial(case.bytes, 0));
-        try std.testing.expectEqual(case.expected_compute, compute(case.bytes));
-    }
-}
+test "compute and partial match local reference cases" {
+    const cases = [_]struct {
+        bytes: []const u8,
+        seed: u32,
+    }{
+        .{ .bytes = "", .seed = 0 },
+        .{ .bytes = "\x00\x01", .seed = 0 },
+        .{ .bytes = "abcde", .seed = 0 },
+        .{ .bytes = "\xff\xff\xff\xff\x7f", .seed = 0x1fffe },
+    };
 
-test "partial checksums compose across the shared even and odd split matrix" {
-    for (fixtures.composition_cases) |case| {
-        const whole = partial(case.payload, 0);
-        const left = partial(case.payload[0..case.split], 0);
-        const right = partial(case.payload[case.split..], 0);
-        const combined = blockAdd(left, right, case.split);
-
-        try std.testing.expectEqual(case.expected_partial, whole);
-        try std.testing.expectEqual(case.expected_partial, normalize(combined));
-        try std.testing.expectEqual(case.expected_fold, fold(whole));
-        try std.testing.expectEqual(case.expected_fold, compute(case.payload));
-    }
-}
-
-test "partial honors shared non-zero seeded cases across carry-heavy inputs" {
-    for (fixtures.seeded_cases) |case| {
-        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
-        try std.testing.expectEqual(case.expected_partial, partial(case.bytes, case.seed));
-    }
-}
-
-test "carry discipline matches the shared helper-local edge matrix" {
-    for (fixtures.carry_discipline_cases) |case| {
-        const actual_partial = partial(case.bytes, case.seed);
-        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
-        try std.testing.expectEqual(case.expected_partial, actual_partial);
-        try std.testing.expectEqual(case.expected_compute, fold(actual_partial));
-    }
-}
-
-test "kunit random-prefix parity matches the shared external checksum corpus nibble" {
-    for (fixtures.kunit_random_prefix_cases) |case| {
+    for (cases) |case| {
+        const expected_partial = referencePartial(case.bytes, case.seed);
         const actual_partial = partial(case.bytes, case.seed);
 
-        try std.testing.expectEqual(case.expected_partial, actual_partial);
-        try std.testing.expectEqual(case.expected_compute, fold(actual_partial));
-        try std.testing.expectEqual(case.expected_partial, referencePartial(case.bytes, case.seed));
+        try std.testing.expectEqual(expected_partial, actual_partial);
+        try std.testing.expectEqual(fold(expected_partial), fold(actual_partial));
     }
 }
 
-test "tcpUdpNofold matches the shared pseudo-header fixture parity" {
-    for (fixtures.pseudo_header_cases) |case| {
-        const payload_partial = partial(case.payload, 0);
+test "partial composition preserves even and odd split arithmetic" {
+    const payload = "checksum fragments keep their carry";
 
-        var pseudo_header: [12]u8 = undefined;
-        appendBigEndianU32(pseudo_header[0..4], case.saddr);
-        appendBigEndianU32(pseudo_header[4..8], case.daddr);
-        pseudo_header[8] = 0;
-        pseudo_header[9] = case.proto;
-        appendBigEndianU16(pseudo_header[10..12], @intCast(case.payload.len));
+    for ([_]usize{ 20, 21 }) |split| {
+        const whole = partial(payload, 0);
+        const left = partial(payload[0..split], 0);
+        const right = partial(payload[split..], 0);
+        const combined = blockAdd(left, right, split);
 
-        const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
-        const actual = tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
-
-        try std.testing.expectEqual(normalize(expected), actual);
-        try std.testing.expectEqual(case.expected_compute, fold(actual));
+        try std.testing.expectEqual(whole, normalize(combined));
+        try std.testing.expectEqual(compute(payload), fold(whole));
     }
 }
 
-test "tcpUdpV6Nofold matches the shared IPv6 pseudo-header fixture parity" {
-    for (fixtures.ipv6_pseudo_header_cases) |case| {
-        const payload_partial = partial(case.payload, 0);
+test "pseudo-header helpers match local reference assembly" {
+    const payload = "zigux checksum";
+    const payload_partial = partial(payload, 0);
+    const saddr: u32 = 0xc0a80001;
+    const daddr: u32 = 0xc0a800c7;
+    const proto: u8 = 17;
 
-        var pseudo_header = [_]u8{0} ** 40;
-        @memcpy(pseudo_header[0..16], &case.saddr);
-        @memcpy(pseudo_header[16..32], &case.daddr);
-        appendBigEndianU32(pseudo_header[32..36], @intCast(case.payload.len));
-        pseudo_header[39] = case.proto;
+    var pseudo_header: [12]u8 = undefined;
+    appendBigEndianU32(pseudo_header[0..4], saddr);
+    appendBigEndianU32(pseudo_header[4..8], daddr);
+    pseudo_header[8] = 0;
+    pseudo_header[9] = proto;
+    pseudo_header[10] = 0;
+    pseudo_header[11] = @intCast(payload.len);
 
-        const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
-        const actual = tcpUdpV6Nofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);
+    const expected = blockAdd(partial(&pseudo_header, 0), payload_partial, pseudo_header.len);
+    const actual = tcpUdpNofold(payload_partial, saddr, daddr, @intCast(payload.len), proto);
 
-        try std.testing.expectEqual(normalize(expected), actual);
-        try std.testing.expectEqual(case.expected_compute, fold(actual));
-    }
+    try std.testing.expectEqual(normalize(expected), actual);
+
+    const v6_saddr = [16]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+    const v6_daddr = [16]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
+    var ipv6_pseudo_header = [_]u8{0} ** 40;
+    @memcpy(ipv6_pseudo_header[0..16], &v6_saddr);
+    @memcpy(ipv6_pseudo_header[16..32], &v6_daddr);
+    appendBigEndianU32(ipv6_pseudo_header[32..36], @intCast(payload.len));
+    ipv6_pseudo_header[39] = proto;
+
+    const expected_v6 = blockAdd(partial(&ipv6_pseudo_header, 0), payload_partial, ipv6_pseudo_header.len);
+    const actual_v6 = tcpUdpV6Nofold(payload_partial, v6_saddr, v6_daddr, @intCast(payload.len), proto);
+
+    try std.testing.expectEqual(normalize(expected_v6), actual_v6);
 }
 
 test "add, sub, and offset shifting preserve checksum arithmetic" {

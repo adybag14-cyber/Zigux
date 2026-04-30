@@ -69,7 +69,7 @@ The current tests check:
 - pseudo-header accumulation parity for representative TCP/UDP-style checksum folding
 - IPv6 pseudo-header accumulation parity for representative UDP and TCP-style checksum folding
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
-- shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed directly by both `lib/checksum.zig` and `zigux/tests/phase6_checksum.zig`
+- shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed by `zigux/tests/phase6_checksum.zig`, while `lib/checksum.zig` keeps only helper-local arithmetic and regression checks so the leaf helper no longer depends on the shared Phase 6 fixture packet
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads
 
 This is enough evidence to leave the bounded checksum helper lane parked unless a concrete new parity or perf gap appears in the live repo.
