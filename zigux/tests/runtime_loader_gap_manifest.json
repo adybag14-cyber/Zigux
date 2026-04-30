@@ -107,7 +107,7 @@
       "id": "runtime-loader-gap-survey-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_loader_gap_survey.zig",
-      "role": "machine-checks the manifest, the blocker note, the shared request contract, the explicit without-substrate rollback path, the new shared command_name field, and the still-absent argv or environment control surface"
+      "role": "machine-checks the manifest, the blocker note, the shared request contract, the starter selftest-hook invariant, the explicit without-substrate rollback path, the new shared command_name field, and the still-absent argv or environment control surface"
     },
     {
       "id": "phase9-build-gate",
@@ -119,7 +119,7 @@
       "id": "shared-runtime-loader-contract",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
-      "role": "owns the shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
+      "role": "owns the shared request contract plus allocator, command-name, starter selftest-hook, atomic64, bitmap, kretprobe, and init or exit handoff fields"
     },
     {
       "id": "atomic64-loader-plan",
@@ -167,7 +167,7 @@
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "shared request contract plus allocator, command-name, atomic64, bitmap, kretprobe, and init or exit handoff fields"
+      "owns": "shared request contract plus allocator, command-name, starter selftest-hook, atomic64, bitmap, kretprobe, and init or exit handoff fields"
     },
     {
       "surface": "samples/zigux/runtime_atomic64_loader.zig",
@@ -195,7 +195,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_loader_gap_survey.zig",
-      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, the landed shared runtime-loader seam, the new shared command_name field, and the still-absent argv or environment controls explicit on current master."
+      "why_now": "A dedicated survey gate keeps the mixed Phase 6 schedule wording, the real Phase 9 roadmap target, the landed shared runtime-loader seam, the starter selftest-hook invariant, the new shared command_name field, and the still-absent argv or environment controls explicit on current master."
     },
     {
       "id": "runtime-loader-gap-note",
@@ -216,7 +216,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_*_loader.zig",
-      "why_now": "The atomic64, bitmap, and kretprobe starter lanes now publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that a future shared runtime loader must consume."
+      "why_now": "The atomic64, bitmap, and kretprobe starter lanes now publish entry and exit symbol names, requires_runtime_substrate flags, selftest-hook markers, and handoff-stage checks that the shared runtime loader now also treats as one explicit starter replay invariant."
     },
     {
       "id": "runtime-loader-without-substrate-rollback",
