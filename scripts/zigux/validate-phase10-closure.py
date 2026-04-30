@@ -142,6 +142,7 @@ required_closure_markers = [
     "phase10-config-delivery-disposition-helper",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
+    "landed input preflight pair and MMIO helper ladder directly alongside the core helper evidence",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
     "blocked_on_risky_transport",
@@ -598,6 +599,20 @@ expected_landed_input_helper_evidence = {
 if landed_input_helper_evidence != expected_landed_input_helper_evidence:
     missing_markers.append("manifest:landed_input_helper_evidence:mismatch")
 
+landed_mmio_helper_evidence = manifest.get("landed_mmio_helper_evidence")
+expected_landed_mmio_helper_evidence = {
+    "zigux/tests/phase10_virtio_mmio_manifest.json": [
+        "phase10-mmio-register-window-helper",
+        "phase10-mmio-queue-register-helper",
+        "phase10-mmio-queue-notify-helper",
+        "phase10-mmio-queue-address-helper",
+        "phase10-mmio-config-window-helper",
+        "phase10-mmio-config-write-helper",
+    ]
+}
+if landed_mmio_helper_evidence != expected_landed_mmio_helper_evidence:
+    missing_markers.append("manifest:landed_mmio_helper_evidence:mismatch")
+
 blocked_transport_gaps = manifest.get("blocked_transport_gaps")
 expected_blocked_transport_gaps = {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
@@ -657,6 +672,14 @@ if not has_gap_status(input_manifest, "phase10-virtio-input-queue-callback-prefl
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-queue-callback-preflight-helper:starter_landed")
 if not has_gap_status(input_manifest, "phase10-virtio-input-registration-lifecycle", "blocked_on_risky_transport"):
     missing_markers.append("phase10_virtio_input_manifest:phase10-virtio-input-registration-lifecycle:blocked_on_risky_transport")
+if not has_gap_status(mmio_manifest, "phase10-mmio-register-window-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-register-window-helper:starter_landed")
+if not has_gap_status(mmio_manifest, "phase10-mmio-queue-register-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-register-helper:starter_landed")
+if not has_gap_status(mmio_manifest, "phase10-mmio-queue-notify-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-notify-helper:starter_landed")
+if not has_gap_status(mmio_manifest, "phase10-mmio-queue-address-helper", "starter_landed"):
+    missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-queue-address-helper:starter_landed")
 if not has_gap_status(mmio_manifest, "phase10-mmio-config-window-helper", "starter_landed"):
     missing_markers.append("phase10_virtio_mmio_manifest:phase10-mmio-config-window-helper:starter_landed")
 if not has_gap_status(mmio_manifest, "phase10-mmio-config-write-helper", "starter_landed"):
