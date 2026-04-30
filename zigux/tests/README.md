@@ -89,10 +89,13 @@ Key entrypoints
 - `zigux/tests/runtime_loader_gap_manifest.json`
 - `zigux/tests/phase10_build.zig`
 - `zigux/tests/phase10_virtio_core.zig`
+- `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_ring.zig`
+- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_survey.zig`
+- `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_survey.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
