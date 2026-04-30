@@ -57,7 +57,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_libfs.zig`
 - reviewability gate: `zigux/tests/phase13_libfs_reviewability.zig`
 - manifest: `zigux/tests/phase13_libfs_manifest.json`
-- manifest `surveyed_commit`: `ff87456109937e1ffbe7f2a91a79c2661874ef88`
+- manifest `surveyed_commit`: `f7aecbce93b3a429fa8fd93a6a1ce3657afb24a5`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice notes: `Documentation/zigux/phase13-libfs-slice.md`
 - survey note: `Documentation/zigux/phase13-libfs-survey.md`
@@ -67,7 +67,8 @@ Current lane state recorded in the manifest:
 - landed `phase13-libfs-reviewability-gate`
 - landed `phase13-libfs-dcache-cursor-preconditions`
 - landed `phase13-libfs-dcache-cursor-reposition-bookkeeping`
-- ready-next `phase13-libfs-dcache-dir-close-release-bookkeeping`
+- landed `phase13-libfs-dcache-dir-close-release-bookkeeping`
+- ready-next `phase13-libfs-scan-positives-resched-handoff`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
@@ -177,7 +178,7 @@ What is additionally reviewable today without being a new roadmap anchor:
 - it should be read as Phase 13 reviewability evidence around preexisting shared-helper surfaces, not as a fifth roadmap anchor beside `libfs`, `devres`, or the two Landlock slices
 
 What stays intentionally blocked today:
-- `fs/libfs.c` now records the landed cursor-reposition bookkeeping step and keeps the next close-path release planner separate from the blocked dcache-cursor helpers and inode or pseudofs lifecycle work, so the current helper packet still does not overstate broader inode-state handling
+- `fs/libfs.c` now records the landed cursor-reposition and close-path release-bookkeeping steps and keeps the next `scan_positives()` reschedule-handoff planner separate from the blocked dcache-cursor helpers and inode or pseudofs lifecycle work, so the current helper packet still does not overstate broader inode-state handling
 - `lib/devres.c` still keeps live MMIO side effects, live DMA-backed mappings, live scatterlist ownership, live device-tree walking, and live arch memtype state out of scope even though its helper-first survey packet is now manifest-backed
 - `security/landlock/ruleset.c` still keeps live Landlock tree-state ownership, rule-release ownership, and hierarchy-lifetime behavior outside the current in-memory helper lab even though the ruleset anchor is manifest-backed
 - `security/landlock/syscalls.c` still keeps live user-memory access, live path import, credential mutation, and enforcement claims out of scope even though the syscall helper packet now records ABI sizing, bounded struct-copy discipline, create-ruleset and restrict-self planning, and the current FD or path handoff planners
