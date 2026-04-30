@@ -7,9 +7,10 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-checklist-roadmap-phase-rationale-return-to-blocked-sync`
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and one bounded return-to-blocked review-rule follow-up that keeps the already-landed roadmap-phase and written-rationale checklist sync inside the same explicit Architecture Council packet
-- survey provenance refreshed against verified `master` head `7f4ee0a5eb4bd171e94c279d44b7818ce2ac6a7f`
+- survey provenance refreshed against verified `master` head `7095a02f382e919b535b5e5c3fa8985ded58268e`
 - product boundary:
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
+  - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/review-checklist.md`
   - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
@@ -110,9 +111,9 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: the Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L08` keeps the review-process handoff synced by verifying that the current no-approval posture and the linked lane-owner plus rollback-owner evidence still match the parity scorecard and anchor templates on current `master`, while tightening the reopened-packet evidence rule to match the current checklist and indefinite-C policy without reopening nearby policy or scorecard work
-- maintenance-mode next step: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
+- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
+- current bounded lane: `P15-L08` keeps the review-process handoff synced against the current parked maintenance-mode handoff packet by verifying that the no-approval posture, the linked lane-owner plus rollback-owner evidence, and the shared replay entrypoints still match the parity scorecard, the anchor templates, and the current Phase 15 handoff survey on current `master`, without reopening nearby policy or deep-core work
+- maintenance-mode next step: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Maintenance-Mode Handoff
 
@@ -120,8 +121,8 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 - replay before trusting this parked handoff:
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
-- reopen only when one of the named catalog triggers now fits the evidence packet, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
-- next future target: wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice
+- reopen only when one of the named catalog triggers now fits the evidence packet, when the shared Phase 15 replay drifts, or when the deep-core blocker posture changes enough to justify a new bounded review-process follow-up
+- next future target: wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice
 
 ## Recorded Gaps
 
@@ -164,4 +165,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode. The checklist field-sync and automatic return-to-blocked follow-ups are now landed, so the next honest action is to wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice.
+Keep the Phase 15 governance lane in maintenance mode. The checklist field-sync and automatic return-to-blocked follow-ups are now landed, so the next honest action is to wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice.
