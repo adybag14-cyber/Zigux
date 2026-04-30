@@ -122,8 +122,8 @@ The current tests check:
 
 ## Latest verification snapshot
 
-- provenance and anchor alignment rechecked against inspected `master` head `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
-- focused Zig replay rerun against inspected `master` head `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
+- provenance and anchor alignment rechecked against inspected `master` head `f2c25d8edba996795232e4411de492034ef3f532`
+- focused Zig replay rerun against inspected `master` head `f2c25d8edba996795232e4411de492034ef3f532`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `5/5` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
@@ -131,7 +131,7 @@ The current tests check:
 - `python3 scripts/zigux/validate-phase8.py`
   - `PHASE8_VALIDATION=pass`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-  - `Build Summary: 22/22 steps succeeded; 71/71 tests passed`
+  - `Build Summary: 22/22 steps succeeded; 72/72 tests passed`
 
 ## Non-goals
 
