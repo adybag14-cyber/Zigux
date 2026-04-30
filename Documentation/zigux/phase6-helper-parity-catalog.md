@@ -102,13 +102,14 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/fixtures/phase6_base64_c_harness.c`, `zigux/tests/phase6_base64_c_casegen.zig`, and `zigux/tests/phase6_base64_c_parity.zig` replay that same representative base64 surface through `python3 scripts/zigux/check-phase6-base64-c-parity.py`, where the committed case generator rebuilds the C include payload from `zigux/tests/fixtures/phase6_base64_vectors.zig` before the current `PHASE6_BASE64_C_PARITY_CASES=90` spot check runs.
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig` is the current static checksum corpus with 5 compute vectors, 2 composition vectors, 3 seeded vectors, 1 pseudo-header vector, 4 carry-discipline vectors, and 6 imported KUnit random-prefix vectors.
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig` is the current static hexdump corpus with 9 parity vectors, 4 overflow vectors, and 9 required-length vectors, and it normalizes non-canonical formatter inputs through `normalizedRowsize()` and `normalizedGroupsizeForLen()` before expected-text generation.
-- `zigux/tests/phase6_bsearch.zig` keeps the bsearch corpus inline as sorted integer and symbol tables rather than a generated fixture file, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=17`.
+- `zigux/tests/phase6_bsearch.zig` keeps the bsearch corpus inline as sorted integer and symbol tables rather than a generated fixture file, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` now keeps the parity script's missing-path and output-normalization helpers reviewable without a live toolchain replay, and `python3 scripts/zigux/check-phase6-bsearch-c-parity.py` currently passes with `PHASE6_BSEARCH_C_PARITY_CASES=17`.
 - No generated Phase 6 fixture artifact is committed today; current corpus determinism comes from these committed literals, normalization helpers, and sorted external parity replays.
 
 ## Review posture
 
 - `make -C zigux phase6-validate` is the fail-fast shared catalog gate.
 - `make -C zigux phase6` replays the bundled Phase 6 helper tests together.
+- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` is the current tool-free reviewability check for the bounded bsearch external parity script before the live `zig` plus `cc` replay runs.
 - `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
 - the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets instead of leaving the IMAP path outside the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
