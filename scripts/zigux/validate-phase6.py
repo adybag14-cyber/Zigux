@@ -154,6 +154,9 @@ BASE64_PERF_MARKERS = [
 
 BASE64_PARITY_SCRIPT_MARKERS = [
     'parser.add_argument("--self-test", action="store_true", help="Run built-in parity-script checks")',
+    'GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"',
+    'generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout',
+    'GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")',
     'print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")',
     'print(f"PHASE6_BASE64_C_PARITY_CASES={len(c_lines)}")',
 ]
@@ -161,6 +164,8 @@ BASE64_PARITY_SCRIPT_MARKERS = [
 BASE64_SLICE_MARKERS = [
     "`PHASE6_SLICE=base64-leaf-helper`",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+    "generated-fixture handoff",
     "generated build template",
     "sorted-output normalization",
 ]
