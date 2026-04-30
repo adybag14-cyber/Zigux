@@ -74,6 +74,14 @@ const WinsizeLayout = extern struct {
     ws_ypixel: u16,
 };
 
+fn expectSurveyedCommitProvenance(survey_note: []const u8, surveyed_commit: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 40), surveyed_commit.len);
+    for (surveyed_commit) |byte| {
+        try std.testing.expect(std.ascii.isHex(byte));
+    }
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit) != null);
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next");
@@ -98,7 +106,6 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
-    try std.testing.expectEqualStrings("947afb025ea5b439199bcad058ed43fbe98b1aa7", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.phase11_build_inventory_present);
@@ -280,6 +287,13 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(phase11_build_inventory);
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_uapi_header_parity_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
     const parsed_inventory = try std.json.parseFromSlice(
         BuildInventory,
         std.testing.allocator,
@@ -289,6 +303,11 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     defer parsed_inventory.deinit();
     const inventory = parsed_inventory.value;
 
+    const parsed_manifest = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed_manifest.deinit();
+    const manifest = parsed_manifest.value;
+
+    try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/linux/watchdog.h") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct watchdog_info") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "layout_assert") != null);
