@@ -253,6 +253,14 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -285,12 +293,30 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+    const surveyed_commit_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE5_SURVEYED_COMMIT={s}",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(surveyed_commit_marker);
+
+    const pinned_commit_line = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(pinned_commit_line);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-backed survey note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L04") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b1497341686a03b8ba007fbe6ee0028b7bfa5f02") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
@@ -315,7 +341,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=b1497341686a03b8ba007fbe6ee0028b7bfa5f02`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);
