@@ -216,8 +216,10 @@ CHECKSUM_TEST_MARKERS = [
     'test "seeded partial accumulation matches the fixture-backed reference" {',
     'test "kunit-inspired carry discipline stays stable on the helper surface" {',
     'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
+    'test "IPv6 pseudo header accumulation matches the fixture-backed reference checksum" {',
     'test "incremental checksum replacements match full recomputation" {',
     "tcpUdpNofold",
+    "tcpUdpV6Nofold",
     "checksum.replaceByDiff(old_checksum, diff)",
 ]
 
