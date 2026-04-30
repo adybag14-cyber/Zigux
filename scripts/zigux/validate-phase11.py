@@ -288,9 +288,27 @@ def run_self_test() -> int:
             tmp_root,
             "phase11_hvc_console_tests:    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);",
         )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        dw_test_path = tmp_root / "zigux/tests/phase11_dw_wdt.zig"
+        original_dw_test = dw_test_path.read_text(encoding="utf-8")
+        dw_test_path.write_text(
+            original_dw_test.replace(
+                "    try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "dw_teardown_failure_mode_surface",
+            tmp_root,
+            "phase11_dw_wdt_tests:try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);",
+        )
+        dw_test_path.write_text(original_dw_test, encoding="utf-8")
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
