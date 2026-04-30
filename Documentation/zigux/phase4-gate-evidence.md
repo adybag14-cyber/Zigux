@@ -98,16 +98,17 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 - `Documentation/zigux/phase4-validation-matrix.md` still names the current rollback owners, threshold posture, workflow step names, local replay commands, and reversible-delivery evidence for the two shipped rollback gates plus the two manifest-backed survey gates.
 - `scripts/zigux/validate-phase4.py` still requires the matrix note, workflow markers, `zigux/Makefile` hooks, `zigux/tests/phase4_build.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/bitmap_diff.zig` together.
-- the three Phase 4 survey manifests plus their matching survey tests now pin the current live provenance snapshot `ef7b33b6922d05e5ef514fb4efa588316ce6dda8` on `master`, and the refreshed manifest blob pins above record that updated packet state directly.
+- the three Phase 4 survey manifests plus their matching survey tests now pin the shared surveyed snapshot `ef7b33b6922d05e5ef514fb4efa588316ce6dda8` consistently, and the refreshed manifest blob pins above record that aligned packet state directly.
+- direct compare evidence from `ef7b33b6922d05e5ef514fb4efa588316ce6dda8...master` still shows live `master` is ahead of that surveyed snapshot, so this note should be read as an internally aligned packet readback, not as a branch-tip provenance claim.
 - `zigux/Makefile` still exposes `phase4-validate`, `phase4-test`, `phase4-runtime-atomic64-diff`, `phase4-test-fsmount-survey`, `phase4-perf-baseline-survey`, and `phase4-bitmap-diff`.
 - `.github/workflows/zigux-bootstrap.yml` still drives `make -C zigux phase4-validate` in `Validate Phase 4 diff gates` and `make -C zigux phase4-test` in `Run Phase 4 diff tests`.
 - `zigux/tests/phase4_build.zig` still exposes `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, `phase4-test-fsmount-survey-tests`, `phase4-perf-baseline-survey-tests`, and `phase4-bitmap-diff-tests`.
 
 ## Current Conclusion
 
-The current live Phase 4 rollback-ownership and lab-matrix packet is aligned at both the gate-definition and manifest-backed survey-provenance levels again.
+The current Phase 4 rollback-ownership and lab-matrix packet is internally aligned at both the gate-definition and manifest-backed survey-provenance levels again, but it still reflects the surveyed snapshot `ef7b33b6922d05e5ef514fb4efa588316ce6dda8` rather than the newest live `master` tip.
 
-This pass refreshed the three `surveyed_commit` fields, the paired survey-side `current_surveyed_commit` constants, and the manifest blob pins in this evidence note to the live `master` head `ef7b33b6922d05e5ef514fb4efa588316ce6dda8`.
+This pass refreshed the three `surveyed_commit` fields, the paired survey-side `current_surveyed_commit` constants, and the manifest blob pins in this evidence note to the shared surveyed snapshot `ef7b33b6922d05e5ef514fb4efa588316ce6dda8`.
 
 The remaining roadmap-backed gaps are still the same bounded ones:
 
