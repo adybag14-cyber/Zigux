@@ -10,6 +10,7 @@ This document records the shared boot/runtime loader gap that still separates th
 - scope: shared survey note, manifest-backed survey gate, explicit roadmap-boundary note for the mixed Phase 6 schedule wording, and a bounded shared runtime-loader request surface that keeps allocator plus init or exit handoff machine-checkable without claiming real runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/freeze-map.md`
   - `zigux/tests/runtime_loader_gap_manifest.json`
@@ -49,11 +50,14 @@ The review checklist also remains part of this bounded governance surface. For t
 - no implicit allocation posture beyond the explicit allocator-handoff contract
 - no unclear panic or unsafe ownership story
 
+The shared substrate plan is part of the same delivery packet now. `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps the shared loader-stage vocabulary and the atomic64, bitmap, and kretprobe handoff alignment explicit so the shared request surface does not silently drift away from the sample-side loaders that already feed it.
+
 ## Delivery ownership map
 
 The manifest-backed catalog for this slice now names which file owns each part of the current delivery packet:
 
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the roadmap-boundary note, blocker posture, and bounded replay contract
+- `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` owns the shared loader-stage vocabulary plus the atomic64, bitmap, and kretprobe handoff-alignment note for the same runtime packet
 - `Documentation/zigux/review-checklist.md` owns the runtime review guardrails and ownership prompts for the same evidence packet
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule for any status change tied to scheduler-facing runtime substrate work
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
@@ -77,6 +81,7 @@ The current runtime pilot surface already exposes reviewable loader inputs:
 What is now landed is the smallest shared consumer contract:
 
 - `zigux/kernel/runtime_loader.zig` defines a common loader-stage vocabulary for shared runtime handoff
+- `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps that shared loader-stage vocabulary reviewable beside the three sample-side loader plans and the shared request shape
 - the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for either atomic64, bitmap, or kretprobe facts
 - the shared request also consumes `zigux/helpers/allocator_policy.zig` through an explicit allocator-handoff record instead of leaving allocator posture in prose
 - the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`
