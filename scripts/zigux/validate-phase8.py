@@ -913,6 +913,23 @@ def run_self_test() -> int:
         )
         phase8_build_path.write_text(original_phase8_build, encoding="utf-8")
 
+        kallsyms_helper_path = tmp_root / "tools/lib/symbol/kallsyms.zig"
+        original_kallsyms_helper = kallsyms_helper_path.read_text(encoding="utf-8")
+        kallsyms_helper_path.write_text(
+            original_kallsyms_helper.replace(
+                'test "forEachParsedChunked discards oversized line tails once the bounded callback surface is full"',
+                'test "forEachParsedChunked discards oversized line tails"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kallsyms_helper_marker",
+            tmp_root,
+            'kallsyms_helper:test "forEachParsedChunked discards oversized line tails once the bounded callback surface is full"',
+        )
+        kallsyms_helper_path.write_text(original_kallsyms_helper, encoding="utf-8")
+
         libbpf_segments_test_path = tmp_root / "zigux/tests/phase8_libbpf_segments.zig"
         original_libbpf_segments_test = libbpf_segments_test_path.read_text(encoding="utf-8")
         libbpf_segments_test_path.write_text(
