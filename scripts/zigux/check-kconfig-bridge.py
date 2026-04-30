@@ -5,6 +5,7 @@ import argparse
 import contextlib
 import io
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -228,7 +229,7 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                 referenced_files.add(expected_path)
 
             if group_name == 'conf_cases':
-                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'expected'}
+                allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'seed', 'probability', 'expected'}
                 mode = read_nonempty_string(case, 'mode', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'kconfig', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'config', issues, prefix=case_prefix)
@@ -247,6 +248,19 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
                         issues.append(f'{case_prefix}:allconfig:expected_nonempty_string')
                 elif allconfig is not None:
                     issues.append(f'{case_prefix}:allconfig:unexpected_for_mode:{mode}')
+
+                seed = case.get('seed')
+                probability = case.get('probability')
+                if mode == 'randconfig':
+                    if seed is not None and (not isinstance(seed, str) or not seed):
+                        issues.append(f'{case_prefix}:seed:expected_nonempty_string')
+                    if probability is not None and (not isinstance(probability, str) or not probability):
+                        issues.append(f'{case_prefix}:probability:expected_nonempty_string')
+                else:
+                    if seed is not None:
+                        issues.append(f'{case_prefix}:seed:unexpected_for_mode:{mode}')
+                    if probability is not None:
+                        issues.append(f'{case_prefix}:probability:unexpected_for_mode:{mode}')
             else:
                 allowed_keys = {'name', 'input', 'expected'}
                 input_path = read_nonempty_string(case, 'input', issues, prefix=case_prefix)
@@ -408,6 +422,7 @@ def run_self_test() -> int:
             'alpha_expected.json',
             'beta_expected.json',
         ):
+            (fixture_dir / name).writeText if False else None
             (fixture_dir / name).write_text('{}\n', encoding='utf-8', newline='\n')
         for name in ('alpha.config', 'beta.config'):
             (fixture_dir / name).write_text('# test fixture\n', encoding='utf-8', newline='\n')
@@ -462,6 +477,15 @@ def run_self_test() -> int:
             'UNSORTED_CONFDATA_CASE_ORDER_END',
         ]
 
+        unexpected_rand_metadata = json.loads(json.dumps(valid_cases))
+        unexpected_rand_metadata['conf_cases'][0]['seed'] = '0xBAD'
+        assert capture_failure(ensure_manifest_is_deterministic, unexpected_rand_metadata, fixture_dir) == [
+            'KCONFIG_BRIDGE_DIFF=fail',
+            'INVALID_KCONFIG_MANIFEST_START',
+            'conf_cases:oldaskconfig:seed:unexpected_for_mode:oldaskconfig',
+            'INVALID_KCONFIG_MANIFEST_END',
+        ]
+
         (fixture_dir / 'orphaned_expected.json').write_text('{}\n', encoding='utf-8', newline='\n')
         failure_lines = capture_failure(ensure_manifest_is_deterministic, cases, fixture_dir)
         assert failure_lines[0] == 'KCONFIG_BRIDGE_DIFF=fail'
@@ -513,10 +537,15 @@ def main() -> int:
                 cmd.append(case['mode_arg'])
             if 'allconfig' in case:
                 cmd.append(case['allconfig'])
-            result = run(cmd, cwd=str(ROOT), capture_output=True)
+            env = os.environ.copy()
+            if 'seed' in case:
+                env['KCONFIG_SEED'] = case['seed']
+            if 'probability' in case:
+                env['KCONFIG_PROBABILITY'] = case['probability']
+            result = run(cmd, cwd=str(ROOT), capture_output=True, env=env)
             actual.write_text(result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(FIXTURE_DIR / case['expected'], actual)
-            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
+            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True, env=env)
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(actual, repeat)
 
