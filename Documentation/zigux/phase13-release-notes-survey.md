@@ -29,6 +29,7 @@ This document records the current release-discipline reading for the active Phas
   - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
   - `Documentation/zigux/phase13-notifier-list-survey.md`
   - `zigux/tests/phase13_libfs_manifest.json`
+  - `zigux/tests/phase13_libfs_reviewability.zig`
   - `zigux/tests/phase13_devres_manifest.json`
   - `zigux/tests/phase13_landlock_ruleset_manifest.json`
   - `zigux/tests/phase13_landlock_syscalls_manifest.json`
