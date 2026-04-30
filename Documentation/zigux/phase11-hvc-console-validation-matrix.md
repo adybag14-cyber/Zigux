@@ -53,12 +53,13 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
+- the bootstrap workflow now runs `make -C zigux phase11-hvc-survey` as a separate archival replay after `make -C zigux phase11-validate` and before the broader shared Phase 11 test shard
 - the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane
 - this bounded worker-entry, sleep-handoff, drain-order, hangup-disconnect, and remove-handoff evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until another comparably small host-free khvcd, notifier, or remove handoff actually lands
-- keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
+- keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter while letting bootstrap CI run `make -C zigux phase11-hvc-survey` as a separate archival step instead of pretending that survey lives inside the shared build shard
 - do not claim khvcd execution, sysrq, notifier callbacks, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
 - after this landed `hvc_remove()` handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, or sysrq split actually lands so the lane keeps one truthful next step
