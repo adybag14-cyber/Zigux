@@ -55,6 +55,10 @@ def compare_json_artifacts(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(expected), str(actual)], cwd=str(ROOT))
 
 
+def compare_text_artifacts(expected: Path, actual: Path) -> None:
+    run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(expected), str(actual)], cwd=str(ROOT))
+
+
 def load_cases(fixture_dir: Path = FIXTURE_DIR) -> object:
     return json.loads((fixture_dir / 'cases.json').read_text(encoding='utf-8'))
 
@@ -483,6 +487,23 @@ def run_self_test() -> int:
         assert 'orphaned_fixture:orphaned_expected.json' in failure_lines
         assert failure_lines[-1] == 'INVALID_KCONFIG_MANIFEST_END'
 
+        exact_a = tmp_dir / 'exact-a.json'
+        exact_b = tmp_dir / 'exact-b.json'
+        exact_a.write_text('{"counts":{"set":1,"unset":0},"entries":[]}\n', encoding='utf-8', newline='\n')
+        exact_b.write_text('{"entries":[],"counts":{"unset":0,"set":1}}\n', encoding='utf-8', newline='\n')
+        compare_json_artifacts(exact_a, exact_b)
+        text_result = subprocess.run(
+            [sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(exact_a), str(exact_b)],
+            check=False,
+            text=True,
+            capture_output=True,
+            cwd=str(ROOT),
+        )
+        if text_result.returncode != 1:
+            raise AssertionError('expected compare_text_artifacts to catch byte drift for JSON-equivalent confdata output')
+        assert 'ARTIFACT_DIFF=fail' in text_result.stdout
+        assert 'MODE=text' in text_result.stdout
+
     print('KCONFIG_BRIDGE_SELF_TEST=pass')
     return 0
 
@@ -564,9 +585,11 @@ def main() -> int:
             repeat_result = run([str(confdata_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(actual, repeat)
+            compare_text_artifacts(actual, repeat)
             rebuild_result = run([str(confdata_rebuild_exe), str(FIXTURE_DIR / case['input'])], cwd=str(ROOT), capture_output=True)
             rebuild.write_text(rebuild_result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(actual, rebuild)
+            compare_text_artifacts(actual, rebuild)
 
     print('KCONFIG_BRIDGE_DIFF=pass')
     print('KCONFIG_BRIDGE_DETERMINISM=pass')
