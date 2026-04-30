@@ -169,7 +169,10 @@ Phase 1 is only considered closed when all of the following are green:
 7. closure validation
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-8. workflow viability
+8. closure validator self-test
+- `python3 scripts/zigux/validate-phase1-closure.py --self-test`
+
+9. workflow viability
 - the bootstrap workflow must not rely on deprecated Node 20 action execution
 - the bootstrap workflow must pin current action releases where available
 
@@ -180,6 +183,7 @@ Phase 1 is only considered closed when all of the following are green:
 - `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`
 - `PHASE1_BENCH_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-bench.py --self-test`
 - `PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py`
+- `PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test`
 
 ## Performance Policy
 
