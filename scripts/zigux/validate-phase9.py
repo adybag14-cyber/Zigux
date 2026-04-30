@@ -447,9 +447,13 @@ required_bitmap_survey_test_markers = [
     'std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`")',
 ]
 
+KRETPROBE_LANE_KEY = "P9-L15"
+KRETPROBE_SURVEYED_COMMIT = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0"
+TRACE_EVENTS_SURVEYED_COMMIT = "e7b3b515704dd521630df0b0f62396d033e38e02"
+
 required_kretprobe_survey_markers = [
-    "`PHASE9_LANE_KEY=P9-L15`",
-    "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
+    f"`PHASE9_LANE_KEY={KRETPROBE_LANE_KEY}`",
+    f"`PHASE9_SURVEYED_COMMIT={KRETPROBE_SURVEYED_COMMIT}`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
     "command-name, argv-policy, or environment-derived activation handling",
@@ -457,8 +461,8 @@ required_kretprobe_survey_markers = [
 ]
 
 required_kretprobe_module_slice_markers = [
-    "`PHASE9_LANE_KEY=P9-L15`",
-    "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
+    f"`PHASE9_LANE_KEY={KRETPROBE_LANE_KEY}`",
+    f"`PHASE9_SURVEYED_COMMIT={KRETPROBE_SURVEYED_COMMIT}`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
 ]
@@ -469,18 +473,28 @@ required_kretprobe_manifest_markers = [
     '"zigux_destination": "zigux/tests/runtime_kretprobe_survey.zig"',
     '"id": "runtime-kretprobe-loader-scaffold"',
     '"zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig"',
+    '"id": "runtime-kretprobe-live-loader-binding"',
+    '"zigux_destination": "zigux/kernel/runtime_loader.zig"',
     '"id": "runtime-kretprobe-shared-loader-controls"',
     '"status": "blocked_on_runtime_substrate"',
 ]
 
 required_kretprobe_survey_test_markers = [
-    'const surveyed_commit = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0";',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);',
+    'const DeliveryEvidence = struct {',
+    'const OwnershipEntry = struct {',
+    f'const surveyed_commit = "{KRETPROBE_SURVEYED_COMMIT}";',
+    'test "phase 9 runtime kretprobe survey manifest records the landed ownership packet and remaining shared control blocker" {',
+    'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
+    'try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);',
+    'try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);',
+    f'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY={KRETPROBE_LANE_KEY}`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);',
+    f'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY={KRETPROBE_LANE_KEY}`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, module_doc, "direct post-selftest replay proof") != null);',
+    'std.mem.indexOf(u8, gap.why_now, "pre-execution")',
     'std.mem.eql(u8, check.id, "loader-rollback-surface")',
     'std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")',
     'std.mem.eql(u8, entry.id, "runtime-kretprobe-loader-scaffold")',
@@ -488,8 +502,8 @@ required_kretprobe_survey_test_markers = [
 
 required_trace_events_survey_markers = [
     "Documentation/zigux/freeze-map.md",
-    "`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
-    "the current survey packet is pinned to `master` commit `e7b3b515704dd521630df0b0f62396d033e38e02`.",
+    f"`PHASE9_SURVEYED_COMMIT={TRACE_EVENTS_SURVEYED_COMMIT}`",
+    f"the current survey packet is pinned to `master` commit `{TRACE_EVENTS_SURVEYED_COMMIT}`.",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "Delivery ownership map",
@@ -507,7 +521,7 @@ required_trace_events_survey_markers = [
 
 required_trace_events_module_slice_markers = [
     "Documentation/zigux/freeze-map.md",
-    "`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
+    f"`PHASE9_SURVEYED_COMMIT={TRACE_EVENTS_SURVEYED_COMMIT}`",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "runtime task ownership or event-loop substrate parity",
@@ -542,7 +556,7 @@ required_trace_events_manifest_markers = [
 required_trace_events_survey_test_markers = [
     'const DeliveryEvidence = struct {',
     'const OwnershipEntry = struct {',
-    'const surveyed_commit = "e7b3b515704dd521630df0b0f62396d033e38e02";',
+    f'const surveyed_commit = "{TRACE_EVENTS_SURVEYED_COMMIT}";',
     'var saw_freeze_map_boundary = false;',
     'var saw_manifest_catalog = false;',
     'var saw_shared_build_catalog = false;',
@@ -567,7 +581,7 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
     'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
-    'std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `e7b3b515704dd521630df0b0f62396d033e38e02`")',
+    f'std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `{TRACE_EVENTS_SURVEYED_COMMIT}`")',
     'std.mem.indexOf(u8, survey_doc, "`init_runs`")',
     'std.mem.indexOf(u8, survey_doc, "`selftest_runs`")',
     'std.mem.indexOf(u8, survey_doc, "`exit_runs`")',
@@ -824,7 +838,7 @@ def run_self_test() -> int:
         original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
         trace_events_survey_path.write_text(
             original_trace_events_survey.replace(
-                "`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
+                f"`PHASE9_SURVEYED_COMMIT={TRACE_EVENTS_SURVEYED_COMMIT}`",
                 "`PHASE9_SURVEYED_COMMIT=`",
                 1,
             ),
@@ -833,7 +847,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "trace_events_surveyed_commit_pin",
             tmp_root,
-            "trace_events_survey:`PHASE9_SURVEYED_COMMIT=e7b3b515704dd521630df0b0f62396d033e38e02`",
+            f"trace_events_survey:`PHASE9_SURVEYED_COMMIT={TRACE_EVENTS_SURVEYED_COMMIT}`",
         )
         trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
 
@@ -883,7 +897,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "kretprobe_loader_rollback_surface",
             tmp_root,
-            'kretprobe_survey_test:try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);',
+            'kretprobe_survey_test:std.mem.indexOf(u8, gap.why_now, "pre-execution")',
         )
         kretprobe_survey_test_path.write_text(original_kretprobe_survey_test, encoding="utf-8")
 
@@ -891,7 +905,7 @@ def run_self_test() -> int:
         original_kretprobe_module_slice = kretprobe_module_slice_path.read_text(encoding="utf-8")
         kretprobe_module_slice_path.write_text(
             original_kretprobe_module_slice.replace(
-                "`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
+                f"`PHASE9_SURVEYED_COMMIT={KRETPROBE_SURVEYED_COMMIT}`",
                 "`PHASE9_SURVEYED_COMMIT=`",
                 1,
             ),
@@ -900,7 +914,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "kretprobe_module_slice_surveyed_commit_pin",
             tmp_root,
-            "kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`",
+            f"kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT={KRETPROBE_SURVEYED_COMMIT}`",
         )
         kretprobe_module_slice_path.write_text(original_kretprobe_module_slice, encoding="utf-8")
 
