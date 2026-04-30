@@ -12,6 +12,11 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `zigux/tests/atomic64_diff.zig`
   - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
+  - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
+  - `zigux/tests/phase4_test_fsmount_manifest.json`
+  - `zigux/tests/phase4_test_fsmount_survey.zig`
+  - `zigux/tests/phase4_perf_baseline_manifest.json`
+  - `zigux/tests/phase4_perf_baseline_survey.zig`
   - `zigux/tests/bitmap_diff.zig`
   - `zigux/tests/phase4_build.zig`
   - `scripts/zigux/validate-phase4.py`
