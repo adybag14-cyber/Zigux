@@ -130,7 +130,7 @@ FORBIDDEN_BUILD_MARKERS = [
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
 MANIFEST_SPECS = {
-    "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
+    "phase11_gpio_wdt_manifest.json": ("P11-L03", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 13, [], []),
@@ -384,6 +384,21 @@ def run_self_test() -> int:
 
         hvc_test_path.write_text(
             original_hvc_test.replace(
+                "    try std.testing.expect(attached_remove.tty_port_put_precedes_tty_vhangup);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_attached_remove_order_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expect(attached_remove.tty_port_put_precedes_tty_vhangup);",
+        )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
                 "    try std.testing.expect(!detached_remove.tty_vhangup_requested);\n",
                 "",
                 1,
@@ -427,7 +442,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -688,6 +703,7 @@ for marker in [
     "    try std.testing.expect(hangup_drain.read_hangup_pending);",
     "    try std.testing.expect(hangup_drain.read_poll_armed_without_irq);",
     'test "phase11 hvc console keeps hvc_remove handoff boundaries reviewable" {',
+    "    try std.testing.expect(attached_remove.tty_port_put_precedes_tty_vhangup);",
     "        .tty_attached = false,",
     "    try std.testing.expect(!detached_remove.tty_vhangup_requested);",
     "    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);",
@@ -752,7 +768,7 @@ for marker in [
     if marker not in bcm2835_survey_doc:
         missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
 for marker in [
-    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability",
+    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff ownership reviewability",
     "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
     "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.",
 ]:
