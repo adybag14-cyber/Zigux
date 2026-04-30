@@ -130,7 +130,7 @@ FORBIDDEN_BUILD_MARKERS = [
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
 MANIFEST_SPECS = {
-    "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
+    "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 13, [], []),
@@ -752,7 +752,7 @@ for marker in [
     if marker not in bcm2835_survey_doc:
         missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
 for marker in [
-    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff ownership reviewability",
+    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability",
     "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
     "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.",
 ]:
