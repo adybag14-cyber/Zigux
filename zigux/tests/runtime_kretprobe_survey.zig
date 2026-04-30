@@ -154,6 +154,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
         if (std.mem.eql(u8, check.id, "shared-build-leg-surface")) {
             saw_shared_build_check = true;
             try std.testing.expectEqualStrings("shared_build_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-sample-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-module-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-survey-tests") != null);
         }
@@ -205,6 +206,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
         if (std.mem.eql(u8, entry.id, "phase9-kretprobe-build-gate")) {
             saw_build_catalog = true;
             try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+            try std.testing.expect(std.mem.indexOf(u8, entry.role, "phase9-runtime-kretprobe-sample-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "phase9-runtime-kretprobe-module-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, entry.role, "phase9-runtime-kretprobe-loader-tests") != null);
         }
@@ -243,7 +245,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
 
         if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) {
             saw_phase9_build_ownership = true;
-            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "module, diff, loader, and survey legs") != null);
+            try std.testing.expect(std.mem.indexOf(u8, entry.owns, "sample, module, diff, loader, and survey legs") != null);
         }
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_kretprobe.zig")) {
             saw_sample_ownership = true;
@@ -279,6 +281,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
         if (std.mem.eql(u8, gap.id, "phase9-build-gate")) {
             saw_build_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-kretprobe-sample-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-kretprobe-module-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-kretprobe-survey-tests") != null);
         }
@@ -347,6 +350,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
         "surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
         "manifest-backed delivery catalog and ownership map",
         "Delivery ownership map",
+        "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
         "phase9-runtime-kretprobe-diff-tests",
         "phase9-runtime-kretprobe-loader-tests",
@@ -366,6 +370,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
 
     const required_module_markers = [_][]const u8{
         "surveyed inspected `master` head: `b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+        "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
         "phase9-runtime-kretprobe-diff-tests",
         "phase9-runtime-kretprobe-loader-tests",
