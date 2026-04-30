@@ -16,6 +16,17 @@ ARTIFACT_DIFF_PATH = ROOT / "scripts/zigux/artifact_diff.py"
 
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase12-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+BUILD_MODULE_RE = re.compile(
+    r'const ([A-Za-z0-9_]+) = b\.createModule\(\.\{\s*'
+    r'\.root_source_file = b\.path\("([^"]+)"\),',
+    re.S,
+)
+BUILD_IMPORT_RE = re.compile(r'([A-Za-z0-9_]+)\.addImport\("([^"]+)", ([A-Za-z0-9_]+)\);')
+BUILD_TEST_ROOT_MODULE_RE = re.compile(
+    r'\.name = "(phase12-[^"]+)",\s*'
+    r'\.root_module = ([A-Za-z0-9_]+),',
+    re.S,
+)
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -27,6 +38,22 @@ def render_inventory(expected: dict[str, object]) -> dict[str, object]:
     return {
         "build_test_names": BUILD_TEST_NAME_RE.findall(build_text),
         "shared_test_depend_steps": BUILD_DEPEND_STEP_RE.findall(build_text),
+        "module_root_source_files": [
+            {"module": module_name, "path": root_path}
+            for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+        ],
+        "module_imports": [
+            {
+                "module": module_name,
+                "import_name": import_name,
+                "imported_module": imported_module,
+            }
+            for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
+        ],
+        "test_root_modules": [
+            {"test": test_name, "root_module": root_module}
+            for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+        ],
         "expected_step_count": expected["expected_step_count"],
         "expected_test_count": expected["expected_test_count"],
         "expected_summary_line": expected["expected_summary_line"],
