@@ -160,6 +160,23 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding='utf-8')
 
+        parity_checker_path = tmp_root / 'scripts' / 'zigux' / 'check-phase1-parity.py'
+        original_parity_checker = parity_checker_path.read_text(encoding='utf-8')
+        parity_checker_path.write_text(
+            original_parity_checker.replace(
+                "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+                "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=')",
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'parity_checker_self_test_case_count',
+            tmp_root,
+            "parity_checker:print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+        )
+        parity_checker_path.write_text(original_parity_checker, encoding='utf-8')
+
         expectations_path = tmp_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'
         expectations = json.loads(expectations_path.read_text(encoding='utf-8'))
         expectations['exact_checksums']['PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM'] = 1
@@ -224,7 +241,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=11')
     return 0
 
 
@@ -245,6 +262,7 @@ workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(en
 tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 bench_checker = (ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py').read_text(encoding='utf-8')
+parity_checker = (ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py').read_text(encoding='utf-8')
 manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8'))
 bench_expectations = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json').read_text(encoding='utf-8'))
 
@@ -359,6 +377,11 @@ required_bench_checker_markers = [
     "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
 ]
+required_parity_checker_markers = [
+    "parser.add_argument('--self-test'",
+    "print('PHASE1_PARITY_SELF_TEST=pass')",
+    "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+]
 
 missing_markers = []
 for marker in required_closure_markers:
@@ -382,6 +405,9 @@ for marker in required_ledger_markers:
 for marker in required_bench_checker_markers:
     if marker not in bench_checker:
         missing_markers.append(f'bench_checker:{marker}')
+for marker in required_parity_checker_markers:
+    if marker not in parity_checker:
+        missing_markers.append(f'parity_checker:{marker}')
 
 if 'mlugg/setup-zig@' in workflow:
     missing_markers.append('workflow:remove mlugg/setup-zig@')
@@ -653,5 +679,5 @@ print('PHASE1_CLOSURE_VALIDATION=pass')
 print(f'PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
 print(
     'PHASE1_CLOSURE_REQUIRED_MARKER_COUNT='
-    f"{len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_bench_checker_markers)}"
+    f"{len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_bench_checker_markers) + len(required_parity_checker_markers)}"
 )
