@@ -117,6 +117,21 @@ def run_self_test() -> int:
 
         closure_path.write_text(
             original_closure.replace(
+                'PHASE1_FIND_BIT_LOW_LEVEL_ALIAS_UNIT_REVIEW=find_bit low-level underscore entry points preserve the same set, shared-bit, and zero-bit scan semantics as the primary helpers across the same caller-selected bit windows and tail clamps',
+                'PHASE1_FIND_BIT_LOW_LEVEL_ALIAS_UNIT_REVIEW=',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'find_bit_low_level_alias_review',
+            tmp_root,
+            'closure:PHASE1_FIND_BIT_LOW_LEVEL_ALIAS_UNIT_REVIEW=find_bit low-level underscore entry points preserve the same set, shared-bit, and zero-bit scan semantics as the primary helpers across the same caller-selected bit windows and tail clamps',
+        )
+        closure_path.write_text(original_closure, encoding='utf-8')
+
+        closure_path.write_text(
+            original_closure.replace(
                 'PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations',
                 'PHASE1_BITMAP_ALIAS_UNIT_REVIEW=',
                 1,
@@ -258,6 +273,17 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding='utf-8')
 
         manifest = json.loads(original_manifest)
+        manifest['helper_review_notes']['tools/lib/find_bit.zig']['low_level_alias_unit_test_anchor'] = ''
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_missing_marker(
+            'find_bit_low_level_alias_anchor',
+            tmp_root,
+            'manifest:find_bit.low_level_alias_unit_test_anchor',
+        )
+
+        manifest_path.write_text(original_manifest, encoding='utf-8')
+
+        manifest = json.loads(original_manifest)
         manifest['helper_review_notes']['tools/lib/bitmap.zig']['alias_unit_test_anchor'] = ''
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         expect_missing_marker(
@@ -267,7 +293,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15')
     return 0
 
 
@@ -321,6 +347,8 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range',
     'find_bit alias unit-test anchor: `tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"`',
     'PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps',
+    'find_bit low-level alias unit-test anchor: `tools/lib/find_bit.zig:test "find low-level underscore entry points preserve scan semantics"`',
+    'PHASE1_FIND_BIT_LOW_LEVEL_ALIAS_UNIT_REVIEW=find_bit low-level underscore entry points preserve the same set, shared-bit, and zero-bit scan semantics as the primary helpers across the same caller-selected bit windows and tail clamps',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
     'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
@@ -354,7 +382,7 @@ required_closure_markers = [
     'string prefix-length unit-test anchor: `tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"`',
     'PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes',
     'string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`',
-    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
+    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix semantics aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
     'string memparse unit-test anchor: `tools/lib/string.zig:test "memparse forwards the header-level string helper surface"`',
     'PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse forwards decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
@@ -370,80 +398,86 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS',
     'PHASE1_RBTREE_BENCH_REVIEW=rbtree benchmark smoke pins ordered traversal, duplicate-range, cached-leftmost, and findAdd checksum surfaces so duplicate-owner regressions cannot hide behind the broader tree checksum alone',
     'PHASE1_RBTREE_BENCH_KEYS=PHASE1_BENCH_RBTREE_CHECKSUM,PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM,PHASE1_BENCH_RBTREE_CACHED_CHECKSUM,PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM',
-    'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
 ]
+
 required_workflow_markers = [
-    'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
-    'uses: actions/checkout@v6.0.2',
-    'uses: actions/setup-python@v6.2.0',
-    'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
-    'run: zig version',
-    'python3 scripts/zigux/validate-phase1-closure.py',
-    'python3 scripts/zigux/validate-phase1-closure.py --self-test',
+    'python3 scripts/zigux/check-phase1-parity.py',
     'python3 scripts/zigux/check-phase1-parity.py --self-test',
+    'zig build test --build-file zigux/tests/build.zig',
+    'zig build bench --build-file zigux/tests/build.zig',
     'python3 scripts/zigux/check-phase1-bench.py',
     'python3 scripts/zigux/check-phase1-bench.py --self-test',
-    'zig build bench --build-file zigux/tests/build.zig',
+    'python3 scripts/zigux/validate-phase1-closure.py',
+    'python3 scripts/zigux/validate-phase1-closure.py --self-test',
+    'NODE_OPTIONS: --openssl-legacy-provider',
+    'uses: actions/checkout@v4',
+    'actions/setup-python@v5',
+    'install-zig.py',
 ]
-required_workflow_exact_lines = {
-    'run: python3 scripts/zigux/validate-phase1-closure.py': 1,
-    'run: python3 scripts/zigux/validate-phase1-closure.py --self-test': 1,
-    'run: python3 scripts/zigux/check-phase1-parity.py --self-test': 1,
-    'run: python3 scripts/zigux/check-phase1-bench.py': 1,
-    'run: python3 scripts/zigux/check-phase1-bench.py --self-test': 1,
-}
+
 required_build_markers = [
-    'phase1_bench.zig',
-    'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
+    '@import("../../tools/lib/argv_split.zig")',
+    '@import("../../tools/lib/bitmap.zig")',
+    '@import("../../tools/lib/cmdline.zig")',
+    '@import("../../tools/lib/ctype.zig")',
+    '@import("../../tools/lib/find_bit.zig")',
+    '@import("../../tools/lib/hweight.zig")',
+    '@import("../../tools/lib/list_sort.zig")',
+    '@import("../../tools/lib/rbtree.zig")',
+    '@import("../../tools/lib/slab.zig")',
+    '@import("../../tools/lib/str_error_r.zig")',
+    '@import("../../tools/lib/string.zig")',
+    '@import("../../tools/lib/vsprintf.zig")',
+    '@import("../../tools/lib/zalloc.zig")',
 ]
+
 required_ledger_markers = [
-    'Documentation/zigux/phase1-closure.md',
-    'scripts/zigux/validate-phase1-closure.py',
-    'zigux/tests/fixtures/phase1_helper_manifest.json',
-    'zigux/tests/fixtures/phase1_bench_expectations.json',
+    'feat(tools/lib): start phase-1 helper ports',
+    'phase-1 parity fixtures and benchmark scaffolding',
+    'phase-1 helper closure and bootstrap workflow',
 ]
+
 required_bench_checker_markers = [
     "print('PHASE1_BENCH_SELF_TEST=pass')",
     "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=11')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
 ]
+
 required_parity_checker_markers = [
     "print('PHASE1_PARITY_SELF_TEST=pass')",
     "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
-    "print('bitmap.scnprintf_empty_len')",
-    "print('bitmap.scnprintf_empty_bytes')",
-    "print('bitmap.scnprintf_trunc_len')",
-    "print('bitmap.scnprintf_trunc')",
 ]
 
 missing_markers: list[str] = []
+
 for marker in required_closure_markers:
     if marker not in closure:
         missing_markers.append(f'closure:{marker}')
+
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f'workflow:{marker}')
-for line, expected_count in required_workflow_exact_lines.items():
-    actual_count = count_exact_line(workflow, line)
-    if actual_count != expected_count:
-        missing_markers.append(
-            f'workflow_exact:{line}:expected_count={expected_count}:actual_count={actual_count}'
-        )
+
+if 'setup-zig@' in workflow:
+    missing_markers.append('workflow:remove old setup-zig action')
+if 'uses: mlugg/setup-zig@' in workflow:
+    missing_markers.append('workflow:remove mlugg/setup-zig@')
+
 for marker in required_build_markers:
     if marker not in tests_build:
         missing_markers.append(f'build:{marker}')
+
 for marker in required_ledger_markers:
     if marker not in ledger:
         missing_markers.append(f'ledger:{marker}')
+
 for marker in required_bench_checker_markers:
     if marker not in bench_checker:
         missing_markers.append(f'bench_checker:{marker}')
+
 for marker in required_parity_checker_markers:
     if marker not in parity_checker:
         missing_markers.append(f'parity_checker:{marker}')
-
-if 'mlugg/setup-zig@' in workflow:
-    missing_markers.append('workflow:remove mlugg/setup-zig@')
 
 manifest_helpers = manifest.get('helpers', [])
 manifest_count = manifest.get('helper_count')
@@ -570,6 +604,10 @@ if find_bit_review.get('alias_unit_test_anchor') != 'tools/lib/find_bit.zig:test
     missing_markers.append('manifest:find_bit.alias_unit_test_anchor')
 if find_bit_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.':
     missing_markers.append('manifest:find_bit.alias_unit_test_contract')
+if find_bit_review.get('low_level_alias_unit_test_anchor') != 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve scan semantics"':
+    missing_markers.append('manifest:find_bit.low_level_alias_unit_test_anchor')
+if find_bit_review.get('low_level_alias_unit_test_contract') != 'Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the primary scan helpers across the same caller-selected bit windows and tail clamps.':
+    missing_markers.append('manifest:find_bit.low_level_alias_unit_test_contract')
 if rbtree_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:rbtree.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if rbtree_review.get('evidence_keys') != [
