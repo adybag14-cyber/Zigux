@@ -208,11 +208,19 @@ fn parseRequestArgs(args: []const []const u8) ParseRequestArgsError!Request {
     };
 }
 
+fn nonEmptyEnvValue(value: ?[:0]const u8) ?[]const u8 {
+    const slice = value orelse return null;
+    if (slice.len == 0) {
+        return null;
+    }
+    return slice;
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(init.arena.allocator());
-    const seed = std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_SEED");
-    const probability = std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_PROBABILITY");
+    const seed = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_SEED"));
+    const probability = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_PROBABILITY"));
 
     var request = parseRequestArgs(args) catch |err| switch (err) {
         error.InvalidArity => {
@@ -968,4 +976,15 @@ test "conf bridge emits randconfig seed and probability env" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"seed/allrandom.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_PROBABILITY\":\"10:20:30\"") != null);
+}
+
+test "conf bridge ignores empty randconfig seed and probability env values" {
+    try std.testing.expectEqual(@as(?[]const u8, null), nonEmptyEnvValue(null));
+    try std.testing.expectEqual(@as(?[]const u8, null), nonEmptyEnvValue(""));
+
+    const seed = nonEmptyEnvValue("0xC0FFEE");
+    const probability = nonEmptyEnvValue("10:20:30");
+
+    try std.testing.expectEqualStrings("0xC0FFEE", seed.?);
+    try std.testing.expectEqualStrings("10:20:30", probability.?);
 }
