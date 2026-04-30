@@ -108,7 +108,9 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expect(manifest.gaps.len >= 13);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_ring_reset_reuse.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-ring-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-mmio-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "in-memory config-write planning") != null);
@@ -155,6 +157,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     var saw_mmio_survey_note = false;
     var saw_mmio_blocker = false;
     var saw_ring_helper = false;
+    var saw_ring_slice_note = false;
     var saw_ring_callback_delay = false;
     var saw_mmio_slice_note = false;
     var saw_mmio_landed_helper = false;
@@ -206,6 +209,14 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed queue-discipline surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remaining MMIO ladder") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-wrapper roadmap gap explicit") == null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-slice-note")) {
+            saw_ring_slice_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-ring-slice.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded queue-helper surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport readiness") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-mmio-survey-note")) {
@@ -291,6 +302,7 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_ring_helper);
+    try std.testing.expect(saw_ring_slice_note);
     try std.testing.expect(saw_ring_callback_delay);
     try std.testing.expect(saw_mmio_slice_note);
     try std.testing.expect(saw_mmio_landed_helper);
