@@ -88,7 +88,7 @@ Phase 4 flow
 
 Phase 5 flow
 - `validate-phase5.py` keeps the shared Phase 5 reference-sample packet aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase5_build.zig`, the four sample-backed survey manifests, and the shared `samples/zigux/README.md` catalog boundary.
-- `make -C zigux phase5-validate` is the fail-fast packet check for the current bytestream FIFO, kobject, kretprobe, and trace-events sample bundle.
+- `make -C zigux phase5-validate` is the fail-fast bundle check for the current bytestream FIFO, kobject, kretprobe, and trace-events sample bundle.
 - `make -C zigux phase5` keeps that same non-runtime reference-sample lane reviewable through one validator-first path instead of ad hoc sample-local commands.
 - `zigux/tests/phase5_build.zig` is the shared replay entrypoint for `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_survey.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig`.
 - `samples/zigux/README.md` stays in that same validation surface so the four approved Phase 5 reference samples remain visibly distinct from the later `runtime_*` starters that share the directory.
@@ -134,7 +134,7 @@ Phase 9 flow
 - `zigux/tests/runtime_loader_gap_manifest.json` keeps the manifest-backed catalog and ownership map for the shared runtime-loader evidence packet, so reviewers can see which file owns the survey note, the review checklist, the shared request contract, the sample-side loader plans, and the shared `phase9_build.zig` replay path before the lane widens again.
 
 Phase 10 flow
-- `validate-phase10.py` keeps the current virtio_input registration boundary explicit before replay by checking the published Phase 10 notes, the workflow wiring, `zigux/Makefile`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_input_manifest.json`.
+- `validate-phase10.py` keeps the current Phase 10 input-plus-MMIO starter packet explicit before replay by checking the published Phase 10 notes, the workflow wiring, `zigux/Makefile`, the shared `zigux/tests/phase10_build.zig` replay path, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_manifest.json`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`.
 - `make -C zigux phase10-validate` is now the fail-fast bundle check for both the shared Phase 10 closure packet and the narrower virtio_input registration guard.
 - the Phase 10 validator keeps `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md` aligned with the landed `phase10-virtio-input-registration-preflight-helper`, the now-landed `phase10-virtio-input-queue-callback-preflight-helper`, and the blocked registration-lifecycle contract.
 - this keeps the current input lane honest now that the queue-callback preflight helper is landed, with the already-landed registration-preflight summary and earlier `ABS_MT_SLOT` planning helper staying as bounded prerequisites before any wider `input_register_device()` claim.
