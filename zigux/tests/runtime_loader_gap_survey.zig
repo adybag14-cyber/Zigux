@@ -420,7 +420,7 @@ test "runtime loader gap survey manifest keeps the roadmap boundary and shared r
     try std.testing.expectEqual(@as(usize, 9), landed_count);
     try std.testing.expectEqual(@as(usize, 3), blocked_count);
     try std.testing.expect(saw_manifest_catalog);
-    try std.testing.expect(saw_substratePlanDoc);
+    try std.testing.expect(saw_substrate_plan_doc);
     try std.testing.expect(saw_freeze_map_doc);
     try std.testing.expect(saw_shared_contract);
     try std.testing.expect(saw_atomic64_loader_plan);
