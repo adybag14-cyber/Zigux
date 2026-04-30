@@ -302,6 +302,7 @@ required_exec_cmd_slice_markers = [
 
 required_phase8_exec_cmd_markers = [
     'test "phase 8 exec-cmd docs keep the deferred execution boundary explicit"',
+    'test "phase 8 exec-cmd review checklist keeps deferred handoff review wording aligned"',
     'test "phase 8 exec-cmd evidence still matches the live C helper anchors"',
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "tools/lib/subcmd/exec-cmd.c",
