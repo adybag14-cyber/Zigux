@@ -69,6 +69,8 @@ review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").re
 docs_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
+mmio_helper = (ROOT / "drivers" / "virtio" / "virtio_mmio.zig").read_text(encoding="utf-8")
+mmio_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio.zig").read_text(encoding="utf-8")
 mmio_slice = (ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md").read_text(encoding="utf-8")
 mmio_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio_survey.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
@@ -209,6 +211,35 @@ required_mmio_slice_markers = [
     "in-memory config-write planning",
     "phase10-mmio-lifecycle-and-irq-paths",
 ]
+required_mmio_helper_markers = [
+    "pub const supported_interrupt_bits: u32 = 0x3;",
+    "pub const supported_config_window_bytes: usize = 16;",
+    "pub const ConfigWritePlanSummary = struct {",
+    "config_window: [supported_config_window_bytes]u8 = [_]u8{0} ** supported_config_window_bytes,",
+    "pub fn planConfigWrite(",
+    "try validateConfigWriteValue(width, value);",
+    "pub fn acknowledgeInterrupt(self: *Self, bits: u32) !InterruptAckSummary {",
+    "if ((bits & ~supported_interrupt_bits) != 0) return error.UnsupportedInterruptBits;",
+    "if (end > supported_config_window_bytes) return error.ConfigWindowOutOfRange;",
+    "fn validateConfigWriteValue(width: ConfigWindowWidth, value: u32) !void {",
+    "if (value > max_value) return error.ConfigWriteValueTooWide;",
+]
+required_mmio_test_markers = [
+    'const virtio_mmio = @import("virtio_mmio");',
+    'test "phase10 virtio mmio snapshots a bounded config window without writes" {',
+    'test "phase10 virtio mmio plans bounded config-window writes without side effects" {',
+    'var plan = try window.planConfigWrite(0, .half, 0xabcd);',
+    'try std.testing.expectEqual(@as(u32, 0x1234), plan.previous_value);',
+    'try std.testing.expectEqual(@as(u32, 0xabcd), plan.planned_value);',
+    'plan = try window.planConfigWrite(2, .word, 0x11223344);',
+    'try std.testing.expectEqual(@as(u32, 0x9abc5678), plan.previous_value);',
+    'try std.testing.expectEqual(@as(u32, 0x11223344), plan.planned_value);',
+    'try std.testing.expectError(error.ConfigWriteValueTooWide, window.planConfigWrite(8, .byte, 0x100));',
+    'try std.testing.expectError(error.ConfigWriteValueTooWide, window.planConfigWrite(8, .half, 0x1_0000));',
+    'try std.testing.expectError(error.ConfigWindowOutOfRange, window.planConfigWrite(15, .half, 0xabcd));',
+    'test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {',
+    'try std.testing.expectError(error.UnsupportedInterruptBits, window.acknowledgeInterrupt(0x8));',
+]
 required_mmio_survey_test_markers = [
     'test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {',
     'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
@@ -263,6 +294,12 @@ for marker in required_ring_survey_test_markers:
 for marker in required_mmio_slice_markers:
     if marker not in mmio_slice:
         missing_markers.append(f"mmio_slice:{marker}")
+for marker in required_mmio_helper_markers:
+    if marker not in mmio_helper:
+        missing_markers.append(f"mmio_helper:{marker}")
+for marker in required_mmio_test_markers:
+    if marker not in mmio_test:
+        missing_markers.append(f"mmio_test:{marker}")
 for marker in required_mmio_survey_test_markers:
     if marker not in mmio_survey_test:
         missing_markers.append(f"mmio_survey_test:{marker}")
@@ -576,5 +613,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_survey_test_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers)}"
 )
