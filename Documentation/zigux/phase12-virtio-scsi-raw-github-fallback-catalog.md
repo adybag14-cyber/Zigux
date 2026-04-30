@@ -78,6 +78,14 @@ This packet is archival rather than live-head truth. During the `P12-L10` docs a
   - `scripts/zigux/validate-phase12.py`
   - `zigux/Makefile`
 
+## Rollback And Reversible Delivery
+
+- owner: `Storage Driver Lane`
+- rollback owner: `Storage Driver Lane`
+- fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth, keep this raw GitHub fallback packet pinned to its inspected commit for degraded readback, and if the shared storage-driver packet regresses, remove the direct `phase12-virtio-scsi-tests` plus `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig` before widening any repair.
+- reversible delivery evidence: this fallback packet is bounded to three public tree entry points, ten commit-pinned raw file reads, and archived validator plus survey replay notes around the existing C anchor, so degraded readback can be refreshed or narrowed again without inventing a second storage-driver implementation path or mutating the Linux source of truth.
+- rollback drill: run `python3 scripts/zigux/validate-phase12.py`; if the shared packet only drifted in degraded-readback evidence, refresh `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` plus `Documentation/zigux/phase12-virtio-scsi-survey.md` first, otherwise remove the `phase12-virtio-scsi-tests` and `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/scsi/virtio_scsi.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+
 ## Observed degraded-mode behavior
 
 - inspected_master_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`
