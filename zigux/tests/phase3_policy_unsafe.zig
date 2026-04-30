@@ -102,6 +102,18 @@ test "phase3 policy decoder keeps allocator init and reset requirements reviewab
 }
 
 test "phase3 policy decoder rejects partial or reserved policy bytes" {
+    try std.testing.expectError(error.InvalidPanicMode, interop_policy.decode(.{
+        .panic_mode = 9,
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    }));
+    try std.testing.expectError(error.InvalidAllocatorMode, interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = 9,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    }));
     try std.testing.expectError(error.ReservedBitsSet, interop_policy.decode(.{
         .panic_mode = @intFromEnum(abi.PanicMode.abort),
         .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
