@@ -70,7 +70,7 @@ const Manifest = struct {
 };
 
 const expected_lane_key = "P15-L08";
-const expected_surveyed_commit = "7f4ee0a5eb4bd171e94c279d44b7818ce2ac6a7f";
+const expected_surveyed_commit = "7095a02f382e919b535b5e5c3fa8985ded58268e";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -155,12 +155,15 @@ test "phase 15 architecture council review-process manifest records current trig
     );
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_lane_key) != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current no-approval posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "parity scorecard and anchor templates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current parked maintenance-mode handoff packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current Phase 15 handoff survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "shared replay entrypoints") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
 
     try std.testing.expectEqualStrings("maintenance_mode", manifest.handoff.current_mode);
@@ -169,6 +172,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("make -C zigux phase15", manifest.handoff.replay_commands[1]);
     try std.testing.expectEqualStrings("deep_core_blocker_posture_change", manifest.handoff.blocker_posture_requirement);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "named reopen triggers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff.next_step, "deep-core blocker posture") != null);
 
     for (manifest.approval_evidence_paths) |path| {
@@ -261,6 +265,8 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(expected_lane_line);
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "does the packet name the automatic return-to-blocked trigger") != null);
