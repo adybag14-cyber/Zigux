@@ -224,7 +224,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
 
     var saw_landed_manifest = false;
@@ -483,7 +483,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
 
     const phase12_manifest = phase12_parsed.value;
     const legacy_manifest = legacy_parsed.value;
-    try std.testing.expectEqualStrings("P12-L13", phase12_manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L16", phase12_manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", phase12_manifest.phase);
     try std.testing.expectEqualStrings("P8-L15", legacy_manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", legacy_manifest.phase);
@@ -505,7 +505,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         } else if (std.mem.eql(u8, pair.legacy_slug, "fdinfo-map-info-helpers")) {
             try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "token-preparation recovery classification") != null);
         } else if (std.mem.eql(u8, pair.legacy_slug, "map-reuse-compatibility")) {
-            try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "reused-map-name chooser") != null);
+            try std.testing.expect(std.mem.indexOf(u8, legacy_segment.why_now, "DEVMAP readonly-flag exception") != null);
         }
 
         if (std.mem.eql(u8, pair.expected_status, "starter_landed")) {
