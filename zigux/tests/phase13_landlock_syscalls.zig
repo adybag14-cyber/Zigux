@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d";
+const expected_surveyed_commit = "798e2e37af2ed21fc23ce1a027c985c598a02d3f";
 const expected_slice_marker = "PHASE13_SLICE=landlock-syscalls-helper-ruleset-fd-creation-handoff";
 
 fn isAllowedStatus(status: []const u8) bool {
