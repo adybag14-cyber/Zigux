@@ -4,13 +4,21 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=b7ce6cc40f8b7819c5c840af28f0d361a167a3ec`
+- `PHASE3_SURVEYED_COMMIT=99eb24971cc35a0baa7fb071ecd01d42e22fb73d`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
+- `PHASE3_EXPORT_SHIM_BLOB_SHA=29a56fbc1657cd20a5c9d4b9ce7fa3499edeafdb`
 - `PHASE3_UAPI_ROOT=zigux/uapi`
 - `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed`
+- `PHASE3_UAPI_VERSION_BLOB_SHA=38df0ae0c3f1eed1445a49ab3eac557078998ba9`
+- `PHASE3_LINUX_HEADER_BLOB_SHA=c8cfd9590d2d0039ad087bb020a236fdc0a2b4ff`
+- `PHASE3_ABI_HEADER_BLOB_SHA=c588b6d2c81659ff8996495d001dd1ebad7df1b1`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2aba404045daca63246680a2a33a2c0b5dcad8a9`
+- `PHASE3_EXPORT_UAPI_BUILD_BLOB_SHA=17778c41309a0bfb1c2c026622938059c2dd41f9`
+- `PHASE3_EXPORT_UAPI_TEST_BLOB_SHA=fe3eaa894573e3a1313b46a16ee4bdf92e3694b5`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=643ad2c2cc2f88eba65d12773a0dc4d271eee49e`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry`
@@ -31,7 +39,7 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `b7ce6cc40f8b7819c5c840af28f0d361a167a3ec` for the directly coupled export/UAPI packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` head `99eb24971cc35a0baa7fb071ecd01d42e22fb73d` for the directly coupled export/UAPI packet, and it now also records the packet-local blob IDs for the curated header, helper, build, test, and manifest files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
@@ -43,7 +51,7 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - `zigux/tests/phase3_export_uapi.zig` now keeps the narrow kernel-side export shim aligned with the UAPI packet's named current-version and current-size predicates, so the shared boundary rule stays reviewable without widening the kernel shim itself
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
 - `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, distinguish canonical headers from broader future-compatible headers, and reject undersized or version-mismatched headers identically
-- `scripts/zigux/validate-phase3-export-uapi-survey.py` now rejects drift in the directly coupled export/UAPI packet paths since `PHASE3_SURVEYED_COMMIT`, so the survey stays anchored to boundary-local evidence instead of failing only because unrelated `master` work advanced elsewhere
+- `scripts/zigux/validate-phase3-export-uapi-survey.py` now rejects drift in the directly coupled export/UAPI packet by checking the recorded packet-local blob IDs first and only falling back to `PHASE3_SURVEYED_COMMIT` when older survey notes do not yet carry those fingerprints, so the survey stays anchored to boundary-local evidence even on shallow checkouts
 
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
@@ -79,6 +87,6 @@ The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
-- refresh `PHASE3_SURVEYED_COMMIT` whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
+- refresh `PHASE3_SURVEYED_COMMIT` and the packet-local `*_BLOB_SHA` markers whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
 
 This lane does not justify broad UAPI expansion, generated headers, or a larger export namespace on its own.
