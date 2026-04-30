@@ -233,3 +233,32 @@ test "runtime atomic64 loader can release the shared runtime-loader request with
     try std.testing.expectEqualStrings("zigux_runtime_atomic64_exit", released.exit_symbol);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
 }
+
+test "runtime atomic64 loader preserves an explicit shared command name" {
+    const plan = RuntimeAtomic64LoadPlan{
+        .module_name = "runtime_atomic64",
+        .command_name = "perf-runtime-atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = runtime_atomic64_sample.ModuleStage.selftest_complete,
+        .summary = .{
+            .counter_snapshot = 0x1111_2222_3333_4444,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    const request = toSharedRequest(plan);
+    try std.testing.expectEqualStrings("perf-runtime-atomic64", request.command_name.?);
+    try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expectEqualStrings("perf-runtime-atomic64", released.command_name.?);
+    try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
