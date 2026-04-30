@@ -103,12 +103,14 @@ REQUIRED_FILES = [
     'zigux/tests/phase4_runtime_atomic64_diff_manifest.json',
     'zigux/tests/phase4_test_fsmount_manifest.json',
     'zigux/tests/phase4_test_fsmount_survey.zig',
+    'zigux/tests/phase4_perf_baseline_manifest.json',
+    'zigux/tests/phase4_perf_baseline_survey.zig',
     'zigux/tests/bitmap_diff.zig',
     'zigux/tests/phase4_build.zig',
 ]
 
 REQUIRED_MAKE_MARKERS = [
-    'PHONY += phase4-validate phase4-test phase4',
+    'PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-test-fsmount-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4',
     'phase4-validate:',
     'scripts/zigux/artifact_diff.py --self-test',
     'scripts/zigux/check-artifact-diff-contract.py',
@@ -116,6 +118,8 @@ REQUIRED_MAKE_MARKERS = [
     'scripts/zigux/validate-phase4.py --self-test',
     'phase4-test:',
     'zigux/tests/phase4_build.zig',
+    'phase4-perf-baseline-survey:',
+    'phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig',
 ]
 
 REQUIRED_WORKFLOW_MARKERS = [
@@ -203,6 +207,12 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'atomic64_diff.zig',
     'runtime_atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
+    'phase4_perf_baseline_manifest.json',
+    'phase4-perf-baseline-survey-tests',
+    'make -C zigux phase4-perf-baseline-survey',
+    'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land',
+    'threshold_pending_until_runtime_atomic64_scope_widens',
+    'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
     'bitmap_diff.zig',
     'rollback owner',
     'lab and CI matrix',
@@ -215,8 +225,10 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'phase4-runtime-atomic64-diff-tests',
     'phase4-runtime-atomic64-diff-survey-tests',
     'phase4-test-fsmount-survey-tests',
+    'phase4-perf-baseline-survey-tests',
     'phase4-bitmap-diff-tests',
     'make -C zigux phase4-test-fsmount-survey',
+    'make -C zigux phase4-perf-baseline-survey',
     'c_anchor_only_until_test_fsmount_starter_lands',
     'Remaining Measurability Gaps Vs Roadmap',
     'samples/zigux/kprobe_example.zig',
@@ -265,6 +277,28 @@ PHASE4_SURVEY_MATRIX_EXPECTATIONS = {
         ],
         'threshold_posture': 'c_anchor_only_until_test_fsmount_starter_lands',
     },
+    'zigux/tests/phase4_perf_baseline_survey.zig': {
+        'owner': 'Validation and Perf Team',
+        'rollback_owner': 'Validation and Perf Team',
+        'bootstrap_ci_replay_markers': [
+            'Validate Phase 4 diff gates',
+            'Run Phase 4 diff tests',
+            'phase4-perf-baseline-survey-tests',
+        ],
+        'local_lab_replay_markers': [
+            'make -C zigux phase4-perf-baseline-survey',
+            'zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig',
+            'phase4-runtime-atomic64-diff-tests',
+            'phase4-runtime-atomic64-diff-survey-tests',
+            'phase4-bitmap-diff-tests',
+        ],
+        'reversible_delivery_markers': [
+            '`zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` remain the shipped rollback gates',
+            'only machine-checked record that their benchmark command and acceptable limit are still unapproved',
+            'instead of landed',
+        ],
+        'threshold_posture': 'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land',
+    },
 }
 
 PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS = {
@@ -284,6 +318,34 @@ PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS = {
     },
 }
 
+PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS = {
+    'lane_key': 'P4-L20',
+    'phase': 'Phase 4',
+    'owner': 'Validation and Perf Team',
+    'rollback_owner': 'Validation and Perf Team',
+    'surveyed_gates': [
+        {
+            'surface': 'zigux/tests/atomic64_diff.zig',
+            'gate_owner': 'ABI and Runtime Team',
+            'gate_rollback_owner': 'ABI and Runtime Team',
+            'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
+        },
+        {
+            'surface': 'zigux/tests/bitmap_diff.zig',
+            'gate_owner': 'Shared Subsystems Pod',
+            'gate_rollback_owner': 'Shared Subsystems Pod',
+            'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
+        },
+    ],
+    'survey_summary': {
+        'phase4_build_present': True,
+        'phase4_validator_present': True,
+        'phase4_validation_matrix_present': True,
+        'benchmark_command_unapproved': True,
+        'acceptable_limit_unapproved': True,
+    },
+}
+
 REQUIRED_ARTIFACT_DIFF_MARKERS = [
     'def emit_result(matched: bool, details: dict[str, object]) -> int:',
     'def run_self_test() -> int:',
@@ -300,10 +362,13 @@ REQUIRED_PHASE4_BUILD_MARKERS = [
     'atomic64_diff.zig',
     'phase4_runtime_atomic64_diff_survey.zig',
     'phase4_test_fsmount_survey.zig',
+    'phase4_perf_baseline_survey.zig',
     'bitmap_diff.zig',
     'phase4-runtime-atomic64-diff-tests',
     'phase4-runtime-atomic64-diff-survey-tests',
     'phase4-test-fsmount-survey-tests',
+    'phase4-perf-baseline-survey-tests',
+    'phase4-perf-baseline-survey',
     'phase4-bitmap-diff-tests',
 ]
 
@@ -519,30 +584,22 @@ def check_survey_matrix_alignment(
         )
     for marker in expectation['bootstrap_ci_replay_markers']:
         if marker not in row:
-            missing.append(
-                f'phase4_matrix:survey_bootstrap_ci:{lane_surface}:{marker}'
-            )
+            missing.append(f"phase4_matrix:survey_bootstrap:{lane_surface}:{marker}")
     for marker in expectation['local_lab_replay_markers']:
         if marker not in row:
-            missing.append(
-                f'phase4_matrix:survey_local_lab:{lane_surface}:{marker}'
-            )
+            missing.append(f"phase4_matrix:survey_local:{lane_surface}:{marker}")
     for marker in expectation['reversible_delivery_markers']:
         if marker not in row:
-            missing.append(
-                f'phase4_matrix:survey_reversible_delivery:{lane_surface}:{marker}'
-            )
+            missing.append(f"phase4_matrix:survey_reversible:{lane_surface}:{marker}")
     if expectation['threshold_posture'] not in row:
-        missing.append(
-            f"phase4_matrix:survey_threshold_posture:{lane_surface}:{expectation['threshold_posture']}"
-        )
+        missing.append(f"phase4_matrix:survey_threshold:{lane_surface}:{expectation['threshold_posture']}")
     return missing
 
 
 def check_test_fsmount_manifest_alignment(
     manifest_text: str,
-    sample_vfs_makefile: str,
-    sample_vfs_test_fsmount: str,
+    vfs_makefile: str,
+    vfs_source: str,
     phase4_build: str,
     phase4_matrix: str,
     validator_text: str,
@@ -565,10 +622,8 @@ def check_test_fsmount_manifest_alignment(
         return missing + ['phase4_test_fsmount_manifest:survey_summary:object']
 
     expected_summary = dict(PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS['survey_summary'])
-    expected_summary['test_fsmount_c_lines'] = count_lines(sample_vfs_test_fsmount)
-    expected_summary['vfs_makefile_replay_present'] = (
-        'userprogs-always-y += test-fsmount' in sample_vfs_makefile
-    )
+    expected_summary['vfs_makefile_replay_present'] = 'userprogs-always-y += test-fsmount' in vfs_makefile
+    expected_summary['zig_sample_present'] = False
     expected_summary['phase4_build_present'] = (
         'phase4_test_fsmount_survey.zig' in phase4_build
         and 'phase4-test-fsmount-survey-tests' in phase4_build
@@ -581,144 +636,151 @@ def check_test_fsmount_manifest_alignment(
         'phase4_test_fsmount_manifest.json' in phase4_matrix
         and 'phase4-test-fsmount-survey-tests' in phase4_matrix
         and 'make -C zigux phase4-test-fsmount-survey' in phase4_matrix
-        and 'c_anchor_only_until_test_fsmount_starter_lands' in phase4_matrix
-        and '`make M=samples/vfs`' in phase4_matrix
-        and 'C-anchor-only' in phase4_matrix
     )
 
     for key, expected in expected_summary.items():
-        actual = survey_summary.get(key)
-        if actual != expected:
+        if survey_summary.get(key) != expected:
             missing.append(f'phase4_test_fsmount_manifest:survey_summary:{key}:{expected}')
+
+    if count_lines(vfs_source) != survey_summary.get('test_fsmount_c_lines'):
+        missing.append(
+            f"phase4_test_fsmount_manifest:survey_summary:test_fsmount_c_lines:{count_lines(vfs_source)}"
+        )
+
+    return missing
+
+
+def check_perf_baseline_manifest_alignment(
+    manifest_text: str,
+    phase4_build: str,
+    phase4_matrix: str,
+    validator_text: str,
+) -> list[str]:
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        return [f'phase4_perf_baseline_manifest:invalid_json:{exc.msg}']
+
+    missing = []
+    for key, expected in PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS.items():
+        if key in {'survey_summary', 'surveyed_gates'}:
+            continue
+        actual = manifest.get(key)
+        if actual != expected:
+            missing.append(f'phase4_perf_baseline_manifest:{key}:{expected}')
+
+    surveyed_gates = manifest.get('surveyed_gates')
+    if not isinstance(surveyed_gates, list):
+        return missing + ['phase4_perf_baseline_manifest:surveyed_gates:list']
+    if surveyed_gates != PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS['surveyed_gates']:
+        missing.append('phase4_perf_baseline_manifest:surveyed_gates:expected_phase4_gate_posture')
+
+    survey_summary = manifest.get('survey_summary')
+    if not isinstance(survey_summary, dict):
+        return missing + ['phase4_perf_baseline_manifest:survey_summary:object']
+
+    expected_summary = dict(PHASE4_PERF_BASELINE_MANIFEST_EXPECTATIONS['survey_summary'])
+    expected_summary['phase4_build_present'] = (
+        'phase4_perf_baseline_survey.zig' in phase4_build
+        and 'phase4-perf-baseline-survey-tests' in phase4_build
+        and 'phase4-perf-baseline-survey' in phase4_build
+    )
+    expected_summary['phase4_validator_present'] = (
+        'phase4_perf_baseline_manifest.json' in validator_text
+        and 'phase4_perf_baseline_survey.zig' in validator_text
+        and 'phase4-perf-baseline-survey-tests' in validator_text
+        and 'phase4-perf-baseline-survey' in validator_text
+    )
+    expected_summary['phase4_validation_matrix_present'] = (
+        'phase4_perf_baseline_manifest.json' in phase4_matrix
+        and 'phase4-perf-baseline-survey-tests' in phase4_matrix
+        and 'make -C zigux phase4-perf-baseline-survey' in phase4_matrix
+        and 'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land' in phase4_matrix
+        and 'benchmark command and acceptable limit are still unapproved for both landed gates' in phase4_matrix
+        and 'land one bounded benchmark command and one acceptable limit per gate before Phase 4 claims perf coverage' in phase4_matrix
+    )
+
+    for key, expected in expected_summary.items():
+        if survey_summary.get(key) != expected:
+            missing.append(f'phase4_perf_baseline_manifest:survey_summary:{key}:{expected}')
 
     return missing
 
 
 def validate_root(root: Path) -> list[str]:
-    missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
-    if missing_files:
-        return [f'file:{path}' for path in missing_files]
+    missing_markers = []
+    for relative_path in REQUIRED_FILES:
+        if not (root / relative_path).exists():
+            missing_markers.append(f'file:{relative_path}')
+    if missing_markers:
+        return missing_markers
 
+    artifact_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
+    phase4_matrix = read_text(root, 'Documentation/zigux/phase4-validation-matrix.md')
+    tests_readme = read_text(root, 'zigux/tests/README.md')
+    scripts_readme = read_text(root, 'scripts/zigux/README.md')
+    docs_readme = read_text(root, 'Documentation/zigux/README.md')
     makefile = read_text(root, 'zigux/Makefile')
     workflow = read_text(root, '.github/workflows/zigux-bootstrap.yml')
-    artifact_diff = read_text(root, 'scripts/zigux/artifact_diff.py')
-    artifact_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
-    tests_readme = read_text(root, 'zigux/tests/README.md')
-    script_readme = read_text(root, 'scripts/zigux/README.md')
-    doc_readme = read_text(root, 'Documentation/zigux/README.md')
-    phase4_matrix = read_text(root, 'Documentation/zigux/phase4-validation-matrix.md')
     phase4_build = read_text(root, 'zigux/tests/phase4_build.zig')
     runtime_atomic64_diff = read_text(root, 'zigux/tests/runtime_atomic64_diff.zig')
     runtime_atomic64_diff_survey = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig')
-    runtime_atomic64_manifest = read_text(
-        root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json'
-    )
-    phase4_test_fsmount_manifest = read_text(
-        root, 'zigux/tests/phase4_test_fsmount_manifest.json'
-    )
+    runtime_atomic64_manifest = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json')
+    phase4_test_fsmount_manifest = read_text(root, 'zigux/tests/phase4_test_fsmount_manifest.json')
+    phase4_perf_baseline_manifest = read_text(root, 'zigux/tests/phase4_perf_baseline_manifest.json')
     bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
     sample_kprobes_makefile = read_text(root, 'samples/kprobes/Makefile')
     sample_kprobe_example = read_text(root, 'samples/kprobes/kprobe_example.c')
     sample_vfs_makefile = read_text(root, 'samples/vfs/Makefile')
     sample_vfs_test_fsmount = read_text(root, 'samples/vfs/test-fsmount.c')
-    roadmap_atomic64_diff_present = (root / 'zigux/tests/atomic64_diff.zig').exists()
 
-    missing_markers: list[str] = []
+    missing_markers.extend(collect_missing_markers(artifact_doc, 'artifact_doc', REQUIRED_DOC_MARKERS))
+    for group_name, markers in REQUIRED_DOC_MARKER_GROUPS:
+        missing_markers.extend(collect_missing_markers(artifact_doc, f'artifact_doc:{group_name}', markers))
+    for forbidden_marker in FORBIDDEN_DOC_MARKERS:
+        if forbidden_marker in artifact_doc:
+            missing_markers.append(f'artifact_doc:forbidden:{forbidden_marker}')
+
+    missing_markers.extend(collect_missing_markers(tests_readme, 'tests_readme', REQUIRED_TESTS_README_MARKERS))
+    missing_markers.extend(collect_missing_markers(scripts_readme, 'scripts_readme', REQUIRED_SCRIPT_README_MARKERS))
+    missing_markers.extend(collect_missing_markers(docs_readme, 'docs_readme', REQUIRED_DOC_README_MARKERS))
     missing_markers.extend(collect_missing_markers(makefile, 'make', REQUIRED_MAKE_MARKERS))
     missing_markers.extend(collect_missing_markers(workflow, 'workflow', REQUIRED_WORKFLOW_MARKERS))
-    missing_markers.extend(collect_missing_markers(artifact_doc, 'doc', REQUIRED_DOC_MARKERS))
-    for group_name, markers in REQUIRED_DOC_MARKER_GROUPS:
-        for marker in markers:
-            if marker not in artifact_doc:
-                missing_markers.append(f'doc_group:{group_name}:{marker}')
-    for marker in FORBIDDEN_DOC_MARKERS:
-        if marker in artifact_doc:
-            missing_markers.append(f'doc_stale:{marker}')
-    missing_markers.extend(
-        collect_missing_markers(tests_readme, 'tests_readme', REQUIRED_TESTS_README_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(script_readme, 'script_readme', REQUIRED_SCRIPT_README_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(doc_readme, 'doc_readme', REQUIRED_DOC_README_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(phase4_matrix, 'phase4_matrix', REQUIRED_PHASE4_MATRIX_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(artifact_diff, 'artifact_diff', REQUIRED_ARTIFACT_DIFF_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(phase4_build, 'phase4_build', REQUIRED_PHASE4_BUILD_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(
-            runtime_atomic64_diff,
-            'runtime_atomic64_diff',
-            REQUIRED_RUNTIME_ATOMIC64_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_missing_markers(
-            runtime_atomic64_diff_survey,
-            'runtime_atomic64_diff_survey',
-            REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS)
-    )
-    missing_markers.extend(
-        collect_missing_markers(
-            sample_kprobes_makefile,
-            'sample_kprobes_make',
-            REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_missing_markers(
-            sample_kprobe_example,
-            'sample_kprobe_example',
-            REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_missing_markers(
-            sample_vfs_makefile,
-            'sample_vfs_make',
-            REQUIRED_SAMPLE_VFS_MAKE_MARKERS,
-        )
-    )
-    missing_markers.extend(
-        collect_missing_markers(
-            sample_vfs_test_fsmount,
-            'sample_vfs_test_fsmount',
-            REQUIRED_SAMPLE_VFS_SOURCE_MARKERS,
-        )
-    )
+    missing_markers.extend(collect_missing_markers(phase4_matrix, 'phase4_matrix', REQUIRED_PHASE4_MATRIX_MARKERS))
+    missing_markers.extend(collect_missing_markers(phase4_build, 'phase4_build', REQUIRED_PHASE4_BUILD_MARKERS))
+    missing_markers.extend(collect_missing_markers(runtime_atomic64_diff, 'runtime_atomic64_diff', REQUIRED_RUNTIME_ATOMIC64_MARKERS))
+    missing_markers.extend(collect_missing_markers(runtime_atomic64_diff_survey, 'runtime_atomic64_diff_survey', REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS))
+    missing_markers.extend(collect_missing_markers(bitmap_diff, 'bitmap_diff', REQUIRED_BITMAP_DIFF_MARKERS))
+    missing_markers.extend(collect_missing_markers(sample_kprobes_makefile, 'sample_kprobes_make', REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS))
+    missing_markers.extend(collect_missing_markers(sample_kprobe_example, 'sample_kprobe_example', REQUIRED_SAMPLE_KPROBES_SOURCE_MARKERS))
+    missing_markers.extend(collect_missing_markers(sample_vfs_makefile, 'sample_vfs_make', REQUIRED_SAMPLE_VFS_MAKE_MARKERS))
+    missing_markers.extend(collect_missing_markers(sample_vfs_test_fsmount, 'sample_vfs_test_fsmount', REQUIRED_SAMPLE_VFS_SOURCE_MARKERS))
+
+    roadmap_atomic64_diff_present = 'zigux/tests/atomic64_diff.zig' in phase4_matrix
     if not roadmap_atomic64_diff_present:
-        missing_markers.append(
-            'phase4_atomic64_path:missing_canonical_entrypoint:zigux/tests/atomic64_diff.zig'
-        )
+        missing_markers.append('phase4_atomic64_path:missing_canonical_entrypoint:zigux/tests/atomic64_diff.zig')
     if '"roadmap_atomic64_diff_present": true' not in runtime_atomic64_manifest:
-        missing_markers.append(
-            'runtime_atomic64_manifest:"roadmap_atomic64_diff_present": true'
-        )
+        missing_markers.append('runtime_atomic64_manifest:"roadmap_atomic64_diff_present": true')
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
 
     for lane_surface, expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.items():
-        missing_markers.extend(
-            check_survey_matrix_alignment(phase4_matrix, lane_surface, expectation)
-        )
+        missing_markers.extend(check_survey_matrix_alignment(phase4_matrix, lane_surface, expectation))
 
     missing_markers.extend(
         check_test_fsmount_manifest_alignment(
             phase4_test_fsmount_manifest,
             sample_vfs_makefile,
             sample_vfs_test_fsmount,
+            phase4_build,
+            phase4_matrix,
+            read_text(root, 'scripts/zigux/validate-phase4.py'),
+        )
+    )
+    missing_markers.extend(
+        check_perf_baseline_manifest_alignment(
+            phase4_perf_baseline_manifest,
             phase4_build,
             phase4_matrix,
             read_text(root, 'scripts/zigux/validate-phase4.py'),
@@ -852,6 +914,9 @@ def build_phase4_matrix_fixture() -> str:
     lines.append(
         '| `zigux/tests/phase4_test_fsmount_survey.zig` | manifest-backed survey gate for the still-absent `samples/zigux/test_fsmount.zig` roadmap row while the current replay stays on the `samples/vfs/test-fsmount.c` C anchor | `Validation and Perf Team` | `Validation and Perf Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, with the shared `phase4-test-fsmount-survey-tests` entry in `zigux/tests/phase4_build.zig` keeping the survey packet live | `make -C zigux phase4-test-fsmount-survey`, direct `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`, and the current `make M=samples/vfs` C-anchor replay | `samples/vfs/test-fsmount.c` stays the source of truth, the survey packet remains C-anchor-only until a bounded `samples/zigux/test_fsmount.zig` starter lands, and removing `phase4_test_fsmount_survey.zig` from the shared `phase4_build.zig` entrypoint returns this roadmap row to matrix-only tracking without overstating a landed Zig sample | `c_anchor_only_until_test_fsmount_starter_lands` |'
     )
+    lines.append(
+        '| `zigux/tests/phase4_perf_baseline_survey.zig` | manifest-backed survey gate for the still-unapproved benchmark command and acceptable limit posture across the shipped `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates while both remain correctness-only | `Validation and Perf Team` | `Validation and Perf Team` | workflow steps `Validate Phase 4 diff gates` and `Run Phase 4 diff tests`, with the shared `phase4-perf-baseline-survey-tests` entry in `zigux/tests/phase4_build.zig` keeping the survey packet live | `make -C zigux phase4-perf-baseline-survey`, direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`, and the current `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, and `phase4-bitmap-diff-tests` correctness-only replays | `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` remain the shipped rollback gates, and removing `phase4_perf_baseline_survey.zig` from the shared `phase4_build.zig` entrypoint would drop the only machine-checked record that their benchmark command and acceptable limit are still unapproved instead of landed | `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land` |'
+    )
 
     lines.extend(
         [
@@ -920,6 +985,40 @@ def write_fixture_tree(root: Path) -> None:
         )
         + '\n',
         'zigux/tests/phase4_test_fsmount_survey.zig': 'test "synthetic phase4 test_fsmount survey gate" {}\n',
+        'zigux/tests/phase4_perf_baseline_manifest.json': json.dumps(
+            {
+                'lane_key': 'P4-L20',
+                'phase': 'Phase 4',
+                'owner': 'Validation and Perf Team',
+                'rollback_owner': 'Validation and Perf Team',
+                'surveyed_commit': 'fixture-head',
+                'surveyed_gates': [
+                    {
+                        'surface': 'zigux/tests/atomic64_diff.zig',
+                        'gate_owner': 'ABI and Runtime Team',
+                        'gate_rollback_owner': 'ABI and Runtime Team',
+                        'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
+                    },
+                    {
+                        'surface': 'zigux/tests/bitmap_diff.zig',
+                        'gate_owner': 'Shared Subsystems Pod',
+                        'gate_rollback_owner': 'Shared Subsystems Pod',
+                        'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
+                    },
+                ],
+                'survey_summary': {
+                    'phase4_build_present': True,
+                    'phase4_validator_present': False,
+                    'phase4_validation_matrix_present': True,
+                    'benchmark_command_unapproved': True,
+                    'acceptable_limit_unapproved': True,
+                },
+                'gaps': [],
+            },
+            indent=2,
+        )
+        + '\n',
+        'zigux/tests/phase4_perf_baseline_survey.zig': 'test "synthetic phase4 perf baseline survey gate" {}\n',
         'zigux/tests/bitmap_diff.zig': '\n'.join(REQUIRED_BITMAP_DIFF_MARKERS) + '\n',
         'zigux/tests/phase4_build.zig': '\n'.join(REQUIRED_PHASE4_BUILD_MARKERS) + '\n',
     }
@@ -953,8 +1052,7 @@ def run_self_test() -> int:
         sample_kprobes_makefile.write_text('', encoding='utf-8')
         missing = validate_root(tmp_root)
         assert (
-            'sample_kprobes_make:obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o'
-            in missing
+            'sample_kprobes_make:obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o' in missing
         ), missing
         sample_kprobes_makefile.write_text(
             '\n'.join(REQUIRED_SAMPLE_KPROBES_MAKE_MARKERS) + '\n',
@@ -968,8 +1066,7 @@ def run_self_test() -> int:
         )
         missing = validate_root(tmp_root)
         assert (
-            'sample_vfs_test_fsmount:if (move_mount(mfd, "", AT_FDCWD, "/mnt", MOVE_MOUNT_F_EMPTY_PATH) < 0) {'
-            in missing
+            'sample_vfs_test_fsmount:if (move_mount(mfd, "", AT_FDCWD, "/mnt", MOVE_MOUNT_F_EMPTY_PATH) < 0) {' in missing
         ), missing
         sample_vfs_test_fsmount.write_text(
             '\n'.join(REQUIRED_SAMPLE_VFS_SOURCE_MARKERS) + '\n',
@@ -1017,12 +1114,83 @@ def run_self_test() -> int:
         )
         missing = validate_root(tmp_root)
         assert (
-            'phase4_test_fsmount_manifest:rollback_owner:Validation and Perf Team'
-            in missing
+            'phase4_test_fsmount_manifest:rollback_owner:Validation and Perf Team' in missing
         ), missing
         manifest_without_rollback_owner['rollback_owner'] = 'Validation and Perf Team'
         test_fsmount_manifest.write_text(
             json.dumps(manifest_without_rollback_owner, indent=2) + '\n',
+            encoding='utf-8',
+        )
+
+        perf_baseline_manifest = tmp_root / 'zigux/tests/phase4_perf_baseline_manifest.json'
+        perf_baseline_manifest.unlink()
+        missing = validate_root(tmp_root)
+        assert 'file:zigux/tests/phase4_perf_baseline_manifest.json' in missing, missing
+        perf_baseline_manifest.write_text(
+            json.dumps(
+                {
+                    'lane_key': 'P4-L20',
+                    'phase': 'Phase 4',
+                    'owner': 'Validation and Perf Team',
+                    'rollback_owner': 'Validation and Perf Team',
+                    'surveyed_commit': 'fixture-head',
+                    'surveyed_gates': [
+                        {
+                            'surface': 'zigux/tests/atomic64_diff.zig',
+                            'gate_owner': 'ABI and Runtime Team',
+                            'gate_rollback_owner': 'ABI and Runtime Team',
+                            'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
+                        },
+                        {
+                            'surface': 'zigux/tests/bitmap_diff.zig',
+                            'gate_owner': 'Shared Subsystems Pod',
+                            'gate_rollback_owner': 'Shared Subsystems Pod',
+                            'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
+                        },
+                    ],
+                    'survey_summary': {
+                        'phase4_build_present': True,
+                        'phase4_validator_present': False,
+                        'phase4_validation_matrix_present': True,
+                        'benchmark_command_unapproved': True,
+                        'acceptable_limit_unapproved': True,
+                    },
+                    'gaps': [],
+                },
+                indent=2,
+            )
+            + '\n',
+            encoding='utf-8',
+        )
+
+        manifest_without_surveyed_gates = json.loads(
+            perf_baseline_manifest.read_text(encoding='utf-8')
+        )
+        del manifest_without_surveyed_gates['surveyed_gates']
+        perf_baseline_manifest.write_text(
+            json.dumps(manifest_without_surveyed_gates, indent=2) + '\n',
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert (
+            'phase4_perf_baseline_manifest:surveyed_gates:list' in missing
+        ), missing
+        manifest_without_surveyed_gates['surveyed_gates'] = [
+            {
+                'surface': 'zigux/tests/atomic64_diff.zig',
+                'gate_owner': 'ABI and Runtime Team',
+                'gate_rollback_owner': 'ABI and Runtime Team',
+                'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
+            },
+            {
+                'surface': 'zigux/tests/bitmap_diff.zig',
+                'gate_owner': 'Shared Subsystems Pod',
+                'gate_rollback_owner': 'Shared Subsystems Pod',
+                'threshold_posture': 'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
+            },
+        ]
+        perf_baseline_manifest.write_text(
+            json.dumps(manifest_without_surveyed_gates, indent=2) + '\n',
             encoding='utf-8',
         )
 
@@ -1031,13 +1199,13 @@ def run_self_test() -> int:
             '\n'.join(
                 marker
                 for marker in REQUIRED_PHASE4_BUILD_MARKERS
-                if marker != 'phase4-test-fsmount-survey-tests'
+                if marker != 'phase4-perf-baseline-survey-tests'
             )
             + '\n',
             encoding='utf-8',
         )
         missing = validate_root(tmp_root)
-        assert 'phase4_build:phase4-test-fsmount-survey-tests' in missing, missing
+        assert 'phase4_build:phase4-perf-baseline-survey-tests' in missing, missing
 
     print('PHASE4_VALIDATOR_SELF_TEST=pass')
     return 0
