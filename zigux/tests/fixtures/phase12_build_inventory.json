@@ -26,7 +26,7 @@
     },
     {
       "module": "virtio_ring_module",
-      "path": "../../drivers/virtio/virtio.ring.zig"
+      "path": "../../drivers/virtio/virtio_ring.zig"
     },
     {
       "module": "virtio_net_module",
