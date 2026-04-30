@@ -70,7 +70,7 @@ This survey slice does not yet claim:
 ## Gates
 
 1. run the dedicated Phase 10 build
-- `zig build test --build-file zigux/tests/phase10_build.zig`
+- `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 
 2. run the convenience target
 - `make -C zigux phase10`
