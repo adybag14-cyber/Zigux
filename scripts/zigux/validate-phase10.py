@@ -73,8 +73,11 @@ FORBIDDEN_SCRIPT_README_MARKERS = [
 
 TESTS_README_MARKERS = [
     "scripts/zigux/validate-phase10.py",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
     "registration-preflight helper",
     "queue-callback preflight helper",
     "registration-lifecycle blocker",
@@ -533,6 +536,23 @@ def run_self_test() -> int:
         )
         input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
 
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_phase10_ring_reset_reuse_entry",
+            tmp_root,
+            "tests_readme:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         mmio_test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
         original_mmio_test = mmio_test_path.read_text(encoding="utf-8")
         mmio_test_path.write_text(
@@ -568,7 +588,7 @@ def run_self_test() -> int:
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
