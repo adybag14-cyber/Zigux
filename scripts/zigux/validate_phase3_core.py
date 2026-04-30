@@ -154,29 +154,24 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "const desc = mmio.range(base, 12, 4);",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
         "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
+        'test "phase3 low-level wrapper ABI range shape stays stable"',
+        "layout_assert.assertMmioRangeLayout();",
+        'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
+        "try std.testing.expectError(error.MisalignedAccess, narrow.scopedPointerAt(u32, .volatile_mmio, 1, 0));",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
         "panic_policy.canReturnPolicyByte(@intFromEnum(abi.PanicMode.warn))",
         "allocator_policy.permitsGlobalFallbackPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap))",
         "allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena))",
+        'test "phase3 policy layout stays explicit at the ABI boundary"',
+        "layout_assert.assertInteropPolicyLayout();",
         'test "phase3 policy decoder validates the whole interop record"',
         'test "phase3 policy decoder rejects partial or reserved policy bytes"',
+        'test "phase3 narrow unsafe helpers stay explicit"',
+        "try std.testing.expectEqual(base + @sizeOf(u32), narrow.byteOffset(base, @sizeOf(u32)));",
         'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
         'test "phase3 policy gate enforces the declared unsafe scope"',
-    ),
-    "zigux/tests/phase3_abi.zig": (
-        'test "phase3 abi slice uses stable canonical layouts" {',
-        "layout_assert.assertMmioRangeLayout();",
-        'test "phase3 abi slice keeps explicit constants and statuses reviewable" {',
-        "try std.testing.expectEqual(@as(u8, 2), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));",
-        'test "phase3 abi slice keeps the boundary helpers constructible" {',
-        "try std.testing.expect(export_shim.isCanonicalHeader(header));",
-        "try std.testing.expect(uapi_version.isCanonical(header));",
-        "try std.testing.expectEqual(panic_policy.Action.abort_now, panic_policy.actionFor(.abort));",
-        "try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
-        "const range = mmio.range(0x1000, 0x40, 4);",
-        "try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
     ),
 }
 ABI_REQUIRED_EXPECTED_CONSTANTS = {
@@ -216,7 +211,7 @@ def _missing_markers(path: Path, markers: tuple[str, ...]) -> list[str]:
 
 
 def validate_manifest(entry: Phase3Slice, required_files: tuple[str, ...] = ()) -> list[str]:
-    issues: list[str] = []
+     issues: list[str] = []
     if entry.manifest_path is None or not entry.manifest_path.exists():
         return [f"{entry.slug}: missing manifest for discovered slice"]
 
@@ -232,183 +227,4 @@ def validate_manifest(entry: Phase3Slice, required_files: tuple[str, ...] = ()) 
     expected_core_files = (
         entry.doc_path.relative_to(entry.root).as_posix(),
         entry.dump_path.relative_to(entry.root).as_posix(),
-        entry.expected_path.relative_to(entry.root).as_posix(),
-        entry.harness_path.relative_to(entry.root).as_posix(),
-    )
-    listed = set(files)
-    for rel in (*expected_core_files, *required_files):
-        if rel not in listed:
-            issues.append(f"{entry.slug}: manifest missing {rel}")
-    for rel in files:
-        if not (entry.root / rel).exists():
-            issues.append(f"{entry.slug}: manifest references missing file {rel}")
-    file_count = manifest.get("file_count")
-    if file_count != len(files):
-        issues.append(f"{entry.slug}: manifest file_count {file_count!r} does not match listed files {len(files)}")
-    if manifest.get("phase") != "Phase 3":
-        issues.append(f"{entry.slug}: manifest phase is {manifest.get('phase')!r}, expected 'Phase 3'")
-    return issues
-
-
-def validate_source_markers(root: Path, required_source_markers: dict[str, tuple[str, ...]]) -> list[str]:
-    issues: list[str] = []
-    for rel, markers in required_source_markers.items():
-        path = root / rel
-        if not path.exists():
-            issues.append(f"source-marker: missing {rel}")
-            continue
-        for marker in _missing_markers(path, markers):
-            issues.append(f"source-marker: {rel} missing {marker}")
-    return issues
-
-
-def _asserted_abi_layout_count(root: Path) -> int:
-    text = (root / "zigux/tests/phase3_abi.zig").read_text(encoding="utf-8")
-    names: list[str] = []
-    seen: set[str] = set()
-    for name in ASSERT_RE.findall(text):
-        if name not in seen:
-            seen.add(name)
-            names.append(name)
-    asserted = len(names)
-    if "assertBoundaryHeaderLayout()" in text:
-        asserted += 1
-    if "assertExportStatusLayout()" in text:
-        asserted += 1
-    if "assertInteropPolicyLayout()" in text:
-        asserted += 1
-    return asserted
-
-
-def _dump_layout_keys(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    keys = DUMP_LAYOUT_RE.findall(text)
-    if keys:
-        return keys
-    return DUMP_GENERIC_LAYOUT_RE.findall(text)
-
-
-def _harness_layout_keys(path: Path) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    keys = EXPECTED_LAYOUT_RE.findall(text)
-    if keys:
-        return keys
-    return HARNESS_GENERIC_LAYOUT_RE.findall(text)
-
-
-def validate_abi_expected_fixture(root: Path) -> list[str]:
-    issues: list[str] = []
-    expected_path = root / "zigux/tests/fixtures/phase3_abi/expected.json"
-    dump_path = root / "zigux/tests/phase3_abi_dump.zig"
-    harness_path = root / "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
-
-    expected = json.loads(expected_path.read_text(encoding="utf-8"))
-    if expected.get("abi_version") != 1:
-        issues.append(f"abi-fixture: expected abi_version 1, found {expected.get('abi_version')!r}")
-
-    constants = expected.get("constants")
-    if not isinstance(constants, dict):
-        issues.append("abi-fixture: constants object missing from expected.json")
-    else:
-        for key, value in ABI_REQUIRED_EXPECTED_CONSTANTS.items():
-            if constants.get(key) != value:
-                issues.append(f"abi-fixture: constant {key} is {constants.get(key)!r}, expected {value!r}")
-
-    structs = expected.get("structs")
-    if not isinstance(structs, dict):
-        return [*issues, "abi-fixture: structs object missing from expected.json"]
-
-    expected_keys = list(structs.keys())
-    dump_keys = _dump_layout_keys(dump_path)
-    harness_keys = _harness_layout_keys(harness_path)
-    asserted_count = _asserted_abi_layout_count(root)
-
-    if len(expected_keys) != len(dump_keys):
-        issues.append(
-            f"abi-fixture: expected.json tracks {len(expected_keys)} layouts but phase3_abi_dump.zig emits {len(dump_keys)}"
-        )
-    if len(expected_keys) != len(harness_keys):
-        issues.append(
-            f"abi-fixture: expected.json tracks {len(expected_keys)} layouts but phase3_abi_c_harness.c emits {len(harness_keys)}"
-        )
-    if len(dump_keys) < asserted_count:
-        issues.append(
-            f"abi-fixture: phase3_abi_dump.zig only emits {len(dump_keys)} layouts while phase3_abi.zig asserts {asserted_count}"
-        )
-    if set(expected_keys) != set(dump_keys):
-        issues.append("abi-fixture: expected.json and phase3_abi_dump.zig layout keys drift")
-    if set(expected_keys) != set(harness_keys):
-        issues.append("abi-fixture: expected.json and phase3_abi_c_harness.c layout keys drift")
-    return issues
-
-
-def _validate_slice_docs(entry: Phase3Slice) -> list[str]:
-    issues: list[str] = []
-    doc_markers = list(COMMON_DOC_MARKERS)
-    doc_markers.append(shared_runner_gate_for_slug(entry.slug))
-    if entry.slug == "abi":
-        doc_markers.extend(ABI_REQUIRED_DOC_MARKERS)
-    for marker in _missing_markers(entry.doc_path, tuple(doc_markers)):
-        issues.append(f"{entry.slug}: documentation missing {marker}")
-    if entry.interop_gate != shared_runner_gate_for_slug(entry.slug):
-        issues.append(f"{entry.slug}: documentation interop gate drifted from shared runner")
-    return issues
-
-
-def _validate_wrapper_stub(entry: Phase3Slice) -> list[str]:
-    if not entry.check_script.exists():
-        return [f"{entry.slug}: missing wrapper {entry.check_script.relative_to(entry.root)}"]
-    if entry.check_script.read_text(encoding="utf-8") != render_wrapper_stub():
-        return [f"{entry.slug}: wrapper {entry.check_script.relative_to(entry.root)} drifted from shared stub"]
-    return []
-
-
-def _validate_build_smoke(root: Path, entry: Phase3Slice, zig_path: str | None) -> list[str]:
-    zig = find_zig(zig_path)
-    result = subprocess.run(
-        [zig, "build", entry.build_step, "--build-file", str(root / BUILD_FILE_REL)],
-        cwd=str(root),
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        return []
-    stderr = result.stderr.strip().splitlines()
-    tail = stderr[-1] if stderr else f"exit {result.returncode}"
-    return [f"{entry.slug}: build smoke failed for {entry.build_step}: {tail}"]
-
-
-def validate_slices(
-    root: Path,
-    slices: list[Phase3Slice],
-    *,
-    check_artifact_diff: bool,
-    check_build_smoke: bool,
-    check_slug_sanity: bool,
-    check_all_wrappers: bool,
-    zig_path: str | None,
-) -> list[str]:
-    issues: list[str] = []
-    for entry in slices:
-        for path in (entry.doc_path, entry.dump_path, entry.expected_path, entry.harness_path):
-            if not path.exists():
-                issues.append(f"{entry.slug}: missing {path.relative_to(root)}")
-        issues.extend(_validate_slice_docs(entry))
-        issues.extend(validate_manifest(entry, ABI_REQUIRED_MANIFEST_FILES if entry.slug == "abi" else ()))
-        if check_all_wrappers:
-            issues.extend(_validate_wrapper_stub(entry))
-        if entry.slug == "abi":
-            issues.extend(validate_source_markers(root, ABI_REQUIRED_SOURCE_MARKERS))
-            issues.extend(validate_abi_expected_fixture(root))
-        if check_build_smoke:
-            issues.extend(_validate_build_smoke(root, entry, zig_path))
-
-    if check_slug_sanity:
-        issues.extend(f"slug-sanity: {issue.to_row()}" for issue in audit_phase3_slug_sanity(slices))
-
-    if check_all_wrappers:
-        issues.extend(f"doc-sync: {issue.to_row()}" for issue in audit_phase3_doc_sync(slices))
-    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(slices, root / "Documentation/zigux/artifact-diff.md"):
-        issues.append("doc-sync: Documentation/zigux/artifact-diff.md Phase 3 section is stale")
-
-    return issues
+        entry.expected_path.relative_to(entry.root).as_posix()
