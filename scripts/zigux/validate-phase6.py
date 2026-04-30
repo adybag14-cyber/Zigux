@@ -174,9 +174,12 @@ BASE64_SLICE_MARKERS = [
 ]
 
 BSEARCH_TEST_MARKERS = [
+    'test "phase 6 bsearch exposes the raw Linux-style helper contract" {',
     'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {',
     'test "phase 6 bsearch accepts runtime-selected comparator function pointers" {',
     'test "phase 6 bsearch accepts runtime-selected C ABI comparator pointers" {',
+    'test "phase 6 bsearch accepts runtime-selected raw comparator pointers" {',
+    'test "phase 6 bsearch accepts runtime-selected C ABI raw comparator pointers" {',
     'test "phase 6 bsearch exposes a mutable pointer when searching mutable storage" {',
     "counted_compare_calls += 1;",
     "try std.testing.expect(counted_compare_calls <= 4);",
@@ -202,6 +205,8 @@ BSEARCH_SLICE_MARKERS = [
     "`PHASE6_SLICE=bsearch-leaf-helper`",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
     "binary-search comparison budget",
+    "`RawComparator`",
+    "`bsearchMutable`",
     "found-or-null basis without pinning a stable duplicate index",
 ]
 
