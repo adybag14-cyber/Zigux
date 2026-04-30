@@ -93,7 +93,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("be0f31bf64cdc200e2129992d1fed491b60fed2a", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d5f892924271cc8b2507989d2a6831029ca03e91", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(manifest.survey_summary.dw_wdt_c_lines, countLines(anchor_source));
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -375,7 +375,7 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and validation-mat
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`python3 scripts/zigux/validate-phase11.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE11_VALIDATION=pass`") != null);
