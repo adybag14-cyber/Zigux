@@ -124,6 +124,75 @@ def include_flags(shim_dir: Path) -> list[str]:
     ]
 
 
+def assert_equal(label: str, actual, expected) -> None:
+    if actual != expected:
+        raise SystemExit(f'phase1-parity:self-test:{label}:expected={expected!r}:actual={actual!r}')
+
+
+def run_self_test() -> int:
+    tmp_root = Path('/tmp/phase1-parity-self-test')
+    assert_equal('find_compiler_explicit', find_compiler('/tmp/zigux-cc'), '/tmp/zigux-cc')
+    assert_equal('source_count', len(SOURCES), 14)
+    assert_equal(
+        'source_suffixes',
+        [path.name for path in SOURCES],
+        [
+            'phase1_helpers_c_harness.c',
+            'argv_split.c',
+            'bitmap.c',
+            'cmdline.c',
+            'ctype.c',
+            'find_bit.c',
+            'hweight.c',
+            'list_sort.c',
+            'slab.c',
+            'str_error_r.c',
+            'string.c',
+            'rbtree.c',
+            'vsprintf.c',
+            'zalloc.c',
+        ],
+    )
+    assert_equal(
+        'include_flags',
+        include_flags(tmp_root),
+        [
+            '-D__WORDSIZE=(__CHAR_BIT__ * __SIZEOF_LONG__)',
+            '-DBITS_PER_LONG=(__CHAR_BIT__ * __SIZEOF_LONG__)',
+            '-I', str(tmp_root),
+            '-I', str(ROOT / 'tools' / 'include'),
+            '-I', str(ROOT / 'tools' / 'include' / 'uapi'),
+        ],
+    )
+
+    with tempfile.TemporaryDirectory(prefix='zigux_phase1_parity_selftest_') as tmp_dir_str:
+        shim_root = Path(tmp_dir_str) / 'shim'
+        write_host_shims(shim_root)
+        assert_equal('shim_types_header', (shim_root / 'asm' / 'types.h').exists(), True)
+        assert_equal(
+            'shim_bitsperlong_marker',
+            '#define __BITS_PER_LONG (__CHAR_BIT__ * __SIZEOF_LONG__)'
+            in (shim_root / 'asm' / 'bitsperlong.h').read_text(encoding='utf-8'),
+            True,
+        )
+        assert_equal(
+            'shim_slab_marker',
+            'static inline bool slab_is_available(void) { return true; }'
+            in (shim_root / 'linux' / 'slab.h').read_text(encoding='utf-8'),
+            True,
+        )
+        assert_equal(
+            'shim_uatomic_marker',
+            '#define uatomic_inc(ptr) (++(*(ptr)))'
+            in (shim_root / 'urcu' / 'uatomic.h').read_text(encoding='utf-8'),
+            True,
+        )
+
+    print('PHASE1_PARITY_SELF_TEST=pass')
+    print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')
+    return 0
+
+
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(':').lower()
@@ -194,7 +263,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Generate and check Phase 1 helper parity fixtures.')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed JSON fixture from current C outputs.')
     parser.add_argument('--cc', help='Explicit C compiler path to use.')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in source-list and shim-contract checks.')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
 

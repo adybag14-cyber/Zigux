@@ -127,6 +127,9 @@ jobs:
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
 
+      - name: Self-test Phase 1 helper parity checker
+        run: python3 scripts/zigux/check-phase1-parity.py --self-test
+
       - name: Self-test Phase 1 helper benchmark checker
         run: python3 scripts/zigux/check-phase1-bench.py --self-test
 
