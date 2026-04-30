@@ -140,6 +140,20 @@ test "phase 8 file-path-handle bridge accepts reordered fields and surrounding w
     try std.testing.expectEqual(@as(u64, 0x10), info.map_extra);
 }
 
+test "phase 8 file-path-handle bridge keeps libbpf-style numeric bases explicit" {
+    const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_type:\t1\r\n" ++
+            "key_size:\t4\r\n" ++
+            "value_size:\t8\r\n" ++
+            "max_entries:\t16\r\n" ++
+            "map_flags:\t010\r\n" ++
+            "map_extra:\t0X2A\r\n",
+    );
+
+    try std.testing.expectEqual(@as(u32, 8), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 42), info.map_extra);
+}
+
 test "phase 8 file-path-handle bridge keeps reused-map name selection bounded and explicit" {
     try std.testing.expectEqualStrings(
         "process_pinned_map",
