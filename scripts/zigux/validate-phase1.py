@@ -181,6 +181,7 @@ MARKER_GROUPS = {
             "python3 scripts/zigux/validate-phase1-closure.py",
             "python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "python3 scripts/zigux/check-phase1-bench.py",
+            "python3 scripts/zigux/check-phase1-bench.py --self-test",
             "python3 scripts/zigux/check-phase1-parity.py",
             "python3 scripts/zigux/check-phase1-parity.py --self-test",
             "zig build bench --build-file zigux/tests/build.zig",
