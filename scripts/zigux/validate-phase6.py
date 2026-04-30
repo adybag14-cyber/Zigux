@@ -273,9 +273,11 @@ required_phase6_checksum_markers = [
     'test "fixture-backed compute parity covers the current checksum vectors" {',
     'test "partial sums compose across the fixture split matrix" {',
     'test "seeded partial accumulation matches the fixture-backed reference" {',
+    'test "kunit-inspired carry discipline stays stable on the helper surface" {',
     'test "kunit random-prefix parity stays stable on the helper surface" {',
     'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
     'test "incremental checksum replacements match full recomputation" {',
+    "for (fixtures.carry_discipline_cases) |case| {",
     "for (fixtures.kunit_random_prefix_cases) |case| {",
     "const helper_partial = checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);",
     "try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replaceByDiff(old_checksum, diff));",
@@ -292,6 +294,7 @@ required_phase6_checksum_slice_markers = [
     "deterministic 64-byte and 1501-byte payloads",
     "`referencePartial` path",
     "representative checksum cost per call and per byte",
+    "carry-discipline edge cases on the helper-local surface",
 ]
 
 required_phase6_hexdump_markers = [
