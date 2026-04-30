@@ -54,10 +54,21 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     );
     defer std.testing.allocator.free(survey_note);
 
+    const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_closure_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_manifest_json);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
+    const closure_parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_manifest_json, .{});
+    defer closure_parsed.deinit();
 
     const manifest = parsed.value;
+    const closure_manifest = closure_parsed.value;
     try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
@@ -79,6 +90,28 @@ test "phase10 virtio ring survey manifest records the live queue-discipline and 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
+    try std.testing.expect(closure_manifest == .object);
+
+    const landed_ring_helper_evidence = closure_manifest.object.get("landed_ring_helper_evidence") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(landed_ring_helper_evidence == .object);
+    const ring_helper_evidence = landed_ring_helper_evidence.object.get("zigux/tests/phase10_virtio_ring_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(ring_helper_evidence == .array);
+    const expected_landed_ring_helpers = [_][]const u8{
+        "phase10-virtqueue-shape-helper",
+        "phase10-used-buffer-polling-helper",
+        "phase10-callback-disable-helper",
+        "phase10-callback-enable-helper",
+        "phase10-callback-enable-prepare-helper",
+        "phase10-callback-delay-helper",
+        "phase10-notify-prepare-helper",
+        "phase10-queue-reset-guard-helper",
+        "phase10-queue-reset-helper",
+    };
+    try std.testing.expectEqual(expected_landed_ring_helpers.len, ring_helper_evidence.array.items.len);
+    for (expected_landed_ring_helpers, 0..) |helper_id, index| {
+        try std.testing.expect(ring_helper_evidence.array.items[index] == .string);
+        try std.testing.expectEqualStrings(helper_id, ring_helper_evidence.array.items[index].string);
+    }
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
