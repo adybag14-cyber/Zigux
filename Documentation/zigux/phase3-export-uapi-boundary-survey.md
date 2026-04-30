@@ -12,7 +12,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 - `PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-the-roadmap-backed-rbtree-interop-survey-or-slice-needs-another-curated-uapi-or-export-entry`
 
 ## Roadmap Contract
 
@@ -68,9 +68,9 @@ That repo reality is consistent with the bounded ABI substrate, but it is still 
 
 ## Next Bounded Step
 
-The next honest follow-on inside this boundary family is still narrow:
+The next honest follow-on inside this boundary family is still narrow and should stay tied to the current roadmap-backed gap:
 
-- keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
-- keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
+- keep the current export shim and boundary-header surface narrow until the roadmap-backed `rbtree` interop survey or slice proves it needs one more reviewable boundary helper
+- keep `zigux/uapi/` at version-plus-boundary-header scope until that same `rbtree` follow-on needs one additional curated public constant, type, or helper surface
 
 This lane does not justify broad UAPI expansion, generated headers, or a larger export namespace on its own.
