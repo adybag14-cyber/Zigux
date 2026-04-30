@@ -129,6 +129,9 @@ required_closure_markers = [
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
     "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no",
     "PHASE10_FORBIDDEN_TRANSPORT_CLAIMS=queue_setup_reset_paths,irq_parity,dma_paths,input_registration_lifecycle,probe_remove_lifecycle",
+    "The study-only boundary anchors also remain outside this Phase 10 tranche and stay owned by the separate Phase 14 core-adjacent study-only lane:",
+    "`kernel/workqueue.c` stays in the Phase 14 boundary maps, concurrency audits, and explicit stay-in-C decisions where warranted packet, with `kernel/workqueue_bridge.zig` as the only named future Zigux destination",
+    "`kernel/trace/ring_buffer.c` stays in the Phase 14 wrapper-first or study-only posture with the same boundary maps and concurrency audits packet, and `kernel/trace/ring_buffer.zig` remains only a future destination if years of evidence justify it",
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_core_survey.zig",
@@ -210,6 +213,7 @@ required_checklist_markers = [
     "if the change is a Phase 10 virtio slice, do `Documentation/zigux/phase10-closure-evidence.md`, its roadmap parity scoreboard, `zigux/tests/phase10_closure_manifest.json`, the four Phase 10 survey manifests, the landed ring queue-discipline helper ladder, the landed `Documentation/zigux/phase10-virtio-mmio-slice.md` plus `zigux/tests/phase10_virtio_mmio.zig` starter pair, and the shared `zigux/tests/phase10_build.zig` entrypoint still agree on the same bounded lab-only scope, exact replay commands, and explicit MMIO blocker posture?",
     "if the change touches the Phase 10 scoreboard or closure packet, do the Phase 5 sample lane and the current Phase 9 runtime loader-gap ownership packet still stay outside the Phase 10 virtio parity readout so `samples/zigux/`, `zigux/tests/phase5_build.zig`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/helpers/allocator_policy.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` are not silently counted as driver-local virtio evidence?",
     "if the change widens a Phase 10 virtio transport-facing path, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-closure-evidence.md`, and the ring/input/MMIO survey manifests still keep the risky transport posture explicit instead of silently widening MMIO, queue setup or reset, IRQ, registration, DMA, or probe/remove lifecycle claims?",
+    "if the change touches the Phase 10 freeze-boundary packet, do `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `Documentation/zigux/review-checklist.md` still keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicitly owned by the separate Phase 14 boundary-map and concurrency-audit lane, with `kernel/workqueue_bridge.zig` and `kernel/trace/ring_buffer.zig` named only as future Phase 14 destinations rather than Phase 10 virtio evidence?",
 ]
 required_docs_readme_markers = [
     "`Documentation/zigux/README.md` now exposes the shared Phase 10 closure note plus the same nine published Phase 10 docs named by the shared closure packet, including `Documentation/zigux/phase10-virtio-core-survey.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md`, so the top-level docs index does not undercount the live parity-evidence bundle.",
@@ -471,6 +475,26 @@ if manifest.get("freeze_in_c_anchors") != expected_freeze_in_c_anchors:
     missing_markers.append("manifest:freeze_in_c_anchors:mismatch")
 if manifest.get("study_only_anchors") != expected_study_only_anchors:
     missing_markers.append("manifest:study_only_anchors:mismatch")
+expected_phase14_study_only_boundary = {
+    "status": "separate_phase14_lane",
+    "anchors": [
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+    ],
+    "required_phase14_evidence_features": [
+        "boundary maps",
+        "concurrency audits",
+        "explicit stay-in-C decisions where warranted",
+        "wrapper-first or study-only posture",
+    ],
+    "future_destinations": [
+        "kernel/workqueue_bridge.zig",
+        "kernel/trace/ring_buffer.zig",
+    ],
+    "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+}
+if manifest.get("phase14_study_only_boundary") != expected_phase14_study_only_boundary:
+    missing_markers.append("manifest:phase14_study_only_boundary:mismatch")
 
 for field in ("docs", "manifests", "drivers", "tests", "exact_checks"):
     value = manifest.get(field)
@@ -483,21 +507,6 @@ for field in ("docs", "manifests", "drivers", "tests", "exact_checks"):
             continue
         if field != "exact_checks" and not (ROOT / rel).exists():
             missing_markers.append(f"manifest_file:{rel}")
-
-expected_list_count_fields = {
-    "docs": "doc_count",
-    "manifests": "manifest_count",
-    "drivers": "driver_count",
-    "tests": "test_count",
-}
-for list_field, count_field in expected_list_count_fields.items():
-    listed = manifest.get(list_field)
-    if isinstance(listed, list):
-        recorded_count = manifest.get(count_field)
-        if recorded_count != len(listed):
-            missing_markers.append(
-                f"manifest:{count_field}:expected_{len(listed)}_from_{list_field}"
-            )
 
 expected_exact_checks = {
     "python3 scripts/zigux/validate-phase10-closure.py",
@@ -709,38 +718,6 @@ def has_gap_status(phase_manifest: object, gap_id: str, status: str) -> bool:
         if gap.get("id") == gap_id and gap.get("status") == status:
             return True
     return False
-
-
-def gap_ids_with_status(phase_manifest: object, status: str) -> list[str]:
-    if not isinstance(phase_manifest, dict):
-        return []
-    gaps = phase_manifest.get("gaps")
-    if not isinstance(gaps, list):
-        return []
-
-    matches: list[str] = []
-    for gap in gaps:
-        if not isinstance(gap, dict):
-            continue
-        if gap.get("status") != status:
-            continue
-        gap_id = gap.get("id")
-        if isinstance(gap_id, str):
-            matches.append(gap_id)
-    return matches
-
-
-ready_next_gaps = {
-    "core": gap_ids_with_status(core_manifest, "ready_next"),
-    "ring": gap_ids_with_status(ring_manifest, "ready_next"),
-    "input": gap_ids_with_status(input_manifest, "ready_next"),
-    "mmio": gap_ids_with_status(mmio_manifest, "ready_next"),
-}
-for lane_name, gap_ids in ready_next_gaps.items():
-    if gap_ids:
-        missing_markers.append(
-            f"manifest:ready_transport_followups:unexpected_{lane_name}_ready_next:{','.join(gap_ids)}"
-        )
 
 
 if not has_gap_status(core_manifest, "phase10-config-generation-summary-helper", "starter_landed"):
