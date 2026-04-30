@@ -290,7 +290,7 @@ HEXDUMP_SLICE_MARKERS = [
 CATALOG_MARKERS = [
     "- verified head: `",
     "PHASE6_BASE64_C_PARITY_CASES=90",
-    "PHASE6_BSEARCH_C_PARITY_CASES=21",
+    "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "max_slowdown_pct = 150",
     "max_slowdown_pct = 175",
     "avg_compare_calls <= std.math.log2_int_ceil(len) + 1",
@@ -320,7 +320,7 @@ EXPECTED_MANIFEST = {
             ],
             "fixtures": [
                 "zigux/tests/fixtures/phase6_base64_vectors.zig",
-                "zigux/tests/phase6_base64_c_harness.c",
+                "zigux/tests/fixtures/phase6_base64_c_harness.c",
             ],
             "slice_note": "Documentation/zigux/phase6-base64-slice.md",
             "external_parity": "python3 scripts/zigux/check-phase6-base64-c-parity.py",
