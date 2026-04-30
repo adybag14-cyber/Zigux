@@ -282,6 +282,53 @@ test "phase12 virtio scsi freeze blocks derived capture helpers until restore" {
     try std.testing.expectEqual(@as(u16, 2), remapped.poll_queue_count);
 }
 
+test "phase12 virtio scsi repeated freeze restore tracks the replanned recovery boundary" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const first_plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 6), first_plan.request_queues);
+    try std.testing.expectEqual(@as(u16, 2), first_plan.poll_queues);
+    try std.testing.expectEqual(@as(?u16, 6), first_plan.first_poll_queue_index);
+
+    const first_restore = try lab.restoreAfterTransportReset();
+    try std.testing.expectEqual(@as(u16, 1), first_restore.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 6), first_restore.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 2), first_restore.remembered_poll_queues);
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueuePlan());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
+
+    const replanned = try lab.planQueueLayout(4, 1);
+    try std.testing.expectEqual(@as(u16, 3), replanned.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), replanned.poll_queues);
+    try std.testing.expectEqual(@as(?u16, 5), replanned.first_poll_queue_index);
+
+    const second_freeze = try lab.freezeForTransportReset();
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 4), second_freeze.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_freeze.remembered_poll_queues);
+
+    const second_plan = try lab.recoveryQueuePlan();
+    try std.testing.expectEqual(@as(u16, 4), second_plan.request_queues);
+    try std.testing.expectEqual(@as(u16, 3), second_plan.default_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_plan.poll_queues);
+    try std.testing.expectEqual(@as(u16, 6), second_plan.total_queues);
+    try std.testing.expectEqual(@as(?u16, 5), second_plan.first_poll_queue_index);
+
+    const second_map = try lab.recoveryIoQueueMapSummary();
+    try std.testing.expectEqual(@as(u16, 3), second_map.default_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), second_map.poll_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), second_map.read_queue_offset);
+    try std.testing.expectEqual(@as(u16, 3), second_map.poll_queue_offset);
+    try std.testing.expect(second_map.requires_poll_map_restore);
+
+    const second_restore = try lab.restoreAfterTransportReset();
+    try std.testing.expectEqual(@as(u16, 2), second_restore.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 4), second_restore.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 1), second_restore.remembered_poll_queues);
+}
+
 test "phase12 virtio scsi probe snapshot records config fields and queue layout" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     const snapshot = try lab.captureProbeSnapshot(.{
