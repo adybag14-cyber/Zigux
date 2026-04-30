@@ -75,6 +75,7 @@ mmio_helper = (ROOT / "drivers" / "virtio" / "virtio_mmio.zig").read_text(encodi
 mmio_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio.zig").read_text(encoding="utf-8")
 mmio_slice = (ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md").read_text(encoding="utf-8")
 mmio_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio_survey.zig").read_text(encoding="utf-8")
+phase10_build = (ROOT / "zigux" / "tests" / "phase10_build.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
 phase10_ledger = (ROOT / "zigux-alpha" / "PHASE10_CLOSURE_LEDGER.md").read_text(encoding="utf-8")
@@ -275,6 +276,44 @@ required_mmio_survey_test_markers = [
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
     'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without claiming config writes") == null);',
 ]
+required_phase10_build_markers = [
+    'const phase10_virtio_core_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_core.zig"),',
+    'const phase10_virtio_core_survey_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_core_survey.zig"),',
+    'const phase10_virtio_ring_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_ring.zig"),',
+    'const phase10_virtio_ring_reset_reuse_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_ring_reset_reuse.zig"),',
+    'const phase10_virtio_ring_survey_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
+    'const phase10_virtio_input_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_input.zig"),',
+    'const phase10_virtio_input_survey_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_input_survey.zig"),',
+    'const phase10_virtio_mmio_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_mmio.zig"),',
+    'const phase10_virtio_mmio_survey_module = b.createModule(.{',
+    '.root_source_file = b.path("phase10_virtio_mmio_survey.zig"),',
+    '.name = "phase10-virtio-core-tests",',
+    '.name = "phase10-virtio-core-survey-tests",',
+    '.name = "phase10-virtio-ring-tests",',
+    '.name = "phase10-virtio-ring-reset-reuse-tests",',
+    '.name = "phase10-virtio-ring-survey-tests",',
+    '.name = "phase10-virtio-input-tests",',
+    '.name = "phase10-virtio-input-survey-tests",',
+    '.name = "phase10-virtio-mmio-tests",',
+    '.name = "phase10-virtio-mmio-survey-tests",',
+    'test_step.dependOn(&run_phase10_virtio_core_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_core_survey_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_ring_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_input_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_input_survey_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_mmio_tests.step);',
+    'test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);',
+]
 forbidden_stale_mmio_slice_markers = [
     "PHASE10_SLICE=virtio-mmio-config-window-helper",
     "add one small config-window write-planning helper next",
@@ -329,6 +368,9 @@ for marker in required_mmio_test_markers:
 for marker in required_mmio_survey_test_markers:
     if marker not in mmio_survey_test:
         missing_markers.append(f"mmio_survey_test:{marker}")
+for marker in required_phase10_build_markers:
+    if marker not in phase10_build:
+        missing_markers.append(f"phase10_build:{marker}")
 for marker in forbidden_stale_ring_markers:
     if marker in ring_survey:
         missing_markers.append(f"ring_survey:stale_marker:{marker}")
@@ -639,5 +681,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_core_survey_test_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_input_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_core_survey_test_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_input_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers) + len(required_phase10_build_markers)}"
 )
