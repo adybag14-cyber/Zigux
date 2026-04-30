@@ -225,6 +225,7 @@ manifest_expectations = {
             "final-drain-sequence",
             "storage-backing-contract",
             "bounded-helper-behavior",
+            "short-drain-prefix",
             "preview-truncation",
             "queue-only-reset",
             "checked-focus-list",
