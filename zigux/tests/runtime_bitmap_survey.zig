@@ -250,7 +250,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
         }
         if (std.mem.eql(u8, check.id, "bounds-errors")) {
-            saw_boundsErrors = true;
+            saw_bounds_errors = true;
             try std.testing.expectEqualStrings("input_validation", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "BitRangeOutOfBounds") != null);
         }
