@@ -154,3 +154,58 @@ test "runtime bitmap sample keeps zero-length mutations and invalid copy sources
     try exited_source.exit();
     try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
 }
+
+test "runtime bitmap sample keeps parse-and-print and bit-list guards explicit at the module boundary" {
+    var module = sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+
+    const formatted = try module.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(formatted);
+    try std.testing.expectEqualStrings("0,5,64,70", formatted);
+
+    var parsed = sample.RuntimeBitmapSample{};
+    try parsed.initFromBitList("0, 5, 64, 70");
+
+    const parsed_summary = parsed.summary();
+    const module_summary = module.summary();
+    try std.testing.expectEqual(module_summary.first_set, parsed_summary.first_set);
+    try std.testing.expectEqual(module_summary.first_zero, parsed_summary.first_zero);
+    try std.testing.expectEqual(module_summary.weight, parsed_summary.weight);
+    try std.testing.expectEqual(module_summary.nbits, parsed_summary.nbits);
+    try std.testing.expect(parsed.isSet(0));
+    try std.testing.expect(parsed.isSet(5));
+    try std.testing.expect(parsed.isSet(64));
+    try std.testing.expect(parsed.isSet(70));
+    try std.testing.expectEqual(@as(usize, 1), parsed.init_runs);
+    try std.testing.expectEqual(sample.ModuleStage.initialized, parsed.stage());
+
+    var empty = sample.RuntimeBitmapSample{};
+    try empty.initFromBitList("  ");
+    const empty_summary = empty.summary();
+    try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, empty_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), empty_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), empty_summary.weight);
+    try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, empty_summary.nbits);
+    try std.testing.expectEqual(@as(?u32, null), empty.nthSetBit(0));
+
+    const empty_formatted = try empty.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(empty_formatted);
+    try std.testing.expectEqualStrings("", empty_formatted);
+
+    var invalid = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList("0, nope"));
+
+    var trailing_comma = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, trailing_comma.initFromBitList("0,"));
+
+    var doubled_separator = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, doubled_separator.initFromBitList("0,,5"));
+
+    var out_of_bounds = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        out_of_bounds.initFromBitList("0, 5, 64, 128"),
+    );
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, parsed.initFromBitList("1"));
+}
