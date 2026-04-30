@@ -123,9 +123,15 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
     .{ .input = "Zg=", .padding = false, .variant_name = "std" },
     .{ .input = "Zm9v====", .padding = false, .variant_name = "std" },
     .{ .input = "Zm==v", .padding = false, .variant_name = "std" },
+    .{ .input = "Zh", .padding = false, .variant_name = "std" },
+    .{ .input = "//B", .padding = false, .variant_name = "std" },
     .{ .input = invalid_with_nul[0..], .padding = false, .variant_name = "std" },
     .{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "-x", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "__B", .padding = false, .variant_name = "urlsafe" },
     .{ .input = "Zg==", .padding = false, .variant_name = "imap" },
+    .{ .input = "+x", .padding = false, .variant_name = "imap" },
+    .{ .input = ",,B", .padding = false, .variant_name = "imap" },
 };
 
 pub const variant_decode_cases = [_]DecodeCase{
