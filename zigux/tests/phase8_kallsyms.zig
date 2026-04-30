@@ -443,7 +443,7 @@ test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser
     );
 }
 
-test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" {
+test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract across contents and path entrypoints" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
@@ -487,6 +487,28 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" 
         }
     };
 
+    const contents =
+        "ffffffff81000000 T startup_64\n" ++
+        "garbage\n" ++
+        "ffffffff81000200 W weak_handler\n" ++
+        "ffffffff81000300 t ignored_after_stop\n";
+
+    var contents_state = CallbackState.init();
+    defer contents_state.deinit(std.testing.allocator);
+
+    const contents_result = try kallsyms.kallsymsParseContents(
+        contents,
+        &contents_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), contents_result);
+    try std.testing.expectEqual(@as(usize, 2), contents_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", contents_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
+
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
     const io = std.testing.io;
@@ -496,12 +518,7 @@ test "phase 8 kallsyms direct wrappers preserve the C-shaped callback contract" 
         defer file.close(io);
         var writer_buffer: [128]u8 = undefined;
         var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
-        try writer.interface.writeAll(
-            "ffffffff81000000 T startup_64\n" ++
-                "garbage\n" ++
-                "ffffffff81000200 W weak_handler\n" ++
-                "ffffffff81000300 t ignored_after_stop\n",
-        );
+        try writer.interface.writeAll(contents);
         try writer.interface.flush();
     }
 
@@ -618,6 +635,7 @@ test "phase 8 kallsyms docs keep the parked parser boundary explicit" {
     try expectContains(slice_note, "zigux/tests/phase8_kallsyms.zig");
     try expectContains(slice_note, "chunked overlong-line handling");
     try expectContains(slice_note, "stops buffering after the bounded callback surface is full");
+    try expectContains(slice_note, "kallsymsParseContents()");
     try expectContains(slice_note, "kallsymsParse()");
     try expectContains(slice_note, "kallsymsParseInDir()");
     try expectContains(slice_note, "does not yet claim:");
