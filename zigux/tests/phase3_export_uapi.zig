@@ -18,32 +18,39 @@ test "phase3 export shim and uapi stay aligned" {
 
     const header = export_shim.header(0x44);
     try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));
+    try std.testing.expectEqual(uapi_version.header_size, header.size);
+    try std.testing.expect(uapi_version.isCurrentAbiVersion(header.abi_version));
+    try std.testing.expect(uapi_version.isCanonicalSize(header.size));
     try std.testing.expect(export_shim.isCanonicalHeader(header));
     try std.testing.expect(uapi_version.isCanonical(header));
     try std.testing.expect(export_shim.isCompatibleHeader(header));
     try std.testing.expect(uapi_version.isCompatible(header));
 
     const undersized_header: abi.BoundaryHeader = .{
-        .size = @sizeOf(abi.BoundaryHeader) - 1,
+        .size = uapi_version.header_size - 1,
         .abi_version = abi.ABI_VERSION,
         .flags = 0,
     };
+    try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));
     try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));
     try std.testing.expect(!uapi_version.isCompatible(undersized_header));
 
     const mismatched_version_header: abi.BoundaryHeader = .{
-        .size = @sizeOf(abi.BoundaryHeader),
+        .size = uapi_version.header_size,
         .abi_version = abi.ABI_VERSION + 1,
         .flags = 0,
     };
+    try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));
     try std.testing.expect(!export_shim.isCompatibleHeader(mismatched_version_header));
     try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));
 
     const future_compatible_header: abi.BoundaryHeader = .{
-        .size = @sizeOf(abi.BoundaryHeader) + 8,
+        .size = uapi_version.header_size + 8,
         .abi_version = abi.ABI_VERSION,
         .flags = 0x44,
     };
+    try std.testing.expect(uapi_version.isCompatibleSize(future_compatible_header.size));
+    try std.testing.expect(!uapi_version.isCanonicalSize(future_compatible_header.size));
     try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));
     try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));
     try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));
