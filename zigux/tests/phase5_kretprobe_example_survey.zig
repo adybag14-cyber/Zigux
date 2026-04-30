@@ -92,7 +92,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             saw_private_data_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "maxactive budget") != null and
-            std.mem.indexOf(u8, prompt, "fixed reviewable ceiling") != null)
+            std.mem.indexOf(u8, prompt, "fixed helper-backed reviewable ceiling") != null)
         {
             saw_maxactive_prompt = true;
         }
@@ -148,6 +148,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "maxactive-budget")) {
             saw_maxactive_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactive budget") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactiveBudget()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 concurrent instances") != null);
         }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
@@ -257,8 +258,8 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "All 1 tests passed.");
     try expectContains(survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig");
     try expectContains(survey_note, "All 2 tests passed.");
-    try expectContains(survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed");
-    try expectContains(survey_note, "phase5-kretprobe-example-tests 4 pass (4 total)");
+    try expectContains(survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed");
+    try expectContains(survey_note, "phase5-kretprobe-example-tests 5 pass (5 total)");
     try expectContains(survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)");
     try expectContains(survey_note, "register_kretprobe()");
     try expectContains(survey_note, "do_sys_openat2");
