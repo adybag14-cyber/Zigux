@@ -347,6 +347,26 @@ def validate_kconfig_bridge_manifest(cases_path: Path) -> list[str]:
     return issues
 
 
+def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('PHASE2_CROSS_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=7')",
+        'tool_count_mismatch_guard': 'phase2-cross:tool_count_mismatch',
+        'target_count_mismatch_guard': 'phase2-cross:target_count_mismatch',
+        'duplicate_target_guard': 'phase2-cross:duplicate_target:',
+        'unexpected_target_guard': 'phase2-cross:unexpected_target:',
+        'duplicate_manifest_target_guard': 'phase2-cross:duplicate_manifest_target:',
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'phase2_cross_checker:{issue_name}')
+    return issues
+
+
 required_files = [
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
@@ -599,6 +619,7 @@ if target_manifest_targets != EXPECTED_CROSS_TARGETS:
     missing_markers.append('targets:list=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl')
 
 missing_markers.extend(validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json'))
+missing_markers.extend(validate_phase2_cross_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py'))
 missing_markers.extend(fixdep_case_issues)
 
 if missing_markers:
