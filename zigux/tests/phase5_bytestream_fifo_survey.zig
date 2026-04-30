@@ -336,12 +336,14 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "procfs, user-copy, locking, and runtime registration remain out of scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exactly seven review-focus areas") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`preview_truncation`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused review-path recheck") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `phase5_build.zig` entrypoint remains the bundle-level replay path") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase5_bytestream_fifo_manifest.json` now carries the same `surveyed_commit` value") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);
