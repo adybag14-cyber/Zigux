@@ -1,7 +1,7 @@
 {
-  "lane_key": "P14-L12",
+  "lane_key": "P14-L09",
   "phase": "Phase 14",
-  "surveyed_commit": "f65e3d897847bf205198e5c47a41782085620579",
+  "surveyed_commit": "55f1f2ca5c047f33ad2f005515bb67974c1b74f9",
   "anchor": "net/core/skbuff.c",
   "roadmap_destinations": [
     "net/core/skbuff_bridge.zig",
@@ -120,14 +120,7 @@
       "status": "starter_landed",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The bridge now records the smaller validate_xmit_skb_list() republish handoff, limited to head = skb, tail->next = skb, and validate_xmit_skb() drop pruning so the lane can name how validated outputs are stitched back into one list without widening into live packet lifetime control."
-    },
-    {
-      "id": "phase14-skbuff-direct-xmit-identity-drop-followup",
-      "status": "ready_next",
-      "kind": "lifetime_audit",
-      "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff step is a narrower __dev_direct_xmit() identity-drop follow-up, limited to skb = validate_xmit_skb_list(...), skb != orig_skb, and the drop path so the lane can name where the republished output is either accepted as the original skb or rejected without widening into live packet lifetime control."
+      "why_now": "The bridge now records the smaller validate_xmit_skb_list() republish follow-up, limited to head = skb, tail->next = skb, and validate_xmit_skb() drop pruning so the lane can name how validated outputs are stitched back into one list without widening into live packet lifetime control."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
