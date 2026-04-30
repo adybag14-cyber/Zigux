@@ -15,6 +15,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-and-fetch-or-fetch-xor`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
@@ -65,10 +66,13 @@ It is a small substrate that makes future ports measurable:
 5. replay the focused export-shim and UAPI smoke gate
 - `zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
 
-6. replay the focused low-level wrapper gate
+6. replay the focused export-shim and UAPI layout gate
+- `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
+
+7. replay the focused low-level wrapper gate
 - `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 
-7. replay the focused policy and unsafe gate
+8. replay the focused policy and unsafe gate
 - `zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
@@ -76,6 +80,7 @@ It is a small substrate that makes future ports measurable:
 - `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 
@@ -128,6 +133,7 @@ Current repo-backed boundary survey:
 - export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, and it now exposes a small local boundary-header surface that keeps exact canonical-size replay separate from broader future-compatible header acceptance without widening the public export namespace further
 - UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor whose exact canonical-size replay stays separate from broader future-compatible compatibility, which is still bounded but makes the public boundary less ad hoc than a version constant alone
 - focused replay gate: `zigux/tests/phase3_export_uapi.zig` now keeps that export-shim and UAPI version contract on its own compile-and-test path instead of leaving it visible only through the much broader `phase3_abi.zig` bundle
+- dedicated layout replay gate: `zigux/tests/phase3_export_uapi_layout.zig` now keeps the canonical `BoundaryHeader` and `ExportStatus` size and field-offset contract visible on its own compile-and-test path instead of relying only on the broader ABI dump bundle
 
 This slice does not claim:
 
