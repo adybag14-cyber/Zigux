@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=landlock-syscalls-helper-ruleset-fd-creation-handoff`
-- `PHASE13_SURVEYED_COMMIT=c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d`
+- `PHASE13_SURVEYED_COMMIT=798e2e37af2ed21fc23ce1a027c985c598a02d3f`
 - scope: the landed `security/landlock/syscalls.zig` helper slice, its dedicated Phase 13 test gate and manifest, the shared Phase 13 build wiring, and the lane notes that compare the current foothold against the roadmap
 - product boundary:
   - `security/landlock/syscalls.zig`
@@ -27,7 +27,7 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 ## Survey findings
 
 - `security/landlock/syscalls.c` is present on `master` and spans multiple user-facing and kernel-facing boundaries at once: ABI structure sizing, query-only create-ruleset calls, ruleset file-descriptor creation, rule import, and restrict-self credential updates.
-- a focused attached-toolchain check still compiles and passes the dedicated `zigux/tests/phase13_landlock_syscalls.zig` gate at inspected head `c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d`, so the current wrapper and policy planners remain aligned with the bounded helper contract recorded in this lane packet.
+- a focused attached-toolchain check still compiles and passes the dedicated `zigux/tests/phase13_landlock_syscalls.zig` gate at inspected head `798e2e37af2ed21fc23ce1a027c985c598a02d3f`, so the current wrapper and policy planners remain aligned with the bounded helper contract recorded in this lane packet.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local syscall helper without widening into kernel build integration.
 - compared against the Phase 13 roadmap and the current repo reality, the previously open syscall-helper follow-ups in this packet are now closed through the in-memory ruleset-FD creation handoff planner, so the honest lane status is to keep this packet parked unless another tiny validation-only or lifetime-discipline follow-up can stay pure.
 - the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, `copy_min_struct_from_user()` helper discipline, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation, the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation, the in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard, the in-memory `get_path_from_fd()` planner for ruleset-FD rejection, internal-mount filtering, non-user-visible inode rejection, and owned path reference handoff, the in-memory `add_rule_path_beneath()` planner that combines copied attrs with the bounded path-FD handoff and the later `put_path()` release responsibility, the in-memory `add_rule_net_port()` planner that reuses the add-rule validation and keeps the copied net-port attrs plus `landlock_append_net_rule()` boundary explicit, plus the in-memory ruleset-FD creation handoff planner that fixes the anon-inode label, `O_RDWR | O_CLOEXEC` flags, and the `landlock_put_ruleset()` failure release discipline without claiming live file operations wiring or FD ownership.
