@@ -4,7 +4,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=36126f196d7207f7d4d4346bb1cc18b554521937`
+- `PHASE3_SURVEYED_COMMIT=f554c0dcef173a5fcd48d86ca5150f0e25988d0e`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -31,7 +31,7 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `36126f196d7207f7d4d4346bb1cc18b554521937` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` packet head `f554c0dcef173a5fcd48d86ca5150f0e25988d0e` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
@@ -42,6 +42,7 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - `zigux/tests/phase3_export_uapi.zig` now keeps the narrow kernel-side export shim aligned with the UAPI packet's named current-version and current-size predicates, so the shared boundary rule stays reviewable without widening the kernel shim itself
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
 - `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header, expose the same named version and size predicates, distinguish canonical headers from broader future-compatible headers, and reject undersized or version-mismatched headers identically
+- `scripts/zigux/validate-phase3-export-uapi-survey.py` now rejects drift in the directly coupled export/UAPI packet paths since `PHASE3_SURVEYED_COMMIT`, so the survey stays anchored to boundary-local evidence instead of failing only because unrelated `master` work advanced elsewhere
 
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
@@ -55,7 +56,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 
 - the original substrate ledger entry already named `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` as part of the permanent Phase 3 boundary
 - current `master` now adds focused replay evidence for that same boundary through `zigux/tests/phase3_export_uapi_build.zig` and `zigux/tests/phase3_export_uapi.zig`
-- current `master` also keeps that same ledger entry reviewable through the restored `python3 scripts/zigux/validate-phase3.py` gate, which now checks the canonical ABI and bindings source markers before the focused export/UAPI replay runs
+- current `master` also keeps that same ledger entry reviewable through the restored `python3 scripts/zigux/validate-phase3.py` gate and the tightened `python3 scripts/zigux/validate-phase3-export-uapi-survey.py` survey gate, so packet-local drift now fails at the survey layer before the boundary snapshot can quietly age out
 - `zigux/tests/fixtures/phase3_abi_manifest.json` now carries those focused replay paths inside the same ABI substrate packet rather than presenting them as a broader UAPI tranche
 
 ## Current Boundary Gap
@@ -77,6 +78,6 @@ The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
-- refresh `PHASE3_SURVEYED_COMMIT` whenever this note is deliberately resurveyed against a newer verified `master` head
+- refresh `PHASE3_SURVEYED_COMMIT` whenever the directly coupled export/UAPI packet paths are deliberately resurveyed after boundary-local changes
 
 This lane does not justify broad UAPI expansion, generated headers, or a larger export namespace on its own.
