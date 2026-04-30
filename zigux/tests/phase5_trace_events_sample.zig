@@ -52,6 +52,15 @@ test "phase 5 trace-events sample replays the bounded payload and callback idiom
     try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), lifecycle.registration_depth);
     try std.testing.expectEqual(@as(usize, 8), lifecycle.total_event_calls);
+
+    try module.exit();
+    const exited_lifecycle = module.lifecycleSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, exited_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.replay_run_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), exited_lifecycle.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), exited_lifecycle.total_event_calls);
 }
 
 test "phase 5 trace-events sample keeps payload and callback boundaries explicit" {
