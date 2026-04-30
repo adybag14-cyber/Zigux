@@ -204,20 +204,16 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "adde5f101084dcd4c571bbc0b645d6fa95805e22b5a9f67828582e68664b8ad") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "c168ca3572f6c1756955ae9f01fcc56e39df477cc2fe1ee79a60be482b1fc5c0") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "shared_validator_result: `PHASE12_VALIDATION=fail`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_master_replay_head: `29ad00c933f721716ce6cf92acd386537930e222`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_result: `PHASE12_VALIDATION=fail`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_master_replay_head: `76c198da79ae69383b5efaa5e2be3489de6f3e2e`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_result: `PHASE12_VALIDATION=pass`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "shared_validator_missing_markers:") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "review_checklist:if the change touches the shared Phase 12 libbpf snapshot packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_nvme_pci_manifest.json:lane_key") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_segments.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_segments.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_missing_markers:") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_build_fixture:module_root_source_files_mismatch") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_reviewability.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_reviewability.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "phase12_libbpf_snapshot_fixture:sha256:tools/lib/bpf/zigux_segments/manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_validator_missing_markers: `[]`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_build_result: `Build Summary: 17/17 steps succeeded; 51/51 tests passed`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_build_result: `Build Summary: 17/17 steps succeeded; 52/52 tests passed`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_focused_survey_result: `All 1 tests passed.`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "focused_survey_result: `All 1 tests passed.`") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_module") != null);
@@ -272,7 +268,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-make-target")) {
-            saw_make_target = true;
+            saw_makeTarget = true;
             try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "make target") != null);
@@ -395,7 +391,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_make_target);
+    try std.testing.expect(saw_makeTarget);
     try std.testing.expect(saw_core_foundation);
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
