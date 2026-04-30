@@ -55,6 +55,14 @@ const HandoffEvidence = struct {
     maintenance_mode_next_step: []const u8,
 };
 
+const CurrentParityTrackingGap = struct {
+    roadmap_requirement: []const u8,
+    current_gap: []const u8,
+    repo_state: []const u8,
+    closure_signal: []const u8,
+    remaining_blocker: []const u8,
+};
+
 const ScorecardMetrics = struct {
     freeze_in_c_anchor_count: usize,
     anchors_with_phase14_survey_evidence: usize,
@@ -82,6 +90,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     review_process: ReviewProcess,
     handoff_evidence: HandoffEvidence,
+    current_parity_tracking_gap: CurrentParityTrackingGap,
     scorecard_metrics: ScorecardMetrics,
     anchors: []const AnchorScorecard,
     repo_evidence: RepoEvidence,
@@ -191,9 +200,9 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("f67968bf32ee3c04b376d99a42cd16c757fef4b1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("306be3109b5960918e693d2f7268446eda39b97d", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -220,6 +229,13 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
+    try std.testing.expectEqualStrings("parity scorecard", manifest.current_parity_tracking_gap.roadmap_requirement);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.current_gap, "maintenance-mode gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.current_gap, "lane identity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.repo_state, "Architecture Council review process") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.repo_state, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.closure_signal, "parity-tracking gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.remaining_blocker, "deep-core status-change blocker") != null);
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.freeze_in_c_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.reserved_evidence_archive_templates);
@@ -452,7 +468,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_scorecard_note);
     try std.testing.expect(saw_council_review_gate);
     try std.testing.expect(saw_archive_reporting);
-    try std.testing.expect(saw_blocker_disposition_summary_metric);
+    try std.testing.expect(saw_blocker_dispositionSummary_metric);
     try std.testing.expect(saw_template_followup);
     try std.testing.expect(saw_sync_followup);
     try std.testing.expect(saw_anchor_owner_tracking);
@@ -518,3 +534,21 @@ test "phase 15 council review gate stays aligned between the scorecard and check
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Current Parity-Tracking Gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "PHASE15_LANE_KEY=P15-L09") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "lane identity, roadmap wording, and replay-backed evidence packet current") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_checklist, "Phase 15 Architecture Council review-process packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process_doc, "parity scorecard") != null);
+    try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy_doc, "parity scorecard") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Phase 15 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "phase15-parity-scorecard.md") != null);
+    try std.testing.expect(manifest.repo_evidence.phase15_readme_reviewability_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_scorecard_note_present);
+    try std.testing.expectEqualStrings("parity scorecard", manifest.current_parity_tracking_gap.roadmap_requirement);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.closure_signal, "Phase 15 parity scorecard requirement") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.current_parity_tracking_gap.remaining_blocker, "deep-core status-change blocker") != null);
+}
