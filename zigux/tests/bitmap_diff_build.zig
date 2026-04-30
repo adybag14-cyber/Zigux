@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
     diff_root.addImport("find_bit", find_bit_module);
 
     const diff_tests = b.addTest(.{
-        .name = "phase1-bitmap-diff",
+        .name = "phase4-bitmap-diff-tests",
         .root_module = diff_root,
     });
 
