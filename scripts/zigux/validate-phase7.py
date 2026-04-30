@@ -221,11 +221,17 @@ required_phase7_cmdline_survey_markers = [
 
 required_phase7_cmdline_test_markers = [
     'const next_arg_vectors = @import("fixtures/phase7_cmdline_next_arg_vectors.zig");',
+    "phase 7 getOptions preserves descending-range and partial-parse stop behavior",
+    "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored",
+    "phase 7 memparse preserves suffix scaling and stop index semantics",
+    "phase 7 parseOptionStr matches only exact bare options",
     "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics",
+    'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
     "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus",
     "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus",
     "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus",
     "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus",
+    "phase 7 nextArg matches serialized edge fixtures",
     'try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+0x10", &index));',
 ]
 
@@ -255,9 +261,15 @@ required_phase7_cmdline_doc_markers = [
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "descending-range and unparseable-suffix early stop behavior",
+    "array-capacity stop behavior when a hyphen range is only partially stored and the upper bound remains pending in the remaining cursor",
     "the full KUnit malformed-token classification corpus now also runs through the shared `zigux/tests/phase7_cmdline.zig` gate instead of only the helper-local `zig test lib/cmdline.zig` path",
     "KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs",
+    "memory-size suffix scaling with accurate parse-stop reporting",
     "rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`",
+    "exact bare-option matching for comma-delimited flags",
+    "C-style stop-at-NUL handling for bare-option scans",
+    "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination",
     "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
 ]
 
