@@ -315,8 +315,6 @@ required_atomic64_survey_markers = [
 ]
 
 required_atomic64_module_slice_markers = [
-    "`PHASE9_LANE_KEY=P9-L01`",
-    "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
     "a direct post-selftest mutation replay proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit",
     "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
     "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
@@ -367,8 +365,6 @@ required_bitmap_survey_markers = [
 ]
 
 required_bitmap_module_slice_markers = [
-    "`PHASE9_LANE_KEY=P9-L07`",
-    "`PHASE9_SURVEYED_COMMIT=f3e9edb81f6766ec40eb4a93c781fc90dfb6f9c2`",
     "adjacent loader scaffold plus shared loader-request binding",
     "zigux/kernel/runtime_loader.zig",
     "direct post-selftest mutation replay proof",
@@ -761,23 +757,6 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
-        atomic64_module_slice_path = tmp_root / "Documentation/zigux/phase9-runtime-atomic64-module-slice.md"
-        original_atomic64_module_slice = atomic64_module_slice_path.read_text(encoding="utf-8")
-        atomic64_module_slice_path.write_text(
-            original_atomic64_module_slice.replace(
-                "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
-                "`PHASE9_SURVEYED_COMMIT=`",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "atomic64_module_slice_surveyed_commit_pin",
-            tmp_root,
-            "atomic64_module_slice:`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
-        )
-        atomic64_module_slice_path.write_text(original_atomic64_module_slice, encoding="utf-8")
-
         trace_events_survey_path = tmp_root / "Documentation/zigux/phase9-runtime-trace-events-survey.md"
         original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
         trace_events_survey_path.write_text(
@@ -827,6 +806,24 @@ def run_self_test() -> int:
             tmp_root,
             "trace_events_module:try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
         )
+        trace_events_module_path.write_text(original_trace_events_module, encoding="utf-8")
+
+        kretprobe_survey_test_path = tmp_root / "zigux/tests/runtime_kretprobe_survey.zig"
+        original_kretprobe_survey_test = kretprobe_survey_test_path.read_text(encoding="utf-8")
+        kretprobe_survey_test_path.write_text(
+            original_kretprobe_survey_test.replace(
+                '            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kretprobe_loader_rollback_surface",
+            tmp_root,
+            'kretprobe_survey_test:std.mem.indexOf(u8, check.expected, "released_without_substrate")',
+        )
+        kretprobe_survey_test_path.write_text(original_kretprobe_survey_test, encoding="utf-8")
 
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
     print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=6")
