@@ -19,8 +19,10 @@ FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_crc'
 INPUT = FIXTURE_DIR / 'inputs.txt'
 EXPECTED = FIXTURE_DIR / 'expected.json'
 
+
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
+
 
 def find_compiler(explicit: str | None) -> str:
     if explicit:
@@ -29,6 +31,7 @@ def find_compiler(explicit: str | None) -> str:
     if compiler:
         return compiler
     raise SystemExit('C compiler not found; pass --cc or install cc/gcc/clang')
+
 
 def find_zig(explicit: str | None) -> str:
     if explicit:
@@ -44,11 +47,13 @@ def find_zig(explicit: str | None) -> str:
         return str(fallback)
     raise SystemExit('zig not found; pass --zig or add zig to PATH')
 
+
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(':').lower()
     tail = resolved.as_posix().split(':', 1)[1]
     return f'/mnt/{drive}{tail}'
+
 
 def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str) -> None:
     script_path = tmp_dir / 'run_genksyms_crc_c.sh'
@@ -74,6 +79,7 @@ def compile_run_c_wsl(tmp_dir: Path, exe: Path, actual: Path, compiler: str) -> 
     script_path.write_text('\n'.join(lines) + '\n', encoding='utf-8', newline='\n')
     run(['wsl', 'bash', windows_to_wsl(script_path)], cwd=str(ROOT))
 
+
 def compile_run_c(tmp_dir: Path, actual: Path, compiler: str) -> None:
     exe = tmp_dir / ('genksyms-crc-c.exe' if os.name == 'nt' else 'genksyms-crc-c')
     if os.name == 'nt' and shutil.which('wsl'):
@@ -83,18 +89,63 @@ def compile_run_c(tmp_dir: Path, actual: Path, compiler: str) -> None:
     result = run([str(exe), str(INPUT)], cwd=str(ROOT), capture_output=True)
     actual.write_text(result.stdout, encoding='utf-8', newline='\n')
 
+
 def run_zig(zig: str, tmp_dir: Path, actual: Path) -> None:
     exe = tmp_dir / ('genksyms-crc-zig.exe' if os.name == 'nt' else 'genksyms-crc-zig')
     run([zig, 'build-exe', str(ZIG_TOOL), '-femit-bin=' + str(exe)], cwd=str(ROOT))
     result = run([str(exe), str(INPUT)], cwd=str(ROOT), capture_output=True)
     actual.write_text(result.stdout, encoding='utf-8', newline='\n')
 
+
+def compare_json_artifacts(expected: Path, actual: Path) -> None:
+    run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(expected), str(actual)], cwd=str(ROOT))
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='zigux_genksyms_crc_selftest_') as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        expected = tmp_dir / 'expected.json'
+        actual = tmp_dir / 'actual.json'
+        repeat = tmp_dir / 'repeat.json'
+        mismatch = tmp_dir / 'mismatch.json'
+
+        expected.write_text('{"crc":"0x12345678","symbol":"zigux_demo"}\n', encoding='utf-8', newline='\n')
+        actual.write_text('{\n  "symbol": "zigux_demo",\n  "crc": "0x12345678"\n}\n', encoding='utf-8', newline='\n')
+        repeat.write_text(expected.read_text(encoding='utf-8'), encoding='utf-8', newline='\n')
+        mismatch.write_text('{"crc":"0x12345679","symbol":"zigux_demo"}\n', encoding='utf-8', newline='\n')
+
+        compare_json_artifacts(expected, actual)
+        compare_json_artifacts(expected, repeat)
+        if find_zig('/tmp/zigux-explicit-zig') != '/tmp/zigux-explicit-zig':
+            raise SystemExit('genksyms-crc:self-test:explicit_zig_passthrough')
+        if find_compiler('/tmp/zigux-explicit-cc') != '/tmp/zigux-explicit-cc':
+            raise SystemExit('genksyms-crc:self-test:explicit_cc_passthrough')
+
+        mismatch_check = subprocess.run(
+            [sys.executable, str(ARTIFACT_DIFF), '--mode', 'json', str(expected), str(mismatch)],
+            check=False,
+            text=True,
+            capture_output=True,
+            cwd=str(ROOT),
+        )
+        if mismatch_check.returncode != 1 or 'ARTIFACT_DIFF=fail' not in mismatch_check.stdout:
+            raise SystemExit('genksyms-crc:self-test:mismatch_contract')
+
+    print('GENKSYMS_CRC_SELF_TEST=pass')
+    print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=4')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Compare bounded genksyms CRC C and Zig outputs.')
     parser.add_argument('--cc', help='C compiler to use')
     parser.add_argument('--zig', help='Path to Zig executable')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected fixture from current C output')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in checker contract coverage.')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
@@ -127,6 +178,7 @@ def main() -> int:
         print('GENKSYMS_CRC_DETERMINISM=pass')
         print(f'FIXTURE={EXPECTED}')
         return 0
+
 
 if __name__ == '__main__':
     raise SystemExit(main())
