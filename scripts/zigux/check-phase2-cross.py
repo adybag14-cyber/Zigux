@@ -165,6 +165,15 @@ def run_self_test() -> int:
         'phase2-cross:tool_count_mismatch',
     )
 
+    duplicate_tool_manifest = dict(manifest)
+    duplicate_tool_manifest['tools'] = [tools[0].relative_to(ROOT).as_posix(), tools[0].relative_to(ROOT).as_posix()]
+    duplicate_tool_manifest['tool_count'] = 2
+    expect_system_exit(
+        'duplicate_tool',
+        lambda: validate_tool_manifest(duplicate_tool_manifest),
+        f'phase2-cross:duplicate_tool:{tools[0].relative_to(ROOT).as_posix()}',
+    )
+
     bad_targets = dict(targets_doc)
     bad_targets['target_count'] = len(allowed_targets) + 1
     expect_system_exit(
@@ -183,7 +192,7 @@ def run_self_test() -> int:
     )
 
     print('PHASE2_CROSS_SELF_TEST=pass')
-    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=7')
+    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=8')
     return 0
 
 
