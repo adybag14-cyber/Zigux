@@ -39,11 +39,15 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectEqual(base, desc.base_addr);
     try std.testing.expectEqual(@as(u32, 12), desc.length);
     try std.testing.expectEqual(@as(u32, 4), desc.stride);
+    mmio.write8(base, 1, 0x5a);
+    try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 1));
     mmio.write16(base, 2, 0xabcd);
     try std.testing.expectEqual(@as(u16, 0xabcd), mmio.read16(base, 2));
     mmio.write32(base, 8, 0x12345678);
     try std.testing.expectEqual(@as(u32, 0x12345678), mmio.read32(base, 8));
     try std.testing.expectEqual(@as(u32, 0x12345678), regs[2]);
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Scoped(.none, base, 0, 0x99));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Scoped(.raw_pointer_bridge, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.read16Scoped(.raw_pointer_bridge, base, 0));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.write32Scoped(.none, base, 0, 0x99));
@@ -52,8 +56,11 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.MisalignedAccess, mmio.read16Scoped(.volatile_mmio, base, 1));
     try std.testing.expectError(error.MisalignedAccess, mmio.write32Scoped(.volatile_mmio, base, 2, 0x99));
     try std.testing.expectError(error.MisalignedAccess, mmio.read32Scoped(.volatile_mmio, base, 2));
+    try std.testing.expectError(error.AddressOverflow, mmio.write8Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));
     try std.testing.expectError(error.AddressOverflow, mmio.write16Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));
     try std.testing.expectError(error.AddressOverflow, mmio.read32Scoped(.volatile_mmio, std.math.maxInt(usize), 4));
+    try mmio.write8Scoped(.volatile_mmio, base, 0, 0xbe);
+    try std.testing.expectEqual(@as(u8, 0xbe), try mmio.read8Scoped(.volatile_mmio, base, 0));
     try mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);
     try std.testing.expectEqual(@as(u16, 0xbeef), try mmio.read16Scoped(.volatile_mmio, base, 0));
     try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);
