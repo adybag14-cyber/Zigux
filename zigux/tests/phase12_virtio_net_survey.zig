@@ -92,7 +92,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-    try std.testing.expectEqualStrings("7779444ab1617e7d21224396c2de66fe8e9bd3d0", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c23f1e76c2c0cdb2526d252689e68cc4dbee505d", manifest.surveyed_commit);
     try std.testing.expect(isLowerHexCommit(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
@@ -306,7 +306,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-pool and DMA") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed `master` snapshot `7779444ab1617e7d21224396c2de66fe8e9bd3d0`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed `master` snapshot `c23f1e76c2c0cdb2526d252689e68cc4dbee505d`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key refreshed to `P12-L04`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` head") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "next tiny `hdr_len` follow-up") == null);
