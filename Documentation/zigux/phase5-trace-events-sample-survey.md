@@ -6,7 +6,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 - `PHASE5_STATUS=active`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L13`
+- `PHASE5_LANE_KEY=P5-L19`
 - `PHASE5_SURVEYED_COMMIT=173027a7fa074960e08d67a64f8807730cf3c07a`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
@@ -24,7 +24,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/trace_events/trace-events-sample.c` as one of the Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `trace_events_sample` slice. The trace-events-specific job is no longer missing sample delivery; it is to keep this payload-and-callback idiom, its exact checks, and its non-goals honest now that the broader Phase 5 anchor set is complete.
+Fresh repo inspection now shows that current `master` carries all four roadmap-approved bounded Phase 5 reference samples under `samples/zigux/`, including the landed `trace_events_sample` slice. The trace-events-specific job is no longer missing sample delivery; it is to keep this approved payload-and-callback idiom reviewable and repeatable, with its exact checks and non-goals kept honest now that the broader Phase 5 anchor set is complete.
 
 ## Survey findings
 
