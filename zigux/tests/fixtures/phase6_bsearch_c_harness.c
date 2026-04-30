@@ -93,6 +93,7 @@ int main(void)
         { "schedule", 0x1800u },
     };
     uint32_t mutable_values[] = { 3, 8, 13, 21, 34, 55, 89 };
+    uint32_t raw_mutable_values[] = { 3, 8, 13, 21, 34, 55, 89 };
 
     {
         const uint32_t key = 3;
@@ -151,6 +152,18 @@ int main(void)
         print_duplicate_case("duplicate-hit-end", key, inline_bsearch(&key, duplicate_at_end, sizeof(duplicate_at_end) / sizeof(duplicate_at_end[0]), sizeof(duplicate_at_end[0]), compare_u32));
     }
     {
+        const uint32_t key = 34;
+        print_index_case("raw-hit", key, values, inline_bsearch(&key, values, sizeof(values) / sizeof(values[0]), sizeof(values[0]), compare_u32));
+    }
+    {
+        const uint32_t key = 20;
+        print_index_case("raw-miss", key, values, inline_bsearch(&key, values, sizeof(values) / sizeof(values[0]), sizeof(values[0]), compare_u32));
+    }
+    {
+        const uint32_t key = 34;
+        print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));
+    }
+    {
         const char key[] = "kmalloc";
         const struct symbol *found = inline_bsearch(key, symbols, sizeof(symbols) / sizeof(symbols[0]), sizeof(symbols[0]), compare_symbol_name);
         if (found != NULL)
@@ -174,6 +187,16 @@ int main(void)
             printf("mutable-hit\t21\t%u\n", mutable_values[3]);
         } else {
             printf("mutable-hit\t21\tnull\n");
+        }
+    }
+    {
+        const uint32_t key = 21;
+        uint32_t *found = inline_bsearch(&key, raw_mutable_values, sizeof(raw_mutable_values) / sizeof(raw_mutable_values[0]), sizeof(raw_mutable_values[0]), compare_u32);
+        if (found != NULL) {
+            *found = 22;
+            printf("raw-mutable-hit\t21\t%u\n", raw_mutable_values[3]);
+        } else {
+            printf("raw-mutable-hit\t21\tnull\n");
         }
     }
 
