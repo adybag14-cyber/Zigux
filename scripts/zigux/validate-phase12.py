@@ -158,9 +158,12 @@ SURVEY_NOTE_MARKERS = {
         "owner: `BPF Tooling Lane`",
         "rollback owner: `BPF Tooling Lane`",
         "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth",
+        "reversible delivery evidence: this Phase 12 packet only adds `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, and this survey note around preexisting helper foundations",
+        "repair `scripts/zigux/check-phase12-libbpf-snapshot.py` plus `zigux/tests/fixtures/phase12_libbpf_snapshot.json` first",
         "phase12-libbpf-segment-survey-tests",
         "phase12-libbpf-reviewability-tests",
         "rollback drill: run `make -C zigux phase12-validate`",
+        "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     ),
     "phase12_virtio_scsi_manifest.json": (
         "## Rollback And Reversible Delivery",
