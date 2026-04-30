@@ -81,10 +81,10 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
-    try std.testing.expectEqualStrings("f3e9edb81f6766ec40eb4a93c781fc90dfb6f9c2", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("456151afa8a38a088e3cc582187b35fe5c7b0445", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("samples/zigux/runtime_bitmap.zig", manifest.sample_path);
@@ -446,12 +446,12 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteratio
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "test \"runtime bitmap sample exposes ordered set-bit replay for sparse populations\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "nthSetBit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "manifest-backed delivery catalog and ownership map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L07`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=f3e9edb81f6766ec40eb4a93c781fc90dfb6f9c2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L08`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=456151afa8a38a088e3cc582187b35fe5c7b0445`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Delivery ownership map") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `f3e9edb81f6766ec40eb4a93c781fc90dfb6f9c2`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `456151afa8a38a088e3cc582187b35fe5c7b0445`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`") != null);
@@ -474,8 +474,8 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
     defer std.testing.allocator.free(module_slice);
 
     const required_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L07`",
-        "`PHASE9_SURVEYED_COMMIT=f3e9edb81f6766ec40eb4a93c781fc90dfb6f9c2`",
+        "`PHASE9_LANE_KEY=P9-L08`",
+        "`PHASE9_SURVEYED_COMMIT=456151afa8a38a088e3cc582187b35fe5c7b0445`",
         "adjacent loader scaffold plus shared loader-request binding",
         "zigux/kernel/runtime_loader.zig",
         "direct post-selftest mutation replay proof",
