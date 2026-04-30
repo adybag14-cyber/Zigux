@@ -78,6 +78,48 @@ static void print_duplicate_case(const char *label, uint32_t key, const uint32_t
         printf("%s\t%u\tnull\n", label, key);
 }
 
+static void print_runtime_typed_cases(const uint32_t *values, size_t value_count, const uint32_t *descending_values, size_t descending_count)
+{
+    const struct {
+        const char *label;
+        uint32_t key;
+        const uint32_t *base;
+        size_t count;
+        cmp_func_t compare;
+    } cases[] = {
+        { "runtime-typed-hit", 55, values, value_count, compare_u32 },
+        { "runtime-typed-hit", 34, descending_values, descending_count, compare_descending_u32 },
+        { "runtime-typed-miss", 20, values, value_count, compare_u32 },
+        { "runtime-typed-miss", 20, descending_values, descending_count, compare_descending_u32 },
+    };
+
+    for (size_t idx = 0; idx < sizeof(cases) / sizeof(cases[0]); idx++) {
+        const uint32_t key = cases[idx].key;
+        print_index_case(cases[idx].label, key, cases[idx].base, inline_bsearch(&key, cases[idx].base, cases[idx].count, sizeof(cases[idx].base[0]), cases[idx].compare));
+    }
+}
+
+static void print_runtime_raw_cases(const uint32_t *values, size_t value_count, const uint32_t *descending_values, size_t descending_count)
+{
+    const struct {
+        const char *label;
+        uint32_t key;
+        const uint32_t *base;
+        size_t count;
+        cmp_func_t compare;
+    } cases[] = {
+        { "runtime-raw-hit", 55, values, value_count, compare_u32 },
+        { "runtime-raw-hit", 34, descending_values, descending_count, compare_descending_u32 },
+        { "runtime-raw-miss", 20, values, value_count, compare_u32 },
+        { "runtime-raw-miss", 20, descending_values, descending_count, compare_descending_u32 },
+    };
+
+    for (size_t idx = 0; idx < sizeof(cases) / sizeof(cases[0]); idx++) {
+        const uint32_t key = cases[idx].key;
+        print_index_case(cases[idx].label, key, cases[idx].base, inline_bsearch(&key, cases[idx].base, cases[idx].count, sizeof(cases[idx].base[0]), cases[idx].compare));
+    }
+}
+
 int main(void)
 {
     static const uint32_t values[] = { 3, 8, 13, 21, 34, 55, 89 };
@@ -163,6 +205,8 @@ int main(void)
         const uint32_t key = 34;
         print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));
     }
+    print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));
+    print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));
     {
         const char key[] = "kmalloc";
         const struct symbol *found = inline_bsearch(key, symbols, sizeof(symbols) / sizeof(symbols[0]), sizeof(symbols[0]), compare_symbol_name);
