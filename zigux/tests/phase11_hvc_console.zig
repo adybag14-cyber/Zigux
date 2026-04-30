@@ -278,6 +278,36 @@ test "phase11 hvc console keeps hvc_remove handoff boundaries reviewable" {
     try std.testing.expect(!detached_remove.teardown_deferred_to_hangup);
 }
 
+test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(12);
+    _ = console.instantiate(0xc0);
+
+    const final_cleanup = try console.summarizeCleanupHandoff(.{
+        .close_skipped = false,
+        .final_close = true,
+    });
+    try std.testing.expectEqual(@as(usize, 12), final_cleanup.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xc0), final_cleanup.vtermno);
+    try std.testing.expect(final_cleanup.adapter_present);
+    try std.testing.expect(!final_cleanup.close_skipped);
+    try std.testing.expect(final_cleanup.final_close);
+    try std.testing.expect(final_cleanup.tty_port_put_requested);
+    try std.testing.expect(final_cleanup.drops_tty_port_reference);
+    try std.testing.expect(final_cleanup.defers_final_release_to_port_destruct);
+    try std.testing.expect(final_cleanup.keeps_console_binding);
+
+    const hangup_cleanup = try console.summarizeCleanupHandoff(.{
+        .close_skipped = true,
+        .final_close = false,
+    });
+    try std.testing.expect(hangup_cleanup.close_skipped);
+    try std.testing.expect(!hangup_cleanup.final_close);
+    try std.testing.expect(hangup_cleanup.tty_port_put_requested);
+    try std.testing.expect(hangup_cleanup.drops_tty_port_reference);
+    try std.testing.expect(hangup_cleanup.defers_final_release_to_port_destruct);
+    try std.testing.expect(hangup_cleanup.keeps_console_binding);
+}
+
 test "phase11 hvc console keeps khvcd polling wakeups and teardown boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(5);
     _ = console.instantiate(0x55);
