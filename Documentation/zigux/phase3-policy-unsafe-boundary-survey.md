@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=99eb24971cc35a0baa7fb071ecd01d42e22fb73d`
+- `PHASE3_SURVEYED_COMMIT=b236f6a67d1e1285590a38862a48b614f7c6ecca`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -49,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `99eb24971cc35a0baa7fb071ecd01d42e22fb73d` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
+This survey is pinned to verified `master` head `b236f6a67d1e1285590a38862a48b614f7c6ecca` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
