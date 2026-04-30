@@ -63,6 +63,10 @@ phase6_base64_c_parity = (ROOT / "zigux" / "tests" / "phase6_base64_c_parity.zig
 phase6_base64_c_casegen = (ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig").read_text(encoding="utf-8")
 phase6_base64_slice = (ROOT / "Documentation" / "zigux" / "phase6-base64-slice.md").read_text(encoding="utf-8")
 phase6_base64_perf = (ROOT / "zigux" / "tests" / "phase6_base64_perf.zig").read_text(encoding="utf-8")
+phase6_bsearch = (ROOT / "zigux" / "tests" / "phase6_bsearch.zig").read_text(encoding="utf-8")
+phase6_bsearch_perf = (ROOT / "zigux" / "tests" / "phase6_bsearch_perf.zig").read_text(encoding="utf-8")
+phase6_bsearch_c_parity = (ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig").read_text(encoding="utf-8")
+phase6_bsearch_slice = (ROOT / "Documentation" / "zigux" / "phase6-bsearch-slice.md").read_text(encoding="utf-8")
 phase6_checksum_perf = (ROOT / "zigux" / "tests" / "phase6_checksum_perf.zig").read_text(encoding="utf-8")
 phase6_checksum_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig").read_text(encoding="utf-8")
 phase6_checksum_slice = (ROOT / "Documentation" / "zigux" / "phase6-checksum-slice.md").read_text(encoding="utf-8")
@@ -203,6 +207,35 @@ required_phase6_base64_slice_markers = [
     "exhaustive reverse-map classification across all 256 byte values for the standard, URL-safe, and IMAP decode variants",
 ]
 
+required_phase6_bsearch_markers = [
+    'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {',
+    'test "phase 6 bsearch accepts runtime-selected comparator function pointers" {',
+    'test "phase 6 bsearch accepts runtime-selected C ABI comparator pointers" {',
+    "try std.testing.expect(counted_compare_calls <= 4);",
+]
+
+required_phase6_bsearch_perf_markers = [
+    "ns_per_lookup={} avg_compare_calls={d:.2} max_compare_calls={} max_compare_budget={}",
+    "const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;",
+    "try std.testing.expect(compare_calls <= max_compare_budget);",
+    "seedDeterministicQueries(case.len, values, &queries, &expected_hits);",
+]
+
+required_phase6_bsearch_c_parity_markers = [
+    'try writeDuplicateCase(writer, "duplicate-hit-begin", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_at_beginning[0..], compareU32));',
+    'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));',
+    'try writer.print("sym-hit\\tkmalloc\\t0x{x}\\n", .{item.address});',
+    'try writer.print("mutable-hit\\t21\\t{}\\n", .{mutable_values[3]});',
+]
+
+required_phase6_bsearch_slice_markers = [
+    "duplicate-key found-or-null parity without claiming stable selection across beginning, middle, and end duplicate runs",
+    "runtime-selected comparator function pointers preserve the same found-or-null behavior across ascending and descending sorted slices",
+    "runtime-selected C ABI comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices",
+    "representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup",
+    "a representative external C-vs-Zig parity replay currently replays 17 sorted lookup cases",
+]
+
 required_phase6_checksum_perf_markers = [
     "fn referencePartial(bytes: []const u8, seed: u32) u32",
     "var slowdown_samples: [3]u64 = undefined;",
@@ -243,6 +276,10 @@ require_markers("phase6_base64_c_parity", phase6_base64_c_parity, required_phase
 require_markers("phase6_base64_c_casegen", phase6_base64_c_casegen, required_phase6_base64_c_casegen_markers, issues)
 require_markers("phase6_base64_slice", phase6_base64_slice, required_phase6_base64_slice_markers, issues)
 require_markers("phase6_base64_perf", phase6_base64_perf, required_phase6_base64_perf_markers, issues)
+require_markers("phase6_bsearch", phase6_bsearch, required_phase6_bsearch_markers, issues)
+require_markers("phase6_bsearch_perf", phase6_bsearch_perf, required_phase6_bsearch_perf_markers, issues)
+require_markers("phase6_bsearch_c_parity", phase6_bsearch_c_parity, required_phase6_bsearch_c_parity_markers, issues)
+require_markers("phase6_bsearch_slice", phase6_bsearch_slice, required_phase6_bsearch_slice_markers, issues)
 require_markers("phase6_checksum_perf", phase6_checksum_perf, required_phase6_checksum_perf_markers, issues)
 require_markers("phase6_checksum_vectors", phase6_checksum_vectors, required_phase6_checksum_vector_markers, issues)
 require_markers("phase6_checksum_slice", phase6_checksum_slice, required_phase6_checksum_slice_markers, issues)
