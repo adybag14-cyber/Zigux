@@ -43,7 +43,7 @@ What is landed today:
 - the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
 - the `devm_ioremap_np()` wrapper path so the direct non-posted managed mapping export is reviewable instead of being inferred only from the generic lifetime helper or from resource-flag fallback
 - managed `__devm_ioremap_resource()` planning around memory-resource validation, inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
-- the adjacent `devm_ioremap_resource_wc()` wrapper path without widening into live write-combined mappings
+- the adjacent `devm_ioremap_resource_uc()` and `devm_ioremap_resource_wc()` wrapper paths without widening into live uncached or write-combined mappings
 - `devm_of_iomap()` planning around translated resource selection, optional size reporting, and delegation into the managed-resource planner without walking a live device tree
 - `devm_ioport_map()` and `devm_ioport_unmap()` lifetime bookkeeping without claiming live port-space side effects
 - token-style `devm_arch_phys_wc_add()` release planning and range-style `devm_arch_io_reserve_memtype_wc()` release planning without claiming live memtype mutation
