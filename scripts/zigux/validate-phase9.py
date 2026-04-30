@@ -252,6 +252,28 @@ required_loader_gap_survey_test_markers = [
     'std.mem.indexOf(u8, survey_note, "zigux/kernel/export_shim.zig")',
     'std.mem.indexOf(u8, review_checklist, "scripts/zigux/kconfig/conf_bridge.zig")',
     'std.mem.indexOf(u8, review_checklist, "zigux/kernel/export_shim.zig")',
+    'const allocator_handoff_surface = [_][]const u8{',
+    'const released_without_substrate_surface = [_][]const u8{',
+    '"requires_explicit_caller"',
+    '"permits_global_fallback"',
+    '"initializes_owned_state"',
+    '"requires_reset_on_init"',
+    '"pub fn keepsInitFlowConsistent"',
+    '"allocatorHandoffFor(.kernel_heap).init_flow"',
+    '"request.allocator_handoff.initializes_owned_state"',
+    '"!request.allocator_handoff.requires_reset_on_init"',
+    '"released.allocator_handoff.initializes_owned_state"',
+    '"!released.allocator_handoff.requires_reset_on_init"',
+    'try expectContainsAll(atomic64_loader, &allocator_handoff_surface);',
+    'try expectContainsAll(bitmap_loader, &allocator_handoff_surface);',
+    'try expectContainsAll(kretprobe_loader, &allocator_handoff_surface);',
+    'try expectContainsAll(runtime_loader_file, &allocator_handoff_surface);',
+    'try expectContainsAll(atomic64_loader, &released_without_substrate_surface);',
+    'try expectContainsAll(bitmap_loader, &released_without_substrate_surface);',
+    'try expectContainsAll(kretprobe_loader, &released_without_substrate_surface);',
+    '"try std.testing.expect(released.isReleasedWithoutSubstrate());"',
+    '"try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());"',
+    '"try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);"',
 ]
 
 required_loader_gap_manifest_markers = [
@@ -569,7 +591,7 @@ def required_marker_count() -> int:
         + len(required_trace_events_manifest_markers)
         + len(required_trace_events_survey_test_markers)
         + len(required_trace_events_sample_markers)
-        + len(required_trace_events_module_markers)
+        + len(required_trace_EVENTS_MODULE_MARKERS)
     )
 
 
@@ -794,7 +816,7 @@ def run_self_test() -> int:
         trace_events_module_path = tmp_root / "zigux/tests/runtime_trace_events_module.zig"
         original_trace_events_module = trace_events_module_path.read_text(encoding="utf-8")
         trace_events_module_path.write_text(
-            original_trace_events_module.replace(
+            original_trace_EVENTS_MODULE.replace(
                 '    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);\n',
                 "",
                 1,
