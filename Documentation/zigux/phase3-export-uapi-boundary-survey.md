@@ -34,7 +34,8 @@ The current tree already carries the first bounded export and UAPI boundary surf
 
 - `zigux/kernel/export_shim.zig` exposes explicit `ok`, `errno`, `isOk`, `normalize`, `header`, and `isCompatibleHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types
 - the export shim and `zigux/uapi/version.zig` now carry the same shared boundary-header construction and compatibility contract without widening the packet beyond the existing ABI types
-- `zigux/uapi/version.zig` now exports `abi_version`, `Header`, `boundaryHeader`, and `isCompatible`
+- the export shim and `zigux/uapi/version.zig` now also keep canonical-size header checks separate from broader future-compatible header acceptance, so the packet distinguishes exact current-shape replay from forward-compatible boundary tolerance without widening the UAPI surface
+- `zigux/uapi/version.zig` now exports `abi_version`, `Header`, `boundaryHeader`, `isCompatible`, and `isCanonical`
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
 - `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header and reject undersized or version-mismatched headers identically
 

@@ -63,16 +63,20 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 REQUIRED_EXPORT_SHIM_SNIPPETS = (
     "pub fn header(flags: u16) abi.BoundaryHeader {",
     "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {",
+    "pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {",
     "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
     "pub fn ok(facility: abi.Facility) abi.ExportStatus {",
     "pub fn errno(code: i32, facility: abi.Facility) abi.ExportStatus {",
     "pub fn isOk(status: abi.ExportStatus) bool {",
+    'test "phase3 export shim separates canonical headers from broader compatibility"',
 )
 
 REQUIRED_UAPI_VERSION_SNIPPETS = (
     "pub const Header = abi.BoundaryHeader;",
     "pub fn boundaryHeader(flags: u16) Header {",
     "pub fn isCompatible(header: Header) bool {",
+    "pub fn isCanonical(header: Header) bool {",
+    'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes"',
 )
 
 REQUIRED_UAPI_FILES = (
@@ -204,21 +208,17 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check that the published Phase 3 export-shim and UAPI boundary survey stays aligned with the live repo.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker tests without reading the repo.")
-    args = parser.parse_args()
-
+    args = parse_args()
     if args.self_test:
         return run_self_test()
-
     issues = validate(ROOT)
     if issues:
         print("PHASE3_EXPORT_UAPI_SURVEY=fail")
         for issue in issues:
             print(issue)
         return 1
-
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
