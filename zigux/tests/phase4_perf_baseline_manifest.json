@@ -3,7 +3,7 @@
   "phase": "Phase 4",
   "owner": "Validation and Perf Team",
   "rollback_owner": "Validation and Perf Team",
-  "surveyed_commit": "583b867b78648430c5b500d7d2bb7b8a08cb05da",
+  "surveyed_commit": "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
   "surveyed_gates": [
     {
       "surface": "zigux/tests/atomic64_diff.zig",
