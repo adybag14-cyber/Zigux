@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
 import json
 from pathlib import Path
+import re
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+SELF_TEST_HEAD = "0123456789abcdef0123456789abcdef01234567"
+SELF_TEST_MUTATED_HEAD = "fedcba9876543210fedcba9876543210fedcba98"
 
 required_files = [
     ROOT / "scripts" / "zigux" / "validate-phase5.py",
@@ -333,3 +341,264 @@ manifest_expectations = {
         ],
     },
 }
+
+survey_note_expectations = {
+    "phase5_bytestream_fifo_manifest.json": {
+        "path": "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        "summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+    },
+    "phase5_kobject_example_manifest.json": {
+        "path": "Documentation/zigux/phase5-kobject-sample-survey.md",
+        "summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+    },
+    "phase5_kretprobe_example_manifest.json": {
+        "path": "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+        "summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+    },
+    "phase5_trace_events_sample_manifest.json": {
+        "path": "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+    },
+}
+
+
+def text(root: Path, path: str) -> str:
+    return (root / path).read_text(encoding="utf-8")
+
+
+def load_json(root: Path, path: str) -> object:
+    return json.loads(text(root, path))
+
+
+def collect_missing_files(root: Path) -> list[str]:
+    return [str(path.relative_to(root)) for path in required_files if not path.exists()]
+
+
+def require_markers(missing: list[str], label: str, source: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker not in source:
+            missing.append(f"{label}:missing:{marker}")
+
+
+def require_manifest_equal(
+    missing: list[str], label: str, manifest: dict[str, object], key: str, expected: object
+) -> None:
+    if manifest.get(key) != expected:
+        missing.append(f"{label}:{key}")
+
+
+def require_manifest_string_list(
+    missing: list[str], label: str, manifest: dict[str, object], key: str, expected: list[str]
+) -> None:
+    actual = manifest.get(key)
+    if actual != expected:
+        missing.append(f"{label}:{key}")
+
+
+def require_exact_check_ids(
+    missing: list[str], label: str, manifest: dict[str, object], expected_ids: list[str]
+) -> None:
+    exact_checks = manifest.get("exact_checks")
+    if not isinstance(exact_checks, list):
+        missing.append(f"{label}:exact_checks")
+        return
+
+    actual_ids: list[str] = []
+    for entry in exact_checks:
+        if not isinstance(entry, dict):
+            missing.append(f"{label}:exact_checks")
+            return
+        check_id = entry.get("id")
+        kind = entry.get("kind")
+        expected = entry.get("expected")
+        if not isinstance(check_id, str) or not isinstance(kind, str) or not isinstance(expected, str):
+            missing.append(f"{label}:exact_checks")
+            return
+        actual_ids.append(check_id)
+
+    if actual_ids != expected_ids:
+        missing.append(f"{label}:exact_check_ids")
+
+
+def total_marker_count() -> int:
+    marker_count = (
+        len(required_make_markers)
+        + len(required_workflow_markers)
+        + len(required_script_readme_markers)
+        + len(required_tests_readme_markers)
+        + len(required_doc_readme_markers)
+        + len(required_checklist_markers)
+        + len(required_sample_root_markers)
+        + len(required_phase5_build_markers)
+    )
+    for manifest_name, spec in manifest_expectations.items():
+        marker_count += 6  # phase, lane, anchor, sample path, entrypoint, surveyed commit shape
+        marker_count += len(spec["non_goals"])
+        marker_count += len(spec["exact_check_ids"])
+        marker_count += 3  # review prompts list shape, lane marker sync, build-summary sync
+        note_spec = survey_note_expectations[manifest_name]
+        marker_count += 1 if note_spec["summary"] else 0
+    return marker_count
+
+
+def validate_phase5(root: Path) -> dict[str, object]:
+    missing_files = collect_missing_files(root)
+    if missing_files:
+        return {"ok": False, "missing_files": missing_files, "missing": []}
+
+    makefile = text(root, "zigux/Makefile")
+    workflow = text(root, ".github/workflows/zigux-bootstrap.yml")
+    script_readme = text(root, "scripts/zigux/README.md")
+    tests_readme = text(root, "zigux/tests/README.md")
+    doc_readme = text(root, "Documentation/zigux/README.md")
+    review_checklist = text(root, "Documentation/zigux/review-checklist.md")
+    sample_root_readme = text(root, "samples/zigux/README.md")
+    phase5_build = text(root, "zigux/tests/phase5_build.zig")
+
+    missing: list[str] = []
+    require_markers(missing, "make", makefile, required_make_markers)
+    require_markers(missing, "workflow", workflow, required_workflow_markers)
+    require_markers(missing, "script_readme", script_readme, required_script_readme_markers)
+    require_markers(missing, "tests_readme", tests_readme, required_tests_readme_markers)
+    require_markers(missing, "doc_readme", doc_readme, required_doc_readme_markers)
+    require_markers(missing, "review_checklist", review_checklist, required_checklist_markers)
+    require_markers(missing, "sample_root_readme", sample_root_readme, required_sample_root_markers)
+    require_markers(missing, "phase5_build", phase5_build, required_phase5_build_markers)
+
+    for manifest_name, spec in manifest_expectations.items():
+        manifest_obj = load_json(root, f"zigux/tests/{manifest_name}")
+        label = manifest_name.removesuffix(".json")
+        if not isinstance(manifest_obj, dict):
+            missing.append(f"{label}:root")
+            continue
+
+        surveyed_commit = manifest_obj.get("surveyed_commit")
+        if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
+            missing.append(f"{label}:surveyed_commit")
+
+        require_manifest_equal(missing, label, manifest_obj, "phase", "Phase 5")
+        require_manifest_equal(missing, label, manifest_obj, "lane_key", spec["lane_key"])
+        require_manifest_equal(missing, label, manifest_obj, "anchor", spec["anchor"])
+        require_manifest_equal(missing, label, manifest_obj, "sample_path", spec["sample_path"])
+        require_manifest_equal(
+            missing,
+            label,
+            manifest_obj,
+            "validation_entrypoint",
+            spec["validation_entrypoint"],
+        )
+        require_manifest_string_list(missing, label, manifest_obj, "non_goals", spec["non_goals"])
+        require_exact_check_ids(missing, label, manifest_obj, spec["exact_check_ids"])
+
+        review_prompts = manifest_obj.get("review_prompts")
+        if not isinstance(review_prompts, list) or not review_prompts or not all(
+            isinstance(prompt, str) and prompt for prompt in review_prompts
+        ):
+            missing.append(f"{label}:review_prompts")
+
+        note_spec = survey_note_expectations[manifest_name]
+        survey_note = text(root, note_spec["path"])
+        if f"PHASE5_LANE_KEY={spec['lane_key']}" not in survey_note:
+            missing.append(f"{label}:lane_key_sync")
+        if isinstance(surveyed_commit, str) and f"PHASE5_SURVEYED_COMMIT={surveyed_commit}" not in survey_note:
+            missing.append(f"{label}:surveyed_commit_sync")
+        if note_spec["summary"] not in survey_note:
+            missing.append(f"{label}:survey_build_summary")
+
+    return {"ok": not missing, "missing_files": [], "missing": missing}
+
+
+def report_validation(result: dict[str, object]) -> int:
+    missing_files = result["missing_files"]
+    if missing_files:
+        print("PHASE5_VALIDATION=fail")
+        print("MISSING_PHASE5_FILES_START")
+        for path in missing_files:
+            print(path)
+        print("MISSING_PHASE5_FILES_END")
+        return 1
+
+    missing = result["missing"]
+    if missing:
+        print("PHASE5_VALIDATION=fail")
+        print("MISSING_PHASE5_MARKERS_START")
+        for item in missing:
+            print(item)
+        print("MISSING_PHASE5_MARKERS_END")
+        return 1
+
+    print("PHASE5_VALIDATION=pass")
+    print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
+    print(f"PHASE5_REQUIRED_MARKER_COUNT={total_marker_count()}")
+    return 0
+
+
+def _copy_required_tree(src_root: Path, dst_root: Path) -> None:
+    for src_path in required_files:
+        dst_path = dst_root / src_path.relative_to(src_root)
+        dst_path.parent.mkdir(parents=True, exist_ok=True)
+        dst_path.write_text(src_path.read_text(encoding="utf-8"), encoding="utf-8")
+
+
+def run_self_test() -> int:
+    live_result = validate_phase5(ROOT)
+    if not live_result["ok"]:
+        print("PHASE5_VALIDATOR_SELF_TEST=fail")
+        print("PHASE5_VALIDATOR_SELF_TEST_REASON=live-tree-validation-failed")
+        for item in live_result["missing"]:
+            print(item)
+        return 1
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase5_validator_selftest_") as tmp_dir_str:
+        tmp_root = Path(tmp_dir_str)
+        _copy_required_tree(ROOT, tmp_root)
+
+        manifest_path = tmp_root / "zigux/tests/phase5_trace_events_sample_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit"] = SELF_TEST_HEAD
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+        note_path = tmp_root / "Documentation/zigux/phase5-trace-events-sample-survey.md"
+        note_text = note_path.read_text(encoding="utf-8")
+        note_text = re.sub(
+            r"PHASE5_SURVEYED_COMMIT=[0-9a-f]{40}",
+            f"PHASE5_SURVEYED_COMMIT={SELF_TEST_HEAD}",
+            note_text,
+        )
+        note_path.write_text(note_text, encoding="utf-8")
+
+        if not validate_phase5(tmp_root)["ok"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=seeded-tree-should-pass")
+            return 1
+
+        manifest["surveyed_commit"] = SELF_TEST_MUTATED_HEAD
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        mutated_result = validate_phase5(tmp_root)
+        if mutated_result["ok"] or "phase5_trace_events_sample_manifest:surveyed_commit_sync" not in mutated_result["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=survey-note-sync-gap")
+            return 1
+
+    print("PHASE5_VALIDATOR_SELF_TEST=pass")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=2")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Validate the shared Phase 5 sample review packet.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in validator drift checks against a temporary Phase 5 fixture tree.",
+    )
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return run_self_test()
+
+    return report_validation(validate_phase5(ROOT))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
