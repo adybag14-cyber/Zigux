@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L11",
+  "lane_key": "P5-L10",
   "phase": "Phase 5",
   "surveyed_commit": "d9a76f93ff1ad1fe97ba899a4e1667206e44064a",
   "anchor": "samples/kobject/kobject-example.c",
