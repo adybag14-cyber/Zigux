@@ -145,6 +145,8 @@
       "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.",
       "cstring_unit_test_anchor": "tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\"",
       "cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.",
+      "equality_unit_test_anchor": "tools/lib/string.zig:test \"streq matches C-string equality semantics\"",
+      "equality_unit_test_contract": "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons.",
       "alias_unit_test_anchor": "tools/lib/string.zig:test \"trimSpaces and strim trim trailing whitespace before an embedded NUL\"",
       "alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.",
       "prefix_unit_test_anchor": "tools/lib/string.zig:test \"strstarts matches kernel prefix semantics\"",
