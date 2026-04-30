@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=current-parity-tracking-gap-survey`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and one explicit roadmap-vs-repo parity-tracking gap survey now that the landed Phase 15 governance bundle already replays in the shared workflow
-- survey provenance refreshed against verified `master` head `306be3109b5960918e693d2f7268446eda39b97d`
+- survey provenance refreshed against verified `master` head `90d95d183d1072f1e8a030eec05e1e60abf443ac`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -30,7 +30,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, `make -C zigux phase15` convenience target, and the shared bootstrap workflow replay
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by `Documentation/zigux/README.md`, the landed Phase 15 review-process note, parity scorecard, indefinite-C policy note, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, the reserved evidence-archive templates, the dedicated Zig manifest and test, the shared `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow replay
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
 ## Current Parity-Tracking Gap
@@ -46,7 +46,7 @@ The roadmap-required parity-tracking bundle is already present locally:
 - the dedicated manifest and Zig test keep the scorecard machine-checkable in `zigux/tests/phase15_parity_scorecard.json` and `zigux/tests/phase15_parity_scorecard.zig`
 - `Documentation/zigux/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` keep the same governance bundle visible on the docs root and shared replay path
 
-That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
+That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
 
 That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.
 
