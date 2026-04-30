@@ -26,6 +26,10 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -43,6 +47,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const roadmap = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(roadmap);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -72,6 +84,11 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     defer std.testing.allocator.free(rbtree_slice);
 
     const manifest = parsed.value;
+    try expectContains(roadmap, "## Phase 7: In-Kernel Leaf Libraries");
+    try expectContains(roadmap, "lib/rbtree.c");
+    try expectContains(roadmap, "- `lib/rbtree.zig`");
+    try expectContains(roadmap, "runtime-safe leaf helpers");
+    try expectContains(roadmap, "integration with validation substrate");
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("d653b52ff811ecd5de8f09c1e1577c75de1d09b3", manifest.surveyed_commit);
@@ -139,6 +156,8 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try std.testing.expect(std.mem.indexOf(u8, rbtree_helper, "pub fn eraseInit") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree eraseInit detaches erased nodes for reuse") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_tests, "phase 7 rbtree postorder traversal matches committed parity fixture") != null);
+    try expectContains(rbtree_slice, "runtime-safe leaf helpers");
+    try expectContains(rbtree_slice, "integration with validation substrate through `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_build.zig`, and `scripts/zigux/check-phase7-rbtree-parity.py`");
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "erase-and-detach reuse semantics via `eraseInit()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces") != null);
 }
