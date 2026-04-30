@@ -162,6 +162,7 @@ pub const TeardownLifecycleSummary = struct {
     stop_path_hardware_running_after_stop: bool,
     stop_clears_enable_bit: bool,
     stop_clears_interrupt_status: bool,
+    stop_preserves_pending_interrupt_without_reset: bool,
     stop_uses_reset_pulse: bool,
     stop_preserves_running_marker_without_reset: bool,
     restart_path_running_before_restart: bool,
@@ -383,6 +384,8 @@ pub const DwWdtLab = struct {
             .stop_path_hardware_running_after_stop = stop_after.hardware_running,
             .stop_clears_enable_bit = stop_before.running and !stop_after.running,
             .stop_clears_interrupt_status = request.stop_interrupt_pending and !stop_after.interrupt_pending,
+            .stop_preserves_pending_interrupt_without_reset = !self.has_reset_control and
+                request.stop_interrupt_pending and stop_after.interrupt_pending,
             .stop_uses_reset_pulse = self.has_reset_control,
             .stop_preserves_running_marker_without_reset = !self.has_reset_control and stop_after.hardware_running,
             .restart_path_running_before_restart = restart_before.running,
