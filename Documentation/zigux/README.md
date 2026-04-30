@@ -75,6 +75,7 @@ Phase 7 notes
 - `Documentation/zigux/phase7-cmdline-slice.md`
 - `Documentation/zigux/phase7-argv-split-slice.md`
 - `Documentation/zigux/phase7-rbtree-slice.md`
+- `python3 scripts/zigux/validate-phase7.py --self-test` now proves the shared Phase 7 validator still catches Makefile-hook drift, workflow self-test drift, and the parked argv-split survey's zero-`ready_next` guard before the broader helper packet replays.
 - `python3 scripts/zigux/validate-phase7.py` and `make -C zigux phase7-validate` now fail fast if the shared Phase 7 runtime-helper bundle drifts out of sync across `zigux/tests/phase7_build.zig`, `zigux/Makefile`, the bootstrap workflow, the shared README notes, the four published slice docs, and the current external `rbtree` parity hook.
 - `make -C zigux phase7-test` now replays `zig build test --build-file zigux/tests/phase7_build.zig --summary all`, and the workflow drives that same summary-backed build path for the shared Phase 7 helper bundle.
 - `zigux/tests/phase7_build.zig` and `make -C zigux phase7` now gate the current string-helpers, cmdline, argv-split, and rbtree helper bundle together through that same summary-backed lane, so Phase 7 helper work should stay reviewable there instead of adding ad hoc per-slice CI steps.
