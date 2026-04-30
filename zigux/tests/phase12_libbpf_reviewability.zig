@@ -38,9 +38,97 @@ const LegacyManifest = struct {
     segments: []const LegacySegment,
 };
 
+const Phase12LegacyPair = struct {
+    phase12_gap_id: []const u8,
+    legacy_slug: []const u8,
+    expected_status: []const u8,
+    expected_destination: []const u8,
+};
+
+const phase12_legacy_pairs = [_]Phase12LegacyPair{
+    .{
+        .phase12_gap_id = "phase12-libbpf-logging-helper-foundation",
+        .legacy_slug = "logging-version-and-errno",
+        .expected_status = "starter_landed",
+        .expected_destination = "tools/lib/bpf/zigux_segments/logging.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-pin-path-helper-foundation",
+        .legacy_slug = "pin-path-helpers",
+        .expected_status = "starter_landed",
+        .expected_destination = "tools/lib/bpf/zigux_segments/pin_path.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-cpu-mask-helper-foundation",
+        .legacy_slug = "cpu-mask-parsing",
+        .expected_status = "starter_landed",
+        .expected_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-file-path-handle-helper-foundation",
+        .legacy_slug = "fdinfo-map-info-helpers",
+        .expected_status = "starter_landed",
+        .expected_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-map-reuse-compatibility-helper-foundation",
+        .legacy_slug = "map-reuse-compatibility",
+        .expected_status = "starter_landed",
+        .expected_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-file-path-and-handle-bridge-boundary",
+        .legacy_slug = "file-path-and-handle-bridge",
+        .expected_status = "deferred_high_risk",
+        .expected_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-perf-buffer-online-cpu-routing-boundary",
+        .legacy_slug = "perf-buffer-online-cpu-routing",
+        .expected_status = "deferred_high_risk",
+        .expected_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-skeleton-population",
+        .legacy_slug = "skeleton-population",
+        .expected_status = "blocked_on_object_model",
+        .expected_destination = "tools/lib/bpf/zigux_segments/skeleton.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-object-and-elf-loader",
+        .legacy_slug = "object-and-elf-loader",
+        .expected_status = "deferred_high_risk",
+        .expected_destination = "tools/lib/bpf/zigux_segments/object_loader.zig",
+    },
+    .{
+        .phase12_gap_id = "phase12-libbpf-btf-relocation-and-program-load",
+        .legacy_slug = "btf-relocation-and-program-load",
+        .expected_status = "deferred_high_risk",
+        .expected_destination = "tools/lib/bpf/zigux_segments/relocation.zig",
+    },
+};
+
 fn sharesDeferredBoundaryWithLandedHelper(gap_id: []const u8) bool {
     return std.mem.eql(u8, gap_id, "phase12-libbpf-file-path-and-handle-bridge-boundary") or
         std.mem.eql(u8, gap_id, "phase12-libbpf-perf-buffer-online-cpu-routing-boundary");
+}
+
+fn findPhase12Gap(manifest: Manifest, gap_id: []const u8) ?Gap {
+    for (manifest.gaps) |gap| {
+        if (std.mem.eql(u8, gap.id, gap_id)) {
+            return gap;
+        }
+    }
+    return null;
+}
+
+fn findLegacySegment(manifest: LegacyManifest, slug: []const u8) ?LegacySegment {
+    for (manifest.segments) |segment| {
+        if (std.mem.eql(u8, segment.slug, slug)) {
+            return segment;
+        }
+    }
+    return null;
 }
 
 fn pathExists(io: std.Io, path: []const u8) !bool {
@@ -282,97 +370,59 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+    const phase12_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase12_libbpf_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase12_manifest_json);
+
+    const phase12_parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, phase12_manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer phase12_parsed.deinit();
+
+    const legacy_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "tools/lib/bpf/zigux_segments/manifest.json",
         std.testing.allocator,
         .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(manifest_json);
+    defer std.testing.allocator.free(legacy_manifest_json);
 
-    const parsed = try std.json.parseFromSlice(LegacyManifest, std.testing.allocator, manifest_json, .{
+    const legacy_parsed = try std.json.parseFromSlice(LegacyManifest, std.testing.allocator, legacy_manifest_json, .{
         .ignore_unknown_fields = true,
     });
-    defer parsed.deinit();
+    defer legacy_parsed.deinit();
 
-    const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
-    try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+    const phase12_manifest = phase12_parsed.value;
+    const legacy_manifest = legacy_parsed.value;
+    try std.testing.expectEqualStrings("P12-L16", phase12_manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 12", phase12_manifest.phase);
+    try std.testing.expectEqualStrings("P8-L15", legacy_manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 8", legacy_manifest.phase);
 
-    var saw_logging = false;
-    var saw_pin_path = false;
-    var saw_cpu_mask = false;
-    var saw_fdinfo_map_info = false;
-    var saw_map_reuse = false;
-    var saw_file_path_handle_bridge_boundary = false;
-    var saw_perf_buffer_routing_boundary = false;
-    var saw_skeleton = false;
-    var saw_object_loader = false;
-    var saw_relocation = false;
+    for (phase12_legacy_pairs) |pair| {
+        const phase12_gap = findPhase12Gap(phase12_manifest, pair.phase12_gap_id) orelse return error.TestUnexpectedResult;
+        const legacy_segment = findLegacySegment(legacy_manifest, pair.legacy_slug) orelse return error.TestUnexpectedResult;
+        const exists = try pathExists(io_instance.io(), pair.expected_destination);
 
-    for (manifest.segments) |segment| {
-        const exists = try pathExists(io_instance.io(), segment.zigux_destination);
+        try std.testing.expectEqualStrings(pair.expected_status, phase12_gap.status);
+        try std.testing.expectEqualStrings(pair.expected_destination, phase12_gap.zigux_destination);
+        try std.testing.expectEqualStrings(pair.expected_status, legacy_segment.status);
+        try std.testing.expectEqualStrings(pair.expected_destination, legacy_segment.zigux_destination);
 
-        if (std.mem.eql(u8, segment.slug, "logging-version-and-errno")) {
-            saw_logging = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
+        if (std.mem.eql(u8, pair.expected_status, "starter_landed")) {
             try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "pin-path-helpers")) {
-            saw_pin_path = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
-            saw_cpu_mask = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
-            saw_fdinfo_map_info = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
-            saw_map_reuse = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
-            saw_file_path_handle_bridge_boundary = true;
-            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-            try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
-            saw_perf_buffer_routing_boundary = true;
-            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-            try std.testing.expect(exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "skeleton-population")) {
-            saw_skeleton = true;
-            try std.testing.expectEqualStrings("blocked_on_object_model", segment.status);
+        } else if (std.mem.eql(u8, pair.expected_status, "blocked_on_object_model")) {
             try std.testing.expect(!exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "object-and-elf-loader")) {
-            saw_object_loader = true;
-            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-            try std.testing.expect(!exists);
-        }
-        if (std.mem.eql(u8, segment.slug, "btf-relocation-and-program-load")) {
-            saw_relocation = true;
-            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-            try std.testing.expect(!exists);
+        } else if (std.mem.eql(u8, pair.expected_status, "deferred_high_risk")) {
+            if (sharesDeferredBoundaryWithLandedHelper(pair.phase12_gap_id)) {
+                try std.testing.expect(exists);
+            } else {
+                try std.testing.expect(!exists);
+            }
         }
     }
-
-    try std.testing.expect(saw_logging);
-    try std.testing.expect(saw_pin_path);
-    try std.testing.expect(saw_cpu_mask);
-    try std.testing.expect(saw_fdinfo_map_info);
-    try std.testing.expect(saw_map_reuse);
-    try std.testing.expect(saw_file_path_handle_bridge_boundary);
-    try std.testing.expect(saw_perf_buffer_routing_boundary);
-    try std.testing.expect(saw_skeleton);
-    try std.testing.expect(saw_object_loader);
-    try std.testing.expect(saw_relocation);
 }
