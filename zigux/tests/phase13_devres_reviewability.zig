@@ -126,6 +126,23 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda");
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-devres-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "stays explicitly outside DMA-backed helpers and scatter-gather ownership");
+    try expectContains(slice_note, "`dmam_*`");
+    try expectContains(slice_note, "`dma_map_*`");
+    try expectContains(slice_note, "`dma_unmap_*`");
+    try expectContains(slice_note, "`dma_map_sgtable()`");
+    try expectContains(slice_note, "`struct scatterlist`");
+    try expectContains(slice_note, "`sg_table`");
+    try expectContains(slice_note, "`sg_*` traversal behavior");
+
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
     var blocked_dma_count: usize = 0;
