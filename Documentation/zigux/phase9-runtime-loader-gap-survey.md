@@ -50,6 +50,8 @@ The review checklist also remains part of this bounded governance surface. For t
 - no implicit allocation posture beyond the explicit allocator-handoff contract
 - no unclear panic or unsafe ownership story
 
+The same checklist packet also needs to keep the freeze-map coupling explicit so `Documentation/zigux/freeze-map.md`, the study-only `kernel/workqueue.c` status, and the Architecture Council reopen rule stay in the same reviewable ownership packet beside the survey note, the shared request contract, the sample-side loader plans, and `zigux/tests/phase9_build.zig`.
+
 The shared substrate plan is part of the same delivery packet now. `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps the shared loader-stage vocabulary and the atomic64, bitmap, and kretprobe handoff alignment explicit so the shared request surface does not silently drift away from the sample-side loaders that already feed it.
 
 ## Delivery ownership map
