@@ -70,6 +70,10 @@ phase6_bsearch_slice = (ROOT / "Documentation" / "zigux" / "phase6-bsearch-slice
 phase6_checksum_perf = (ROOT / "zigux" / "tests" / "phase6_checksum_perf.zig").read_text(encoding="utf-8")
 phase6_checksum_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig").read_text(encoding="utf-8")
 phase6_checksum_slice = (ROOT / "Documentation" / "zigux" / "phase6-checksum-slice.md").read_text(encoding="utf-8")
+phase6_hexdump = (ROOT / "zigux" / "tests" / "phase6_hexdump.zig").read_text(encoding="utf-8")
+phase6_hexdump_perf = (ROOT / "zigux" / "tests" / "phase6_hexdump_perf.zig").read_text(encoding="utf-8")
+phase6_hexdump_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_vectors.zig").read_text(encoding="utf-8")
+phase6_hexdump_slice = (ROOT / "Documentation" / "zigux" / "phase6-hexdump-slice.md").read_text(encoding="utf-8")
 
 phase6_catalog_verified_head_match = re.search(r"- verified head: `([0-9a-f]{40})`", phase6_catalog)
 if phase6_catalog_verified_head_match is None:
@@ -257,6 +261,45 @@ required_phase6_checksum_slice_markers = [
     "representative checksum cost per call and per byte",
 ]
 
+required_phase6_hexdump_markers = [
+    'test "phase 6 hexdump replays serialized fixture vectors" {',
+    'test "phase 6 hexdump overflow contract matches truncation expectations" {',
+    'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
+    'test "phase 6 hexdump proves exact 4-byte grouped output" {',
+    'test "phase 6 hexdump proves exact 4-byte grouped ascii output" {',
+    "try assertFixtureLengthCase(case);",
+]
+
+required_phase6_hexdump_perf_markers = [
+    '.{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
+    '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 175 },',
+    "var slowdown_samples: [3]u64 = undefined;",
+    "const slowdown_pct = median3(",
+    "helper_ns_per_byte={d:.2}",
+    "reference_ns_per_byte={d:.2}",
+    "fixtures.prepareExpectedLine(expected_buf[0..], case.len, case.rowsize, case.groupsize, case.ascii);",
+    "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);",
+]
+
+required_phase6_hexdump_vector_markers = [
+    "pub const test_hexdump_buf_size = 32 * 3 + 2 + 32 + 1;",
+    "pub fn normalizedRowsize(rowsize_input: usize) usize {",
+    "pub fn normalizedGroupsizeForLen(len: usize, groupsize_input: usize) usize {",
+    "pub const parity_cases = [_]ParityCase{",
+    "pub const overflow_cases = [_]OverflowCase{",
+    "pub const length_cases = [_]LengthCase{",
+    '.name = "plain rowsize-16 group-1",',
+    '.name = "ascii rowsize-16 group-4",',
+]
+
+required_phase6_hexdump_slice_markers = [
+    "serialized fixture vectors derived from `lib/test_hexdump.c`",
+    "serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`",
+    "native-endian grouped output for 2, 4, and 8 byte cases, including the previously missing 4-byte review gate",
+    "normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`",
+    "the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path and rejects regressions above `max_slowdown_pct = 175`",
+]
+
 
 def require_markers(label: str, text: str, markers: list[str], issues: list[str]) -> None:
     for marker in markers:
@@ -283,6 +326,10 @@ require_markers("phase6_bsearch_slice", phase6_bsearch_slice, required_phase6_bs
 require_markers("phase6_checksum_perf", phase6_checksum_perf, required_phase6_checksum_perf_markers, issues)
 require_markers("phase6_checksum_vectors", phase6_checksum_vectors, required_phase6_checksum_vector_markers, issues)
 require_markers("phase6_checksum_slice", phase6_checksum_slice, required_phase6_checksum_slice_markers, issues)
+require_markers("phase6_hexdump", phase6_hexdump, required_phase6_hexdump_markers, issues)
+require_markers("phase6_hexdump_perf", phase6_hexdump_perf, required_phase6_hexdump_perf_markers, issues)
+require_markers("phase6_hexdump_vectors", phase6_hexdump_vectors, required_phase6_hexdump_vector_markers, issues)
+require_markers("phase6_hexdump_slice", phase6_hexdump_slice, required_phase6_hexdump_slice_markers, issues)
 
 if phase6_manifest.get("phase") != "Phase 6":
     issues.append("manifest:phase")
