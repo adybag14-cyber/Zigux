@@ -89,6 +89,7 @@ This keeps the survey useful after the first starter slice lands without pretend
 
 1. run the dedicated Phase 9 survey and starter gates
 - `zig build test --build-file zigux/tests/phase9_build.zig`
+- `make -C zigux phase9-trace-events-survey`
 - this shared gate now includes `phase9-runtime-trace-events-sample-tests`, so the direct selftest and failed-exit rollback proof ship under the same Phase 9 runtime packet as the module and diff gates
 
 2. run the convenience target
