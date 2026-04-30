@@ -226,6 +226,8 @@ required_phase8_libbpf_segments_only_build_markers = [
 ]
 
 required_survey_markers = [
+    "The manifest currently records eleven bounded segments:",
+    "- `map-reuse-compatibility`",
     "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/logging.zig",
     "tools/lib/bpf/zigux_segments/pin_path.zig",
@@ -858,6 +860,21 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        survey_path.write_text(
+            original_survey.replace(
+                "The manifest currently records eleven bounded segments:",
+                "The manifest currently records ten bounded segments:",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "survey_segment_count",
+            tmp_root,
+            "phase8_survey:The manifest currently records eleven bounded segments:",
+        )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         help_helper_path = tmp_root / "tools/lib/subcmd/help.zig"
         original_help_helper = help_helper_path.read_text(encoding="utf-8")
         help_helper_path.write_text(
@@ -900,7 +917,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
