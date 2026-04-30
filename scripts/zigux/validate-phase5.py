@@ -208,6 +208,8 @@ manifest_expectations = {
         "lane_key": "P5-L04",
         "anchor": "samples/kfifo/bytestream-example.c",
         "sample_path": "samples/zigux/bytestream_fifo.zig",
+        "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
         "non_goals": [
             "procfs parity",
             "kfifo_from_user or kfifo_to_user parity",
@@ -238,6 +240,7 @@ manifest_expectations = {
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_kobject_only_build.zig --summary all",
+        "survey_build_summary": "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
         "non_goals": [
             "sysfs file creation parity",
             "kernel_kobj integration",
@@ -262,6 +265,8 @@ manifest_expectations = {
         "lane_key": "P5-L17",
         "anchor": "samples/kprobes/kretprobe_example.c",
         "sample_path": "samples/zigux/kretprobe_example.zig",
+        "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
         "non_goals": [
             "register_kretprobe parity",
             "unregister_kretprobe parity",
@@ -285,6 +290,8 @@ manifest_expectations = {
         "lane_key": "P5-L13",
         "anchor": "samples/trace_events/trace-events-sample.c",
         "sample_path": "samples/zigux/trace_events_sample.zig",
+        "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "survey_build_summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
         "non_goals": [
             "CREATE_TRACE_POINTS parity",
             "tracepoint macro parity from trace-events-sample.h",
@@ -332,7 +339,6 @@ survey_note_expectations = {
         "survey_test": "phase5_kobject_example_survey.zig",
         "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kobject_example_survey.zig",
         "sample_test_command": "zig test samples/zigux/kobject_example.zig",
-        "build_summary": "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
         "survey_test_markers": [
             'test "phase 5 kobject contributor docs stay aligned with the shipped review surface"',
             "zigux/tests/phase5_kobject_example_manifest.json",
@@ -342,6 +348,7 @@ survey_note_expectations = {
             "samples/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
             "phase5_build.zig",
+            "phase5_kobject_only_build.zig",
             "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
         ],
     },
@@ -391,11 +398,7 @@ for manifest_name, expected in manifest_expectations.items():
         missing_markers.append(f"{manifest_name}:anchor={expected['anchor']}")
     if manifest.get("sample_path") != expected["sample_path"]:
         missing_markers.append(f"{manifest_name}:sample_path={expected['sample_path']}")
-    validation_entrypoint = expected.get(
-        "validation_entrypoint",
-        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-    )
-    if manifest.get("validation_entrypoint") != validation_entrypoint:
+    if manifest.get("validation_entrypoint") != expected["validation_entrypoint"]:
         missing_markers.append(f"{manifest_name}:validation_entrypoint")
     if manifest.get("non_goals") != expected["non_goals"]:
         missing_markers.append(f"{manifest_name}:non_goals")
@@ -416,7 +419,8 @@ for manifest_name, expected in manifest_expectations.items():
         "## Latest verification snapshot",
         survey_expectation["sample_test_command"],
         f"zig test zigux/tests/{survey_expectation['survey_test']}",
-        survey_expectation.get("build_summary", "Build Summary: 17/17 steps succeeded; 27/27 tests passed"),
+        expected["survey_build_summary"],
+        expected["validation_entrypoint"],
         "phase5_build.zig",
         "samples/zigux/README.md",
         "Documentation/zigux/review-checklist.md",
