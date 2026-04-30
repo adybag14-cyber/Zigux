@@ -441,6 +441,27 @@ test "bsearch accepts runtime-selected raw comparator function pointers for asce
     }
 }
 
+test "bsearchIndex and bsearchMutable accept runtime-selected raw comparator function pointers" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]RawComparator{ compareOpaqueInt, compareOpaqueDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 23, 7 };
+    const expected_indexes = [_]usize{ 5, 4 };
+
+    for (comparators, slices, targets, expected_indexes) |compare, items, target, expected_index| {
+        try std.testing.expectEqual(@as(?usize, expected_index), bsearchIndex(&target, @ptrCast(items.ptr), items.len, @sizeOf(i32), compare));
+
+        var mutable_items: [7]i32 = undefined;
+        @memcpy(mutable_items[0..], items);
+        const found = bsearchMutable(&target, @ptrCast(mutable_items[0..].ptr), mutable_items.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@intFromPtr(&mutable_items[expected_index]), @intFromPtr(typed_found));
+        typed_found.* += 100;
+        try std.testing.expectEqual(target + 100, mutable_items[expected_index]);
+    }
+}
+
 test "bsearch accepts runtime-selected C ABI raw comparator function pointers for ascending and descending slices" {
     const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
@@ -452,5 +473,26 @@ test "bsearch accepts runtime-selected C ABI raw comparator function pointers fo
         const found = bsearch(&target, @ptrCast(items.ptr), items.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
         const typed_found: *const i32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(target, typed_found.*);
+    }
+}
+
+test "bsearchIndex and bsearchMutable accept runtime-selected C ABI raw comparator function pointers" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]CRawComparator{ compareCOpaqueInt, compareCOpaqueDescendingInt };
+    const slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const targets = [_]i32{ 23, 7 };
+    const expected_indexes = [_]usize{ 5, 4 };
+
+    for (comparators, slices, targets, expected_indexes) |compare, items, target, expected_index| {
+        try std.testing.expectEqual(@as(?usize, expected_index), bsearchIndex(&target, @ptrCast(items.ptr), items.len, @sizeOf(i32), compare));
+
+        var mutable_items: [7]i32 = undefined;
+        @memcpy(mutable_items[0..], items);
+        const found = bsearchMutable(&target, @ptrCast(mutable_items[0..].ptr), mutable_items.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@intFromPtr(&mutable_items[expected_index]), @intFromPtr(typed_found));
+        typed_found.* += 100;
+        try std.testing.expectEqual(target + 100, mutable_items[expected_index]);
     }
 }
