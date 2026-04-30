@@ -94,9 +94,27 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
 
     try std.testing.expect(hasGap(
         manifest,
+        "phase12-build-gate",
+        "starter_landed",
+        "zigux/tests/phase12_build.zig",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-make-target",
+        "starter_landed",
+        "zigux/Makefile",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
         "phase12-libbpf-segment-manifest-foundation",
         "starter_landed",
         "tools/lib/bpf/zigux_segments/manifest.json",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-libbpf-type-name-helper-foundation",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/type_names.zig",
     ));
     try std.testing.expect(hasGap(
         manifest,
@@ -145,6 +163,18 @@ test "phase12 libbpf survey manifest records the bounded heavy-helper packet" {
         "phase12-libbpf-survey-note",
         "starter_landed",
         "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-libbpf-logging-helper-foundation",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/logging.zig",
+    ));
+    try std.testing.expect(hasGap(
+        manifest,
+        "phase12-libbpf-pin-path-helper-foundation",
+        "starter_landed",
+        "tools/lib/bpf/zigux_segments/pin_path.zig",
     ));
     try std.testing.expect(hasGap(
         manifest,
