@@ -243,6 +243,25 @@ def run_self_test() -> int:
             original_argv_split_helper, encoding="utf-8"
         )
 
+        argv_split_tests_path = tmp_root / "zigux" / "tests" / "phase7_argv_split.zig"
+        original_argv_split_tests = argv_split_tests_path.read_text(encoding="utf-8")
+        argv_split_tests_path.write_text(
+            original_argv_split_tests.replace(
+                "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_ownership_review_surface",
+            tmp_root,
+            "zigux/tests/phase7_argv_split.zig: phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+        )
+        argv_split_tests_path.write_text(
+            original_argv_split_tests, encoding="utf-8"
+        )
+
         cmdline_doc_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
         original_cmdline_doc = cmdline_doc_path.read_text(encoding="utf-8")
         cmdline_doc_path.write_text(
@@ -317,7 +336,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -509,26 +528,38 @@ required_phase7_string_helpers_test_markers = [
     "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit",
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
-    "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules",
 ]
 
 required_phase7_string_helpers_doc_markers = [
-    "PHASE7_STATUS=landed",
+    "PHASE7_STATUS=parked",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
     "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
-    "small allocator-backed `parse_int_array()` and `parse_int_array_user()` starters",
-    "one log-safe `kstrdup_quotable()` duplication helper",
-    "one ownership-safe `kstrdup_and_replace()` duplication helper",
-    "one sequential string-array allocator plus teardown starter landed",
-    "shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`",
+    "bounded sequential prefix-index ownership path",
+    "bounded repeated-teardown-safe release path",
+    "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
+    "no `samples/zigux/*string*` Phase 5 reference sample",
+    "samples/zigux/README.md",
 ]
 
 required_phase7_cmdline_survey_markers = [
-    "zigux/tests/phase7_cmdline_survey.zig",
-    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
-    "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
-    "cannot import fixtures outside the helper module path",
+    "Documentation/zigux/phase7-cmdline-slice.md",
+    "zigux/tests/phase7_cmdline.zig",
+    "samples/zigux/README.md",
+    "no `samples/zigux/*cmdline*` Phase 5 reference sample",
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions preserves descending-range and partial-parse stop behavior") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOptions keeps array-capacity stop behavior explicit when a range is only partially stored") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 memparse preserves suffix scaling and stop index semantics") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 parseOptionStr matches only exact bare options") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_tests, "phase 7 nextArg matches serialized edge fixtures") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "descending-range and unparseable-suffix early stop behavior") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "array-capacity stop behavior when a hyphen range is only partially stored") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "memory-size suffix scaling with accurate parse-stop reporting") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "rejection of explicit leading-plus numeric inputs") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "exact bare-option matching for comma-delimited flags") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, phase7_cmdline_slice, "C-style stop-at-NUL handling for bare-option scans") != null);',
 ]
 
 required_phase7_cmdline_test_markers = [
