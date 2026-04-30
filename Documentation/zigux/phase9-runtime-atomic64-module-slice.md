@@ -22,6 +22,10 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 
 The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtime pilot anchor, but it still stopped at a survey-only state. This slice lands the smallest honest runtime-facing follow-on step: a sample-backed lifecycle scaffold that reuses the existing atomic helper wrappers without claiming loadable-module parity.
 
+The adjacent shared runtime-loader blocker also remains underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this starter may describe the bounded in-memory sample, the sample-side loader scaffold, and the shared loader-request binding, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
+
+No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet. The reviewable evidence here remains limited to the shipped starter, its direct sample and loader build legs, the shared loader-request binding, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `lib/atomic64_test.c` anchor
@@ -41,6 +45,8 @@ This slice does not yet claim:
 - a kernel-loadable Zigux module
 - runtime module init and exit macro parity
 - boot-time or module-load execution
+- parity or ownership for `kernel/workqueue.c`
+- any freeze-map status change for the scheduler-facing workqueue boundary without an Architecture Council decision
 
 ## Gates
 
