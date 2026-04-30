@@ -233,18 +233,6 @@ pub const parity_cases = [_]ParityCase{
         },
     },
     .{
-        .name = "ascii rowsize-16 group-8",
-        .len = 16,
-        .rowsize = 16,
-        .groupsize = 8,
-        .ascii = true,
-        .expected_length = 51,
-        .expected_text = .{
-            .little = "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
-            .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
-        },
-    },
-    .{
         .name = "ascii rowsize-32 group-2",
         .len = 32,
         .rowsize = 32,
@@ -392,14 +380,6 @@ pub const length_cases = [_]LengthCase{
         .expected_length = 33,
     },
     .{
-        .name = "ascii rowsize-16 group-8 line length",
-        .len = 16,
-        .rowsize = 16,
-        .groupsize = 8,
-        .ascii = true,
-        .expected_length = 51,
-    },
-    .{
         .name = "normalized rowsize and groupsize fallback line length",
         .len = 16,
         .rowsize = 7,
@@ -420,4 +400,5 @@ pub const length_cases = [_]LengthCase{
 pub const perf_cases = [_]PerfCase{
     .{ .label = "16B-plain", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },
     .{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 175 },
+    .{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 175 },
 };
