@@ -187,6 +187,11 @@
       "expected": "numeric_kinds_expected.json"
     },
     {
+      "name": "quoted_suffix_bytes",
+      "input": "quoted_suffix_bytes.config",
+      "expected": "quoted_suffix_bytes_expected.json"
+    },
+    {
       "name": "sample",
       "input": "sample.config",
       "expected": "sample_expected.json"
