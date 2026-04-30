@@ -8,8 +8,10 @@ from phase3_catalog import Phase3Paths, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
     ABI_REQUIRED_EXPECTED_CONSTANTS,
+    ABI_REQUIRED_SOURCE_MARKERS,
     select_slices,
     validate_abi_expected_fixture,
+    validate_export_uapi_boundary,
     validate_manifest,
     validate_slices,
     validate_source_markers,
@@ -26,7 +28,7 @@ def run_self_test() -> int:
             tests_dir=root / "zigux" / "tests",
             fixtures_dir=root / "zigux" / "tests" / "fixtures",
         )
-        for path in (paths.docs_dir, paths.gtripts_dir, paths.tests_dir, paths.fixtures_dir):
+        for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, paths.fixtures_dir):
             path.mkdir(parents=True, exist_ok=True)
 
         fixture_dir = paths.fixtures_dir / "phase3_alpha"
@@ -116,19 +118,29 @@ def run_self_test() -> int:
                 )
             },
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
-        (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
-        (root / "zigux/tests/phase3_policy_unsafe.zig").write_text(
+        assert "zigux/tests/phase3_abi.zig" in ABI_REQUIRED_SOURCE_MARKERS
+        abi_marker_fixture = root / "zigux/tests/phase3_abi.zig"
+        abi_marker_fixture.parent.mkdir(parents=True, exist_ok=True)
+        abi_marker_fixture.write_text(
             "\n".join(
                 [
-                    'test "phase3 policy layout stays explicit at the ABI boundary" {',
+                    'test "phase3 abi slice uses stable canonical layouts" {',
                     "    comptime {",
-                    "        layout_assert.assertInteropPolicyLayout();",
+                    "        layout_assert.assertMmioRangeLayout();",
                     "    }",
                     "}",
                     "",
-                    'test "phase3 narrow unsafe helpers stay explicit" {',
-                    "    var words = [_]u32{ 7, 11 };",
-                    "    const base = narrow.addressOf(&words[0]);",
+                    'test "phase3 abi slice keeps explicit constants and statuses reviewable" {',
+                    "    try std.testing.expectEqual(@as(u8, 2), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));",
+                    "}",
+                    "",
+                    'test "phase3 abi slice keeps the boundary helpers constructible" {',
+                    "    try std.testing.expect(export_shim.isCanonicalHeader(header));",
+                    "    try std.testing.expect(uapi_version.isCanonical(header));",
+                    "    try std.testing.expectEqual(panic_policy.Action.abort_now, panic_policy.actionFor(.abort));",
+                    "    try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
+                    "    const range = mmio.range(0x1000, 0x40, 4);",
+                    "    try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
                     "}",
                     "",
                 ]
@@ -138,16 +150,43 @@ def run_self_test() -> int:
         )
         assert validate_source_markers(
             root,
-            {
-                "zigux/tests/phase3_policy_unsafe.zig": (
-                    'test "phase3 policy layout stays explicit at the ABI boundary"',
-                    "layout_assert.assertInteropPolicyLayout();",
-                    'test "phase3 narrow unsafe helpers stay explicit"',
-                    "try std.testing.expectEqual(base + @sizeOf(u32), narrow.byteOffset(base, @sizeOf(u32)));",
-                )
-            },
+            {"zigux/tests/phase3_abi.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]},
+        ) == []
+        abi_marker_fixture.write_text(
+            abi_marker_fixture.read_text(encoding="utf-8").replace(
+                "try std.testing.expect(uapi_version.isCanonical(header));",
+                "",
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"zigux/tests/phase3_abi.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]},
         ) == [
-            "source-marker: zigux/tests/phase3_policy_unsafe.zig missing try std.testing.expectEqual(base + @sizeOf(u32), narrow.byteOffset(base, @sizeOf(u32)));"
+            "source-marker: zigux/tests/phase3_abi.zig missing try std.testing.expect(uapi_version.isCanonical(header));"
+        ]
+        export_uapi_check = root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
+        export_uapi_check.write_text(
+            "#!/usr/bin/env python3\nprint('PHASE3_EXPORT_UAPI_SURVEY=pass')\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_export_uapi_boundary(root) == []
+        export_uapi_check.write_text(
+            "#!/usr/bin/env python3\n"
+            "print('PHASE3_EXPORT_UAPI_SURVEY=fail')\n"
+            "print('missing_survey_marker:PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig')\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        export_uapi_check.write_text(
+            export_uapi_check.read_text(encoding="utf-8") + "raise SystemExit(1)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_export_uapi_boundary(root) == [
+            "export-uapi-gate: missing_survey_marker:PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig"
         ]
         assert validate_slices(
             root,
