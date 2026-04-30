@@ -87,6 +87,7 @@ Current repo evidence:
 - implementation anchor: `security/landlock/ruleset.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_ruleset.zig`
 - manifest: `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- manifest `surveyed_commit`: `c2e6f75f05a6f935d21d06d21494d71883a5fa49`
 - slice notes: `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 
@@ -104,7 +105,7 @@ Current repo evidence:
 - implementation anchor: `security/landlock/syscalls.zig`
 - dedicated tests: `zigux/tests/phase13_landlock_syscalls.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- manifest `surveyed_commit`: `c8c16be55d6f9ae1adc2860fde3aabf9d64cf95d`
+- manifest `surveyed_commit`: `798e2e37af2ed21fc23ce1a027c985c598a02d3f`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
