@@ -146,6 +146,7 @@
     "workflow_runs_phase14_validate": true,
     "workflow_runs_phase14_build": true,
     "workflow_runs_phase14_smoke_shard": true,
+    "workflow_runs_phase14_smoke_wrapper": true,
     "review_checklist_has_phase14_smoke_prompt": true,
     "review_checklist_has_productization_prompt": true,
     "review_checklist_has_risk_bundle_prompt": true,
