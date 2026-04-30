@@ -6,8 +6,8 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- `PHASE9_LANE_KEY=P9-L10`
-- `PHASE9_SURVEYED_COMMIT=a0bf6e9e3c43e1fc51c0d85ae74c065439ac22da`
+- `PHASE9_LANE_KEY=P9-L15`
+- `PHASE9_SURVEYED_COMMIT=9ab58640ce44fd53534dd49e29fcce6e274dc3d0`
 - scope: lifecycle starter, bounded return-probe bookkeeping, direct embedded sample replay, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, a manifest-backed survey packet, a loader-handoff scaffold, a landed shared loader-request binding, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
