@@ -1,1 +1,1 @@
-{"counts":{"set":1,"unset":0},"entries":[{"name":"CONFIG_LABEL","kind":"string","value":"ok"}]}
+{"counts":{"set":2,"unset":0},"entries":[{"name":"CONFIG_PREFIX","kind":"string","value":"ok"},{"name":"CONFIG_LABEL","kind":"string","value":"ok"}]}
