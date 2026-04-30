@@ -115,6 +115,21 @@ def run_self_test() -> int:
         )
         closure_path.write_text(original_closure, encoding='utf-8')
 
+        closure_path.write_text(
+            original_closure.replace(
+                'PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations',
+                'PHASE1_BITMAP_ALIAS_UNIT_REVIEW=',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'bitmap_alias_review',
+            tmp_root,
+            'closure:PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations',
+        )
+        closure_path.write_text(original_closure, encoding='utf-8')
+
         workflow_path = tmp_root / '.github' / 'workflows' / 'zigux-bootstrap.yml'
         original_workflow = workflow_path.read_text(encoding='utf-8')
         mutated_workflow = original_workflow.replace(
@@ -240,8 +255,19 @@ def run_self_test() -> int:
             'manifest:find_bit.alias_unit_test_anchor',
         )
 
+        manifest_path.write_text(original_manifest, encoding='utf-8')
+
+        manifest = json.loads(original_manifest)
+        manifest['helper_review_notes']['tools/lib/bitmap.zig']['alias_unit_test_anchor'] = ''
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_missing_marker(
+            'bitmap_alias_anchor',
+            tmp_root,
+            'manifest:bitmap.alias_unit_test_anchor',
+        )
+
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=11')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13')
     return 0
 
 
@@ -275,6 +301,8 @@ required_closure_markers = [
     'PHASE1_BITMAP_REVIEW=bitmap parity covers allocator-backed sizing, zero-allocation state, contiguous-range rendering, empty-bitmap buffer preservation, and truncation that preserves the terminator slot',
     'bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`',
     'PHASE1_BITMAP_UNIT_REVIEW=bitmap allocation helpers keep bitmapFree optional handles null after release while shared parity covers allocator-backed sizing and zero-allocation state',
+    'bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"`',
+    'PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations',
     'bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"`',
     'PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset',
     'bitmap zero-bit unit-test anchor: `tools/lib/bitmap.zig:test "bitmap zero-bit helpers stay explicit no-ops"`',
@@ -369,21 +397,28 @@ required_build_markers = [
     'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
 ]
 required_ledger_markers = [
-    'docs(zigux): close bounded phase-1 helper tranche',
+    'Documentation/zigux/phase1-closure.md',
+    'scripts/zigux/validate-phase1-closure.py',
+    'zigux/tests/fixtures/phase1_helper_manifest.json',
+    'zigux/tests/fixtures/phase1_bench_expectations.json',
 ]
 required_bench_checker_markers = [
-    "parser.add_argument('--self-test'",
     "print('PHASE1_BENCH_SELF_TEST=pass')",
     "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
+    "print('PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS=20000')",
+    "print('PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM=3484000')",
 ]
 required_parity_checker_markers = [
-    "parser.add_argument('--self-test'",
     "print('PHASE1_PARITY_SELF_TEST=pass')",
     "print('PHASE1_PARITY_SELF_TEST_CASE_COUNT=7')",
+    "print('bitmap.scnprintf_empty_len')",
+    "print('bitmap.scnprintf_empty_bytes')",
+    "print('bitmap.scnprintf_trunc_len')",
+    "print('bitmap.scnprintf_trunc')",
 ]
 
-missing_markers = []
+missing_markers: list[str] = []
 for marker in required_closure_markers:
     if marker not in closure:
         missing_markers.append(f'closure:{marker}')
@@ -467,6 +502,10 @@ if bitmap_review.get('unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap a
     missing_markers.append('manifest:bitmap.unit_test_anchor')
 if bitmap_review.get('unit_test_contract') != 'Direct Zig unit coverage keeps bitmapAlloc(), bitmapZalloc(), and bitmapFree() honest by proving optional bitmap handles size through bitsToWords(), zero-filled allocation stays intact, and released optionals reset to null.':
     missing_markers.append('manifest:bitmap.unit_test_contract')
+if bitmap_review.get('alias_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap underscore aliases preserve bitmap helper semantics"':
+    missing_markers.append('manifest:bitmap.alias_unit_test_anchor')
+if bitmap_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps bitmap_weight(), bitmap_and(), bitmap_andnot(), bitmap_or(), bitmap_xor(), bitmap_equal(), bitmap_intersects(), bitmap_subset(), bitmap_set(), bitmap_clear(), and bitmap_scnprintf() aligned with the camelCase helpers across the same caller-selected bit window.':
+    missing_markers.append('manifest:bitmap.alias_unit_test_contract')
 if bitmap_review.get('range_unit_test_anchor') != 'tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"':
     missing_markers.append('manifest:bitmap.range_unit_test_anchor')
 if bitmap_review.get('range_unit_test_contract') != 'Direct Zig unit coverage keeps cross-word setRange() and clearRange() aligned by preserving the first-word start mask, fully covering interior words, clamping the last word, and restoring the whole window to zero on clear.':
