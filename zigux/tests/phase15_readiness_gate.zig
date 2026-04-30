@@ -98,6 +98,14 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
     const readiness_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-readiness-gate-survey.md",
@@ -113,6 +121,13 @@ test "phase 15 readiness note keeps the roadmap and ledger comparison explicit" 
         .limited(24 * 1024),
     );
     defer std.testing.allocator.free(workflow);
+
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Phase 15 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "now-green shared Phase 15 replay on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "unchanged deep-core blocker posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "remaining broader replay drift on current `master`") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Current Repo Readiness") != null);
