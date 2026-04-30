@@ -346,15 +346,16 @@ required_phase10_build_markers = [
     'test_step.dependOn(&run_phase10_virtio_mmio_tests.step);',
     'test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);',
 ]
+forbidden_stale_ring_markers = [
+    "phase10-mmio-config-window-helper as the next bounded MMIO follow-up",
+    "phase10-mmio-config-window-helper remain the smallest honest transport-facing next step",
+]
 forbidden_stale_mmio_slice_markers = [
-    "PHASE10_SLICE=virtio-mmio-config-window-helper",
     "add one small config-window write-planning helper next",
 ]
-forbidden_stale_ring_markers = [
-    "remaining queue-wrapper gap",
-    "queue-wrapper gap",
-]
+
 missing_markers: list[str] = []
+
 for marker in required_closure_markers:
     if marker not in closure:
         missing_markers.append(f"closure:{marker}")
@@ -363,7 +364,7 @@ for marker in required_freeze_map_markers:
         missing_markers.append(f"freeze_map:{marker}")
 for marker in required_makefile_markers:
     if marker not in makefile:
-        missing_markers.append(f"make:{marker}")
+        missing_markers.append(f"makefile:{marker}")
 for marker in required_workflow_markers:
     if marker not in workflow:
         missing_markers.append(f"workflow:{marker}")
