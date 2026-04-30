@@ -105,4 +105,19 @@ test "runtime trace-events diff gate keeps the selftest family order and replay 
     try std.testing.expectEqualStrings("Look at me", replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("Look at me too", replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("iter=%d", replay.last_format_template orelse return error.ExpectedMainPayload);
+
+    try module.exit();
+
+    const exited = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, exited.stage);
+    try std.testing.expectEqual(@as(usize, 1), exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited.exit_runs);
+    try std.testing.expectEqual(@as(usize, 6), exited.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), exited.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), exited.total_events);
+    try std.testing.expectEqual(@as(i32, 0), exited.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), exited.last_fn_count);
+    try std.testing.expectEqualStrings("hello", exited.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Look at me", exited.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
 }
