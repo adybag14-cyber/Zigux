@@ -83,6 +83,29 @@ test "phase 7 blank argvSplit input reuses the empty storage sentinel without al
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
+test "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argv_split.argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+
+    argv_split.argvFree(fba.allocator(), &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+
+    argv_split.argvFree(fba.allocator(), &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
 test "phase 7 argvSplit deinit clears exported storage and argv views" {
     var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
 
