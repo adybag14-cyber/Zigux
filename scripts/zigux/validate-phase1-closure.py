@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 import json
+import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,6 +27,112 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
     ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
 ]
+
+
+def clone_fixture_root(destination_root: Path) -> None:
+    for source in required_files:
+        target = destination_root / source.relative_to(ROOT)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+
+    manifest = json.loads(
+        (destination_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8')
+    )
+    for rel_path in manifest.get('helpers', []):
+        helper_path = destination_root / rel_path
+        helper_path.parent.mkdir(parents=True, exist_ok=True)
+        helper_path.touch()
+
+
+
+def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(root / 'scripts' / 'zigux' / 'validate-phase1-closure.py')],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+
+def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
+    result = run_validator(root)
+    if result.returncode == 0:
+        raise SystemExit(f'phase1-self-test:{label}:unexpected_pass')
+    if expected_marker not in result.stdout:
+        actual = result.stdout.strip() or 'none'
+        raise SystemExit(
+            f'phase1-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}'
+        )
+
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='zigux_phase1_closure_selftest_') as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        baseline = run_validator(tmp_root)
+        if baseline.returncode != 0:
+            raise SystemExit(
+                'phase1-self-test:baseline_failed:'
+                f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
+            )
+
+        closure_path = tmp_root / 'Documentation' / 'zigux' / 'phase1-closure.md'
+        original_closure = closure_path.read_text(encoding='utf-8')
+        closure_path.write_text(
+            original_closure.replace(
+                'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
+                'PHASE1_CLOSURE_GATE=',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'closure_gate_marker',
+            tmp_root,
+            'closure:PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
+        )
+        closure_path.write_text(original_closure, encoding='utf-8')
+
+        workflow_path = tmp_root / '.github' / 'workflows' / 'zigux-bootstrap.yml'
+        original_workflow = workflow_path.read_text(encoding='utf-8')
+        mutated_workflow = original_workflow.replace(
+            'python3 scripts/zigux/validate-phase1-closure.py --self-test',
+            '',
+        )
+        mutated_workflow = mutated_workflow.replace(
+            'python3 scripts/zigux/validate-phase1-closure.py',
+            '',
+            1,
+        )
+        workflow_path.write_text(mutated_workflow, encoding='utf-8')
+        expect_missing_marker(
+            'workflow_closure_hook',
+            tmp_root,
+            'workflow:python3 scripts/zigux/validate-phase1-closure.py',
+        )
+        workflow_path.write_text(original_workflow, encoding='utf-8')
+
+        expectations_path = tmp_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'
+        expectations = json.loads(expectations_path.read_text(encoding='utf-8'))
+        expectations['exact_checksums']['PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM'] = 1
+        expectations_path.write_text(json.dumps(expectations, indent=2) + '\n', encoding='utf-8')
+        expect_missing_marker(
+            'rbtree_find_add_checksum',
+            tmp_root,
+            'bench:exact_checksums.PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM=3484000',
+        )
+
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=3')
+    return 0
+
+
+if '--self-test' in sys.argv[1:]:
+    raise SystemExit(run_self_test())
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
