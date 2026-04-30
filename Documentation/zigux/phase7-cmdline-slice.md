@@ -19,7 +19,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 explicitly calls out `lib/cmdline.c` as one of the first reusable in-kernel leaf libraries that should move into the Zigux product path.
 
-This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.
+This current slice keeps the work bounded to runtime-safe leaf helpers with explicit integration with validation substrate through `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`.
 
 This current slice therefore stays inside helpers that:
 
@@ -28,13 +28,17 @@ This current slice therefore stays inside helpers that:
 
 ## Gates
 
-1. run the focused Zig module tests
+1. prove the shared Phase 7 validator packet still fails closed before the helper replay runs
+- `python3 scripts/zigux/validate-phase7.py --self-test`
+- `make -C zigux phase7-validate`
+
+2. run the focused Zig module tests
 - `zig test lib/cmdline.zig`
 
-2. run the shared Phase 7 helper gate
+3. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
 
-3. keep the helper-only review note replay inside the shared gate
+4. keep the helper-only review note replay inside the shared gate
 - `zigux/tests/phase7_cmdline_survey.zig`
 
 ## Current parity surface
