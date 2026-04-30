@@ -77,16 +77,20 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/kernel/export_shim.zig": (
         "pub fn header(flags: u16) abi.BoundaryHeader {",
         "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {",
+        "pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {",
         "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
         'test "phase3 export shim keeps failure encoding explicit"',
         'test "phase3 export shim normalizes explicit status decoding"',
+        'test "phase3 export shim separates canonical headers from broader compatibility"',
     ),
     "zigux/uapi/version.zig": (
         "pub const abi_version: u16 = abi.ABI_VERSION;",
         "pub fn boundaryHeader(flags: u16) Header {",
         "pub fn isCompatible(header: Header) bool {",
+        "pub fn isCanonical(header: Header) bool {",
         'test "phase3 uapi version follows abi version"',
         'test "phase3 uapi boundary header stays explicit and compatible"',
+        'test "phase3 uapi boundary header distinguishes canonical and future-compatible shapes"',
     ),
     "zigux/helpers/layout_assert.zig": (
         'test "phase3 layout assertions cover canonical bindings"',
@@ -145,8 +149,14 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/tests/phase3_export_uapi.zig": (
         'test "phase3 export shim and uapi stay aligned"',
         "try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
+        "try std.testing.expect(export_shim.isCanonicalHeader(header));",
+        "try std.testing.expect(uapi_version.isCanonical(header));",
         "try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));",
         "try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));",
+        "try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));",
+        "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
+        "try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));",
+        "try std.testing.expect(uapi_version.isCompatible(future_compatible_header));",
         "try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);",
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
@@ -217,302 +227,3 @@ def _required_source_markers_for_slug(slug: str) -> dict[str, tuple[str, ...]]:
 
 def _has_build_step(build_file: Path, step_name: str) -> bool:
     return re.search(r'b\.step\(\s*"' + re.escape(step_name) + r'"', build_file.read_text(encoding="utf-8")) is not None
-
-
-def _format_slug_audit_issue(issue) -> str:
-    return "slug_audit:" + issue.to_row().replace("\t", ":")
-
-
-def _format_slug_rename_candidate(candidate) -> str:
-    return "slug_rename_candidate:" + candidate.to_row().replace("\t", ":")
-
-
-def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
-    if not selected_slugs:
-        return list(entries)
-    selected = set(selected_slugs)
-    filtered = [entry for entry in entries if entry.slug in selected]
-    missing = sorted(selected.difference({entry.slug for entry in filtered}))
-    if missing:
-        raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
-    return filtered
-
-
-def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
-    if path is None:
-        issues.append(f"{slug}:missing_manifest")
-        return None
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        issues.append(f"{slug}:missing_manifest:{path.relative_to(root).as_posix()}")
-        return None
-    except json.JSONDecodeError as exc:
-        issues.append(f"{slug}:invalid_manifest:{path.relative_to(root).as_posix()}:{exc.msg}")
-        return None
-
-    files = data.get("files")
-    if data.get("phase") != "Phase 3":
-        issues.append(f"{slug}:manifest_phase={data.get('phase')}")
-    if not isinstance(data.get("status"), str) or not data["status"]:
-        issues.append(f"{slug}:manifest_status={data.get('status')}")
-    if not isinstance(data.get("slice"), str) or not data["slice"]:
-        issues.append(f"{slug}:manifest_slice={data.get('slice')}")
-    if not isinstance(files, list) or not all(isinstance(item, str) for item in files):
-        issues.append(f"{slug}:manifest_files={type(files).__name__}")
-        return data
-    if data.get("file_count") != len(files):
-        issues.append(f"{slug}:manifest_file_count={data.get('file_count')}")
-    for rel in _required_manifest_files_for_slug(slug):
-        if rel not in files:
-            issues.append(f"{slug}:manifest_missing_required_file={rel}")
-    for rel in files:
-        if rel.startswith("scripts/zigux/check-phase3-") and rel.endswith(".py"):
-            issues.append(f"{slug}:manifest_legacy_wrapper_file={rel}")
-        if not (root / rel).exists():
-            issues.append(f"{slug}:manifest_missing_file={rel}")
-    return data
-
-
-def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[str, object] | None, issues: list[str]) -> None:
-    if not doc_path.exists():
-        issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
-        return
-    doc = doc_path.read_text(encoding="utf-8")
-    required = [
-        "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
-        "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-    ]
-    if manifest is not None:
-        required[:0] = [f"PHASE3_STATUS={manifest.get('status')}", f"PHASE3_SLICE={manifest.get('slice')}" ]
-    required.extend(_required_doc_markers_for_slug(slug))
-    for marker in required:
-        if marker not in doc:
-            issues.append(f"{slug}:missing_doc_marker={marker}")
-    interop_markers = [shared_runner_gate_for_slug(slug), legacy_wrapper_gate_for_slug(slug)]
-    if not any(marker in doc for marker in interop_markers):
-        issues.append(f"{slug}:missing_doc_marker_one_of={'|'.join(interop_markers)}")
-
-
-def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: list[str]) -> None:
-    if not script_path.exists():
-        return
-    if script_path.read_text(encoding="utf-8") != render_wrapper_stub():
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
-
-
-def validate_source_markers(root: Path, slug: str, issues: list[str]) -> None:
-    for rel, markers in _required_source_markers_for_slug(slug).items():
-        path = root / rel
-        try:
-            content = path.read_text(encoding="utf-8")
-        except FileNotFoundError:
-            issues.append(f"{slug}:missing_source_file={rel}")
-            continue
-        for marker in markers:
-            if marker not in content:
-                issues.append(f"{slug}:missing_source_marker={rel}:{marker}")
-
-
-def validate_abi_expected_fixture(root: Path, issues: list[str]) -> None:
-    path = root / "zigux" / "tests" / "fixtures" / "phase3_abi" / "expected.json"
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        issues.append("abi:missing_expected_fixture=zigux/tests/fixtures/phase3_abi/expected.json")
-        return
-    except json.JSONDecodeError as exc:
-        issues.append(f"abi:invalid_expected_fixture=zigux/tests/fixtures/phase3_abi/expected.json:{exc.msg}")
-        return
-
-    constants = data.get("constants")
-    if not isinstance(constants, dict):
-        issues.append(f"abi:expected_constants={type(constants).__name__}")
-        return
-
-    for key, value in ABI_REQUIRED_EXPECTED_CONSTANTS.items():
-        actual = constants.get(key)
-        if actual != value:
-            issues.append(f"abi:expected_constant={key}:{actual}")
-
-
-def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
-    build_file = root / BUILD_FILE_REL
-    if not build_file.exists():
-        issues.append(f"build:missing_file:{BUILD_FILE_REL}")
-        return
-    if not _has_build_step(build_file, "phase3-test"):
-        issues.append(f"build:missing_step:{BUILD_FILE_REL}:phase3-test")
-    for entry in slices:
-        if not _has_build_step(build_file, entry.build_step):
-            issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
-
-
-def validate_abi_focused_build(root: Path, issues: list[str]) -> None:
-    build_file = root / ABI_LOW_LEVEL_BUILD_FILE_REL
-    if not build_file.exists():
-        issues.append(f"abi:missing_file:{ABI_LOW_LEVEL_BUILD_FILE_REL}")
-        return
-    if not _has_build_step(build_file, "phase3-low-level-wrappers-test"):
-        issues.append(f"abi:missing_build_step:{ABI_LOW_LEVEL_BUILD_FILE_REL}:phase3-low-level-wrappers-test")
-
-
-def validate_export_uapi_focused_build(root: Path, issues: list[str]) -> None:
-    build_file = root / ABI_EXPORT_UAPI_BUILD_FILE_REL
-    if not build_file.exists():
-        issues.append(f"abi:missing_file:{ABI_EXPORT_UAPI_BUILD_FILE_REL}")
-        return
-    if not _has_build_step(build_file, "phase3-export-uapi-test"):
-        issues.append(f"abi:missing_build_step:{ABI_EXPORT_UAPI_BUILD_FILE_REL}:phase3-export-uapi-test")
-
-
-def validate_policy_unsafe_focused_build(root: Path, issues: list[str]) -> None:
-    build_file = root / ABI_POLICY_UNSAFE_BUILD_FILE_REL
-    if not build_file.exists():
-        issues.append(f"abi:missing_file:{ABI_POLICY_UNSAFE_BUILD_FILE_REL}")
-        return
-    if not _has_build_step(build_file, "phase3-policy-unsafe-test"):
-        issues.append(f"abi:missing_build_step:{ABI_POLICY_UNSAFE_BUILD_FILE_REL}:phase3-policy-unsafe-test")
-
-
-def _build_smoke_issue(
-    slug: str,
-    build_file_rel: str,
-    build_step: str,
-    exc: subprocess.CalledProcessError,
-) -> str:
-    details = (exc.stderr or exc.stdout or str(exc)).strip().splitlines()
-    detail = details[-1] if details else str(exc)
-    return f"{slug}:build_smoke_failed:{build_file_rel}:{build_step}:{detail}"
-
-
-def _run_build_smoke(
-    root: Path,
-    zig: str,
-    build_file_rel: str,
-    build_step: str,
-    slug: str,
-    issues: list[str],
-) -> None:
-    try:
-        subprocess.run(
-            [zig, "build", build_step, "--build-file", str(root / build_file_rel)],
-            cwd=str(root),
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        issues.append(_build_smoke_issue(slug, build_file_rel, build_step, exc))
-
-
-def validate_build_smoke(root: Path, slices: list[object], issues: list[str], zig_path: str | None) -> None:
-    try:
-        zig = find_zig(zig_path)
-    except SystemExit as exc:
-        issues.append(f"build:zig_unavailable:{exc}")
-        return
-
-    for entry in slices:
-        _run_build_smoke(root, zig, BUILD_FILE_REL, entry.build_step, entry.slug, issues)
-
-    if any(entry.slug == "abi" for entry in slices):
-        _run_build_smoke(root, zig, ABI_LOW_LEVEL_BUILD_FILE_REL, "phase3-low-level-wrappers-test", "abi", issues)
-        _run_build_smoke(root, zig, ABI_EXPORT_UAPI_BUILD_FILE_REL, "phase3-export-uapi-test", "abi", issues)
-        _run_build_smoke(root, zig, ABI_POLICY_UNSAFE_BUILD_FILE_REL, "phase3-policy-unsafe-test", "abi", issues)
-
-
-def validate_runner_metadata(slices: list[object], issues: list[str]) -> None:
-    for entry in slices:
-        if runner_build_step_for_slug(entry.slug) != entry.build_step:
-            issues.append(f"{entry.slug}:runner_build_step_mismatch")
-        if runner_description_for_slug(entry.slug) != entry.description:
-            issues.append(f"{entry.slug}:runner_description_mismatch")
-
-
-def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
-    if not check_all_wrappers:
-        return
-    # Wrapper cleanup is a repo-wide invariant, not a property of the currently
-    # selected slug subset. Focused runs like `--slug abi` should not flag
-    # valid wrappers that belong to other discovered Phase 3 slices.
-    expected = {
-        entry.check_script.resolve()
-        for entry in discover_phase3_slices(Phase3Paths(
-            root=root,
-            docs_dir=root / "Documentation" / "zigux",
-            scripts_dir=root / "scripts" / "zigux",
-            tests_dir=root / "zigux" / "tests",
-            fixtures_dir=root / "zigux" / "tests" / "fixtures",
-        ))
-    }
-    for path in sorted((root / "scripts" / "zigux").glob("check-phase3-*.py")):
-        if path.resolve() not in expected:
-            issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}" )
-
-
-def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issues: list[str]) -> None:
-    artifact_diff_path = root / "Documentation" / "zigux" / "artifact-diff.md"
-    try:
-        lines = artifact_diff_path.read_text(encoding="utf-8").splitlines()
-        start = lines.index("Current Phase 3 use")
-        try:
-            end = lines.index("Current Phase 4 use")
-        except ValueError:
-            end = lines.index("Rules")
-    except FileNotFoundError:
-        issues.append("artifact_diff:missing_doc:Documentation/zigux/artifact-diff.md")
-        return
-    except ValueError:
-        issues.append("artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md")
-        return
-    current = lines[start + 1 : end]
-    while current and not current[-1]:
-        current.pop()
-    if current != artifact_diff_phase3_lines(slices, artifact_diff_path):
-        issues.append("artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md")
-
-
-def validate_slices(
-    root: Path,
-    slices: list[object],
-    *,
-    check_artifact_diff: bool = False,
-    check_build_smoke: bool = False,
-    check_slug_sanity: bool = False,
-    check_all_wrappers: bool = True,
-    zig_path: str | None = None,
-) -> list[str]:
-    issues: list[str] = []
-    for entry in slices:
-        for label, path in {
-            "dump": entry.dump_path,
-            "fixture_dir": entry.fixture_dir,
-            "expected": entry.expected_path,
-            "harness": entry.harness_path,
-        }.items():
-            if not path.exists():
-                issues.append(f"{entry.slug}:missing_{label}:{path.relative_to(root).as_posix()}")
-        manifest = validate_manifest(root, entry.manifest_path, entry.slug, issues)
-        validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
-        validate_wrapper_template(root, entry.check_script, entry.slug, issues)
-        validate_source_markers(root, entry.slug, issues)
-    validate_buildSteps = validate_build_steps
-    validate_buildSteps(root, slices, issues)
-    validate_abi_focused_build(root, issues)
-    validate_export_uapi_focused_build(root, issues)
-    validate_policy_unsafe_focused_build(root, issues)
-    if any(entry.slug == "abi" for entry in slices):
-        validate_abi_expected_fixture(root, issues)
-    validate_runner_metadata(slices, issues)
-    validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
-    if check_build_smoke:
-        validate_build_smoke(root, slices, issues, zig_path)
-    if check_artifact_diff:
-        validate_artifact_diff_phase3_section(root, slices, issues)
-    if check_slug_sanity:
-        slug_issues = audit_phase3_slug_sanity(slices)
-        issues.extend(_format_slug_audit_issue(issue) for issue in slug_issues)
-        if slug_issues:
-            issues.extend(_format_slug_rename_candidate(candidate) for candidate in discover_phase3_slug_rename_candidates(slices))
-    return issues
