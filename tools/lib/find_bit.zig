@@ -287,6 +287,29 @@ test "tail mask keeps the in-range shared bit for and scans" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 4));
 }
 
+test "single-word scans keep linux small-bitmap semantics" {
+    const nbits: usize = 12;
+
+    const set_bits = [_]Word{ (@as(Word, 1) << 3) | (@as(Word, 1) << 9) | (@as(Word, 1) << 15) };
+    try std.testing.expectEqual(@as(usize, 3), findFirstBit(&set_bits, nbits));
+    try std.testing.expectEqual(@as(usize, 9), findNextBit(&set_bits, nbits, 4));
+    try std.testing.expectEqual(@as(usize, 9), findNextBit(&set_bits, nbits, 9));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&set_bits, nbits, 10));
+
+    const zero_bits = [_]Word{ (~@as(Word, 0) & ~(@as(Word, 1) << 2) & ~(@as(Word, 1) << 8)) & ~(@as(Word, 1) << 14) };
+    try std.testing.expectEqual(@as(usize, 2), findFirstZeroBit(&zero_bits, nbits));
+    try std.testing.expectEqual(@as(usize, 8), findNextZeroBit(&zero_bits, nbits, 3));
+    try std.testing.expectEqual(@as(usize, 8), findNextZeroBit(&zero_bits, nbits, 8));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&zero_bits, nbits, 9));
+
+    const lhs = [_]Word{ (@as(Word, 1) << 4) | (@as(Word, 1) << 9) | (@as(Word, 1) << 15) };
+    const rhs = [_]Word{ (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    try std.testing.expectEqual(@as(usize, 4), findFirstAndBit(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&lhs, &rhs, nbits, 5));
+    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&lhs, &rhs, nbits, 9));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, 10));
+}
+
 test "word helpers keep linux-style mask and sizing boundaries" {
     try std.testing.expectEqual(@as(usize, 0), bitsToWords(0));
     try std.testing.expectEqual(@as(usize, 1), bitsToWords(1));
