@@ -67,6 +67,7 @@ phase7_argv_split_manifest = json.loads(
 )
 phase7_argv_split_survey = (ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig").read_text(encoding="utf-8")
 phase7_argv_split_tests = (ROOT / "zigux" / "tests" / "phase7_argv_split.zig").read_text(encoding="utf-8")
+phase7_rbtree_tests = (ROOT / "zigux" / "tests" / "phase7_rbtree.zig").read_text(encoding="utf-8")
 phase7_rbtree_survey = (ROOT / "zigux" / "tests" / "phase7_rbtree_survey.zig").read_text(encoding="utf-8")
 phase7_cmdline_doc = (ROOT / "Documentation" / "zigux" / "phase7-cmdline-slice.md").read_text(encoding="utf-8")
 phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md").read_text(encoding="utf-8")
@@ -253,6 +254,18 @@ required_phase7_rbtree_survey_markers = [
     "zigux/tests/phase7_rbtree_manifest.json",
 ]
 
+required_phase7_rbtree_test_markers = [
+    '@embedFile("fixtures/phase7_rbtree.json")',
+    "phase 7 rbtree balancing helpers keep ordered insert erase traversal stable",
+    "phase 7 rbtree eraseInit detaches erased nodes for reuse",
+    "phase 7 rbtree detached nodes stay non-empty until callers clear them",
+    "phase 7 rbtree clearNode marks detached nodes as empty",
+    "phase 7 rbtree find helpers walk duplicate-key ranges",
+    "phase 7 rbtree iterateMatches streams duplicate-key ranges",
+    "phase 7 rbtree findAdd inserts new nodes and returns existing duplicates",
+    "phase 7 rbtree postorder traversal matches committed parity fixture",
+]
+
 expected_phase7_build_paths = {
     "../..",
     "../../lib/string_helpers.zig",
@@ -332,6 +345,7 @@ checks = [
     ("zigux/tests/phase7_argv_split_survey.zig", phase7_argv_split_survey, required_phase7_argv_split_survey_markers),
     ("zigux/tests/phase7_argv_split.zig", phase7_argv_split_tests, required_phase7_argv_split_test_markers),
     ("zigux/tests/phase7_rbtree_survey.zig", phase7_rbtree_survey, required_phase7_rbtree_survey_markers),
+    ("zigux/tests/phase7_rbtree.zig", phase7_rbtree_tests, required_phase7_rbtree_test_markers),
     ("Documentation/zigux/phase7-cmdline-slice.md", phase7_cmdline_doc, required_phase7_cmdline_doc_markers),
     ("Documentation/zigux/phase7-rbtree-slice.md", phase7_rbtree_doc, required_phase7_rbtree_doc_markers),
 ]
