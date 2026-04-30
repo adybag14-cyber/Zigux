@@ -5,10 +5,10 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 ## Status
 
 - `PHASE15_STATUS=indefinite_c_policy_survey_landed`
-- `PHASE15_LANE_KEY=P15-L16`
+- `PHASE15_LANE_KEY=P15-L14`
 - `PHASE15_SLICE=indefinite-c-policy-current-gap-survey`
 - scope: one dedicated indefinite-C policy note, one manifest, one Zig test, and one current-roadmap-gap survey refresh that records the present indefinite-C policy posture against the surrounding Phase 15 governance bundle, the docs root, and the shared replay path
-- survey provenance refreshed against verified `master` head `0a2744ddb50c9fec2cfe0699ff63895561306a8d`
+- survey provenance refreshed against verified `master` head `6c113560cecc015f78c4e9234a85414954401180`
 - product boundary:
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/freeze-map.md`
@@ -103,6 +103,22 @@ The only allowed exception is an Architecture Council reopen request that cites 
 
 Until that happens, the existing blocker remains recorded, the C implementation remains the product source of truth, and the anchor stays in the freeze-in-C set for the current plan horizon.
 
+## Exception request checklist
+
+Every allowed exception request must stay reviewable as a bounded reopen packet instead of a policy waiver.
+
+The exception packet must therefore carry all of the following before reviewers treat the request as active:
+
+- the exact named reopen-trigger catalog item or items being cited
+- the trigger-specific refreshed evidence by path for each cited trigger
+- the current blocker disposition the new evidence is trying to change
+- the replay command reviewers should run before trusting the exception packet
+- the parity scorecard link and the evidence-archive path tied to the same anchor
+- the lane owner and rollback owner, refreshed when the trigger is `ownership_or_validation_changed`
+- an explicit note that the C implementation remains the product source of truth unless the reopen request is approved
+
+If any one of those fields is missing, the exception request is incomplete and the anchor remains in the recorded stay-in-C posture.
+
 ## Reopen conditions
 
 An anchor recorded as remaining in C indefinitely may re-enter status review only when the repo can point to an Architecture Council review request that names at least one bounded reopen-trigger catalog item explicitly instead of implying silent drift.
@@ -154,6 +170,7 @@ The current lane state is:
 - landed `phase15-build-gate-indefinite-c-policy`
 - landed `phase15-indefinite-c-field-sync-followup`
 - landed `phase15-indefinite-c-current-gap-survey`
+- landed `phase15-indefinite-c-exception-request-checklist`
 - landed `phase15-indefinite-c-reopen-evidence-matrix`
 - blocked `phase15-deep-core-status-change-blocker`
 
