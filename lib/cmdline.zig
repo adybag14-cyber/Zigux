@@ -373,6 +373,12 @@ const next_arg_cases = [_]NextArgCase{
         .expected_value = null,
         .expected_rest = "next",
     },
+    .{
+        .input = "mode=fast   ",
+        .expected_param = "mode",
+        .expected_value = "fast",
+        .expected_rest = "",
+    },
 };
 
 fn expectNextArgFixture(case: NextArgCase) !void {
