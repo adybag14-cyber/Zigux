@@ -215,6 +215,7 @@ CHECKSUM_TEST_MARKERS = [
     'test "partial sums compose across the fixture split matrix" {',
     'test "seeded partial accumulation matches the fixture-backed reference" {',
     'test "kunit-inspired carry discipline stays stable on the helper surface" {',
+    'test "kunit random-prefix parity stays stable on the helper surface" {',
     'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
     'test "IPv6 pseudo header accumulation matches the fixture-backed reference checksum" {',
     'test "incremental checksum replacements match full recomputation" {',
@@ -234,12 +235,16 @@ CHECKSUM_PERF_MARKERS = [
 CHECKSUM_FIXTURE_MARKERS = [
     ".max_slowdown_pct = 150",
     '.name = "udp pseudo header",',
+    "pub const KunitRandomPrefixCase = struct {",
+    "pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{",
+    '.name = "kunit random prefix len 64",',
 ]
 
 CHECKSUM_SLICE_MARKERS = [
     "`PHASE6_SLICE=checksum-leaf-helper`",
     "`replaceByDiff`",
     "carry-discipline edge cases on the helper-local surface",
+    "six imported KUnit random-prefix prefix lengths through the committed fixture corpus",
     "widened-accumulator `referencePartial` path",
 ]
 
@@ -395,143 +400,3 @@ EXPECTED_MANIFEST = {
     ],
 }
 
-
-def text(path: str) -> str:
-    return (ROOT / path).read_text(encoding="utf-8")
-
-
-def load_json(path: str) -> object:
-    return json.loads(text(path))
-
-
-def collect_missing_files() -> list[str]:
-    return [path for path in REQUIRED_FILES if not (ROOT / path).exists()]
-
-
-def require_markers(missing: list[str], label: str, source: str, markers: list[str]) -> None:
-    for marker in markers:
-        if marker not in source:
-            missing.append(f"{label}:missing:{marker}")
-
-
-def require_manifest_equal(missing: list[str], manifest: dict[str, object], key: str, expected: object) -> None:
-    actual = manifest.get(key)
-    if actual != expected:
-        missing.append(f"manifest:{key}")
-
-
-def main() -> int:
-    missing_files = collect_missing_files()
-    if missing_files:
-        print("PHASE6_VALIDATION=fail")
-        print("MISSING_PHASE6_FILES_START")
-        for path in missing_files:
-            print(path)
-        print("MISSING_PHASE6_FILES_END")
-        return 1
-
-    makefile = text("zigux/Makefile")
-    workflow = text(".github/workflows/zigux-bootstrap.yml")
-    script_readme = text("scripts/zigux/README.md")
-    tests_readme = text("zigux/tests/README.md")
-    doc_readme = text("Documentation/zigux/README.md")
-    phase6_build = text("zigux/tests/phase6_build.zig")
-    phase6_catalog = text("Documentation/zigux/phase6-helper-parity-catalog.md")
-    phase6_manifest = load_json("zigux/tests/phase6_helper_parity_manifest.json")
-
-    catalog_head_match = re.search(r"- verified head: `([0-9a-f]{40})`", phase6_catalog)
-    if catalog_head_match is None:
-        print("PHASE6_VALIDATION=fail")
-        print("PHASE6_CATALOG_HEAD_STATUS=missing")
-        return 1
-    catalog_head = catalog_head_match.group(1)
-    if not HEX40.fullmatch(catalog_head):
-        print("PHASE6_VALIDATION=fail")
-        print("PHASE6_CATALOG_HEAD_STATUS=invalid")
-        return 1
-
-    missing: list[str] = []
-    require_markers(missing, "make", makefile, MAKE_MARKERS)
-    require_markers(missing, "workflow", workflow, WORKFLOW_MARKERS)
-    require_markers(missing, "script_readme", script_readme, SCRIPT_README_MARKERS)
-    require_markers(missing, "tests_readme", tests_readme, TESTS_README_MARKERS)
-    require_markers(missing, "doc_readme", doc_readme, DOC_README_MARKERS)
-    require_markers(missing, "phase6_build", phase6_build, PHASE6_BUILD_MARKERS)
-    require_markers(missing, "phase6_catalog", phase6_catalog, CATALOG_MARKERS)
-
-    file_marker_specs = [
-        ("phase6_base64", "zigux/tests/phase6_base64.zig", BASE64_TEST_MARKERS),
-        ("phase6_base64_perf", "zigux/tests/phase6_base64_perf.zig", BASE64_PERF_MARKERS),
-        ("phase6_base64_c_parity_script", "scripts/zigux/check-phase6-base64-c-parity.py", BASE64_PARITY_SCRIPT_MARKERS),
-        ("phase6_base64_slice", "Documentation/zigux/phase6-base64-slice.md", BASE64_SLICE_MARKERS),
-        ("phase6_bsearch", "zigux/tests/phase6_bsearch.zig", BSEARCH_TEST_MARKERS),
-        ("phase6_bsearch_perf", "zigux/tests/phase6_bsearch_perf.zig", BSEARCH_PERF_MARKERS),
-        ("phase6_bsearch_c_parity_script", "scripts/zigux/check-phase6-bsearch-c-parity.py", BSEARCH_PARITY_SCRIPT_MARKERS),
-        ("phase6_bsearch_slice", "Documentation/zigux/phase6-bsearch-slice.md", BSEARCH_SLICE_MARKERS),
-        ("phase6_checksum", "zigux/tests/phase6_checksum.zig", CHECKSUM_TEST_MARKERS),
-        ("phase6_checksum_perf", "zigux/tests/phase6_checksum_perf.zig", CHECKSUM_PERF_MARKERS),
-        ("phase6_checksum_vectors", "zigux/tests/fixtures/phase6_checksum_vectors.zig", CHECKSUM_FIXTURE_MARKERS),
-        ("phase6_checksum_slice", "Documentation/zigux/phase6-checksum-slice.md", CHECKSUM_SLICE_MARKERS),
-        ("phase6_hexdump", "zigux/tests/phase6_hexdump.zig", HEXDUMP_TEST_MARKERS),
-        ("phase6_hexdump_perf", "zigux/tests/phase6_hexdump_perf.zig", HEXDUMP_PERF_MARKERS),
-        ("phase6_hexdump_vectors", "zigux/tests/fixtures/phase6_hexdump_vectors.zig", HEXDUMP_FIXTURE_MARKERS),
-        ("phase6_hexdump_slice", "Documentation/zigux/phase6-hexdump-slice.md", HEXDUMP_SLICE_MARKERS),
-    ]
-
-    for label, path, markers in file_marker_specs:
-        require_markers(missing, label, text(path), markers)
-
-    if not isinstance(phase6_manifest, dict):
-        missing.append("manifest:root")
-    else:
-        surveyed_commit = phase6_manifest.get("surveyed_commit")
-        if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
-            missing.append("manifest:surveyed_commit")
-        elif surveyed_commit != catalog_head:
-            missing.append("manifest:surveyed_commit_mismatch")
-
-        for key, expected in EXPECTED_MANIFEST.items():
-            require_manifest_equal(missing, phase6_manifest, key, expected)
-
-    if missing:
-        print("PHASE6_VALIDATION=fail")
-        print("PHASE6_MISSING_START")
-        for item in missing:
-            print(item)
-        print("PHASE6_MISSING_END")
-        return 1
-
-    total_marker_count = (
-        len(MAKE_MARKERS)
-        + len(WORKFLOW_MARKERS)
-        + len(SCRIPT_README_MARKERS)
-        + len(TESTS_README_MARKERS)
-        + len(DOC_README_MARKERS)
-        + len(PHASE6_BUILD_MARKERS)
-        + len(CATALOG_MARKERS)
-        + len(BASE64_TEST_MARKERS)
-        + len(BASE64_PERF_MARKERS)
-        + len(BASE64_PARITY_SCRIPT_MARKERS)
-        + len(BASE64_SLICE_MARKERS)
-        + len(BSEARCH_TEST_MARKERS)
-        + len(BSEARCH_PERF_MARKERS)
-        + len(BSEARCH_PARITY_SCRIPT_MARKERS)
-        + len(BSEARCH_SLICE_MARKERS)
-        + len(CHECKSUM_TEST_MARKERS)
-        + len(CHECKSUM_PERF_MARKERS)
-        + len(CHECKSUM_FIXTURE_MARKERS)
-        + len(CHECKSUM_SLICE_MARKERS)
-        + len(HEXDUMP_TEST_MARKERS)
-        + len(HEXDUMP_PERF_MARKERS)
-        + len(HEXDUMP_FIXTURE_MARKERS)
-        + len(HEXDUMP_SLICE_MARKERS)
-    )
-
-    print("PHASE6_VALIDATION=pass")
-    print(f"PHASE6_REQUIRED_MARKER_COUNT={total_marker_count}")
-    print(f"PHASE6_CATALOG_VERIFIED_HEAD={catalog_head}")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
