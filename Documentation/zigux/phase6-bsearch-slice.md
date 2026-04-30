@@ -36,6 +36,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 4. replay the representative external C-vs-Zig parity spot check when portability-sensitive behavior is under review
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`
+- `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test`
 - `zigux/tests/phase6_bsearch_c_parity.zig`
 - `zigux/tests/fixtures/phase6_bsearch_c_harness.c`
 
@@ -63,6 +64,7 @@ The current tests check:
 - representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup, not only on average across the perf run
 - inline sorted integer and symbol tables keep the current lookup corpus deterministic without introducing a generated fixture file
 - a replayable perf-sanity harness reports lookup cost plus both average and worst-case comparator work for representative sorted slices, with deterministic edge, midpoint, and miss probes front-loaded before the seeded interior lookups
+- the external parity checker now also carries a built-in `--self-test` path for its missing-path guards, generated build template, and sorted-output normalization so reviewability does not depend only on a locally runnable `zig` plus `cc` pair
 - a representative external C-vs-Zig parity replay currently replays 17 sorted lookup cases covering integer hits and misses, singleton and empty-slice behavior, ascending and descending comparator-driven lookups, duplicate hits across beginning, middle, and end duplicate runs on a found-or-null basis without pinning a stable duplicate index, heterogeneous string-key lookup, and mutable-pointer write-through behavior
 
 ## Non-goals
