@@ -54,7 +54,7 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
-const surveyed_commit = "63d56ce33d49c8434f94a8d13b98e1d8384cfd37";
+const surveyed_commit = "aa26a0ac29c7b690f8575c7b3004025df4716aaa";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -113,7 +113,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 5);
     try std.testing.expectEqual(@as(usize, 7), manifest.non_goals.len);
 
@@ -130,6 +130,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var saw_main_payload_surface = false;
     var saw_function_balance = false;
     var saw_selftest_family_order = false;
+    var saw_failed_exit_rollback = false;
     var saw_freeze_map_boundary_check = false;
     var saw_loader_free_blocker_check = false;
     var saw_sample_module = false;
@@ -266,6 +267,16 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative_location") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "8 total-event") != null);
         }
+        if (std.mem.eql(u8, check.id, "failed-exit-rollback")) {
+            saw_failed_exit_rollback = true;
+            try std.testing.expectEqualStrings("rollback_contract", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "error.OutstandingRegistration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initialized stage") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "replay run counters") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "explicit per-thread event totals") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload literals intact") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest-to-exit path resumes") != null);
+        }
         if (std.mem.eql(u8, check.id, "freeze-map-boundary")) {
             saw_freeze_map_boundary_check = true;
             try std.testing.expectEqualStrings("governance_surface", check.kind);
@@ -292,9 +303,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
-        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
-        } else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {
-        } else {
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {} else if (std.mem.startsWith(u8, gap.zigux_destination, "Documentation/zigux/")) {} else {
             try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
@@ -365,6 +374,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(saw_main_payload_surface);
     try std.testing.expect(saw_function_balance);
     try std.testing.expect(saw_selftest_family_order);
+    try std.testing.expect(saw_failed_exit_rollback);
     try std.testing.expect(saw_freeze_map_boundary_check);
     try std.testing.expect(saw_loader_free_blocker_check);
     try std.testing.expect(saw_sample_module);
@@ -427,7 +437,7 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "study-boundary note rather than a freeze-map reopen request") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Architecture Council") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `63d56ce33d49c8434f94a8d13b98e1d8384cfd37`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "landed starter surface summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "loader-free blocker restatement") != null);
 
