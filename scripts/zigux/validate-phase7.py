@@ -328,11 +328,22 @@ expected_phase7_build_paths = {
 }
 
 expected_phase7_import_calls = {
-    "string_helpers": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_string_helpers\.zig",\s*"string_helpers",\s*"\.\./\.\./lib/string_helpers\.zig",',
-    "cmdline": r'createImportedTestRoot\(\s*b,\s*target,
-optimize,\s*"phase7_cmdline\.zig",\s*"cmdline",\s*"\.\./\.\./lib/cmdline\.zig",',
-    "argv_split": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_argv_split\.zig",\s*"argv_split",\s*"\.\./\.\./lib/argv_split\.zig",',
-    "rbtree": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\.zig",\s*"rbtree",\s*"\.\./\.\./lib/rbtree\.zig",',
+    "string_helpers": (
+        r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_string_helpers\.zig",'
+        r'\s*"string_helpers",\s*"\.\./\.\./lib/string_helpers\.zig",'
+    ),
+    "cmdline": (
+        r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_cmdline\.zig",'
+        r'\s*"cmdline",\s*"\.\./\.\./lib/cmdline\.zig",'
+    ),
+    "argv_split": (
+        r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_argv_split\.zig",'
+        r'\s*"argv_split",\s*"\.\./\.\./lib/argv_split\.zig",'
+    ),
+    "rbtree": (
+        r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\.zig",'
+        r'\s*"rbtree",\s*"\.\./\.\./lib/rbtree\.zig",'
+    ),
 }
 
 expected_phase7_run_labels = {
