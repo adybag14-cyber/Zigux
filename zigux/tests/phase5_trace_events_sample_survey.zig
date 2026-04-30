@@ -199,7 +199,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownership_and_lifetime") != null);
         }
         if (std.mem.eql(u8, check.id, "callback-registration-balance")) {
-            saw_callback_balance_check = true;
+            sawCallback_balance_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "callback path") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero") != null);
         }
@@ -241,7 +241,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_focus_check);
     try std.testing.expect(saw_callback_balance_check);
     try std.testing.expect(saw_single_registration_check);
-    try std.testing.expect(saw_exit_check);
+    try std.testing.expect(sawExit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "CREATE_TRACE_POINTS parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "tracepoint macro parity from trace-events-sample.h"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "kernel thread scheduling or timeout parity"));
@@ -251,6 +251,19 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
 test "phase 5 trace-events contributor docs stay aligned with the shipped review surface" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -291,7 +304,15 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L23") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=7c95cdbe21c6d4fc3266ecd676d883209568deeb") != null);
+    {
+        const surveyed_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "PHASE5_SURVEYED_COMMIT={s}",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(surveyed_commit_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_line) != null);
+    }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9 runtime pilot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
@@ -319,7 +340,15 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5-trace-events-sample-survey-tests 2 pass (2 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptor, manifest-backed survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "infer the new boundary from code alone") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=7c95cdbe21c6d4fc3266ecd676d883209568deeb`") != null);
+    {
+        const pinned_commit_line = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT={s}`",
+            .{manifest.surveyed_commit},
+        );
+        defer std.testing.allocator.free(pinned_commit_line);
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, pinned_commit_line) != null);
+    }
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/trace_events_sample.zig") != null);
