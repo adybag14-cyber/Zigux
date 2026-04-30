@@ -1,7 +1,7 @@
 {
   "lane_key": "P11-L18",
   "phase": "Phase 11",
-  "surveyed_commit": "34d2750ba817c2cc9862df2b48c44a6155b300fe",
+  "surveyed_commit": "146f218b0c604a197542b1cddc9268a070eba029",
   "anchor": "drivers/tty/hvc/hvc_console.c",
   "roadmap_destinations": [
     "drivers/tty/hvc/*.zig",
@@ -88,6 +88,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
       "why_now": "A driver-local layout_assert checkpoint now keeps struct winsize reviewable for the hvc resize path by pinning size 8, alignment 2, and offsets 0, 2, 4, and 6 without claiming tty-core or struct hvc_struct ownership."
+    },
+    {
+      "id": "phase11-hvc-console-hv-ops-layout-assert",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "A second driver-local layout_assert checkpoint now keeps struct hv_ops reviewable by pinning the callback-table order at size 72, alignment 8, and pointer offsets 0 through 64 without claiming struct hvc_struct, tty registration, or live hypervisor I/O ownership."
     },
     {
       "id": "phase11-hvc-console-driver-tests",
