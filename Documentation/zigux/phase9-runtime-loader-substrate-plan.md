@@ -1,33 +1,35 @@
 # Phase 9 Shared Runtime Loader Substrate Plan
 
-This document captures the bounded Phase 9 follow-up after the landed bitmap and kretprobe loader scaffolds and now records the first shared request surface that both loaders can emit.
+This document captures the bounded Phase 9 follow-up after the landed atomic64, bitmap, and kretprobe loader scaffolds and now records the first shared request surface that all three loaders can emit.
 
 ## Status
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=shared-runtime-loader-substrate-plan`
-- scope: shared request shape, shared loader-stage vocabulary, bitmap and kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
+- scope: shared request shape, shared loader-stage vocabulary, atomic64 plus bitmap plus kretprobe handoff alignment, and an explicit low-risk path that now lands as `zigux/kernel/runtime_loader.zig` without claiming live runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `zigux/kernel/runtime_loader.zig`
+  - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
   - `zigux/tests/phase9_build.zig`
 
 ## Why this slice exists
 
-The live repo already ships two bounded loader-handoff surfaces:
+The live repo already ships three bounded loader-handoff surfaces:
 
+- `samples/zigux/runtime_atomic64_loader.zig`
 - `samples/zigux/runtime_bitmap_loader.zig`
 - `samples/zigux/runtime_kretprobe_loader.zig`
 
-Both files currently stop at the same honest blocker: they can prepare a reviewable handoff plan, request runtime loading, and release without substrate, but they still have nowhere shared to send that handoff inside Zigux.
+All three files currently stop at the same honest blocker: they can prepare a reviewable handoff plan, request runtime loading, and release without substrate, but they still have nowhere shared to send that handoff inside Zigux.
 
 That makes the next useful step a shared substrate surface rather than another lane-local wording pass or a premature runtime-module implementation.
 
 ## Shared facts already visible in the repo
 
-The landed bitmap and kretprobe loaders already agree on several core ideas:
+The landed atomic64, bitmap, and kretprobe loaders already agree on several core ideas:
 
 - a loader begins at `idle`, moves to `prepared`, then to `waiting_on_runtime_substrate`, and can fall back to `released_without_substrate`
 - each lane exposes a bounded handoff plan rather than pretending the runtime substrate already exists
@@ -36,6 +38,7 @@ The landed bitmap and kretprobe loaders already agree on several core ideas:
 
 The main differences are lane-specific payload details:
 
+- atomic64 needs a bounded counter snapshot plus `init_runs`, `selftest_runs`, and `exit_runs` reviewability
 - bitmap needs a bounded bitmap summary that can seed first-set, first-zero, weight, and bit-count review
 - kretprobe needs explicit `register_kretprobe` and `unregister_kretprobe` naming plus symbol, `maxactive`, and private-data-size handoff facts
 
@@ -58,10 +61,11 @@ The landed shared request keeps these common fields explicit:
 - `requires_runtime_substrate`
 - `provides_selftest_hook`
 - sample handoff stage
-- lane kind such as bitmap or kretprobe
+- lane kind such as atomic64, bitmap, or kretprobe
 
 The first lane payloads stay small:
 
+- atomic64 payload: counter snapshot plus lifecycle counters only
 - bitmap payload: summary snapshot only
 - kretprobe payload: register API, unregister API, symbol name, `maxactive`, private-data bytes, and current bookkeeping summary
 
@@ -69,7 +73,7 @@ The first lane payloads stay small:
 
 The first shared substrate implementation is now ready because:
 
-- bitmap and kretprobe can both export a common request shape without losing their current lane-specific facts
+- atomic64, bitmap, and kretprobe can all export a common request shape without losing their current lane-specific facts
 - the shared Phase 9 build can run focused tests for that common request shape
 - the code still makes it impossible to confuse a bounded handoff with a real loadable runtime module
 - the trace-events lane remains free to adopt the same request shape later without forcing the first implementation to solve thread creation or tracepoint registration
