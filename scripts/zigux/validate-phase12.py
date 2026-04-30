@@ -111,6 +111,22 @@ CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 12 libbpf snapshot packet, do `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet and exact surveyed commit instead of leaving repeat-run stability in run memory only?",
 ]
 PHASE12_PACKET_MARKERS = {
+    "phase12_virtio_net_test": (
+        "phase12 virtio net probe starter stays anchored to virtio_net.c",
+        "phase12 virtio net freeze and restore preserve queue recovery intent",
+        "phase12 virtio net queue resume planning distinguishes renegotiation from reset",
+        "phase12 virtio net upgrades hdr_len shape for udp tunnel support",
+        "phase12 virtio net flags big-packet receive planning for guest gso throughput",
+        "phase12 virtio net plans mergeable refill budgets from mtu and header state",
+    ),
+    "phase12_virtio_net_survey": (
+        "probe snapshot helper plus matching queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill summaries",
+        "records an explicit queue recovery action that distinguishes bounded queue-pair clamping from true single-queue fallback",
+        "the lab can report whether the remembered queue plan is ready to resume immediately, needs feature renegotiation, or still requires reset",
+        "the probe snapshot mirrors the `hdr_len` branch in `virtnet_probe()`",
+        "the probe snapshot records whether probe should expect small buffers, mergeable receive buffers, or big-packet refill pressure",
+        "the lab can turn queue-entry count plus negotiated `hdr_len`, MTU, and headroom state into packet budget bytes and a minimum buffer length summary",
+    ),
     "phase12_nvme_pci_test": (
         "phase12 nvme pci freezes queue planning across reset and restarts io numbering afterward",
         "phase12 nvme pci prp shape helper records first-page offset and list bounds",
@@ -447,6 +463,8 @@ if "`35/35`" in docs_root_readme:
     missing.append("docs_root_readme:stale_phase12_summary")
 
 for source_name, source_text, markers in [
+    ("phase12_virtio_net_test", text("zigux/tests/phase12_virtio_net.zig"), PHASE12_PACKET_MARKERS["phase12_virtio_net_test"]),
+    ("phase12_virtio_net_survey", text("Documentation/zigux/phase12-virtio-net-survey.md"), PHASE12_PACKET_MARKERS["phase12_virtio_net_survey"]),
     ("phase12_nvme_pci_test", text("zigux/tests/phase12_nvme_pci.zig"), PHASE12_PACKET_MARKERS["phase12_nvme_pci_test"]),
     ("phase12_nvme_pci_slice", text("Documentation/zigux/phase12-nvme-pci-slice.md"), PHASE12_PACKET_MARKERS["phase12_nvme_pci_slice"]),
     ("phase12_virtio_scsi_test", text("zigux/tests/phase12_virtio_scsi.zig"), PHASE12_PACKET_MARKERS["phase12_virtio_scsi_test"]),
@@ -647,4 +665,4 @@ print(f"PHASE12_EXPECTED_SUMMARY_LINE={expected_summary_line}")
 print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE12_BLOCKED_DMA_STATUS_COUNT={blocked_dma_total}")
 print(f"PHASE12_BLOCKED_OBJECT_STATUS_COUNT={blocked_object_total}")
-print(f"PHASE12_DEFERRED_HIGH_RISK_STATUS_COUNT={deferred_high_risk_total}")
+print(f"PHASE12_DEFERRED_HIGH_RISK_STATUS_COUNT={deferred_high_risk_total})
