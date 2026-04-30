@@ -36,14 +36,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable now that the repo has both the core slice and the first ring-local helper, so the lane can track the remaining in-memory queue behavior honestly."
+      "why_now": "A dedicated survey gate keeps the live queue-discipline packet and the parked MMIO lifecycle-and-IRQ blocker explicit now that the repo has both the core slice and the first ring-local helper, so the lane can track the current reviewable boundary honestly."
     },
     {
       "id": "phase10-virtio-ring-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO follow-up ladder against the roadmap and prevents the repo from overstating virtio_ring progress."
+      "why_now": "The lane needs a Phase 10 note that records the landed MMIO helper ladder, the remaining blocked MMIO lifecycle-and-IRQ boundary against the roadmap, and the current parked posture without overstating virtio_ring progress."
     },
     {
       "id": "phase10-virtqueue-shape-helper",
