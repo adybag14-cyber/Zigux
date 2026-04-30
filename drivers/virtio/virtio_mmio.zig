@@ -394,10 +394,6 @@ pub const VirtioMmioRegisterWindowLab = struct {
             previous_value |= @as(u32, self.config_window[config_offset + index]) << @intCast(index * 8);
         }
 
-        for (0..width_bytes) |index| {
-            self.config_window[config_offset + index] = @intCast((value >> @intCast(index * 8)) & 0xff);
-        }
-
         return .{
             .anchor = descriptor().anchor,
             .offset = offset,
