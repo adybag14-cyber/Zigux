@@ -267,7 +267,8 @@ def run_self_test() -> int:
             "    _ = .{ base_addr, offset, value };\n"
             "}\n\n"
             'test "phase3 mmio wrapper uses bounded volatile access" {}\n'
-            'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}\n',
+            'test "phase3 mmio wrapper keeps declared scope explicit across widths" {}\n'
+            'test "phase3 mmio wrapper rejects misaligned scoped accesses" {}\n',
             encoding="utf-8",
             newline="\n",
         )
@@ -277,7 +278,13 @@ def run_self_test() -> int:
             "    volatile_mmio = 1,\n"
             "    raw_pointer_bridge = 2,\n"
             "};\n\n"
-            'test "phase3 narrow unsafe scope stays explicit" {}\n',
+            "pub fn ensureAddressAlignedFor(comptime T: type, addr: usize) ScopeError!void {\n"
+            "    _ = .{ T, addr };\n"
+            "}\n\n"
+            'test "phase3 narrow unsafe scope stays explicit" {}\n'
+            'test "phase3 narrow unsafe scoped helpers reject misaligned addresses" {\n'
+            "    try std.testing.expectError(error.MisalignedAccess, scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));\n"
+            "}\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -300,6 +307,10 @@ def run_self_test() -> int:
             "    barrier.full();\n"
             "    try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));\n"
             "    try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));\n"
+            "    try std.testing.expectError(error.MisalignedAccess, mmio.write16Scoped(.volatile_mmio, base, 1, 0x99));\n"
+            "    try std.testing.expectError(error.MisalignedAccess, mmio.read16Scoped(.volatile_mmio, base, 1));\n"
+            "    try std.testing.expectError(error.MisalignedAccess, mmio.write32Scoped(.volatile_mmio, base, 2, 0x99));\n"
+            "    try std.testing.expectError(error.MisalignedAccess, mmio.read32Scoped(.volatile_mmio, base, 2));\n"
             "    try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);\n"
             "    _ = .{\n"
             "        atomic.fetchSub(u32, &value, 4, .seq_cst),\n"
