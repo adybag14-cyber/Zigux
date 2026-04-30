@@ -132,10 +132,10 @@ The roadmap keeps Phase 10 inside bounded virtio delivery under `drivers/virtio/
 - `kernel/rcu/tree.c`
 - `net/core/skbuff.c`
 
-The study-only boundary anchors also remain outside this Phase 10 tranche:
+The study-only boundary anchors also remain outside this Phase 10 tranche and stay owned by the separate Phase 14 core-adjacent study-only lane:
 
-- `kernel/workqueue.c`
-- `kernel/trace/ring_buffer.c`
+- `kernel/workqueue.c` stays in the Phase 14 boundary maps, concurrency audits, and explicit stay-in-C decisions where warranted packet, with `kernel/workqueue_bridge.zig` as the only named future Zigux destination
+- `kernel/trace/ring_buffer.c` stays in the Phase 14 wrapper-first or study-only posture with the same boundary maps and concurrency audits packet, and `kernel/trace/ring_buffer.zig` remains only a future destination if years of evidence justify it
 
 This closure packet therefore records an aligned freeze-boundary reading rather than a status-change request:
 
