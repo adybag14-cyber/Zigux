@@ -72,7 +72,7 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-3", ",\t5", "\n 7-8\n" },
+        .chunks = &.{ "+0-3", ",\t+5", "\n +7-+8\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
