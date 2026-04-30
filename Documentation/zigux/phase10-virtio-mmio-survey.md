@@ -37,8 +37,10 @@ The survey manifest now records:
 - the landed `phase10-virtio-core-survey-note`
 - the landed `phase10-virtio-ring-survey-gate`
 - the landed `phase10-virtio-ring-lab-helper`
+- the landed `phase10-virtio-ring-slice-note`
 - the landed `phase10-virtio-mmio-survey-gate`
 - the landed `phase10-virtio-mmio-survey-note`
+- the landed `phase10-virtio-mmio-slice-note`
 - the landed `phase10-callback-delay-helper`
 - the landed `phase10-mmio-register-window-helper`
 - the landed `phase10-mmio-queue-register-helper`
