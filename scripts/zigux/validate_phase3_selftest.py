@@ -151,8 +151,21 @@ def run_self_test() -> int:
         assert "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)" in low_level_markers
         assert "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)" in low_level_markers
         assert "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)" in low_level_markers
+        assert (
+            "try std.testing.expectError(error.AddressOverflow, mmio.write8Scoped(.volatile_mmio, std.math.maxInt(usize), 1, 0x99));"
+            in low_level_markers
+        )
+        assert (
+            "try std.testing.expectError(error.AddressOverflow, mmio.read32Scoped(.volatile_mmio, std.math.maxInt(usize), 4));"
+            in low_level_markers
+        )
         assert 'test "phase3 low-level wrapper ABI range shape stays stable"' in low_level_markers
         assert 'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"' in low_level_markers
+        mmio_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/helpers/mmio.zig"]
+        assert 'test "phase3 mmio wrapper rejects overflowed scoped accesses"' in mmio_markers
+        narrow_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/unsafe/narrow.zig"]
+        assert "pub fn checkedSpanEnd(comptime T: type, base: usize, len: usize) ScopeError!usize {" in narrow_markers
+        assert 'test "phase3 narrow unsafe scoped helpers reject overflowed address math"' in narrow_markers
 
         export_uapi_check = root / "scripts/zigux/validate-phase3-export-uapi-survey.py"
         export_uapi_check.write_text(
