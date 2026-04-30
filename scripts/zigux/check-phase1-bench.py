@@ -57,10 +57,87 @@ def unexpected_phase1_bench_keys(
     )
 
 
+def assert_equal(label: str, actual, expected) -> None:
+    if actual != expected:
+        raise SystemExit(f'phase1-bench:self-test:{label}:expected={expected!r}:actual={actual!r}')
+
+
+def run_self_test() -> int:
+    expectations = {
+        'status': 'pass',
+        'iterations': {
+            'PHASE1_BENCH_SAMPLE_ITERATIONS': 7,
+        },
+        'exact_checksums': {
+            'PHASE1_BENCH_SAMPLE_CHECKSUM': 13,
+        },
+        'checksums': [
+            'PHASE1_BENCH_OPTIONAL_CHECKSUM',
+        ],
+    }
+
+    parsed = parse_output(
+        '\n'.join([
+            'noise',
+            'PHASE1_BENCH=pass',
+            'PHASE1_BENCH_SAMPLE_ITERATIONS=7',
+            'PHASE1_BENCH_SAMPLE_CHECKSUM=13',
+            'PHASE1_BENCH_OPTIONAL_CHECKSUM=19',
+            'PHASE1_BENCH_SAMPLE_CHECKSUM=23',
+            '',
+        ])
+    )
+    assert_equal('parse_output_overwrite', parsed['PHASE1_BENCH_SAMPLE_CHECKSUM'], '23')
+    assert_equal(
+        'expected_metric_keys',
+        expected_metric_keys(expectations),
+        {
+            'PHASE1_BENCH_SAMPLE_ITERATIONS',
+            'PHASE1_BENCH_SAMPLE_CHECKSUM',
+            'PHASE1_BENCH_OPTIONAL_CHECKSUM',
+        },
+    )
+    assert_equal(
+        'unexpected_keys_empty',
+        unexpected_phase1_bench_keys(
+            {
+                'PHASE1_BENCH': 'pass',
+                'PHASE1_BENCH_SAMPLE_ITERATIONS': '7',
+                'PHASE1_BENCH_SAMPLE_CHECKSUM': '13',
+                'PHASE1_BENCH_OPTIONAL_CHECKSUM': '19',
+            },
+            expectations,
+        ),
+        [],
+    )
+    assert_equal(
+        'unexpected_keys_sorted',
+        unexpected_phase1_bench_keys(
+            {
+                'PHASE1_BENCH': 'pass',
+                'PHASE1_BENCH_ZETA': '1',
+                'PHASE1_BENCH_ALPHA': '2',
+            },
+            expectations,
+        ),
+        ['PHASE1_BENCH_ALPHA', 'PHASE1_BENCH_ZETA'],
+    )
+    assert_equal('find_zig_explicit', find_zig('/tmp/zig-self-test'), '/tmp/zig-self-test')
+    assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
+
+    print('PHASE1_BENCH_SELF_TEST=pass')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=6')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Run and validate the bounded Phase 1 benchmark smoke output.')
     parser.add_argument('--zig', help='Path to Zig executable')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in parser and manifest checks')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     zig = find_zig(args.zig)
     expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
