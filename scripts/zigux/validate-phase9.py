@@ -369,7 +369,7 @@ required_atomic64_survey_markers = [
 required_atomic64_module_slice_markers = [
     "a direct post-selftest mutation replay proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit",
     "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
-    "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
+    "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`",
     "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
     "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker",
 ]
@@ -477,23 +477,22 @@ required_kretprobe_manifest_markers = [
 
 required_kretprobe_survey_test_markers = [
     'const DeliveryEvidence = struct {',
-    'const LoaderGap = struct {',
     'const OwnershipEntry = struct {',
     'const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";',
-    'test "phase 9 runtime kretprobe survey keeps lifecycle and loader rollback markers explicit" {',
+    'test "phase 9 runtime kretprobe survey manifest records the landed ownership packet and remaining shared control blocker" {',
     'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
-    'try std.testing.expectEqual(@as(usize, 3), manifest.delivery_evidence_catalog.len);',
-    'try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);',
+    'try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);',
+    'try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
-    'std.mem.eql(u8, check.id, "loader-rollback-state")',
+    'std.mem.eql(u8, check.id, "loader-rollback-surface")',
     'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
     'std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")',
-    'std.mem.indexOf(u8, gap.why_now, "command-name, argv-policy, or environment-derived activation handling")',
+    'std.mem.indexOf(u8, gap.why_now, "pre-execution")',
 ]
 
 required_trace_events_survey_markers = [
@@ -855,8 +854,7 @@ def run_self_test() -> int:
                 "",
                 1,
             ),
-            encoding="utf-8",
-        )
+            encoding="utf-8")
         expect_missing_marker(
             "trace_events_sample_selftest_counter",
             tmp_root,
@@ -885,7 +883,7 @@ def run_self_test() -> int:
         original_kretprobe_survey_test = kretprobe_survey_test_path.read_text(encoding="utf-8")
         kretprobe_survey_test_path.write_text(
             original_kretprobe_survey_test.replace(
-                '            try std.testing.expect(std.mem.indexOf(u8, check.expected, "released_without_substrate") != null);\n',
+                '            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);\n',
                 "",
                 1,
             ),
@@ -894,7 +892,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "kretprobe_loader_rollback_surface",
             tmp_root,
-            'kretprobe_survey_test:std.mem.indexOf(u8, check.expected, "released_without_substrate")',
+            'kretprobe_survey_test:std.mem.indexOf(u8, gap.why_now, "pre-execution")',
         )
         kretprobe_survey_test_path.write_text(original_kretprobe_survey_test, encoding="utf-8")
 
