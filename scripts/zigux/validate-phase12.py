@@ -152,6 +152,17 @@ PHASE12_PACKET_MARKERS = {
         "derives one recovery-time blk-mq queue-map restore summary from the frozen queue layout so the bounded default, read, and poll map counts plus their offsets remain reviewable across transport reset without claiming a live `map_queues` callback or CPU-affinity restore",
     ),
 }
+SURVEY_NOTE_MARKERS = {
+    "phase12_virtio_scsi_manifest.json": (
+        "## Rollback And Reversible Delivery",
+        "owner: `Storage Driver Lane`",
+        "rollback owner: `Storage Driver Lane`",
+        "fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth",
+        "phase12-virtio-scsi-tests",
+        "phase12-virtio-scsi-survey-tests",
+        "rollback drill: run `make -C zigux phase12-validate`",
+    ),
+}
 BUILD_MARKERS = [
     "phase12-nvme-pci-tests",
     "phase12-nvme-pci-survey-tests",
@@ -548,6 +559,9 @@ for manifest_name, spec in MANIFEST_SPECS.items():
     survey_note_text = text(spec["survey_note_path"])
     if not isinstance(surveyed_commit, str) or surveyed_commit not in survey_note_text:
         missing.append(f"{manifest_name}:survey_note:surveyed_commit")
+    for marker in SURVEY_NOTE_MARKERS.get(manifest_name, ()):
+        if marker not in survey_note_text:
+            missing.append(f"{manifest_name}:survey_note:{marker}")
 
     for count_marker, status_name in spec["survey_count_markers"]:
         count = count_statuses(manifest, status_name)
