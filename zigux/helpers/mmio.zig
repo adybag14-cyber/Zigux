@@ -98,3 +98,12 @@ test "phase3 mmio wrapper rejects misaligned scoped accesses" {
     try std.testing.expectError(error.MisalignedAccess, write32Scoped(.volatile_mmio, base, 2, 0x12345678));
     try std.testing.expectError(error.MisalignedAccess, read32Scoped(.volatile_mmio, base, 2));
 }
+
+test "phase3 mmio wrapper rejects overflowed scoped accesses" {
+    const max = std.math.maxInt(usize);
+
+    try std.testing.expectError(error.AddressOverflow, write16Scoped(.volatile_mmio, max, 1, 0xabcd));
+    try std.testing.expectError(error.AddressOverflow, read16Scoped(.volatile_mmio, max, 1));
+    try std.testing.expectError(error.AddressOverflow, write32Scoped(.volatile_mmio, max, 4, 0x12345678));
+    try std.testing.expectError(error.AddressOverflow, read32Scoped(.volatile_mmio, max, 4));
+}
