@@ -307,3 +307,45 @@ test "runtime kretprobe loader can release the shared runtime-loader request wit
     try std.testing.expectEqualStrings("zigux_runtime_kretprobe_exit", released.exit_symbol);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
 }
+
+test "runtime kretprobe loader preserves an explicit shared command name" {
+    const plan = RuntimeKretprobeLoadPlan{
+        .module_name = "runtime_kretprobe",
+        .command_name = "perf-runtime-kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .register_api = "register_kretprobe",
+        .unregister_api = "unregister_kretprobe",
+        .symbol_name = "do_sys_openat2",
+        .maxactive = 20,
+        .private_data_bytes = @sizeOf(runtime_kretprobe_sample.InstancePrivateData),
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = runtime_kretprobe_sample.ModuleStage.selftest_complete,
+        .summary = .{
+            .stage = .selftest_complete,
+            .symbol_name = "do_sys_openat2",
+            .maxactive = 20,
+            .active_instances = 0,
+            .skipped_kernel_threads = 1,
+            .nmissed = 1,
+            .last_retval = 42,
+            .last_duration_ns = 75,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+            .entry_timestamp_armed = false,
+        },
+    };
+
+    const request = toSharedRequest(plan);
+    try std.testing.expectEqualStrings("perf-runtime-kretprobe", request.command_name.?);
+    try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expectEqualStrings("perf-runtime-kretprobe", released.command_name.?);
+    try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
