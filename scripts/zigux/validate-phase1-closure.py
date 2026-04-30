@@ -127,7 +127,8 @@ def run_self_test() -> int:
         )
 
         manifest_path = tmp_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json'
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        original_manifest = manifest_path.read_text(encoding='utf-8')
+        manifest = json.loads(original_manifest)
         manifest['helper_count'] = 12
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         expect_missing_marker(
@@ -135,9 +136,19 @@ def run_self_test() -> int:
             tmp_root,
             'manifest:helper_count=13',
         )
+        manifest_path.write_text(original_manifest, encoding='utf-8')
+
+        manifest = json.loads(original_manifest)
+        manifest['helper_review_notes']['tools/lib/find_bit.zig']['alias_unit_test_anchor'] = ''
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_missing_marker(
+            'find_bit_alias_anchor',
+            tmp_root,
+            'manifest:find_bit.alias_unit_test_anchor',
+        )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=4')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5')
     return 0
 
 
