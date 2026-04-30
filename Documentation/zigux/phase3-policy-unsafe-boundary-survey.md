@@ -4,21 +4,31 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=b7ce6cc40f8b7819c5c840af28f0d361a167a3ec`
+- `PHASE3_SURVEYED_COMMIT=99eb24971cc35a0baa7fb071ecd01d42e22fb73d`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=b775587391e3e4f52e5248388e9d22852745760c`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_STATUS=interop-byte-decode-landed`
+- `PHASE3_PANIC_POLICY_BLOB_SHA=3eb14283de9a4229deae0ec546dca90942c563c5`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_STATUS=interop-byte-decode-and-init-flow-landed`
+- `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=61355af4c5498283ca9e235634c3e0a56d2caca6`
 - `PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig`
 - `PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation`
+- `PHASE3_INTEROP_POLICY_BLOB_SHA=99a1a10c51dee0cfa000689422d13de8002d3400`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
+- `PHASE3_UNSAFE_BLOB_SHA=d8ab4bcb25b30702fe29e3dee0c8fa7fdc6c4f9f`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
+- `PHASE3_MMIO_BLOB_SHA=031bb804a25982da8d3de2a944777b49b21a3405`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=2aba404045daca63246680a2a33a2c0b5dcad8a9`
+- `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=4613c79a8d082b2dd3fe9502b7dcdb03ef181bb2`
+- `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=9db79153aa4400b663bb228e87327f8f2f4662c6`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=643ad2c2cc2f88eba65d12773a0dc4d271eee49e`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer`
@@ -39,7 +49,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey is pinned to verified `master` head `b7ce6cc40f8b7819c5c840af28f0d361a167a3ec` for the directly coupled policy-and-unsafe packet, so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+This survey is pinned to verified `master` head `99eb24971cc35a0baa7fb071ecd01d42e22fb73d` for the directly coupled policy-and-unsafe packet, and it now also records packet-local blob IDs for the curated helper, build, test, manifest, and slice-note files so shallow history alone does not turn a reviewable packet into a false validation failure.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
@@ -64,7 +74,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 
 - the original substrate ledger entry already named `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, and `zigux/unsafe/narrow.zig` as part of the permanent Phase 3 boundary
 - current `master` now also keeps the typed interop-policy and scoped MMIO policy evidence inside that same packet through `zigux/helpers/interop_policy.zig`, `zigux/helpers/mmio.zig`, and the focused `zigux/tests/phase3_policy_unsafe.zig` replay
-- the new dedicated survey gate `scripts/zigux/validate-phase3-policy-unsafe-survey.py` now keeps that boundary packet reviewable at the survey layer too, so packet-local drift can fail before the broader ABI validator is asked to explain it
+- the new dedicated survey gate `scripts/zigux/validate-phase3-policy-unsafe-survey.py` now keeps that boundary packet reviewable at the survey layer through packet-local blob IDs first and `PHASE3_SURVEYED_COMMIT` fallback second, so packet-local drift can fail before the broader ABI validator is asked to explain it even on shallow checkouts
 
 ## Current Boundary Gap
 
@@ -86,6 +96,6 @@ The next honest follow-on inside this family is still narrow:
 
 - keep the current `layout_assert`, panic, allocator, typed `InteropPolicy`, narrow unsafe, and scoped MMIO packet stable until one roadmap-backed boundary helper needs direct `DecodedInteropPolicy` consumption
 - if that helper lands later, keep the change inside the same bounded ABI substrate packet rather than widening into global runtime policy machinery
-- refresh `PHASE3_SURVEYED_COMMIT` whenever the directly coupled policy-and-unsafe packet paths are deliberately resurveyed after boundary-local changes
+- refresh `PHASE3_SURVEYED_COMMIT` and the packet-local `*_BLOB_SHA` markers whenever the directly coupled policy-and-unsafe packet paths are deliberately resurveyed after boundary-local changes
 
 This lane does not justify broad runtime allocator integration, broader raw-pointer helpers, or a generic unsafe substrate expansion on its own.
