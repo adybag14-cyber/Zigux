@@ -127,10 +127,13 @@ fn expectTemplate(io: std.Io, anchor: AnchorScorecard) !void {
     try expectContains(template_doc, anchor.rollback_owner);
     try expectContains(template_doc, anchor.evidence_archive.replay_command);
     try expectContains(template_doc, anchor.evidence_archive.latest_blocker_disposition);
+    try expectContains(template_doc, "automatic return-to-blocked trigger");
+    try expectContains(template_doc, "phase15-indefinite-c-policy.md");
     try expectContains(template_doc, "narrower_followup_answers_blocker");
     try expectContains(template_doc, "evidence_packet_stale_or_contradictory");
     try expectContains(template_doc, "ownership_or_validation_changed");
     try expectContains(template_doc, "no Architecture Council approval claim");
+    try expectContains(template_doc, "written rationale");
 }
 
 test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly" {
@@ -148,7 +151,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("306be3109b5960918e693d2f7268446eda39b97d", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.archive_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.handoff_evidence.roadmap_requirements.len);
@@ -165,11 +168,20 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expect(manifest.repo_evidence.phase15_workflow_replay_present);
 
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.scorecard_metrics.freeze_in_c_anchor_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.scorecard_metrics.anchors_with_phase14_survey_evidence);
-    try std.testing.expectEqual(@as(usize, 18), manifest.scorecard_metrics.landed_scorecard_gaps);
+    try std.testing.expectEqual(@as(usize, 19), manifest.scorecard_metrics.landed_scorecard_gaps);
     try std.testing.expectEqual(@as(usize, 1), manifest.scorecard_metrics.blocked_scorecard_gaps);
+    try std.testing.expectEqual(@as(usize, 12), manifest.scorecard_metrics.required_review_process_record_fields);
+    try std.testing.expectEqualStrings("current roadmap phase", manifest.review_process.required_record_fields[0]);
+    try std.testing.expectEqualStrings("automatic return-to-blocked trigger", manifest.review_process.required_record_fields[7]);
+    try std.testing.expectEqualStrings("indefinite-C policy link or applicability note", manifest.review_process.required_record_fields[8]);
+    try std.testing.expectEqualStrings("written rationale", manifest.review_process.required_record_fields[11]);
+    try expectContains(manifest.review_process.retirement_rule, "current roadmap phase");
+    try expectContains(manifest.review_process.retirement_rule, "automatic return-to-blocked trigger");
+    try expectContains(manifest.review_process.retirement_rule, "indefinite-C policy link or applicability note");
+    try expectContains(manifest.review_process.retirement_rule, "written rationale");
 
     const sched_lines = try countLines(io_instance.io(), "kernel/sched/core.c", 1024 * 1024);
     const page_alloc_lines = try countLines(io_instance.io(), "mm/page_alloc.c", 1024 * 1024);
@@ -235,6 +247,11 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
     try expectContains(scorecard_doc, "lane identity, roadmap wording, and replay-backed evidence packet current");
     try expectContains(scorecard_doc, "shared replay path");
+    try expectContains(scorecard_doc, "the current roadmap phase, the decision record ID, and the lane owner");
+    try expectContains(scorecard_doc, "the automatic return-to-blocked trigger that sends the anchor back to blocked review posture");
+    try expectContains(scorecard_doc, "the indefinite-C policy link, or an explicit note saying why the packet is not yet entering that policy posture");
+    try expectContains(scorecard_doc, "the written rationale for why the current product state needs council attention now");
+    try expectContains(scorecard_doc, "phase15-scorecard-review-packet-field-sync");
     try expectContains(review_process_doc, "parity scorecard");
     try expectContains(indefinite_c_policy_doc, "parity scorecard");
     try expectContains(docs_readme, "Phase 15 notes");
@@ -255,16 +272,19 @@ test "phase 15 parity scorecard gap inventory stays bounded" {
     var blocked: usize = 0;
     var saw_owner_tracking = false;
     var saw_handoff_sync = false;
+    var saw_review_packet_field_sync = false;
 
     for (parsed.value.gaps) |gap| {
         if (std.mem.eql(u8, gap.status, "starter_landed")) landed += 1;
         if (std.mem.eql(u8, gap.status, "blocked_on_stay_in_c_evidence")) blocked += 1;
         if (std.mem.eql(u8, gap.id, "phase15-anchor-owner-tracking")) saw_owner_tracking = true;
         if (std.mem.eql(u8, gap.id, "phase15-maintenance-mode-handoff-sync")) saw_handoff_sync = true;
+        if (std.mem.eql(u8, gap.id, "phase15-scorecard-review-packet-field-sync")) saw_review_packet_field_sync = true;
     }
 
-    try std.testing.expectEqual(@as(usize, 18), landed);
+    try std.testing.expectEqual(@as(usize, 19), landed);
     try std.testing.expectEqual(@as(usize, 1), blocked);
     try std.testing.expect(saw_owner_tracking);
     try std.testing.expect(saw_handoff_sync);
+    try std.testing.expect(saw_review_packet_field_sync);
 }
