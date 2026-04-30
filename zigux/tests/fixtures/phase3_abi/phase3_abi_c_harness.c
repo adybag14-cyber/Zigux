@@ -3,48 +3,79 @@
 
 #include <linux/zigux.h>
 
+struct layout_field {
+    const char *name;
+    size_t offset;
+};
+
+struct layout_desc {
+    const char *name;
+    size_t size;
+    size_t align;
+    size_t field_count;
+    const struct layout_field *fields;
+};
+
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+static void emit_layout(FILE *out, const struct layout_desc *layout, int comma)
+{
+    fprintf(out, "\"%s\":{\"size\":%zu,\"align\":%zu,\"offsets\":{", layout->name, layout->size, layout->align);
+    for (size_t i = 0; i < layout->field_count; ++i) {
+        fprintf(out, "\"%s\":%zu%s", layout->fields[i].name, layout->fields[i].offset, (i + 1 < layout->field_count) ? "," : "");
+    }
+    fprintf(out, "}}%s", comma ? "," : "");
+}
+
+static const struct layout_field zigux_boundary_header_fields[] = {
+    {"size", offsetof(struct zigux_boundary_header, size)},
+    {"abi_version", offsetof(struct zigux_boundary_header, abi_version)},
+    {"flags", offsetof(struct zigux_boundary_header, flags)},
+};
+
+static const struct layout_field zigux_export_status_fields[] = {
+    {"code", offsetof(struct zigux_export_status, code)},
+    {"facility", offsetof(struct zigux_export_status, facility)},
+    {"flags", offsetof(struct zigux_export_status, flags)},
+};
+
+static const struct layout_field zigux_mmio_range_fields[] = {
+    {"base_addr", offsetof(struct zigux_mmio_range, base_addr)},
+    {"length", offsetof(struct zigux_mmio_range, length)},
+    {"stride", offsetof(struct zigux_mmio_range, stride)},
+};
+
+static const struct layout_field zigux_interop_policy_fields[] = {
+    {"panic_mode", offsetof(struct zigux_interop_policy, panic_mode)},
+    {"allocator_mode", offsetof(struct zigux_interop_policy, allocator_mode)},
+    {"unsafe_scope", offsetof(struct zigux_interop_policy, unsafe_scope)},
+    {"reserved", offsetof(struct zigux_interop_policy, reserved)},
+};
+
+static const struct layout_desc layouts[] = {
+    {"zigux_boundary_header", sizeof(struct zigux_boundary_header), _Alignof(struct zigux_boundary_header), ARRAY_SIZE(zigux_boundary_header_fields), zigux_boundary_header_fields},
+    {"zigux_export_status", sizeof(struct zigux_export_status), _Alignof(struct zigux_export_status), ARRAY_SIZE(zigux_export_status_fields), zigux_export_status_fields},
+    {"zigux_mmio_range", sizeof(struct zigux_mmio_range), _Alignof(struct zigux_mmio_range), ARRAY_SIZE(zigux_mmio_range_fields), zigux_mmio_range_fields},
+    {"zigux_interop_policy", sizeof(struct zigux_interop_policy), _Alignof(struct zigux_interop_policy), ARRAY_SIZE(zigux_interop_policy_fields), zigux_interop_policy_fields},
+};
+
 int main(void)
 {
-	printf(
-		"{\"abi_version\":%u,\"constants\":{\"facility_kernel\":%u,"
-		"\"status_flag_error\":%u,\"panic_abort\":%u,"
-		"\"allocator_caller_provided\":%u,"
-		"\"unsafe_scope_raw_pointer_bridge\":%u},"
-		"\"structs\":{\"zigux_boundary_header\":{\"size\":%zu,\"align\":%zu,"
-		"\"offsets\":{\"size\":%zu,\"abi_version\":%zu,\"flags\":%zu}},"
-		"\"zigux_export_status\":{\"size\":%zu,\"align\":%zu,"
-		"\"offsets\":{\"code\":%zu,\"facility\":%zu,\"flags\":%zu}},"
-		"\"zigux_mmio_range\":{\"size\":%zu,\"align\":%zu,"
-		"\"offsets\":{\"base_addr\":%zu,\"length\":%zu,\"stride\":%zu}},"
-		"\"zigux_interop_policy\":{\"size\":%zu,\"align\":%zu,"
-		"\"offsets\":{\"panic_mode\":%zu,\"allocator_mode\":%zu,"
-		"\"unsafe_scope\":%zu,\"reserved\":%zu}}}}\n",
-		ZIGUX_ABI_VERSION,
-		ZIGUX_FACILITY_KERNEL,
-		ZIGUX_STATUS_FLAG_ERROR,
-		ZIGUX_PANIC_ABORT,
-		ZIGUX_ALLOC_CALLER_PROVIDED,
-		ZIGUX_UNSAFE_RAW_POINTER_BRIDGE,
-		sizeof(struct zigux_boundary_header),
-		_Alignof(struct zigux_boundary_header),
-		offsetof(struct zigux_boundary_header, size),
-		offsetof(struct zigux_boundary_header, abi_version),
-		offsetof(struct zigux_boundary_header, flags),
-		sizeof(struct zigux_export_status),
-		_Alignof(struct zigux_export_status),
-		offsetof(struct zigux_export_status, code),
-		offsetof(struct zigux_export_status, facility),
-		offsetof(struct zigux_export_status, flags),
-		sizeof(struct zigux_mmio_range),
-		_Alignof(struct zigux_mmio_range),
-		offsetof(struct zigux_mmio_range, base_addr),
-		offsetof(struct zigux_mmio_range, length),
-		offsetof(struct zigux_mmio_range, stride),
-		sizeof(struct zigux_interop_policy),
-		_Alignof(struct zigux_interop_policy),
-		offsetof(struct zigux_interop_policy, panic_mode),
-		offsetof(struct zigux_interop_policy, allocator_mode),
-		offsetof(struct zigux_interop_policy, unsafe_scope),
-		offsetof(struct zigux_interop_policy, reserved));
-	return 0;
+    fputs("{\"abi_version\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_ABI_VERSION);
+    fputs(",\"constants\":{\"facility_kernel\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_FACILITY_KERNEL);
+    fputs(",\"status_flag_error\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_STATUS_FLAG_ERROR);
+    fputs(",\"panic_abort\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_PANIC_ABORT);
+    fputs(",\"allocator_caller_provided\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_ALLOC_CALLER_PROVIDED);
+    fputs(",\"unsafe_scope_raw_pointer_bridge\":", stdout);
+    fprintf(stdout, "%u", ZIGUX_UNSAFE_RAW_POINTER_BRIDGE);
+    fputs("},\"structs\":{", stdout);
+    for (size_t i = 0; i < ARRAY_SIZE(layouts); ++i)
+        emit_layout(stdout, &layouts[i], i + 1 < ARRAY_SIZE(layouts));
+    fputs("}}\n", stdout);
+    return 0;
 }
