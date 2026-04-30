@@ -1,5 +1,5 @@
 {
-  "lane_key": "P14-L01",
+  "lane_key": "P14-L02",
   "phase": "Phase 14",
   "surveyed_commit": "64f315b1e0536983ec5bdf620d720d10972d9551",
   "anchor": "kernel/workqueue.c",
@@ -115,10 +115,17 @@
     },
     {
       "id": "phase14-workqueue-disable-delayed-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now records how `__cancel_work()` folds `WORK_CANCEL_DISABLE` into `offqd.disable`, how `clear_pending_if_disabled()` keeps disabled work off-queue while clearing PENDING, how `__cancel_work_sync()` takes the disable path before choosing the BH warning versus `might_sleep()` and then flushes live execution, and how `cancel_delayed_work_sync()` reaches the same completion path with `WORK_CANCEL_DELAYED` set, so Zigux can name disable-depth and delayed-cancel boundaries without claiming live parity."
+    },
+    {
+      "id": "phase14-workqueue-delayed-disable-wrapper-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `disable_work()`, `disable_work_sync()`, and `cancel_delayed_work_sync()` so Zigux can describe disable-depth accounting, delayed-timer cancellation, and sleepable-versus-BH completion rules before any wrapper claims delayed cancellation parity."
+      "why_now": "The next honest Phase 14 step is to audit `disable_delayed_work()`, `disable_delayed_work_sync()`, and `enable_delayed_work()` so Zigux can describe the delayed wrapper aliases around disable-depth and re-enable state without claiming timer, execution, or requeue ownership."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
