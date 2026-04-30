@@ -104,7 +104,7 @@ def expect_system_exit(label: str, callback, expected_message: str) -> None:
 def run_self_test() -> int:
     live_manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
     manifest_packet = validate_manifest_packet(live_manifest)
-    if manifest_packet["lane_key"] != "P12-L13":
+    if manifest_packet["lane_key"] != "P12-L16":
         raise SystemExit("phase12-libbpf-snapshot:self-test:lane_key_round_trip")
     if manifest_packet["phase"] != "Phase 12":
         raise SystemExit("phase12-libbpf-snapshot:self-test:phase_round_trip")
