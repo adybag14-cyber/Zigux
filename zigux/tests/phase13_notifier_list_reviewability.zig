@@ -93,9 +93,9 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("4c43e1083bd8601d21750c433f65473bdab744ed", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d7f70f738c38afb54f6481f01059b7431f314905", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 5), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
@@ -208,7 +208,7 @@ test "phase13 notifier/list survey keeps the current list surface and generic no
         try std.testing.expect(isAllowedStatus(gap.status));
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) starter_landed_count += 1;
-        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface") ) preexisting_phase3_count += 1;
+        if (std.mem.eql(u8, gap.status, "preexisting_phase3_surface")) preexisting_phase3_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_chrdev_surface")) preexisting_chrdev_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_phase11_surface")) preexisting_phase11_count += 1;
         if (std.mem.eql(u8, gap.status, "preexisting_header_surface")) preexisting_header_count += 1;
