@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `a1e8e89d79bbe59aebc088c9095025a81fec1e20`
+- verified head: `8ebd7dd5d0c57420da1d4f958093fc6ea6684ec9`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 
 ## Scope
@@ -91,7 +91,7 @@ The current Phase 6 perf packet is intentionally mixed. Three helpers now carry 
 ### hexdump
 
 - `zigux/tests/phase6_hexdump_perf.zig` now replays three deterministic formatter cases from `zigux/tests/fixtures/phase6_hexdump_vectors.zig`: `16B-plain` at `40_000` reps, `32B-ascii-g2` at `10_000` reps, and `16B-ascii-g4` at `20_000` reps.
-- the current numeric threshold is `max_slowdown_pct = 175` for all three formatter cases, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
+- the current numeric thresholds keep `16B-plain` at `max_slowdown_pct = 175` while widening the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays to `max_slowdown_pct = 550`, checked against the committed `fixtures.prepareExpectedLine(...)` reference path.
 - the harness also records helper and reference nanoseconds per call, helper and reference nanoseconds per byte, the observed `slowdown_pct`, and the required formatted line length.
 
 ## Current fixture corpus determinism
@@ -114,6 +114,6 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig` currently carry fixture-backed relative slowdown thresholds rather than cross-machine absolute ceilings.
 - the current base64 perf packet now covers the shipped standard, URL-safe, and IMAP alphabets instead of leaving the IMAP path outside the bounded slowdown gate.
 - `zigux/tests/phase6_bsearch_perf.zig` currently enforces a bounded per-lookup and average comparison budget rather than a nanosecond threshold.
-- the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path and rejects regressions above `max_slowdown_pct = 175` across plain, grouped, and ASCII formatter cases, including the 4-byte grouped ASCII branch.
+- the current hexdump perf packet measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII replays use `max_slowdown_pct = 550`.
 - The per-helper perf targets stay reviewable only through this same bounded packet; do not treat one helper-local perf harness as closure for the whole tranche.
 - Reopen this catalog only when the shipped helper inventory, test labels, fixture modules, perf entrypoints, or slice-note ownership changes.
