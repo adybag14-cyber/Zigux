@@ -8,6 +8,7 @@ from pathlib import Path
 from phase3_catalog import Phase3Paths, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
+    ABI_REVIEW_CHECKLIST_MARKERS,
     ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
     ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
@@ -194,7 +195,11 @@ def run_self_test() -> int:
             in ABI_REQUIRED_DOC_MARKERS
         )
         assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
+        assert "Documentation/zigux/review-checklist.md" in ABI_REQUIRED_MANIFEST_FILES
         assert ABI_POLICY_UNSAFE_SURVEY_CHECK_REL in ABI_REQUIRED_MANIFEST_FILES
+        assert any(
+            "shared Phase 3 ABI substrate packet" in marker for marker in ABI_REVIEW_CHECKLIST_MARKERS
+        )
         low_level_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_low_level_wrappers.zig"]
         assert "atomic.fetchSub(u32, &value, 4, .seq_cst)" in low_level_markers
         assert "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)" in low_level_markers

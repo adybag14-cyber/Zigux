@@ -5,6 +5,7 @@
   "files": [
     "include/zigux/abi.h",
     "include/linux/zigux.h",
+    "Documentation/zigux/review-checklist.md",
     "zigux/bindings/abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
@@ -35,5 +36,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 31
+  "file_count": 32
 }

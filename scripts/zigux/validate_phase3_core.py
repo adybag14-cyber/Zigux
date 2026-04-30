@@ -27,6 +27,7 @@ ABI_POLICY_UNSAFE_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-policy-unsaf
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
+    "Documentation/zigux/review-checklist.md",
     "zigux/bindings/abi.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
@@ -70,6 +71,11 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
     "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32",
+)
+ABI_REVIEW_CHECKLIST_MARKERS = (
+    "- if the change touches the shared Phase 3 ABI substrate packet, do `include/zigux/abi.h`, `include/linux/zigux.h`, `zigux/bindings/abi.zig`, `zigux/tests/phase3_abi.zig`, and `zigux/tests/fixtures/phase3_abi/expected.json` still agree on the same canonical boundary layouts, constants, and fixture-backed dump contract?",
+    "- if the change touches the shared Phase 3 ABI substrate packet, do `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, and `scripts/zigux/validate-phase3-export-uapi-survey.py` still keep explicit status codes plus canonical-versus-compatible boundary-header checks reviewable in one place?",
+    "- if the change touches the shared Phase 3 ABI substrate packet, do `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, `zigux/helpers/interop_policy.zig`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_policy_unsafe.zig` still keep policy-byte decoding, denied-scope checks, misalignment guards, and overflow guards explicit under the focused replay gates?",
 )
 ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/kernel/export_shim.zig": (
@@ -501,6 +507,14 @@ def validate_abi_expected_fixture(root: Path) -> list[str]:
     return issues
 
 
+def validate_phase3_review_checklist(root: Path) -> list[str]:
+    checklist_path = root / "Documentation/zigux/review-checklist.md"
+    return [
+        f"review-checklist: missing {marker}"
+        for marker in _missing_markers(checklist_path, ABI_REVIEW_CHECKLIST_MARKERS)
+    ]
+
+
 def _validate_slice_docs(entry: Phase3Slice) -> list[str]:
     issues: list[str] = []
     doc_markers = list(COMMON_DOC_MARKERS)
@@ -576,6 +590,7 @@ def validate_slices(
             issues.extend(validate_source_markers(root, ABI_REQUIRED_SOURCE_MARKERS))
             issues.extend(validate_low_level_wrapper_exports(root))
             issues.extend(validate_abi_expected_fixture(root))
+            issues.extend(validate_phase3_review_checklist(root))
             issues.extend(validate_export_uapi_boundary(root))
             issues.extend(validate_policy_unsafe_boundary(root))
         if check_build_smoke:
