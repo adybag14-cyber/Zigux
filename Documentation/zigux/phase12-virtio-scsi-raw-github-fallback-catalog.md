@@ -91,9 +91,9 @@ This packet is archival rather than live-head truth. During the `P12-L10` docs a
 - focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
 - focused_survey_result: `All 1 tests passed.`
 
-## Current replay note
+## Last bounded replay note
 
-These fields are the most recent bounded replay note recorded for this pinned fallback packet. They can lag the live `master` head again after future repo movement, but they should still describe the exact last checked public head and the current runtime limits of that replay.
+These fields record the last bounded replay note captured for this pinned fallback packet. They are historical replay evidence, not live-head truth for newer `master` commits, so treat any `PHASE12_VALIDATION=fail` marker or unavailable-toolchain note below as scoped to the exact replay head named here until a dedicated fallback-evidence lane refreshes it.
 
 - current_master_replay_head: `9dab85059c6f56865ef2f981d2303049775c5001`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
