@@ -40,7 +40,7 @@ Without this matrix, the slice and survey named the right boundaries but did not
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - focused driver replay command:
-  - `zig test zigux/tests/phase11_dw_wdt.zig`
+  - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - focused survey replay command:
   - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
 - focused validation script command:
