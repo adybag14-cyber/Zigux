@@ -616,3 +616,21 @@ test "confdata bridge recognizes explicit plus-signed integers and hex values" {
     try std.testing.expectEqualStrings("+0XFF", summary.entries[2].value);
     try std.testing.expectEqual(EntryKind.value, summary.entries[3].kind);
 }
+
+test "confdata bridge recognizes explicit minus-signed hex values" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_NEGATIVE_HEX=-0x2A
+        \\CONFIG_NEGATIVE_UPPER_HEX=-0XFF
+        \\CONFIG_RAW=minus_alpha
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("-0x2A", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.hex, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("-0XFF", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[2].kind);
+}
