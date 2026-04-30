@@ -398,10 +398,19 @@ required_bitmap_survey_test_markers = [
 ]
 
 required_kretprobe_survey_markers = [
+    "`PHASE9_LANE_KEY=P9-L13`",
+    "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
     "RuntimeKretprobeSummary",
     "released_without_substrate",
     "command-name, argv-policy, or environment-derived activation handling",
     "bounded lifecycle, bookkeeping, loader-handoff behavior",
+]
+
+required_kretprobe_module_slice_markers = [
+    "`PHASE9_LANE_KEY=P9-L13`",
+    "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+    "RuntimeKretprobeSummary",
+    "released_without_substrate",
 ]
 
 required_kretprobe_manifest_markers = [
@@ -424,8 +433,12 @@ required_kretprobe_survey_test_markers = [
     'std.mem.indexOf(u8, gap.why_now, "phase9-runtime-kretprobe-sample-tests")',
     'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
     'std.mem.indexOf(u8, check.expected, "command-name")',
+    'std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`")',
+    'std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`")',
     'std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary")',
     'std.mem.indexOf(u8, survey_doc, "released_without_substrate")',
+    'std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`")',
+    'std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`")',
     'std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary")',
     'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
     'std.mem.indexOf(u8, module_doc, surveyed_commit)',
@@ -683,10 +696,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_kretprobe_survey_test_markers:
         if marker not in kretprobe_survey_test:
             missing_markers.append(f"kretprobe_survey_test:{marker}")
-    for marker in [
-        "RuntimeKretprobeSummary",
-        "released_without_substrate",
-    ]:
+    for marker in required_kretprobe_module_slice_markers:
         if marker not in kretprobe_module_slice:
             missing_markers.append(f"kretprobe_module_slice:{marker}")
     for marker in required_trace_events_survey_markers:
@@ -829,6 +839,23 @@ def run_self_test() -> int:
         )
         kretprobe_survey_test_path.write_text(original_kretprobe_survey_test, encoding="utf-8")
 
+        kretprobe_module_slice_path = tmp_root / "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md"
+        original_kretprobe_module_slice = kretprobe_module_slice_path.read_text(encoding="utf-8")
+        kretprobe_module_slice_path.write_text(
+            original_kretprobe_module_slice.replace(
+                "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+                "`PHASE9_SURVEYED_COMMIT=`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "kretprobe_module_slice_surveyed_commit_pin",
+            tmp_root,
+            "kretprobe_module_slice:`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`",
+        )
+        kretprobe_module_slice_path.write_text(original_kretprobe_module_slice, encoding="utf-8")
+
         loader_gap_survey_test_path = tmp_root / "zigux/tests/runtime_loader_gap_survey.zig"
         original_loader_gap_survey_test = loader_gap_survey_test_path.read_text(encoding="utf-8")
         loader_gap_survey_test_path.write_text(
@@ -847,7 +874,7 @@ def run_self_test() -> int:
         loader_gap_survey_test_path.write_text(original_loader_gap_survey_test, encoding="utf-8")
 
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
