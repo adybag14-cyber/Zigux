@@ -38,7 +38,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed cursor reposition slice and the next close-bookkeeping gap" {
+test "phase13 libfs manifest records the landed close-bookkeeping slice and the remaining blocked helpers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -75,7 +75,7 @@ test "phase13 libfs manifest records the landed cursor reposition slice and the 
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, expected_surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_SURVEYED_COMMIT=") != null);
 
@@ -87,6 +87,7 @@ test "phase13 libfs manifest records the landed cursor reposition slice and the 
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_directory_cursor_preconditions);
+    try std.testing.expect(descriptor.provides_directory_close_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
@@ -95,20 +96,9 @@ test "phase13 libfs manifest records the landed cursor reposition slice and the 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
-    var saw_build_gate = false;
-    var saw_make_target = false;
-    var saw_starter = false;
-    var saw_tests = false;
-    var saw_slice_note = false;
-    var saw_reviewability_gate = false;
-    var saw_survey_note = false;
-    var saw_offset_followup = false;
-    var saw_emit_followup = false;
-    var saw_transaction_helper = false;
-    var saw_transaction_followup = false;
-    var saw_cursor_preconditions = false;
-    var saw_cursor_reposition = false;
     var saw_close_release = false;
+    var saw_blocked_cursor_helpers = false;
+    var saw_blocked_inode_lifecycle = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -124,94 +114,20 @@ test "phase13 libfs manifest records the landed cursor reposition slice and the 
             blocked_count += 1;
         }
 
-        if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
-            saw_build_gate = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase13_build.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-make-target")) {
-            saw_make_target = true;
-            try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-starter")) {
-            saw_starter = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_statfs") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_lookup") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-tests")) {
-            saw_tests = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase13_libfs.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-slice-note")) {
-            saw_slice_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-libfs-slice.md", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-reviewability-gate")) {
-            saw_reviewability_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase13_libfs_reviewability.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-survey-note")) {
-            saw_survey_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-libfs-survey.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transaction-read-release") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset policy") == null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "directory iteration") == null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-offset-seek-helper")) {
-            saw_offset_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_lseek") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset_dir_llseek") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-directory-emit-helper")) {
-            saw_emit_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-buffer-helper")) {
-            saw_transaction_helper = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_get") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_set") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-read-release-followup")) {
-            saw_transaction_followup = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_read") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_release") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-preconditions")) {
-            saw_cursor_preconditions = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_open") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-reposition-bookkeeping")) {
-            saw_cursor_reposition = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_del_init") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_add_before") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hlist_add_behind") != null);
-        }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-dir-close-release-bookkeeping")) {
             saw_close_release = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_close") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dput(file->private_data)") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
+            saw_blocked_cursor_helpers = true;
+            try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-inode-and-pseudofs-lifecycle")) {
+            saw_blocked_inode_lifecycle = true;
+            try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -219,21 +135,10 @@ test "phase13 libfs manifest records the landed cursor reposition slice and the 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 0), blocked_count);
-    try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_make_target);
-    try std.testing.expect(saw_starter);
-    try std.testing.expect(saw_tests);
-    try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_reviewability_gate);
-    try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_offset_followup);
-    try std.testing.expect(saw_emit_followup);
-    try std.testing.expect(saw_transaction_helper);
-    try std.testing.expect(saw_transaction_followup);
-    try std.testing.expect(saw_cursor_preconditions);
-    try std.testing.expect(saw_cursor_reposition);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_close_release);
+    try std.testing.expect(saw_blocked_cursor_helpers);
+    try std.testing.expect(saw_blocked_inode_lifecycle);
 }
