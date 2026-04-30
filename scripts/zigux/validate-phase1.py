@@ -329,6 +329,16 @@ MARKER_GROUPS = {
     ),
 }
 
+WORKFLOW_EXACT_LINES = {
+    "run: python3 scripts/zigux/validate-phase1.py": 1,
+    "run: python3 scripts/zigux/validate-phase1-closure.py": 1,
+    "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase1-bench.py": 1,
+    "run: python3 scripts/zigux/check-phase1-bench.py --self-test": 1,
+    "run: python3 scripts/zigux/check-phase1-parity.py": 1,
+    "run: python3 scripts/zigux/check-phase1-parity.py --self-test": 1,
+}
+
 
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
@@ -341,6 +351,10 @@ def fail(block: str, items: list[str]) -> None:
         print(item)
     print(f"{block}_END")
     sys.exit(1)
+
+
+def count_exact_line(text: str, expected: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == expected)
 
 
 def validate_fixture_shape() -> list[str]:
@@ -425,6 +439,18 @@ for name, (rel, markers) in MARKER_GROUPS.items():
 
 if missing_markers:
     fail("MISSING_PHASE1_MARKERS", missing_markers)
+
+workflow_text = texts["workflow"]
+workflow_exact_line_issues = []
+for line, expected_count in WORKFLOW_EXACT_LINES.items():
+    actual_count = count_exact_line(workflow_text, line)
+    if actual_count != expected_count:
+        workflow_exact_line_issues.append(
+            f"workflow_exact:{line}:expected_count={expected_count}:actual_count={actual_count}"
+        )
+
+if workflow_exact_line_issues:
+    fail("MISSING_PHASE1_WORKFLOW_EXACT_LINES", workflow_exact_line_issues)
 
 marker_count = sum(len(markers) for _, markers in MARKER_GROUPS.values())
 print("PHASE1_VALIDATION=pass")
