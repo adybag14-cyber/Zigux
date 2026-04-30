@@ -352,9 +352,24 @@ def run_self_test() -> int:
             tmp_root,
             "phase11_hvc_console_tests:    try std.testing.expect(!detached_remove.tty_vhangup_requested);",
         )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expect(hangup_drain.read_hangup_pending);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_poll_hangup_failure_mode_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expect(hangup_drain.read_hangup_pending);",
+        )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
