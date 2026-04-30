@@ -9,6 +9,16 @@
   ],
   "sample_path": "samples/zigux/runtime_atomic64.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
+  "governance_record": {
+    "lane_owner": "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+    "status_bucket": "port_after_substrate",
+    "validation_gate": "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
+    "rollback_owner": "zigux/tests/runtime_atomic64_survey.zig",
+    "freeze_map_authority": "Documentation/zigux/freeze-map.md",
+    "study_boundary_anchor": "kernel/workqueue.c",
+    "boundary_status": "Study / Boundary Only",
+    "reopen_rule": "Architecture Council decision required before any status change for the scheduler-facing workqueue boundary"
+  },
   "survey_summary": {
     "atomic64_test_c_lines": 277,
     "preexisting_runtime_test_files": 3,
@@ -22,7 +32,8 @@
     "sample-behavior changes update the manifest-backed exact checks alongside runtime_atomic64_module.zig and runtime_atomic64_diff.zig instead of leaving reviewers to infer the new contract from code alone",
     "the review packet keeps the Phase 9 runtime atomic64 starter distinct from the still-blocked shared runtime-loader control surface instead of implying loadable-module or command-path parity",
     "docs and tests still keep real runtime execution, shared loader controls, and the full lib/atomic64_test.c surface out of scope for this bounded runtime starter",
-    "the atomic64 packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor"
+    "the atomic64 packet still treats Documentation/zigux/freeze-map.md as authoritative for the study-only kernel/workqueue.c boundary and carries no parity scorecard entry or Architecture Council status-change request for that scheduler-facing anchor",
+    "the manifest-backed governance_record keeps the lane owner, status bucket, validation gate, rollback owner, and freeze-map reopen rule explicit for this study-boundary-adjacent packet"
   ],
   "exact_checks": [
     {
@@ -79,6 +90,11 @@
       "id": "shared-loader-freeze-map-boundary",
       "kind": "governance_surface",
       "expected": "the atomic64 survey packet keeps Documentation/zigux/freeze-map.md and the study-only kernel/workqueue.c boundary explicit, with no parity scorecard entry or Architecture Council status-change request attached to this lane"
+    },
+    {
+      "id": "governance-record",
+      "kind": "governance_record",
+      "expected": "the manifest-backed governance_record keeps lane owner Documentation/zigux/phase9-runtime-atomic64-survey.md, status bucket port_after_substrate, validation gate zig build test --build-file zigux/tests/phase9_build.zig --summary all, rollback owner zigux/tests/runtime_atomic64_survey.zig, freeze-map authority Documentation/zigux/freeze-map.md, study boundary kernel/workqueue.c, boundary status Study / Boundary Only, and the Architecture Council reopen rule explicit"
     },
     {
       "id": "diff-add-and-bitwise-cases",
