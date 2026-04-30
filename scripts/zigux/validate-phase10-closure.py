@@ -74,6 +74,7 @@ input_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_input_survey.zig
 mmio_helper = (ROOT / "drivers" / "virtio" / "virtio_mmio.zig").read_text(encoding="utf-8")
 mmio_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio.zig").read_text(encoding="utf-8")
 mmio_slice = (ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md").read_text(encoding="utf-8")
+mmio_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-survey.md").read_text(encoding="utf-8")
 mmio_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_mmio_survey.zig").read_text(encoding="utf-8")
 phase10_build = (ROOT / "zigux" / "tests" / "phase10_build.zig").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
@@ -251,6 +252,10 @@ required_input_survey_test_markers = [
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
+required_mmio_survey_markers = [
+    "nine dedicated Phase 10 virtio test or survey files",
+    "phase10_virtio_ring_reset_reuse.zig",
+]
 required_mmio_slice_markers = [
     "PHASE10_SLICE=virtio-mmio-config-write-helper",
     "in-memory config-write planning",
@@ -289,6 +294,9 @@ required_mmio_survey_test_markers = [
     'test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {',
     'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
     'try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);',
+    'try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);',
+    'try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_reset_reuse_present);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_ring_reset_reuse.zig") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-config-write-helper") != null);',
@@ -380,6 +388,9 @@ for marker in required_ring_survey_test_markers:
 for marker in required_input_survey_test_markers:
     if marker not in input_survey_test:
         missing_markers.append(f"input_survey_test:{marker}")
+for marker in required_mmio_survey_markers:
+    if marker not in mmio_survey:
+        missing_markers.append(f"mmio_survey:{marker}")
 for marker in required_mmio_slice_markers:
     if marker not in mmio_slice:
         missing_markers.append(f"mmio_slice:{marker}")
@@ -690,6 +701,15 @@ for gap in ring_manifest.get("gaps", []):
         if isinstance(why_now, str) and "queue-wrapper gap" in why_now:
             missing_markers.append("phase10_virtio_ring_manifest:stale_marker:queue-wrapper gap")
 
+mmio_survey_summary = mmio_manifest.get("survey_summary")
+if not isinstance(mmio_survey_summary, dict):
+    missing_markers.append("phase10_virtio_mmio_manifest:survey_summary:expected_object")
+else:
+    if mmio_survey_summary.get("preexisting_phase10_test_files") != 9:
+        missing_markers.append("phase10_virtio_mmio_manifest:preexisting_phase10_test_files=9")
+    if mmio_survey_summary.get("preexisting_virtio_ring_reset_reuse_present") is not True:
+        missing_markers.append("phase10_virtio_mmio_manifest:preexisting_virtio_ring_reset_reuse_present=true")
+
 
 def validate_lane_manifest(phase_manifest: object, lane_name: str) -> None:
     if not isinstance(phase_manifest, dict):
@@ -782,5 +802,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_core_survey_test_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_input_survey_test_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers) + len(required_phase10_build_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_core_survey_test_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_input_survey_test_markers) + len(required_mmio_survey_markers) + len(required_mmio_slice_markers) + len(required_mmio_helper_markers) + len(required_mmio_test_markers) + len(required_mmio_survey_test_markers) + len(required_phase10_build_markers)}"
 )
