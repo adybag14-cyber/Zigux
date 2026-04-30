@@ -292,7 +292,7 @@ def run_self_test() -> int:
                 path.write_text("// ok\n", encoding="utf-8")
 
         (root / ABI_SLICE_REL).write_text("\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n", encoding="utf-8")
-        (root / EXPORT_UAPI_TEST_REL).writeText(
+        (root / EXPORT_UAPI_TEST_REL).write_text(
             "\n".join(REQUIRED_EXPORT_UAPI_TEST_SNIPPETS) + "\n",
             encoding="utf-8",
         )
