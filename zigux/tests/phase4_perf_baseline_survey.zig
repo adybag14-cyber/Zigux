@@ -1,5 +1,5 @@
 const std = @import("std");
-const current_surveyed_commit = "583b867b78648430c5b500d7d2bb7b8a08cb05da";
+const current_surveyed_commit = "ef7b33b6922d05e5ef514fb4efa588316ce6dda8";
 
 const SurveyedGate = struct {
     surface: []const u8,
