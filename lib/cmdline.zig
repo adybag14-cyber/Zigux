@@ -118,8 +118,12 @@ pub fn memparse(ptr: []const u8, ret_index: ?*usize) u64 {
 }
 
 pub fn parseOptionStr(str: []const u8, option: []const u8) bool {
-    var it = std.mem.splitScalar(u8, cStringPrefix(str), ',');
     const needle = cStringPrefix(option);
+    if (needle.len == 0) {
+        return false;
+    }
+
+    var it = std.mem.splitScalar(u8, cStringPrefix(str), ',');
     while (it.next()) |segment| {
         if (std.mem.eql(u8, segment, needle)) {
             return true;
@@ -508,6 +512,8 @@ test "parseOptionStr matches only exact bare options before NUL" {
     try std.testing.expect(parseOptionStr("quiet,debug,nohlt", "debug"));
     try std.testing.expect(!parseOptionStr("quiet,debug=1,nohlt", "debug"));
     try std.testing.expect(!parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
+    try std.testing.expect(!parseOptionStr("", ""));
+    try std.testing.expect(!parseOptionStr("quiet,", ""));
 }
 
 test "nextArg preserves leading equals sentinels and trims trailing spaces" {
