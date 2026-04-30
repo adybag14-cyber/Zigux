@@ -165,6 +165,19 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
         'test "phase3 policy gate enforces the declared unsafe scope"',
     ),
+    "zigux/tests/phase3_abi.zig": (
+        'test "phase3 abi slice uses stable canonical layouts" {',
+        "layout_assert.assertMmioRangeLayout();",
+        'test "phase3 abi slice keeps explicit constants and statuses reviewable" {',
+        "try std.testing.expectEqual(@as(u8, 2), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));",
+        'test "phase3 abi slice keeps the boundary helpers constructible" {',
+        "try std.testing.expect(export_shim.isCanonicalHeader(header));",
+        "try std.testing.expect(uapi_version.isCanonical(header));",
+        "try std.testing.expectEqual(panic_policy.Action.abort_now, panic_policy.actionFor(.abort));",
+        "try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
+        "const range = mmio.range(0x1000, 0x40, 4);",
+        "try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
+    ),
 }
 ABI_REQUIRED_EXPECTED_CONSTANTS = {
     "facility_kernel": 1,
