@@ -723,6 +723,7 @@ def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
         'target_count_mismatch_guard': 'phase2-cross:target_count_mismatch',
         'duplicate_target_guard': 'phase2-cross:duplicate_target:',
         'unexpected_target_guard': 'phase2-cross:unexpected_target:',
+        'duplicate_manifest_target_guard': 'phase2-cross:duplicate_manifest_target:',
     }
 
     issues: list[str] = []
