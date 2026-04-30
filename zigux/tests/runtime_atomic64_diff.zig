@@ -499,8 +499,13 @@ test "runtime atomic64 diff gate keeps post-selftest replay explicit" {
     try std.testing.expectEqual(seed + 0x12, add_result.final);
     try std.testing.expectEqual(seed + 0x12, module.snapshotCounter());
 
+    const sub_result = try module.subCounter(0x10);
+    try std.testing.expectEqual(seed + 0x12, sub_result.previous);
+    try std.testing.expectEqual(seed + 0x02, sub_result.final);
+    try std.testing.expectEqual(seed + 0x02, module.snapshotCounter());
+
     const or_result = try module.orCounter(0x0000_0000_0000_00ff);
-    try std.testing.expectEqual(seed + 0x12, or_result.previous);
+    try std.testing.expectEqual(seed + 0x02, or_result.previous);
     try std.testing.expectEqual(0x1111_2222_3333_44ff, module.snapshotCounter());
 
     const and_result = try module.andCounter(0x0fff_ffff_ffff_ff0f);
