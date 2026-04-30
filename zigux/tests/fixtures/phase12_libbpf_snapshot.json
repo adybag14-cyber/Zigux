@@ -26,8 +26,8 @@
     },
     {
       "path": "tools/lib/bpf/zigux_segments/manifest.json",
-      "bytes": 7509,
-      "sha256": "a3aa26e1394ca124065e4f84c58274be65c93c318e47ea580aecd62af88b812b"
+      "bytes": 7529,
+      "sha256": "68ae64c6dc3d24643813cf4dad34f4c8e5907574e66b7dac30443a5a151242a2"
     }
   ]
 }
