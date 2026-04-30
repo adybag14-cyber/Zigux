@@ -118,6 +118,46 @@ fn findSegmentBySlug(segments: []const Segment, slug: []const u8) ?Segment {
     return null;
 }
 
+test "phase 8 survey note keeps landed helper and deferred boundary counts explicit" {
+    const manifest_json = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    var starter_landed_count: usize = 0;
+    var resource_boundary_count: usize = 0;
+    var interrupt_routing_boundary_count: usize = 0;
+    var blocked_object_model_count: usize = 0;
+
+    for (parsed.value.segments) |segment| {
+        if (std.mem.eql(u8, segment.status, "starter_landed")) starter_landed_count += 1;
+        if (std.mem.eql(u8, segment.kind, "resource_boundary")) resource_boundary_count += 1;
+        if (std.mem.eql(u8, segment.kind, "interrupt_routing_boundary")) interrupt_routing_boundary_count += 1;
+        if (std.mem.eql(u8, segment.status, "blocked_on_object_model")) blocked_object_model_count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), resource_boundary_count);
+    try std.testing.expectEqual(@as(usize, 1), interrupt_routing_boundary_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_object_model_count);
+    try expectContains(
+        survey_note,
+        "scope: segment manifest plus six landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on",
+    );
+}
+
 test "phase 8 libbpf segment manifest records the current bounded catalog" {
     const manifest_json = try readWorkspaceFile(
         std.testing.allocator,
