@@ -155,17 +155,25 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_mmio_survey.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-survey-gate")) {
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed queue-discipline surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remaining MMIO ladder") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-wrapper roadmap gap explicit") == null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-virtio-mmio-survey-note")) {
             saw_mmio_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write helpers landed") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-mmio-slice-note")) {
             saw_mmio_slice_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-slice.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-window surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-write surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-window surface rather than the full transport driver") == null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
@@ -206,6 +214,8 @@ test "phase10 virtio mmio survey manifest records the landed config-write rung a
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-window snapshot helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-generation") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "now-landed config-write planning helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without claiming config writes") == null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {
