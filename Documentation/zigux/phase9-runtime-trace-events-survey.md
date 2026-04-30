@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_LANE_KEY=P9-L12`
-- `PHASE9_SURVEYED_COMMIT=0b472ee501f0999f82840c7feaa872e6152764f8`
+- `PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`
 - scope: survey manifest, starter sample, dedicated module and survey gates, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus its shipped selftest hook, lifecycle parity evidence, and machine-checkable diagnostics summary with explicit per-thread event totals plus explicit replay run counters without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -33,7 +33,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
-- the current survey packet is pinned to `master` commit `0b472ee501f0999f82840c7feaa872e6152764f8`.
+- the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`.
 - `samples/trace_events/trace-events-sample.h` is present on `master` at 640 lines.
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
