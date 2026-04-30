@@ -56,4 +56,11 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_value = null,
         .expected_rest = "next",
     },
+    .{
+        .name = "trailing spaces after key value pairs are trimmed from rest",
+        .input = "mode=fast   ",
+        .expected_param = "mode",
+        .expected_value = "fast",
+        .expected_rest = "",
+    },
 };

@@ -322,6 +322,7 @@ const GetOptionsCase = struct {
 };
 
 const NextArgCase = struct {
+    name: []const u8,
     input: []const u8,
     expected_param: []const u8,
     expected_value: ?[]const u8,
@@ -330,46 +331,60 @@ const NextArgCase = struct {
 
 const next_arg_cases = [_]NextArgCase{
     .{
+        .name = "quoted value with trailing token",
         .input = "root=\"/dev/sda 1\" ro",
         .expected_param = "root",
         .expected_value = "/dev/sda 1",
         .expected_rest = "ro",
     },
     .{
+        .name = "quoted bare token with trailing token",
         .input = "\"noparam value\" next",
         .expected_param = "noparam value",
         .expected_value = null,
         .expected_rest = "next",
     },
     .{
+        .name = "unquoted value keeps punctuation until whitespace",
         .input = "console=ttyS0,115200n8 panic=-1",
         .expected_param = "console",
         .expected_value = "ttyS0,115200n8",
         .expected_rest = "panic=-1",
     },
     .{
+        .name = "empty quoted value becomes empty string",
         .input = "rdinit=\"\" quiet",
         .expected_param = "rdinit",
         .expected_value = "",
         .expected_rest = "quiet",
     },
     .{
+        .name = "first equals wins inside the value",
         .input = "key=alpha=beta tail",
         .expected_param = "key",
         .expected_value = "alpha=beta",
         .expected_rest = "tail",
     },
     .{
+        .name = "quoted value without trailing token leaves empty rest",
         .input = "mode=\"fast boot\"",
         .expected_param = "mode",
         .expected_value = "fast boot",
         .expected_rest = "",
     },
     .{
+        .name = "leading equals sign stays in the parameter token",
         .input = "=bad next",
         .expected_param = "=bad",
         .expected_value = null,
         .expected_rest = "next",
+    },
+    .{
+        .name = "trailing spaces after key value pairs are trimmed from rest",
+        .input = "mode=fast   ",
+        .expected_param = "mode",
+        .expected_value = "fast",
+        .expected_rest = "",
     },
 };
 
@@ -514,20 +529,6 @@ test "parseOptionStr matches only exact bare options before NUL" {
     try std.testing.expect(!parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));
     try std.testing.expect(!parseOptionStr("", ""));
     try std.testing.expect(!parseOptionStr("quiet,", ""));
-}
-
-test "nextArg preserves leading equals sentinels and trims trailing spaces" {
-    var sentinel_input = [_]u8{ '=', 'b', 'a', 'd', ' ', 'n', 'e', 'x', 't', 0 };
-    const sentinel = nextArg(sentinel_input[0..]);
-    try std.testing.expectEqualStrings("=bad", sentinel.param);
-    try std.testing.expectEqual(@as(?[]const u8, null), sentinel.value);
-    try std.testing.expectEqualStrings("next", cStringPrefix(sentinel.rest));
-
-    var spaced_input = [_]u8{ 'm', 'o', 'd', 'e', '=', 'f', 'a', 's', 't', ' ', ' ', ' ', 0 };
-    const spaced = nextArg(spaced_input[0..]);
-    try std.testing.expectEqualStrings("mode", spaced.param);
-    try std.testing.expectEqualStrings("fast", spaced.value.?);
-    try std.testing.expectEqualStrings("", cStringPrefix(spaced.rest));
 }
 
 test "nextArg matches serialized edge fixtures" {
