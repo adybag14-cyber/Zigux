@@ -51,6 +51,8 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+const surveyed_commit = "5dab7ee45d2664801211fb9e2ccba28e1a127071";
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -83,6 +85,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P9-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
+    try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -458,6 +461,8 @@ test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and 
 
     const required_markers = [_][]const u8{
         "manifest-backed delivery catalog and ownership map",
+        "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
+        "the current survey packet is pinned to `master` commit `5dab7ee45d2664801211fb9e2ccba28e1a127071`",
         "direct `phase9-runtime-atomic64-sample-tests` shared-build leg",
         "direct `phase9-runtime-atomic64-loader-tests` shared-build leg",
         "a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig`",
@@ -481,5 +486,6 @@ test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and 
         try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Delivery ownership map") != null);
 }
