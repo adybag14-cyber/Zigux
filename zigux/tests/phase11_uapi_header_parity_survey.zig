@@ -354,15 +354,16 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".exports_resize = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_zig, ".has_notifier_hangup = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, hvc_validation_matrix, "dedicated survey replay still passes separately") != null);
-    try std.testing.expectEqual(@as(usize, 8), inventory.build_test_names.len);
+    try std.testing.expectEqual(@as(usize, 9), inventory.build_test_names.len);
     try std.testing.expectEqual(@as(usize, 8), inventory.shared_test_depend_steps.len);
     try std.testing.expectEqual(@as(usize, 15), inventory.module_root_source_files.len);
     try std.testing.expectEqual(@as(usize, 8), inventory.module_imports.len);
-    try std.testing.expectEqual(@as(usize, 8), inventory.test_root_modules.len);
+    try std.testing.expectEqual(@as(usize, 9), inventory.test_root_modules.len);
     try std.testing.expectEqual(@as(usize, 2), inventory.forbidden_markers.len);
     try std.testing.expectEqual(@as(usize, 1), inventory.dedicated_survey_replays.len);
     try std.testing.expectEqualStrings("phase11-uapi-header-parity-survey-tests", inventory.build_test_names[6]);
     try std.testing.expectEqualStrings("phase11-hvc-console-tests", inventory.build_test_names[7]);
+    try std.testing.expectEqualStrings("phase11-hvc-console-survey-tests", inventory.build_test_names[8]);
     try std.testing.expectEqualStrings("run_phase11_uapi_header_parity_survey_tests", inventory.shared_test_depend_steps[6]);
     try std.testing.expectEqualStrings("run_phase11_hvc_console_tests", inventory.shared_test_depend_steps[7]);
     try std.testing.expectEqualStrings("phase11_uapi_header_parity_survey_module", inventory.module_root_source_files[11].module);
@@ -379,6 +380,8 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
     try std.testing.expectEqualStrings("phase11_uapi_header_parity_survey_module", inventory.test_root_modules[6].root_module);
     try std.testing.expectEqualStrings("phase11-hvc-console-tests", inventory.test_root_modules[7].@"test");
     try std.testing.expectEqualStrings("phase11_hvc_console_module", inventory.test_root_modules[7].root_module);
+    try std.testing.expectEqualStrings("phase11-hvc-console-survey-tests", inventory.test_root_modules[8].@"test");
+    try std.testing.expectEqualStrings("phase11_hvc_console_survey_module", inventory.test_root_modules[8].root_module);
     try std.testing.expectEqualStrings("phase11_hvc_console_survey_tests", inventory.forbidden_markers[0]);
     try std.testing.expectEqualStrings("run_phase11_hvc_console_survey_tests.step", inventory.forbidden_markers[1]);
     try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", inventory.dedicated_survey_replays[0]);
