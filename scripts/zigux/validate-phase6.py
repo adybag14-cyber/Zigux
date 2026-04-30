@@ -736,6 +736,20 @@ def run_self_test() -> int:
                 raise AssertionError(f"expected mismatch marker, got: {fail_result['missing']}")
 
             write_self_test_tree(root)
+            script_readme_path = root / "scripts/zigux/README.md"
+            script_readme_text = script_readme_path.read_text(encoding="utf-8")
+            script_readme_path.write_text(
+                script_readme_text.replace("Phase 6 flow", "Phase Six flow", 1),
+                encoding="utf-8",
+            )
+
+            readme_fail_result = validate_phase6(root)
+            if readme_fail_result["ok"]:
+                raise AssertionError("script README marker drift unexpectedly passed")
+            if "script_readme:missing:Phase 6 flow" not in readme_fail_result["missing"]:
+                raise AssertionError(f"expected script README marker failure, got: {readme_fail_result['missing']}")
+
+            write_self_test_tree(root)
             vectors_path = root / "zigux/tests/fixtures/phase6_base64_vectors.zig"
             vectors_text = vectors_path.read_text(encoding="utf-8")
             vectors_marker = '.{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },'
@@ -754,7 +768,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE6_VALIDATOR_SELF_TEST=pass")
-    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=2")
+    print("PHASE6_VALIDATOR_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
