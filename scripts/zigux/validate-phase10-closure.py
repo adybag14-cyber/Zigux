@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
+import shutil
+import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,6 +51,91 @@ required_files = [
     ROOT / "zigux" / "tests" / "phase10_virtio_mmio_manifest.json",
     ROOT / "zigux" / "tests" / "phase10_closure_manifest.json",
 ]
+
+
+def run_self_test() -> int:
+    baseline = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "zigux" / "validate-phase10-closure.py")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if baseline.returncode != 0:
+        print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=fail")
+        print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_REASON=baseline_validation_failed")
+        stdout = baseline.stdout.strip()
+        stderr = baseline.stderr.strip()
+        if stdout:
+            print(stdout)
+        if stderr:
+            print(stderr)
+        return 1
+
+    expected_marker = (
+        "input_survey_test:"
+        'const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") '
+        "orelse return error.TestUnexpectedResult;"
+    )
+    input_survey_rel = Path("zigux/tests/phase10_virtio_input_survey.zig")
+    input_survey_marker = (
+        'const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence") '
+        "orelse return error.TestUnexpectedResult;"
+    )
+    mutated_marker = (
+        'const landed_input_helper_evidence = closure_manifest.object.get("landed_input_helper_evidence_removed") '
+        "orelse return error.TestUnexpectedResult;"
+    )
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_selftest_") as tmp_dir:
+        tmp_root = Path(tmp_dir) / "repo"
+        for path in required_files:
+            rel_path = path.relative_to(ROOT)
+            destination = tmp_root / rel_path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, destination)
+
+        tmp_input_survey = tmp_root / input_survey_rel
+        input_survey = tmp_input_survey.read_text(encoding="utf-8")
+        if input_survey_marker not in input_survey:
+            print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=fail")
+            print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_REASON=baseline_marker_missing")
+            print(expected_marker)
+            return 1
+
+        tmp_input_survey.write_text(
+            input_survey.replace(input_survey_marker, mutated_marker, 1),
+            encoding="utf-8",
+        )
+
+        mutated = subprocess.run(
+            [sys.executable, str(tmp_root / "scripts" / "zigux" / "validate-phase10-closure.py")],
+            cwd=tmp_root,
+            capture_output=True,
+            text=True,
+        )
+        if mutated.returncode == 0:
+            print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=fail")
+            print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_REASON=mutated_validation_unexpectedly_passed")
+            return 1
+        if expected_marker not in mutated.stdout:
+            print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=fail")
+            print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_REASON=expected_marker_not_reported")
+            print(f"PHASE10_CLOSURE_VALIDATOR_SELF_TEST_EXPECTED={expected_marker}")
+            stdout = mutated.stdout.strip()
+            stderr = mutated.stderr.strip()
+            if stdout:
+                print(stdout)
+            if stderr:
+                print(stderr)
+            return 1
+
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=2")
+    return 0
+
+
+if "--self-test" in sys.argv[1:]:
+    sys.exit(run_self_test())
 
 
 def load_json(path: Path) -> object:
@@ -327,27 +415,17 @@ required_mmio_survey_test_markers = [
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
-    'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without claiming config writes") == null);',
+    'const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(',
+    'const landed_mmio_helper_evidence = closure_manifest.object.get("landed_mmio_helper_evidence") orelse return error.TestUnexpectedResult;',
+    'const mmio_helper_evidence = landed_mmio_helper_evidence.object.get("zigux/tests/phase10_virtio_mmio_manifest.json") orelse return error.TestUnexpectedResult;',
+    'const expected_landed_mmio_helpers = [_][]const u8{',
+    '"phase10-mmio-config-write-helper",',
+    'const blocked_transport_gaps = closure_manifest.object.get("blocked_transport_gaps") orelse return error.TestUnexpectedResult;',
+    'const mmio_blocked_gap = blocked_transport_gaps.object.get("zigux/tests/phase10_virtio_mmio_manifest.json") orelse return error.TestUnexpectedResult;',
+    'try std.testing.expectEqualStrings("phase10-mmio-lifecycle-and-irq-paths", mmio_blocked_gap.string);',
 ]
 required_phase10_build_markers = [
-    'const phase10_virtio_core_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_core.zig"),',
-    'const phase10_virtio_core_survey_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_core_survey.zig"),',
-    'const phase10_virtio_ring_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_ring.zig"),',
-    'const phase10_virtio_ring_reset_reuse_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_ring_reset_reuse.zig"),',
-    'const phase10_virtio_ring_survey_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
-    'const phase10_virtio_input_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_input.zig"),',
-    'const phase10_virtio_input_survey_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_input_survey.zig"),',
-    'const phase10_virtio_mmio_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_mmio.zig"),',
-    'const phase10_virtio_mmio_survey_module = b.createModule(.{',
-    '.root_source_file = b.path("phase10_virtio_mmio_survey.zig"),',
+    'b.addTest(.{',
     '.name = "phase10-virtio-core-tests",',
     '.name = "phase10-virtio-core-survey-tests",',
     '.name = "phase10-virtio-ring-tests",',
