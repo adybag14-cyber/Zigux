@@ -13,6 +13,7 @@ fn expectRuntimeMarker(marker: []const u8) !void {
 test "atomic64 diff wrapper keeps the bounded runtime replay body reachable" {
     try expectRuntimeMarker("runtime atomic64 diff gate replays bounded atomic64_test.c");
     try expectRuntimeMarker("runtime atomic64 diff gate keeps selftest family coverage explicit");
+    try expectRuntimeMarker("runtime atomic64 diff gate keeps lifecycle transitions single-shot");
     try expectRuntimeMarker("runtime atomic64 diff gate keeps post-selftest replay explicit");
 }
 
@@ -45,6 +46,13 @@ test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
 
     try expectRuntimeMarker("checked_returning_paths");
     try expectRuntimeMarker("checked_guard_paths");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.runSelftest()");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.exit()");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(11)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.runSelftest()");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(13)");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.exit()");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(17)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.incNotZeroCounter()");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.decIfPositiveCounter()");
 }
