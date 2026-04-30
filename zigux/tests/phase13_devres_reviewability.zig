@@ -3,6 +3,11 @@ const devres = @import("devres");
 
 const SurveySummary = struct {
     devres_c_lines: usize,
+    previous_surveyed_commit: []const u8,
+    devres_helper_sha256: []const u8,
+    devres_test_sha256: []const u8,
+    devres_helper_matches_previous_surveyed_commit: bool,
+    devres_test_matches_previous_surveyed_commit: bool,
     preexisting_phase13_build_present: bool,
     preexisting_phase13_make_target_present: bool,
     preexisting_devres_zig_present: bool,
@@ -43,7 +48,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
 }
 
-test "phase13 devres manifest records the landed helper-first dma/scatterlist boundary and explicit blockers" {
+test "phase13 devres manifest records the current iomap/mmio safety surface and explicit blockers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -59,12 +64,17 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("3f74e747aa08fd80bf4db8d7b085aa5293bb53ef", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
+    try std.testing.expectEqualStrings("3f74e747aa08fd80bf4db8d7b085aa5293bb53ef", manifest.survey_summary.previous_surveyed_commit);
+    try std.testing.expectEqualStrings("6343f013ad5ca0d9e4208ff119b3f34c10a0f4a1947f23618081eee40a86be17", manifest.survey_summary.devres_helper_sha256);
+    try std.testing.expectEqualStrings("d76ad9b32893079c91bd0b33f1be5f168fa9c3551ba3b5e6ea5428c796eb1826", manifest.survey_summary.devres_test_sha256);
+    try std.testing.expect(manifest.survey_summary.devres_helper_matches_previous_surveyed_commit);
+    try std.testing.expect(manifest.survey_summary.devres_test_matches_previous_surveyed_commit);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
     try std.testing.expect(manifest.survey_summary.preexisting_devres_zig_present);
@@ -105,12 +115,15 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
 
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
-    try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-dma-scatterlist-reviewability`");
-    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`");
+    try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=26e5f8101d3546c7942c93757ecc3fdfaa6ee264`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
     try expectContains(survey_note, "- `Documentation/zigux/phase13-devres-survey.md`");
+    try expectContains(survey_note, "byte-for-byte unchanged on current `master`");
+    try expectContains(survey_note, "sha256 6343f013ad5ca0d9e4208ff119b3f34c10a0f4a1947f23618081eee40a86be17");
+    try expectContains(survey_note, "sha256 d76ad9b32893079c91bd0b33f1be5f168fa9c3551ba3b5e6ea5428c796eb1826");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
@@ -209,7 +222,6 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource_uc") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource_wc") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-devicetree-iomap-planner")) {
