@@ -55,7 +55,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    bitmap_module.addImport("find_bit", find_bit_module);
     bitmap_diff_module.addImport("bitmap", bitmap_module);
     bitmap_diff_module.addImport("find_bit", find_bit_module);
 
