@@ -490,7 +490,7 @@ required_phase7_cmdline_test_markers = [
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
     "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up",
-    'try std.testing.expectEqualStrings("ad1a0b14d1a9a401a7b9b5924d7986cc40a7298f", manifest.surveyed_commit);',
+    'try std.testing.expectEqualStrings("d653b52ff811ecd5de8f09c1e1577c75de1d09b3", manifest.surveyed_commit);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);',
@@ -717,7 +717,7 @@ if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
     manifest_shape_errors.append("lane_key")
 if phase7_argv_split_manifest.get("phase") != "Phase 7":
     manifest_shape_errors.append("phase")
-if phase7_argv_split_manifest.get("surveyed_commit") != "ad1a0b14d1a9a401a7b9b5924d7986cc40a7298f":
+if phase7_argv_split_manifest.get("surveyed_commit") != "d653b52ff811ecd5de8f09c1e1577c75de1d09b3":
     manifest_shape_errors.append("surveyed_commit")
 if phase7_argv_split_manifest.get("anchor") != "lib/argv_split.c":
     manifest_shape_errors.append("anchor")
@@ -767,7 +767,7 @@ if phase7_rbtree_manifest.get("lane_key") != "P7-L13":
     rbtree_manifest_shape_errors.append("lane_key")
 if phase7_rbtree_manifest.get("phase") != "Phase 7":
     rbtree_manifest_shape_errors.append("phase")
-if phase7_rbtree_manifest.get("surveyed_commit") != "64d78cfdc3b9c7b365d75c26957fa99a5f168d85":
+if phase7_rbtree_manifest.get("surveyed_commit") != "d653b52ff811ecd5de8f09c1e1577c75de1d09b3":
     rbtree_manifest_shape_errors.append("surveyed_commit")
 if phase7_rbtree_manifest.get("anchor") != "lib/rbtree.c":
     rbtree_manifest_shape_errors.append("anchor")
