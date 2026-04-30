@@ -37,6 +37,11 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.
 - `tools/lib/bitmap.zig` direct Zig unit coverage now keeps `bitmapFree()` aligned by proving optional bitmap handles reset to null after release while the shared C-backed fixture covers allocator-backed sizing and zero-allocation state.
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps tail-masked reduction helpers aligned so `andBits()`, `andNotBits()`, `equal()`, `intersects()`, and `subset()` ignore out-of-range tail differences while preserving the in-range window.
+- `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve the trailing terminator slot.
+- `tools/lib/bitmap.zig` direct Zig unit coverage keeps `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` honest by proving optional bitmap handles size through `bitsToWords()`, zero-filled allocation stays intact, and released optionals reset to `null`.
+- bitmap range unit-test anchor: `tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"`
+- bitmap copy unit-test anchor: `tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"`
+- bitmap bitwise unit-test anchor: `tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"`
 - bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
 - bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`
