@@ -12,6 +12,17 @@ ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase12-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+BUILD_MODULE_RE = re.compile(
+    r'const ([A-Za-z0-9_]+) = b\.createModule\(\.\{\s*'
+    r'\.root_source_file = b\.path\("([^"]+)"\),',
+    re.S,
+)
+BUILD_IMPORT_RE = re.compile(r'([A-Za-z0-9_]+)\.addImport\("([^"]+)", ([A-Za-z0-9_]+)\);')
+BUILD_TEST_ROOT_MODULE_RE = re.compile(
+    r'\.name = "(phase12-[^"]+)",\s*'
+    r'\.root_module = ([A-Za-z0-9_]+),',
+    re.S,
+)
 
 FILES = [
     "scripts/zigux/check-phase12-build-inventory.py",
@@ -329,6 +340,59 @@ else:
     if actual_depend_steps != expected_depend_steps:
         missing.append("phase12_build_fixture:shared_test_depend_steps_mismatch")
 
+expected_module_root_source_files = build_inventory.get("module_root_source_files")
+if not isinstance(expected_module_root_source_files, list) or not all(
+    isinstance(item, dict)
+    and isinstance(item.get("module"), str)
+    and isinstance(item.get("path"), str)
+    for item in expected_module_root_source_files
+):
+    missing.append("phase12_build_fixture:module_root_source_files")
+else:
+    actual_module_root_source_files = [
+        {"module": module_name, "path": root_path}
+        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+    ]
+    if actual_module_root_source_files != expected_module_root_source_files:
+        missing.append("phase12_build_fixture:module_root_source_files_mismatch")
+
+expected_module_imports = build_inventory.get("module_imports")
+if not isinstance(expected_module_imports, list) or not all(
+    isinstance(item, dict)
+    and isinstance(item.get("module"), str)
+    and isinstance(item.get("import_name"), str)
+    and isinstance(item.get("imported_module"), str)
+    for item in expected_module_imports
+):
+    missing.append("phase12_build_fixture:module_imports")
+else:
+    actual_module_imports = [
+        {
+            "module": module_name,
+            "import_name": import_name,
+            "imported_module": imported_module,
+        }
+        for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
+    ]
+    if actual_module_imports != expected_module_imports:
+        missing.append("phase12_build_fixture:module_imports_mismatch")
+
+expected_test_root_modules = build_inventory.get("test_root_modules")
+if not isinstance(expected_test_root_modules, list) or not all(
+    isinstance(item, dict)
+    and isinstance(item.get("test"), str)
+    and isinstance(item.get("root_module"), str)
+    for item in expected_test_root_modules
+):
+    missing.append("phase12_build_fixture:test_root_modules")
+else:
+    actual_test_root_modules = [
+        {"test": test_name, "root_module": root_module}
+        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    ]
+    if actual_test_root_modules != expected_test_root_modules:
+        missing.append("phase12_build_fixture:test_root_modules_mismatch")
+
 expected_forbidden_markers = build_inventory.get("forbidden_markers")
 if expected_forbidden_markers != FORBIDDEN_BUILD_MARKERS:
     missing.append("phase12_build_fixture:forbidden_markers")
@@ -544,6 +608,9 @@ print("PHASE12_VALIDATION=pass")
 print("PHASE12_MANIFEST_COUNT=4")
 print(f"PHASE12_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
 print(f"PHASE12_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
+print(f"PHASE12_SHARED_BUILD_MODULE_COUNT={len(expected_module_root_source_files)}")
+print(f"PHASE12_SHARED_BUILD_IMPORT_COUNT={len(expected_module_imports)}")
+print(f"PHASE12_SHARED_BUILD_TEST_ROOT_COUNT={len(expected_test_root_modules)}")
 print(f"PHASE12_EXPECTED_SUMMARY_LINE={expected_summary_line}")
 print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
 print(f"PHASE12_BLOCKED_DMA_STATUS_COUNT={blocked_dma_total}")
