@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -21,17 +22,7 @@ TRACKED_PATHS = [
 ]
 
 
-def file_digest(path: Path) -> dict[str, object]:
-    data = path.read_bytes()
-    return {
-        "path": str(path.relative_to(ROOT)),
-        "bytes": len(data),
-        "sha256": hashlib.sha256(data).hexdigest(),
-    }
-
-
-def load_manifest_packet() -> dict[str, str]:
-    manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
+def validate_manifest_packet(manifest: dict[str, object]) -> dict[str, str]:
     lane_key = manifest.get("lane_key")
     phase = manifest.get("phase")
     surveyed_commit = manifest.get("surveyed_commit")
@@ -48,6 +39,20 @@ def load_manifest_packet() -> dict[str, str]:
     }
 
 
+def file_digest(path: Path) -> dict[str, object]:
+    data = path.read_bytes()
+    return {
+        "path": str(path.relative_to(ROOT)),
+        "bytes": len(data),
+        "sha256": hashlib.sha256(data).hexdigest(),
+    }
+
+
+def load_manifest_packet() -> dict[str, str]:
+    manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
+    return validate_manifest_packet(manifest)
+
+
 def render_snapshot() -> dict[str, object]:
     manifest_packet = load_manifest_packet()
     files = [file_digest(ROOT / rel_path) for rel_path in TRACKED_PATHS]
@@ -60,7 +65,86 @@ def render_snapshot() -> dict[str, object]:
     }
 
 
-def main() -> int:
+def expect_system_exit(label: str, callback, expected_message: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        actual_message = str(exc)
+        if actual_message != expected_message:
+            raise SystemExit(
+                f"phase12-libbpf-snapshot:self-test:{label}:expected={expected_message!r}:actual={actual_message!r}"
+            ) from exc
+        return
+    raise SystemExit(
+        f"phase12-libbpf-snapshot:self-test:{label}:missing_system_exit:{expected_message!r}"
+    )
+
+
+def run_self_test() -> int:
+    live_manifest = json.loads((ROOT / TRACKED_PATHS[0]).read_text(encoding="utf-8"))
+    manifest_packet = validate_manifest_packet(live_manifest)
+    if manifest_packet["lane_key"] != "P12-L16":
+        raise SystemExit("phase12-libbpf-snapshot:self-test:lane_key_round_trip")
+    if manifest_packet["phase"] != "Phase 12":
+        raise SystemExit("phase12-libbpf-snapshot:self-test:phase_round_trip")
+    if manifest_packet["surveyed_commit"] != live_manifest["surveyed_commit"]:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:surveyed_commit_round_trip")
+
+    invalid_phase_manifest = dict(live_manifest)
+    invalid_phase_manifest["phase"] = "Phase 11"
+    expect_system_exit(
+        "invalid_phase",
+        lambda: validate_manifest_packet(invalid_phase_manifest),
+        "invalid Phase 12 libbpf phase",
+    )
+
+    invalid_commit_manifest = dict(live_manifest)
+    invalid_commit_manifest["surveyed_commit"] = "deadbeef"
+    expect_system_exit(
+        "invalid_surveyed_commit",
+        lambda: validate_manifest_packet(invalid_commit_manifest),
+        "invalid Phase 12 libbpf surveyed_commit",
+    )
+
+    first = render_snapshot()
+    second = render_snapshot()
+    if first != second:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:repeat_run_stability")
+    if first["tracked_file_count"] != len(TRACKED_PATHS):
+        raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_file_count")
+
+    files = first["files"]
+    if not isinstance(files, list):
+        raise SystemExit("phase12-libbpf-snapshot:self-test:files_list")
+    actual_paths = [entry.get("path") for entry in files]
+    if actual_paths != TRACKED_PATHS:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:tracked_path_order")
+
+    first_digest = files[0]
+    if first_digest.get("path") != TRACKED_PATHS[0]:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:first_digest_path")
+    if first_digest.get("bytes") != len((ROOT / TRACKED_PATHS[0]).read_bytes()):
+        raise SystemExit("phase12-libbpf-snapshot:self-test:first_digest_bytes")
+
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=7")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Rebuild and compare the bounded Phase 12 libbpf snapshot fixture."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in manifest, ordering, and repeat-run checks",
+    )
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return run_self_test()
+
     first = render_snapshot()
     second = render_snapshot()
     if first != second:
