@@ -7,7 +7,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-survey`
 - surveyed inspected `master` head: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what has now landed plus the remaining MMIO follow-up ladder against the roadmap
+- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what has now landed plus the remaining blocked MMIO lifecycle-and-IRQ boundary against the roadmap
 - product boundary:
   - `zigux/tests/phase10_virtio_ring_manifest.json`
   - `zigux/tests/phase10_virtio_ring_survey.zig`
@@ -18,7 +18,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback disable and re-enable, callback enable-prepare, delayed-callback pacing, notify-prepare with rollover flushing, and queue-reset guard plus drained-queue reset follow-ups without pretending queue lifecycle parity is complete.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback disable and re-enable, callback enable-prepare, delayed-callback pacing, notify-prepare with rollover flushing, and queue-reset guard plus drained-queue reset follow-ups while also keeping explicit that the MMIO helper ladder is already landed and only the blocked lifecycle and IRQ packet remains out of scope.
 
 ## Survey findings
 
