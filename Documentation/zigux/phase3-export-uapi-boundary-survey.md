@@ -12,6 +12,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 - `PHASE3_UAPI_SCOPE=version-and-boundary-header`
 - `PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed`
 - `PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig`
+- `PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry`
 
@@ -41,6 +42,7 @@ The current tree already carries the first bounded export and UAPI boundary surf
 - `zigux/uapi/version.zig` now exports `abi_version`, `Header`, `boundaryHeader`, `isCompatible`, and `isCanonical`
 - `Documentation/zigux/phase3-abi-slice.md` now describes the export shim as explicit-status-plus-boundary-header and the UAPI surface as version-and-boundary-header
 - `zigux/tests/phase3_export_uapi.zig` now proves that both helpers accept the same shared boundary header and reject undersized or version-mismatched headers identically
+- `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` now replay the dedicated size and field-offset contract for `BoundaryHeader` and `ExportStatus` without forcing the wider Phase 3 dump or ABI bundle
 
 This is real roadmap-backed progress.
 It is also still a narrow starting point rather than broad UAPI closure.
@@ -54,6 +56,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 
 - the original substrate ledger entry already named `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` as part of the permanent Phase 3 boundary
 - current `master` now adds focused replay evidence for that same boundary through `zigux/tests/phase3_export_uapi_build.zig` and `zigux/tests/phase3_export_uapi.zig`
+- current `master` now also carries a dedicated layout replay for that same boundary through `zigux/tests/phase3_export_uapi_layout_build.zig` and `zigux/tests/phase3_export_uapi_layout.zig`
 - `zigux/tests/fixtures/phase3_abi_manifest.json` now carries those focused replay paths inside the same ABI substrate packet rather than presenting them as a broader UAPI tranche
 
 ## Current Boundary Gap
