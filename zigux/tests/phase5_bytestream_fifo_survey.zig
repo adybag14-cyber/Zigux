@@ -238,7 +238,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
-    try std.testing.expect(saw_transferCounts);
+    try std.testing.expect(saw_transfer_counts);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_preview_truncation);
     try std.testing.expect(saw_queue_only_reset);
