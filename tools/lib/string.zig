@@ -60,6 +60,20 @@ pub fn skip_spaces(str: []const u8) []const u8 {
     return skipSpaces(str);
 }
 
+pub fn strEq(lhs: []const u8, rhs: []const u8) bool {
+    const lhs_len = cStringLen(lhs);
+    const rhs_len = cStringLen(rhs);
+    if (lhs_len != rhs_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, lhs[0..lhs_len], rhs[0..rhs_len]);
+}
+
+pub fn streq(lhs: []const u8, rhs: []const u8) bool {
+    return strEq(lhs, rhs);
+}
+
 pub fn strStarts(str: []const u8, prefix: []const u8) bool {
     const prefix_len = cStringLen(prefix);
     const str_len = cStringLen(str);
@@ -324,6 +338,20 @@ test "trimSpaces and strim trim trailing whitespace before an embedded NUL" {
     var strim_trailing_cstr_buf = [_]u8{ ' ', 'o', 'k', ' ', '\t', 0, 'x' };
     try std.testing.expectEqualStrings("ok", strim(&strim_trailing_cstr_buf));
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'o', 'k', 0, '\t', 0, 'x' }, &strim_trailing_cstr_buf);
+}
+
+test "streq matches C-string equality semantics" {
+    try std.testing.expect(strEq("zigux", "zigux"));
+    try std.testing.expect(streq("zigux", "zigux"));
+    try std.testing.expect(streq("", ""));
+    try std.testing.expect(!streq("zigux", "zig"));
+    try std.testing.expect(!streq("zigux", "Zigux"));
+
+    const source = [_]u8{ 'z', 'i', 'g', 0, 'x' };
+    const embedded_match = [_]u8{ 'z', 'i', 'g', 0, 'u', 'x' };
+    const embedded_miss = [_]u8{ 'z', 'i', 'p', 0, 'u', 'x' };
+    try std.testing.expect(streq(&source, &embedded_match));
+    try std.testing.expect(!streq(&source, &embedded_miss));
 }
 
 test "strstarts matches kernel prefix semantics" {
