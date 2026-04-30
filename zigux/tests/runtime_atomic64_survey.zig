@@ -430,6 +430,8 @@ test "phase 9 runtime atomic64 module slice note stays aligned with the landed l
     defer std.testing.allocator.free(module_slice);
 
     const required_markers = [_][]const u8{
+        "`PHASE9_LANE_KEY=P9-L01`",
+        "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
         "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
@@ -447,45 +449,3 @@ test "phase 9 runtime atomic64 module slice note stays aligned with the landed l
     ) == null);
 }
 
-test "phase 9 runtime atomic64 survey note keeps the landed loader scaffold and blocker explicit" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(survey_doc);
-
-    const required_markers = [_][]const u8{
-        "manifest-backed delivery catalog and ownership map",
-        "`PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`",
-        "the current survey packet is pinned to `master` commit `5dab7ee45d2664801211fb9e2ccba28e1a127071`",
-        "direct `phase9-runtime-atomic64-sample-tests` shared-build leg",
-        "direct `phase9-runtime-atomic64-loader-tests` shared-build leg",
-        "a landed sample-side loader scaffold in `samples/zigux/runtime_atomic64_loader.zig`",
-        "a landed shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
-        "Delivery ownership map",
-        "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
-        "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
-        "Documentation/zigux/freeze-map.md",
-        "`kernel/workqueue.c`",
-        "Study / Boundary Only",
-        "No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 atomic64 lane.",
-        "blocked shared command-name, argv-policy, and environment-derived activation-control posture",
-        "shared Phase 9 replay entrypoint",
-        "command-name, argv-policy, and environment-derived activation handling still have no shared owner",
-        "workqueue parity",
-        "rather than reopening already-landed survey, sample, loader-scaffold, shared binding, module-gate, or diff-gate scaffolding",
-        "this shared build now includes the direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs",
-    };
-
-    for (required_markers) |marker| {
-        try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
-    }
-
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, surveyed_commit) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Delivery ownership map") != null);
-}

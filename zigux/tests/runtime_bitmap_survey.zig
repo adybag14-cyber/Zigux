@@ -474,6 +474,8 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
     defer std.testing.allocator.free(module_slice);
 
     const required_markers = [_][]const u8{
+        "`PHASE9_LANE_KEY=P9-L07`",
+        "`PHASE9_SURVEYED_COMMIT=f3e9edb81f6766ec40eb4a93c781fc90dfb6f9c2`",
         "adjacent loader scaffold plus shared loader-request binding",
         "zigux/kernel/runtime_loader.zig",
         "direct post-selftest mutation replay proof",
