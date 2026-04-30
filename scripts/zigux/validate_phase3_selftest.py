@@ -170,6 +170,20 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (root / "zigux" / "helpers" / "interop_policy.zig").write_text(
+            "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy {\n"
+            "    _ = policy;\n"
+            "    return undefined;\n"
+            "}\n\n"
+            "pub fn recognizes(policy: abi.InteropPolicy) bool {\n"
+            "    _ = policy;\n"
+            "    return true;\n"
+            "}\n\n"
+            'test "phase3 interop policy decoder keeps the boundary typed" {}\n'
+            'test "phase3 interop policy decoder rejects invalid bytes and reserved bits" {}\n',
+            encoding="utf-8",
+            newline="\n",
+        )
         (root / "zigux" / "helpers" / "atomic.zig").write_text(
             "const std = @import(\"std\");\n\n"
             "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {\n"
@@ -316,6 +330,9 @@ def run_self_test() -> int:
         )
         (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
             'test "phase3 policy helpers stay ABI aligned" {}\n'
+            'test "phase3 policy decoder validates the whole interop record" {}\n'
+            'test "phase3 policy decoder rejects partial or reserved policy bytes" {}\n'
+            'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}\n'
             'test "phase3 policy gate enforces the declared unsafe scope" {}\n',
             encoding="utf-8",
             newline="\n",
