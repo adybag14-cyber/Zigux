@@ -348,6 +348,13 @@ WORKFLOW_EXACT_LINES = {
     "run: python3 scripts/zigux/check-phase1-parity.py --self-test": 1,
 }
 
+PHASE1_CLOSURE_PREFIX_COUNTS = {
+    "- `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage": 1,
+    "- `tools/lib/find_bit.zig` closure includes committed C-backed parity coverage": 1,
+    "- `tools/lib/rbtree.zig` closure includes committed C-backed parity coverage": 1,
+    "- `tools/lib/string.zig` closure includes committed C-backed parity coverage": 1,
+}
+
 
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
@@ -364,6 +371,10 @@ def fail(block: str, items: list[str]) -> None:
 
 def count_exact_line(text: str, expected: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == expected)
+
+
+def count_prefixed_lines(text: str, prefix: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip().startswith(prefix))
 
 
 def validate_fixture_shape() -> list[str]:
@@ -461,7 +472,19 @@ for line, expected_count in WORKFLOW_EXACT_LINES.items():
 if workflow_exact_line_issues:
     fail("MISSING_PHASE1_WORKFLOW_EXACT_LINES", workflow_exact_line_issues)
 
-marker_count = sum(len(markers) for _, markers in MARKER_GROUPS.values())
+phase1_closure_text = texts["phase1_closure"]
+phase1_closure_prefix_issues = []
+for prefix, expected_count in PHASE1_CLOSURE_PREFIX_COUNTS.items():
+    actual_count = count_prefixed_lines(phase1_closure_text, prefix)
+    if actual_count != expected_count:
+        phase1_closure_prefix_issues.append(
+            f"closure_prefix:{prefix}:expected_count={expected_count}:actual_count={actual_count}"
+        )
+
+if phase1_closure_prefix_issues:
+    fail("MISSING_PHASE1_CLOSURE_PREFIX_COUNTS", phase1_closure_prefix_issues)
+
+marker_count = sum(len(markers) for _, markers in MARKER_GROUPS.values()) + len(PHASE1_CLOSURE_PREFIX_COUNTS)
 print("PHASE1_VALIDATION=pass")
 print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(f"PHASE1_REQUIRED_MARKER_COUNT={marker_count}")
