@@ -9,9 +9,13 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EVIDENCE=Documentation/zigux/phase10-closure-evidence.md`
 - `PHASE10_LEDGER_VALIDATE=scripts/zigux/validate-phase10-closure.py`
 - `PHASE10_LEDGER_MANIFEST=zigux/tests/phase10_closure_manifest.json`
+- `PHASE10_LEDGER_CORE_SURVEY=Documentation/zigux/phase10-virtio-core-survey.md`
 - `PHASE10_LEDGER_RING_SURVEY=Documentation/zigux/phase10-virtio-ring-survey.md`
+- `PHASE10_LEDGER_INPUT_SURVEY=Documentation/zigux/phase10-virtio-input-survey.md`
 - `PHASE10_LEDGER_MMIO_SURVEY=Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `PHASE10_LEDGER_CORE_MANIFEST=zigux/tests/phase10_virtio_core_manifest.json`
 - `PHASE10_LEDGER_RING_MANIFEST=zigux/tests/phase10_virtio_ring_manifest.json`
+- `PHASE10_LEDGER_INPUT_MANIFEST=zigux/tests/phase10_virtio_input_manifest.json`
 - `PHASE10_LEDGER_MMIO_MANIFEST=zigux/tests/phase10_virtio_mmio_manifest.json`
 - `PHASE10_LEDGER_MAKEFILE=zigux/Makefile`
 - `PHASE10_LEDGER_WORKFLOW=.github/workflows/zigux-bootstrap.yml`
