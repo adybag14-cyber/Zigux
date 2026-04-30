@@ -135,6 +135,26 @@ Phase 10 notes
 - `python3 scripts/zigux/validate-phase10-closure.py` and `make -C zigux phase10-validate` now fail fast if the shared closure note, the four Phase 10 survey manifests, the bootstrap workflow, and `zigux/tests/phase10_build.zig` drift apart.
 - `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, ring, input, and MMIO-survey evidence bundle together, so new Phase 10 work stays reviewable as one bounded lab tranche instead of widening into ad hoc transport claims.
 
+Phase 11 notes
+- `Documentation/zigux/phase11-gpio-wdt-slice.md`
+- `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
+- `Documentation/zigux/phase11-gpio-wdt-survey.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-slice.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-slice.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-slice.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+- the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index instead of leaving the watchdog and hvc evidence bundle discoverable only through deeper survey notes.
+- the same top-level packet now keeps the gpio, bcm2835, dw_wdt, and hvc validation matrices explicit alongside the bounded slice and survey notes, so the required hardware-validation posture is visible before any lane claims live registration, teardown execution, PM, IRQ, reboot glue, or host-backed behavior.
+- `python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path, while `zigux/tests/phase11_hvc_console_survey.zig` stays a dedicated archival replay outside the shared build bundle.
+- the same top-level packet also keeps the shared UAPI header-parity survey visible beside the four driver-local manifests, so future Phase 11 work does not quietly drift away from the bounded simple-driver scope or shared-versus-dedicated replay contract.
+
 Phase 12 notes
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
