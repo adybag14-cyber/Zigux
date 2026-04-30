@@ -93,9 +93,15 @@ This catalog records the exact read-only GitHub fallback coverage verified for t
 
 These fields are historical replay metadata for this pinned fallback packet. They can lag the live `master` head until `P12-L09` or `P12-L12` refreshes the exact inspected-head evidence again, and they should not be read as the current shared Phase 12 validator state for newer commits.
 
-- current_master_replay_head: `3541e474daa91ceb7cfa9fb2f4e9aa0d9be948e5`
+- current_master_replay_head: `29ad00c933f721716ce6cf92acd386537930e222`
 - current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`
-- current_shared_validator_result: `PHASE12_VALIDATION=pass`
+- current_shared_validator_result: `PHASE12_VALIDATION=fail`
+- current_shared_validator_missing_markers:
+  - `phase12_build_fixture:module_root_source_files_mismatch`
+  - `phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_reviewability.zig`
+  - `phase12_libbpf_snapshot_fixture:sha256:zigux/tests/phase12_libbpf_reviewability.zig`
+  - `phase12_libbpf_snapshot_fixture:sha256:tools/lib/bpf/zigux_segments/manifest.json`
+- current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+- current_shared_build_result: `Build Summary: 17/17 steps succeeded; 51/51 tests passed`
 - current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`
-- current_shared_validator_missing_markers: `[]`
 - current_focused_survey_result: `All 1 tests passed.`
