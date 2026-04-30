@@ -39,13 +39,13 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/bitmap.zig` direct Zig unit coverage also keeps tail-masked reduction helpers aligned so `andBits()`, `andNotBits()`, `equal()`, `intersects()`, and `subset()` ignore out-of-range tail differences while preserving the in-range window.
 - `tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve the trailing terminator slot.
 - `tools/lib/bitmap.zig` direct Zig unit coverage keeps `bitmapAlloc()`, `bitmapZalloc()`, and `bitmapFree()` honest by proving optional bitmap handles size through `bitsToWords()`, zero-filled allocation stays intact, and released optionals reset to `null`.
-- bitmap range unit-test anchor: `tools/lib/bitmap.zig:test "bitmap range helpers preserve edges across whole-word spans"`
-- bitmap copy unit-test anchor: `tools/lib/bitmap.zig:test "bitmap copyClearTail clears out-of-range bits in the last copied word"`
-- bitmap bitwise unit-test anchor: `tools/lib/bitmap.zig:test "bitmap and andnot equal intersects subset"`
+- bitmap range unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap range helpers preserve edges across whole-word spans\"`
+- bitmap copy unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap copyClearTail clears out-of-range bits in the last copied word\"`
+- bitmap bitwise unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap and andnot equal intersects subset\"`
 - bitmap fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - bitmap manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test "bitmap allocation helpers size zero fill and reset optionals"`
-- bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"`
+- bitmap direct unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap allocation helpers size zero fill and reset optionals\"`
+- bitmap tail-mask unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap tail-masked helpers ignore out-of-range differences\"`
 - bitmap empty-bitmap review note: `bitmap_scnprintf` must leave a non-empty caller buffer untouched when no bits are set, matching the C helper contract
 - bitmap allocator review note: `bitmap_alloc()` and `bitmap_zalloc()` must size partial-word bitmaps through `BITS_TO_LONGS(nbits)`, while `bitmapFree()` optional-reset behavior remains direct Zig-only coverage because the C helper frees raw pointers in place
 
@@ -62,11 +62,11 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/find_bit.zig` direct Zig unit coverage also keeps empty and out-of-range scan boundaries aligned by returning `nbits` for zero-length bitmaps, start-at-`nbits` searches, and fully set zero-bit windows that must not report past the declared range.
 - find_bit fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - find_bit manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"`
-- find_bit set unit-test anchor: `tools/lib/find_bit.zig:test "find next bit skips earlier matches in the same word"`
-- find_bit and unit-test anchor: `tools/lib/find_bit.zig:test "find next and bit skips earlier shared matches in the same word"`
-- find_bit mask unit-test anchor: `tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"`
-- find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`
+- find_bit direct unit-test anchor: `tools/lib/find_bit.zig:test \"find next zero bit skips earlier matches in the same word\"`
+- find_bit set unit-test anchor: `tools/lib/find_bit.zig:test \"find next bit skips earlier matches in the same word\"`
+- find_bit and unit-test anchor: `tools/lib/find_bit.zig:test \"find next and bit skips earlier shared matches in the same word\"`
+- find_bit mask unit-test anchor: `tools/lib/find_bit.zig:test \"word helpers keep linux-style mask and sizing boundaries\"`
+- find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test \"empty and boundary scans return nbits\"`
 
 - `PHASE1_FIND_BIT_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_FIND_BIT_REVIEW=find_bit baseline set, zero, shared-bit, and tail-clamped scans ignore bits beyond nbits while preserving the in-range mixed-tail match`
@@ -85,12 +85,12 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findLast()`, `prevMatch()`, and `iterateMatchesReverse()` aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.
 - rbtree fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - rbtree manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`
-- rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`
-- rbtree cached-root unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root keeps leftmost in sync across add erase and replace"`
-- rbtree cached duplicate-minima unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace"`
-- rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`
-- rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`
+- rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test \"rbtree findAdd keeps the first duplicate and inserts new keys\"`
+- rbtree search unit-test anchor: `tools/lib/rbtree.zig:test \"rbtree nextMatch walks the duplicate range in order\"`
+- rbtree cached-root unit-test anchor: `tools/lib/rbtree.zig:test \"rbtree cached root keeps leftmost in sync across add erase and replace\"`
+- rbtree cached duplicate-minima unit-test anchor: `tools/lib/rbtree.zig:test \"rbtree cached root tracks duplicate minima through erase and non-leftmost replace\"`
+- rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test \"rbtree iterateMatches streams only the duplicate range\"`
+- rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test \"rbtree iterateMatchesReverse streams only the duplicate range in reverse\"`
 
 - `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state`
@@ -107,15 +107,17 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `tools/lib/string.zig` direct Zig unit coverage keeps `memchrInv` honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `trimSpaces` and `strim` aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strStarts` and `strstarts` aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.
+- `tools/lib/string.zig` direct Zig unit coverage also keeps `strHasPrefix` and `str_has_prefix` aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.
 - `tools/lib/string.zig` direct Zig unit coverage also keeps `strEndsWith` and `str_ends_with` aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.
 - string fixture authority: `zigux/tests/fixtures/phase1_helpers.json`
 - string manifest review anchor: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`
-- string equality unit-test anchor: `tools/lib/string.zig:test "streq matches C-string equality semantics"`
-- string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`
-- string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`
-- string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`
-- string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`
+- string c-string unit-test anchor: `tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\"`
+- string equality unit-test anchor: `tools/lib/string.zig:test \"streq matches C-string equality semantics\"`
+- string direct unit-test anchor: `tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"`
+- string alias unit-test anchor: `tools/lib/string.zig:test \"trimSpaces and strim trim trailing whitespace before an embedded NUL\"`
+- string prefix unit-test anchor: `tools/lib/string.zig:test \"strstarts matches kernel prefix semantics\"`
+- string prefix-length unit-test anchor: `tools/lib/string.zig:test \"strHasPrefix returns the matched prefix length with C-string semantics\"`
+- string suffix unit-test anchor: `tools/lib/string.zig:test \"str_ends_with matches kernel suffix semantics\"`
 
 - `PHASE1_STRING_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
 - `PHASE1_STRING_REVIEW=string parity covers Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection`
@@ -124,6 +126,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - `PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases`
 - `PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator`
 - `PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons`
+- `PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes`
 - `PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith and str_ends_with keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons`
 
 ## Closure Gates
