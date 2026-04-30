@@ -7,7 +7,8 @@
     "phase11-dw-wdt-tests",
     "phase11-dw-wdt-survey-tests",
     "phase11-uapi-header-parity-survey-tests",
-    "phase11-hvc-console-tests"
+    "phase11-hvc-console-tests",
+    "phase11-hvc-console-survey-tests"
   ],
   "shared_test_depend_steps": [
     "run_phase11_gpio_wdt_tests",
@@ -155,6 +156,10 @@
     {
       "test": "phase11-hvc-console-tests",
       "root_module": "phase11_hvc_console_module"
+    },
+    {
+      "test": "phase11-hvc-console-survey-tests",
+      "root_module": "phase11_hvc_console_survey_module"
     }
   ],
   "forbidden_markers": [
