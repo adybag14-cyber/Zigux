@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -167,10 +168,26 @@ def _surveyed_commit_from_text(text: str) -> str | None:
     return None
 
 
+def _has_local_commit(root: Path, commit: str) -> bool:
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return False
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"{commit}^{{commit}}"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
 def _packet_drift_since_commit(root: Path, commit: str) -> list[str]:
     git_dir = root / ".git"
     if not git_dir.exists():
         return []
+    if not _has_local_commit(root, commit):
+        return [f"surveyed_commit_unavailable_locally:{commit}"]
     result = subprocess.run(
         ["git", "diff", "--name-only", commit, "HEAD", "--", *SURVEYED_PACKET_PATHS],
         cwd=root,
@@ -342,12 +359,73 @@ def run_self_test() -> int:
         _write(root, POLICY_UNSAFE_BUILD_REL, "// build file present\n")
         _write(root, MANIFEST_REL, "{}\n")
 
+        assert validate(root) == []
+
+        subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True, capture_output=True, text=True)
+        env = {
+            **os.environ,
+            "GIT_AUTHOR_NAME": "Codex",
+            "GIT_AUTHOR_EMAIL": "codex@example.com",
+            "GIT_COMMITTER_NAME": "Codex",
+            "GIT_COMMITTER_EMAIL": "codex@example.com",
+        }
+        subprocess.run(
+            ["git", "commit", "-m", "self-test snapshot"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        survey_path = root / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "73c7501e5313adabdc0686dc686b621c394bb21f",
+                head,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate(root) == []
+
+        missing_commit = "fedcba9876543210fedcba9876543210fedcba98"
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(head, missing_commit),
+            encoding="utf-8",
+            newline="\n",
+        )
         issues = validate(root)
-        if issues:
-            print("PHASE3_POLICY_UNSAFE_SURVEY=fail")
-            for issue in issues:
-                print(issue)
-            return 1
+        assert f"surveyed_commit_unavailable_locally:{missing_commit}" in issues
+
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(missing_commit, head),
+            encoding="utf-8",
+            newline="\n",
+        )
+        _write(
+            root,
+            MMIO_REL,
+            (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n",
+        )
+        subprocess.run(["git", "add", MMIO_REL], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", "commit", "-m", "packet drift"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        issues = validate(root)
+        assert f"surveyed_commit_packet_drift:{MMIO_REL}" in issues
 
     print("PHASE3_POLICY_UNSAFE_SURVEY=pass")
     return 0
