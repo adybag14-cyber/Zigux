@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus six landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on
-- survey checkpoint: refreshed against inspected `master` head `51eef5dd124800a80f68d88acab4e1ed52453f2f`
+- survey checkpoint: refreshed against inspected `master` head `947afb025ea5b439199bcad058ed43fbe98b1aa7`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -122,8 +122,8 @@ The current tests check:
 
 ## Latest verification snapshot
 
-- provenance and anchor alignment rechecked against inspected `master` head `51eef5dd124800a80f68d88acab4e1ed52453f2f`
-- focused Zig replay rerun against inspected `master` head `51eef5dd124800a80f68d88acab4e1ed52453f2f`
+- provenance and anchor alignment rechecked against inspected `master` head `947afb025ea5b439199bcad058ed43fbe98b1aa7`
+- focused Zig replay rerun against inspected `master` head `947afb025ea5b439199bcad058ed43fbe98b1aa7`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `5/5` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
@@ -141,7 +141,7 @@ This survey slice does not yet claim:
 - `parse_cpu_mask_file()` parity or direct file reads
 - `perf_buffer__new()` online CPU filtering, perf-event-array population, epoll registration, or interrupt-routing parity
 - direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
-- direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifecycle parity
+- direct `/proc/.../fdinfo` reads, `fopen()` or `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, or `bpf_token_create()` handle lifeyclhe parity
 - BTF relocation parity
 - ELF loader parity
 - `perf_buffer__poll(timeout_ms)` timeout parity or ready-buffer count semantics
