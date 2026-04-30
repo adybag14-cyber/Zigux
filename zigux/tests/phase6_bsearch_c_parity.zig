@@ -75,6 +75,8 @@ pub fn main(init: std.process.Init) !void {
     try writeIndexCase(writer, "raw-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32));
     try writeIndexCase(writer, "raw-miss", 20, bsearch.bsearchIndex(&@as(u32, 20), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32));
     try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));
+    try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);
+    try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);
 
     const kmalloc = bsearch.search([]const u8, Symbol, &@as([]const u8, "kmalloc"), symbols[0..], compareSymbolName);
     if (kmalloc) |item| {
@@ -125,5 +127,54 @@ fn writeDuplicateCase(writer: *std.Io.Writer, label: []const u8, key: u32, index
         try writer.print("{s}\t{}\tfound\n", .{ label, key });
     } else {
         try writer.print("{s}\t{}\tnull\n", .{ label, key });
+    }
+}
+
+fn writeRuntimeTypedCases(
+    writer: *std.Io.Writer,
+    ascending_values: []const u32,
+    descending_values: []const u32,
+) !void {
+    const cases = [_]struct {
+        label: []const u8,
+        key: u32,
+        values: []const u32,
+        compare: bsearch.CComparator(u32, u32),
+    }{
+        .{ .label = "runtime-typed-hit", .key = 55, .values = ascending_values, .compare = compareU32 },
+        .{ .label = "runtime-typed-hit", .key = 34, .values = descending_values, .compare = compareDescendingU32 },
+        .{ .label = "runtime-typed-miss", .key = 20, .values = ascending_values, .compare = compareU32 },
+        .{ .label = "runtime-typed-miss", .key = 20, .values = descending_values, .compare = compareDescendingU32 },
+    };
+
+    for (cases) |case| {
+        try writeIndexCase(writer, case.label, case.key, bsearch.searchIndex(u32, u32, &case.key, case.values, case.compare));
+    }
+}
+
+fn writeRuntimeRawCases(
+    writer: *std.Io.Writer,
+    ascending_values: []const u32,
+    descending_values: []const u32,
+) !void {
+    const cases = [_]struct {
+        label: []const u8,
+        key: u32,
+        values: []const u32,
+        compare: bsearch.CRawComparator,
+    }{
+        .{ .label = "runtime-raw-hit", .key = 55, .values = ascending_values, .compare = compareOpaqueU32 },
+        .{ .label = "runtime-raw-hit", .key = 34, .values = descending_values, .compare = compareOpaqueDescendingU32 },
+        .{ .label = "runtime-raw-miss", .key = 20, .values = ascending_values, .compare = compareOpaqueU32 },
+        .{ .label = "runtime-raw-miss", .key = 20, .values = descending_values, .compare = compareOpaqueDescendingU32 },
+    };
+
+    for (cases) |case| {
+        try writeIndexCase(
+            writer,
+            case.label,
+            case.key,
+            bsearch.bsearchIndex(&case.key, @ptrCast(case.values.ptr), case.values.len, @sizeOf(u32), case.compare),
+        );
     }
 }
