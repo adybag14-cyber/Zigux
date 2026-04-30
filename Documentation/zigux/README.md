@@ -133,10 +133,15 @@ Phase 10 notes
 - `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, ring, input, and MMIO-survey evidence bundle together, so new Phase 10 work stays reviewable as one bounded lab tranche instead of widening into ad hoc transport claims.
 
 Phase 12 notes
+- `Documentation/zigux/phase12-virtio-net-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-slice.md`
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-slice.md`
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- the active Phase 12 network-driver survey packet now keeps the bounded `drivers/net/virtio_net.zig` probe snapshot, queue-recovery summary, queue-resume summary, `hdr_len`, receive-path, and mergeable-refill helpers visible from the top-level docs index without overstating the still-blocked DMA-backed runtime data path, NAPI, or `net_device` lifecycle follow-up.
+- the same top-level Phase 12 packet now also keeps the bounded `drivers/nvme/host/pci.zig` queue planner, PRP buffer-shape helper, and pointer-selection helper visible from the docs index without overstating the still-blocked live queue creation, IRQ routing, timeout recovery, or DMA-backed transport follow-up.
 - the active Phase 12 storage-driver survey packet now keeps the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters visible from the top-level docs index without overstating the still-blocked DMA-backed queue ownership, `Scsi_Host` lifecycle, or blk-mq follow-up.
 - `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12` now keep that same storage-driver survey packet reviewable through the shared Phase 12 tranche instead of leaving it discoverable only through the deeper survey note.
 - the same top-level Phase 12 packet now also needs to keep the libbpf rollback and reversible-delivery lab visible: `Documentation/zigux/phase12-libbpf-segment-survey.md` records the bounded survey gate, reviewability gate, rollback owner, fallback path, and reversible-delivery drill around the helper-first `tools/lib/bpf/zigux_segments/` footing without overstating the still-blocked skeleton, object-loader, relocation, or syscall-backed surfaces.
