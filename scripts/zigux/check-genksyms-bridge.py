@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -176,8 +178,7 @@ def fail_manifest(issues: list[str]) -> None:
     raise SystemExit(1)
 
 
-def load_cases_manifest() -> list[dict[str, object]]:
-    cases_path = FIXTURE_DIR / 'cases.json'
+def load_cases_manifest(cases_path: Path = FIXTURE_DIR / 'cases.json') -> list[dict[str, object]]:
     try:
         payload = json.loads(cases_path.read_text(encoding='utf-8'))
     except json.JSONDecodeError as exc:
@@ -251,12 +252,115 @@ def load_cases_manifest() -> list[dict[str, object]]:
     return cases
 
 
+def expect_self_test_failure(label: str, expected_fragment: str, func, *args) -> None:
+    capture = io.StringIO()
+    with contextlib.redirect_stdout(capture):
+        try:
+            func(*args)
+        except SystemExit as exc:
+            if exc.code != 1:
+                raise SystemExit(
+                    f"genksyms-bridge:self-test:{label}:expected_exit=1:actual_exit={exc.code!r}"
+                ) from exc
+        else:
+            raise SystemExit(
+                f"genksyms-bridge:self-test:{label}:missing_system_exit:{expected_fragment!r}"
+            )
+
+    actual = capture.getvalue()
+    if expected_fragment not in actual:
+        raise SystemExit(
+            f"genksyms-bridge:self-test:{label}:expected={expected_fragment!r}:actual={actual!r}"
+        )
+
+
+def run_self_test() -> None:
+    if find_compiler('/tmp/zigux-self-test-cc') != '/tmp/zigux-self-test-cc':
+        raise SystemExit('genksyms-bridge:self-test:explicit_cc_passthrough')
+    if find_zig('/tmp/zigux-self-test-zig') != '/tmp/zigux-self-test-zig':
+        raise SystemExit('genksyms-bridge:self-test:explicit_zig_passthrough')
+
+    normalized = normalize_cli_stderr(
+        "zigux-genksyms: invalid option -- 'x'\n"
+        "zigux-genksyms: option '--debug' doesn't allow an argument\n"
+        "zigux-genksyms: option '--dum' is ambiguous; possibilities: --dump-types --dummy\n"
+    )
+    expected_normalized = (
+        "invalid option -- 'x'\n"
+        "option '--debug' doesn't allow an argument\n"
+        "option '--dum' is ambiguous; possibilities: --dump-types --dummy\n"
+    )
+    if normalized != expected_normalized:
+        raise SystemExit(
+            f'genksyms-bridge:self-test:stderr_normalization:expected={expected_normalized!r}:actual={normalized!r}'
+        )
+
+    cases = load_cases_manifest()
+    if len(cases) != 26:
+        raise SystemExit(f'genksyms-bridge:self-test:case_count={len(cases)},expected=26')
+    if cases[0].get('name') != 'minimal':
+        raise SystemExit(
+            f"genksyms-bridge:self-test:first_case={cases[0].get('name')!r},expected='minimal'"
+        )
+
+    with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_selftest_') as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        expected_fixture = tmp_dir / 'minimal_expected.json'
+        expected_fixture.write_text('{}\n', encoding='utf-8', newline='\n')
+        cases_path = tmp_dir / 'cases.json'
+
+        cases_path.write_text(
+            json.dumps(
+                {
+                    'cases': [
+                        {
+                            'name': 'minimal',
+                            'argv': [],
+                            'expected': expected_fixture.name,
+                            'normalize_stderr': True,
+                        }
+                    ]
+                },
+                indent=2,
+            )
+            + '\n',
+            encoding='utf-8',
+            newline='\n',
+        )
+        expect_self_test_failure(
+            'normalize_stderr_requires_process_json',
+            'cases.json:cases[0]:normalize_stderr:requires_process_json_mode',
+            load_cases_manifest,
+            cases_path,
+        )
+
+        cases_path.write_text(
+            json.dumps({'cases': [{'name': 'minimal', 'argv': [], 'expected': 'missing.json'}]}, indent=2) + '\n',
+            encoding='utf-8',
+            newline='\n',
+        )
+        expect_self_test_failure(
+            'missing_expected_fixture',
+            'cases.json:cases[0]:expected:missing_fixture:missing.json',
+            load_cases_manifest,
+            cases_path,
+        )
+
+    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')
+    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=5')
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded genksyms bridge parity.')
     parser.add_argument('--cc', help='C compiler to use')
     parser.add_argument('--zig', help='Path to Zig executable')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected fixtures from the C harness')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in manifest and stderr-normalization checks.')
     args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
 
     cases = load_cases_manifest()
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
