@@ -27,6 +27,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_abi_shape_reporting: bool,
+    provides_min_struct_copy_planning: bool,
     provides_create_ruleset_query_planning: bool,
     provides_restrict_self_flag_planning: bool,
     provides_add_rule_planning: bool,
@@ -65,6 +66,25 @@ pub const AbiShapeReport = struct {
     path_beneath_attr_size: usize,
     net_port_attr_size: usize,
     page_size_limit: usize,
+};
+
+pub const CopyMinStructRequest = struct {
+    dst_present: bool = true,
+    ksize: usize,
+    ksize_min: usize,
+    src_present: bool = true,
+    usize: usize,
+};
+
+pub const CopyMinStructPlan = struct {
+    anchor: []const u8,
+    kernel_size: usize,
+    kernel_min_size: usize,
+    user_size: usize,
+    checks_buffer_consistency: bool,
+    checks_size_ranges: bool,
+    copies_user_bytes: usize,
+    zero_fills_tail: bool,
 };
 
 pub const CreateRulesetAction = enum {
@@ -227,6 +247,7 @@ pub const SyscallsHelperLab = struct {
             .name = "landlock_syscalls_helper_lab",
             .anchor = "security/landlock/syscalls.c",
             .provides_abi_shape_reporting = true,
+            .provides_min_struct_copy_planning = true,
             .provides_create_ruleset_query_planning = true,
             .provides_restrict_self_flag_planning = true,
             .provides_add_rule_planning = true,
@@ -240,6 +261,35 @@ pub const SyscallsHelperLab = struct {
             .touches_live_paths = false,
             .touches_live_credentials = false,
             .touches_live_domains = false,
+        };
+    }
+
+    pub fn planCopyMinStructFromUser(request: CopyMinStructRequest) !CopyMinStructPlan {
+        if (!request.dst_present) {
+            return error.MissingKernelBuffer;
+        }
+        if (!request.src_present) {
+            return error.BadUserPointer;
+        }
+        if (request.ksize < request.ksize_min) {
+            return error.InvalidKernelSizeRange;
+        }
+        if (request.usize < request.ksize_min) {
+            return error.StructTooSmall;
+        }
+        if (request.usize > page_size_limit) {
+            return error.StructTooLarge;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .kernel_size = request.ksize,
+            .kernel_min_size = request.ksize_min,
+            .user_size = request.usize,
+            .checks_buffer_consistency = true,
+            .checks_size_ranges = true,
+            .copies_user_bytes = @min(request.ksize, request.usize),
+            .zero_fills_tail = request.usize < request.ksize,
         };
     }
 
