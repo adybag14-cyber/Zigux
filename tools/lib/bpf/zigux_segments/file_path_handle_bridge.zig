@@ -48,6 +48,20 @@ pub const TokenPreparationFailurePlan = struct {
     }
 };
 
+pub const ReusePinnedMapOpenFailureDisposition = enum {
+    skip_missing_pinned_map,
+    fail,
+};
+
+pub const ReusePinnedMapOpenFailurePlan = struct {
+    disposition: ReusePinnedMapOpenFailureDisposition,
+    log_level: TokenPreparationLogLevel,
+
+    pub fn shouldContinueWithoutReuse(self: ReusePinnedMapOpenFailurePlan) bool {
+        return self.disposition == .skip_missing_pinned_map;
+    }
+};
+
 pub const TokenPreparationPlan = struct {
     disposition: TokenPreparationDisposition,
     bpffs_path: []const u8,
@@ -195,6 +209,20 @@ pub fn classifyTokenPreparationFailure(
     };
 }
 
+pub fn classifyReusePinnedMapOpenFailure(err_code: i32) ReusePinnedMapOpenFailurePlan {
+    if (err_code == -@as(i32, @intFromEnum(linux_errno.NOENT))) {
+        return .{
+            .disposition = .skip_missing_pinned_map,
+            .log_level = .debug,
+        };
+    }
+
+    return .{
+        .disposition = .fail,
+        .log_level = .warn,
+    };
+}
+
 pub fn chooseReusedMapName(requested_name: []const u8, info_name: []const u8) []const u8 {
     if (info_name.len == bpf_obj_name_len - 1 and
         requested_name.len >= info_name.len and
@@ -324,6 +352,18 @@ test "classifyTokenPreparationFailure keeps optional and mandatory recovery disc
     try std.testing.expectEqual(TokenPreparationLogLevel.warn, mandatory_create.log_level);
     try std.testing.expectEqualStrings("", mandatory_create.message_suffix);
     try std.testing.expect(!mandatory_create.shouldContinueWithoutToken());
+}
+
+test "classifyReusePinnedMapOpenFailure keeps missing pinned-map lookup distinct from hard failures" {
+    const missing_pinned_map = classifyReusePinnedMapOpenFailure(-@as(i32, @intFromEnum(linux_errno.NOENT)));
+    try std.testing.expectEqual(ReusePinnedMapOpenFailureDisposition.skip_missing_pinned_map, missing_pinned_map.disposition);
+    try std.testing.expectEqual(TokenPreparationLogLevel.debug, missing_pinned_map.log_level);
+    try std.testing.expect(missing_pinned_map.shouldContinueWithoutReuse());
+
+    const denied = classifyReusePinnedMapOpenFailure(-@as(i32, @intFromEnum(linux_errno.PERM)));
+    try std.testing.expectEqual(ReusePinnedMapOpenFailureDisposition.fail, denied.disposition);
+    try std.testing.expectEqual(TokenPreparationLogLevel.warn, denied.log_level);
+    try std.testing.expect(!denied.shouldContinueWithoutReuse());
 }
 
 test "chooseReusedMapName preserves the requested name when the kernel-truncated prefix matches" {
