@@ -220,12 +220,14 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             try std.testing.expectEqualStrings("rollback_guardrail", gap.kind);
             try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Architecture Council reopen record") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "placeholder wrapper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback owner") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-bridge-blocker")) {
             saw_bridge_blocker = true;
             try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "placeholder wrapper") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -342,6 +344,7 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "kernel/rcu/tree.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "freeze-in-C") != null);
     try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "public wait-and-barrier APIs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, boundary_map[2].blocker, "placeholder wrapper") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Roadmap boundary map") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`") != null);
@@ -349,6 +352,7 @@ test "phase 14 rcu tree survey keeps the roadmap boundary map explicit" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=4c889233d157960514b241bcd5aff7cac5fda312") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "without overstating progress or sneaking in a placeholder wrapper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current freeze-in-C blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Idle-watch and core-invocation follow-up") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "idle-watch transitions, dyntick snapshot ordering, and core re-entry remain explicitly in C") != null);
@@ -416,4 +420,5 @@ test "phase 14 rcu tree survey keeps the rollback threshold guardrail explicit" 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "rollback threshold") != null);
     try std.testing.expect(std.mem.indexOf(u8, checklist, "automatic return-to-blocked trigger") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "rollback threshold that forces the anchor back to its blocked freeze posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper") != null);
 }
