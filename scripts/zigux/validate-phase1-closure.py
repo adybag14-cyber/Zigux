@@ -82,6 +82,8 @@ required_closure_markers = [
     'PHASE1_STRING_REVIEW=string parity covers Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection',
     'string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`',
     'PHASE1_STRING_CSTRING_UNIT_REVIEW=string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves zero-sized destinations untouched',
+    'string equality unit-test anchor: `tools/lib/string.zig:test "streq matches C-string equality semantics"`',
+    'PHASE1_STRING_EQUALITY_UNIT_REVIEW=string strEq and streq keep C-string equality aligned for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons',
     'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
     'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
     'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
@@ -318,6 +320,10 @@ if string_review.get('cstring_unit_test_anchor') != 'tools/lib/string.zig:test "
     missing_markers.append('manifest:string.cstring_unit_test_anchor')
 if string_review.get('cstring_unit_test_contract') != 'Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched.':
     missing_markers.append('manifest:string.cstring_unit_test_contract')
+if string_review.get('equality_unit_test_anchor') != 'tools/lib/string.zig:test "streq matches C-string equality semantics"':
+    missing_markers.append('manifest:string.equality_unit_test_anchor')
+if string_review.get('equality_unit_test_contract') != 'Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons.':
+    missing_markers.append('manifest:string.equality_unit_test_contract')
 if string_review.get('alias_unit_test_anchor') != 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"':
     missing_markers.append('manifest:string.alias_unit_test_anchor')
 if string_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.':
