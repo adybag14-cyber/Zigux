@@ -110,7 +110,8 @@ test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
             "key_size:\t4\n" ++
             "value_size:\t8\n" ++
             "max_entries:\t256\n" ++
-            "map_flags:\t0x20\n",
+            "map_flags:\t0x20\n" ++
+            "map_extra:\t0x10\n",
     );
 
     try std.testing.expectEqual(@as(u32, 3), info.map_type);
@@ -118,6 +119,7 @@ test "phase 8 file-path-handle bridge parses bounded fdinfo map metadata" {
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 256), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0x20), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 0x10), info.map_extra);
 }
 
 test "phase 8 file-path-handle bridge accepts reordered fields and surrounding whitespace" {
@@ -162,7 +164,9 @@ test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wi
             "value_size:\t8\n" ++
             "map_type:\t7\n" ++
             "map_flags:\t0x20\n" ++
-            "map_flags:\t0x40\n",
+            "map_flags:\t0x40\n" ++
+            "map_extra:\t1\n" ++
+            "map_extra:\t3\n",
     );
 
     try std.testing.expectEqual(@as(u32, 7), info.map_type);
@@ -170,6 +174,7 @@ test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wi
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 0), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0x40), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 3), info.map_extra);
 }
 
 test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
@@ -193,6 +198,13 @@ test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
             "value_size:\t8\n" ++
             "max_entries:\t256\n" ++
             "map_flags:\t0x100000000\n",
+    ));
+    try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_type:\t3\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t256\n" ++
+            "map_extra:\t-1\n",
     ));
 }
 
@@ -255,4 +267,25 @@ test "phase 8 file-path-handle bridge keeps non-DEVMAP reuse mismatches explicit
         .map_flags = 0,
         .map_extra = 1,
     }));
+}
+
+test "phase 8 file-path-handle bridge keeps parsed map_extra aligned with reuse compatibility" {
+    const expected = file_path_handle_bridge.FdInfoMapInfo{
+        .map_type = 3,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0,
+        .map_extra = 0x120,
+    };
+    const actual = try file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_type:\t3\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t32\n" ++
+            "map_flags:\t0\n" ++
+            "map_extra:\t0x120\n",
+    );
+
+    try std.testing.expect(file_path_handle_bridge.isMapReuseCompatible(expected, actual));
 }
