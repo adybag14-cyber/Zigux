@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import re
+import subprocess
 import tempfile
 
 
@@ -130,6 +132,23 @@ def _surveyed_commit_from_text(text: str) -> str | None:
     return None
 
 
+def _current_head_commit(root: Path) -> str | None:
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return None
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    head = result.stdout.strip()
+    return head if HEX40.fullmatch(head) else None
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -154,6 +173,10 @@ def validate(root: Path) -> list[str]:
             issues.append("missing_surveyed_commit")
         elif not HEX40.fullmatch(surveyed_commit):
             issues.append(f"invalid_surveyed_commit:{surveyed_commit}")
+        else:
+            current_head = _current_head_commit(root)
+            if current_head is not None and surveyed_commit != current_head:
+                issues.append(f"surveyed_commit_mismatch:{surveyed_commit}!={current_head}")
 
     for rel in REQUIRED_SURVEY_PATHS:
         if not (root / rel).exists():
@@ -246,6 +269,39 @@ def run_self_test() -> int:
 
         assert validate(root) == []
 
+        subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "add", "."], cwd=root, check=True, capture_output=True, text=True)
+        env = {
+            **os.environ,
+            "GIT_AUTHOR_NAME": "Codex",
+            "GIT_AUTHOR_EMAIL": "codex@example.com",
+            "GIT_COMMITTER_NAME": "Codex",
+            "GIT_COMMITTER_EMAIL": "codex@example.com",
+        }
+        subprocess.run(
+            ["git", "commit", "-m", "self-test snapshot"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                f"PHASE3_SURVEYED_COMMIT={head}",
+            ),
+            encoding="utf-8",
+        )
+        assert validate(root) == []
+
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
@@ -255,7 +311,7 @@ def run_self_test() -> int:
             "\n".join(
                 (
                     *REQUIRED_SURVEY_MARKERS,
-                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    f"PHASE3_SURVEYED_COMMIT={head}",
                     *REQUIRED_SURVEY_SNIPPETS,
                 )
             )
@@ -264,7 +320,7 @@ def run_self_test() -> int:
         )
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
-                "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                f"PHASE3_SURVEYED_COMMIT={head}",
                 "PHASE3_SURVEYED_COMMIT=not-a-sha",
             ),
             encoding="utf-8",
@@ -276,7 +332,7 @@ def run_self_test() -> int:
             "\n".join(
                 (
                     *REQUIRED_SURVEY_MARKERS,
-                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    f"PHASE3_SURVEYED_COMMIT={head}",
                     *REQUIRED_SURVEY_SNIPPETS,
                 )
             )
@@ -293,7 +349,7 @@ def run_self_test() -> int:
             "\n".join(
                 (
                     *REQUIRED_SURVEY_MARKERS,
-                    "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+                    f"PHASE3_SURVEYED_COMMIT={head}",
                     *REQUIRED_SURVEY_SNIPPETS[:-1],
                 )
             )
@@ -305,6 +361,16 @@ def run_self_test() -> int:
             issue == f"missing_survey_snippet:{REQUIRED_SURVEY_SNIPPETS[-1]}"
             for issue in issues
         )
+
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                f"PHASE3_SURVEYED_COMMIT={head}",
+                "PHASE3_SURVEYED_COMMIT=0123456789abcdef0123456789abcdef01234567",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"surveyed_commit_mismatch:0123456789abcdef0123456789abcdef01234567!={head}" in issues
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     return 0
