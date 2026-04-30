@@ -2,7 +2,7 @@
   "phase": "Phase 6",
   "status": "active",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "8ebd7dd5d0c57420da1d4f958093fc6ea6684ec9",
+  "surveyed_commit": "c7a272c4cdd7f83aa54ff331939552cf21c4423e",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
