@@ -245,6 +245,15 @@ required_ring_survey_markers = [
 ]
 required_ring_survey_test_markers = [
     'test "phase10 virtio ring survey manifest records the live queue-discipline packet and parked MMIO blocker after landed config-write" {',
+    'const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(',
+    'const landed_ring_helper_evidence = closure_manifest.object.get("landed_ring_helper_evidence") orelse return error.TestUnexpectedResult;',
+    'const ring_helper_evidence = landed_ring_helper_evidence.object.get("zigux/tests/phase10_virtio_ring_manifest.json") orelse return error.TestUnexpectedResult;',
+    'const expected_landed_ring_helpers = [_][]const u8{',
+    '"phase10-virtqueue-shape-helper",',
+    '"phase10-queue-reset-helper",',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'try std.testing.expect(blocked_count >= 1);',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
 ]
 required_input_survey_test_markers = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
