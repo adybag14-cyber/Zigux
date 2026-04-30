@@ -12,9 +12,9 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_BUILD_BLOB_SHA=57f4c3809387cac39e3153b9bbad17ca92ce3684`
 - `PHASE4_MAKEFILE_BLOB_SHA=84d36250f5880c853d75833f1403c17dd9ee8ee2`
 - `PHASE4_WORKFLOW_BLOB_SHA=65bc4a708780e0821c842553f31f208d1de7970d`
-- `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=013562323a8eebf666c4581e8cc6e35d65d6d9e3`
-- `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=9223e9f9d64ed20ee2ecc75f42adcfebe8e3ac05`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=45da9e40a35c4f97596a157dfef47f2732dd0edd`
+- `PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=2f51e5ef82f73625f1ab05a20c708052d2530b8a`
+- `PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=8220078f700770066785bdf312f45915ef60895b`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=63363c777ff231be4e40368ef70607f036d42823`
 
 ## Roadmap Contract
 
@@ -98,6 +98,7 @@ The current packet stayed aligned across the following readbacks on `master`:
 
 - `Documentation/zigux/phase4-validation-matrix.md` still names the current rollback owners, threshold posture, workflow step names, local replay commands, and reversible-delivery evidence for the two shipped rollback gates plus the two manifest-backed survey gates.
 - `scripts/zigux/validate-phase4.py` still requires the matrix note, workflow markers, `zigux/Makefile` hooks, `zigux/tests/phase4_build.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/bitmap_diff.zig` together.
+- the three Phase 4 survey manifests plus their matching survey tests now pin the current inspected live head `583b867b78648430c5b500d7d2bb7b8a08cb05da` instead of the older `ba75bc5abc49c80e366570e64141f5339fa48509` provenance snapshot.
 - `zigux/Makefile` still exposes `phase4-validate`, `phase4-test`, `phase4-runtime-atomic64-diff`, `phase4-test-fsmount-survey`, `phase4-perf-baseline-survey`, and `phase4-bitmap-diff`.
 - `.github/workflows/zigux-bootstrap.yml` still drives `make -C zigux phase4-validate` in `Validate Phase 4 diff gates` and `make -C zigux phase4-test` in `Run Phase 4 diff tests`.
 - `zigux/tests/phase4_build.zig` still exposes `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, `phase4-test-fsmount-survey-tests`, `phase4-perf-baseline-survey-tests`, and `phase4-bitmap-diff-tests`.
