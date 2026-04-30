@@ -1,9 +1,15 @@
 const std = @import("std");
+const cmdline = @import("cmdline.zig");
 
 pub const ParseBoolError = error{Invalid};
+pub const MemparseResult = cmdline.MemparseResult;
 
 pub fn memdup(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
     return allocator.dupe(u8, src);
+}
+
+pub fn memparse(text: []const u8) MemparseResult {
+    return cmdline.memparse(text);
 }
 
 pub fn strtobool(s: ?[]const u8) ParseBoolError!bool {
@@ -400,6 +406,20 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqual(@as(?usize, 4), memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, 4), memchr_inv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
+}
+
+test "memparse forwards the header-level string helper surface" {
+    const decimal = memparse("64K rest");
+    try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
+    try std.testing.expectEqualStrings(" rest", decimal.rest);
+
+    const hexadecimal = memparse("0x20M");
+    try std.testing.expectEqual(@as(u64, 0x20 << 20), hexadecimal.value);
+    try std.testing.expectEqualStrings("", hexadecimal.rest);
+
+    const invalid = memparse("xyz");
+    try std.testing.expectEqual(@as(u64, 0), invalid.value);
+    try std.testing.expectEqualStrings("xyz", invalid.rest);
 }
 
 test "memchrInv scans aligned and misaligned long buffers" {
