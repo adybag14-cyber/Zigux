@@ -317,7 +317,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_tty_block);
 }
 
-test "phase11 hvc console survey records the current shared-build boundary exactly" {
+test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -352,8 +352,11 @@ test "phase11 hvc console survey records the current shared-build boundary exact
     try expectSurveyedCommitProvenance(survey_note, manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_tests = b.addTest") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_tests.step);") != null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase11_hvc_console_survey_tests") == null);
-    try std.testing.expect(std.mem.indexOf(u8, build_zig, "run_phase11_hvc_console_survey_tests.step") == null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "const phase11_hvc_console_survey_tests = b.addTest") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "const hvc_console_survey_step = b.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "\"hvc-console-survey\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);") == null);
 }
 
 test "phase11 hvc console survey keeps the survey note and validation matrix aligned with the parked starter" {
