@@ -192,6 +192,45 @@ def run_self_test() -> int:
         ),
         ['PHASE1_BENCH_BITMAP_ALIAS_CHECKSUM'],
     )
+    find_bit_expectations = {
+        'status': 'pass',
+        'iterations': {
+            'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS': 20000,
+            'PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS': 20000,
+        },
+        'exact_checksums': {
+            'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 15621472,
+            'PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM': 17862764,
+            'PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM': 8124000,
+            'PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM': 2200000,
+            'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM': 1929133,
+            'PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM': 1925492,
+        },
+        'checksums': [],
+    }
+    assert_equal(
+        'unexpected_find_bit_metric',
+        unexpected_phase1_bench_keys(
+            {
+                'PHASE1_BENCH': 'pass',
+                'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS': '20000',
+                'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': '20000',
+                'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS': '20000',
+                'PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS': '20000',
+                'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': '15621472',
+                'PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM': '17862764',
+                'PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM': '8124000',
+                'PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM': '2200000',
+                'PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM': '1929133',
+                'PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM': '1925492',
+                'PHASE1_BENCH_FIND_INCLUSIVE_TAIL_CHECKSUM': '7',
+            },
+            find_bit_expectations,
+        ),
+        ['PHASE1_BENCH_FIND_INCLUSIVE_TAIL_CHECKSUM'],
+    )
     assert_equal('find_zig_explicit', find_zig('/tmp/zig-self-test'), '/tmp/zig-self-test')
     assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
@@ -245,7 +284,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_reserved:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=11')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=12')
     return 0
 
 
