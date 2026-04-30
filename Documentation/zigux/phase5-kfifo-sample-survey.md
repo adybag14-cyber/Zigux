@@ -7,7 +7,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - `PHASE5_STATUS=active`
 - `PHASE5_LANE_KEY=P5-L04`
 - `PHASE5_SLICE=kfifo-reference-sample-starter`
-- `PHASE5_SURVEYED_COMMIT=b1497341686a03b8ba007fbe6ee0028b7bfa5f02`
+- `PHASE5_SURVEYED_COMMIT=c1efd328f6e1750e3526f2d5f8268ffd613c3e2f`
 - scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the first `samples/zigux/` kfifo-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
@@ -110,13 +110,14 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 
 ## Latest verification snapshot
 
-Current sample behavior was re-verified against `master` commit `b1497341686a03b8ba007fbe6ee0028b7bfa5f02` on 2026-04-30 with the attached Zig toolchain.
+Current sample behavior was re-verified against `master` commit `c1efd328f6e1750e3526f2d5f8268ffd613c3e2f` on 2026-04-30 with the attached Zig toolchain.
 
 The exact verification commands and observed results were:
 
 - `zig test samples/zigux/bytestream_fifo.zig`
-  - observed result: `1/1 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
-  - observed result: `All 1 tests passed.`
+  - observed result: `1/2 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
+  - observed result: `2/2 bytestream_fifo.test.bytestream fifo sample keeps helper boundaries explicit...OK`
+  - observed result: `All 2 tests passed.`
 - `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
   - observed result: `1/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo manifest records the exact bounded checks...OK`
   - observed result: `2/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface...OK`
@@ -136,7 +137,6 @@ When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly c
 - does `zigux/tests/phase5_bytestream_fifo_manifest.json` still pin `surveyed_commit` to the exact inspected `master` head while this note carries the same `PHASE5_SURVEYED_COMMIT` marker instead of a floating branch label?
 - do `zigux/tests/phase5_bytestream_fifo_manifest.json`, its reference-pattern list, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the sample-backed survey note still record the exact queue-order replay, transfer-count contract, the truncated 8-byte preview prefix, the later helper-side preview truncation, the non-destructive snapshot, fixed embedded backing, and bounded helper checks that `zigux/tests/phase5_build.zig` runs?
 - does `zigux/tests/phase5_bytestream_fifo.zig` still keep the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and queue-only reset behavior remain reviewable outside the main replay path?
-- does that same helper surface still keep the short-drain bytestream contract explicit so draining a three-byte destination from `"hello"` yields `"hel"`, preserves the `"lo"` remainder in queue order, and returns `0` once the queue is empty again?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
 - does `Documentation/zigux/review-checklist.md` still point reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, and shared `phase5_build.zig` entrypoint for this exact Phase 5 replay contract?
 - does `samples/zigux/README.md` still separate the four Phase 5 reference samples from the later `runtime_*` starters that share the same directory, and does its dedicated bytestream FIFO review-packet stanza still call out the exact replay contract, helper-only review surface, and out-of-scope runtime claims without turning those runtime files into implied Phase 5 idioms?
@@ -150,7 +150,7 @@ The current gap is not missing Phase 5 sample delivery for `kfifo`. The more pre
 
 - all four roadmap anchors now have bounded non-runtime `samples/zigux/` reference samples on current `master`
 - `samples/zigux/README.md` now records that shipped anchor set plainly so reviewers can keep the bytestream FIFO slice distinct from the separate later Phase 9 runtime pilots
-- this approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=b1497341686a03b8ba007fbe6ee0028b7bfa5f02` so the survey note, manifest-backed checks, and contributor refresh path all point at the same inspected `master` head
+- this approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=c1efd328f6e1750e3526f2d5f8268ffd613c3e2f` so the survey note, manifest-backed checks, and contributor refresh path all point at the same inspected `master` head
 - the landed bytestream FIFO sample still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and the roadmap-approved boundary for the shipped bytestream FIFO replay, including its explicit fixed-storage and transfer-count contract, so future work can leave this lane parked unless a real same-family drift appears.
