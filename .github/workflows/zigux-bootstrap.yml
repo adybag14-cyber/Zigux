@@ -72,6 +72,9 @@ jobs:
       - name: Validate Phase 1 closure
         run: python3 scripts/zigux/validate-phase1-closure.py
 
+      - name: Self-test Phase 1 closure validator
+        run: python3 scripts/zigux/validate-phase1-closure.py --self-test
+
       - name: Validate Phase 2 fixdep files
         run: python3 scripts/zigux/validate-phase2.py
 
