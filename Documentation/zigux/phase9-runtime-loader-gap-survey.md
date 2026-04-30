@@ -59,7 +59,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
-- `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, command-name, and init or exit handoff fields
+- `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, command-name, starter selftest-hook, and init or exit handoff fields
 - `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection and without-substrate rollback path into the shared runtime request surface
@@ -79,6 +79,7 @@ What is now landed is the smallest shared consumer contract:
 - `zigux/kernel/runtime_loader.zig` defines a common loader-stage vocabulary for shared runtime handoff
 - the shared request shape carries module identity, an optional shared `command_name` field, Linux anchor provenance, entry and exit symbol names, and a tagged payload for either atomic64, bitmap, or kretprobe facts
 - the shared request also consumes `zigux/helpers/allocator_policy.zig` through an explicit allocator-handoff record instead of leaving allocator posture in prose
+- the shared request now treats the starter selftest hook as an invariant for runtime-substrate handoff instead of a passive metadata bit
 - the atomic64, bitmap, and kretprobe loader scaffolds can now emit that shared request shape while still stopping at `waiting_on_runtime_substrate`
 
 The current pilot-module evidence also carries an explicit rollback-without-substrate path:
