@@ -171,9 +171,9 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_ring_buffer_c);
     try std.testing.expect(manifest.survey_summary.freeze_map_lists_tree_c);
 
-    try std.testing.expectEqualStrings("P14-L01", manifest.anchor_packets[0].lane_key);
+    try std.testing.expectEqualStrings("P14-L02", manifest.anchor_packets[0].lane_key);
     try std.testing.expectEqualStrings("64f315b1e0536983ec5bdf620d720d10972d9551", manifest.anchor_packets[0].surveyed_commit);
-    try std.testing.expectEqualStrings("phase14-workqueue-disable-delayed-followup", manifest.anchor_packets[0].ready_next_gap);
+    try std.testing.expectEqualStrings("phase14-workqueue-delayed-disable-wrapper-followup", manifest.anchor_packets[0].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-workqueue-live-execution-blocker", manifest.anchor_packets[0].blocked_gap);
     try std.testing.expectEqualStrings("P14-L08", manifest.anchor_packets[2].lane_key);
     try std.testing.expectEqualStrings("98aa9bb7dd14ed6063f954b0a23c19a537af51a5", manifest.anchor_packets[2].surveyed_commit);
