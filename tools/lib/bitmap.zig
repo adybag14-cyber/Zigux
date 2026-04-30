@@ -385,6 +385,50 @@ pub fn bitmapFree(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
     }
 }
 
+pub fn bitmap_weight(bitmap: []const Word, bits: usize) usize {
+    return weight(bitmap, bits);
+}
+
+pub fn bitmap_or(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) void {
+    orBits(dst, bitmap1, bitmap2, bits);
+}
+
+pub fn bitmap_scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
+    return scnprintf(bitmap, nbits, buffer);
+}
+
+pub fn bitmap_and(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return andBits(dst, bitmap1, bitmap2, bits);
+}
+
+pub fn bitmap_equal(bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return equal(bitmap1, bitmap2, bits);
+}
+
+pub fn bitmap_intersects(bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return intersects(bitmap1, bitmap2, bits);
+}
+
+pub fn bitmap_set(map: []Word, start: usize, len: usize) void {
+    setRange(map, start, len);
+}
+
+pub fn bitmap_clear(map: []Word, start: usize, len: usize) void {
+    clearRange(map, start, len);
+}
+
+pub fn bitmap_andnot(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return andNotBits(dst, bitmap1, bitmap2, bits);
+}
+
+pub fn bitmap_subset(bitmap1: []const Word, bitmap2: []const Word, bits: usize) bool {
+    return subset(bitmap1, bitmap2, bits);
+}
+
+pub fn bitmap_xor(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) void {
+    xorBits(dst, bitmap1, bitmap2, bits);
+}
+
 test "bitmap set clear weight and empty full helpers" {
     var map = [_]Word{ 0, 0, 0 };
     setRange(&map, 1, 3);
@@ -622,4 +666,37 @@ test "bitmap zero-bit helpers stay explicit no-ops" {
     var buffer = [_]u8{ 0xaa, 0xaa, 0xaa };
     try std.testing.expectEqual(@as(usize, 0), scnprintf(&[_]Word{}, 0, &buffer));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa }, &buffer);
+}
+
+test "bitmap underscore aliases preserve bitmap helper semantics" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0b1110, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0b1010, @as(Word, 1) << 2 };
+    var dst = [_]Word{ 0, 0 };
+    var range = [_]Word{ 0, 0 };
+    var buffer = [_]u8{0} ** 32;
+
+    try std.testing.expectEqual(weight(&lhs, nbits), bitmap_weight(&lhs, nbits));
+
+    bitmap_or(&dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ lhs[0] | rhs[0], (lhs[1] | rhs[1]) & lastWordMask(nbits) }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
+
+    try std.testing.expect(andBits(&dst, &lhs, &rhs, nbits) == bitmap_and(&dst, &lhs, &rhs, nbits));
+    try std.testing.expect(andNotBits(&dst, &lhs, &rhs, nbits) == bitmap_andnot(&dst, &lhs, &rhs, nbits));
+    try std.testing.expectEqual(equal(&lhs, &rhs, nbits), bitmap_equal(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(intersects(&lhs, &rhs, nbits), bitmap_intersects(&lhs, &rhs, nbits));
+    try std.testing.expectEqual(subset(&rhs, &lhs, nbits), bitmap_subset(&rhs, &lhs, nbits));
+
+    bitmap_xor(&dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ lhs[0] ^ rhs[0], (lhs[1] ^ rhs[1]) & lastWordMask(nbits) }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
+
+    bitmap_set(&range, 1, 3);
+    bitmap_set(&range, bits_per_long + 1, 2);
+    try std.testing.expectEqual(@as(usize, 5), bitmap_weight(&range, nbits));
+    bitmap_clear(&range, 1, 3);
+    bitmap_clear(&range, bits_per_long + 1, 2);
+    try std.testing.expect(empty(&range, nbits));
+
+    const rendered_len = scnprintf(&lhs, nbits, &buffer);
+    try std.testing.expectEqual(rendered_len, bitmap_scnprintf(&lhs, nbits, &buffer));
 }
