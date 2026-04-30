@@ -9,9 +9,13 @@ const SurveySummary = struct {
     post_selftest_replay_present: bool,
     phase4_build_present: bool,
     phase9_build_present: bool,
+    phase4_validator_atomic64_diff_present: bool,
     phase4_validator_runtime_atomic64_diff_present: bool,
     runtime_atomic64_sample_present: bool,
     phase4_validation_matrix_present: bool,
+    phase4_validation_matrix_wrapper_present: bool,
+    docs_readme_atomic64_diff_present: bool,
+    tests_readme_atomic64_diff_present: bool,
     tests_readme_runtime_atomic64_diff_present: bool,
 };
 
@@ -108,9 +112,13 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(manifest.survey_summary.post_selftest_replay_present);
     try std.testing.expect(manifest.survey_summary.phase4_build_present);
     try std.testing.expect(manifest.survey_summary.phase9_build_present);
+    try std.testing.expect(manifest.survey_summary.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.phase4_validator_runtime_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_sample_present);
     try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_present);
+    try std.testing.expect(manifest.survey_summary.phase4_validation_matrix_wrapper_present);
+    try std.testing.expect(manifest.survey_summary.docs_readme_atomic64_diff_present);
+    try std.testing.expect(manifest.survey_summary.tests_readme_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.tests_readme_runtime_atomic64_diff_present);
     try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.threshold_plan.owner);
     try std.testing.expectEqualStrings("ABI and Runtime Team", manifest.threshold_plan.rollback_owner);
@@ -194,6 +202,13 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         32 * 1024,
     );
     defer std.testing.allocator.free(phase4_validation_matrix);
+    const docs_readme = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/README.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(docs_readme);
     const tests_readme = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -227,11 +242,17 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             std.mem.indexOf(u8, phase4_build, "phase4-runtime-atomic64-diff-tests") != null,
         .phase9_build_present = std.mem.indexOf(u8, phase9_build, "runtime_atomic64_diff.zig") != null and
             std.mem.indexOf(u8, phase9_build, "phase9-runtime-atomic64-diff-tests") != null,
+        .phase4_validator_atomic64_diff_present = std.mem.indexOf(u8, phase4_validator, "zigux/tests/atomic64_diff.zig") != null,
         .phase4_validator_runtime_atomic64_diff_present = std.mem.indexOf(u8, phase4_validator, "zigux/tests/runtime_atomic64_diff.zig") != null,
         .runtime_atomic64_sample_present = std.mem.indexOf(u8, runtime_atomic64_sample, "provides_selftest_hook = true") != null and
             std.mem.indexOf(u8, runtime_atomic64_sample, "pub fn addCounter") != null,
         .phase4_validation_matrix_present = std.mem.indexOf(u8, phase4_validation_matrix, "zigux/tests/runtime_atomic64_diff.zig") != null and
             std.mem.indexOf(u8, phase4_validation_matrix, "threshold_pending_until_runtime_atomic64_scope_widens") != null,
+        .phase4_validation_matrix_wrapper_present = std.mem.indexOf(u8, phase4_validation_matrix, "zigux/tests/atomic64_diff.zig") != null and
+            std.mem.indexOf(u8, phase4_validation_matrix, "canonical wrapper") != null,
+        .docs_readme_atomic64_diff_present = std.mem.indexOf(u8, docs_readme, "zigux/tests/atomic64_diff.zig") != null and
+            std.mem.indexOf(u8, docs_readme, "zigux/tests/runtime_atomic64_diff.zig") != null,
+        .tests_readme_atomic64_diff_present = std.mem.indexOf(u8, tests_readme, "zigux/tests/atomic64_diff.zig") != null,
         .tests_readme_runtime_atomic64_diff_present = std.mem.indexOf(u8, tests_readme, "zigux/tests/runtime_atomic64_diff.zig") != null,
     };
 
@@ -308,6 +329,8 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase4_build.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9_build.zig") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Documentation/zigux/README.md") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "zigux/tests/README.md") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase4-broader-atomic64-surface")) {
