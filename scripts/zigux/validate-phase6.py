@@ -69,6 +69,7 @@ phase6_bsearch_c_parity = (ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.z
 phase6_bsearch_c_harness = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c").read_text(encoding="utf-8")
 phase6_bsearch_c_parity_script = (ROOT / "scripts" / "zigux" / "check-phase6-bsearch-c-parity.py").read_text(encoding="utf-8")
 phase6_bsearch_slice = (ROOT / "Documentation" / "zigux" / "phase6-bsearch-slice.md").read_text(encoding="utf-8")
+phase6_checksum = (ROOT / "zigux" / "tests" / "phase6_checksum.zig").read_text(encoding="utf-8")
 phase6_checksum_perf = (ROOT / "zigux" / "tests" / "phase6_checksum_perf.zig").read_text(encoding="utf-8")
 phase6_checksum_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig").read_text(encoding="utf-8")
 phase6_checksum_slice = (ROOT / "Documentation" / "zigux" / "phase6-checksum-slice.md").read_text(encoding="utf-8")
@@ -268,6 +269,19 @@ required_phase6_checksum_perf_markers = [
     "try std.testing.expect(slowdown_pct <= case.max_slowdown_pct);",
 ]
 
+required_phase6_checksum_markers = [
+    'test "fixture-backed compute parity covers the current checksum vectors" {',
+    'test "partial sums compose across the fixture split matrix" {',
+    'test "seeded partial accumulation matches the fixture-backed reference" {',
+    'test "kunit random-prefix parity stays stable on the helper surface" {',
+    'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
+    'test "incremental checksum replacements match full recomputation" {',
+    "for (fixtures.kunit_random_prefix_cases) |case| {",
+    "const helper_partial = checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto);",
+    "try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replaceByDiff(old_checksum, diff));",
+    "try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr));",
+]
+
 required_phase6_checksum_vector_markers = [
     '.{ .label = "64", .len = 64, .reps = 20_000, .seed = 0, .max_slowdown_pct = 150 },',
     '.{ .label = "1501", .len = 1501, .reps = 4_000, .seed = 0x1234_5678, .max_slowdown_pct = 150 },',
@@ -344,6 +358,7 @@ require_markers("phase6_bsearch_c_parity", phase6_bsearch_c_parity, required_pha
 require_markers("phase6_bsearch_c_harness", phase6_bsearch_c_harness, required_phase6_bsearch_c_harness_markers, issues)
 require_markers("phase6_bsearch_c_parity_script", phase6_bsearch_c_parity_script, required_phase6_bsearch_c_parity_script_markers, issues)
 require_markers("phase6_bsearch_slice", phase6_bsearch_slice, required_phase6_bsearch_slice_markers, issues)
+require_markers("phase6_checksum", phase6_checksum, required_phase6_checksum_markers, issues)
 require_markers("phase6_checksum_perf", phase6_checksum_perf, required_phase6_checksum_perf_markers, issues)
 require_markers("phase6_checksum_vectors", phase6_checksum_vectors, required_phase6_checksum_vector_markers, issues)
 require_markers("phase6_checksum_slice", phase6_checksum_slice, required_phase6_checksum_slice_markers, issues)
