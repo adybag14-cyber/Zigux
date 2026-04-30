@@ -57,6 +57,7 @@ PHASE4_GATE_EXPECTATIONS = {
         'rollback_evidence_gap': 'direct `bitmap_fill(..., 115)` still stops at bit 114 in the shipped Zig helper, so the Phase 4 packet keeps that mismatch survey-only instead of claiming parity with the `lib/test_bitmap.c` rounded two-word anchor',
         'exact_check_markers': [
             '`bitmap_fill(..., 35)`',
+            '`bitmap_fill(..., 115)`',
             '`bitmap_zero(..., 35)`',
             '`bitmap_zero(..., 115)`',
             '`bitmap_set(..., 79, 19)`',
@@ -66,6 +67,7 @@ PHASE4_GATE_EXPECTATIONS = {
             '`1-3,7,10-11`',
             'truncated `1-3` rendering',
             '23-bit single-word window',
+            'cleared-destination copies',
             'filled-destination copies',
             '109-bit partial-tail',
             '97-bit aligned-copy',
