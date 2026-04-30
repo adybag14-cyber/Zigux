@@ -25,17 +25,10 @@
     "phase15_build_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
-    "phase15_replay_green_on_current_master": false,
+    "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
   },
   "remaining_gaps": [
-    {
-      "id": "phase15-review-process-replay-drift",
-      "status": "blocked_on_shared_replay_drift",
-      "kind": "review_process",
-      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process.zig",
-      "why_now": "Current master no longer has a green shared Phase 15 replay because the Architecture Council review-process packet drifted internally: Documentation/zigux/phase15-architecture-council-review-process.md still names bounded lane P15-L08, zigux/tests/phase15_architecture_council_review_process_manifest.json now names P15-L11 with surveyed commit 09606ab3a477c4f3817ab4e00f699e4729c096d2, and zigux/tests/phase15_architecture_council_review_process.zig still expects P15-L08 with 7f4ee0a5eb4bd171e94c279d44b7818ce2ac6a7f."
-    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -44,5 +37,5 @@
       "why_now": "The live repo still lacks evidence strong enough to move kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, or net/core/skbuff.c out of the freeze-in-C posture."
     }
   ],
-  "next_step": "Open a neighboring replay-repair lane that realigns Documentation/zigux/phase15-architecture-council-review-process.md, zigux/tests/phase15_architecture_council_review_process_manifest.json, and zigux/tests/phase15_architecture_council_review_process.zig around one current lane stamp and surveyed head; rerun zig build test --build-file zigux/tests/phase15_build.zig and make -C zigux phase15; then return to this readiness lane only if the blocker list changes again."
+  "next_step": "Keep this readiness lane parked unless the shared Phase 15 replay drifts again or the deep-core blocker posture changes. When either happens, rerun the dedicated readiness guard, zig build test --build-file zigux/tests/phase15_build.zig, and make -C zigux phase15 before refreshing neighboring governance packets."
 }
