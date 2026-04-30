@@ -10,6 +10,7 @@ required_files = [
     ROOT / "scripts" / "zigux" / "validate-phase8.py",
     ROOT / "scripts" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "README.md",
+    ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase8-exec-cmd-slice.md",
     ROOT / "Documentation" / "zigux" / "phase8-help-slice.md",
     ROOT / "Documentation" / "zigux" / "phase8-kallsyms-slice.md",
@@ -59,6 +60,7 @@ workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(en
 script_readme = (ROOT / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
 tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
+review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 phase8_build = (ROOT / "zigux" / "tests" / "phase8_build.zig").read_text(encoding="utf-8")
 phase8_exec_cmd_only_build = (ROOT / "zigux" / "tests" / "phase8_exec_cmd_only_build.zig").read_text(encoding="utf-8")
 phase8_help_only_build = (ROOT / "zigux" / "tests" / "phase8_help_only_build.zig").read_text(encoding="utf-8")
@@ -175,6 +177,34 @@ required_doc_readme_markers = [
     "python3 scripts/zigux/validate-phase8.py",
     "make -C zigux phase8-validate",
     "make -C zigux phase8",
+]
+
+required_review_checklist_markers = [
+    "parked Phase 8 `exec-cmd` helper packet",
+    "Documentation/zigux/phase8-exec-cmd-slice.md",
+    "zigux/tests/phase8_exec_cmd.zig",
+    "deferred execution helper-only",
+    "kernel/workqueue.c",
+    "`execv_cmd()`",
+    "`execl_cmd()`",
+    "`execvp()`",
+    "queue ownership",
+    "scheduler-facing transport claims",
+    "parked Phase 8 `help` packet",
+    "Documentation/zigux/phase8-help-slice.md",
+    "zigux/tests/phase8_help.zig",
+    "`load_command_list()`",
+    "`pretty_print_string_list()`",
+    "`list_commands()`",
+    "`opendir()` or `readdir()` parity",
+    "raw `ioctl()` terminal probing",
+    "parked Phase 8 `kallsyms` parser packet",
+    "Documentation/zigux/phase8-kallsyms-slice.md",
+    "zigux/tests/phase8_kallsyms.zig",
+    "chunked discard-after-boundary handling",
+    "`kallsyms__parse()`",
+    "`api/io.h`",
+    "downstream ELF-emission behavior",
 ]
 
 required_phase8_build_markers = [
@@ -468,6 +498,9 @@ for marker in required_tests_readme_markers:
 for marker in required_doc_readme_markers:
     if marker not in doc_readme:
         missing_markers.append(f"doc_readme:{marker}")
+for marker in required_review_checklist_markers:
+    if marker not in review_checklist:
+        missing_markers.append(f"review_checklist:{marker}")
 for marker in required_phase8_build_markers:
     if marker not in phase8_build:
         missing_markers.append(f"phase8_build:{marker}")
@@ -563,5 +596,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
 )
