@@ -45,11 +45,17 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const perf_baseline_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase4_perf_baseline_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const bitmap_diff_module = b.createModule(.{
         .root_source_file = b.path("bitmap_diff.zig"),
         .target = target,
         .optimize = optimize,
     });
+    bitmap_module.addImport("find_bit", find_bit_module);
     bitmap_diff_module.addImport("bitmap", bitmap_module);
     bitmap_diff_module.addImport("find_bit", find_bit_module);
 
@@ -68,6 +74,11 @@ pub fn build(b: *std.Build) void {
         .root_module = test_fsmount_survey_module,
     });
     const run_test_fsmount_survey_tests = b.addRunArtifact(test_fsmount_survey_tests);
+    const perf_baseline_survey_tests = b.addTest(.{
+        .name = "phase4-perf-baseline-survey-tests",
+        .root_module = perf_baseline_survey_module,
+    });
+    const run_perf_baseline_survey_tests = b.addRunArtifact(perf_baseline_survey_tests);
 
     const atomic64_step = b.step(
         "phase4-runtime-atomic64-diff",
@@ -80,6 +91,11 @@ pub fn build(b: *std.Build) void {
         "Run the Phase 4 test_fsmount survey gate without claiming a landed Zig sample",
     );
     test_fsmount_step.dependOn(&run_test_fsmount_survey_tests.step);
+    const perf_baseline_step = b.step(
+        "phase4-perf-baseline-survey",
+        "Run the Phase 4 perf-baseline survey gate while benchmark commands and limits stay intentionally unapproved",
+    );
+    perf_baseline_step.dependOn(&run_perf_baseline_survey_tests.step);
 
     const bitmap_diff_tests = b.addTest(.{
         .name = "phase4-bitmap-diff-tests",
@@ -96,5 +112,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_atomic64_diff_tests.step);
     test_step.dependOn(&run_atomic64_diff_survey_tests.step);
     test_step.dependOn(&run_test_fsmount_survey_tests.step);
+    test_step.dependOn(&run_perf_baseline_survey_tests.step);
     test_step.dependOn(&run_bitmap_diff_tests.step);
 }
