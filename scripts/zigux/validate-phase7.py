@@ -71,6 +71,9 @@ phase7_argv_split_survey = (ROOT / "zigux" / "tests" / "phase7_argv_split_survey
 phase7_argv_split_tests = (ROOT / "zigux" / "tests" / "phase7_argv_split.zig").read_text(encoding="utf-8")
 phase7_rbtree_tests = (ROOT / "zigux" / "tests" / "phase7_rbtree.zig").read_text(encoding="utf-8")
 phase7_rbtree_survey = (ROOT / "zigux" / "tests" / "phase7_rbtree_survey.zig").read_text(encoding="utf-8")
+phase7_rbtree_manifest = json.loads(
+    (ROOT / "zigux" / "tests" / "phase7_rbtree_manifest.json").read_text(encoding="utf-8")
+)
 phase7_cmdline_doc = (ROOT / "Documentation" / "zigux" / "phase7-cmdline-slice.md").read_text(encoding="utf-8")
 phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md").read_text(encoding="utf-8")
 
@@ -326,7 +329,8 @@ expected_phase7_build_paths = {
 
 expected_phase7_import_calls = {
     "string_helpers": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_string_helpers\.zig",\s*"string_helpers",\s*"\.\./\.\./lib/string_helpers\.zig",',
-    "cmdline": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_cmdline\.zig",\s*"cmdline",\s*"\.\./\.\./lib/cmdline\.zig",',
+    "cmdline": r'createImportedTestRoot\(\s*b,\s*target,
+optimize,\s*"phase7_cmdline\.zig",\s*"cmdline",\s*"\.\./\.\./lib/cmdline\.zig",',
     "argv_split": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_argv_split\.zig",\s*"argv_split",\s*"\.\./\.\./lib/argv_split\.zig",',
     "rbtree": r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"phase7_rbtree\.zig",\s*"rbtree",\s*"\.\./\.\./lib/rbtree\.zig",',
 }
@@ -417,6 +421,15 @@ expected_argv_split_gap_destinations = {
     "phase7-argv-split-survey-gate": "zigux/tests/phase7_argv_split_survey.zig",
 }
 
+expected_rbtree_gap_destinations = {
+    "phase7-build-gate": "zigux/tests/phase7_build.zig",
+    "phase7-rbtree-helper": "lib/rbtree.zig",
+    "phase7-rbtree-dedicated-tests": "zigux/tests/phase7_rbtree.zig",
+    "phase7-rbtree-slice-note": "Documentation/zigux/phase7-rbtree-slice.md",
+    "phase7-rbtree-survey-gate": "zigux/tests/phase7_rbtree_survey.zig",
+    "phase7-rbtree-parity-fixture-layer": "zigux/tests/fixtures/phase7_rbtree.json",
+}
+
 manifest_shape_errors: list[str] = []
 if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
     manifest_shape_errors.append("lane_key")
@@ -465,6 +478,73 @@ if manifest_shape_errors:
     for item in manifest_shape_errors:
         print(item)
     print("PHASE7_ARGV_SPLIT_MANIFEST_SHAPE_END")
+    sys.exit(1)
+
+rbtree_manifest_shape_errors: list[str] = []
+if phase7_rbtree_manifest.get("lane_key") != "P7-L13":
+    rbtree_manifest_shape_errors.append("lane_key")
+if phase7_rbtree_manifest.get("phase") != "Phase 7":
+    rbtree_manifest_shape_errors.append("phase")
+if phase7_rbtree_manifest.get("surveyed_commit") != "64d78cfdc3b9c7b365d75c26957fa99a5f168d85":
+    rbtree_manifest_shape_errors.append("surveyed_commit")
+if phase7_rbtree_manifest.get("anchor") != "lib/rbtree.c":
+    rbtree_manifest_shape_errors.append("anchor")
+if phase7_rbtree_manifest.get("roadmap_destinations") != ["lib/rbtree.zig"]:
+    rbtree_manifest_shape_errors.append("roadmap_destinations")
+
+rbtree_survey_summary = phase7_rbtree_manifest.get("survey_summary", {})
+expected_rbtree_summary = {
+    "rbtree_c_lines": 618,
+    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_build_present": True,
+    "preexisting_phase7_doc_present": True,
+    "preexisting_phase7_helper_present": True,
+}
+for key, expected_value in expected_rbtree_summary.items():
+    if rbtree_survey_summary.get(key) != expected_value:
+        rbtree_manifest_shape_errors.append(f"survey_summary:{key}")
+
+rbtree_gaps = phase7_rbtree_manifest.get("gaps")
+if not isinstance(rbtree_gaps, list):
+    rbtree_manifest_shape_errors.append("gaps")
+else:
+    ready_next_count = 0
+    for gap_id, destination in expected_rbtree_gap_destinations.items():
+        matches = [gap for gap in rbtree_gaps if gap.get("id") == gap_id]
+        if len(matches) != 1:
+            rbtree_manifest_shape_errors.append(f"gaps:{gap_id}")
+            continue
+        gap = matches[0]
+        if gap.get("status") != "starter_landed":
+            rbtree_manifest_shape_errors.append(f"gaps:{gap_id}:status")
+        if gap.get("zigux_destination") != destination:
+            rbtree_manifest_shape_errors.append(f"gaps:{gap_id}:zigux_destination")
+        if not gap.get("why_now"):
+            rbtree_manifest_shape_errors.append(f"gaps:{gap_id}:why_now")
+
+        why_now = gap.get("why_now", "")
+        if gap_id == "phase7-rbtree-helper":
+            if "eraseInit ownership reset" not in why_now:
+                rbtree_manifest_shape_errors.append("gaps:phase7-rbtree-helper:why_now:eraseInit ownership reset")
+            if "duplicate-range iterator access" not in why_now:
+                rbtree_manifest_shape_errors.append("gaps:phase7-rbtree-helper:why_now:duplicate-range iterator access")
+        if gap_id == "phase7-rbtree-parity-fixture-layer" and "eraseInit ownership reset" not in why_now:
+            rbtree_manifest_shape_errors.append(
+                "gaps:phase7-rbtree-parity-fixture-layer:why_now:eraseInit ownership reset"
+            )
+
+        if gap.get("status") == "ready_next":
+            ready_next_count += 1
+
+    if ready_next_count != 0:
+        rbtree_manifest_shape_errors.append("ready_next_count")
+
+if rbtree_manifest_shape_errors:
+    print("PHASE7_VALIDATION=fail")
+    print("PHASE7_RBTREE_MANIFEST_SHAPE_START")
+    for item in rbtree_manifest_shape_errors:
+        print(item)
+    print("PHASE7_RBTREE_MANIFEST_SHAPE_END")
     sys.exit(1)
 
 phase7_build_paths = set(re.findall(r'b\.path\("([^"]+)"\)', phase7_build))
