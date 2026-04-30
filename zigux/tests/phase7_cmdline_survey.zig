@@ -43,6 +43,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(roadmap, "## Phase 7: In-Kernel Leaf Libraries");
     try expectContains(roadmap, "lib/cmdline.c");
     try expectContains(roadmap, "- `lib/cmdline.zig`");
+    try expectContains(roadmap, "runtime-safe leaf helpers");
+    try expectContains(roadmap, "integration with validation substrate");
 
     try expectContains(tests_readme, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
@@ -53,6 +55,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(cmdline_slice, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(cmdline_slice, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(cmdline_slice, "zig build test --build-file zigux/tests/phase7_build.zig");
+    try expectContains(cmdline_slice, "runtime-safe leaf helpers");
+    try expectContains(cmdline_slice, "integration with validation substrate through `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig`");
     try expectContains(cmdline_slice, "helper-local test runs cannot import that fixture from outside the helper module path");
 
     try expectContains(phase7_build, "phase7_cmdline_survey.zig");
