@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,6 +47,106 @@ required_files = [
     ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
 ]
 
+
+def clone_fixture_root(destination_root: Path) -> None:
+    for source in required_files:
+        target = destination_root / source.relative_to(ROOT)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+
+
+def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(root / "scripts" / "zigux" / "validate-phase7.py")],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
+    result = run_validator(root)
+    if result.returncode == 0:
+        raise SystemExit(f"phase7-self-test:{label}:unexpected_pass")
+    if expected_marker not in result.stdout:
+        actual = result.stdout.strip() or "none"
+        raise SystemExit(
+            f"phase7-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
+        )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_selftest_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        baseline = run_validator(tmp_root)
+        if baseline.returncode != 0:
+            raise SystemExit(
+                "phase7-self-test:baseline_failed:"
+                f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
+            )
+
+        makefile_path = tmp_root / "zigux" / "Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_self_test_hook",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/validate-phase7.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Self-test Phase 7 runtime validator\n"
+                "        run: python3 scripts/zigux/validate-phase7.py --self-test\n\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_self_test_step",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: Self-test Phase 7 runtime validator",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        argv_split_survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
+        original_argv_split_survey = argv_split_survey_path.read_text(encoding="utf-8")
+        argv_split_survey_path.write_text(
+            original_argv_split_survey.replace(
+                'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_ready_next_guard",
+            tmp_root,
+            'zigux/tests/phase7_argv_split_survey.zig: try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+        )
+
+    print("PHASE7_VALIDATOR_SELF_TEST=pass")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    return 0
+
+
+if "--self-test" in sys.argv[1:]:
+    raise SystemExit(run_self_test())
+
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
     print("PHASE7_VALIDATION=fail")
@@ -80,6 +184,7 @@ phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md"
 required_make_markers = [
     "PHONY += phase7-validate phase7-test phase7",
     "phase7-validate:",
+    "scripts/zigux/validate-phase7.py --self-test",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "phase7-test:",
@@ -89,6 +194,8 @@ required_make_markers = [
 ]
 
 required_workflow_markers = [
+    "Self-test Phase 7 runtime validator",
+    "python3 scripts/zigux/validate-phase7.py --self-test",
     "Validate Phase 7 runtime helper gates",
     "make -C zigux phase7-validate",
     "Run Phase 7 runtime helper tests",
@@ -98,6 +205,7 @@ required_workflow_markers = [
 
 required_script_readme_markers = [
     "validate-phase7.py",
+    "validate-phase7.py --self-test",
     "check-phase7-rbtree-parity.py",
     "Phase 7 flow",
     "make -C zigux phase7-validate",
@@ -132,6 +240,7 @@ required_tests_readme_markers = [
     "zigux/tests/fixtures/phase7_rbtree.json",
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/validate-phase7.py --self-test",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
     "`zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone so the helper-only string and cmdline slices keep their roadmap-backed review notes explicit without widening into extra helper-local bootstrap rules or later-phase sample claims",
@@ -145,6 +254,7 @@ required_doc_readme_markers = [
     "Documentation/zigux/phase7-cmdline-slice.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
+    "python3 scripts/zigux/validate-phase7.py --self-test",
     "python3 scripts/zigux/validate-phase7.py",
     "make -C zigux phase7-validate",
     "make -C zigux phase7-test",
@@ -375,6 +485,7 @@ unexpected_phase7_build_markers = [
 
 expected_make_expansions = {
     "phase7-validate": [
+        "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     ],
@@ -382,6 +493,7 @@ expected_make_expansions = {
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
     "phase7": [
+        "python3 scripts/zigux/validate-phase7.py --self-test",
         "python3 scripts/zigux/validate-phase7.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
