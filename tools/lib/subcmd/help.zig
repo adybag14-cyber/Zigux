@@ -697,6 +697,66 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
+test "loadCommandListsFromEnvPath keeps PATH-only fallback stable when exec-path lookup is unavailable" {
+    const FixtureDir = struct {
+        path: []const u8,
+        entries: []const DirectoryEntry,
+    };
+
+    const FixtureSource = struct {
+        dirs: []const FixtureDir,
+
+        fn populate(self: *@This(), cmds: *CmdNames, path: []const u8, prefix: []const u8) !void {
+            for (self.dirs) |dir| {
+                if (std.mem.eql(u8, dir.path, path)) {
+                    try addExecutableEntries(cmds, dir.entries, prefix);
+                    return;
+                }
+            }
+        }
+    };
+
+    const current_dir_entries = [_]DirectoryEntry{
+        .{ .name = "perf-current", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+    };
+    const usr_bin_entries = [_]DirectoryEntry{
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "perf-stat", .is_executable = true },
+        .{ .name = "README.md", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &current_dir_entries },
+            .{ .path = "/usr/bin", .entries = &usr_bin_entries },
+        },
+    };
+
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        null,
+        ":/usr/bin:/usr/bin:",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 3), other_cmds.count());
+    try std.testing.expectEqualStrings("current", other_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("report", other_cmds.names.items[1].name);
+    try std.testing.expectEqualStrings("stat", other_cmds.names.items[2].name);
+}
+
 test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" {
     const FixtureDir = struct {
         path: []const u8,
