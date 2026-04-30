@@ -134,3 +134,55 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
 }
+
+test "runtime atomic64 sample keeps post-selftest mutation replay explicit at the module boundary" {
+    var module = sample.RuntimeAtomic64Sample{};
+    const seed = 0x0102_0304_0506_0708;
+
+    try module.init(seed);
+    _ = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+
+    const add_result = try module.addCounter(0x10);
+    try std.testing.expectEqual(seed, add_result.previous);
+    try std.testing.expectEqual(seed + 0x10, add_result.final);
+    try std.testing.expectEqual(seed + 0x10, module.snapshotCounter());
+
+    const swap_result = try module.swapCounter(-5);
+    try std.testing.expectEqual(seed + 0x10, swap_result);
+    try std.testing.expectEqual(@as(i64, -5), module.snapshotCounter());
+
+    const compare_swap_result = try module.compareSwapCounter(-5, 11);
+    try std.testing.expect(compare_swap_result.stored);
+    try std.testing.expectEqual(@as(i64, -5), compare_swap_result.previous);
+    try std.testing.expectEqual(@as(i64, 11), module.snapshotCounter());
+
+    const add_unless_result = try module.addUnlessCounter(4, 99);
+    try std.testing.expect(add_unless_result.changed);
+    try std.testing.expectEqual(@as(i64, 11), add_unless_result.previous);
+    try std.testing.expectEqual(@as(i64, 15), module.snapshotCounter());
+
+    const inc_not_zero_result = try module.incNotZeroCounter();
+    try std.testing.expect(inc_not_zero_result.changed);
+    try std.testing.expectEqual(@as(i64, 15), inc_not_zero_result.previous);
+    try std.testing.expectEqual(@as(i64, 16), module.snapshotCounter());
+
+    const dec_if_positive_result = try module.decIfPositiveCounter();
+    try std.testing.expect(dec_if_positive_result.changed);
+    try std.testing.expectEqual(@as(i64, 15), dec_if_positive_result.result);
+    try std.testing.expectEqual(@as(i64, 15), module.snapshotCounter());
+
+    const post_selftest_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest_summary.exit_runs);
+
+    try module.exit();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(15, 19));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 15));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.decIfPositiveCounter());
+}
