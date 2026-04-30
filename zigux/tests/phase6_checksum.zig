@@ -105,6 +105,27 @@ test "kunit random-prefix parity stays stable on the helper surface" {
     }
 }
 
+test "from32to16, fold, and unfold stay aligned with the normalized checksum contract" {
+    const cases = [_]struct {
+        sum: u32,
+        expected_from32to16: u16,
+    }{
+        .{ .sum = 0x0000_0000, .expected_from32to16 = 0x0000 },
+        .{ .sum = 0x0000_ffff, .expected_from32to16 = 0xffff },
+        .{ .sum = 0x0001_0000, .expected_from32to16 = 0x0001 },
+        .{ .sum = 0xffff_0001, .expected_from32to16 = 0x0001 },
+        .{ .sum = 0xffff_ffff, .expected_from32to16 = 0xffff },
+        .{ .sum = 0x1234_fedc, .expected_from32to16 = 0x1111 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_from32to16, checksum.from32to16(case.sum));
+        try std.testing.expectEqual(case.expected_from32to16, @as(u16, @truncate(foldCarry(case.sum))));
+        try std.testing.expectEqual(~case.expected_from32to16, checksum.fold(case.sum));
+        try std.testing.expectEqual(@as(u32, case.expected_from32to16), checksum.unfold(case.expected_from32to16));
+    }
+}
+
 test "pseudo header accumulation matches the fixture-backed reference checksum" {
     for (fixtures.pseudo_header_cases) |case| {
         const payload_partial = checksum.partial(case.payload, 0);
