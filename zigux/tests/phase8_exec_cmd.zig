@@ -82,6 +82,37 @@ test "phase 8 exec-cmd starter slice covers path resolution and null-terminated 
     defer std.testing.allocator.free(root_search_path);
     try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", root_search_path);
 
+    var directory_only_argv0 = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/tmp/")) orelse unreachable;
+    defer directory_only_argv0.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/tmp", directory_only_argv0.argv0_path.?);
+    try std.testing.expectEqualStrings("", directory_only_argv0.command_name);
+
+    const directory_only_search_path = try exec_cmd.buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        directory_only_argv0.argv0_path.?,
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(directory_only_search_path);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/tmp:/usr/bin", directory_only_search_path);
+
+    var root_directory_only_argv0 = (try exec_cmd.extractArgv0Path(std.testing.allocator, "/")) orelse unreachable;
+    defer root_directory_only_argv0.deinit(std.testing.allocator);
+    try std.testing.expect(root_directory_only_argv0.argv0_path != null);
+    try std.testing.expectEqual(@as(usize, 0), root_directory_only_argv0.argv0_path.?.len);
+    try std.testing.expectEqualStrings("", root_directory_only_argv0.command_name);
+
+    const root_directory_only_search_path = try exec_cmd.buildSearchPath(
+        std.testing.allocator,
+        "/repo",
+        "tools/bin",
+        root_directory_only_argv0.argv0_path.?,
+        "/usr/bin",
+    );
+    defer std.testing.allocator.free(root_directory_only_search_path);
+    try std.testing.expectEqualStrings("/repo/tools/bin:/usr/bin", root_directory_only_search_path);
+
     const prepared = try exec_cmd.prepareExecCmd(
         std.testing.allocator,
         config,
