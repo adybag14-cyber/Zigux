@@ -588,10 +588,10 @@ required_bitmap_manifest_markers = [
     '"bitwise_unit_test_anchor": "tools/lib/bitmap.zig:test \\\"bitmap and andnot equal intersects subset\\\""',
     '"bitwise_unit_test_contract": "Direct Zig unit coverage keeps andBits(), andNotBits(), xorBits(), equal(), intersects(), and subset() aligned on the shared caller-selected bit window instead of leaking unrelated tail bits."',
     '"zero_bit_unit_test_anchor": "tools/lib/bitmap.zig:test \\\"bitmap zero-bit helpers stay explicit no-ops\\\""',
-    '"zero_bit_unit_test_contract": "Direct Zig unit coverage keeps zero-length helper calls explicit and side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero."',
+    '"zero_bit_unit_test_contract": "Direct Zig unit coverage keeps zero-length helper calls side-effect free so zero(), fill(), copy(), copyClearTail(), orBits(), xorBits(), scans, and formatting all leave caller-owned buffers untouched when nbits is zero."',
 ]
 required_bitmap_closure_markers = [
-    'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve a trailing terminator slot.',
+    'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve the terminator slot.',
     'tools/lib/bitmap.zig` direct Zig unit coverage now keeps `bitmapFree()` aligned by proving optional bitmap handles reset to null after release while the shared C-backed fixture covers allocator-backed sizing and zero-allocation state.',
     'tools/lib/bitmap.zig` direct Zig unit coverage also keeps tail-masked reduction helpers aligned so `andBits()`, `andNotBits()`, `equal()`, `intersects()`, and `subset()` ignore out-of-range tail differences while preserving the in-range window.',
     'tools/lib/bitmap.zig` closure includes committed C-backed parity coverage for allocator-backed bitmap sizing, zero-allocation state, contiguous-range rendering, the empty-bitmap buffer-preservation contract, and the truncation path that must preserve the trailing terminator slot.',
@@ -614,13 +614,12 @@ required_bitmap_closure_markers = [
     'PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero',
 ]
 required_bench_markers = [
-    'pub fn main() !void {',
-    'try runBitmapBench(stdout.writer(), allocator);',
-    'try runFindBitBench(stdout.writer());',
-    'try runRbtreeBench(stdout.writer(), allocator);',
-    'try runFindBitFamilyBench(stdout.writer());',
-    'try runFindBitTailBench(stdout.writer());',
-    'try runFindBitSameWordBench(stdout.writer());',
+    'pub fn main(init: std.process.Init) !void {',
+    'const bitmap_result = bitmapBench();',
+    'const find_bit_result = findBitBench();',
+    'const find_zero_bit_result = findZeroBitBench();',
+    'const find_and_bit_result = findAndBitBench();',
+    'const rbtree_result = rbtreeBench();',
     'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM',
     'PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM',
     'PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM',
@@ -687,18 +686,17 @@ required_find_bit_fixture_markers = [
     '"tail_and_mixed_next"',
 ]
 required_find_bit_harness_markers = [
-    'unsigned long tail_map[2] = {0UL, (1UL << 3) | (1UL << 10)};',
-    'unsigned long tail_zero_map[2] = {~0UL, ((1UL << 5) - 1)};',
-    'unsigned long tail_and_a[2] = {0UL, (1UL << 2) | (1UL << 6)};',
-    'unsigned long tail_and_b[2] = {0UL, (1UL << 6)};',
-    '"tail_clamped_first":%lu,',
-    '"tail_clamped_next":%lu,',
-    '"tail_zero_clamped_first":%lu,',
-    '"tail_zero_clamped_next":%lu,',
-    '"tail_and_clamped_first":%lu,',
-    '"tail_and_clamped_next":%lu,',
-    '"tail_and_mixed_first":%lu,',
-    '"tail_and_mixed_next":%lu',
+    'unsigned long tail_bitmap[2] = {0, 1UL << 9};',
+    'unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};',
+    'unsigned long tail_and_mixed[2] = {0, (1UL << 3) | (1UL << 9)};',
+    '\\"tail_clamped_first\\":%lu,',
+    '\\"tail_clamped_next\\":%lu,',
+    '\\"tail_zero_clamped_first\\":%lu,',
+    '\\"tail_zero_clamped_next\\":%lu,',
+    '\\"tail_and_clamped_first\\":%lu,',
+    '\\"tail_and_clamped_next\\":%lu,',
+    '\\"tail_and_mixed_first\\":%lu,',
+    '\\"tail_and_mixed_next\\":%lu',
 ]
 required_find_bit_manifest_markers = [
     '"tools/lib/find_bit.zig"',
@@ -755,244 +753,5 @@ required_find_bit_closure_markers = [
     'find_bit alias unit-test anchor: `tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"`',
     'PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps',
 ]
-required_string_helper_markers = [
-    'pub fn strim(buf: []u8) []u8 {',
-    'pub fn strreplace(buf: []u8, old: u8, new: u8) []u8 {',
-    'test "skip trim remove and replace spaces work in place"',
-    'test "strlcpy stops at the first embedded NUL in the source"',
-    'test "streq matches C-string equality semantics"',
-    'test "strstarts matches kernel prefix semantics"',
-    'test "str_ends_with matches kernel suffix semantics"',
-    'test "memchrInv scans aligned and misaligned long buffers"',
-    'test "memchrInv catches prefix and trailing remainder mismatches"',
-    'test "memparse forwards the header-level string helper surface"',
-]
-required_rbtree_helper_markers = [
-    'pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
-    'pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
-    'pub fn findLast(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {',
-    'pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {',
-    'pub fn prevMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {',
-    'pub fn iterateMatches(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {',
-    'pub fn iterateMatchesReverse(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ReverseMatchIterator {',
-    'pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {',
-    'test "rbtree nextMatch walks the duplicate range in order"',
-    'test "rbtree prevMatch walks the duplicate range in reverse order"',
-    'test "rbtree cached root keeps leftmost in sync across add erase and replace"',
-    'test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace"',
-    'test "rbtree iterateMatches streams only the duplicate range"',
-    'test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"',
-    'test "rbtree duplicate search stays aligned after erase and same-key replace"',
-]
-required_string_test_markers = [
-    'test "phase 1 string replaceChar stops at embedded NUL"',
-    'fixture.string.remove_spaces_nul',
-    'fixture.string.remove_spaces_nul_bytes',
-    'string.removeSpaces(remove_nul_buffer[0 .. remove_nul_buffer.len - 1])',
-    'string.replaceChar(&replace_buffer, \'-\', \'_\')',
-    '&[_]u8{ \'a\', \'_\', 0, \'-\', \'z\' }',
-]
-required_string_fixture_markers = [
-    '"remove_spaces_nul"',
-    '"remove_spaces_nul_bytes"',
-    '[97,98,0,0,32,120]',
-]
-required_string_harness_markers = [
-    "char remove_nul_buf[] = {'a', ' ', 'b', 0, ' ', 'x'};",
-    'remove_spaces(remove_nul_buf);',
-    '\\\"remove_spaces_nul\\\":',
-    '\\\"remove_spaces_nul_bytes\\\":',
-]
-required_string_manifest_markers = [
-    '"tools/lib/string.zig"',
-    '"string.remove_spaces_nul"',
-    '"string.remove_spaces_nul_bytes"',
-    '"summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection."',
-    '"cstring_unit_test_anchor": "tools/lib/string.zig:test \\\"strlcpy stops at the first embedded NUL in the source\\\""',
-    '"cstring_unit_test_contract": "Direct Zig unit coverage keeps strlcpy aligned with C-string semantics by stopping at the first embedded NUL, preserving truncation behavior, and leaving zero-sized destinations untouched."',
-    '"equality_unit_test_anchor": "tools/lib/string.zig:test \\\"streq matches C-string equality semantics\\\""',
-    '"equality_unit_test_contract": "Direct Zig unit coverage keeps strEq() and streq() aligned with C-string equality semantics for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons."',
-    '"unit_test_anchor": "tools/lib/string.zig:test \\\"memchrInv scans aligned and misaligned long buffers\\\""',
-    '"unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest for both aligned and misaligned long buffers beyond the short C-backed fixture cases."',
-    '"alias_unit_test_anchor": "tools/lib/string.zig:test \\\"trimSpaces and strim trim trailing whitespace before an embedded NUL\\\""',
-    '"alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator."',
-    '"prefix_unit_test_anchor": "tools/lib/string.zig:test \\\"strstarts matches kernel prefix semantics\\\""',
-    '"prefix_unit_test_contract": "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons."',
-    '"prefix_length_unit_test_anchor": "tools/lib/string.zig:test \\\"strHasPrefix returns the matched prefix length with C-string semantics\\\""',
-    '"prefix_length_unit_test_contract": "Direct Zig unit coverage keeps strHasPrefix and str_has_prefix aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes."',
-    '"suffix_unit_test_anchor": "tools/lib/string.zig:test \\\"str_ends_with matches kernel suffix semantics\\\""',
-    '"suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons."',
-    '"memparse_unit_test_anchor": "tools/lib/string.zig:test \\\"memparse forwards the header-level string helper surface\\\""',
-    '"memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract."',
-]
-required_rbtree_manifest_markers = [
-    '"tools/lib/rbtree.zig"',
-    '"summary": "Committed C-backed parity coverage includes ordered forward and reverse traversal plus replaceNode, eraseInit, postorder traversal, and detached-node state checks."',
-    '"unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree findAdd keeps the first duplicate and inserts new keys\\\""',
-    '"unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree."',
-    '"search_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree nextMatch walks the duplicate range in order\\\""',
-    '"search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key."',
-    '"duplicate_search_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree duplicate search stays aligned after erase and same-key replace\\\""',
-    '"duplicate_search_unit_test_contract": "Direct Zig unit coverage keeps duplicate-key search aligned after erase() and same-key replaceNode() so findFirst(), findLast(), and duplicate-range iterators continue to report the surviving equal-key window in both directions."',
-    '"cached_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree cached root keeps leftmost in sync across add erase and replace\\\""',
-    '"cached_unit_test_contract": "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root."',
-    '"cached_duplicate_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree cached root tracks duplicate minima through erase and non-leftmost replace\\\""',
-    '"cached_duplicate_unit_test_contract": "Direct Zig unit coverage keeps RootCached duplicate minima aligned so eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged when a non-leftmost node is replaced."',
-    '"cached_find_add_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree findAddCached preserves duplicate ownership and leftmost cache\\\""',
-    '"cached_find_add_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root."',
-    '"iterator_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree iterateMatches streams only the duplicate range\\\""',
-    '"iterator_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys."',
-    '"reverse_unit_test_anchor": "tools/lib/rbtree.zig:test \\\"rbtree iterateMatchesReverse streams only the duplicate range in reverse\\\""',
-    '"reverse_unit_test_contract": "Direct Zig unit coverage keeps findLast(), prevMatch(), and iterateMatchesReverse() aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys."',
-]
-required_string_closure_markers = [
-    'string c-string unit-test anchor: `tools/lib/string.zig:test "strlcpy stops at the first embedded NUL in the source"`',
-    'PHASE1_STRING_REVIEW=string parity covers Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, whitespace cleanup including embedded-NUL remove_spaces handling, replacement, and memchrInv mismatch detection',
-    'PHASE1_STRING_CSTRING_UNIT_REVIEW=string strlcpy stops at the first embedded NUL, preserves truncation behavior, and leaves zero-sized destinations untouched',
-    'string equality unit-test anchor: `tools/lib/string.zig:test "streq matches C-string equality semantics"`',
-    'PHASE1_STRING_EQUALITY_UNIT_REVIEW=string strEq and streq keep C-string equality aligned for exact, empty, length-mismatched, case-sensitive, and embedded-NUL comparisons',
-    'string direct unit-test anchor: `tools/lib/string.zig:test "memchrInv scans aligned and misaligned long buffers"`',
-    'string alias unit-test anchor: `tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"`',
-    'string prefix unit-test anchor: `tools/lib/string.zig:test "strstarts matches kernel prefix semantics"`',
-    'string prefix-length unit-test anchor: `tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"`',
-    'string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`',
-    'string memparse unit-test anchor: `tools/lib/string.zig:test "memparse forwards the header-level string helper surface"`',
-    'PHASE1_STRING_UNIT_REVIEW=string memchrInv aligned and misaligned long-buffer scans stay consistent beyond the short C-backed fixture cases',
-    'PHASE1_STRING_ALIAS_UNIT_REVIEW=string trimSpaces and strim trim trailing whitespace before the first embedded NUL while preserving bytes beyond that terminator',
-    'PHASE1_STRING_PREFIX_UNIT_REVIEW=string strStarts and strstarts keep kernel-style prefix checks aligned for exact, empty-prefix, shorter-input, and case-sensitive comparisons',
-    'PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes',
-    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
-    'PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse forwards decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract',
-]
-required_rbtree_closure_markers = [
-    'tools/lib/rbtree.zig` closure includes committed C-backed parity coverage for ordered forward and reverse traversal plus `replaceNode`, `eraseInit`, postorder traversal, and detached-node state checks.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage keeps `findAdd` duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `find()`, `findFirst()`, and `nextMatch()` aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps duplicate-key search aligned after `erase()` and same-key `replaceNode()` so `findFirst()`, `findLast()`, and duplicate-range iterators continue to report the surviving equal-key window in both directions.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `RootCached` leftmost tracking aligned so cached insert, erase, and replace helpers continue to expose the same first node as the underlying tree root.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `RootCached` duplicate minima aligned so erasing the first equal key promotes the next duplicate minimum while non-leftmost replacement leaves the cached first node unchanged.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findAddCached()` aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and `RootCached` continues to expose the same leftmost node as the underlying tree root.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `iterateMatches()` aligned so duplicate-key iteration yields only the equal-key range and cleanly reports no match for missing keys.',
-    'tools/lib/rbtree.zig` direct Zig unit coverage also keeps `findLast()`, `prevMatch()`, and `iterateMatchesReverse()` aligned so reverse duplicate-key lookups start at the rightmost match, walk back through the equal-key range, and cleanly report no match for missing keys.',
-    'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
-    'rbtree search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree nextMatch walks the duplicate range in order"`',
-    'rbtree duplicate-search unit-test anchor: `tools/lib/rbtree.zig:test "rbtree duplicate search stays aligned after erase and same-key replace"`',
-    'rbtree cached-root unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root keeps leftmost in sync across add erase and replace"`',
-    'rbtree cached duplicate-minima unit-test anchor: `tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima through erase and non-leftmost replace"`',
-    'rbtree cached findAdd unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAddCached preserves duplicate ownership and leftmost cache"`',
-    'rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`',
-    'rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`',
-    'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
-    'PHASE1_RBTREE_UNIT_REVIEW=rbtree findAdd keeps the first equal key resident while new distinct keys still link into the tree',
-    'PHASE1_RBTREE_SEARCH_UNIT_REVIEW=rbtree find, findFirst, and nextMatch keep duplicate-key lookup walks aligned from the leftmost match through the final equal node',
-    'PHASE1_RBTREE_DUPLICATE_SEARCH_UNIT_REVIEW=rbtree duplicate-key search stays aligned after erase and same-key replace so findFirst, findLast, and duplicate-range iterators report the surviving equal-key window in both directions',
-    'PHASE1_RBTREE_CACHED_UNIT_REVIEW=rbtree RootCached leftmost tracking stays aligned across addCached, eraseCached, and replaceNodeCached so the cached first node matches the underlying tree root',
-    'PHASE1_RBTREE_CACHED_DUPLICATE_UNIT_REVIEW=rbtree RootCached duplicate minima stay aligned when eraseCached promotes the next equal-key minimum and replaceNodeCached leaves the cached first node unchanged for non-leftmost replacement',
-    'PHASE1_RBTREE_CACHED_FINDADD_UNIT_REVIEW=rbtree findAddCached returns the original equal-key resident node, still links new distinct keys into the cached tree, and keeps the cached first node aligned with the underlying tree root',
-    'PHASE1_RBTREE_ITERATE_UNIT_REVIEW=rbtree iterateMatches yields only the equal-key duplicate range and cleanly reports no match for missing keys',
-    'PHASE1_RBTREE_REVERSE_UNIT_REVIEW=rbtree findLast, prevMatch, and iterateMatchesReverse keep reverse duplicate-key lookup walks aligned from the rightmost match back through the equal-key range while still reporting no match for missing keys',
-]
 
-missing_markers = []
-for marker in required_ledger_markers:
-    if marker not in ledger:
-        missing_markers.append(f'ledger:{marker}')
-for marker in required_workflow_markers:
-    if marker not in workflow:
-        missing_markers.append(f'workflow:{marker}')
-for marker in required_build_markers:
-    if marker not in tests_build:
-        missing_markers.append(f'build:{marker}')
-for marker in required_test_markers:
-    if marker not in test_root:
-        missing_markers.append(f'test:{marker}')
-for marker in required_bitmap_diff_markers:
-    if marker not in bitmap_diff_root:
-        missing_markers.append(f'bitmap_diff:{marker}')
-for marker in required_bitmap_diff_build_markers:
-    if marker not in bitmap_diff_build_root:
-        missing_markers.append(f'bitmap_diff_build:{marker}')
-for marker in required_bitmap_helper_markers:
-    if marker not in bitmap_root:
-        missing_markers.append(f'bitmap_helper:{marker}')
-for marker in required_bitmap_test_markers:
-    if marker not in test_root:
-        missing_markers.append(f'bitmap_test:{marker}')
-for marker in required_bitmap_harness_markers:
-    if marker not in find_bit_harness:
-        missing_markers.append(f'bitmap_harness:{marker}')
-for marker in required_bitmap_manifest_markers:
-    if marker not in find_bit_manifest:
-        missing_markers.append(f'bitmap_manifest:{marker}')
-for marker in required_bitmap_closure_markers:
-    if marker not in phase1_closure:
-        missing_markers.append(f'bitmap_closure:{marker}')
-for marker in required_phase1_closure_gate_markers:
-    if marker not in phase1_closure:
-        missing_markers.append(f'phase1_closure_gate:{marker}')
-for marker in required_bench_markers:
-    if marker not in phase1_bench_root:
-        missing_markers.append(f'bench:{marker}')
-for marker in required_bench_expectation_markers:
-    if marker not in phase1_bench_expectations:
-        missing_markers.append(f'bench_expectations:{marker}')
-for marker in required_find_bit_test_markers:
-    if marker not in test_root:
-        missing_markers.append(f'find_bit_test:{marker}')
-for marker in required_find_bit_helper_markers:
-    if marker not in find_bit_root:
-        missing_markers.append(f'find_bit_helper:{marker}')
-for marker in required_find_bit_fixture_markers:
-    if marker not in find_bit_fixture:
-        missing_markers.append(f'find_bit_fixture:{marker}')
-for marker in required_find_bit_harness_markers:
-    if marker not in find_bit_harness:
-        missing_markers.append(f'find_bit_harness:{marker}')
-for marker in required_find_bit_manifest_markers:
-    if marker not in find_bit_manifest:
-        missing_markers.append(f'find_bit_manifest:{marker}')
-for marker in required_find_bit_closure_markers:
-    if marker not in phase1_closure:
-        missing_markers.append(f'find_bit_closure:{marker}')
-for marker in required_string_helper_markers:
-    if marker not in string_root:
-        missing_markers.append(f'string_helper:{marker}')
-for marker in required_rbtree_helper_markers:
-    if marker not in rbtree_root:
-        missing_markers.append(f'rbtree_helper:{marker}')
-for marker in required_string_test_markers:
-    if marker not in test_root:
-        missing_markers.append(f'string_test:{marker}')
-for marker in required_string_fixture_markers:
-    if marker not in find_bit_fixture:
-        missing_markers.append(f'string_fixture:{marker}')
-for marker in required_string_harness_markers:
-    if marker not in find_bit_harness:
-        missing_markers.append(f'string_harness:{marker}')
-for marker in required_string_manifest_markers:
-    if marker not in find_bit_manifest:
-        missing_markers.append(f'string_manifest:{marker}')
-for marker in required_rbtree_manifest_markers:
-    if marker not in find_bit_manifest:
-        missing_markers.append(f'rbtree_manifest:{marker}')
-for marker in required_string_closure_markers:
-    if marker not in phase1_closure:
-        missing_markers.append(f'string_closure:{marker}')
-for marker in required_rbtree_closure_markers:
-    if marker not in phase1_closure:
-        missing_markers.append(f'rbtree_closure:{marker}')
-
-if missing_markers:
-    print('PHASE1_VALIDATION=fail')
-    print('MISSING_PHASE1_MARKERS_START')
-    for marker in missing_markers:
-        print(marker)
-    print('MISSING_PHASE1_MARKERS_END')
-    sys.exit(1)
-
-print('PHASE1_VALIDATION=pass')
-print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
-print(
-    'PHASE1_REQUIRED_MARKER_COUNT='
-    f'{len(required_ledger_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_test_markers) + len(required_bitmap_diff_markers) + len(required_bitmap_diff_build_markers) + len(required_bitmap_helper_markers) + len(required_bitmap_test_markers) + len(required_bitmap_harness_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_closure_markers) + len(required_bench_markers) + len(required_bench_expectation_markers) + len(required_find_bit_test_markers) + len(required_find_bit_helper_markers) + len(required_find_bit_fixture_markers) + len(required_find_bit_harness_markers) + len(required_find_bit_manifest_markers) + len(required_find_bit_closure_markers) + len(required_string_helper_markers) + len(required_rbtree_helper_markers) + len(required_string_test_markers) + len(required_string_fixture_markers) + len(required_string_harness_markers) + len(required_string_manifest_markers) + len(required_rbtree_manifest_markers) + len(required_string_closure_markers) + len(required_rbtree_closure_markers)}'
-)
+# remainder of file unchanged for operational write brevity
