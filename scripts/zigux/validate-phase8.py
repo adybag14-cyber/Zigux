@@ -377,7 +377,10 @@ required_help_slice_markers = [
     "tools/lib/subcmd/help.zig",
     "zigux/tests/phase8_help.zig",
     "stable command-list manipulation logic",
+    "raw `PATH` string splitting that preserves empty colon-delimited segments",
     "section-level output stays testable",
+    "shared longest-name calculation",
+    "empty-section suppression",
     "list_commands()",
     "does not yet claim:",
     "cmd_help()",
@@ -397,11 +400,16 @@ required_phase8_help_markers = [
 required_help_helper_markers = [
     "pub fn loadCommandListsFromSource(",
     "pub fn loadCommandListsFromEnvPath(",
+    "pub fn splitPathEntries(",
+    "pub fn longestNameLenAcrossLists(",
     "pub fn resolveTerminalDimensions(",
+    "test \"splitPathEntries preserves empty PATH segments and owns copied slices\"",
     "test \"loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH\"",
     "test \"loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path filtering\"",
+    "test \"longestNameLenAcrossLists mirrors list_commands shared column width\"",
     "test \"writePrettyPrintStringListForTerminal keeps column-major pretty-printing pure and testable\"",
     "test \"writeCommandSectionsForTerminal keeps list_commands formatting pure and shared-width aware\"",
+    "test \"writeCommandSectionsForTerminal suppresses empty sections without stray headings or blank lines\"",
 ]
 
 required_kallsyms_slice_markers = [
