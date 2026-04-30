@@ -8,6 +8,7 @@ from phase3_catalog import Phase3Paths, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
     ABI_REQUIRED_EXPECTED_CONSTANTS,
+    ABI_REQUIRED_SOURCE_MARKERS,
     select_slices,
     validate_abi_expected_fixture,
     validate_manifest,
@@ -116,6 +117,54 @@ def run_self_test() -> int:
                 )
             },
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
+        assert "zigux/tests/phase3_abi.zig" in ABI_REQUIRED_SOURCE_MARKERS
+        abi_marker_fixture = root / "zigux/tests/phase3_abi.zig"
+        abi_marker_fixture.parent.mkdir(parents=True, exist_ok=True)
+        abi_marker_fixture.write_text(
+            "\n".join(
+                [
+                    'test "phase3 abi slice uses stable canonical layouts" {',
+                    "    comptime {",
+                    "        layout_assert.assertMmioRangeLayout();",
+                    "    }",
+                    "}",
+                    "",
+                    'test "phase3 abi slice keeps explicit constants and statuses reviewable" {',
+                    "    try std.testing.expectEqual(@as(u8, 2), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));",
+                    "}",
+                    "",
+                    'test "phase3 abi slice keeps the boundary helpers constructible" {',
+                    "    try std.testing.expect(export_shim.isCanonicalHeader(header));",
+                    "    try std.testing.expect(uapi_version.isCanonical(header));",
+                    "    try std.testing.expectEqual(panic_policy.Action.abort_now, panic_policy.actionFor(.abort));",
+                    "    try std.testing.expect(allocator_policy.requiresExplicitCaller(.caller_provided));",
+                    "    const range = mmio.range(0x1000, 0x40, 4);",
+                    "    try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(2, 0).?);",
+                    "}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"zigux/tests/phase3_abi.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]},
+        ) == []
+        abi_marker_fixture.write_text(
+            abi_marker_fixture.read_text(encoding="utf-8").replace(
+                "try std.testing.expect(uapi_version.isCanonical(header));",
+                "",
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(
+            root,
+            {"zigux/tests/phase3_abi.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_abi.zig"]},
+        ) == [
+            "source-marker: zigux/tests/phase3_abi.zig missing try std.testing.expect(uapi_version.isCanonical(header));"
+        ]
         assert validate_slices(
             root,
             entries,
