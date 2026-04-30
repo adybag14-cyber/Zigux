@@ -1,6 +1,6 @@
 # Phase 11 DesignWare Watchdog Survey
 
-This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `be0f31bf64cdc200e2129992d1fed491b60fed2a`.
+This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `d5f892924271cc8b2507989d2a6831029ca03e91`.
 
 The live repo state is now:
 
@@ -17,9 +17,9 @@ The next honest larger move is still blocked on platform-driver scaffold work su
 
 Latest verification snapshot:
 
-- lane key refreshed to `P11-L11` while keeping the same bounded DesignWare starter scope
+- lane key remains `P11-L11` and the surveyed head is now `d5f892924271cc8b2507989d2a6831029ca03e91` while keeping the same bounded DesignWare starter scope
 - latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet
 - `zig test zigux/tests/phase11_dw_wdt.zig`
 - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
 - `python3 scripts/zigux/validate-phase11.py`
-- observed outcome: the last recorded shared replay for the landed starter passed, and this note-tightening packet only adds the missing validation-matrix evidence around the same bounded `dw_wdt` scope
+- observed outcome: the focused survey replay stayed green on the refreshed surveyed head, and the carried-forward shared Phase 11 starter status remains `PHASE11_VALIDATION=pass` for the same bounded `dw_wdt` scope
