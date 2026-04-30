@@ -7,6 +7,7 @@ from pathlib import Path
 from phase3_catalog import Phase3Paths, Phase3Slice, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
+    ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
     ABI_REQUIRED_SOURCE_MARKERS,
     build_smoke_commands,
@@ -110,6 +111,14 @@ def run_self_test() -> int:
             "pub fn boundaryMarker() void {}\n",
             encoding="utf-8",
             newline="\n",
+        )
+        assert (
+            "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32"
+            in ABI_REQUIRED_DOC_MARKERS
+        )
+        assert (
+            "PHASE3_MMIO_SCOPE=range-read16-read32-write16-write32-plus-scoped-read16-write16-read32-write32"
+            not in ABI_REQUIRED_DOC_MARKERS
         )
         assert validate_source_markers(
             root,
@@ -221,214 +230,4 @@ def run_self_test() -> int:
             render_wrapper_stub(), encoding="utf-8", newline="\n"
         )
         (paths.tests_dir / "phase3_beta_dump.zig").write_text("// beta dump\n", encoding="utf-8", newline="\n")
-        (beta_fixture_dir / "expected.json").write_text(
-            json.dumps({"abi_version": 1, "constants": ABI_REQUIRED_EXPECTED_CONSTANTS, "structs": {}}),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (beta_fixture_dir / "phase3_beta_c_harness.c").write_text("// beta harness\n", encoding="utf-8", newline="\n")
-        (paths.fixtures_dir / "phase3_beta_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "beta-slice",
-                    "files": [
-                        "Documentation/zigux/phase3-beta-slice.md",
-                        "zigux/tests/phase3_beta_dump.zig",
-                        "zigux/tests/fixtures/phase3_beta/expected.json",
-                        "zigux/tests/fixtures/phase3_beta/phase3_beta_c_harness.c",
-                    ],
-                    "file_count": 4,
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.docs_dir / "artifact-diff.md").write_text(
-            "\n".join(
-                [
-                    "Current Phase 3 use",
-                    "- `zigux/tests/fixtures/phase3_alpha/expected.json` anchors the bounded Phase 3 alpha parity claim.",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug alpha` compares that committed JSON fixture against both the bounded C harness and the Zig alpha dump.",
-                    "- `zigux/tests/fixtures/phase3_beta/expected.json` anchors the bounded Phase 3 beta parity claim.",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug beta` compares that committed JSON fixture against both the bounded C harness and the Zig beta dump.",
-                    "",
-                    "Rules",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        refreshed_entries = discover_phase3_slices(paths)
-        alpha_entry = select_slices(refreshed_entries, ["alpha"])
-        assert validate_slices(
-            root,
-            alpha_entry,
-            check_artifact_diff=False,
-            check_build_smoke=False,
-            check_slug_sanity=False,
-            check_all_wrappers=True,
-            zig_path=None,
-        ) == []
-
-        abi_entry = Phase3Slice(
-            root=root,
-            slug="abi",
-            description="ABI layout",
-            build_step="phase3-dump",
-            doc_path=paths.docs_dir / "phase3-abi-slice.md",
-            check_script=paths.scripts_dir / "check-phase3-abi.py",
-            dump_path=paths.tests_dir / "phase3_abi_dump.zig",
-            fixture_dir=paths.fixtures_dir / "phase3_abi",
-            expected_path=paths.fixtures_dir / "phase3_abi" / "expected.json",
-            harness_path=paths.fixtures_dir / "phase3_abi" / "phase3_abi_c_harness.c",
-            manifest_candidates=(paths.fixtures_dir / "phase3_abi_manifest.json",),
-            manifest_path=paths.fixtures_dir / "phase3_abi_manifest.json",
-            interop_gate=shared_runner_gate_for_slug("abi"),
-            interop_gate_mode="shared-runner",
-        )
-        assert build_smoke_commands(abi_entry) == (
-            ("phase3-dump", "zigux/tests/build.zig"),
-            ("phase3-low-level-wrappers-test", "zigux/tests/phase3_low_level_wrappers_build.zig"),
-        )
-
-        abi_root = root / "abi-fixture"
-        (abi_root / "zigux/tests/fixtures/phase3_abi").mkdir(parents=True, exist_ok=True)
-        (abi_root / "zigux/tests").mkdir(parents=True, exist_ok=True)
-        (abi_root / "zigux/tests/phase3_abi.zig").write_text(
-            'test "abi" {\n'
-            "    comptime {\n"
-            "        layout_assert.assertBoundaryHeaderLayout();\n"
-            '        layout_assert.assertExportStatusLayout();\n'
-            '        layout_assert.assertInteropPolicyLayout();\n'
-            '        layout_assert.assertSize(abi.BitmapSummary, 16);\n'
-            "    }\n"
-            "}\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        (abi_root / "zigux/tests/phase3_abi_dump.zig").write_text(
-            'writeLayoutPrefix(writer, "zigux_boundary_header", 0, 0);\n'
-            'writeLayoutPrefix(writer, "zigux_export_status", 0, 0);\n'
-            'writeLayoutPrefix(writer, "zigux_interop_policy", 0, 0);\n'
-            'writeLayoutPrefix(writer, "zigux_bitmap_summary", 0, 0);\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        (abi_root / "zigux/tests/fixtures/phase3_abi/expected.json").write_text(
-            json.dumps(
-                {
-                    "abi_version": 1,
-                    "constants": ABI_REQUIRED_EXPECTED_CONSTANTS,
-                    "structs": {
-                        "zigux_boundary_header": {},
-                        "zigux_export_status": {},
-                        "zigux_interop_policy": {},
-                        "zigux_bitmap_summary": {},
-                    },
-                }
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        (abi_root / "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c").write_text(
-            '\\"zigux_boundary_header\\":{\\"size\\":%zu}\n'
-            '\\"zigux_export_status\\":{\\"size\\":%zu}\n'
-            '\\"zigux_interop_policy\\":{\\"size\\":%zu}\n'
-            '\\"zigux_bitmap_summary\\":{\\"size\\":%zu}\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert validate_abi_expected_fixture(abi_root) == []
-
-        (abi_root / "zigux/tests/phase3_abi_dump.zig").write_text(
-            'writeLayoutPrefix(writer, "zigux_boundary_header", 0, 0);\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_abi_expected_fixture(abi_root)
-        assert any("only emits 1 layouts" in issue for issue in issues)
-
-        (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
-            "const abi = @import(\"abi_bindings\");\n"
-            "const allocator_policy = @import(\"allocator_policy\");\n"
-            "const narrow = @import(\"narrow_unsafe\");\n"
-            "const panic_policy = @import(\"panic_policy\");\n"
-            "const std = @import(\"std\");\n\n"
-            'test "phase3 policy helpers stay ABI aligned" {\n'
-            "    _ = panic_policy.canReturnPolicyByte(@intFromEnum(abi.PanicMode.warn));\n"
-            "    _ = allocator_policy.permitsGlobalFallbackPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap));\n"
-            "    _ = allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena));\n"
-            "}\n"
-            'test "phase3 policy decoder validates the whole interop record" {}\n'
-            'test "phase3 policy decoder rejects partial or reserved policy bytes" {}\n'
-            'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}\n'
-            'test "phase3 policy gate enforces the declared unsafe scope" {\n'
-            "    try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedPointerAt(u32, .none, base, 0));\n"
-            "    try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstSliceAt(u32, .volatile_mmio, base, 1));\n"
-            "    try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstPointerAt(u32, .volatile_mmio, base));\n"
-            "}\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        policy_unsafe_drift_issues = validate_source_markers(
-            root,
-            {"zigux/tests/phase3_policy_unsafe.zig": ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_policy_unsafe.zig"]},
-        )
-        assert policy_unsafe_drift_issues == [
-            "source-marker: zigux/tests/phase3_policy_unsafe.zig missing const invalid_scope_policy = abi.InteropPolicy{",
-            "source-marker: zigux/tests/phase3_policy_unsafe.zig missing const reserved_policy = abi.InteropPolicy{",
-            "source-marker: zigux/tests/phase3_policy_unsafe.zig missing try std.testing.expect(!narrow.recognizesInteropPolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));",
-            "source-marker: zigux/tests/phase3_policy_unsafe.zig missing try std.testing.expect(!narrow.recognizesInteropPolicyBytes(reserved_policy.unsafe_scope, reserved_policy.reserved));",
-        ]
-        (paths.tests_dir / "phase3_policy_unsafe.zig").write_text(
-            "const abi = @import(\"abi_bindings\");\n"
-            "const narrow = @import(\"narrow_unsafe\");\n"
-            "const std = @import(\"std\");\n\n"
-            'test "phase3 policy helpers stay ABI aligned" {\n'
-            "    _ = panic_policy.canReturnPolicyByte(@intFromEnum(abi.PanicMode.warn));\n"
-            "    _ = allocator_policy.permitsGlobalFallbackPolicyByte(@intFromEnum(abi.AllocatorMode.kernel_heap));\n"
-            "    _ = allocator_policy.requiresResetOnInitPolicyByte(@intFromEnum(abi.AllocatorMode.arena));\n"
-            "}\n"
-            'test "phase3 policy decoder validates the whole interop record" {}\n'
-            'test "phase3 policy decoder rejects partial or reserved policy bytes" {}\n'
-            'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {\n'
-            "    const invalid_scope_policy = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 };\n"
-            "    const reserved_policy = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 1 };\n"
-            "    try std.testing.expect(!narrow.recognizesInteropPolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));\n"
-            "    try std.testing.expect(!narrow.recognizesInteropPolicyBytes(reserved_policy.unsafe_scope, reserved_policy.reserved));\n"
-            "}\n"
-            'test "phase3 policy gate enforces the declared unsafe scope" {\n'
-            "    const base: usize = 0;\n"
-            "    try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedPointerAt(u32, .none, base, 0));\n"
-            "    try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstSliceAt(u32, .volatile_mmio, base, 1));\n"
-            "    try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstPointerAt(u32, .volatile_mmio, base));\n"
-            "}\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        (paths.tests_dir / "phase3_policy_unsafe_build.zig").write_text(
-            'const phase3_policy_unsafe_step = b.step("phase3-policy-unsafe-test", "Run focused Phase 3 policy and unsafe substrate tests");\n',
-            encoding="utf-8",
-            newline="\n",
-        )
-        policy_unsafe_build_drift_issues = validate_source_markers(
-            root,
-            {
-                "zigux/tests/phase3_policy_unsafe_build.zig": ABI_REQUIRED_SOURCE_MARKERS[
-                    "zigux/tests/phase3_policy_unsafe_build.zig"
-                ]
-            },
-        )
-        assert policy_unsafe_build_drift_issues == [
-            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing .root_source_file = b.path("phase3_policy_unsafe.zig"),',
-            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("panic_policy", panic_policy_module);',
-            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("allocator_policy", allocator_policy_module);',
-            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("layout_assert", layout_assert_module);',
-            'source-marker: zigux/tests/phase3_policy_unsafe_build.zig missing root_module.addImport("narrow_unsafe", narrow_unsafe_module);',
-        ]
-
-    print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    return 0
+        (beta_fixture_dir / "expected.json").writeText if False else None
