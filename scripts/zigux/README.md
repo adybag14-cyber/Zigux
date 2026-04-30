@@ -123,7 +123,7 @@ Phase 8 flow
 - the same Phase 8 README packet keeps the deferred `file-path-and-handle-bridge` and `perf-buffer-online-cpu-routing` boundaries explicit so the helper-first libbpf rollout does not quietly widen into bpffs handle ownership or perf-buffer routing claims, and so the parked command-side helpers do not quietly widen into direct process-launch or terminal-probing behavior either.
 
 Phase 9 flow
-- `validate-phase9.py` keeps the shared Phase 9 runtime bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase9_build.zig`, the trace-events freeze-map boundary packet, and the shared runtime-loader release-discipline evidence.
+- `validate-phase9.py` keeps the shared Phase 9 runtime bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase9_build.zig`, the trace-events freeze-map boundary packet, and the shared runtime-loader release-discipline evidence, and `python3 scripts/zigux/validate-phase9.py --self-test` now proves that the shared validator still catches both Makefile-hook drift and the trace-events surveyed-head pin.
 - the same Phase 9 flow also keeps the roadmap's shipped selftest-hook markers and bounded lifecycle-parity posture explicit across the runtime starter surveys, manifests, and shared `zigux/tests/phase9_build.zig` replay instead of implying a ready loadable-module path.
 - `make -C zigux phase9-validate` is the fail-fast bundle check for the current runtime atomic64, bitmap, trace-events, kretprobe, and shared loader-gap packet.
 - `make -C zigux phase9` keeps that same runtime lane reviewable through one shared bundle instead of ad hoc slice-local checks.
