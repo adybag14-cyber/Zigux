@@ -58,8 +58,10 @@ tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-
 doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 phase7_build = (ROOT / "zigux" / "tests" / "phase7_build.zig").read_text(encoding="utf-8")
 phase7_string_helpers_survey = (ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig").read_text(encoding="utf-8")
+phase7_cmdline_survey = (ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig").read_text(encoding="utf-8")
 phase7_argv_split_survey = (ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig").read_text(encoding="utf-8")
 phase7_rbtree_survey = (ROOT / "zigux" / "tests" / "phase7_rbtree_survey.zig").read_text(encoding="utf-8")
+phase7_cmdline_doc = (ROOT / "Documentation" / "zigux" / "phase7-cmdline-slice.md").read_text(encoding="utf-8")
 phase7_rbtree_doc = (ROOT / "Documentation" / "zigux" / "phase7-rbtree-slice.md").read_text(encoding="utf-8")
 
 required_make_markers = [
@@ -191,8 +193,26 @@ required_phase7_string_helpers_survey_markers = [
     "no `samples/zigux/*string*` Phase 5 reference sample",
 ]
 
+required_phase7_cmdline_survey_markers = [
+    "zigux/tests/phase7_cmdline_survey.zig",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`",
+    "cannot import fixtures outside the helper module path",
+]
+
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
+]
+
+required_phase7_cmdline_doc_markers = [
+    "PHASE7_STATUS=parked",
+    "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/phase7_cmdline_survey.zig",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "the full KUnit malformed-token classification corpus now also runs through the shared `zigux/tests/phase7_cmdline.zig` gate instead of only the helper-local `zig test lib/cmdline.zig` path",
+    "KUnit-derived pointer-advance semantics for malformed-prefix, leading-integer, and trailing-integer `get_option()` inputs",
+    "rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`",
+    "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
 ]
 
 required_phase7_rbtree_survey_markers = [
@@ -272,8 +292,10 @@ checks = [
     ("Documentation/zigux/README.md", doc_readme, required_doc_readme_markers),
     ("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers),
     ("zigux/tests/phase7_string_helpers_survey.zig", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),
+    ("zigux/tests/phase7_cmdline_survey.zig", phase7_cmdline_survey, required_phase7_cmdline_survey_markers),
     ("zigux/tests/phase7_argv_split_survey.zig", phase7_argv_split_survey, required_phase7_argv_split_survey_markers),
     ("zigux/tests/phase7_rbtree_survey.zig", phase7_rbtree_survey, required_phase7_rbtree_survey_markers),
+    ("Documentation/zigux/phase7-cmdline-slice.md", phase7_cmdline_doc, required_phase7_cmdline_doc_markers),
     ("Documentation/zigux/phase7-rbtree-slice.md", phase7_rbtree_doc, required_phase7_rbtree_doc_markers),
 ]
 
