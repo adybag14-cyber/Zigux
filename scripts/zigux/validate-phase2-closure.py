@@ -198,8 +198,8 @@ def validate_kconfig_bridge_manifest_shape(cases_path: Path) -> list[str]:
                 issues.append(f'kconfig_bridge:manifest:{name}:missing_allconfig')
 
     confdata_cases = data.get('confdata_cases')
-    if isinstance(confdata_cases, list) and len(confdata_cases) != 12:
-        issues.append(f'kconfig_bridge:manifest:confdata_cases:expected_len:12:actual:{len(confdata_cases)}')
+    if isinstance(confdata_cases, list) and len(confdata_cases) != 14:
+        issues.append(f'kconfig_bridge:manifest:confdata_cases:expected_len:14:actual:{len(confdata_cases)}')
 
     return issues
 
@@ -301,7 +301,7 @@ required_closure_markers = [
     'confdata bridge rejects empty config path arguments',
     'confdata bridge escapes low control bytes in emitted json',
     'PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=16',
-    'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=12',
+    'PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=14',
     'PHASE2_KCONFIG_BRIDGE_ALLCONFIG_CASES=zigux/tests/fixtures/kconfig_bridge/allnoconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/randconfig_expected.json',
     'PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json',
     'PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json',
