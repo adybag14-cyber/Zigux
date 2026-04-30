@@ -186,6 +186,8 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage',
     'find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`',
     'PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range',
+    'find_bit alias unit-test anchor: `tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"`',
+    'PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
     'PHASE1_RBTREE_REVIEW=rbtree parity covers ordered traversal, replaceNode, eraseInit, postorder traversal, and detached-node state',
     'rbtree direct unit-test anchor: `tools/lib/rbtree.zig:test "rbtree findAdd keeps the first duplicate and inserts new keys"`',
@@ -396,6 +398,10 @@ if find_bit_review.get('boundary_unit_test_anchor') != 'tools/lib/find_bit.zig:t
     missing_markers.append('manifest:find_bit.boundary_unit_test_anchor')
 if find_bit_review.get('boundary_unit_test_contract') != 'Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.':
     missing_markers.append('manifest:find_bit.boundary_unit_test_contract')
+if find_bit_review.get('alias_unit_test_anchor') != 'tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"':
+    missing_markers.append('manifest:find_bit.alias_unit_test_anchor')
+if find_bit_review.get('alias_unit_test_contract') != 'Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.':
+    missing_markers.append('manifest:find_bit.alias_unit_test_contract')
 if rbtree_review.get('fixture') != 'zigux/tests/fixtures/phase1_helpers.json':
     missing_markers.append('manifest:rbtree.fixture=zigux/tests/fixtures/phase1_helpers.json')
 if rbtree_review.get('evidence_keys') != [
