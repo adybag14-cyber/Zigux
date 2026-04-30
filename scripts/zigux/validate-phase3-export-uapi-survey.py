@@ -160,10 +160,26 @@ def _current_head_commit(root: Path) -> str | None:
     return head if HEX40.fullmatch(head) else None
 
 
+def _has_local_commit(root: Path, commit: str) -> bool:
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return False
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"{commit}^{{commit}}"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
 def _packet_drift_since_commit(root: Path, commit: str) -> list[str]:
     git_dir = root / ".git"
     if not git_dir.exists():
         return []
+    if not _has_local_commit(root, commit):
+        return [f"surveyed_commit_unavailable_locally:{commit}"]
     result = subprocess.run(
         ["git", "diff", "--name-only", commit, "HEAD", "--", *SURVEYED_PACKET_PATHS],
         cwd=root,
@@ -336,7 +352,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
-        survey_path.write_text(
+        survey_path.writeText(
             "\n".join(
                 (
                     *REQUIRED_SURVEY_MARKERS,
@@ -356,6 +372,28 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert "invalid_surveyed_commit:not-a-sha" in issues
+
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    f"PHASE3_SURVEYED_COMMIT={head}",
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        missing_commit = "fedcba9876543210fedcba9876543210fedcba98"
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                f"PHASE3_SURVEYED_COMMIT={head}",
+                f"PHASE3_SURVEYED_COMMIT={missing_commit}",
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"surveyed_commit_unavailable_locally:{missing_commit}" in issues
 
         survey_path.write_text(
             "\n".join(
