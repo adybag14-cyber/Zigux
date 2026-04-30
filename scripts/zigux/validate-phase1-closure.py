@@ -174,7 +174,7 @@ def run_self_test() -> int:
         original_bench_checker = bench_checker_path.read_text(encoding='utf-8')
         bench_checker_path.write_text(
             original_bench_checker.replace(
-                "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=9')",
+                "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')",
                 "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=')",
                 1,
             ),
@@ -183,7 +183,22 @@ def run_self_test() -> int:
         expect_missing_marker(
             'bench_checker_self_test_case_count',
             tmp_root,
-            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=9')",
+            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')",
+        )
+        bench_checker_path.write_text(original_bench_checker, encoding='utf-8')
+
+        bench_checker_path.write_text(
+            original_bench_checker.replace(
+                "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
+                "print('DUPLICATE_PHASE1_BENCH_KEYS_BLOCKED')",
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'bench_checker_duplicate_guard',
+            tmp_root,
+            "bench_checker:print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
         )
         bench_checker_path.write_text(original_bench_checker, encoding='utf-8')
 
@@ -209,7 +224,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10')
     return 0
 
 
@@ -341,7 +356,8 @@ required_ledger_markers = [
 required_bench_checker_markers = [
     "parser.add_argument('--self-test'",
     "print('PHASE1_BENCH_SELF_TEST=pass')",
-    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=9')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')",
+    "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
 ]
 
 missing_markers = []
