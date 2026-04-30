@@ -156,6 +156,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
             try std.testing.expectEqualStrings("shared_build_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-sample-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-module-tests") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-loader-tests") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-survey-tests") != null);
         }
         if (std.mem.eql(u8, check.id, "delivery-ownership-packet")) {
@@ -374,6 +375,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     for (required_survey_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_doc, marker) != null);
     }
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "phase9-runtime-kretprobe-loader-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
 
