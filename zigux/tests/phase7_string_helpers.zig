@@ -194,6 +194,25 @@ test "phase 7 kstrdupQuotable reuses the bounded escape subset for log-safe dupl
     try std.testing.expectEqual(@as(?[:0]u8, null), try string_helpers.kstrdupQuotable(std.testing.allocator, null));
 }
 
+test "phase 7 kstrdupQuotableCmdlineBuffer collapses argv-style NULs before escaping" {
+    const quoted = (try string_helpers.kstrdupQuotableCmdlineBuffer(std.testing.allocator, "alpha\x00beta\x00\x00")).?;
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("alpha beta", quoted);
+
+    const escaped = (try string_helpers.kstrdupQuotableCmdlineBuffer(std.testing.allocator, "A\n\x00B\t\x00\x00")).?;
+    defer std.testing.allocator.free(escaped);
+    try std.testing.expectEqualStrings("A\\x0a B\\x09", escaped);
+
+    const empty = (try string_helpers.kstrdupQuotableCmdlineBuffer(std.testing.allocator, "\x00\x00")).?;
+    defer std.testing.allocator.free(empty);
+    try std.testing.expectEqualStrings("", empty);
+
+    try std.testing.expectEqual(
+        @as(?[:0]u8, null),
+        try string_helpers.kstrdupQuotableCmdlineBuffer(std.testing.allocator, null),
+    );
+}
+
 test "phase 7 kstrdupAndReplace keeps ownership and first-NUL replacement boundaries explicit" {
     const replaced = (try string_helpers.kstrdupAndReplace(std.testing.allocator, "a-b-a\x00tail", '-', '_')).?;
     defer std.testing.allocator.free(replaced);
