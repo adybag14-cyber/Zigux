@@ -206,6 +206,26 @@ BSEARCH_PARITY_SCRIPT_MARKERS = [
     'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
 
+BSEARCH_C_PARITY_RUNNER_MARKERS = [
+    'const descending_values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };',
+    'try writeIndexCase(writer, "descending-hit", 34, bsearch.searchIndex(u32, u32, &@as(u32, 34), descending_values[0..], compareDescendingU32));',
+    'try writeDuplicateCase(writer, "duplicate-hit-middle", 7, bsearch.searchIndex(u32, u32, &@as(u32, 7), duplicate_in_middle[0..], compareU32));',
+    'try writeIndexCase(writer, "raw-descending-hit", 34, bsearch.bsearchIndex(&@as(u32, 34), @ptrCast(descending_values[0..].ptr), descending_values.len, @sizeOf(u32), compareOpaqueDescendingU32));',
+    'try writeRuntimeTypedCases(writer, values[0..], descending_values[0..]);',
+    'try writeRuntimeRawCases(writer, values[0..], descending_values[0..]);',
+    'try writer.print("raw-mutable-hit\\t21\\t{}\\n", .{raw_mutable_values[3]});',
+]
+
+BSEARCH_C_HARNESS_MARKERS = [
+    "static int compare_descending_u32(const void *key, const void *elt)",
+    'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
+    'print_duplicate_case("duplicate-hit-middle", key, inline_bsearch(&key, duplicate_in_middle, sizeof(duplicate_in_middle) / sizeof(duplicate_in_middle[0]), sizeof(duplicate_in_middle[0]), compare_u32));',
+    'print_index_case("raw-descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
+    "print_runtime_typed_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
+    "print_runtime_raw_cases(values, sizeof(values) / sizeof(values[0]), descending_values, sizeof(descending_values) / sizeof(descending_values[0]));",
+    'printf("raw-mutable-hit\\t21\\t%u\\n", raw_mutable_values[3]);',
+]
+
 BSEARCH_SLICE_MARKERS = [
     "`PHASE6_SLICE=bsearch-leaf-helper`",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
@@ -418,6 +438,8 @@ MARKER_FILE_CONTENTS = {
     "zigux/tests/phase6_bsearch.zig": BSEARCH_TEST_MARKERS,
     "zigux/tests/phase6_bsearch_perf.zig": BSEARCH_PERF_MARKERS,
     "scripts/zigux/check-phase6-bsearch-c-parity.py": BSEARCH_PARITY_SCRIPT_MARKERS,
+    "zigux/tests/phase6_bsearch_c_parity.zig": BSEARCH_C_PARITY_RUNNER_MARKERS,
+    "zigux/tests/fixtures/phase6_bsearch_c_harness.c": BSEARCH_C_HARNESS_MARKERS,
     "Documentation/zigux/phase6-bsearch-slice.md": BSEARCH_SLICE_MARKERS,
     "zigux/tests/phase6_checksum.zig": CHECKSUM_TEST_MARKERS,
     "zigux/tests/phase6_checksum_perf.zig": CHECKSUM_PERF_MARKERS,
@@ -470,6 +492,8 @@ def total_marker_count() -> int:
         + len(BSEARCH_TEST_MARKERS)
         + len(BSEARCH_PERF_MARKERS)
         + len(BSEARCH_PARITY_SCRIPT_MARKERS)
+        + len(BSEARCH_C_PARITY_RUNNER_MARKERS)
+        + len(BSEARCH_C_HARNESS_MARKERS)
         + len(BSEARCH_SLICE_MARKERS)
         + len(CHECKSUM_TEST_MARKERS)
         + len(CHECKSUM_PERF_MARKERS)
@@ -538,6 +562,8 @@ def validate_phase6(root: Path) -> dict[str, object]:
         ("phase6_bsearch", "zigux/tests/phase6_bsearch.zig", BSEARCH_TEST_MARKERS),
         ("phase6_bsearch_perf", "zigux/tests/phase6_bsearch_perf.zig", BSEARCH_PERF_MARKERS),
         ("phase6_bsearch_c_parity_script", "scripts/zigux/check-phase6-bsearch-c-parity.py", BSEARCH_PARITY_SCRIPT_MARKERS),
+        ("phase6_bsearch_c_parity_runner", "zigux/tests/phase6_bsearch_c_parity.zig", BSEARCH_C_PARITY_RUNNER_MARKERS),
+        ("phase6_bsearch_c_harness", "zigux/tests/fixtures/phase6_bsearch_c_harness.c", BSEARCH_C_HARNESS_MARKERS),
         ("phase6_bsearch_slice", "Documentation/zigux/phase6-bsearch-slice.md", BSEARCH_SLICE_MARKERS),
         ("phase6_checksum", "zigux/tests/phase6_checksum.zig", CHECKSUM_TEST_MARKERS),
         ("phase6_checksum_perf", "zigux/tests/phase6_checksum_perf.zig", CHECKSUM_PERF_MARKERS),
