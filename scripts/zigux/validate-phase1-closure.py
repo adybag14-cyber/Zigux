@@ -132,6 +132,19 @@ def run_self_test() -> int:
         workflow_path.write_text(original_workflow, encoding='utf-8')
 
         mutated_workflow = original_workflow.replace(
+            'python3 scripts/zigux/validate-phase1-closure.py --self-test',
+            '',
+            1,
+        )
+        workflow_path.write_text(mutated_workflow, encoding='utf-8')
+        expect_missing_marker(
+            'workflow_closure_self_test_hook',
+            tmp_root,
+            'workflow:python3 scripts/zigux/validate-phase1-closure.py --self-test',
+        )
+        workflow_path.write_text(original_workflow, encoding='utf-8')
+
+        mutated_workflow = original_workflow.replace(
             'python3 scripts/zigux/check-phase1-parity.py --self-test',
             '',
             1,
@@ -193,7 +206,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9')
     return 0
 
 
@@ -287,6 +300,7 @@ required_closure_markers = [
     'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
     'PHASE1_BENCH_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-bench.py --self-test',
     'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
+    'PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test',
     'PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, and same-word start-mask checksums so helper-local scan regressions cannot hide behind a generic positive checksum',
     'PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM',
     'PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS',
@@ -301,6 +315,7 @@ required_workflow_markers = [
     'python3 scripts/zigux/install-zig.py --dest .zig-toolchain',
     'run: zig version',
     'python3 scripts/zigux/validate-phase1-closure.py',
+    'python3 scripts/zigux/validate-phase1-closure.py --self-test',
     'python3 scripts/zigux/check-phase1-parity.py --self-test',
     'python3 scripts/zigux/check-phase1-bench.py',
     'python3 scripts/zigux/check-phase1-bench.py --self-test',
