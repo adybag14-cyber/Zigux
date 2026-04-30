@@ -38,6 +38,7 @@ def main() -> int:
         missing = tmp_dir / 'missing.txt'
         expected_json = tmp_dir / 'expected.json'
         actual_json = tmp_dir / 'actual.json'
+        actual_json_mismatch = tmp_dir / 'actual-mismatch.json'
         invalid_expected_json = tmp_dir / 'expected-invalid.json'
         invalid_actual_json = tmp_dir / 'actual-invalid.json'
         blob_a = tmp_dir / 'blob-a.bin'
@@ -84,8 +85,20 @@ def main() -> int:
 
         expected_json.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         actual_json.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
+        actual_json_mismatch.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding='utf-8', newline='\n')
         invalid_expected_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
         invalid_actual_json.write_text('{"alpha": 1,\n', encoding='utf-8', newline='\n')
+
+        run_contract_case(
+            ['--mode', 'json', str(expected_json), str(actual_json_mismatch)],
+            1,
+            [
+                'ARTIFACT_DIFF=fail',
+                'MODE=json',
+                f'EXPECTED={expected_json}',
+                f'ACTUAL={actual_json_mismatch}',
+            ],
+        )
 
         run_contract_case(
             ['--mode', 'json', str(invalid_expected_json), str(actual_json)],
