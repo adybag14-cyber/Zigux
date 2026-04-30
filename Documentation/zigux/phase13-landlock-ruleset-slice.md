@@ -14,6 +14,6 @@ The current helper lab stays intentionally narrow:
 - adds one bounded `create_rule()` materialization planner so copied layer stacks, optional merged-layer append behavior, `RB_CLEAR_NODE()` initialization, and key-type-owned object-reference intent are reviewable as data without claiming allocation or live ownership transfer
 - adds one bounded `free_rule()` release planner so the unconditional `might_sleep()` boundary, null-rule early return, inode-only `landlock_put_object()` intent, and present-rule `kfree()` intent are reviewable as data without mutating live refcounts or deferred work state
 
-This slice does not claim rb-tree mutation, object references, rule insertion, hierarchy allocation, merge or inherit behavior, workqueue-backed deferred frees, or any live Landlock hook integration.
+This slice does not claim live rule insertion, rb-tree mutation, object references, hierarchy allocation, merge or inherit behavior, workqueue-backed deferred frees, or any live Landlock hook integration.
 
 The next honest bounded step in this same lane is blocked until there is a justified way to study `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other live ruleset state without pretending this helper lab already owns real Landlock storage or policy enforcement.
