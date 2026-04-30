@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 from pathlib import Path
 import sys
 
@@ -86,6 +87,56 @@ if missing_workflow_markers:
     for marker in missing_workflow_markers:
         print(marker)
     print('MISSING_WORKFLOW_MARKERS_END')
+    sys.exit(1)
+
+toolchain_policy_command = 'python3 scripts/zigux/check-zig-toolchain.py'
+toolchain_policy_step = 'Check Zig toolchain policy'
+workflow_toolchain_policy_command_count = workflow.count(toolchain_policy_command)
+workflow_toolchain_policy_step_count = workflow.count(toolchain_policy_step)
+if workflow_toolchain_policy_command_count != 2 or workflow_toolchain_policy_step_count != 2:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_WORKFLOW_TOOLCHAIN_POLICY_WIRING_START')
+    print(f'workflow:toolchain_policy_command_count={workflow_toolchain_policy_command_count},expected=2')
+    print(f'workflow:toolchain_policy_step_count={workflow_toolchain_policy_step_count},expected=2')
+    print('MISSING_WORKFLOW_TOOLCHAIN_POLICY_WIRING_END')
+    sys.exit(1)
+
+toolchain_policy = json.loads((ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json').read_text(encoding='utf-8'))
+required_policy_values = {
+    'phase': 'Phase 2',
+    'policy_note': 'Shared Zigux bootstrap and Phase 2 toolchain pin.',
+}
+policy_issues = []
+if not isinstance(toolchain_policy, dict):
+    policy_issues.append('toolchain_policy:expected_object')
+else:
+    for field_name, expected_value in required_policy_values.items():
+        if toolchain_policy.get(field_name) != expected_value:
+            policy_issues.append(
+                f"toolchain_policy:{field_name}={toolchain_policy.get(field_name)!r},expected={expected_value!r}"
+            )
+
+    for field_name in ('channel', 'minimum_version'):
+        value = toolchain_policy.get(field_name)
+        if not isinstance(value, str) or not value:
+            policy_issues.append(f'toolchain_policy:{field_name}:expected_non_empty_string')
+
+    if (
+        isinstance(toolchain_policy.get('channel'), str)
+        and isinstance(toolchain_policy.get('minimum_version'), str)
+        and toolchain_policy['channel'] != toolchain_policy['minimum_version']
+    ):
+        policy_issues.append(
+            'toolchain_policy:channel_minimum_version_mismatch='
+            f"{toolchain_policy['channel']!r}!={toolchain_policy['minimum_version']!r}"
+        )
+
+if policy_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_TOOLCHAIN_POLICY_MARKERS_START')
+    for issue in policy_issues:
+        print(issue)
+    print('MISSING_TOOLCHAIN_POLICY_MARKERS_END')
     sys.exit(1)
 
 toolchain_checker = (ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py').read_text(encoding='utf-8')

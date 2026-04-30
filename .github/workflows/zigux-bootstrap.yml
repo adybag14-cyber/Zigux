@@ -298,6 +298,9 @@ jobs:
       - name: Show Zig version
         run: zig version
 
+      - name: Check Zig toolchain policy
+        run: python3 scripts/zigux/check-zig-toolchain.py
+
       - name: Self-test bounded Phase 2 cross-target checker
         run: python3 scripts/zigux/check-phase2-cross.py --self-test
 
