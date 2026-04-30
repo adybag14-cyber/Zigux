@@ -6,7 +6,8 @@ The Phase 13 roadmap names `fs/libfs.c`, `lib/devres.c`, and the Landlock slices
 
 Current repo state on `master`:
 
-- reviewed against live `master` `6569529f827ae3f4c13d98cfddc0d7183350c9fa`
+- reviewed against live `master` `1c2e7a4d0e4d39a89351a6a9222dd7efff613836`
+- `zigux/tests/phase13_notifier_list_reviewability.zig` still passes unchanged on that head, so the current notifier/list posture remains reviewability-only rather than a new generic notifier ABI or helper claim
 - `zigux/bindings/abi.zig` already exposes `ListHeadRef` and `HListHeadRef`, so list-shaped interop has a reusable ABI foothold
 - `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` already summarize bounded `list_head` and `hlist_head` traversal without touching live mutation
 - `zigux/tests/build.zig` already replays those list helpers under the Phase 3 helper bundle
