@@ -66,7 +66,7 @@ The current tests check:
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
-- a replayable perf-sanity harness reports representative dump cost per call and per byte for plain and ASCII formatter paths
+- a replayable perf-sanity harness reports representative dump cost per call and per byte for plain and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table
 - the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path and rejects regressions above `max_slowdown_pct = 175`
 
 This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity gap appears in the live repo.
