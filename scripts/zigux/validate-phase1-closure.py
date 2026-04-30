@@ -95,7 +95,9 @@ required_closure_markers = [
     'string prefix-length unit-test anchor: `tools/lib/string.zig:test "strHasPrefix returns the matched prefix length with C-string semantics"`',
     'PHASE1_STRING_PREFIX_LENGTH_UNIT_REVIEW=string strHasPrefix and str_has_prefix return the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes',
     'string suffix unit-test anchor: `tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"`',
-    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith and str_ends_with keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
+    'PHASE1_STRING_SUFFIX_UNIT_REVIEW=string strEndsWith, str_ends_with, and strends keep kernel-style suffix checks aligned for exact, empty-suffix, shorter-input, and case-sensitive comparisons',
+    'string memparse unit-test anchor: `tools/lib/string.zig:test "memparse forwards the header-level string helper surface"`',
+    'PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse forwards decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract',
     'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
     'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
     'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
@@ -346,8 +348,12 @@ if string_review.get('prefix_length_unit_test_contract') != 'Direct Zig unit cov
     missing_markers.append('manifest:string.prefix_length_unit_test_contract')
 if string_review.get('suffix_unit_test_anchor') != 'tools/lib/string.zig:test "str_ends_with matches kernel suffix semantics"':
     missing_markers.append('manifest:string.suffix_unit_test_anchor')
-if string_review.get('suffix_unit_test_contract') != 'Direct Zig unit coverage keeps strEndsWith and str_ends_with aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.':
+if string_review.get('suffix_unit_test_contract') != 'Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.':
     missing_markers.append('manifest:string.suffix_unit_test_contract')
+if string_review.get('memparse_unit_test_anchor') != 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"':
+    missing_markers.append('manifest:string.memparse_unit_test_anchor')
+if string_review.get('memparse_unit_test_contract') != 'Direct Zig unit coverage keeps memparse aligned by forwarding decimal, hexadecimal, suffix-bearing, and invalid inputs through the shared command-line parser without changing the parsed value or rest pointer contract.':
+    missing_markers.append('manifest:string.memparse_unit_test_contract')
 
 exact_checksums = bench_expectations.get('exact_checksums', {})
 loose_checksums = bench_expectations.get('checksums', [])
