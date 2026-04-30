@@ -72,6 +72,28 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(phase7_build);
 
+    const expected_sample_files = [_][]const u8{
+        "samples/zigux/bytestream_fifo.zig",
+        "samples/zigux/kobject_example.zig",
+        "samples/zigux/kretprobe_example.zig",
+        "samples/zigux/trace_events_sample.zig",
+        "samples/zigux/runtime_atomic64.zig",
+        "samples/zigux/runtime_atomic64_loader.zig",
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "samples/zigux/runtime_kretprobe.zig",
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        "samples/zigux/runtime_trace_events.zig",
+    };
+    for (expected_sample_files) |path| {
+        try std.Io.Dir.cwd().access(io_instance.io(), path, .{});
+    }
+
+    std.Io.Dir.cwd().access(io_instance.io(), "samples/zigux/string_helpers_sample.zig", .{}) catch |err| switch (err) {
+        error.FileNotFound => {},
+        else => return err,
+    };
+
     try expectContains(roadmap, "## Phase 5: Samples and Reference Patterns");
     try expectContains(roadmap, "samples/kfifo/bytestream-example.c");
     try expectContains(roadmap, "samples/kobject/kobject-example.c");
