@@ -122,15 +122,16 @@ The current tests check:
 
 ## Latest verification snapshot
 
-- provenance and anchor alignment rechecked against inspected `master` head `67b920ba9ed638ea64a868898f63b58c796a4a94`
-- last focused Zig replay still recorded against inspected `master` head `47c633193a74d67e3955c57a11757de35b518ef2`
+- provenance and anchor alignment rechecked against inspected `master` head `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
+- focused Zig replay rerun against inspected `master` head `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `4/4` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-  - `Build Summary: 3/3 steps succeeded; 3/3 tests passed`
+  - `Build Summary: 3/3 steps succeeded; 4/4 tests passed`
 - `python3 scripts/zigux/validate-phase8.py`
-  - `PHASE8_VALIDATION=fail` on current `master` because the shared Phase 8 validator still reports the lane-external missing kallsyms helper marker `test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded names"` in `tools/lib/symbol/kallsyms.zig`
-- broader shared `zigux/tests/phase8_build.zig` replay was not rerun in this lane because the bounded step stayed inside the libbpf segment packet; the last recorded shared-build pass remains the earlier `22/22` step, `70/70` test snapshot from inspected head `aa3ce7d42fc084d834264b2f0980d03ddb7b3154`
+  - `PHASE8_VALIDATION=pass`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+  - `Build Summary: 22/22 steps succeeded; 71/71 tests passed`
 
 ## Non-goals
 
