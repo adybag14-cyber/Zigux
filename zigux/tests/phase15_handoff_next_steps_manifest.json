@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L12",
   "phase": "Phase 15",
-  "surveyed_commit": "271ca9aff7d84f07dee6aa93ac6bf9daf49a5096",
+  "surveyed_commit": "7095a02f382e919b535b5e5c3fa8985ded58268e",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -20,17 +20,10 @@
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "docs_index_handoff_pointer_present": true,
-    "phase15_replay_green_on_current_master": false,
+    "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
-    {
-      "id": "phase15-parity-scorecard-checklist-alignment",
-      "status": "ready_next",
-      "kind": "replay_gate",
-      "zigux_destination": "zigux/tests/phase15_parity_scorecard.zig",
-      "why_now": "The current shared Phase 15 replay is red on current master because the parity-scorecard checklist assertion still expects an older review-checklist sentence that no longer matches the landed governance wording."
-    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -40,7 +33,7 @@
     }
   ],
   "pending_next_steps": [
-    "Repair the parity-scorecard checklist alignment in its own lane, rerun the dedicated readiness guard plus the shared Phase 15 build, and only then treat the broader governance replay as green again.",
-    "If the shared replay is green again and no deep-core evidence changed, leave the tranche in maintenance mode until a named reopen trigger fires."
+    "Leave the tranche in maintenance mode unless the shared Phase 15 replay drifts again, a named reopen trigger fires, or the deep-core blocker posture changes enough to justify a narrower follow-up.",
+    "If one of those conditions becomes true, rerun the focused handoff guard plus the shared Phase 15 build before editing neighboring governance packets."
   ]
 }
