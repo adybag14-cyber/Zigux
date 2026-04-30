@@ -49,6 +49,14 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
     );
     defer std.testing.allocator.free(phase8_build);
 
+    const review_checklist = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/review-checklist.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     try expectContains(roadmap, "## Phase 8: Userspace-Adjacent Tooling Expansion");
     try expectContains(roadmap, "tools/lib/subcmd/exec-cmd.c");
     try expectContains(roadmap, "tools/lib/bpf/libbpf.c");
@@ -71,6 +79,12 @@ test "phase 8 bridge boundary survey stays wired into the shared packet" {
 
     try expectContains(phase8_build, "phase8_bridge_boundary_survey.zig");
     try expectContains(phase8_build, "phase8-bridge-boundary-survey-tests");
+    try expectContains(review_checklist, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
+    try expectContains(review_checklist, "zigux/tests/phase8_bridge_boundary_survey.zig");
+    try expectContains(review_checklist, "file_path_handle_bridge");
+    try expectContains(review_checklist, "`execvp()`");
+    try expectContains(review_checklist, "`bpf_token_create()`");
+    try expectContains(review_checklist, "perf_buffer__poll(timeout_ms)");
 }
 
 test "phase 8 bridge boundary survey still matches the live helper surfaces" {
