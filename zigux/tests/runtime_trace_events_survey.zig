@@ -433,6 +433,9 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
 
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "runtime task ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "zigux/tests/runtime_trace_events_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "zigux/tests/runtime_trace_events_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "RuntimeTraceEventsSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "explicit main-thread and function-thread event totals") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "`init_runs`") != null);
