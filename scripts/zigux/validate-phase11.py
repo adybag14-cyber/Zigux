@@ -69,13 +69,15 @@ FILES = [
 ]
 
 MAKE_MARKERS = [
-    "PHONY += phase11-validate phase11-test phase11",
+    "PHONY += phase11-validate phase11-test phase11-hvc-survey phase11",
     "phase11-validate:",
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py",
     "$(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all",
-    "phase11: phase11-validate phase11-test",
+    "phase11-hvc-survey:",
+    "$(ZIG) test zigux/tests/phase11_hvc_console_survey.zig",
+    "phase11: phase11-validate phase11-test phase11-hvc-survey",
 ]
 WORKFLOW_MARKERS = [
     "Self-test Phase 11 simple-driver validator",
@@ -84,6 +86,8 @@ WORKFLOW_MARKERS = [
     "make -C zigux phase11-validate",
     "Run Phase 11 watchdog and console tests",
     "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+    "Run dedicated Phase 11 hvc survey replay",
+    "make -C zigux phase11-hvc-survey",
 ]
 README_MARKERS = [
     "check-phase11-build-inventory.py",
@@ -130,8 +134,8 @@ FORBIDDEN_BUILD_MARKERS = [
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 
 MANIFEST_SPECS = {
-    "phase11_gpio_wdt_manifest.json": ("P11-L03", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
-    "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
+    "phase11_gpio_wdt_manifest.json": ("P11-L01", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
+    "phase11_bcm2835_wdt_manifest.json": ("P11-L08", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 13, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
@@ -768,7 +772,7 @@ for marker in [
     if marker not in bcm2835_survey_doc:
         missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
 for marker in [
-    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff ownership reviewability",
+    "adds a tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability",
     "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
     "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.",
 ]:
