@@ -149,6 +149,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
     selected_driver_page: u32 = 0,
     queues: [supported_queues]QueueRegisterState = .{ .{}, .{} },
     config_window: [supported_config_window_bytes]u8 = [_]u8{0} ** supported_config_window_bytes,
+    pending_config_write: ?ConfigWritePlanSummary = null,
     selected_queue: u32 = 0,
     legacy_guest_page_size: u32 = 0,
     status: u8 = 0,
@@ -394,11 +395,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
             previous_value |= @as(u32, self.config_window[config_offset + index]) << @intCast(index * 8);
         }
 
-        for (0..width_bytes) |index| {
-            self.config_window[config_offset + index] = @intCast((value >> @intCast(index * 8)) & 0xff);
-        }
-
-        return .{
+        const plan: ConfigWritePlanSummary = .{
             .anchor = descriptor().anchor,
             .offset = offset,
             .width = width,
@@ -406,6 +403,16 @@ pub const VirtioMmioRegisterWindowLab = struct {
             .previous_value = previous_value,
             .planned_value = value,
         };
+        self.pending_config_write = plan;
+        return plan;
+    }
+
+    pub fn pendingConfigWritePlan(self: *const Self) ?ConfigWritePlanSummary {
+        return self.pending_config_write;
+    }
+
+    pub fn discardPendingConfigWritePlan(self: *Self) void {
+        self.pending_config_write = null;
     }
 
     pub fn setStatus(self: *Self, status: u8) !StatusSummary {
@@ -419,6 +426,7 @@ pub const VirtioMmioRegisterWindowLab = struct {
         self.selected_queue = 0;
         self.legacy_guest_page_size = 0;
         self.notification_count = 0;
+        self.pending_config_write = null;
         for (&self.queues) |*queue_state| {
             queue_state.size = 0;
             queue_state.ready = false;
