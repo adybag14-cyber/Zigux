@@ -129,6 +129,79 @@ test "phase11 hvc console keeps tty-registration handoff and khvcd boundaries re
     }));
 }
 
+test "phase11 hvc console keeps final-close teardown sequencing reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(11);
+    _ = console.instantiate(0xb0);
+
+    const active_teardown = try console.summarizeCloseTeardown(.{
+        .close = .{
+            .port_initialized = true,
+            .open_count_before_close = 1,
+        },
+        .hupcl = true,
+        .dtr_rts_present = true,
+        .notifier_del_present = true,
+    });
+    try std.testing.expectEqual(@as(usize, 11), active_teardown.slot_index);
+    try std.testing.expectEqual(@as(u32, 0xb0), active_teardown.vtermno);
+    try std.testing.expect(active_teardown.adapter_present);
+    try std.testing.expect(active_teardown.final_close);
+    try std.testing.expect(!active_teardown.close_skipped);
+    try std.testing.expect(active_teardown.tty_detached);
+    try std.testing.expect(active_teardown.dtr_rts_drop_requested);
+    try std.testing.expect(active_teardown.notifier_del_pending);
+    try std.testing.expect(active_teardown.cancel_resize_pending);
+    try std.testing.expect(active_teardown.wait_until_sent_required);
+    try std.testing.expectEqual(@as(usize, 100), active_teardown.close_wait_hz_divisor);
+    try std.testing.expect(active_teardown.clears_port_initialized);
+    try std.testing.expect(active_teardown.keeps_console_binding);
+
+    const uninitialized_teardown = try console.summarizeCloseTeardown(.{
+        .close = .{
+            .port_initialized = false,
+            .open_count_before_close = 1,
+        },
+        .hupcl = true,
+        .dtr_rts_present = true,
+        .notifier_del_present = true,
+    });
+    try std.testing.expect(uninitialized_teardown.final_close);
+    try std.testing.expect(!uninitialized_teardown.close_skipped);
+    try std.testing.expect(uninitialized_teardown.tty_detached);
+    try std.testing.expect(!uninitialized_teardown.dtr_rts_drop_requested);
+    try std.testing.expect(!uninitialized_teardown.notifier_del_pending);
+    try std.testing.expect(!uninitialized_teardown.cancel_resize_pending);
+    try std.testing.expect(!uninitialized_teardown.wait_until_sent_required);
+    try std.testing.expect(!uninitialized_teardown.clears_port_initialized);
+    try std.testing.expect(uninitialized_teardown.keeps_console_binding);
+
+    const hung_up_teardown = try console.summarizeCloseTeardown(.{
+        .close = .{
+            .hung_up = true,
+            .port_initialized = true,
+            .open_count_before_close = 1,
+        },
+        .hupcl = true,
+        .dtr_rts_present = true,
+        .notifier_del_present = true,
+    });
+    try std.testing.expect(!hung_up_teardown.final_close);
+    try std.testing.expect(hung_up_teardown.close_skipped);
+    try std.testing.expect(!hung_up_teardown.tty_detached);
+    try std.testing.expect(!hung_up_teardown.dtr_rts_drop_requested);
+    try std.testing.expect(!hung_up_teardown.notifier_del_pending);
+    try std.testing.expect(!hung_up_teardown.cancel_resize_pending);
+    try std.testing.expect(!hung_up_teardown.wait_until_sent_required);
+    try std.testing.expect(!hung_up_teardown.clears_port_initialized);
+    try std.testing.expect(hung_up_teardown.keeps_console_binding);
+
+    try std.testing.expectError(error.InvalidOpenCount, console.summarizeCloseTeardown(.{
+        .close = .{
+            .open_count_before_close = 0,
+        },
+    }));
+}
+
 test "phase11 hvc console keeps hvc_hangup disconnect boundaries reviewable" {
     var console = try hvc_console.HvcConsoleLab.init(9);
     _ = console.instantiate(0x90);
