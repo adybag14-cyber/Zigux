@@ -197,6 +197,26 @@ pub const TeardownLifecycleSummary = struct {
     restart_enables_stopped_watchdog: bool,
 };
 
+pub const RemoveRequest = struct {
+    watchdog_running_before_remove: bool = true,
+    remove_interrupt_pending: bool = true,
+};
+
+pub const RemoveSummary = struct {
+    anchor: []const u8,
+    reset_control_available: bool,
+    debugfs_clear_requested: bool,
+    unregister_device_requested: bool,
+    remove_path_running_before_remove: bool,
+    remove_path_running_after_remove: bool,
+    remove_path_hardware_running_after_remove: bool,
+    remove_clears_enable_bit: bool,
+    remove_clears_interrupt_status: bool,
+    remove_asserts_reset_control: bool,
+    remove_preserves_running_marker_without_reset: bool,
+    remove_preserves_pending_interrupt_without_reset: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -461,6 +481,36 @@ pub const DwWdtLab = struct {
         };
     }
 
+    pub fn summarizeRemoveHandoff(
+        self: *Self,
+        request: RemoveRequest,
+    ) !RemoveSummary {
+        _ = self.loadRegisters(.{});
+        if (request.watchdog_running_before_remove) {
+            _ = try self.start();
+        }
+        _ = self.setInterruptPending(request.remove_interrupt_pending);
+        const remove_before = self.runtimeSnapshot();
+        const remove_after = self.remove();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .reset_control_available = self.has_reset_control,
+            .debugfs_clear_requested = true,
+            .unregister_device_requested = true,
+            .remove_path_running_before_remove = remove_before.running,
+            .remove_path_running_after_remove = remove_after.running,
+            .remove_path_hardware_running_after_remove = remove_after.hardware_running,
+            .remove_clears_enable_bit = remove_before.running and !remove_after.running,
+            .remove_clears_interrupt_status = request.remove_interrupt_pending and !remove_after.interrupt_pending,
+            .remove_asserts_reset_control = self.has_reset_control,
+            .remove_preserves_running_marker_without_reset = !self.has_reset_control and remove_after.hardware_running,
+            .remove_preserves_pending_interrupt_without_reset = !self.has_reset_control and
+                request.remove_interrupt_pending and
+                remove_after.interrupt_pending,
+        };
+    }
+
     pub fn timeoutWindows(self: *const Self) []const TimeoutWindow {
         return self.timeouts[0..];
     }
@@ -528,6 +578,19 @@ pub const DwWdtLab = struct {
     }
 
     pub fn stop(self: *Self) RuntimeSnapshot {
+        if (!self.has_reset_control) {
+            if (self.isEnabled()) self.hardware_running = true;
+            return self.runtimeSnapshot();
+        }
+
+        self.registers.control &= ~control_reg_wdt_en_mask;
+        self.registers.current_count = 0;
+        self.registers.interrupt_status = 0;
+        self.hardware_running = false;
+        return self.runtimeSnapshot();
+    }
+
+    pub fn remove(self: *Self) RuntimeSnapshot {
         if (!self.has_reset_control) {
             if (self.isEnabled()) self.hardware_running = true;
             return self.runtimeSnapshot();
