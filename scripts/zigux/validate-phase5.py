@@ -55,6 +55,7 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 sample_root_readme = (ROOT / "samples" / "zigux" / "README.md").read_text(encoding="utf-8")
 phase5_build = (ROOT / "zigux" / "tests" / "phase5_build.zig").read_text(encoding="utf-8")
+sample_root = ROOT / "samples" / "zigux"
 
 required_make_markers = [
     "PHONY += phase5-validate phase5-test phase5",
@@ -176,6 +177,25 @@ required_phase5_build_markers = [
     'b.step("test", "Run Phase 5 reference sample checks")',
 ]
 
+expected_reference_samples = [
+    "bytestream_fifo.zig",
+    "kobject_example.zig",
+    "kretprobe_example.zig",
+    "trace_events_sample.zig",
+]
+
+expected_runtime_follow_ons = [
+    "runtime_atomic64.zig",
+    "runtime_atomic64_loader.zig",
+    "runtime_bitmap.zig",
+    "runtime_bitmap_loader.zig",
+    "runtime_kretprobe.zig",
+    "runtime_kretprobe_loader.zig",
+    "runtime_trace_events.zig",
+]
+
+inventory_check_count = 3
+
 missing_markers = []
 
 for marker in required_make_markers:
@@ -202,6 +222,35 @@ for marker in required_sample_root_markers:
 for marker in required_phase5_build_markers:
     if marker not in phase5_build:
         missing_markers.append(f"phase5_build:{marker}")
+
+sample_root_zig_files = sorted(
+    path.name for path in sample_root.iterdir() if path.is_file() and path.suffix == ".zig"
+)
+reference_samples = sorted(
+    name for name in sample_root_zig_files
+    if not name.startswith("runtime_")
+)
+runtime_follow_ons = sorted(
+    name for name in sample_root_zig_files
+    if name.startswith("runtime_")
+)
+string_named_samples = sorted(name for name in sample_root_zig_files if "string" in name)
+
+if reference_samples != expected_reference_samples:
+    missing_markers.append(
+        "sample_root_inventory:reference_samples="
+        + ",".join(reference_samples)
+    )
+if runtime_follow_ons != expected_runtime_follow_ons:
+    missing_markers.append(
+        "sample_root_inventory:runtime_follow_ons="
+        + ",".join(runtime_follow_ons)
+    )
+if string_named_samples:
+    missing_markers.append(
+        "sample_root_inventory:string_named_samples="
+        + ",".join(string_named_samples)
+    )
 
 manifest_expectations = {
     "phase5_bytestream_fifo_manifest.json": {
@@ -341,5 +390,5 @@ print("PHASE5_VALIDATION=pass")
 print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + inventory_check_count + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values())}"
 )
