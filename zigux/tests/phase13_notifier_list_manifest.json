@@ -1,12 +1,13 @@
 {
-  "lane_key": "P13-L15",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
-  "surveyed_commit": "1c2e7a4d0e4d39a89351a6a9222dd7efff613836",
+  "surveyed_commit": "4c43e1083bd8601d21750c433f65473bdab744ed",
   "anchors": [
     "include/linux/list.h",
     "include/linux/notifier.h",
     "include/linux/acpi_amd_wbrf.h",
-    "include/net/dsa.h"
+    "include/net/dsa.h",
+    "include/linux/watchdog.h"
   ],
   "roadmap_scope": "Phase 13 is the shared helper tranche, but its named anchors remain libfs, devres, and Landlock, so this lane stays reviewability-only and records the roadmap-adjacent interop gap between the preexisting list surfaces, the preexisting generic notifier header anchors, and the still-missing Zigux notifier ABI or helper surface.",
   "survey_summary": {
@@ -21,6 +22,7 @@
     "preexisting_generic_notifier_header_anchor_present": true,
     "preexisting_generic_notifier_layout_anchor_present": true,
     "preexisting_public_list_notifier_coexistence_anchor_present": true,
+    "preexisting_public_same_struct_list_notifier_anchor_present": true,
     "preexisting_generic_notifier_abi_present": false,
     "preexisting_generic_notifier_build_surface_present": false,
     "preexisting_generic_notifier_helper_present": false
@@ -102,6 +104,13 @@
       "kind": "public_list_notifier_coexistence_anchor",
       "zigux_destination": "include/net/dsa.h",
       "why_now": "The public DSA header already keeps list-shaped and notifier-shaped read-only surfaces adjacent: dsa_switch_tree carries list and raw notifier fields while dsa_switch carries a notifier_block listener, so the shared interop gap is now clearly on the Zigux mirroring side rather than in upstream anchor discovery."
+    },
+    {
+      "id": "linux-public-same-struct-list-notifier-anchor",
+      "status": "preexisting_header_surface",
+      "kind": "public_same_struct_list_notifier_anchor",
+      "zigux_destination": "include/linux/watchdog.h",
+      "why_now": "The public watchdog header goes one step tighter than header-level coexistence: struct watchdog_device carries reboot, restart, and power-management notifier_block fields plus a deferred list_head in the same exported read-only shape, which sharpens the future Zigux mirroring target without claiming notifier helper delivery."
     },
     {
       "id": "phase13-generic-notifier-abi-gap",
