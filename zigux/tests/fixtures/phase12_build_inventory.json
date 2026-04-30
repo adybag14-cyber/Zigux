@@ -19,6 +19,166 @@
     "run_phase12_libbpf_segments_tests",
     "run_phase12_libbpf_reviewability_tests"
   ],
+  "module_root_source_files": [
+    {
+      "module": "virtio_core_module",
+      "path": "../../drivers/virtio/virtio.zig"
+    },
+    {
+      "module": "virtio_ring_module",
+      "path": "../../drivers/virtio/virtio_ring.zig"
+    },
+    {
+      "module": "virtio_net_module",
+      "path": "../../drivers/net/virtio_net.zig"
+    },
+    {
+      "module": "phase12_virtio_net_module",
+      "path": "phase12_virtio_net.zig"
+    },
+    {
+      "module": "virtio_scsi_module",
+      "path": "../../drivers/scsi/virtio_scsi.zig"
+    },
+    {
+      "module": "phase12_virtio_scsi_module",
+      "path": "phase12_virtio_scsi.zig"
+    },
+    {
+      "module": "nvme_pci_module",
+      "path": "../../drivers/nvme/host/pci.zig"
+    },
+    {
+      "module": "phase12_nvme_pci_module",
+      "path": "phase12_nvme_pci.zig"
+    },
+    {
+      "module": "phase12_nvme_pci_survey_module",
+      "path": "phase12_nvme_pci_survey.zig"
+    },
+    {
+      "module": "phase12_virtio_net_survey_module",
+      "path": "phase12_virtio_net_survey.zig"
+    },
+    {
+      "module": "phase12_virtio_scsi_survey_module",
+      "path": "phase12_virtio_scsi_survey.zig"
+    },
+    {
+      "module": "phase12_libbpf_segments_module",
+      "path": "phase12_libbpf_segments.zig"
+    },
+    {
+      "module": "libbpf_cpu_mask_module",
+      "path": "../../tools/lib/bpf/zigux_segments/cpu_mask.zig"
+    },
+    {
+      "module": "libbpf_type_names_module",
+      "path": "../../tools/lib/bpf/zigux_segments/type_names.zig"
+    },
+    {
+      "module": "libbpf_logging_module",
+      "path": "../../tools/lib/bpf/zigux_segments/logging.zig"
+    },
+    {
+      "module": "libbpf_pin_path_module",
+      "path": "../../tools/lib/bpf/zigux_segments/pin_path.zig"
+    },
+    {
+      "module": "libbpf_file_path_handle_bridge_module",
+      "path": "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"
+    },
+    {
+      "module": "phase12_libbpf_reviewability_module",
+      "path": "phase12_libbpf_reviewability.zig"
+    }
+  ],
+  "module_imports": [
+    {
+      "module": "virtio_net_module",
+      "import_name": "virtio",
+      "imported_module": "virtio_core_module"
+    },
+    {
+      "module": "virtio_net_module",
+      "import_name": "virtio_ring",
+      "imported_module": "virtio_ring_module"
+    },
+    {
+      "module": "phase12_virtio_net_module",
+      "import_name": "virtio_net",
+      "imported_module": "virtio_net_module"
+    },
+    {
+      "module": "phase12_virtio_scsi_module",
+      "import_name": "virtio_scsi",
+      "imported_module": "virtio_scsi_module"
+    },
+    {
+      "module": "phase12_nvme_pci_module",
+      "import_name": "nvme_pci",
+      "imported_module": "nvme_pci_module"
+    },
+    {
+      "module": "phase12_libbpf_reviewability_module",
+      "import_name": "cpu_mask",
+      "imported_module": "libbpf_cpu_mask_module"
+    },
+    {
+      "module": "phase12_libbpf_reviewability_module",
+      "import_name": "bpf_type_names",
+      "imported_module": "libbpf_type_names_module"
+    },
+    {
+      "module": "phase12_libbpf_reviewability_module",
+      "import_name": "logging",
+      "imported_module": "libbpf_logging_module"
+    },
+    {
+      "module": "phase12_libbpf_reviewability_module",
+      "import_name": "pin_path",
+      "imported_module": "libbpf_pin_path_module"
+    },
+    {
+      "module": "phase12_libbpf_reviewability_module",
+      "import_name": "file_path_handle_bridge",
+      "imported_module": "libbpf_file_path_handle_bridge_module"
+    }
+  ],
+  "test_root_modules": [
+    {
+      "test": "phase12-nvme-pci-tests",
+      "root_module": "phase12_nvme_pci_module"
+    },
+    {
+      "test": "phase12-nvme-pci-survey-tests",
+      "root_module": "phase12_nvme_pci_survey_module"
+    },
+    {
+      "test": "phase12-virtio-net-tests",
+      "root_module": "phase12_virtio_net_module"
+    },
+    {
+      "test": "phase12-virtio-net-survey-tests",
+      "root_module": "phase12_virtio_net_survey_module"
+    },
+    {
+      "test": "phase12-virtio-scsi-survey-tests",
+      "root_module": "phase12_virtio_scsi_survey_module"
+    },
+    {
+      "test": "phase12-libbpf-segment-survey-tests",
+      "root_module": "phase12_libbpf_segments_module"
+    },
+    {
+      "test": "phase12-libbpf-reviewability-tests",
+      "root_module": "phase12_libbpf_reviewability_module"
+    },
+    {
+      "test": "phase12-virtio-scsi-tests",
+      "root_module": "phase12_virtio_scsi_module"
+    }
+  ],
   "expected_step_count": 17,
   "expected_test_count": 50,
   "expected_summary_line": "Build Summary: 17/17 steps succeeded; 50/50 tests passed",
