@@ -514,6 +514,25 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
 ]
 
+required_trace_events_sample_markers = [
+    ".provides_selftest_hook = true,",
+    "init_runs: usize,",
+    "selftest_runs: usize,",
+    "exit_runs: usize,",
+    "self.init_runs += 1;",
+    "self.selftest_runs += 1;",
+    "self.exit_runs += 1;",
+    'test "runtime trace-events sample keeps failed exit rollback explicit" {',
+]
+
+required_trace_events_module_markers = [
+    'test "runtime trace-events sample enforces lifecycle transitions and bounded event emission" {',
+    'try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);',
+    'try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);',
+    'try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);',
+    'test "runtime trace-events sample keeps registration balance explicit" {',
+]
+
 def required_marker_count() -> int:
     return (
         len(required_make_markers)
@@ -544,6 +563,8 @@ def required_marker_count() -> int:
         + len(required_trace_events_module_slice_markers)
         + len(required_trace_events_manifest_markers)
         + len(required_trace_events_survey_test_markers)
+        + len(required_trace_events_sample_markers)
+        + len(required_trace_events_module_markers)
     )
 
 
@@ -579,6 +600,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     loader_gap_manifest = read_text(root, "zigux/tests/runtime_loader_gap_manifest.json")
     trace_events_manifest = read_text(root, "zigux/tests/runtime_trace_events_manifest.json")
     trace_events_survey_test = read_text(root, "zigux/tests/runtime_trace_events_survey.zig")
+    trace_events_sample = read_text(root, "samples/zigux/runtime_trace_events.zig")
+    trace_events_module = read_text(root, "zigux/tests/runtime_trace_events_module.zig")
 
     missing_markers: list[str] = []
 
@@ -669,6 +692,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_trace_events_survey_test_markers:
         if marker not in trace_events_survey_test:
             missing_markers.append(f"trace_events_survey_test:{marker}")
+    for marker in required_trace_events_sample_markers:
+        if marker not in trace_events_sample:
+            missing_markers.append(f"trace_events_sample:{marker}")
+    for marker in required_trace_events_module_markers:
+        if marker not in trace_events_module:
+            missing_markers.append(f"trace_events_module:{marker}")
     return [], missing_markers
 
 
@@ -738,9 +767,43 @@ def run_self_test() -> int:
             tmp_root,
             "trace_events_survey:`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
         )
+        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
+
+        trace_events_sample_path = tmp_root / "samples/zigux/runtime_trace_events.zig"
+        original_trace_events_sample = trace_events_sample_path.read_text(encoding="utf-8")
+        trace_events_sample_path.write_text(
+            original_trace_events_sample.replace(
+                "        self.selftest_runs += 1;\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_sample_selftest_counter",
+            tmp_root,
+            "trace_events_sample:self.selftest_runs += 1;",
+        )
+        trace_events_sample_path.write_text(original_trace_events_sample, encoding="utf-8")
+
+        trace_events_module_path = tmp_root / "zigux/tests/runtime_trace_events_module.zig"
+        original_trace_events_module = trace_events_module_path.read_text(encoding="utf-8")
+        trace_events_module_path.write_text(
+            original_trace_events_module.replace(
+                '    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_module_exit_counter_assert",
+            tmp_root,
+            "trace_events_module:try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
+        )
 
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
