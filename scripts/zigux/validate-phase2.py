@@ -287,6 +287,7 @@ def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
         'version': 'version_expected.json',
         'invalid_option': 'invalid_option_expected.json',
         'missing_reference_argument': 'missing_reference_argument_expected.json',
+        'missing_dump_types_argument': 'missing_dump_types_argument_expected.json',
         'unsupported_long_option': 'unsupported_long_option_expected.json',
         'ambiguous_abbreviated_long_option': 'ambiguous_abbreviated_long_option_expected.json',
         'empty_long_option_name': 'empty_long_option_name_expected.json',
@@ -303,6 +304,7 @@ def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
         'version',
         'invalid_option',
         'missing_reference_argument',
+        'missing_dump_types_argument',
         'unsupported_long_option',
         'ambiguous_abbreviated_long_option',
         'empty_long_option_name',
@@ -317,6 +319,7 @@ def validate_expected_genksyms_bridge_cases(case_manifest: Path) -> list[str]:
     normalize_stderr_cases = {
         'invalid_option',
         'missing_reference_argument',
+        'missing_dump_types_argument',
         'unsupported_long_option',
         'ambiguous_abbreviated_long_option',
         'empty_long_option_name',
