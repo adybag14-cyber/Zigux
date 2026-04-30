@@ -28,6 +28,14 @@ pub const DecodedInteropPolicy = struct {
         return allocator_policy.permitsGlobalFallback(self.allocator_mode);
     }
 
+    pub fn initializesOwnedState(self: DecodedInteropPolicy) bool {
+        return allocator_policy.initializesOwnedState(self.allocator_mode);
+    }
+
+    pub fn requiresResetOnInit(self: DecodedInteropPolicy) bool {
+        return allocator_policy.requiresResetOnInit(self.allocator_mode);
+    }
+
     pub fn permitsVolatileMmio(self: DecodedInteropPolicy) bool {
         return narrow.permitsVolatileMmio(self.unsafe_scope);
     }
@@ -63,8 +71,32 @@ test "phase3 interop policy decoder keeps the boundary typed" {
     });
     try std.testing.expect(decoded.canReturn());
     try std.testing.expect(decoded.permitsGlobalFallback());
+    try std.testing.expect(decoded.initializesOwnedState());
+    try std.testing.expect(!decoded.requiresResetOnInit());
     try std.testing.expect(decoded.permitsVolatileMmio());
     try std.testing.expect(!decoded.permitsRawPointerBridge());
+}
+
+test "phase3 interop policy decoder preserves allocator init semantics" {
+    const caller_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    });
+    try std.testing.expect(caller_policy.requiresExplicitCaller());
+    try std.testing.expect(!caller_policy.initializesOwnedState());
+    try std.testing.expect(!caller_policy.requiresResetOnInit());
+
+    const arena_policy = try decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    try std.testing.expect(arena_policy.permitsGlobalFallback());
+    try std.testing.expect(arena_policy.initializesOwnedState());
+    try std.testing.expect(arena_policy.requiresResetOnInit());
 }
 
 test "phase3 interop policy decoder rejects invalid bytes and reserved bits" {

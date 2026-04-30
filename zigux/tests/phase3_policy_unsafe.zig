@@ -67,6 +67,8 @@ test "phase3 policy decoder validates the whole interop record" {
     try std.testing.expect(decoded.canReturn());
     try std.testing.expect(decoded.requiresExplicitCaller());
     try std.testing.expect(!decoded.permitsGlobalFallback());
+    try std.testing.expect(!decoded.initializesOwnedState());
+    try std.testing.expect(!decoded.requiresResetOnInit());
     try std.testing.expect(decoded.permitsRawPointerBridge());
     try std.testing.expect(!decoded.permitsVolatileMmio());
     try std.testing.expect(interop_policy.recognizes(.{
@@ -75,6 +77,16 @@ test "phase3 policy decoder validates the whole interop record" {
         .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
         .reserved = 0,
     }));
+
+    const arena_policy = try interop_policy.decode(.{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    });
+    try std.testing.expect(arena_policy.permitsGlobalFallback());
+    try std.testing.expect(arena_policy.initializesOwnedState());
+    try std.testing.expect(arena_policy.requiresResetOnInit());
 }
 
 test "phase3 policy decoder rejects partial or reserved policy bytes" {
