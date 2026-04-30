@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L04",
   "phase": "Phase 5",
-  "surveyed_commit": "8733ce0d4e2e17ccf139a38a70fc745843c068a3",
+  "surveyed_commit": "b1497341686a03b8ba007fbe6ee0028b7bfa5f02",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
@@ -72,6 +72,11 @@
       "id": "bounded-helper-behavior",
       "kind": "helper_contract",
       "expected": "peek and skip return null when empty, snapshotInto does not mutate queue order, pushing past capacity returns false, and reset restores an empty queue"
+    },
+    {
+      "id": "short-drain-prefix",
+      "kind": "helper_contract",
+      "expected": "draining a three-byte destination from the queued string \"hello\" yields exactly \"hel\", leaves the remaining prefix \"lo\" queued in order, and a follow-up drain on the now-empty queue returns 0"
     },
     {
       "id": "preview-truncation",
