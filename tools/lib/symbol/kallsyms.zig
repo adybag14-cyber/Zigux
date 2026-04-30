@@ -774,9 +774,9 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
 
     const contents =
         "ffffffff81000000 T startup_64\n" ++
-        "garbage\n" ++
-        "ffffffff81000200 W weak_handler\n" ++
-        "ffffffff81000300 t ignored_after_stop\n";
+            "garbage\n" ++
+            "ffffffff81000200 W weak_handler\n" ++
+            "ffffffff81000300 t ignored_after_stop\n";
 
     var contents_state = CallbackState.init();
     defer contents_state.deinit(std.testing.allocator);
