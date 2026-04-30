@@ -164,7 +164,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         io_instance.io(),
         std.testing.allocator,
         "zigux/tests/atomic64_diff.zig",
-        4 * 1024,
+        8 * 1024,
     );
     defer std.testing.allocator.free(atomic64_diff);
     const phase4_build = try readWorkspaceFile(
