@@ -25,15 +25,18 @@ def find_zig(explicit: str | None) -> str:
     raise SystemExit('zig not found; pass --zig or add zig to PATH')
 
 
-def parse_output(stdout: str) -> dict[str, str]:
+def parse_output(stdout: str) -> tuple[dict[str, str], list[str]]:
     parsed: dict[str, str] = {}
+    duplicates: set[str] = set()
     for raw_line in stdout.splitlines():
         line = raw_line.strip()
         if not line or '=' not in line:
             continue
         key, value = line.split('=', 1)
+        if key in parsed:
+            duplicates.add(key)
         parsed[key] = value
-    return parsed
+    return parsed, sorted(duplicates)
 
 
 def expected_metric_keys(expectations: dict[str, object]) -> set[str]:
@@ -119,7 +122,7 @@ def run_self_test() -> int:
         ],
     }
 
-    parsed = parse_output(
+    parsed, duplicates = parse_output(
         '\n'.join([
             'noise',
             'PHASE1_BENCH=pass',
@@ -130,6 +133,7 @@ def run_self_test() -> int:
             '',
         ])
     )
+    assert_equal('duplicate_keys', duplicates, ['PHASE1_BENCH_SAMPLE_CHECKSUM'])
     assert_equal('parse_output_overwrite', parsed['PHASE1_BENCH_SAMPLE_CHECKSUM'], '23')
     assert_equal(
         'expected_metric_keys',
@@ -218,7 +222,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_reserved:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=9')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')
     return 0
 
 
@@ -241,7 +245,15 @@ def main() -> int:
         capture_output=True,
     )
 
-    parsed = parse_output(result.stdout)
+    parsed, duplicates = parse_output(result.stdout)
+
+    if duplicates:
+        print('PHASE1_BENCH_CHECK=fail')
+        print('DUPLICATE_PHASE1_BENCH_KEYS_START')
+        for key in duplicates:
+            print(key)
+        print('DUPLICATE_PHASE1_BENCH_KEYS_END')
+        return 1
 
     if parsed.get('PHASE1_BENCH') != expectations['status']:
         print('PHASE1_BENCH_CHECK=fail')
