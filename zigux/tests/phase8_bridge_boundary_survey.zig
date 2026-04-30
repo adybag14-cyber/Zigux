@@ -1,0 +1,126 @@
+const std = @import("std");
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn readWorkspaceFile(
+    io: anytype,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    limit: usize,
+) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(limit));
+}
+
+test "phase 8 bridge boundary survey stays wired into the shared packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const roadmap = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(roadmap);
+
+    const tests_readme = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/README.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(tests_readme);
+
+    const bridge_note = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    const phase8_build = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase8_build.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(phase8_build);
+
+    try expectContains(roadmap, "## Phase 8: Userspace-Adjacent Tooling Expansion");
+    try expectContains(roadmap, "tools/lib/subcmd/exec-cmd.c");
+    try expectContains(roadmap, "tools/lib/bpf/libbpf.c");
+    try expectContains(roadmap, "- `tools/lib/subcmd/*.zig`");
+    try expectContains(roadmap, "- `tools/lib/bpf/zigux_segments/`");
+
+    try expectContains(tests_readme, "zigux/tests/phase8_bridge_boundary_survey.zig");
+    try expectContains(tests_readme, "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md");
+    try expectContains(tests_readme, "zigux/tests/phase8_build.zig");
+
+    try expectContains(bridge_note, "PHASE8_SLICE=userspace-kernel-bridge-boundary-survey");
+    try expectContains(bridge_note, "tools/lib/subcmd/exec-cmd.zig");
+    try expectContains(bridge_note, "tools/lib/subcmd/help.zig");
+    try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(bridge_note, "`execvp()`");
+    try expectContains(bridge_note, "`bpf_token_create()`");
+    try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
+    try expectContains(bridge_note, "no standalone timer helper");
+    try expectContains(bridge_note, "no standalone clockevent helper");
+
+    try expectContains(phase8_build, "phase8_bridge_boundary_survey.zig");
+    try expectContains(phase8_build, "phase8-bridge-boundary-survey-tests");
+}
+
+test "phase 8 bridge boundary survey still matches the live helper surfaces" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const bridge_note = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    const exec_cmd_helper = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/subcmd/exec-cmd.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(exec_cmd_helper);
+
+    const help_helper = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/subcmd/help.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(help_helper);
+
+    const file_path_handle_bridge_helper = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(file_path_handle_bridge_helper);
+
+    try expectContains(bridge_note, "path-resolution");
+    try expectContains(bridge_note, "raw `PATH` splitting");
+    try expectContains(bridge_note, "/proc/<pid>/fdinfo/<fd>");
+    try expectContains(bridge_note, "bpf_object_prepare_token()");
+    try expectContains(bridge_note, "bpf_object__reuse_map()");
+
+    try expectContains(exec_cmd_helper, "command_name: []const u8");
+    try expectContains(exec_cmd_helper, "exec_path_env: []const u8");
+    try expectContains(exec_cmd_helper, "pub fn buildSearchPath(");
+    try expectContains(help_helper, "pub fn resolveTerminalDimensions(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn buildCurrentProcessFdinfoPath(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn chooseReusedMapName(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn planTokenPreparation(");
+    try expectContains(file_path_handle_bridge_helper, "pub fn classifyTokenPreparationFailure(");
+}
