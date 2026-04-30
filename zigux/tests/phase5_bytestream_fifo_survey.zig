@@ -68,7 +68,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.reference_patterns.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 16), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_embedded_pattern = false;
@@ -88,6 +88,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_capacity = false;
     var saw_storage_contract = false;
     var saw_transfer_counts = false;
+    var saw_preview_prefix = false;
     var saw_short_drain_prefix = false;
     var saw_preview_truncation = false;
     var saw_queue_only_reset = false;
@@ -183,6 +184,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "second drain count is 2") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "requeue count is 2") != null);
         }
+        if (std.mem.eql(u8, check.id, "wrapped-preview-prefix")) {
+            saw_preview_prefix = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "truncated 8-byte preview prefix preserves exactly [3,4,5,6,7,8,9,0]") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "without consuming state") != null);
+        }
         if (std.mem.eql(u8, check.id, "short-drain-prefix")) {
             saw_short_drain_prefix = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "\"hel\"") != null);
@@ -239,9 +245,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
     try std.testing.expect(saw_transfer_counts);
+    try std.testing.expect(saw_preview_prefix);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_preview_truncation);
-    try std.testing.expect(saw_queue_only_reset);
+    try std.testing.expect(saw_queue-only-reset);
     try std.testing.expect(saw_focus_list);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(saw_lifecycle_guards);
