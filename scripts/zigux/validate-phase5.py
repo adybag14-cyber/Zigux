@@ -258,8 +258,12 @@ for manifest_name, expected in manifest_expectations.items():
         f"PHASE5_LANE_KEY={expected['lane_key']}",
         f"PHASE5_SURVEYED_COMMIT={manifest.get('surveyed_commit', '')}",
         manifest_name,
+        expected["anchor"],
+        expected["sample_path"],
         survey_expectation["survey_test"],
         "phase5_build.zig",
+        f"zig test {expected['sample_path']}",
+        "## Latest verification snapshot",
         "samples/zigux/README.md",
         "Documentation/zigux/review-checklist.md",
     ]
@@ -279,5 +283,5 @@ print("PHASE5_VALIDATION=pass")
 print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(8 for _ in survey_note_expectations)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(12 for _ in survey_note_expectations)}"
 )
