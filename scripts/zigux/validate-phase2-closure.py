@@ -24,6 +24,16 @@ EXPECTED_CROSS_TARGETS = [
     'aarch64-linux-musl',
     'riscv64-linux-musl',
 ]
+EXACT_WORKFLOW_RUNS = [
+    'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test',
+    'python3 scripts/zigux/check-genksyms-crc-diff.py',
+    'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
+    'python3 scripts/zigux/check-kconfig-bridge.py',
+    'python3 scripts/zigux/check-phase2-cross.py --self-test',
+    'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}',
+    'python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test',
+    'python3 scripts/zigux/check-mk-elfconfig-diff.py',
+]
 
 
 def case_files_from_groups(cases_path: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -368,6 +378,16 @@ def validate_phase2_cross_checker_gate(checker_script: Path) -> list[str]:
     return issues
 
 
+def validate_exact_workflow_runs(workflow_text: str, expected_commands: list[str]) -> list[str]:
+    issues: list[str] = []
+    for command in expected_commands:
+        expected_line = f'run: {command}'
+        count = sum(1 for line in workflow_text.splitlines() if line.strip() == expected_line)
+        if count != 1:
+            issues.append(f'workflow_exact_run:{command}:count={count}:expected=1')
+    return issues
+
+
 required_files = [
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
@@ -624,6 +644,7 @@ if target_manifest_targets != EXPECTED_CROSS_TARGETS:
 missing_markers.extend(validate_kconfig_bridge_manifest(KCONFIG_BRIDGE_DIR / 'cases.json'))
 missing_markers.extend(validate_phase2_cross_checker_gate(ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py'))
 missing_markers.extend(fixdep_case_issues)
+missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUNS))
 
 if missing_markers:
     print('PHASE2_CLOSURE_VALIDATION=fail')
