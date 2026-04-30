@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L03",
   "phase": "Phase 13",
-  "surveyed_commit": "26e5f8101d3546c7942c93757ecc3fdfaa6ee264",
+  "surveyed_commit": "40d20bc7880f228d2add1a6c73487db2df9571e4",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -10,11 +10,11 @@
   ],
   "survey_summary": {
     "devres_c_lines": 399,
-    "previous_surveyed_commit": "3f74e747aa08fd80bf4db8d7b085aa5293bb53ef",
-    "devres_helper_sha256": "6343f013ad5ca0d9e4208ff119b3f34c10a0f4a1947f23618081eee40a86be17",
-    "devres_test_sha256": "d76ad9b32893079c91bd0b33f1be5f168fa9c3551ba3b5e6ea5428c796eb1826",
-    "devres_helper_matches_previous_surveyed_commit": true,
-    "devres_test_matches_previous_surveyed_commit": true,
+    "previous_surveyed_commit": "26e5f8101d3546c7942c93757ecc3fdfaa6ee264",
+    "devres_helper_sha256": "2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda",
+    "devres_test_sha256": "7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476",
+    "devres_helper_matches_previous_surveyed_commit": false,
+    "devres_test_matches_previous_surveyed_commit": false,
     "preexisting_phase13_build_present": true,
     "preexisting_phase13_make_target_present": true,
     "preexisting_devres_zig_present": true,
@@ -64,21 +64,28 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "A dedicated reviewability gate ties the helper lab, dedicated tests, slice note, and survey note together so the helper-only iomap or mmio safety surface and its explicit DMA/scatterlist blockers stay machine-checkable on the live head."
+      "why_now": "A dedicated reviewability gate ties the helper lab, dedicated tests, slice note, and survey note together so the helper-only iomap or mmio safety surface, its direct non-posted wrapper, and its explicit DMA/scatterlist blockers stay machine-checkable on the live head."
     },
     {
       "id": "phase13-devres-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-survey.md",
-      "why_now": "The survey note records the current helper-first iomap or mmio safety surface on the live head and names the remaining live MMIO, DMA, scatterlist, device-tree, and arch memtype blockers explicitly."
+      "why_now": "The survey note records the current helper-first iomap or mmio safety surface on the live head, including the direct non-posted managed wrapper, and names the remaining live MMIO, DMA, scatterlist, device-tree, and arch memtype blockers explicitly."
     },
     {
       "id": "phase13-devres-managed-ioremap-lifetime",
       "status": "starter_landed",
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The helper lab now keeps __devm_ioremap(), devm_ioremap(), devm_ioremap_uc(), devm_ioremap_wc(), and devm_iounmap() in pure lifetime-planning form around retained release records, free-on-failure cleanup, and exact detach pointer matching."
+      "why_now": "The helper lab now keeps __devm_ioremap(), devm_ioremap(), devm_ioremap_uc(), devm_ioremap_wc(), devm_ioremap_np(), and devm_iounmap() in pure lifetime-planning form around retained release records, free-on-failure cleanup, and exact detach pointer matching."
+    },
+    {
+      "id": "phase13-devres-managed-ioremap-np-wrapper",
+      "status": "starter_landed",
+      "kind": "resource_helper_wrapper",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "The helper lab now keeps devm_ioremap_np() explicit as the direct non-posted managed wrapper instead of leaving that MMIO-safety path only implicit through the shared lifetime helper or the resource planner's non-posted fallback."
     },
     {
       "id": "phase13-devres-managed-resource-planner",
