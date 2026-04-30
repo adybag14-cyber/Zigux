@@ -464,6 +464,16 @@ expected_landed_core_helper_evidence = {
 if landed_core_helper_evidence != expected_landed_core_helper_evidence:
     missing_markers.append("manifest:landed_core_helper_evidence:mismatch")
 
+landed_input_helper_evidence = manifest.get("landed_input_helper_evidence")
+expected_landed_input_helper_evidence = {
+    "zigux/tests/phase10_virtio_input_manifest.json": [
+        "phase10-virtio-input-registration-preflight-helper",
+        "phase10-virtio-input-queue-callback-preflight-helper"
+    ]
+}
+if landed_input_helper_evidence != expected_landed_input_helper_evidence:
+    missing_markers.append("manifest:landed_input_helper_evidence:mismatch")
+
 blocked_transport_gaps = manifest.get("blocked_transport_gaps")
 expected_blocked_transport_gaps = {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
