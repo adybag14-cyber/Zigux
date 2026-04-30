@@ -377,23 +377,17 @@ test "phase10 virtio input records registration preflight once identity and capa
     try std.testing.expectEqual(@as(usize, 2), summary.staged_capability_count);
     try std.testing.expectEqual(@as(usize, 2), summary.staged_abs_param_count);
     try std.testing.expect(!summary.multitouch_enabled);
+    try std.testing.expect(!summary.multitouch_slot_intent);
     try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expectEqual(@as(usize, 0), summary.multitouch_slot_count);
     try std.testing.expect(summary.ready_for_registration);
 }
 
-test "phase10 virtio input registration preflight requires multitouch slot intent when multitouch is enabled" {
+test "phase10 virtio input registration preflight infers multitouch slot intent from staged ABS_MT_SLOT metadata" {
     var device = try virtio_input.VirtioInputLab.init("touch-panel", "serial-12", 12, null);
 
     try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{0});
     try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ virtio_input.abs_mt_slot, 0x30 });
-    device.setMultitouch(true);
-
-    try std.testing.expectError(
-        error.MultitouchSlotAbsInfoNotConfigured,
-        device.registrationPreflightSummary(),
-    );
-
     try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
         .minimum = 0,
         .maximum = 7,
@@ -405,7 +399,8 @@ test "phase10 virtio input registration preflight requires multitouch slot inten
     });
 
     const summary = try device.registrationPreflightSummary();
-    try std.testing.expect(summary.multitouch_enabled);
+    try std.testing.expect(!summary.multitouch_enabled);
+    try std.testing.expect(summary.multitouch_slot_intent);
     try std.testing.expect(summary.multitouch_slots_ready);
     try std.testing.expectEqual(@as(usize, 8), summary.multitouch_slot_count);
     try std.testing.expect(summary.ready_for_registration);
