@@ -27,16 +27,16 @@ EXPECTED_PHASE2_CROSS_TARGETS = [
     'aarch64-linux-musl',
     'riscv64-linux-musl',
 ]
-EXACT_WORKFLOW_RUNS = [
-    'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test',
-    'python3 scripts/zigux/check-genksyms-crc-diff.py',
-    'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
-    'python3 scripts/zigux/check-kconfig-bridge.py',
-    'python3 scripts/zigux/check-phase2-cross.py --self-test',
-    'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}',
-    'python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test',
-    'python3 scripts/zigux/check-mk-elfconfig-diff.py',
-]
+EXACT_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/check-genksyms-crc-diff.py --self-test': 1,
+    'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
+    'python3 scripts/zigux/check-kconfig-bridge.py --self-test': 1,
+    'python3 scripts/zigux/check-kconfig-bridge.py': 1,
+    'python3 scripts/zigux/check-phase2-cross.py --self-test': 2,
+    'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}': 1,
+    'python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test': 1,
+    'python3 scripts/zigux/check-mk-elfconfig-diff.py': 1,
+}
 
 
 def case_files_from_groups(case_manifest: Path, *group_specs: tuple[str, str]) -> list[Path]:
@@ -778,13 +778,13 @@ def validate_phase2_tooling_manifests(tool_manifest_path: Path, cross_targets_pa
     return issues
 
 
-def validate_exact_workflow_runs(workflow_text: str, expected_commands: list[str]) -> list[str]:
+def validate_exact_workflow_runs(workflow_text: str, expected_commands: dict[str, int]) -> list[str]:
     issues: list[str] = []
-    for command in expected_commands:
+    for command, expected_count in expected_commands.items():
         expected_line = f'run: {command}'
         count = sum(1 for line in workflow_text.splitlines() if line.strip() == expected_line)
-        if count != 1:
-            issues.append(f'workflow_exact_run:{command}:count={count}:expected=1')
+        if count != expected_count:
+            issues.append(f'workflow_exact_run:{command}:count={count}:expected={expected_count}')
     return issues
 
 
@@ -1050,7 +1050,7 @@ for marker in required_script_markers:
 for marker in required_makefile_markers:
     if marker not in makefile:
         missing_markers.append(f'make:{marker}')
-missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUNS))
+missing_markers.extend(validate_exact_workflow_runs(workflow, EXACT_WORKFLOW_RUN_COUNTS))
 
 if missing_markers:
     print('PHASE2_VALIDATION=fail')
