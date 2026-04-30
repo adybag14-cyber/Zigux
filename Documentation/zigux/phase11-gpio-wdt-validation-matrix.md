@@ -51,8 +51,8 @@ Without this matrix, the slice and survey named the right next step but did not 
 
 ## Latest Verification Snapshot
 
-- lane key: `P11-L03`
-- inspected `master` head: `0342b9a3c7cb89ec0d1e8bdf835ebd204bf964e4`
+- lane key: `P11-L04`
+- inspected `master` head: `be0f31bf64cdc200e2129992d1fed491b60fed2a`
 - focused compile replay:
   - `zig build test --build-file build.zig --summary all` in the bounded scratch packet replayed the live `drivers/watchdog/gpio_wdt.zig` module plus `zigux/tests/phase11_gpio_wdt.zig` and `zigux/tests/phase11_gpio_wdt_survey.zig`
   - result: `5/5` build steps succeeded and `11/11` tests passed
@@ -60,7 +60,7 @@ Without this matrix, the slice and survey named the right next step but did not 
   - `zig test zigux/tests/phase11_gpio_wdt_survey.zig`
   - result: `1/1` survey tests passed
 - bounded conclusion:
-  - current compile, teardown, and register-device review surfaces still pass as landed; this refresh only moves the machine-checkable lane marker and verification head forward to the latest inspected `master`
+  - current compile, teardown, and register-device review surfaces still pass as landed; this refresh only moves the machine-checkable verification head forward to the latest inspected `master` while keeping the helper surface unchanged
 
 ## Review Rules
 
