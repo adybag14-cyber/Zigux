@@ -20,8 +20,8 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_ring_buffer_manifest.json`
 - survey note: `Documentation/zigux/phase14-ring-buffer-survey.md`
-- lane key: `P14-L05`
-- surveyed commit: `7addb3a576d8a83a542f84a83957289cfe2f72e5`
+- lane key: `P14-L08`
+- surveyed commit: `98aa9bb7dd14ed6063f954b0a23c19a537af51a5`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-ring-buffer-zig-port-blocker`
 - retained-in-C boundary: reserve or commit publication, reader-page handoff, wakeup or watermark publication, mapped-reader limitations, `ring_buffer_read_page()` extraction behavior, and the read-page allocation or reuse contract still stay with the shipped C implementation because they share per-CPU page choreography, reader-visible loss accounting, wait-queue state, and `resize_disabled` ownership.
@@ -30,11 +30,11 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 
 - manifest: `zigux/tests/phase14_skbuff_bridge_manifest.json`
 - survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
-- lane key: `P14-L09`
-- surveyed commit: `55f1f2ca5c047f33ad2f005515bb67974c1b74f9`
-- ready-next gap: none currently recorded
+- lane key: `P14-L12`
+- surveyed commit: `f65e3d897847bf205198e5c47a41782085620579`
+- ready-next gap: `phase14-skbuff-direct-xmit-identity-drop-followup`
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
-- retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a reviewable boundary map around the `validate_xmit_skb_list()` reset or republish seam.
+- retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a reviewable boundary map around `validate_xmit_skb_list()` and the follow-on `__dev_direct_xmit()` identity-versus-drop seam.
 
 ### RCU tree
 
