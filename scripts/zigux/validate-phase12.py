@@ -238,3 +238,450 @@ MANIFEST_SPECS = {
         "roadmap_destinations": ["drivers/scsi/virtio_scsi.zig", "zigux/tests/", "Documentation/zigux/"],
         "shared_allowed_destinations": {
             "zigux/Makefile",
+            "drivers/virtio/virtio.zig",
+            "drivers/virtio/virtio_ring.zig",
+        },
+        "allowed_statuses": {"starter_landed", "blocked_on_dma_transport"},
+        "expected_status_totals": {"starter_landed": 14, "blocked_on_dma_transport": 1},
+        "survey_path": "zigux/tests/phase12_virtio_scsi_survey.zig",
+        "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "survey_count_markers": [("starter_landed_count", "starter_landed"), ("blocked_count", "blocked_on_dma_transport")],
+        "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        "raw_fallback_tree_urls": [
+            "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/scsi",
+            "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+            "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+        ],
+        "raw_fallback_artifact_paths": [
+            "drivers/scsi/virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi_manifest.json",
+            "zigux/tests/phase12_virtio_scsi_survey.zig",
+            "zigux/tests/phase12_build.zig",
+            "Documentation/zigux/phase12-virtio-scsi-slice.md",
+            "Documentation/zigux/phase12-virtio-scsi-survey.md",
+            "scripts/zigux/validate-phase12.py",
+            "zigux/Makefile",
+        ],
+        "raw_fallback_raw_paths": [
+            "drivers/scsi/virtio_scsi.c",
+            "drivers/scsi/virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi.zig",
+            "zigux/tests/phase12_virtio_scsi_manifest.json",
+            "zigux/tests/phase12_virtio_scsi_survey.zig",
+            "zigux/tests/phase12_build.zig",
+            "Documentation/zigux/phase12-virtio-scsi-slice.md",
+            "Documentation/zigux/phase12-virtio-scsi-survey.md",
+            "scripts/zigux/validate-phase12.py",
+            "zigux/Makefile",
+        ],
+        "raw_fallback_current_markers": [
+            "current_master_replay_head: `9dab85059c6f56865ef2f981d2303049775c5001`",
+            "current_shared_validator_command: `python3 scripts/zigux/validate-phase12.py`",
+            "current_shared_validator_result: `PHASE12_VALIDATION=fail`",
+            "current_shared_validator_missing_markers:",
+            "docs_root_readme:Phase 12 notes",
+            "phase12_build_fixture:expected_test_count_mismatch",
+            "phase12_nvme_pci_manifest.json:survey_note:surveyed_commit",
+            "phase12_libbpf_snapshot_fixture:sha256:tools/lib/bpf/zigux_segments/manifest.json",
+            "current_shared_build_command: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+            "current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`",
+            "current_focused_survey_command: `zig test zigux/tests/phase12_virtio_scsi_survey.zig`",
+            "current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`",
+        ],
+    },
+    "phase12_libbpf_manifest.json": {
+        "lane_key": "P12-L16",
+        "anchor": "tools/lib/bpf/libbpf.c",
+        "gap_count": 17,
+        "roadmap_destinations": ["tools/lib/bpf/zigux_segments/", "zigux/tests/", "Documentation/zigux/"],
+        "shared_allowed_destinations": {"zigux/Makefile"},
+        "allowed_statuses": {"starter_landed", "blocked_on_object_model", "deferred_high_risk"},
+        "expected_status_totals": {"starter_landed": 12, "blocked_on_object_model": 1, "deferred_high_risk": 4},
+        "survey_path": "zigux/tests/phase12_libbpf_segments.zig",
+        "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "survey_count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next"), ("blocked_count", "blocked_on_object_model"), ("deferred_count", "deferred_high_risk")],
+    },
+}
+
+def text(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+def load_manifest(name: str) -> dict[str, object]:
+    return json.loads(text(f"zigux/tests/{name}"))
+
+def count_transitive_tests(path: Path, seen: set[Path]) -> int:
+    resolved_path = path.resolve()
+    if resolved_path in seen:
+        return 0
+    seen.add(resolved_path)
+
+    source = resolved_path.read_text(encoding="utf-8")
+    total = len(TEST_DECL_RE.findall(source))
+    for import_path in LOCAL_ZIG_IMPORT_RE.findall(source):
+        child_path = (resolved_path.parent / import_path).resolve()
+        if ROOT not in child_path.parents:
+            continue
+        if not child_path.is_file():
+            continue
+        total += count_transitive_tests(child_path, seen)
+    return total
+
+
+def derive_expected_step_count(build_text: str) -> int:
+    return (
+        len(BUILD_TEST_NAME_RE.findall(build_text))
+        + len(BUILD_RUN_ARTIFACT_RE.findall(build_text))
+        + len(BUILD_STEP_RE.findall(build_text))
+    )
+
+
+def derive_expected_test_count(
+    test_root_modules: list[dict[str, str]],
+    module_root_source_files: list[dict[str, str]],
+) -> int:
+    module_paths = {
+        entry["module"]: (ROOT / "zigux/tests" / entry["path"]).resolve()
+        for entry in module_root_source_files
+    }
+    seen: set[Path] = set()
+    total = 0
+    for entry in test_root_modules:
+        total += count_transitive_tests(module_paths[entry["root_module"]], seen)
+    return total
+
+def count_statuses(manifest: dict[str, object], match: str) -> int:
+    total = 0
+    for gap in manifest.get("gaps", []):
+        status = gap.get("status")
+        if not isinstance(status, str):
+            continue
+        if status == match:
+            total += 1
+    return total
+
+def destination_allowed(destination: str, spec: dict[str, object]) -> bool:
+    roadmap_destinations = tuple(str(item) for item in spec["roadmap_destinations"])
+    if destination.startswith(roadmap_destinations):
+        return True
+    for allowed in spec.get("shared_allowed_destinations", set()):
+        if allowed.endswith("/") and destination.startswith(allowed):
+            return True
+        if destination == allowed:
+            return True
+    return False
+
+def expect_catalog_marker(catalog_text: str, marker: str, missing_key: str, missing: list[str]) -> None:
+    if marker not in catalog_text:
+        missing.append(missing_key)
+
+
+def expect_libbpf_snapshot_fixture(
+    snapshot: dict[str, object], manifest: dict[str, object], missing: list[str]
+) -> None:
+    if snapshot.get("lane_key") != manifest.get("lane_key"):
+        missing.append("phase12_libbpf_snapshot_fixture:lane_key")
+    if snapshot.get("phase") != manifest.get("phase"):
+        missing.append("phase12_libbpf_snapshot_fixture:phase")
+    if snapshot.get("surveyed_commit") != manifest.get("surveyed_commit"):
+        missing.append("phase12_libbpf_snapshot_fixture:surveyed_commit")
+
+    files = snapshot.get("files")
+    if not isinstance(files, list) or not all(isinstance(item, dict) for item in files):
+        missing.append("phase12_libbpf_snapshot_fixture:files")
+        return
+
+    tracked_file_count = snapshot.get("tracked_file_count")
+    if tracked_file_count != len(files):
+        missing.append("phase12_libbpf_snapshot_fixture:tracked_file_count")
+
+    expected_paths = [
+        "zigux/tests/phase12_libbpf_manifest.json",
+        "zigux/tests/phase12_libbpf_segments.zig",
+        "zigux/tests/phase12_libbpf_reviewability.zig",
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+    ]
+    actual_paths = [entry.get("path") for entry in files]
+    if actual_paths != expected_paths:
+        missing.append("phase12_libbpf_snapshot_fixture:paths")
+        return
+
+    for entry, expected_path in zip(files, expected_paths):
+        file_bytes = (ROOT / expected_path).read_bytes()
+        if entry.get("bytes") != len(file_bytes):
+            missing.append(f"phase12_libbpf_snapshot_fixture:bytes:{expected_path}")
+        if entry.get("sha256") != hashlib.sha256(file_bytes).hexdigest():
+            missing.append(f"phase12_libbpf_snapshot_fixture:sha256:{expected_path}")
+
+missing_files = [path for path in FILES if not (ROOT / path).exists()]
+if missing_files:
+    print("PHASE12_VALIDATION=fail")
+    print("MISSING_PHASE12_FILES_START")
+    for path in missing_files:
+        print(path)
+    print("MISSING_PHASE12_FILES_END")
+    sys.exit(1)
+
+missing: list[str] = []
+for name, source, markers in [
+    ("make", text("zigux/Makefile"), MAKE_MARKERS),
+    ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
+    ("script_readme", text("scripts/zigux/README.md"), README_MARKERS),
+    ("docs_root_readme", text("Documentation/zigux/README.md"), DOCS_ROOT_MARKERS),
+    ("review_checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
+    ("phase12_build", text("zigux/tests/phase12_build.zig"), BUILD_MARKERS),
+]:
+    for marker in markers:
+        if marker not in source:
+            missing.append(f"{name}:{marker}")
+
+build_text = text("zigux/tests/phase12_build.zig")
+for marker in FORBIDDEN_BUILD_MARKERS:
+    if marker in build_text:
+        missing.append(f"phase12_build:forbidden:{marker}")
+
+build_inventory = json.loads(text(BUILD_INVENTORY_FIXTURE))
+phase12_libbpf_snapshot_fixture = json.loads(text(PHASE12_LIBBPF_SNAPSHOT_FIXTURE))
+expected_build_test_names = build_inventory.get("build_test_names")
+if not isinstance(expected_build_test_names, list) or not all(isinstance(item, str) for item in expected_build_test_names):
+    missing.append("phase12_build_fixture:build_test_names")
+else:
+    actual_build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
+    if actual_build_test_names != expected_build_test_names:
+        missing.append("phase12_build_fixture:build_test_names_mismatch")
+
+expected_depend_steps = build_inventory.get("shared_test_depend_steps")
+if not isinstance(expected_depend_steps, list) or not all(isinstance(item, str) for item in expected_depend_steps):
+    missing.append("phase12_build_fixture:shared_test_depend_steps")
+else:
+    actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if actual_depend_steps != expected_depend_steps:
+        missing.append("phase12_build_fixture:shared_test_depend_steps_mismatch")
+
+expected_module_roots = build_inventory.get("module_root_source_files")
+if not isinstance(expected_module_roots, list) or not all(isinstance(item, dict) for item in expected_module_roots):
+    missing.append("phase12_build_fixture:module_root_source_files")
+else:
+    actual_module_roots = [
+        {"module": module_name, "path": root_path}
+        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+    ]
+    if actual_module_roots != expected_module_roots:
+        missing.append("phase12_build_fixture:module_root_source_files_mismatch")
+
+expected_module_imports = build_inventory.get("module_imports")
+if not isinstance(expected_module_imports, list) or not all(isinstance(item, dict) for item in expected_module_imports):
+    missing.append("phase12_build_fixture:module_imports")
+else:
+    actual_module_imports = [
+        {
+            "module": module_name,
+            "import_name": import_name,
+            "imported_module": imported_module,
+        }
+        for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
+    ]
+    if actual_module_imports != expected_module_imports:
+        missing.append("phase12_build_fixture:module_imports_mismatch")
+
+expected_test_root_modules = build_inventory.get("test_root_modules")
+if not isinstance(expected_test_root_modules, list) or not all(isinstance(item, dict) for item in expected_test_root_modules):
+    missing.append("phase12_build_fixture:test_root_modules")
+else:
+    actual_test_root_modules = [
+        {"test": test_name, "root_module": root_module}
+        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    ]
+    if actual_test_root_modules != expected_test_root_modules:
+        missing.append("phase12_build_fixture:test_root_modules_mismatch")
+
+expected_step_count = build_inventory.get("expected_step_count")
+if not isinstance(expected_step_count, int):
+    missing.append("phase12_build_fixture:expected_step_count")
+else:
+    actual_expected_step_count = derive_expected_step_count(build_text)
+    if expected_step_count != actual_expected_step_count:
+        missing.append("phase12_build_fixture:expected_step_count_mismatch")
+
+expected_test_count = build_inventory.get("expected_test_count")
+if not isinstance(expected_test_count, int):
+    missing.append("phase12_build_fixture:expected_test_count")
+elif (
+    isinstance(expected_test_root_modules, list)
+    and all(isinstance(item, dict) for item in expected_test_root_modules)
+    and isinstance(expected_module_roots, list)
+    and all(isinstance(item, dict) for item in expected_module_roots)
+):
+    actual_expected_test_count = derive_expected_test_count(expected_test_root_modules, expected_module_roots)
+    if expected_test_count != actual_expected_test_count:
+        missing.append("phase12_build_fixture:expected_test_count_mismatch")
+
+expected_summary_line = build_inventory.get("expected_summary_line")
+current_phase12_build_summary: str | None = None
+if not isinstance(expected_summary_line, str):
+    missing.append("phase12_build_fixture:expected_summary_line")
+elif isinstance(expected_step_count, int) and isinstance(expected_test_count, int):
+    actual_expected_summary_line = (
+        f"Build Summary: {expected_step_count}/{expected_step_count} steps succeeded; "
+        f"{expected_test_count}/{expected_test_count} tests passed"
+    )
+    current_phase12_build_summary = actual_expected_summary_line
+    if expected_summary_line != actual_expected_summary_line:
+        missing.append("phase12_build_fixture:expected_summary_line_mismatch")
+
+for key, expected_value in [
+    ("forbidden_markers", FORBIDDEN_BUILD_MARKERS),
+    ("dedicated_survey_replays", []),
+]:
+    value = build_inventory.get(key)
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        missing.append(f"phase12_build_fixture:{key}")
+    elif value != expected_value:
+        missing.append(f"phase12_build_fixture:{key}_mismatch")
+
+packet_sources = {
+    "phase12_virtio_net_test": text("zigux/tests/phase12_virtio_net.zig"),
+    "phase12_virtio_net_survey": text("Documentation/zigux/phase12-virtio-net-survey.md"),
+    "phase12_nvme_pci_test": text("zigux/tests/phase12_nvme_pci.zig"),
+    "phase12_nvme_pci_slice": text("Documentation/zigux/phase12-nvme-pci-slice.md"),
+    "phase12_virtio_scsi_test": text("zigux/tests/phase12_virtio_scsi.zig"),
+    "phase12_virtio_scsi_slice": text("Documentation/zigux/phase12-virtio-scsi-slice.md"),
+}
+for source_name, markers in PHASE12_PACKET_MARKERS.items():
+    source_text = packet_sources[source_name]
+    for marker in markers:
+        if marker not in source_text:
+            missing.append(f"{source_name}:{marker}")
+
+starter_total = 0
+ready_total = 0
+blocked_total = 0
+deferred_total = 0
+raw_fallback_total = 0
+
+for manifest_name, spec in MANIFEST_SPECS.items():
+    manifest = load_manifest(manifest_name)
+    if manifest.get("lane_key") != spec["lane_key"]:
+        missing.append(f"{manifest_name}:lane_key")
+    if manifest.get("phase") != "Phase 12":
+        missing.append(f"{manifest_name}:phase")
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
+        missing.append(f"{manifest_name}:surveyed_commit")
+    if manifest.get("anchor") != spec["anchor"]:
+        missing.append(f"{manifest_name}:anchor")
+
+    roadmap_destinations = manifest.get("roadmap_destinations")
+    if roadmap_destinations != spec["roadmap_destinations"]:
+        missing.append(f"{manifest_name}:roadmap_destinations")
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        missing.append(f"{manifest_name}:gaps")
+        continue
+    if len(gaps) != spec["gap_count"]:
+        missing.append(f"{manifest_name}:gap_count")
+
+    survey_text = text(spec["survey_path"])
+    survey_note_text = text(spec["survey_note_path"])
+    if not isinstance(surveyed_commit, str) or surveyed_commit not in survey_note_text:
+        missing.append(f"{manifest_name}:survey_note:surveyed_commit")
+    for marker in SURVEY_NOTE_MARKERS.get(manifest_name, ()):
+        if marker not in survey_note_text:
+            missing.append(f"{manifest_name}:survey_note:{marker}")
+
+    for count_marker, status_name in spec["survey_count_markers"]:
+        count = count_statuses(manifest, status_name)
+        expected_line = f"try std.testing.expectEqual(@as(usize, {count}), {count_marker});"
+        if expected_line not in survey_text:
+            missing.append(f"{manifest_name}:{count_marker}")
+
+    status_totals = spec["expected_status_totals"]
+    for status_name, expected_total in status_totals.items():
+        actual_total = count_statuses(manifest, status_name)
+        if actual_total != expected_total:
+            missing.append(f"{manifest_name}:status_total:{status_name}")
+
+    for index, gap in enumerate(gaps):
+        if not isinstance(gap, dict):
+            missing.append(f"{manifest_name}:gap:{index}")
+            continue
+        gap_id = gap.get("id")
+        status = gap.get("status")
+        kind = gap.get("kind")
+        destination = gap.get("zigux_destination")
+        why_now = gap.get("why_now")
+        if not isinstance(gap_id, str) or not gap_id:
+            missing.append(f"{manifest_name}:gap_id:{index}")
+        if not isinstance(status, str) or status not in spec["allowed_statuses"]:
+            missing.append(f"{manifest_name}:status:{gap_id or index}")
+        if not isinstance(kind, str) or not kind:
+            missing.append(f"{manifest_name}:kind:{gap_id or index}")
+        if not isinstance(destination, str) or not destination_allowed(destination, spec):
+            missing.append(f"{manifest_name}:destination:{gap_id or index}")
+        if not isinstance(why_now, str) or not why_now:
+            missing.append(f"{manifest_name}:why_now:{gap_id or index}")
+
+    starter_total += count_statuses(manifest, "starter_landed")
+    ready_total += count_statuses(manifest, "ready_next")
+    blocked_total += count_statuses(manifest, "blocked_on_dma_transport")
+    blocked_total += count_statuses(manifest, "blocked_on_object_model")
+    deferred_total += count_statuses(manifest, "deferred_high_risk")
+
+    raw_fallback_catalog_path = spec.get("raw_fallback_catalog_path")
+    if isinstance(raw_fallback_catalog_path, str):
+        raw_fallback_total += 1
+        catalog_text = text(raw_fallback_catalog_path)
+        if not isinstance(surveyed_commit, str) or surveyed_commit not in catalog_text:
+            missing.append(f"{manifest_name}:raw_fallback_catalog:surveyed_commit")
+        for url in spec.get("raw_fallback_tree_urls", []):
+            expect_catalog_marker(catalog_text, str(url), f"{manifest_name}:raw_fallback_tree:{url}", missing)
+        for path in spec.get("raw_fallback_artifact_paths", []):
+            expect_catalog_marker(catalog_text, str(path), f"{manifest_name}:raw_fallback_artifact:{path}", missing)
+        for raw_path in spec.get("raw_fallback_raw_paths", []):
+            if not isinstance(surveyed_commit, str):
+                break
+            raw_url = f"https://raw.githubusercontent.com/adybag14-cyber/Zigux/{surveyed_commit}/{raw_path}"
+            expect_catalog_marker(catalog_text, raw_url, f"{manifest_name}:raw_fallback_raw:{raw_path}", missing)
+        for marker in spec.get("raw_fallback_current_markers", []):
+            expect_catalog_marker(catalog_text, str(marker), f"{manifest_name}:raw_fallback_current:{marker}", missing)
+        if (
+            isinstance(current_phase12_build_summary, str)
+            and "current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`"
+            not in catalog_text
+        ):
+            build_summary_marker = f"current_shared_build_result: `{current_phase12_build_summary}`"
+            expect_catalog_marker(
+                catalog_text,
+                build_summary_marker,
+                f"{manifest_name}:raw_fallback_current:{build_summary_marker}",
+                missing,
+            )
+
+expect_libbpf_snapshot_fixture(
+    phase12_libbpf_snapshot_fixture,
+    load_manifest("phase12_libbpf_manifest.json"),
+    missing,
+)
+
+if missing:
+    print("PHASE12_VALIDATION=fail")
+    print("PHASE12_VALIDATION_MISSING_START")
+    for item in missing:
+        print(item)
+    print("PHASE12_VALIDATION_MISSING_END")
+    sys.exit(1)
+
+print("PHASE12_VALIDATION=pass")
+print(f"PHASE12_REQUIRED_FILE_COUNT={len(FILES)}")
+print(f"PHASE12_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
+print(f"PHASE12_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
+print(f"PHASE12_SHARED_BUILD_MODULE_ROOT_COUNT={len(expected_module_roots)}")
+print(f"PHASE12_SHARED_BUILD_IMPORT_COUNT={len(expected_module_imports)}")
+print(f"PHASE12_SHARED_BUILD_TEST_ROOT_COUNT={len(expected_test_root_modules)}")
+print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
+print(f"PHASE12_READY_NEXT_STATUS_COUNT={ready_total}")
+print(f"PHASE12_BLOCKED_STATUS_COUNT={blocked_total}")
+print(f"PHASE12_DEFERRED_STATUS_COUNT={deferred_total}")
+print(f"PHASE12_RAW_FALLBACK_CATALOG_COUNT={raw_fallback_total}")
