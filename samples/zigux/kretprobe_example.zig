@@ -55,7 +55,6 @@ pub const KretprobeExampleSample = struct {
 
     stage_state: SampleStage = .cold,
     symbol_name: []const u8 = default_symbol_name,
-    maxactive: usize = default_maxactive,
     active_instances: usize = 0,
     skipped_kernel_threads: usize = 0,
     nmissed: usize = 0,
@@ -81,6 +80,10 @@ pub const KretprobeExampleSample = struct {
 
     pub fn privateDataSizeBytes(_: *const Self) usize {
         return @sizeOf(InstanceData);
+    }
+
+    pub fn maxactiveBudget(_: *const Self) usize {
+        return default_maxactive;
     }
 
     pub fn init(self: *Self) !void {
@@ -169,7 +172,7 @@ pub const KretprobeExampleSample = struct {
             .return_value = result.retval,
             .duration_ns = result.duration_ns,
             .nmissed = self.nmissed,
-            .maxactive = self.maxactive,
+            .maxactive = self.maxactiveBudget(),
             .checked_focus = &.{
                 .symbol_selection,
                 .entry_timestamp,
@@ -222,7 +225,7 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 42), replay.return_value);
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
-    try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
+    try std.testing.expectEqual(sample.maxactiveBudget(), replay.maxactive);
     try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
     for (expected_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
