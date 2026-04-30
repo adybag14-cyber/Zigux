@@ -122,6 +122,10 @@ pub fn str_ends_with(str: []const u8, suffix: []const u8) bool {
     return strEndsWith(str, suffix);
 }
 
+pub fn strends(str: []const u8, suffix: []const u8) bool {
+    return strEndsWith(str, suffix);
+}
+
 pub fn trimSpaces(buf: []u8) []u8 {
     if (buf.len == 0) {
         return buf[0..0];
@@ -387,14 +391,20 @@ test "strHasPrefix returns the matched prefix length with C-string semantics" {
 test "str_ends_with matches kernel suffix semantics" {
     try std.testing.expect(strEndsWith("zigux", "gux"));
     try std.testing.expect(str_ends_with("zigux", "gux"));
+    try std.testing.expect(strends("zigux", "gux"));
     try std.testing.expect(str_ends_with("zigux", ""));
+    try std.testing.expect(strends("zigux", ""));
     try std.testing.expect(str_ends_with("", ""));
+    try std.testing.expect(strends("", ""));
     try std.testing.expect(!str_ends_with("zig", "zigux"));
+    try std.testing.expect(!strends("zig", "zigux"));
     try std.testing.expect(!str_ends_with("zigux", "GUX"));
+    try std.testing.expect(!strends("zigux", "GUX"));
 
     const source = [_]u8{ 'z', 'i', 'g', 0, 'x' };
     const embedded_suffix = [_]u8{ 'i', 'g', 0, 'u', 'x' };
     try std.testing.expect(str_ends_with(&source, &embedded_suffix));
+    try std.testing.expect(strends(&source, &embedded_suffix));
 }
 
 test "memdup and memchrInv preserve byte content" {
