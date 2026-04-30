@@ -31,6 +31,20 @@ The shared runtime-loader blocker that still governs this atomic64 packet also s
 
 No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 atomic64 lane. The evidence here remains limited to the runtime starter, loader scaffold, shared request binding, the module-slice note that describes the starter packet, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
 
+## Governance record
+
+- `PHASE9_LANE_KEY=P9-L01`
+- `PHASE9_LANE_OWNER=Documentation/zigux/phase9-runtime-atomic64-survey.md`
+- `PHASE9_STATUS_BUCKET=port_after_substrate`
+- `PHASE9_VALIDATION_GATE=zig build test --build-file zigux/tests/phase9_build.zig --summary all`
+- `PHASE9_ROLLBACK_OWNER=zigux/tests/runtime_atomic64_survey.zig`
+- `PHASE9_FREEZE_MAP_AUTHORITY=Documentation/zigux/freeze-map.md`
+- `PHASE9_STUDY_BOUNDARY=kernel/workqueue.c`
+- `PHASE9_BOUNDARY_STATUS=Study / Boundary Only`
+- `PHASE9_REOPEN_RULE=Architecture Council decision required before any status change for the scheduler-facing workqueue boundary`
+
+This reviewable record keeps the active runtime atomic64 starter in the `port_after_substrate` bucket while the adjacent `kernel/workqueue.c` boundary remains `Study / Boundary Only`. If the shared runtime-loader blocker or the freeze-map wording drifts, the survey gate in `zigux/tests/runtime_atomic64_survey.zig` is the rollback owner that must fail and force this packet back to explicit blocked posture until the record is repaired.
+
 ## Survey findings
 
 - `lib/atomic64_test.c` is present on `master` at 277 lines.
