@@ -26,11 +26,17 @@
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
+    "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/phase3_check_lib.py",
+    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate_phase3_core.py",
-    "scripts/zigux/validate_phase3_selftest.py"
+    "scripts/zigux/validate_phase3_selftest.py",
+    "zigux/tests/build.zig"
   ],
-  "file_count": 28
+  "file_count": 34
 }
