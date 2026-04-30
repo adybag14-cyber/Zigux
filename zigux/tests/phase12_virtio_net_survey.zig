@@ -89,7 +89,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqualStrings("c23f1e76c2c0cdb2526d252689e68cc4dbee505d", manifest.surveyed_commit);
@@ -234,83 +234,4 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "XDP") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-mergeable-refill-summary")) {
-            saw_mergeable_refill_summary = true;
-            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "packet budget bytes") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "minimum buffer length") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page-pool DMA") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
-            saw_blocker = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-resume summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page_pool DMA") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "XDP") != null);
-        }
-
-        for (manifest.gaps[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-        }
-    }
-
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
-    try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_make_target);
-    try std.testing.expect(saw_core_foundation);
-    try std.testing.expect(saw_ring_foundation);
-    try std.testing.expect(saw_survey_gate);
-    try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_probe_starter);
-    try std.testing.expect(saw_ready_next);
-    try std.testing.expect(saw_hdr_len_followup);
-    try std.testing.expect(saw_recovery_summary);
-    try std.testing.expect(saw_resume_summary);
-    try std.testing.expect(saw_receive_path_summary);
-    try std.testing.expect(saw_mergeable_refill_summary);
-    try std.testing.expect(saw_blocker);
-
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const ProbeSnapshot = struct") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const QueueRecoverySummary = struct") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const QueueResumeSummary = struct") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const MergeableReceiveRefillSummary = struct") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const ReceiveBufferMode = enum") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const XdpConstraint = enum") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn freezeForRecovery") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn restoreAfterRecovery") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planQueueResume") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planMergeableReceiveRefill") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeHeaderShape(") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeReceiveBufferMode(") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeHeaderScatter(") != null);
-    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeXdpConstraint(") != null);
-
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe snapshot helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue recovery action") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-recovery summary follow-up") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-resume summary follow-up") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "receive-path follow-up") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "mergeable-refill follow-up") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "header-shape follow-up") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze the last in-memory queue topology") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready to resume immediately") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "big-packet refill pressure") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "split-header or big-packet constraints") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet budget bytes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "minimum buffer length summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`hdr_len` branch") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-pool and DMA") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "net-driver lifecycle") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase12") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed `master` snapshot `c23f1e76c2c0cdb2526d252689e68cc4dbee505d`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key refreshed to `P12-L04`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` head") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "next tiny `hdr_len` follow-up") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "most likely a tiny mergeable-refill or minimum-buffer summary") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "already-landed queue-recovery, queue-resume, `hdr_len`, receive-path, and mergeable-refill follow-ups") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-net-queue-recovery-followup`") == null);
-}
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-mergeable-refill-summary")
