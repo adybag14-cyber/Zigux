@@ -40,7 +40,7 @@ Adjacent Phase 13 reviewability evidence already present on `master`:
 The roadmap asks each active commit series to stay reviewable through an explicit phase, status bucket, and validation gate. For the current Phase 13 shared-helper tranche, those details are already carried by the per-anchor manifests plus the shared release and replay entrypoints:
 
 - `fs/libfs.c`: manifest lane `P13-L04` in `zigux/tests/phase13_libfs_manifest.json`; dedicated gates `zigux/tests/phase13_libfs.zig` and `zigux/tests/phase13_libfs_reviewability.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
-- `lib/devres.c`: manifest lane `P13-L08` in `zigux/tests/phase13_devres_manifest.json`; dedicated gates `zigux/tests/phase13_devres.zig` and `zigux/tests/phase13_devres_reviewability.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
+- `lib/devres.c`: manifest lane `P13-L03` in `zigux/tests/phase13_devres_manifest.json`; dedicated gates `zigux/tests/phase13_devres.zig` and `zigux/tests/phase13_devres_reviewability.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
 - `security/landlock/ruleset.c`: manifest lane `P13-L12` in `zigux/tests/phase13_landlock_ruleset_manifest.json`; dedicated gate `zigux/tests/phase13_landlock_ruleset.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
 - `security/landlock/syscalls.c`: manifest lane `P13-L16` in `zigux/tests/phase13_landlock_syscalls_manifest.json`; dedicated gate `zigux/tests/phase13_landlock_syscalls.zig`; shared gates `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zigux/tests/phase13_build.zig`, and `make -C zigux phase13`
 
@@ -81,7 +81,7 @@ Current repo evidence:
 - dedicated tests: `zigux/tests/phase13_devres.zig`
 - reviewability gate: `zigux/tests/phase13_devres_reviewability.zig`
 - manifest: `zigux/tests/phase13_devres_manifest.json`
-- manifest `surveyed_commit`: `3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`
+- manifest `surveyed_commit`: `26e5f8101d3546c7942c93757ecc3fdfaa6ee264`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-devres-slice.md`
 - survey note: `Documentation/zigux/phase13-devres-survey.md`
