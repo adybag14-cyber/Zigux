@@ -286,5 +286,8 @@ jobs:
       - name: Show Zig version
         run: zig version
 
+      - name: Self-test bounded Phase 2 cross-target checker
+        run: python3 scripts/zigux/check-phase2-cross.py --self-test
+
       - name: Check bounded Phase 2 cross-target compile
         run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}
