@@ -23,6 +23,10 @@ BUILD_TEST_ROOT_MODULE_RE = re.compile(
     r'\.root_module = ([A-Za-z0-9_]+),',
     re.S,
 )
+BUILD_RUN_ARTIFACT_RE = re.compile(r"const ([A-Za-z0-9_]+) = b\.addRunArtifact\(")
+BUILD_STEP_RE = re.compile(r'b\.step\("([^"]+)",')
+TEST_DECL_RE = re.compile(r'^\s*test\s*(?:"[^"]*"|\{)', re.M)
+LOCAL_ZIG_IMPORT_RE = re.compile(r'@import\("([^"]+\.zig)"\)')
 
 FILES = [
     "scripts/zigux/check-phase12-build-inventory.py",
@@ -269,6 +273,46 @@ def text(path: str) -> str:
 def load_manifest(name: str) -> dict[str, object]:
     return json.loads(text(f"zigux/tests/{name}"))
 
+def count_transitive_tests(path: Path, seen: set[Path]) -> int:
+    resolved_path = path.resolve()
+    if resolved_path in seen:
+        return 0
+    seen.add(resolved_path)
+
+    source = resolved_path.read_text(encoding="utf-8")
+    total = len(TEST_DECL_RE.findall(source))
+    for import_path in LOCAL_ZIG_IMPORT_RE.findall(source):
+        child_path = (resolved_path.parent / import_path).resolve()
+        if ROOT not in child_path.parents:
+            continue
+        if not child_path.is_file():
+            continue
+        total += count_transitive_tests(child_path, seen)
+    return total
+
+
+def derive_expected_step_count(build_text: str) -> int:
+    return (
+        len(BUILD_TEST_NAME_RE.findall(build_text))
+        + len(BUILD_RUN_ARTIFACT_RE.findall(build_text))
+        + len(BUILD_STEP_RE.findall(build_text))
+    )
+
+
+def derive_expected_test_count(
+    test_root_modules: list[dict[str, str]],
+    module_root_source_files: list[dict[str, str]],
+) -> int:
+    module_paths = {
+        entry["module"]: (ROOT / "zigux/tests" / entry["path"]).resolve()
+        for entry in module_root_source_files
+    }
+    seen: set[Path] = set()
+    total = 0
+    for entry in test_root_modules:
+        total += count_transitive_tests(module_paths[entry["root_module"]], seen)
+    return total
+
 def count_statuses(manifest: dict[str, object], match: str) -> int:
     total = 0
     for gap in manifest.get("gaps", []):
@@ -415,15 +459,47 @@ else:
     if actual_test_root_modules != expected_test_root_modules:
         missing.append("phase12_build_fixture:test_root_modules_mismatch")
 
-for key in ["expected_step_count", "expected_test_count"]:
-    if not isinstance(build_inventory.get(key), int):
-        missing.append(f"phase12_build_fixture:{key}")
-if not isinstance(build_inventory.get("expected_summary_line"), str):
+expected_step_count = build_inventory.get("expected_step_count")
+if not isinstance(expected_step_count, int):
+    missing.append("phase12_build_fixture:expected_step_count")
+else:
+    actual_expected_step_count = derive_expected_step_count(build_text)
+    if expected_step_count != actual_expected_step_count:
+        missing.append("phase12_build_fixture:expected_step_count_mismatch")
+
+expected_test_count = build_inventory.get("expected_test_count")
+if not isinstance(expected_test_count, int):
+    missing.append("phase12_build_fixture:expected_test_count")
+elif (
+    isinstance(expected_test_root_modules, list)
+    and all(isinstance(item, dict) for item in expected_test_root_modules)
+    and isinstance(expected_module_roots, list)
+    and all(isinstance(item, dict) for item in expected_module_roots)
+):
+    actual_expected_test_count = derive_expected_test_count(expected_test_root_modules, expected_module_roots)
+    if expected_test_count != actual_expected_test_count:
+        missing.append("phase12_build_fixture:expected_test_count_mismatch")
+
+expected_summary_line = build_inventory.get("expected_summary_line")
+if not isinstance(expected_summary_line, str):
     missing.append("phase12_build_fixture:expected_summary_line")
-for key in ["forbidden_markers", "dedicated_survey_replays"]:
+elif isinstance(expected_step_count, int) and isinstance(expected_test_count, int):
+    actual_expected_summary_line = (
+        f"Build Summary: {expected_step_count}/{expected_step_count} steps succeeded; "
+        f"{expected_test_count}/{expected_test_count} tests passed"
+    )
+    if expected_summary_line != actual_expected_summary_line:
+        missing.append("phase12_build_fixture:expected_summary_line_mismatch")
+
+for key, expected_value in [
+    ("forbidden_markers", FORBIDDEN_BUILD_MARKERS),
+    ("dedicated_survey_replays", []),
+]:
     value = build_inventory.get(key)
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         missing.append(f"phase12_build_fixture:{key}")
+    elif value != expected_value:
+        missing.append(f"phase12_build_fixture:{key}_mismatch")
 
 packet_sources = {
     "phase12_virtio_net_test": text("zigux/tests/phase12_virtio_net.zig"),
