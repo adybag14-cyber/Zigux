@@ -82,6 +82,9 @@ phase8_help_test = (ROOT / "zigux" / "tests" / "phase8_help.zig").read_text(enco
 phase8_kallsyms_test = (ROOT / "zigux" / "tests" / "phase8_kallsyms.zig").read_text(encoding="utf-8")
 phase8_logging_test = (ROOT / "zigux" / "tests" / "phase8_logging.zig").read_text(encoding="utf-8")
 phase8_pin_path_test = (ROOT / "zigux" / "tests" / "phase8_pin_path.zig").read_text(encoding="utf-8")
+exec_cmd_helper = (ROOT / "tools" / "lib" / "subcmd" / "exec-cmd.zig").read_text(encoding="utf-8")
+help_helper = (ROOT / "tools" / "lib" / "subcmd" / "help.zig").read_text(encoding="utf-8")
+kallsyms_helper = (ROOT / "tools" / "lib" / "symbol" / "kallsyms.zig").read_text(encoding="utf-8")
 logging_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "logging.zig").read_text(encoding="utf-8")
 file_path_handle_bridge_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "file_path_handle_bridge.zig").read_text(encoding="utf-8")
 pin_path_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "pin_path.zig").read_text(encoding="utf-8")
@@ -349,6 +352,16 @@ required_phase8_exec_cmd_markers = [
     "`execvp()`",
 ]
 
+required_exec_cmd_helper_markers = [
+    "pub const max_execl_slots: usize = 32;",
+    "pub fn choosePwdCwdFromIdentities(",
+    "pub fn setupPathWithPwd(",
+    "pub fn collectExeclArgs(",
+    "pub fn buildDeferredExeclCall(",
+    "test \"buildDeferredExeclCall keeps the execl handoff pure and launch-free\"",
+    "test \"setupPathWithPwd reuses the logical PWD only when the injected identities match\"",
+]
+
 required_help_slice_markers = [
     "PHASE8_SLICE=help-command-source-and-terminal-starter",
     "tools/lib/subcmd/help.zig",
@@ -371,6 +384,16 @@ required_phase8_help_markers = [
     "`list_commands()`",
 ]
 
+required_help_helper_markers = [
+    "pub fn loadCommandListsFromSource(",
+    "pub fn loadCommandListsFromEnvPath(",
+    "pub fn resolveTerminalDimensions(",
+    "test \"loadCommandListsFromSource keeps exec-path priority and filters duplicates across PATH\"",
+    "test \"loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path filtering\"",
+    "test \"writePrettyPrintStringListForTerminal keeps column-major pretty-printing pure and testable\"",
+    "test \"writeCommandSectionsForTerminal keeps list_commands formatting pure and shared-width aware\"",
+]
+
 required_kallsyms_slice_markers = [
     "PHASE8_SLICE=kallsyms-parse-wrapper-starter",
     "tools/lib/symbol/kallsyms.zig",
@@ -391,6 +414,16 @@ required_phase8_kallsyms_markers = [
     "tools/lib/symbol/kallsyms.c",
     "read_to_eol",
     "char symbol_name[KSYM_NAME_LEN + 1];",
+]
+
+required_kallsyms_helper_markers = [
+    "pub const max_buffered_line_len: usize = 32 + 3 + KSYM_NAME_LEN;",
+    "discarding_tail: bool = false,",
+    "pub fn forEachParsedChunked(",
+    "pub fn kallsymsParseInDir(",
+    "pub fn kallsymsParse(",
+    "test \"forEachParsedChunked discards oversized line tails once the bounded callback surface is full\"",
+    "test \"kallsymsParse wrappers preserve the C-shaped callback contract and bounded names\"",
 ]
 
 required_cpu_mask_markers = [
@@ -611,18 +644,27 @@ for marker in required_exec_cmd_slice_markers:
 for marker in required_phase8_exec_cmd_markers:
     if marker not in phase8_exec_cmd_test:
         missing_markers.append(f"phase8_exec_cmd:{marker}")
+for marker in required_exec_cmd_helper_markers:
+    if marker not in exec_cmd_helper:
+        missing_markers.append(f"exec_cmd_helper:{marker}")
 for marker in required_help_slice_markers:
     if marker not in phase8_help_slice:
         missing_markers.append(f"phase8_help_slice:{marker}")
 for marker in required_phase8_help_markers:
     if marker not in phase8_help_test:
         missing_markers.append(f"phase8_help:{marker}")
+for marker in required_help_helper_markers:
+    if marker not in help_helper:
+        missing_markers.append(f"help_helper:{marker}")
 for marker in required_kallsyms_slice_markers:
     if marker not in phase8_kallsyms_slice:
         missing_markers.append(f"phase8_kallsyms_slice:{marker}")
 for marker in required_phase8_kallsyms_markers:
     if marker not in phase8_kallsyms_test:
         missing_markers.append(f"phase8_kallsyms:{marker}")
+for marker in required_kallsyms_helper_markers:
+    if marker not in kallsyms_helper:
+        missing_markers.append(f"kallsyms_helper:{marker}")
 for marker in required_cpu_mask_markers:
     if marker not in phase8_cpu_mask:
         missing_markers.append(f"phase8_cpu_mask:{marker}")
@@ -703,5 +745,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_logging_survey_markers) + len(required_phase8_logging_markers) + len(required_logging_helper_markers) + len(required_pin_path_survey_markers) + len(required_phase8_pin_path_markers) + len(required_pin_path_helper_markers) + len(required_phase8_file_path_handle_bridge_markers) + len(required_file_path_handle_bridge_helper_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_review_checklist_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_exec_cmd_helper_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_help_helper_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_kallsyms_helper_markers) + len(required_cpu_mask_markers) + len(required_logging_survey_markers) + len(required_phase8_logging_markers) + len(required_logging_helper_markers) + len(required_pin_path_survey_markers) + len(required_phase8_pin_path_markers) + len(required_pin_path_helper_markers) + len(required_phase8_file_path_handle_bridge_markers) + len(required_file_path_handle_bridge_helper_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
 )
