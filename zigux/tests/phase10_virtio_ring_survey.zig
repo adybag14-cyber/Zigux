@@ -90,6 +90,10 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.gaps.len >= 7);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_core_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-core-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "older core slice note alone") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_build.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-register-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-notify-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-queue-address-helper") != null);
