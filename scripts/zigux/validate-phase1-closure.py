@@ -60,6 +60,8 @@ required_closure_markers = [
     'PHASE1_FIND_BIT_SET_UNIT_REVIEW=find_bit same-word set-scan start masking keeps inclusive starts honest, skips earlier same-word set matches after the search advances, and still clamps tail results to nbits',
     'find_bit and unit-test anchor: `tools/lib/find_bit.zig:test "find next and bit skips earlier shared matches in the same word"`',
     'PHASE1_FIND_BIT_AND_UNIT_REVIEW=find_bit same-word shared-bit start masking keeps inclusive starts honest, skips earlier same-word overlaps after the search advances, and still clamps tail AND results to nbits',
+    'find_bit mask unit-test anchor: `tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"`',
+    'PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style whole-word, partial-word, and wrapped-start boundaries reviewable without relying only on indirect scan coverage',
     'find_bit boundary unit-test anchor: `tools/lib/find_bit.zig:test "empty and boundary scans return nbits"`',
     'PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range',
     'PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json',
