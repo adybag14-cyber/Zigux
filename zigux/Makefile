@@ -135,6 +135,7 @@ phase7-test:
 phase7: phase7-validate phase7-test
 
 phase8-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py
 
 phase8-exec-cmd-test:
