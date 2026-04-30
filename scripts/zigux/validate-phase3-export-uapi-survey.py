@@ -17,6 +17,8 @@ UAPI_VERSION_REL = "zigux/uapi/version.zig"
 UAPI_ROOT_REL = "zigux/uapi"
 ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
 EXPORT_UAPI_TEST_REL = "zigux/tests/phase3_export_uapi.zig"
+EXPORT_UAPI_LAYOUT_BUILD_REL = "zigux/tests/phase3_export_uapi_layout_build.zig"
+EXPORT_UAPI_LAYOUT_TEST_REL = "zigux/tests/phase3_export_uapi_layout.zig"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 REQUIRED_SURVEY_MARKERS = (
@@ -27,6 +29,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_UAPI_SCOPE=version-and-boundary-header",
     "PHASE3_UAPI_STATUS=version-header-and-compatibility-surface-landed",
     "PHASE3_EXPORT_UAPI_GATE=zig build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig",
+    "PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "PHASE3_BOUNDARY_GAP=broader-curated-uapi-shims-still-deferred",
     "PHASE3_NEXT_BOUNDED_STEP=keep-boundary-header-surface-narrow-until-one-roadmap-backed-interop-slice-needs-another-curated-uapi-or-export-entry",
 )
@@ -34,6 +37,8 @@ REQUIRED_SURVEY_MARKERS = (
 REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "keep canonical-size header checks separate from broader future-compatible header acceptance",
     "verified `master` head",
@@ -47,6 +52,8 @@ REQUIRED_SURVEY_PATHS = (
     "include/linux/zigux.h",
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
+    EXPORT_UAPI_LAYOUT_BUILD_REL,
+    EXPORT_UAPI_LAYOUT_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
 
@@ -64,6 +71,7 @@ REQUIRED_SCRIPTS_README_SNIPPETS = (
 REQUIRED_MAKEFILE_SNIPPETS = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 REQUIRED_EXPORT_SHIM_SNIPPETS = (
@@ -88,6 +96,7 @@ REQUIRED_UAPI_VERSION_SNIPPETS = (
 REQUIRED_ABI_SLICE_SNIPPETS = (
     "export shim reality today: `zigux/kernel/export_shim.zig` stays a narrow explicit-status helper, and it now exposes a small local boundary-header surface that keeps exact canonical-size replay separate from broader future-compatible header acceptance without widening the public export namespace further",
     "UAPI reality today: `zigux/uapi/version.zig` now exposes the ABI version plus an explicit boundary-header constructor whose exact canonical-size replay stays separate from broader future-compatible compatibility, which is still bounded but makes the public boundary less ad hoc than a version constant alone",
+    "dedicated layout replay gate: `zigux/tests/phase3_export_uapi_layout.zig` now keeps the canonical `BoundaryHeader` and `ExportStatus` size and field-offset contract visible on its own compile-and-test path instead of relying only on the broader ABI dump bundle",
 )
 
 REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
@@ -98,6 +107,14 @@ REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
     "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
     "try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));",
     "try std.testing.expect(uapi_version.isCompatible(future_compatible_header));",
+)
+
+REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS = (
+    'test "phase3 export shim and uapi keep canonical boundary layout"',
+    'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));',
+    'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));',
+    'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));',
+    'try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.ExportStatus, "flags"));',
 )
 
 REQUIRED_UAPI_FILES = (
@@ -141,6 +158,7 @@ def validate(root: Path) -> list[str]:
     uapi_version = _read_text(root, UAPI_VERSION_REL, issues)
     abi_slice = _read_text(root, ABI_SLICE_REL, issues)
     export_uapi_test = _read_text(root, EXPORT_UAPI_TEST_REL, issues)
+    export_uapi_layout_test = _read_text(root, EXPORT_UAPI_LAYOUT_TEST_REL, issues)
 
     if survey:
         for marker in REQUIRED_SURVEY_MARKERS:
@@ -193,6 +211,10 @@ def validate(root: Path) -> list[str]:
         for snippet in REQUIRED_EXPORT_UAPI_TEST_SNIPPETS:
             if snippet not in export_uapi_test:
                 issues.append(f"missing_export_uapi_test_snippet:{snippet}")
+    if export_uapi_layout_test:
+        for snippet in REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS:
+            if snippet not in export_uapi_layout_test:
+                issues.append(f"missing_export_uapi_layout_test_snippet:{snippet}")
 
     uapi_files = _collect_relative_files(root, UAPI_ROOT_REL)
     expected_uapi_files = sorted(REQUIRED_UAPI_FILES)
@@ -220,6 +242,11 @@ def run_self_test() -> int:
                 path.write_text("\n".join(REQUIRED_EXPORT_SHIM_SNIPPETS) + "\n", encoding="utf-8")
             elif rel == UAPI_VERSION_REL:
                 path.write_text("\n".join(REQUIRED_UAPI_VERSION_SNIPPETS) + "\n", encoding="utf-8")
+            elif rel == EXPORT_UAPI_LAYOUT_TEST_REL:
+                path.write_text(
+                    "\n".join(REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS) + "\n",
+                    encoding="utf-8",
+                )
             else:
                 path.write_text("// ok\n", encoding="utf-8")
 
