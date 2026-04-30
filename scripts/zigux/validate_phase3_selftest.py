@@ -199,6 +199,78 @@ def run_self_test() -> int:
         ) == []
         assert (paths.scripts_dir / "check-phase3-alpha.py").read_text(encoding="utf-8") == render_wrapper_stub()
 
+        beta_fixture_dir = paths.fixtures_dir / "phase3_beta"
+        beta_fixture_dir.mkdir(parents=True, exist_ok=True)
+        (paths.docs_dir / "phase3-beta-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=beta-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    shared_runner_gate_for_slug("beta"),
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.scripts_dir / "check-phase3-beta.py").write_text(
+            render_wrapper_stub(), encoding="utf-8", newline="\n"
+        )
+        (paths.tests_dir / "phase3_beta_dump.zig").write_text("// beta dump\n", encoding="utf-8", newline="\n")
+        (beta_fixture_dir / "expected.json").write_text(
+            json.dumps({"abi_version": 1, "constants": ABI_REQUIRED_EXPECTED_CONSTANTS, "structs": {}}),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (beta_fixture_dir / "phase3_beta_c_harness.c").write_text("// beta harness\n", encoding="utf-8", newline="\n")
+        (paths.fixtures_dir / "phase3_beta_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "beta-slice",
+                    "files": [
+                        "Documentation/zigux/phase3-beta-slice.md",
+                        "zigux/tests/phase3_beta_dump.zig",
+                        "zigux/tests/fixtures/phase3_beta/expected.json",
+                        "zigux/tests/fixtures/phase3_beta/phase3_beta_c_harness.c",
+                    ],
+                    "file_count": 4,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.docs_dir / "artifact-diff.md").write_text(
+            "\n".join(
+                [
+                    "Current Phase 3 use",
+                    "- `zigux/tests/fixtures/phase3_alpha/expected.json` anchors the bounded Phase 3 alpha parity claim.",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug alpha` compares that committed JSON fixture against both the bounded C harness and the Zig alpha dump.",
+                    "- `zigux/tests/fixtures/phase3_beta/expected.json` anchors the bounded Phase 3 beta parity claim.",
+                    "- `python3 scripts/zigux/run-phase3-checks.py --slug beta` compares that committed JSON fixture against both the bounded C harness and the Zig beta dump.",
+                    "",
+                    "Rules",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        refreshed_entries = discover_phase3_slices(paths)
+        alpha_entry = select_slices(refreshed_entries, ["alpha"])
+        assert validate_slices(
+            root,
+            alpha_entry,
+            check_artifact_diff=False,
+            check_build_smoke=False,
+            check_slug_sanity=False,
+            check_all_wrappers=True,
+            zig_path=None,
+        ) == []
+
         abi_root = root / "abi-fixture"
         (abi_root / "zigux/tests/fixtures/phase3_abi").mkdir(parents=True, exist_ok=True)
         (abi_root / "zigux/tests").mkdir(parents=True, exist_ok=True)
