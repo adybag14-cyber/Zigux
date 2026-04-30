@@ -365,6 +365,7 @@ hvc_test_text = text("zigux/tests/phase11_hvc_console.zig")
 for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
     "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
+    "a khvcd worker-entry summary",
     "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier or sysrq handoff; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.",
 ]:
     if marker not in hvc_survey_doc:
@@ -372,6 +373,7 @@ for marker in [
 for marker in [
     "adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()`-adjacent close-wait ownership, notifier boundaries, and khvcd wakeup intent reviewable without claiming worker execution",
     "adds a tiny khvcd polling-contract summary that keeps notifier-driven versus polling-driven wakeups, bounded reschedule intent, and teardown-facing host-I/O boundaries reviewable without claiming worker execution",
+    "adds a tiny khvcd worker-entry summary that keeps wake-before-sleep decisions, xmon-forced read polling, mutex-backed list walks, and timeout-backoff choices reviewable without claiming live worker execution",
     "adds a tiny khvcd sleep-and-reschedule handoff summary that keeps the pre-sleep kick check, the interruptible-state recheck, untimed schedule versus timed backoff selection, and running-state restore reviewable without claiming live worker execution",
     "adds a tiny `hvc_hangup()` disconnect summary that keeps resize-cancel ordering, the stale-count guard, tty detach, outbuf clearing, and notifier-hangup boundaries reviewable without claiming notifier callback execution",
     "adds a tiny `hvc_remove()` handoff summary that keeps console-lock slot clearing, the paired `vtermnos[]` and `cons_ops[]` release, `tty_port_put()` ordering, `tty_vhangup()` follow-through, and the keep-IRQ-until-hangup teardown boundary reviewable without claiming live console locking or IRQ teardown",
@@ -383,6 +385,7 @@ for marker in [
 for marker in [
     "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
+    "`zigux/tests/phase11_hvc_console.zig` now keeps the worker-entry sleep and backoff assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the tty-attached and tty-detached remove-handoff assertions inside the shared Phase 11 replay",
     "leave this helper parked unless another comparably small host-free notifier or sysrq split becomes obvious",
