@@ -4,6 +4,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
+- `PHASE3_SURVEYED_COMMIT=f11569d38143cfcfa204ff63c744cb9780575081`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -29,6 +30,8 @@ That does not require broad UAPI exposure on day one.
 It does require the live repo to say clearly what is already part of the permanent boundary and what is still intentionally deferred.
 
 ## Live Repo Reality
+
+This survey is pinned to verified `master` head `f11569d38143cfcfa204ff63c744cb9780575081` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
 
 The current tree already carries the first bounded export and UAPI boundary surface:
 
@@ -74,5 +77,6 @@ The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
+- refresh `PHASE3_SURVEYED_COMMIT` whenever this note is deliberately resurveyed against a newer verified `master` head
 
 This lane does not justify broad UAPI expansion, generated headers, or a larger export namespace on its own.
