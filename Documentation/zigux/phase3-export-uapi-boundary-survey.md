@@ -4,6 +4,7 @@ This note records the current export-shim and UAPI boundary for the bounded Phas
 
 ## Status
 
+- `PHASE3_SURVEYED_COMMIT=2fde955b392e065621d84f9acbcee2cc37159e7e`
 - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
 - `PHASE3_EXPORT_SHIM_SCOPE=explicit-status-plus-boundary-header`
 - `PHASE3_EXPORT_SHIM_STATUS=normalize-and-compatibility-helpers-landed`
@@ -30,6 +31,8 @@ It does require the live repo to say clearly what is already part of the permane
 
 ## Live Repo Reality
 
+This survey is pinned to verified `master` head `2fde955b392e065621d84f9acbcee2cc37159e7e` so the note stays tied to one inspected boundary snapshot instead of a floating branch label.
+
 The current tree already carries the first bounded export and UAPI boundary surface:
 
 - `zigux/kernel/export_shim.zig` exposes explicit `ok`, `errno`, `isOk`, `normalize`, `header`, and `isCompatibleHeader` helpers around the curated `ExportStatus` and `BoundaryHeader` ABI types
@@ -45,13 +48,12 @@ It is also still a narrow starting point rather than broad UAPI closure.
 ## Ledger Alignment
 
 This landed boundary step still belongs to the same bounded Phase 3 ABI substrate family recorded in
-`BOOTSTRAP_COMMIT_LEDGER.md`.
+`zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`.
 
 More specifically, it is still evidence for commit-train entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`, so the focused export/UAPI replay should be read as tighter proof for the original boundary packet rather than as a new standalone UAPI tranche.
 
 - the original substrate ledger entry already named `zigux/kernel/export_shim.zig` and `zigux/uapi/version.zig` as part of the permanent Phase 3 boundary
 - current `master` now adds focused replay evidence for that same boundary through `zigux/tests/phase3_export_uapi_build.zig` and `zigux/tests/phase3_export_uapi.zig`
-- current `master` also keeps that same ledger entry reviewable through the restored `python3 scripts/zigux/validate-phase3.py` gate, which now checks the canonical ABI and bindings source markers before the focused export/UAPI replay runs
 - `zigux/tests/fixtures/phase3_abi_manifest.json` now carries those focused replay paths inside the same ABI substrate packet rather than presenting them as a broader UAPI tranche
 
 ## Current Boundary Gap
@@ -73,5 +75,6 @@ The next honest follow-on inside this boundary family is still narrow:
 
 - keep the current export shim and boundary-header surface narrow until a roadmap-backed interop slice needs one more reviewable boundary helper
 - keep `zigux/uapi/` at version-plus-boundary-header scope until a concrete Phase 3 slice needs one additional curated public constant, type, or helper surface
+- refresh `PHASE3_SURVEYED_COMMIT` whenever this note is deliberately resurveyed against a newer verified `master` head
 
 This lane does not justify broad UAPI expansion, generated headers, or a larger export namespace on its own.
