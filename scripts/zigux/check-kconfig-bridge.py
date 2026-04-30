@@ -539,6 +539,21 @@ def main() -> int:
             repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
             compare_json_artifacts(actual, repeat)
 
+        default_actual = tmp_dir / 'default-oldaskconfig.actual.json'
+        default_repeat = tmp_dir / 'default-oldaskconfig.repeat.json'
+        default_cmd = [
+            str(conf_exe),
+            'Kconfig',
+            '.config',
+            'x86_64',
+        ]
+        result = run(default_cmd, cwd=str(ROOT), capture_output=True)
+        default_actual.write_text(result.stdout, encoding='utf-8', newline='\n')
+        compare_json_artifacts(FIXTURE_DIR / 'oldaskconfig_expected.json', default_actual)
+        repeat_result = run(default_cmd, cwd=str(ROOT), capture_output=True)
+        default_repeat.write_text(repeat_result.stdout, encoding='utf-8', newline='\n')
+        compare_json_artifacts(default_actual, default_repeat)
+
         for case in cases['confdata_cases']:
             actual = tmp_dir / f"{case['name']}.actual.json"
             repeat = tmp_dir / f"{case['name']}.repeat.json"
