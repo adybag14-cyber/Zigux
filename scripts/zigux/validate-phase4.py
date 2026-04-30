@@ -40,10 +40,10 @@ PHASE4_GATE_EXPECTATIONS = {
             'post-exit invalid lifecycle errors',
             'post-selftest replay',
         ],
-        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded add, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
+        'threshold_status': 'correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded add, sub, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
         'threshold_posture': 'threshold_pending_until_runtime_atomic64_scope_widens',
-        'gate_scope': 'add, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay',
-        'threshold_scope': 'add, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
+        'gate_scope': 'add, sub, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay',
+        'threshold_scope': 'add, sub, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set',
         'local_replay_markers': [
             'phase4-runtime-atomic64-diff-tests',
             'phase4-runtime-atomic64-diff-survey-tests',
