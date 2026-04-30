@@ -66,7 +66,7 @@ ABI_REQUIRED_DOC_MARKERS = (
     "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
     "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor",
     "PHASE3_BARRIER_SCOPE=acquire-release-full",
-    "PHASE3_MMIO_SCOPE=range-read16-read32-write16-write32-plus-scoped-read16-write16-read32-write32",
+    "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32",
 )
 ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/kernel/export_shim.zig": (
@@ -127,9 +127,12 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/helpers/mmio.zig": (
         "pub fn range(base_addr: usize, length: u32, stride: u32) abi.MmioRange {",
+        "pub fn read8Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u8 {",
+        "pub fn write8Scoped(",
         "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
         "pub fn write16Scoped(",
         "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
+        "pub fn write8(base_addr: usize, offset: usize, value: u8) void {",
         "pub fn write32(base_addr: usize, offset: usize, value: u32) void {",
         'test "phase3 mmio wrapper uses bounded volatile access"',
         'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
@@ -153,7 +156,10 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst)",
         "barrier.full();",
         "const desc = mmio.range(base, 12, 4);",
+        "try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 1));",
+        "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Scoped(.none, base, 0, 0x99));",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
+        "try std.testing.expectEqual(@as(u8, 0xbe), try mmio.read8Scoped(.volatile_mmio, base, 0));",
         "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
