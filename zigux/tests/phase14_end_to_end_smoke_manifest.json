@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "d439e5349fe57b8f59f7229cc02fa77eb825c154",
+  "surveyed_commit": "efab12eaee3becb91eb2a763529ff250696b0bb0",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -49,7 +49,7 @@
     {
       "lane_key": "P14-L01",
       "anchor": "kernel/workqueue.c",
-      "surveyed_commit": "1b346dbd77659625fedfdc2a45f5016e391043f8",
+      "surveyed_commit": "64f315b1e0536983ec5bdf620d720d10972d9551",
       "manifest_path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-workqueue-bridge-survey.md",
       "ready_next_gap": "phase14-workqueue-disable-delayed-followup",
@@ -65,9 +65,9 @@
       "blocked_gap": "phase14-skbuff-live-ownership-blocker"
     },
     {
-      "lane_key": "P14-L05",
+      "lane_key": "P14-L08",
       "anchor": "kernel/trace/ring_buffer.c",
-      "surveyed_commit": "7addb3a576d8a83a542f84a83957289cfe2f72e5",
+      "surveyed_commit": "98aa9bb7dd14ed6063f954b0a23c19a537af51a5",
       "manifest_path": "zigux/tests/phase14_ring_buffer_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-ring-buffer-survey.md",
       "ready_next_gap": "",
