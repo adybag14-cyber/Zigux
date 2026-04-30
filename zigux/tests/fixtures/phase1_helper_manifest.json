@@ -111,6 +111,8 @@
       "unit_test_contract": "Direct Zig unit coverage keeps findAdd duplicate handling aligned so the first equal key stays resident while new distinct keys still link into the tree.",
       "search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree nextMatch walks the duplicate range in order\"",
       "search_unit_test_contract": "Direct Zig unit coverage keeps find(), findFirst(), and nextMatch() aligned so duplicate-key lookups start at the leftmost match and walk through the final equal node without drifting into a later key.",
+      "duplicate_search_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree duplicate search stays aligned after erase and same-key replace\"",
+      "duplicate_search_unit_test_contract": "Direct Zig unit coverage keeps duplicate-key search aligned after erase() and same-key replaceNode() so findFirst(), findLast(), and duplicate-range iterators continue to report the surviving equal-key window in both directions.",
       "cached_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree cached root keeps leftmost in sync across add erase and replace\"",
       "cached_unit_test_contract": "Direct Zig unit coverage keeps RootCached leftmost tracking aligned so addCached(), eraseCached(), and replaceNodeCached() continue to expose the same first node as the underlying tree root.",
       "cached_duplicate_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree cached root tracks duplicate minima through erase and non-leftmost replace\"",
