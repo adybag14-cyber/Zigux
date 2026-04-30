@@ -22,6 +22,13 @@ BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_LOW_LEVEL_BUILD_FILE_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
 ABI_EXPORT_UAPI_BUILD_FILE_REL = "zigux/tests/phase3_export_uapi_build.zig"
 ABI_POLICY_UNSAFE_BUILD_FILE_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
+ABI_BUILD_SMOKE_TARGETS = (
+    ("phase3-dump", BUILD_FILE_REL),
+    ("phase3-test", BUILD_FILE_REL),
+    ("phase3-export-uapi-test", ABI_EXPORT_UAPI_BUILD_FILE_REL),
+    ("phase3-low-level-wrappers-test", ABI_LOW_LEVEL_BUILD_FILE_REL),
+    ("phase3-policy-unsafe-test", ABI_POLICY_UNSAFE_BUILD_FILE_REL),
+)
 ABI_EXPORT_UAPI_SURVEY_CHECK_REL = "scripts/zigux/validate-phase3-export-uapi-survey.py"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
@@ -192,6 +199,16 @@ COMMON_DOC_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
 )
+
+
+def _phase3_paths_for_root(root: Path) -> Phase3Paths:
+    return Phase3Paths(
+        root=root,
+        docs_dir=root / "Documentation" / "zigux",
+        scripts_dir=root / "scripts" / "zigux",
+        tests_dir=root / "zigux" / "tests",
+        fixtures_dir=root / "zigux" / "tests" / "fixtures",
+    )
 
 ASSERT_RE = re.compile(r"assert(?:Size|Offset)\(abi\.([A-Za-z0-9_]+),")
 DUMP_LAYOUT_RE = re.compile(r'writeLayoutPrefix\(writer,\s*"([^"]+)"')
@@ -396,17 +413,21 @@ def _validate_wrapper_stub(entry: Phase3Slice) -> list[str]:
 
 def _validate_build_smoke(root: Path, entry: Phase3Slice, zig_path: str | None) -> list[str]:
     zig = find_zig(zig_path)
-    result = subprocess.run(
-        [zig, "build", entry.build_step, "--build-file", str(root / BUILD_FILE_REL)],
-        cwd=str(root),
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        return []
-    stderr = result.stderr.strip().splitlines()
-    tail = stderr[-1] if stderr else f"exit {result.returncode}"
-    return [f"{entry.slug}: build smoke failed for {entry.build_step}: {tail}"]
+    build_targets = ABI_BUILD_SMOKE_TARGETS if entry.slug == "abi" else ((entry.build_step, BUILD_FILE_REL),)
+    issues: list[str] = []
+    for build_step, build_file_rel in build_targets:
+        result = subprocess.run(
+            [zig, "build", build_step, "--build-file", str(root / build_file_rel)],
+            cwd=str(root),
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            continue
+        stderr = result.stderr.strip().splitlines()
+        tail = stderr[-1] if stderr else f"exit {result.returncode}"
+        issues.append(f"{entry.slug}: build smoke failed for {build_step}: {tail}")
+    return issues
 
 
 def validate_slices(
@@ -420,6 +441,7 @@ def validate_slices(
     zig_path: str | None,
 ) -> list[str]:
     issues: list[str] = []
+    catalog_entries = discover_phase3_slices(_phase3_paths_for_root(root))
     for entry in slices:
         for path in (entry.doc_path, entry.dump_path, entry.expected_path, entry.harness_path):
             if not path.exists():
@@ -439,8 +461,13 @@ def validate_slices(
         issues.extend(f"slug-sanity: {issue.to_row()}" for issue in audit_phase3_slug_sanity(slices))
 
     if check_all_wrappers:
-        issues.extend(f"doc-sync: {issue.to_row()}" for issue in audit_phase3_doc_sync(slices))
-    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(slices, root / "Documentation/zigux/artifact-diff.md"):
+        issues.extend(
+            f"doc-sync: {issue.to_row()}"
+            for issue in audit_phase3_doc_sync(catalog_entries, _phase3_paths_for_root(root))
+        )
+    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(
+        catalog_entries, root / "Documentation/zigux/artifact-diff.md"
+    ):
         issues.append("doc-sync: Documentation/zigux/artifact-diff.md Phase 3 section is stale")
 
     return issues
