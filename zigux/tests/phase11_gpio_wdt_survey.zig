@@ -54,22 +54,22 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     );
     defer std.testing.allocator.free(matrix_doc);
 
-    const module_slice_doc = try std.Io.Dir.cwd().readFileAlloc(
+    const slice_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
+        "Documentation/zigux/phase11-gpio-wdt-slice.md",
         std.testing.allocator,
         .limited(32 * 1024),
     );
-    defer std.testing.allocator.free(module_slice_doc);
+    defer std.testing.allocator.free(slice_doc);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("4908a30b508d19e298f812fd48120c1e2222c87d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("bb98ee7e0dc1524c28dab24c2c3f693a87551cbf", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.gpio_wdt_c_lines >= 190);
     try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase11_test_files);
@@ -93,12 +93,12 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardown()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "register-device call surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "descriptor-facing registration handoff") == null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "summarizeTeardown()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "registerDeviceCallSummary()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "now-landed bounded register-device call summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "Avoid widening straight into descriptor-backed preflight, reboot glue, or broader watchdog registration work from this packet.") != null);
-    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeTeardown()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "registerDeviceCallSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "first bounded `devm_watchdog_register_device()` request") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "move from that metadata-only registration plan to the first bounded register-device call surface") == null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
