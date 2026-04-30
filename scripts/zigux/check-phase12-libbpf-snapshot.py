@@ -65,6 +65,27 @@ def render_snapshot() -> dict[str, object]:
     }
 
 
+def compare_snapshot(snapshot: dict[str, object]) -> tuple[subprocess.CompletedProcess[str], str]:
+    rendered = json.dumps(snapshot, indent=2) + "\n"
+    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_") as tmp_dir_str:
+        actual_path = Path(tmp_dir_str) / "phase12_libbpf_snapshot.json"
+        actual_path.write_text(rendered, encoding="utf-8")
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(ARTIFACT_DIFF_PATH),
+                "--mode",
+                "json",
+                str(FIXTURE_PATH),
+                str(actual_path),
+            ],
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+    return result, rendered
+
+
 def expect_system_exit(label: str, callback, expected_message: str) -> None:
     try:
         callback()
@@ -89,6 +110,14 @@ def run_self_test() -> int:
         raise SystemExit("phase12-libbpf-snapshot:self-test:phase_round_trip")
     if manifest_packet["surveyed_commit"] != live_manifest["surveyed_commit"]:
         raise SystemExit("phase12-libbpf-snapshot:self-test:surveyed_commit_round_trip")
+
+    invalid_lane_manifest = dict(live_manifest)
+    invalid_lane_manifest["lane_key"] = ""
+    expect_system_exit(
+        "invalid_lane_key",
+        lambda: validate_manifest_packet(invalid_lane_manifest),
+        "invalid Phase 12 libbpf lane_key",
+    )
 
     invalid_phase_manifest = dict(live_manifest)
     invalid_phase_manifest["phase"] = "Phase 11"
@@ -126,8 +155,22 @@ def run_self_test() -> int:
     if first_digest.get("bytes") != len((ROOT / TRACKED_PATHS[0]).read_bytes()):
         raise SystemExit("phase12-libbpf-snapshot:self-test:first_digest_bytes")
 
+    matched_result, _ = compare_snapshot(first)
+    if matched_result.returncode != 0:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_match")
+    if "ARTIFACT_DIFF=pass" not in matched_result.stdout:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_match_stdout")
+
+    drifted = dict(first)
+    drifted["lane_key"] = "P12-L99"
+    mismatched_result, _ = compare_snapshot(drifted)
+    if mismatched_result.returncode == 0:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_drift_exit")
+    if "ARTIFACT_DIFF=fail" not in mismatched_result.stdout:
+        raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_drift_stdout")
+
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -152,23 +195,7 @@ def main(argv: list[str] | None = None) -> int:
         print("PHASE12_LIBBPF_REPEAT_RUN=drift")
         return 1
 
-    rendered = json.dumps(first, indent=2) + "\n"
-    with tempfile.TemporaryDirectory(prefix="zigux_phase12_libbpf_snapshot_") as tmp_dir_str:
-        actual_path = Path(tmp_dir_str) / "phase12_libbpf_snapshot.json"
-        actual_path.write_text(rendered, encoding="utf-8")
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(ARTIFACT_DIFF_PATH),
-                "--mode",
-                "json",
-                str(FIXTURE_PATH),
-                str(actual_path),
-            ],
-            check=False,
-            text=True,
-            capture_output=True,
-        )
+    result, rendered = compare_snapshot(first)
 
     if result.stdout:
         sys.stdout.write(result.stdout)
