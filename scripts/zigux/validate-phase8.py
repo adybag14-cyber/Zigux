@@ -67,12 +67,16 @@ phase8_libbpf_segments_only_build = (ROOT / "zigux" / "tests" / "phase8_libbpf_s
 phase8_survey = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-segment-survey.md").read_text(encoding="utf-8")
 phase8_bridge_boundary = (ROOT / "Documentation" / "zigux" / "phase8-userspace-kernel-bridge-boundary-survey.md").read_text(encoding="utf-8")
 phase8_exec_cmd_slice = (ROOT / "Documentation" / "zigux" / "phase8-exec-cmd-slice.md").read_text(encoding="utf-8")
+phase8_help_slice = (ROOT / "Documentation" / "zigux" / "phase8-help-slice.md").read_text(encoding="utf-8")
+phase8_kallsyms_slice = (ROOT / "Documentation" / "zigux" / "phase8-kallsyms-slice.md").read_text(encoding="utf-8")
 phase8_cpu_mask = (ROOT / "Documentation" / "zigux" / "phase8-libbpf-cpu-mask-slice.md").read_text(encoding="utf-8")
 phase8_type_names = (ROOT / "Documentation" / "zigux" / "phase8-bpf-type-names-slice.md").read_text(encoding="utf-8")
 manifest = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "manifest.json").read_text(encoding="utf-8")
 phase8_libbpf_segments_test = (ROOT / "zigux" / "tests" / "phase8_libbpf_segments.zig").read_text(encoding="utf-8")
 phase8_bpf_type_names_test = (ROOT / "zigux" / "tests" / "phase8_bpf_type_names.zig").read_text(encoding="utf-8")
 phase8_exec_cmd_test = (ROOT / "zigux" / "tests" / "phase8_exec_cmd.zig").read_text(encoding="utf-8")
+phase8_help_test = (ROOT / "zigux" / "tests" / "phase8_help.zig").read_text(encoding="utf-8")
+phase8_kallsyms_test = (ROOT / "zigux" / "tests" / "phase8_kallsyms.zig").read_text(encoding="utf-8")
 type_names_helper = (ROOT / "tools" / "lib" / "bpf" / "zigux_segments" / "type_names.zig").read_text(encoding="utf-8")
 
 
@@ -305,6 +309,50 @@ required_phase8_exec_cmd_markers = [
     "`execvp()`",
 ]
 
+required_help_slice_markers = [
+    "PHASE8_SLICE=help-command-source-and-terminal-starter",
+    "tools/lib/subcmd/help.zig",
+    "zigux/tests/phase8_help.zig",
+    "stable command-list manipulation logic",
+    "section-level output stays testable",
+    "list_commands()",
+    "does not yet claim:",
+    "cmd_help()",
+]
+
+required_phase8_help_markers = [
+    'test "phase 8 help docs keep the parked stable-output boundary explicit"',
+    'test "phase 8 help review checklist keeps the parked stable-output packet reviewable"',
+    'test "phase 8 help evidence still matches the live C helper anchors"',
+    "Documentation/zigux/phase8-help-slice.md",
+    "Documentation/zigux/review-checklist.md",
+    "tools/lib/subcmd/help.c",
+    "`load_command_list()`",
+    "`list_commands()`",
+]
+
+required_kallsyms_slice_markers = [
+    "PHASE8_SLICE=kallsyms-parse-wrapper-starter",
+    "tools/lib/symbol/kallsyms.zig",
+    "zigux/tests/phase8_kallsyms.zig",
+    "chunked overlong-line handling",
+    "stops buffering after the bounded callback surface is full",
+    "kallsymsParse()",
+    "kallsymsParseInDir()",
+    "api/io.h",
+]
+
+required_phase8_kallsyms_markers = [
+    'test "phase 8 kallsyms docs keep the parked parser boundary explicit"',
+    'test "phase 8 kallsyms review checklist keeps the parked parser packet reviewable"',
+    'test "phase 8 kallsyms evidence still matches the live C helper anchors"',
+    "Documentation/zigux/phase8-kallsyms-slice.md",
+    "Documentation/zigux/review-checklist.md",
+    "tools/lib/symbol/kallsyms.c",
+    "read_to_eol",
+    "char symbol_name[KSYM_NAME_LEN + 1];",
+]
+
 required_cpu_mask_markers = [
     "libbpf-cpu-mask-starter",
     "tools/lib/bpf/zigux_segments/cpu_mask.zig",
@@ -446,6 +494,18 @@ for marker in required_exec_cmd_slice_markers:
 for marker in required_phase8_exec_cmd_markers:
     if marker not in phase8_exec_cmd_test:
         missing_markers.append(f"phase8_exec_cmd:{marker}")
+for marker in required_help_slice_markers:
+    if marker not in phase8_help_slice:
+        missing_markers.append(f"phase8_help_slice:{marker}")
+for marker in required_phase8_help_markers:
+    if marker not in phase8_help_test:
+        missing_markers.append(f"phase8_help:{marker}")
+for marker in required_kallsyms_slice_markers:
+    if marker not in phase8_kallsyms_slice:
+        missing_markers.append(f"phase8_kallsyms_slice:{marker}")
+for marker in required_phase8_kallsyms_markers:
+    if marker not in phase8_kallsyms_test:
+        missing_markers.append(f"phase8_kallsyms:{marker}")
 for marker in required_cpu_mask_markers:
     if marker not in phase8_cpu_mask:
         missing_markers.append(f"phase8_cpu_mask:{marker}")
@@ -502,5 +562,5 @@ print("PHASE8_VALIDATION=pass")
 print(f"PHASE8_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE8_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_phase8_build_markers) + len(required_phase8_exec_cmd_only_build_markers) + len(required_phase8_help_only_build_markers) + len(required_phase8_kallsyms_only_build_markers) + len(required_phase8_libbpf_segments_only_build_markers) + len(required_survey_markers) + len(required_bridge_boundary_markers) + len(required_exec_cmd_slice_markers) + len(required_phase8_exec_cmd_markers) + len(required_help_slice_markers) + len(required_phase8_help_markers) + len(required_kallsyms_slice_markers) + len(required_phase8_kallsyms_markers) + len(required_cpu_mask_markers) + len(required_type_name_markers) + len(required_phase8_bpf_type_names_markers) + len(required_type_names_helper_markers) + len(required_manifest_markers)}"
 )
