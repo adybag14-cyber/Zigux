@@ -8,7 +8,7 @@
   ],
   "survey_summary": {
     "atomic64_test_c_lines": 277,
-    "runtime_atomic64_diff_lines": 552,
+    "runtime_atomic64_diff_lines": 561,
     "roadmap_atomic64_diff_present": true,
     "roadmap_atomic64_wrapper_targets_runtime_diff": true,
     "runtime_atomic64_diff_present": true,
