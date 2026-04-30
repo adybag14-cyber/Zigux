@@ -58,10 +58,21 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     );
     defer std.testing.allocator.free(survey_note);
 
+    const closure_manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase10_closure_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(closure_manifest_json);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
+    const closure_parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, closure_manifest_json, .{});
+    defer closure_parsed.deinit();
 
     const manifest = parsed.value;
+    const closure_manifest = closure_parsed.value;
     try std.testing.expectEqualStrings("P10-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
@@ -86,6 +97,29 @@ test "phase10 virtio core survey manifest records the live core validation bundl
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-generation-summary-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-config-delivery-disposition-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
+    try std.testing.expect(closure_manifest == .object);
+
+    const landed_core_helper_evidence = closure_manifest.object.get("landed_core_helper_evidence") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(landed_core_helper_evidence == .object);
+    const core_helper_evidence = landed_core_helper_evidence.object.get("zigux/tests/phase10_virtio_core_manifest.json") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(core_helper_evidence == .array);
+    const expected_landed_core_helpers = [_][]const u8{
+        "phase10-config-generation-summary-helper",
+        "phase10-config-delivery-disposition-helper",
+    };
+    try std.testing.expectEqual(expected_landed_core_helpers.len, core_helper_evidence.array.items.len);
+    for (expected_landed_core_helpers, 0..) |helper_id, index| {
+        try std.testing.expect(core_helper_evidence.array.items[index] == .string);
+        try std.testing.expectEqualStrings(helper_id, core_helper_evidence.array.items[index].string);
+    }
+
+    const roadmap_parity_scoreboard = closure_manifest.object.get("roadmap_parity_scoreboard") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(roadmap_parity_scoreboard == .object);
+    const lab_only_driver_validation = roadmap_parity_scoreboard.object.get("lab_only_driver_validation") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(lab_only_driver_validation == .object);
+    const lab_only_driver_validation_status = lab_only_driver_validation.object.get("status") orelse return error.TestUnexpectedResult;
+    try std.testing.expect(lab_only_driver_validation_status == .string);
+    try std.testing.expectEqualStrings("starter_landed", lab_only_driver_validation_status.string);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
