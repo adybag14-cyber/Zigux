@@ -70,7 +70,7 @@ jobs:
         run: python3 scripts/zigux/validate-phase1.py
 
       - name: Validate Phase 1 closure
-        run: python3 scripts/zigux/validate-phase1-closure.py
+        run: python3 scripts/zigux/validate-phase1-closure.py --self-test
 
       - name: Self-test Phase 1 closure validator
         run: python3 scripts/zigux/validate-phase1-closure.py --self-test
@@ -278,6 +278,9 @@ jobs:
 
       - name: Run Phase 11 watchdog and console tests
         run: zig build test --build-file zigux/tests/phase11_build.zig --summary all
+
+      - name: Run dedicated Phase 11 hvc survey replay
+        run: make -C zigux phase11-hvc-survey
 
       - name: Run Phase 12 complex driver tests
         run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
