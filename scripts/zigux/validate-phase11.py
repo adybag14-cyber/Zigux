@@ -20,6 +20,9 @@ FILES = [
     "Documentation/zigux/phase11-dw-wdt-survey.md",
     "Documentation/zigux/phase11-dw-wdt-slice.md",
     "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-gpio-wdt-survey.md",
+    "Documentation/zigux/phase11-gpio-wdt-slice.md",
+    "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -128,6 +131,11 @@ SURVEY_SPECS = {
 HVC_DOC_PATHS = {
     "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+}
+GPIO_WDT_DOC_PATHS = {
+    "survey": "Documentation/zigux/phase11-gpio-wdt-survey.md",
+    "slice": "Documentation/zigux/phase11-gpio-wdt-slice.md",
+    "matrix": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
 }
 DW_WDT_DOC_PATHS = {
     "survey": "Documentation/zigux/phase11-dw-wdt-survey.md",
@@ -292,6 +300,37 @@ for marker in [
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
+
+gpio_survey_doc = text(GPIO_WDT_DOC_PATHS["survey"])
+gpio_slice_doc = text(GPIO_WDT_DOC_PATHS["slice"])
+gpio_matrix_doc = text(GPIO_WDT_DOC_PATHS["matrix"])
+for marker in [
+    "explicit `summarizeTeardown()` helper for eternal-ping disable ordering plus toggle-versus-level teardown fallout",
+    "teardown-facing stop-request outcomes, explicit teardown-summary disable ordering, registration handoff reporting, the metadata-only registration plan, and the first bounded register-device request summary",
+    "The next honest bounded step inside the same lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.",
+]:
+    if marker not in gpio_survey_doc:
+        missing.append(f"phase11_gpio_wdt_docs:survey:{marker}")
+for marker in [
+    "explicit `summarizeTeardown()` helper so eternal-ping disable ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable",
+    "distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior",
+    "registerDeviceCallSummary()` helper",
+    "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.",
+]:
+    if marker not in gpio_slice_doc:
+        missing.append(f"phase11_gpio_wdt_docs:slice:{marker}")
+for marker in [
+    "PHASE11_GPIO_WDT_STATUS=teardown_and_register_device_surface_landed",
+    "teardown-facing stop and failure-mode evidence",
+    "explicit disable-order teardown summary",
+    "register-device call surface",
+    "leave this helper parked unless a later lane can isolate another comparably small teardown or failure-mode split beside it",
+    "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
+    "zig test zigux/tests/phase11_gpio_wdt_survey.zig",
+    "phase11-gpio-wdt-survey-tests",
+]:
+    if marker not in gpio_matrix_doc:
+        missing.append(f"phase11_gpio_wdt_docs:matrix:{marker}")
 
 dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
 dw_commit = str(dw_manifest.get("surveyed_commit", ""))
