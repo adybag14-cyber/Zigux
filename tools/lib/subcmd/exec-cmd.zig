@@ -630,6 +630,28 @@ test "buildDeferredExeclCall keeps the execl handoff pure and launch-free" {
     try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
 }
 
+test "buildDeferredExeclCall preserves the empty-tail execl shape" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "version",
+        &[_]?[]const u8{null},
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("version", deferred.argv[1].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[2]);
+}
+
 test "buildDeferredExecvCall keeps the execv handoff pure and launch-free" {
     const config = Config{
         .exec_name = "perf",
