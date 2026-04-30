@@ -106,7 +106,7 @@ pub const RuntimeBitmapSample = struct {
         const trimmed = std.mem.trim(u8, bit_list, &std.ascii.whitespace);
         if (trimmed.len != 0) {
             var saw_any = false;
-            var tokens = std.mem.tokenizeScalar(u8, trimmed, ',');
+            var tokens = std.mem.splitScalar(u8, trimmed, ',');
             while (tokens.next()) |raw_token| {
                 const token = std.mem.trim(u8, raw_token, &std.ascii.whitespace);
                 if (token.len == 0) return error.InvalidBitList;
@@ -289,6 +289,12 @@ test "runtime bitmap sample keeps parse-and-print replay explicit" {
 
     var invalid = RuntimeBitmapSample{};
     try std.testing.expectError(error.InvalidBitList, invalid.initFromBitList("0, nope"));
+
+    var trailing_comma = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, trailing_comma.initFromBitList("0,"));
+
+    var doubled_separator = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, doubled_separator.initFromBitList("0,,5"));
 }
 
 test "runtime bitmap sample selftest keeps the bounded review contract explicit" {
@@ -417,7 +423,12 @@ test "runtime bitmap sample keeps zero-length mutations and invalid copy sources
     try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));
 }
 
-test "runtime bitmap sample keeps bit-list bounds and repeat-init lifecycle explicit in the direct sample leg" {
+test "runtime bitmap sample keeps bit-list bounds, separators, and repeat-init lifecycle explicit in the direct sample leg" {
+    var trailing_comma = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, trailing_comma.initFromBitList("0,"));
+
+    var doubled_separator = RuntimeBitmapSample{};
+    try std.testing.expectError(error.InvalidBitList, doubled_separator.initFromBitList("0,,5"));
     var out_of_bounds = RuntimeBitmapSample{};
     try std.testing.expectError(
         error.BitRangeOutOfBounds,
