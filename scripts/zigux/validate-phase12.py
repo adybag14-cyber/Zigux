@@ -369,3 +369,187 @@ else:
     actual_build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
     if actual_build_test_names != expected_build_test_names:
         missing.append("phase12_build_fixture:build_test_names_mismatch")
+
+expected_depend_steps = build_inventory.get("shared_test_depend_steps")
+if not isinstance(expected_depend_steps, list) or not all(isinstance(item, str) for item in expected_depend_steps):
+    missing.append("phase12_build_fixture:shared_test_depend_steps")
+else:
+    actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if actual_depend_steps != expected_depend_steps:
+        missing.append("phase12_build_fixture:shared_test_depend_steps_mismatch")
+
+expected_module_roots = build_inventory.get("module_root_source_files")
+if not isinstance(expected_module_roots, list) or not all(isinstance(item, dict) for item in expected_module_roots):
+    missing.append("phase12_build_fixture:module_root_source_files")
+else:
+    actual_module_roots = [
+        {"module": module_name, "path": root_path}
+        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+    ]
+    if actual_module_roots != expected_module_roots:
+        missing.append("phase12_build_fixture:module_root_source_files_mismatch")
+
+expected_module_imports = build_inventory.get("module_imports")
+if not isinstance(expected_module_imports, list) or not all(isinstance(item, dict) for item in expected_module_imports):
+    missing.append("phase12_build_fixture:module_imports")
+else:
+    actual_module_imports = [
+        {
+            "module": module_name,
+            "import_name": import_name,
+            "imported_module": imported_module,
+        }
+        for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
+    ]
+    if actual_module_imports != expected_module_imports:
+        missing.append("phase12_build_fixture:module_imports_mismatch")
+
+expected_test_root_modules = build_inventory.get("test_root_modules")
+if not isinstance(expected_test_root_modules, list) or not all(isinstance(item, dict) for item in expected_test_root_modules):
+    missing.append("phase12_build_fixture:test_root_modules")
+else:
+    actual_test_root_modules = [
+        {"test": test_name, "root_module": root_module}
+        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    ]
+    if actual_test_root_modules != expected_test_root_modules:
+        missing.append("phase12_build_fixture:test_root_modules_mismatch")
+
+for key in ["expected_step_count", "expected_test_count"]:
+    if not isinstance(build_inventory.get(key), int):
+        missing.append(f"phase12_build_fixture:{key}")
+if not isinstance(build_inventory.get("expected_summary_line"), str):
+    missing.append("phase12_build_fixture:expected_summary_line")
+for key in ["forbidden_markers", "dedicated_survey_replays"]:
+    value = build_inventory.get(key)
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        missing.append(f"phase12_build_fixture:{key}")
+
+packet_sources = {
+    "phase12_virtio_net_test": text("zigux/tests/phase12_virtio_net.zig"),
+    "phase12_virtio_net_survey": text("Documentation/zigux/phase12-virtio-net-survey.md"),
+    "phase12_nvme_pci_test": text("zigux/tests/phase12_nvme_pci.zig"),
+    "phase12_nvme_pci_slice": text("Documentation/zigux/phase12-nvme-pci-slice.md"),
+    "phase12_virtio_scsi_test": text("zigux/tests/phase12_virtio_scsi.zig"),
+    "phase12_virtio_scsi_slice": text("Documentation/zigux/phase12-virtio-scsi-slice.md"),
+}
+for source_name, markers in PHASE12_PACKET_MARKERS.items():
+    source_text = packet_sources[source_name]
+    for marker in markers:
+        if marker not in source_text:
+            missing.append(f"{source_name}:{marker}")
+
+starter_total = 0
+ready_total = 0
+blocked_total = 0
+deferred_total = 0
+raw_fallback_total = 0
+
+for manifest_name, spec in MANIFEST_SPECS.items():
+    manifest = load_manifest(manifest_name)
+    if manifest.get("lane_key") != spec["lane_key"]:
+        missing.append(f"{manifest_name}:lane_key")
+    if manifest.get("phase") != "Phase 12":
+        missing.append(f"{manifest_name}:phase")
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
+        missing.append(f"{manifest_name}:surveyed_commit")
+    if manifest.get("anchor") != spec["anchor"]:
+        missing.append(f"{manifest_name}:anchor")
+
+    roadmap_destinations = manifest.get("roadmap_destinations")
+    if roadmap_destinations != spec["roadmap_destinations"]:
+        missing.append(f"{manifest_name}:roadmap_destinations")
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        missing.append(f"{manifest_name}:gaps")
+        continue
+    if len(gaps) != spec["gap_count"]:
+        missing.append(f"{manifest_name}:gap_count")
+
+    survey_text = text(spec["survey_path"])
+    survey_note_text = text(spec["survey_note_path"])
+    if not isinstance(surveyed_commit, str) or surveyed_commit not in survey_note_text:
+        missing.append(f"{manifest_name}:survey_note:surveyed_commit")
+
+    for count_marker, status_name in spec["survey_count_markers"]:
+        count = count_statuses(manifest, status_name)
+        expected_line = f"try std.testing.expectEqual(@as(usize, {count}), {count_marker});"
+        if expected_line not in survey_text:
+            missing.append(f"{manifest_name}:{count_marker}")
+
+    status_totals = spec["expected_status_totals"]
+    for status_name, expected_total in status_totals.items():
+        actual_total = count_statuses(manifest, status_name)
+        if actual_total != expected_total:
+            missing.append(f"{manifest_name}:status_total:{status_name}")
+
+    for index, gap in enumerate(gaps):
+        if not isinstance(gap, dict):
+            missing.append(f"{manifest_name}:gap:{index}")
+            continue
+        gap_id = gap.get("id")
+        status = gap.get("status")
+        kind = gap.get("kind")
+        destination = gap.get("zigux_destination")
+        why_now = gap.get("why_now")
+        if not isinstance(gap_id, str) or not gap_id:
+            missing.append(f"{manifest_name}:gap_id:{index}")
+        if not isinstance(status, str) or status not in spec["allowed_statuses"]:
+            missing.append(f"{manifest_name}:status:{gap_id or index}")
+        if not isinstance(kind, str) or not kind:
+            missing.append(f"{manifest_name}:kind:{gap_id or index}")
+        if not isinstance(destination, str) or not destination_allowed(destination, spec):
+            missing.append(f"{manifest_name}:destination:{gap_id or index}")
+        if not isinstance(why_now, str) or not why_now:
+            missing.append(f"{manifest_name}:why_now:{gap_id or index}")
+
+    starter_total += count_statuses(manifest, "starter_landed")
+    ready_total += count_statuses(manifest, "ready_next")
+    blocked_total += count_statuses(manifest, "blocked_on_dma_transport")
+    blocked_total += count_statuses(manifest, "blocked_on_object_model")
+    deferred_total += count_statuses(manifest, "deferred_high_risk")
+
+    raw_fallback_catalog_path = spec.get("raw_fallback_catalog_path")
+    if isinstance(raw_fallback_catalog_path, str):
+        raw_fallback_total += 1
+        catalog_text = text(raw_fallback_catalog_path)
+        if not isinstance(surveyed_commit, str) or surveyed_commit not in catalog_text:
+            missing.append(f"{manifest_name}:raw_fallback_catalog:surveyed_commit")
+        for url in spec.get("raw_fallback_tree_urls", []):
+            expect_catalog_marker(catalog_text, str(url), f"{manifest_name}:raw_fallback_tree:{url}", missing)
+        for path in spec.get("raw_fallback_artifact_paths", []):
+            expect_catalog_marker(catalog_text, str(path), f"{manifest_name}:raw_fallback_artifact:{path}", missing)
+        for raw_path in spec.get("raw_fallback_raw_paths", []):
+            if not isinstance(surveyed_commit, str):
+                break
+            raw_url = f"https://raw.githubusercontent.com/adybag14-cyber/Zigux/{surveyed_commit}/{raw_path}"
+            expect_catalog_marker(catalog_text, raw_url, f"{manifest_name}:raw_fallback_raw:{raw_path}", missing)
+
+expect_libbpf_snapshot_fixture(
+    phase12_libbpf_snapshot_fixture,
+    load_manifest("phase12_libbpf_manifest.json"),
+    missing,
+)
+
+if missing:
+    print("PHASE12_VALIDATION=fail")
+    print("PHASE12_VALIDATION_MISSING_START")
+    for item in missing:
+        print(item)
+    print("PHASE12_VALIDATION_MISSING_END")
+    sys.exit(1)
+
+print("PHASE12_VALIDATION=pass")
+print(f"PHASE12_REQUIRED_FILE_COUNT={len(FILES)}")
+print(f"PHASE12_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
+print(f"PHASE12_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
+print(f"PHASE12_SHARED_BUILD_MODULE_ROOT_COUNT={len(expected_module_roots)}")
+print(f"PHASE12_SHARED_BUILD_IMPORT_COUNT={len(expected_module_imports)}")
+print(f"PHASE12_SHARED_BUILD_TEST_ROOT_COUNT={len(expected_test_root_modules)}")
+print(f"PHASE12_STARTER_STATUS_COUNT={starter_total}")
+print(f"PHASE12_READY_NEXT_STATUS_COUNT={ready_total}")
+print(f"PHASE12_BLOCKED_STATUS_COUNT={blocked_total}")
+print(f"PHASE12_DEFERRED_STATUS_COUNT={deferred_total}")
+print(f"PHASE12_RAW_FALLBACK_CATALOG_COUNT={raw_fallback_total}")
