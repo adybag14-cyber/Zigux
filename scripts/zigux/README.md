@@ -99,6 +99,21 @@ Phase 6 flow
 - `check-phase6-base64-c-parity.py` and `check-phase6-bsearch-c-parity.py` remain the two external parity spot checks for the portability-sensitive helper slices.
 - `zigux/tests/phase6_helper_parity_manifest.json` is the compact machine-readable inventory for the whole shared Phase 6 packet.
 
+Phase 7 flow
+- `validate-phase7.py` keeps the shipped runtime-safe leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, the four Phase 7 slice notes, `zigux/tests/phase7_build.zig`, `zigux/Makefile`, the bootstrap workflow, the dedicated helper and survey tests, the repo-root manifest-backed survey packet, and the four helper roots in `lib/`.
+- `validate-phase7.py --self-test` exercises the shared Phase 7 marker walk in a compact synthetic tree and fails if the helper-local review packet, repo-root survey packet, workflow hooks, or build wiring drift.
+- `check-phase7-rbtree-parity.py` remains the external parity spot check for the committed `zigux/tests/fixtures/phase7_rbtree.json` fixture against the bounded `tools/lib/rbtree.c` harness replay.
+- `make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 flow.
+- `make -C zigux phase7-test` is the shared replay path after the validator and parity gate pass.
+- `make -C zigux phase7` keeps the one-command bundle aligned with the published review path instead of bypassing the fail-closed validator.
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all` is the shared build replay for the current Phase 7 helper tranche.
+- `zigux/tests/phase7_build.zig` is the shared build entrypoint for `string_helpers`, `cmdline`, `argv_split`, and `rbtree`.
+- `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_cmdline_survey.zig` stay standalone so the helper-only string and cmdline slices keep their roadmap-backed review notes explicit without widening into extra helper-local bootstrap rules or later-phase sample claims.
+- `zigux/tests/phase7_argv_split_manifest.json` and `zigux/tests/phase7_rbtree_manifest.json` stay as the repo-root survey packet inputs for the manifest-backed `argv_split` and `rbtree` review surfaces.
+- `Documentation/zigux/phase7-rbtree-slice.md` remains the published helper-local review note for the `rbtree` packet.
+- helper-only string and cmdline slices keep their roadmap-backed review notes explicit and separate from sample-root or later-phase runtime claims.
+- `phase7_build.zig` keeps setting those survey runs to `repo_root` so the manifest-backed review packet stays truthful.
+
 Phase 8 flow
 - `validate-phase8.py` keeps the parked repo-hosted tooling packet aligned across `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` so the shared review surface stays explicit.
 - `make -C zigux phase8-validate` is the validator-first entrypoint for the current Phase 8 flow.
