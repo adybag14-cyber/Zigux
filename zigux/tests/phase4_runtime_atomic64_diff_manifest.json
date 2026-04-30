@@ -1,7 +1,7 @@
 {
   "lane_key": "P4-L04",
   "phase": "Phase 4",
-  "surveyed_commit": "1d98894fd1d07e6a14004187e3ec8f5285a39187",
+  "surveyed_commit": "379f25355dc3374498a3e50986c2e735c9cd006a",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/atomic64_diff.zig"
@@ -15,9 +15,13 @@
     "post_selftest_replay_present": true,
     "phase4_build_present": true,
     "phase9_build_present": true,
+    "phase4_validator_atomic64_diff_present": true,
     "phase4_validator_runtime_atomic64_diff_present": true,
     "runtime_atomic64_sample_present": true,
     "phase4_validation_matrix_present": true,
+    "phase4_validation_matrix_wrapper_present": true,
+    "docs_readme_atomic64_diff_present": true,
+    "tests_readme_atomic64_diff_present": true,
     "tests_readme_runtime_atomic64_diff_present": true
   },
   "threshold_plan": {
@@ -64,7 +68,7 @@
       "status": "starter_landed",
       "kind": "roadmap_note",
       "zigux_destination": "zigux/tests/atomic64_diff.zig",
-      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, and master now carries that canonical entrypoint as a thin wrapper with `@import(\"runtime_atomic64_diff.zig\")` while the shipped replay bundle continues to run through zigux/tests/runtime_atomic64_diff.zig across validate-phase4.py, phase4_build.zig, and phase9_build.zig. This survey should record that the roadmap-facing path now lands as a thin entrypoint instead of keeping the same alignment step open."
+      "why_now": "The Phase 4 roadmap still names zigux/tests/atomic64_diff.zig, and master now carries that canonical entrypoint as a thin wrapper with `@import(\"runtime_atomic64_diff.zig\")` while the shipped replay bundle continues to run through zigux/tests/runtime_atomic64_diff.zig across validate-phase4.py, phase4_build.zig, phase9_build.zig, Documentation/zigux/README.md, and zigux/tests/README.md. This survey should record that the roadmap-facing path now lands as a thin entrypoint instead of keeping the same alignment step open."
     },
     {
       "id": "phase4-broader-atomic64-surface",
