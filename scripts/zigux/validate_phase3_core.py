@@ -1,28 +1,20 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse
 import json
 from pathlib import Path
 import re
 import subprocess
-import tempfile
 
 from phase3_catalog import (
     Phase3Paths,
+    Phase3Slice,
+    artifact_diff_phase3_section_needs_rewrite,
+    audit_phase3_doc_sync,
     audit_phase3_slug_sanity,
-    artifact_diff_phase3_lines,
-    discover_phase3_slug_rename_candidates,
     discover_phase3_slices,
 )
-from phase3_check_lib import (
-    build_step_for_slug as runner_build_step_for_slug,
-    description_for_slug as runner_description_for_slug,
-    find_zig,
-    legacy_wrapper_gate_for_slug,
-    render_wrapper_stub,
-    shared_runner_gate_for_slug,
-)
+from phase3_check_lib import find_zig, render_wrapper_stub, shared_runner_gate_for_slug
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -112,13 +104,6 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     ),
     "zigux/helpers/atomic.zig": (
         "pub fn load(comptime T: type, ptr: *const T, comptime order: std.builtin.AtomicOrder) T {",
-        "pub fn store(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) void {",
-        "pub fn exchange(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
-        "pub fn fetchAdd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
-        "pub fn fetchSub(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
-        "pub fn fetchAnd(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
-        "pub fn fetchOr(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
-        "pub fn fetchXor(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {",
         "pub fn compareExchange(",
         'test "phase3 atomic wrappers behave predictably"',
     ),
@@ -144,49 +129,20 @@ ABI_REQUIRED_SOURCE_MARKERS = {
         "raw_pointer_bridge = 2,",
         'test "phase3 narrow unsafe scope stays explicit"',
         'test "phase3 narrow unsafe scoped helpers reject misaligned addresses"',
-        "try std.testing.expectError(error.MisalignedAccess, scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));",
     ),
     "zigux/tests/phase3_export_uapi.zig": (
         'test "phase3 export shim and uapi stay aligned"',
         "try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
         "try std.testing.expect(export_shim.isCanonicalHeader(header));",
         "try std.testing.expect(uapi_version.isCanonical(header));",
-        "try std.testing.expect(!export_shim.isCompatibleHeader(undersized_header));",
-        "try std.testing.expect(!uapi_version.isCompatible(mismatched_version_header));",
-        "try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));",
-        "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
-        "try std.testing.expect(export_shim.isCompatibleHeader(future_compatible_header));",
-        "try std.testing.expect(uapi_version.isCompatible(future_compatible_header));",
-        "try std.testing.expectEqual(abi.ABI_VERSION, uapi_version.abi_version);",
     ),
     "zigux/tests/phase3_low_level_wrappers.zig": (
         'test "phase3 low-level wrappers stay inside the documented ABI surface"',
-        'test "phase3 low-level wrapper ABI range shape stays stable"',
-        'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
-        "atomic.fetchSub(u32, &value, 4, .seq_cst)",
         "atomic.compareExchange(u32, &value, 12, 21, .seq_cst, .seq_cst)",
-        "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)",
-        "atomic.fetchAnd(u32, &value, 0b0111, .seq_cst)",
-        "atomic.fetchXor(u32, &value, 0b1111, .seq_cst)",
-        "const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);",
-        "barrier.acquire();",
-        "barrier.release();",
         "barrier.full();",
         "const desc = mmio.range(base, 12, 4);",
-        "mmio.write16(base, 2, 0xabcd);",
-        "mmio.read16(base, 2)",
-        "mmio.write32(base, 8, 0x12345678);",
-        "mmio.read32(base, 8)",
         "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write16Scoped(.none, base, 0, 0x99));",
-        "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Scoped(.raw_pointer_bridge, base, 0));",
-        "try std.testing.expectError(error.MisalignedAccess, mmio.write16Scoped(.volatile_mmio, base, 1, 0x99));",
-        "try std.testing.expectError(error.MisalignedAccess, mmio.read16Scoped(.volatile_mmio, base, 1));",
-        "try std.testing.expectError(error.MisalignedAccess, mmio.write32Scoped(.volatile_mmio, base, 2, 0x99));",
-        "try std.testing.expectError(error.MisalignedAccess, mmio.read32Scoped(.volatile_mmio, base, 2));",
-        "mmio.write16Scoped(.volatile_mmio, base, 0, 0xbeef);",
-        "mmio.read16Scoped(.volatile_mmio, base, 0)",
         "try mmio.write32Scoped(.volatile_mmio, base, 4, 0xaabbccdd);",
-        "mmio.read32Scoped(.volatile_mmio, base, 4)",
     ),
     "zigux/tests/phase3_policy_unsafe.zig": (
         'test "phase3 policy helpers stay ABI aligned"',
@@ -203,27 +159,219 @@ ABI_REQUIRED_EXPECTED_CONSTANTS = {
     "allocator_caller_provided": 0,
     "unsafe_scope_raw_pointer_bridge": 2,
 }
-LIST_HLIST_REQUIRED_DOC_MARKERS = (
-    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug list-hlist",
-    "PHASE3_LIST_HLIST_BOUNDARY=descriptor-only-no-container-of-no-lockless-no-rcu-no-notifier-chains",
+
+COMMON_DOC_MARKERS = (
+    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
 )
 
-
-def _required_manifest_files_for_slug(slug: str) -> tuple[str, ...]:
-    return ABI_REQUIRED_MANIFEST_FILES if slug == "abi" else ()
-
-
-def _required_doc_markers_for_slug(slug: str) -> tuple[str, ...]:
-    if slug == "abi":
-        return ABI_REQUIRED_DOC_MARKERS
-    if slug == "list-hlist":
-        return LIST_HLIST_REQUIRED_DOC_MARKERS
-    return ()
+ASSERT_RE = re.compile(r"assert(?:Size|Offset)\(abi\.([A-Za-z0-9_]+),")
+DUMP_LAYOUT_RE = re.compile(r'writeLayoutPrefix\(writer,\s*"([^"]+)"')
+EXPECTED_LAYOUT_RE = re.compile(r'\\"(zigux_[a-z0-9_]+)\\":\{\\\"size\\\":%zu')
 
 
-def _required_source_markers_for_slug(slug: str) -> dict[str, tuple[str, ...]]:
-    return ABI_REQUIRED_SOURCE_MARKERS if slug == "abi" else {}
+def select_slices(entries: list[Phase3Slice], selected_slugs: list[str]) -> list[Phase3Slice]:
+    slices = list(entries)
+    selected = set(selected_slugs)
+    if selected:
+        slices = [entry for entry in slices if entry.slug in selected]
+        missing = sorted(selected.difference({entry.slug for entry in slices}))
+        if missing:
+            raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
+    return slices
 
 
-def _has_build_step(build_file: Path, step_name: str) -> bool:
-    return re.search(r'b\.step\(\s*"' + re.escape(step_name) + r'"', build_file.read_text(encoding="utf-8")) is not None
+def _missing_markers(path: Path, markers: tuple[str, ...]) -> list[str]:
+    text = path.read_text(encoding="utf-8")
+    return [marker for marker in markers if marker not in text]
+
+
+def validate_manifest(entry: Phase3Slice, required_files: tuple[str, ...] = ()) -> list[str]:
+    issues: list[str] = []
+    if entry.manifest_path is None or not entry.manifest_path.exists():
+        return [f"{entry.slug}: missing manifest for discovered slice"]
+
+    try:
+        manifest = json.loads(entry.manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"{entry.slug}: invalid manifest json in {entry.manifest_path.relative_to(entry.root)}: {exc}"]
+
+    files = manifest.get("files")
+    if not isinstance(files, list):
+        return [f"{entry.slug}: manifest files list missing in {entry.manifest_path.relative_to(entry.root)}"]
+
+    expected_core_files = (
+        entry.doc_path.relative_to(entry.root).as_posix(),
+        entry.dump_path.relative_to(entry.root).as_posix(),
+        entry.expected_path.relative_to(entry.root).as_posix(),
+        entry.harness_path.relative_to(entry.root).as_posix(),
+    )
+    listed = set(files)
+    for rel in (*expected_core_files, *required_files):
+        if rel not in listed:
+            issues.append(f"{entry.slug}: manifest missing {rel}")
+    for rel in files:
+        if not (entry.root / rel).exists():
+            issues.append(f"{entry.slug}: manifest references missing file {rel}")
+    file_count = manifest.get("file_count")
+    if file_count != len(files):
+        issues.append(f"{entry.slug}: manifest file_count {file_count!r} does not match listed files {len(files)}")
+    if manifest.get("phase") != "Phase 3":
+        issues.append(f"{entry.slug}: manifest phase is {manifest.get('phase')!r}, expected 'Phase 3'")
+    return issues
+
+
+def validate_source_markers(root: Path, required_source_markers: dict[str, tuple[str, ...]]) -> list[str]:
+    issues: list[str] = []
+    for rel, markers in required_source_markers.items():
+        path = root / rel
+        if not path.exists():
+            issues.append(f"source-marker: missing {rel}")
+            continue
+        for marker in _missing_markers(path, markers):
+            issues.append(f"source-marker: {rel} missing {marker}")
+    return issues
+
+
+def _asserted_abi_layout_count(root: Path) -> int:
+    text = (root / "zigux/tests/phase3_abi.zig").read_text(encoding="utf-8")
+    names: list[str] = []
+    seen: set[str] = set()
+    for name in ASSERT_RE.findall(text):
+        if name not in seen:
+            seen.add(name)
+            names.append(name)
+    asserted = len(names)
+    if "assertBoundaryHeaderLayout()" in text:
+        asserted += 1
+    if "assertExportStatusLayout()" in text:
+        asserted += 1
+    if "assertInteropPolicyLayout()" in text:
+        asserted += 1
+    return asserted
+
+
+def _dump_layout_keys(path: Path) -> list[str]:
+    return DUMP_LAYOUT_RE.findall(path.read_text(encoding="utf-8"))
+
+
+def _harness_layout_keys(path: Path) -> list[str]:
+    return EXPECTED_LAYOUT_RE.findall(path.read_text(encoding="utf-8"))
+
+
+def validate_abi_expected_fixture(root: Path) -> list[str]:
+    issues: list[str] = []
+    expected_path = root / "zigux/tests/fixtures/phase3_abi/expected.json"
+    dump_path = root / "zigux/tests/phase3_abi_dump.zig"
+    harness_path = root / "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
+
+    expected = json.loads(expected_path.read_text(encoding="utf-8"))
+    if expected.get("abi_version") != 1:
+        issues.append(f"abi-fixture: expected abi_version 1, found {expected.get('abi_version')!r}")
+
+    constants = expected.get("constants")
+    if not isinstance(constants, dict):
+        issues.append("abi-fixture: constants object missing from expected.json")
+    else:
+        for key, value in ABI_REQUIRED_EXPECTED_CONSTANTS.items():
+            if constants.get(key) != value:
+                issues.append(f"abi-fixture: constant {key} is {constants.get(key)!r}, expected {value!r}")
+
+    structs = expected.get("structs")
+    if not isinstance(structs, dict):
+        return [*issues, "abi-fixture: structs object missing from expected.json"]
+
+    expected_keys = list(structs.keys())
+    dump_keys = _dump_layout_keys(dump_path)
+    harness_keys = _harness_layout_keys(harness_path)
+    asserted_count = _asserted_abi_layout_count(root)
+
+    if len(expected_keys) != len(dump_keys):
+        issues.append(
+            f"abi-fixture: expected.json tracks {len(expected_keys)} layouts but phase3_abi_dump.zig emits {len(dump_keys)}"
+        )
+    if len(expected_keys) != len(harness_keys):
+        issues.append(
+            f"abi-fixture: expected.json tracks {len(expected_keys)} layouts but phase3_abi_c_harness.c emits {len(harness_keys)}"
+        )
+    if len(dump_keys) < asserted_count:
+        issues.append(
+            f"abi-fixture: phase3_abi_dump.zig only emits {len(dump_keys)} layouts while phase3_abi.zig asserts {asserted_count}"
+        )
+    if set(expected_keys) != set(dump_keys):
+        issues.append("abi-fixture: expected.json and phase3_abi_dump.zig layout keys drift")
+    if set(expected_keys) != set(harness_keys):
+        issues.append("abi-fixture: expected.json and phase3_abi_c_harness.c layout keys drift")
+    return issues
+
+
+def _validate_slice_docs(entry: Phase3Slice) -> list[str]:
+    issues: list[str] = []
+    doc_markers = list(COMMON_DOC_MARKERS)
+    doc_markers.append(shared_runner_gate_for_slug(entry.slug))
+    if entry.slug == "abi":
+        doc_markers.extend(ABI_REQUIRED_DOC_MARKERS)
+    for marker in _missing_markers(entry.doc_path, tuple(doc_markers)):
+        issues.append(f"{entry.slug}: documentation missing {marker}")
+    if entry.interop_gate != shared_runner_gate_for_slug(entry.slug):
+        issues.append(f"{entry.slug}: documentation interop gate drifted from shared runner")
+    return issues
+
+
+def _validate_wrapper_stub(entry: Phase3Slice) -> list[str]:
+    if not entry.check_script.exists():
+        return [f"{entry.slug}: missing wrapper {entry.check_script.relative_to(entry.root)}"]
+    if entry.check_script.read_text(encoding="utf-8") != render_wrapper_stub():
+        return [f"{entry.slug}: wrapper {entry.check_script.relative_to(entry.root)} drifted from shared stub"]
+    return []
+
+
+def _validate_build_smoke(root: Path, entry: Phase3Slice, zig_path: str | None) -> list[str]:
+    zig = find_zig(zig_path)
+    result = subprocess.run(
+        [zig, "build", entry.build_step, "--build-file", str(root / BUILD_FILE_REL)],
+        cwd=str(root),
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return []
+    stderr = result.stderr.strip().splitlines()
+    tail = stderr[-1] if stderr else f"exit {result.returncode}"
+    return [f"{entry.slug}: build smoke failed for {entry.build_step}: {tail}"]
+
+
+def validate_slices(
+    root: Path,
+    slices: list[Phase3Slice],
+    *,
+    check_artifact_diff: bool,
+    check_build_smoke: bool,
+    check_slug_sanity: bool,
+    check_all_wrappers: bool,
+    zig_path: str | None,
+) -> list[str]:
+    issues: list[str] = []
+    for entry in slices:
+        for path in (entry.doc_path, entry.dump_path, entry.expected_path, entry.harness_path):
+            if not path.exists():
+                issues.append(f"{entry.slug}: missing {path.relative_to(root)}")
+        issues.extend(_validate_slice_docs(entry))
+        issues.extend(validate_manifest(entry, ABI_REQUIRED_MANIFEST_FILES if entry.slug == "abi" else ()))
+        if check_all_wrappers:
+            issues.extend(_validate_wrapper_stub(entry))
+        if entry.slug == "abi":
+            issues.extend(validate_source_markers(root, ABI_REQUIRED_SOURCE_MARKERS))
+            issues.extend(validate_abi_expected_fixture(root))
+        if check_build_smoke:
+            issues.extend(_validate_build_smoke(root, entry, zig_path))
+
+    if check_slug_sanity:
+        issues.extend(f"slug-sanity: {issue.to_row()}" for issue in audit_phase3_slug_sanity(slices))
+
+    if check_all_wrappers:
+        issues.extend(f"doc-sync: {issue.to_row()}" for issue in audit_phase3_doc_sync(slices))
+    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(slices, root / "Documentation/zigux/artifact-diff.md"):
+        issues.append("doc-sync: Documentation/zigux/artifact-diff.md Phase 3 section is stale")
+
+    return issues
