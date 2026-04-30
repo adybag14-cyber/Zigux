@@ -179,6 +179,7 @@ MARKER_GROUPS = {
         [
             "python3 scripts/zigux/validate-phase1.py",
             "python3 scripts/zigux/validate-phase1-closure.py",
+            "python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "python3 scripts/zigux/check-phase1-bench.py",
             "python3 scripts/zigux/check-phase1-parity.py",
             "python3 scripts/zigux/check-phase1-parity.py --self-test",
@@ -197,6 +198,7 @@ MARKER_GROUPS = {
         "Documentation/zigux/phase1-closure.md",
         [
             "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py",
+            "PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test",
             "PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test",
             "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=",
             "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=",
