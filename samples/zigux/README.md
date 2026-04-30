@@ -48,6 +48,16 @@ Review rules
 - when `samples/zigux/kobject_example.zig`, `samples/zigux/kretprobe_example.zig`, or `samples/zigux/trace_events_sample.zig` changes, keep this sample-root catalog aligned with the focused replay test, manifest-backed survey, and sample-backed survey note instead of leaving the root-level contributor packet FIFO-only or partial
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; keep string-helper evidence under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `zigux/tests/phase7_build.zig`
 
+Focused local replays
+- verify the bytestream FIFO sample directly: `zig test samples/zigux/bytestream_fifo.zig`
+- verify the kobject sample directly: `zig test samples/zigux/kobject_example.zig`
+- verify the kretprobe sample directly: `zig test samples/zigux/kretprobe_example.zig`
+- verify the trace-events sample directly: `zig test samples/zigux/trace_events_sample.zig`
+- verify the bytestream FIFO survey packet directly from the repo root: `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
+- verify the kobject survey packet directly from the repo root: `zig test zigux/tests/phase5_kobject_example_survey.zig`
+- verify the kretprobe survey packet directly from the repo root: `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
+- verify the trace-events survey packet directly from the repo root: `zig test zigux/tests/phase5_trace_events_sample_survey.zig`
+
 String-work boundary checks
 - verify the current approved Phase 5 reference sample inventory still resolves to the four roadmap anchors only: `find samples/zigux -maxdepth 1 -type f | sort | rg '/(bytestream_fifo|kobject_example|kretprobe_example|trace_events_sample)\.zig$'`
 - verify the later `runtime_*` starters still stay cataloged separately from the approved Phase 5 anchors: `find samples/zigux -maxdepth 1 -type f | sort | rg '/runtime_.*\.zig$'`
