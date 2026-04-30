@@ -117,11 +117,85 @@ def resolve_targets(explicit_targets: list[str] | None, allowed_targets: list[st
     return selected
 
 
+def expect_system_exit(label: str, callback, expected_message: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        actual_message = str(exc)
+        if actual_message != expected_message:
+            raise SystemExit(
+                f'phase2-cross:self-test:{label}:expected={expected_message!r}:actual={actual_message!r}'
+            ) from exc
+        return
+    raise SystemExit(f'phase2-cross:self-test:{label}:missing_system_exit:{expected_message!r}')
+
+
+def run_self_test() -> int:
+    manifest = load_json_object(MANIFEST, label='tool')
+    targets_doc = load_json_object(TARGETS, label='targets')
+
+    tools = validate_tool_manifest(manifest)
+    if len(tools) != manifest.get('tool_count'):
+        raise SystemExit('phase2-cross:self-test:tool_count_round_trip')
+
+    allowed_targets = validate_targets_manifest(targets_doc)
+    if resolve_targets(None, allowed_targets) != allowed_targets:
+        raise SystemExit('phase2-cross:self-test:default_target_selection')
+
+    explicit_targets = [allowed_targets[1], allowed_targets[0]]
+    if resolve_targets(explicit_targets, allowed_targets) != explicit_targets:
+        raise SystemExit('phase2-cross:self-test:explicit_target_selection')
+
+    expect_system_exit(
+        'duplicate_target',
+        lambda: resolve_targets([allowed_targets[0], allowed_targets[0]], allowed_targets),
+        f'phase2-cross:duplicate_target:{allowed_targets[0]}',
+    )
+    expect_system_exit(
+        'unexpected_target',
+        lambda: resolve_targets(['sparc64-linux-musl'], allowed_targets),
+        'phase2-cross:unexpected_target:sparc64-linux-musl',
+    )
+
+    bad_manifest = dict(manifest)
+    bad_manifest['tool_count'] = len(tools) + 1
+    expect_system_exit(
+        'tool_count_mismatch',
+        lambda: validate_tool_manifest(bad_manifest),
+        'phase2-cross:tool_count_mismatch',
+    )
+
+    bad_targets = dict(targets_doc)
+    bad_targets['target_count'] = len(allowed_targets) + 1
+    expect_system_exit(
+        'target_count_mismatch',
+        lambda: validate_targets_manifest(bad_targets),
+        'phase2-cross:target_count_mismatch',
+    )
+
+    duplicate_target_manifest = dict(targets_doc)
+    duplicate_target_manifest['targets'] = [allowed_targets[0], allowed_targets[0]]
+    duplicate_target_manifest['target_count'] = 2
+    expect_system_exit(
+        'duplicate_manifest_target',
+        lambda: validate_targets_manifest(duplicate_target_manifest),
+        f'phase2-cross:duplicate_manifest_target:{allowed_targets[0]}',
+    )
+
+    print('PHASE2_CROSS_SELF_TEST=pass')
+    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=7')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Compile bounded Phase 2 Zigux tools for cross targets.')
     parser.add_argument('--zig', help='Explicit zig executable path')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in manifest and target-selection checks')
     parser.add_argument('--target', action='append', help='Explicit target triple to compile')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     zig = find_zig(args.zig)
     manifest = load_json_object(MANIFEST, label='tool')
