@@ -90,6 +90,15 @@ Phase 5 flow
 - `zigux/tests/phase5_build.zig` is the shared build entrypoint for the bytestream FIFO, kobject, kretprobe, and trace-events sample packets, including their paired direct-sample and manifest-backed survey replays.
 - `samples/zigux/README.md` is the contributor-facing sample-root catalog for the approved Phase 5 anchors and the explicit boundary that keeps later `runtime_*` starters out of the sample-pattern lane.
 
+Phase 6 flow
+- `validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.
+- `validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog or manifest provenance or helper-local fixture evidence drifts.
+- `make -C zigux phase6-validate` is the validator-first entrypoint for the current Phase 6 review packet.
+- `make -C zigux phase6` is the shared replay path for the bounded `base64`, `bsearch`, `checksum`, and `hexdump` helper tests after the validator passes.
+- the per-helper perf targets stay reviewable as explicit make entrypoints: `make -C zigux phase6-base64-perf`, `make -C zigux phase6-bsearch-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`.
+- `check-phase6-base64-c-parity.py` and `check-phase6-bsearch-c-parity.py` remain the two external parity spot checks for the portability-sensitive helper slices.
+- `zigux/tests/phase6_helper_parity_manifest.json` is the compact machine-readable inventory for the whole shared Phase 6 packet.
+
 Phase 8 flow
 - `validate-phase8.py` keeps the parked repo-hosted tooling packet aligned across `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md` so the shared review surface stays explicit.
 - `make -C zigux phase8-validate` is the validator-first entrypoint for the current Phase 8 flow.
@@ -98,17 +107,16 @@ Phase 8 flow
 - the segmented libbpf packet stays bounded to helper-first slices such as `tools/lib/bpf/zigux_segments/cpu_mask.zig` and `tools/lib/bpf/zigux_segments/type_names.zig` plus the shared `phase8-libbpf-segment-survey.md` and `phase8-userspace-kernel-bridge-boundary-survey.md` notes.
 - `make -C zigux phase8-test` and `zig build test --build-file zigux/tests/phase8_build.zig --summary all` remain the shared replay path after the validator passes.
 
-Phase 9 flow
-- `validate-phase9.py --self-test` exercises the shared validator drift checks before the live runtime packet replay.
-- `validate-phase9.py` keeps the manifest-backed catalog and ownership map aligned across the runtime pilot notes, surveys, loader-gap note, review checklist, and shared Phase 9 replay entrypoint.
-- `make -C zigux phase9-validate` is the validator-first entrypoint for the current Phase 9 flow.
-- `zigux/tests/phase9_build.zig` is the shared replay entrypoint for the active runtime pilot packet.
-- `Documentation/zigux/phase9-runtime-loader-gap-survey.md` remains the canonical shared loader-gap note for blocked command-name and activation-control posture.
-- the current Phase 9 packet keeps the roadmap's selftest-hook markers explicit instead of implying loadable module parity.
-- the current Phase 9 packet stays within a bounded lifecycle-parity posture through tests and samples while the runtime substrate remains blocked.
-
 Phase 13 flow
 - `validate-phase13-release.py` keeps `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet instead of leaving the Phase 13 review path split across isolated docs or build wiring.
 - `make -C zigux phase13-validate` runs that dedicated release validator before the broader shared replay.
 - `make -C zigux phase13` routes through the validator before the shared replay, so the local convenience path matches the release-facing review contract.
 - `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about live DMA-backed mappings and scatterlist ownership staying blocked rather than implied.
+
+Phase 14 flow
+- `validate-phase14.py` keeps the shared Phase 14 smoke packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, and the four anchor-local manifests plus survey notes so the shared stay-in-C boundary remains reviewable as one validator-backed packet.
+- `make -C zigux phase14-validate` is the validator-first entrypoint for the shared Phase 14 smoke packet before any broader replay claims stay green.
+- `make -C zigux phase14-smoke` is the focused smoke-shard replay contract and intentionally routes through the shared `zigux/tests/phase14_build.zig` entrypoint instead of bypassing the reviewable wrapper path.
+- `zigux/tests/phase14_build.zig` is the shared Phase 14 build entrypoint: it keeps the focused smoke-shard replay contract explicit, records the same shared Phase 14 smoke packet boundary, and leaves the deeper bridge or survey slices under the broader bundle.
+- the shared packet keeps the roadmap stay-in-C boundary explicit by recording the named owner, validation gate, rollback owner, and roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`) beside the focused wrapper path.
+- the same packet also keeps the rollback threshold, fallback path, and automatic return-to-blocked trigger catalog explicit so the shared smoke path fails closed before it overstates Phase 14 delivery.
