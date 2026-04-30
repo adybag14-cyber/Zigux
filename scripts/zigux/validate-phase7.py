@@ -505,7 +505,7 @@ required_phase7_cmdline_doc_markers = [
     "rejection of explicit leading-plus numeric inputs, including autodetected radix forms like `+0x10`",
     "exact bare-option matching for comma-delimited flags",
     "C-style stop-at-NUL handling for bare-option scans",
-    "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, and empty-rest termination",
+    "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination",
     "helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change",
 ]
 
@@ -796,9 +796,9 @@ if rbtree_manifest_shape_errors:
     print("PHASE7_RBTREE_MANIFEST_SHAPE_END")
     sys.exit(1)
 
-phase7_build_paths = set(re.findall(r'b\\.path\\("([^"]+)"\\)', phase7_build))
+phase7_build_paths = set(re.findall(r'b\.path\("([^"]+)"\)', phase7_build))
 for root_path, import_path in re.findall(
-    r'createImportedTestRoot\\(\\s*b,\\s*target,\\s*optimize,\\s*"([^"]+)",\\s*"[^"]+",\\s*"([^"]+)"',
+    r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)",\s*"[^"]+",\s*"([^"]+)"',
     phase7_build,
     re.S,
 ):
@@ -806,7 +806,7 @@ for root_path, import_path in re.findall(
     phase7_build_paths.add(import_path)
 
 for root_path in re.findall(
-    r'createStandaloneTestRoot\\(\\s*b,\\s*target,\\s*optimize,\\s*"([^"]+)"',
+    r'createStandaloneTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)"',
     phase7_build,
     re.S,
 ):
@@ -860,8 +860,8 @@ if missing_run_labels:
     sys.exit(1)
 
 run_call_pattern = re.compile(
-    r'const\\s+\\w+\\s*=\\s*addTestRun\\(\\s*'
-    r'b,\\s*"([^"]+)",\\s*\\w+,\\s*(null|repo_root)\\s*,?\\s*\\)',
+    r'const\s+\w+\s*=\s*addTestRun\(\s*'
+    r'b,\s*"([^"]+)",\s*\w+,\s*(null|repo_root)\s*,?\s*\)',
     re.S,
 )
 actual_run_cwds = {label: cwd for label, cwd in run_call_pattern.findall(phase7_build)}
