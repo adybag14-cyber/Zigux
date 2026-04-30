@@ -469,18 +469,27 @@ test "runtime atomic64 diff gate keeps lifecycle transitions single-shot" {
 
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(7);
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    const initialized_summary = module.summary();
+    try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(11));
 
     _ = try module.runSelftest();
+    const post_selftest_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), post_selftest_summary.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(13));
 
     try module.exit();
+    const exited_summary = module.summary();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(17));
     try std.testing.expectEqual(@as(i64, 7), module.snapshotCounter());
