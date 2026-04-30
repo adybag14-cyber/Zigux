@@ -177,6 +177,11 @@
       "expected": "malformed_quoted_string_expected.json"
     },
     {
+      "name": "negative_signed_numeric_kinds",
+      "input": "negative_signed_numeric_kinds.config",
+      "expected": "negative_signed_numeric_kinds_expected.json"
+    },
+    {
       "name": "numeric_kinds",
       "input": "numeric_kinds.config",
       "expected": "numeric_kinds_expected.json"
