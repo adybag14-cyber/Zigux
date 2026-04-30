@@ -267,10 +267,21 @@ required_phase6_bsearch_c_harness_markers = [
 ]
 
 required_phase6_bsearch_c_parity_script_markers = [
+    "import argparse",
     'C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"',
     'ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"',
-    'c_lines = sorted(c_run.stdout.strip().splitlines())',
-    'zig_lines = sorted(zig_run.stdout.strip().splitlines())',
+    "def validate_required_path(path: Path, label: str) -> None:",
+    "def build_zig_build_text() -> str:",
+    "def sorted_lines(stdout: str) -> list[str]:",
+    "def run_self_test() -> int:",
+    'parser.add_argument("--self-test", action="store_true", help="Run built-in parity-script checks")',
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
+    "validate_required_path(C_HARNESS, \"harness\")",
+    "validate_required_path(ZIG_RUNNER, \"runner\")",
+    "zig_build.write_text(build_zig_build_text(), encoding=\"utf-8\")",
+    "c_lines = sorted_lines(c_run.stdout)",
+    "zig_lines = sorted_lines(zig_run.stdout)",
     'print("PHASE6_BSEARCH_C_PARITY=pass")',
     'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
@@ -280,6 +291,7 @@ required_phase6_bsearch_slice_markers = [
     "runtime-selected comparator function pointers preserve the same found-or-null behavior across ascending and descending sorted slices",
     "runtime-selected C ABI comparator pointers preserve the same found-or-null behavior across ascending and descending sorted slices",
     "representative lookup work stays inside a bounded binary-search comparison budget on every replayed lookup",
+    "the external parity checker now also carries a built-in `--self-test` path for its missing-path guards, generated build template, and sorted-output normalization",
     "a representative external C-vs-Zig parity replay currently replays 17 sorted lookup cases",
 ]
 
@@ -522,6 +534,8 @@ if "PHASE6_BASE64_C_PARITY_CASES=90" not in phase6_catalog:
     issues.append("catalog:base64_case_count")
 if "PHASE6_BSEARCH_C_PARITY_CASES=17" not in phase6_catalog:
     issues.append("catalog:bsearch_case_count")
+if "check-phase6-bsearch-c-parity.py --self-test" not in phase6_catalog:
+    issues.append("catalog:bsearch_self_test")
 
 if issues:
     print("PHASE6_VALIDATION=fail")
