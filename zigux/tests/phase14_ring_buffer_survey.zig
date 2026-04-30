@@ -64,10 +64,10 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
-    try std.testing.expectEqualStrings("09229747a3bcc072af1948f4c9ec5127c84f6d41", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("98aa9bb7dd14ed6063f954b0a23c19a537af51a5", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
@@ -280,8 +280,8 @@ test "phase 14 ring-buffer survey note records the refreshed commit pin and land
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L05") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=09229747a3bcc072af1948f4c9ec5127c84f6d41") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=98aa9bb7dd14ed6063f954b0a23c19a537af51a5") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Sub-buffer order reconfiguration audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Snapshot rollback failure-path audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer_subbuf_size_write()") != null);
