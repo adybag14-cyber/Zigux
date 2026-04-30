@@ -658,6 +658,27 @@ def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
             issues.append(f'fixdep_checker:{issue_name}')
     return issues
 
+
+def validate_artifact_diff_contract_gate(checker_script: Path) -> list[str]:
+    source = checker_script.read_text(encoding='utf-8')
+    required_markers = {
+        'text_pass_case': "['--mode', 'text', str(expected), str(actual)]",
+        'missing_expected_case': 'EXPECTED_EXISTS=False',
+        'missing_actual_case': 'ACTUAL_EXISTS=False',
+        'expected_json_error_case': 'EXPECTED_JSON_ERROR=',
+        'actual_json_error_case': 'ACTUAL_JSON_ERROR=',
+        'sha256_pass_case': "SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
+        'sha256_fail_case': 'EXPECTED_SHA256=',
+        'sha256_fail_actual_case': 'ACTUAL_SHA256=',
+        'contract_pass_marker': "print('ARTIFACT_DIFF_CONTRACT=pass')",
+    }
+
+    issues: list[str] = []
+    for issue_name, marker in required_markers.items():
+        if marker not in source:
+            issues.append(f'artifact_diff_contract:{issue_name}')
+    return issues
+
 required_files = [
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
@@ -778,6 +799,17 @@ if fixdep_checker_issues:
     for item in fixdep_checker_issues:
         print(item)
     print('MISSING_PHASE2_FIXDEP_CHECKER_GATES_END')
+    sys.exit(1)
+
+artifact_diff_contract_issues = validate_artifact_diff_contract_gate(
+    ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py'
+)
+if artifact_diff_contract_issues:
+    print('PHASE2_VALIDATION=fail')
+    print('MISSING_PHASE2_ARTIFACT_DIFF_GATES_START')
+    for item in artifact_diff_contract_issues:
+        print(item)
+    print('MISSING_PHASE2_ARTIFACT_DIFF_GATES_END')
     sys.exit(1)
 
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
