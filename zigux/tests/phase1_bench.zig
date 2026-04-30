@@ -69,9 +69,12 @@ fn bitmapWindowBench() struct { checksum: u64 } {
 
         checksum +%= @as(u64, @intFromBool(bitmap.andBits(&dst, &lhs, &rhs, nbits)));
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
+        const expected_and_tail: bitmap.Word = if ((idx & 1) == 0) 0b1111 else 0b1011;
+        checksum +%= @popCount(dst[1] ^ expected_and_tail);
 
         checksum +%= @as(u64, @intFromBool(bitmap.andNotBits(&dst, &lhs, &rhs, nbits)));
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
+        checksum +%= @popCount(dst[1]);
 
         bitmap.xorBits(&dst, &lhs, &rhs, nbits);
         checksum +%= @intCast(bitmap.weight(&dst, nbits));
@@ -119,15 +122,19 @@ fn bitmapCopyBench() struct { checksum: u64 } {
         bitmap.copyClearTail(&dst, &dense_src, partial_tail_nbits);
         checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
         checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+        checksum +%= @popCount(dst[1] ^ bitmap.lastWordMask(partial_tail_nbits));
 
         bitmap.copyAndExtend(&dst, &extend_sparse_src, extend_partial_count, full_nbits);
         checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
         checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+        checksum +%= @popCount(dst[1] ^ bitmap.lastWordMask(extend_partial_count));
+        checksum +%= @popCount(dst[2]);
 
         bitmap.fill(&dst, full_nbits);
         bitmap.copyAndExtend(&dst, &extend_dense_src, extend_full_count, full_nbits);
         checksum +%= @intCast(bitmap.weight(&dst, full_nbits));
         checksum +%= @intCast(find_bit.findFirstZeroBit(&dst, full_nbits));
+        checksum +%= @popCount(dst[2]);
     }
 
     return .{ .checksum = checksum };
