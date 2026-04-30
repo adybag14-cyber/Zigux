@@ -133,9 +133,25 @@ fn isHexValue(raw_value: []const u8) bool {
     return true;
 }
 
+fn findQuotedStringEnd(raw_value: []const u8) ?usize {
+    if (raw_value.len == 0 or raw_value[0] != '"') return null;
+
+    var index: usize = 1;
+    while (index < raw_value.len) : (index += 1) {
+        if (raw_value[index] == '\\') {
+            if (index + 1 < raw_value.len) index += 1;
+            continue;
+        }
+        if (raw_value[index] == '"') return index;
+    }
+
+    return null;
+}
+
 fn isMalformedQuotedString(raw_value: []const u8) bool {
     if (raw_value.len == 0) return false;
-    return (raw_value[0] == '"') != (raw_value[raw_value.len - 1] == '"');
+    if (raw_value[0] == '"') return findQuotedStringEnd(raw_value) == null;
+    return raw_value[raw_value.len - 1] == '"';
 }
 
 fn hasEmptyConfigSymbolName(name: []const u8) bool {
@@ -184,9 +200,11 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         // bounded bridge: a one-sided quoted string is treated as malformed and skipped.
         if (isMalformedQuotedString(raw_value)) continue;
 
+        const quoted_string_end = findQuotedStringEnd(raw_value);
+
         const kind: EntryKind = if (std.mem.eql(u8, raw_value, "y") or std.mem.eql(u8, raw_value, "m") or std.mem.eql(u8, raw_value, "n"))
             .tristate
-        else if (raw_value.len >= 2 and raw_value[0] == '"' and raw_value[raw_value.len - 1] == '"')
+        else if (quoted_string_end != null)
             .string
         else if (isHexValue(raw_value))
             .hex
@@ -196,7 +214,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             .value;
 
         const cooked_value = if (kind == .string)
-            try decodeQuotedString(allocator, raw_value)
+            try decodeQuotedString(allocator, raw_value[0 .. quoted_string_end.? + 1])
         else
             try allocator.dupe(u8, raw_value);
 
@@ -505,6 +523,26 @@ test "confdata bridge skips malformed quoted strings" {
     try std.testing.expectEqualStrings("CONFIG_LABEL", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("ok", summary.entries[0].value);
+}
+
+test "confdata bridge keeps quoted payloads before trailing suffix bytes" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_BANNER="zigux"suffix_noise
+        \\CONFIG_STATE=y
+        \\# CONFIG_DEBUG is not set
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 2), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("zigux", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
 }
 
 test "confdata bridge ignores non-CONFIG lines" {
