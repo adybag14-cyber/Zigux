@@ -149,7 +149,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
 
     try std.testing.expectEqualStrings("P15-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("306be3109b5960918e693d2f7268446eda39b97d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("90d95d183d1072f1e8a030eec05e1e60abf443ac", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 12), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -157,6 +157,9 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try std.testing.expectEqual(@as(usize, 4), manifest.handoff_evidence.roadmap_requirements.len);
     try std.testing.expectEqualStrings("parity scorecard", manifest.current_parity_tracking_gap.roadmap_requirement);
     try expectContains(manifest.current_parity_tracking_gap.current_gap, "lane identity");
+    try expectContains(manifest.current_parity_tracking_gap.current_gap, "surveyed-master provenance");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/README.md");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(manifest.current_parity_tracking_gap.repo_state, "make -C zigux phase15");
     try expectContains(manifest.current_parity_tracking_gap.closure_signal, "parity-tracking gap");
     try expectContains(manifest.current_parity_tracking_gap.remaining_blocker, "deep-core status-change blocker");
@@ -245,7 +248,9 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-L09");
     try expectContains(scorecard_doc, "## Current Parity-Tracking Gap");
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
-    try expectContains(scorecard_doc, "lane identity, roadmap wording, and replay-backed evidence packet current");
+    try expectContains(scorecard_doc, "lane identity, surveyed-master provenance, roadmap wording, and replay-backed evidence packet current");
+    try expectContains(scorecard_doc, "Documentation/zigux/README.md");
+    try expectContains(scorecard_doc, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
     try expectContains(scorecard_doc, "shared replay path");
     try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `12`");
     try expectContains(scorecard_doc, "landed scorecard gaps: `19 / 20`");
