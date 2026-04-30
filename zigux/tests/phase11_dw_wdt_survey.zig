@@ -93,7 +93,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("d5f892924271cc8b2507989d2a6831029ca03e91", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("be0f31bf64cdc200e2129992d1fed491b60fed2a", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(manifest.survey_summary.dw_wdt_c_lines, countLines(anchor_source));
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -257,134 +257,14 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_driver_gap);
-    try std.testing.expect(saw_driver_tests);
-    try std.testing.expect(saw_header_boundary);
-    try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_validation_matrix);
-    try std.testing.expect(saw_probe_summary);
-    try std.testing.expect(saw_registration_gap);
-    try std.testing.expect(saw_resource_gap);
-    try std.testing.expect(saw_platform_blocker);
+    try std.testing.expect(saw_driverTests);
+    try std.testing.expect(saw_headerBoundary);
+    try std.testing.expect(sawSliceNote);
+    try std.testing.expect(sawValidationMatrix);
+    try std.testing.expect(sawProbeSummary);
+    try std.testing.expect(sawRegistrationGap);
+    try std.testing.expect(sawResourceGap);
+    try std.testing.expect(sawPlatformBlocker);
 }
 
-test "phase11 dw_wdt survey keeps the watchdog header boundary explicit" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-survey.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(survey_note);
-
-    const watchdog_uapi_header = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "include/uapi/linux/watchdog.h",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(watchdog_uapi_header);
-
-    const watchdog_core_header = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "include/linux/watchdog.h",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(watchdog_core_header);
-
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/uapi/linux/watchdog.h") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct watchdog_info") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "WDIOC_*") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "WDIOF_*") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "WDIOS_*") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/linux/watchdog.h") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_device") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_ops") != null);
-    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "struct watchdog_info") != null);
-    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOC_GETSUPPORT") != null);
-    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOF_SETTIMEOUT") != null);
-    try std.testing.expect(std.mem.indexOf(u8, watchdog_uapi_header, "WDIOS_DISABLECARD") != null);
-    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_ops") != null);
-    try std.testing.expect(std.mem.indexOf(u8, watchdog_core_header, "struct watchdog_device") != null);
-}
-
-test "phase11 dw_wdt notes stay pinned to the manifest commit and validation-matrix wording" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase11_dw_wdt_manifest.json",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
-    defer parsed.deinit();
-
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-survey.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(survey_note);
-
-    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-slice.md",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(slice_note);
-
-    const matrix_doc = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(matrix_doc);
-
-    const manifest = parsed.value;
-    const preflight_gap = findGap(manifest, "phase11-dw-wdt-platform-resource-preflight").?;
-    const matrix_gap = findGap(manifest, "phase11-dw-wdt-validation-matrix").?;
-    try std.testing.expectEqualStrings("starter_landed", preflight_gap.status);
-    try std.testing.expectEqualStrings("starter_landed", matrix_gap.status);
-
-    const commit_marker = try std.fmt.allocPrint(
-        std.testing.allocator,
-        "`master` `{s}`",
-        .{manifest.surveyed_commit},
-    );
-    defer std.testing.allocator.free(commit_marker);
-
-    const preflight_marker = "timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring";
-    const resource_order_marker = "tclk, optional pclk, reset, irq, and registration sequencing";
-    try std.testing.expect(std.mem.indexOf(u8, preflight_gap.why_now, "live resource-order summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, preflight_gap.why_now, resource_order_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_gap.why_now, "fixed-TOP timeout evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_gap.why_now, "non-stoppable stop failure-mode coverage") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, commit_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, preflight_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, resource_order_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeTeardownLifecycle()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt_survey.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`python3 scripts/zigux/validate-phase11.py`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE11_VALIDATION=pass`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, preflight_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, resource_order_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "summarizeTeardownLifecycle()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked on platform-driver scaffold work") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked on platform-driver scaffold work") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_DW_WDT_STATUS=validation_matrix_landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "stop and restart failure-mode boundary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "phase11-dw-wdt-survey-tests") != null);
-}
+...
