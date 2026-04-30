@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import tempfile
 from pathlib import Path
@@ -92,6 +93,7 @@ REQUIRED_FILES = [
     'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/artifact-diff.md',
+    'Documentation/zigux/phase4-gate-evidence.md',
     'Documentation/zigux/phase4-validation-matrix.md',
     'samples/kprobes/Makefile',
     'samples/kprobes/kprobe_example.c',
@@ -249,6 +251,29 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     'the current anchor remains `samples/vfs/test-fsmount.c` through `samples/vfs/Makefile` and `userprogs-always-y += test-fsmount`',
     'reserve `Validation and Perf Team` as both survey owner and rollback owner while the current replay stays on the C anchor via `make M=samples/vfs`; the Zig lab matrix remains C-anchor-only and no hard timing threshold is approved before a bounded Zig sample lands',
     'benchmark command and acceptable limit are still unapproved for both landed gates',
+]
+
+PHASE4_GATE_EVIDENCE_BLOB_KEYS = {
+    'Documentation/zigux/phase4-validation-matrix.md': 'PHASE4_VALIDATION_MATRIX_BLOB_SHA',
+    'scripts/zigux/validate-phase4.py': 'PHASE4_VALIDATOR_BLOB_SHA',
+    'zigux/tests/phase4_build.zig': 'PHASE4_BUILD_BLOB_SHA',
+    'zigux/Makefile': 'PHASE4_MAKEFILE_BLOB_SHA',
+    '.github/workflows/zigux-bootstrap.yml': 'PHASE4_WORKFLOW_BLOB_SHA',
+    'zigux/tests/phase4_test_fsmount_manifest.json': 'PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA',
+    'zigux/tests/phase4_perf_baseline_manifest.json': 'PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA',
+    'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': 'PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA',
+}
+
+REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
+    'PHASE4_EVIDENCE_MODE=github_connector_readback',
+    'PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions',
+    'deterministic_preflight_required_for_host_side_diff_tools',
+    'threshold_pending_until_runtime_atomic64_scope_widens',
+    'c_anchor_only_until_test_fsmount_starter_lands',
+    'perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land',
+    'threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks',
+    'scripts/zigux/check-artifact-diff-contract.py',
+    'zigux/tests/phase4_perf_baseline_manifest.json',
 ]
 
 ROADMAP_GAP_EXPECTATIONS = {
@@ -437,6 +462,16 @@ def read_json(root: Path, relative_path: str) -> object:
     return json.loads(read_text(root, relative_path))
 
 
+def git_blob_sha_for_text(text: str) -> str:
+    payload = text.encode('utf-8')
+    header = f'blob {len(payload)}\0'.encode('utf-8')
+    return hashlib.sha1(header + payload).hexdigest()
+
+
+def git_blob_sha(root: Path, relative_path: str) -> str:
+    return git_blob_sha_for_text(read_text(root, relative_path))
+
+
 def collect_missing_markers(text: str, prefix: str, markers: list[str]) -> list[str]:
     missing = []
     for marker in markers:
@@ -579,6 +614,40 @@ def check_roadmap_gap_alignment(
     return missing
 
 
+def build_phase4_gate_evidence_fixture(root: Path) -> str:
+    sha_lines = [
+        f"- `{blob_key}={git_blob_sha(root, relative_path)}`"
+        for relative_path, blob_key in PHASE4_GATE_EVIDENCE_BLOB_KEYS.items()
+    ]
+    lines = [
+        '# Phase 4 Gate Evidence',
+        '',
+        'This note records one exact readback snapshot for the current Phase 4 rollback-ownership and lab-matrix gate definitions.',
+        '',
+        '## Status',
+        '',
+        '- `PHASE4_EVIDENCE_DATE=2026-04-30`',
+        '- `PHASE4_EVIDENCE_MODE=github_connector_readback`',
+        '- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`',
+        *sha_lines,
+        '',
+        '## Verified Live Gates',
+        '',
+        '- threshold posture: `deterministic_preflight_required_for_host_side_diff_tools`',
+        '- threshold posture: `threshold_pending_until_runtime_atomic64_scope_widens`',
+        '- threshold posture: `c_anchor_only_until_test_fsmount_starter_lands`',
+        '- threshold posture: `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land`',
+        '- threshold posture: `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`',
+        '- matrix row: `python3 scripts/zigux/check-artifact-diff-contract.py`',
+        '- manifest evidence: `zigux/tests/phase4_perf_baseline_manifest.json` still records both shipped rollback gates and the current pending threshold postures',
+        '',
+        '## Current Conclusion',
+        '',
+        'The current live Phase 4 rollback-ownership and lab-matrix packet is aligned at the gate-definition level.',
+    ]
+    return '\n'.join(lines) + '\n'
+
+
 def validate_root(root: Path) -> list[str]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
@@ -591,6 +660,7 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = read_text(root, 'zigux/tests/README.md')
     script_readme = read_text(root, 'scripts/zigux/README.md')
     doc_readme = read_text(root, 'Documentation/zigux/README.md')
+    phase4_gate_evidence = read_text(root, 'Documentation/zigux/phase4-gate-evidence.md')
     phase4_matrix = read_text(root, 'Documentation/zigux/phase4-validation-matrix.md')
     phase4_build = read_text(root, 'zigux/tests/phase4_build.zig')
     runtime_atomic64_diff = read_text(root, 'zigux/tests/runtime_atomic64_diff.zig')
@@ -624,6 +694,13 @@ def validate_root(root: Path) -> list[str]:
     )
     missing_markers.extend(
         collect_missing_markers(doc_readme, 'doc_readme', REQUIRED_DOC_README_MARKERS)
+    )
+    missing_markers.extend(
+        collect_missing_markers(
+            phase4_gate_evidence,
+            'phase4_gate_evidence',
+            REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS,
+        )
     )
     missing_markers.extend(
         collect_missing_markers(phase4_matrix, 'phase4_matrix', REQUIRED_PHASE4_MATRIX_MARKERS)
@@ -682,6 +759,13 @@ def validate_root(root: Path) -> list[str]:
 
     for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
         missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
+    for relative_path, blob_key in PHASE4_GATE_EVIDENCE_BLOB_KEYS.items():
+        expected_sha = git_blob_sha(root, relative_path)
+        expected_marker = f'`{blob_key}={expected_sha}`'
+        if expected_marker not in phase4_gate_evidence:
+            missing_markers.append(
+                f'phase4_gate_evidence_sha:{blob_key}:{expected_sha}'
+            )
 
     return missing_markers
 
@@ -825,6 +909,10 @@ def write_fixture_tree(root: Path) -> None:
         target = root / relative_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding='utf-8')
+    (root / 'Documentation/zigux/phase4-gate-evidence.md').write_text(
+        build_phase4_gate_evidence_fixture(root),
+        encoding='utf-8',
+    )
 
 
 def run_self_test() -> int:
@@ -860,6 +948,24 @@ def run_self_test() -> int:
             in missing
         ), missing
 
+        write_fixture_tree(tmp_root)
+        gate_evidence = tmp_root / 'Documentation/zigux/phase4-gate-evidence.md'
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding='utf-8').replace(
+                'PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=',
+                'PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=stale-',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert any(
+            marker.startswith(
+                'phase4_gate_evidence_sha:PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA:'
+            )
+            for marker in missing
+        ), missing
+
     print('PHASE4_VALIDATOR_SELF_TEST=pass')
     return 0
 
@@ -874,6 +980,7 @@ def required_marker_count() -> int:
         + len(REQUIRED_TESTS_README_MARKERS)
         + len(REQUIRED_SCRIPT_README_MARKERS)
         + len(REQUIRED_DOC_README_MARKERS)
+        + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS)
         + len(REQUIRED_PHASE4_MATRIX_MARKERS)
         + len(REQUIRED_ARTIFACT_DIFF_MARKERS)
         + len(REQUIRED_PHASE4_BUILD_MARKERS)
