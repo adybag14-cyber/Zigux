@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L04",
   "phase": "Phase 13",
-  "surveyed_commit": "ff87456109937e1ffbe7f2a91a79c2661874ef88",
+  "surveyed_commit": "f7aecbce93b3a429fa8fd93a6a1ce3657afb24a5",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -112,10 +112,17 @@
     },
     {
       "id": "phase13-libfs-dcache-dir-close-release-bookkeeping",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The landed libfs helper lab now models the tiny dcache_dir_close() release bookkeeping around dput(file->private_data) and the zero-error close outcome without claiming live refcount mutation, inode ownership, or directory teardown."
+    },
+    {
+      "id": "phase13-libfs-scan-positives-resched-handoff",
       "status": "ready_next",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is to model the tiny dcache_dir_close() release bookkeeping around dput(file->private_data) and the zero-error close outcome without claiming live refcount mutation, inode ownership, or directory teardown."
+      "why_now": "The next honest step is to model the scan_positives() need_resched() handoff around __hlist_del() plus hlist_add_behind() without claiming live sibling traversal, reschedule ownership, or cond_resched() execution."
     }
   ]
 }
