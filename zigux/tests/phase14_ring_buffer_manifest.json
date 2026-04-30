@@ -200,6 +200,13 @@
       "why_now": "The lane now records the rare snapshot rollback failure path around `buffer_subbuf_size_write()`, `tracing_resize_ring_buffer()`, `tracing_start_tr()`, and `tracing_disabled` so the emergency kill-switch remains explicit as shared trace-array safety policy before any bridge candidate is entertained."
     },
     {
+      "id": "phase14-ring-buffer-tracing-disabled-recovery-followup",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "why_now": "The lane now records that the documented `tracing_on` and `current_tracer` controls only cover ordinary tracer resume, while `tracing_check_open_get_tr()` still returns `-ENODEV` when `tracing_disabled` is set and `trace.c` only clears that flag during successful `tracer_alloc_buffers()` setup, so the rollback kill-switch still has no documented user-visible recovery seam."
+    },
+    {
       "id": "phase14-ring-buffer-zig-port-blocker",
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
