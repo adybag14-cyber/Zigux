@@ -224,6 +224,25 @@ def run_self_test() -> int:
         )
         argv_split_survey_path.write_text(original_argv_split_survey, encoding="utf-8")
 
+        argv_split_helper_path = tmp_root / "lib" / "argv_split.zig"
+        original_argv_split_helper = argv_split_helper_path.read_text(encoding="utf-8")
+        argv_split_helper_path.write_text(
+            original_argv_split_helper.replace(
+                "const leading_nul_expected = [_][]const u8{};",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_leading_nul_helper_surface",
+            tmp_root,
+            "lib/argv_split.zig: const leading_nul_expected = [_][]const u8{};",
+        )
+        argv_split_helper_path.write_text(
+            original_argv_split_helper, encoding="utf-8"
+        )
+
         cmdline_doc_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
         original_cmdline_doc = cmdline_doc_path.read_text(encoding="utf-8")
         cmdline_doc_path.write_text(
@@ -279,7 +298,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -307,6 +326,7 @@ phase7_string_helpers_doc = (ROOT / "Documentation" / "zigux" / "phase7-string-h
 phase7_cmdline_survey = (ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig").read_text(encoding="utf-8")
 phase7_cmdline_tests = (ROOT / "zigux" / "tests" / "phase7_cmdline.zig").read_text(encoding="utf-8")
 phase7_argv_split_doc = (ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md").read_text(encoding="utf-8")
+phase7_argv_split_helper = (ROOT / "lib" / "argv_split.zig").read_text(encoding="utf-8")
 phase7_argv_split_manifest = json.loads(
     (ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json").read_text(encoding="utf-8")
 )
@@ -495,7 +515,7 @@ required_phase7_cmdline_test_markers = [
     "phase 7 memparse preserves suffix scaling and stop index semantics",
     "phase 7 parseOptionStr matches only exact bare options",
     "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics",
-    'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\\x00,nohlt", "nohlt"));',
+    'try std.testing.expect(!cmdline.parseOptionStr("quiet,debug\x00,nohlt", "nohlt"));',
     "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus",
     "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus",
     "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus",
@@ -521,12 +541,20 @@ required_phase7_argv_split_doc_markers = [
     "zigux/tests/phase7_argv_split_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+    "leading-NUL truncation to zero argv entries before any later bytes are considered",
+    "repeated blank-input `argvFree()` teardown safety so the shared empty sentinel state survives explicit release without allocator backing",
     "machine-checked survey record",
+]
+
+required_phase7_argv_split_helper_markers = [
+    "pub fn argvFree",
+    "const leading_nul_expected = [_][]const u8{};",
 ]
 
 required_phase7_argv_split_test_markers = [
     'const phase7_vectors = @import("fixtures/phase7_argv_split_vectors.zig");',
     "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+    "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
     "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
     "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup",
 ]
@@ -689,6 +717,7 @@ checks = [
     ("zigux/tests/phase7_cmdline_survey.zig", phase7_cmdline_survey, required_phase7_cmdline_survey_markers),
     ("zigux/tests/phase7_cmdline.zig", phase7_cmdline_tests, required_phase7_cmdline_test_markers),
     ("Documentation/zigux/phase7-argv-split-slice.md", phase7_argv_split_doc, required_phase7_argv_split_doc_markers),
+    ("lib/argv_split.zig", phase7_argv_split_helper, required_phase7_argv_split_helper_markers),
     ("zigux/tests/phase7_argv_split_survey.zig", phase7_argv_split_survey, required_phase7_argv_split_survey_markers),
     ("zigux/tests/phase7_argv_split.zig", phase7_argv_split_tests, required_phase7_argv_split_test_markers),
     ("zigux/tests/phase7_rbtree_survey.zig", phase7_rbtree_survey, required_phase7_rbtree_survey_markers),
