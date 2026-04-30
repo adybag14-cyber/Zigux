@@ -211,7 +211,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(readme);
 
@@ -219,7 +219,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(sample_root_readme);
 
@@ -227,7 +227,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
