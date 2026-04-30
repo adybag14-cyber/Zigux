@@ -36,6 +36,7 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "ready_next") or
+        std.mem.eql(u8, status, "blocked_on_shared_replay_drift") or
         std.mem.eql(u8, status, "blocked_on_stay_in_c_evidence");
 }
 
@@ -55,9 +56,9 @@ test "phase 15 handoff manifest records the parked governance contract" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("7095a02f382e919b535b5e5c3fa8985ded58268e", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("ef7b33b6922d05e5ef514fb4efa588316ce6dda8", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -75,21 +76,34 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
-    try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
+    try std.testing.expect(!manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
 
-    try std.testing.expectEqual(@as(usize, 1), manifest.open_handoff_gaps.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.open_handoff_gaps.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.pending_next_steps.len);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "maintenance mode") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "shared Phase 15 replay drifts again") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "focused handoff guard") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared Phase 15 build") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "neighboring replay-repair lane") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "phase15_architecture_council_review_process.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "shared Phase 15 replay is green again") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "parked-next-step synthesis") != null);
 
-    const gap = manifest.open_handoff_gaps[0];
-    try std.testing.expect(isAllowedStatus(gap.status));
-    try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", gap.id);
-    try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
-    try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
+    var saw_replay_drift = false;
+    var saw_deep_core_blocker = false;
+    for (manifest.open_handoff_gaps) |gap| {
+        try std.testing.expect(isAllowedStatus(gap.status));
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-replay-drift")) {
+            saw_replay_drift = true;
+            try std.testing.expectEqualStrings("blocked_on_shared_replay_drift", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase15_architecture_council_review_process.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "P15-L08") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "P15-L11") != null);
+        } else if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
+            saw_deep_core_blocker = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze-in-C posture") != null);
+        }
+    }
+    try std.testing.expect(saw_replay_drift);
+    try std.testing.expect(saw_deep_core_blocker);
 }
 
 test "phase 15 handoff note keeps the open gaps and parked next steps explicit" {
@@ -125,18 +139,19 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Open Handoff Gaps") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Pending Next Steps") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Maintenance Handoff Contract") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared bootstrap workflow replay step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "broader shared replay is green on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "focused handoff guard is green") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared bootstrap workflow still runs `Run Phase 15 governance tests`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "broader shared replay is currently red on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-review-process-replay-drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "neighboring review-process replay-repair lane") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "reopen trigger") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "broader shared replay is currently red on current `master`") == null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-parity-scorecard-checklist-alignment") == null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "broader shared replay is green on current `master`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "focused handoff guard is green") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "parked-next-step synthesis") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
