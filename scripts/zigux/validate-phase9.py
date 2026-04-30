@@ -1,98 +1,74 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
 from pathlib import Path
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
-required_files = [
-    ROOT / "Documentation" / "zigux" / "freeze-map.md",
-    ROOT / "scripts" / "zigux" / "validate-phase9.py",
-    ROOT / "scripts" / "zigux" / "README.md",
-    ROOT / "Documentation" / "zigux" / "README.md",
-    ROOT / "Documentation" / "zigux" / "review-checklist.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-module-slice.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-survey.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-module-slice.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-survey.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
-    ROOT / "zigux" / "Makefile",
-    ROOT / "zigux" / "tests" / "README.md",
-    ROOT / "zigux" / "tests" / "phase9_build.zig",
-    ROOT / "zigux" / "tests" / "runtime_atomic64_manifest.json",
-    ROOT / "zigux" / "tests" / "runtime_atomic64_survey.zig",
-    ROOT / "zigux" / "tests" / "runtime_atomic64_module.zig",
-    ROOT / "zigux" / "tests" / "runtime_atomic64_diff.zig",
-    ROOT / "zigux" / "tests" / "runtime_bitmap_manifest.json",
-    ROOT / "zigux" / "tests" / "runtime_bitmap_survey.zig",
-    ROOT / "zigux" / "tests" / "runtime_bitmap_module.zig",
-    ROOT / "zigux" / "tests" / "runtime_bitmap_diff.zig",
-    ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-module-slice.md",
-    ROOT / "zigux" / "tests" / "runtime_kretprobe_manifest.json",
-    ROOT / "zigux" / "tests" / "runtime_kretprobe_survey.zig",
-    ROOT / "zigux" / "tests" / "runtime_kretprobe_module.zig",
-    ROOT / "zigux" / "tests" / "runtime_kretprobe_diff.zig",
-    ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json",
-    ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig",
-    ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json",
-    ROOT / "zigux" / "tests" / "runtime_trace_events_survey.zig",
-    ROOT / "zigux" / "tests" / "runtime_trace_events_module.zig",
-    ROOT / "zigux" / "tests" / "runtime_trace_events_diff.zig",
-    ROOT / "samples" / "zigux" / "runtime_atomic64.zig",
-    ROOT / "samples" / "zigux" / "runtime_atomic64_loader.zig",
-    ROOT / "samples" / "zigux" / "runtime_bitmap.zig",
-    ROOT / "samples" / "zigux" / "runtime_bitmap_loader.zig",
-    ROOT / "samples" / "zigux" / "runtime_kretprobe.zig",
-    ROOT / "samples" / "zigux" / "runtime_kretprobe_loader.zig",
-    ROOT / "samples" / "zigux" / "runtime_trace_events.zig",
-    ROOT / "zigux" / "kernel" / "runtime_loader.zig",
-    ROOT / "zigux" / "helpers" / "allocator_policy.zig",
-    ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
+REQUIRED_FILES = [
+    "Documentation/zigux/freeze-map.md",
+    "scripts/zigux/validate-phase9.py",
+    "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+    "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+    "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+    "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+    "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+    "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+    "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+    "zigux/tests/phase9_build.zig",
+    "zigux/tests/runtime_atomic64_manifest.json",
+    "zigux/tests/runtime_atomic64_survey.zig",
+    "zigux/tests/runtime_atomic64_module.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/runtime_bitmap_manifest.json",
+    "zigux/tests/runtime_bitmap_survey.zig",
+    "zigux/tests/runtime_bitmap_module.zig",
+    "zigux/tests/runtime_bitmap_diff.zig",
+    "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+    "zigux/tests/runtime_kretprobe_manifest.json",
+    "zigux/tests/runtime_kretprobe_survey.zig",
+    "zigux/tests/runtime_kretprobe_module.zig",
+    "zigux/tests/runtime_kretprobe_diff.zig",
+    "zigux/tests/runtime_loader_gap_manifest.json",
+    "zigux/tests/runtime_loader_gap_survey.zig",
+    "zigux/tests/runtime_trace_events_manifest.json",
+    "zigux/tests/runtime_trace_events_survey.zig",
+    "zigux/tests/runtime_trace_events_module.zig",
+    "zigux/tests/runtime_trace_events_diff.zig",
+    "samples/zigux/runtime_atomic64.zig",
+    "samples/zigux/runtime_atomic64_loader.zig",
+    "samples/zigux/runtime_bitmap.zig",
+    "samples/zigux/runtime_bitmap_loader.zig",
+    "samples/zigux/runtime_kretprobe.zig",
+    "samples/zigux/runtime_kretprobe_loader.zig",
+    "samples/zigux/runtime_trace_events.zig",
+    "zigux/kernel/runtime_loader.zig",
+    "zigux/helpers/allocator_policy.zig",
+    ".github/workflows/zigux-bootstrap.yml",
 ]
 
-missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
-if missing:
-    print("PHASE9_VALIDATION=fail")
-    print("MISSING_PHASE9_FILES_START")
-    for item in missing:
-        print(item)
-    print("MISSING_PHASE9_FILES_END")
-    sys.exit(1)
 
-makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
-workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
-freeze_map = (ROOT / "Documentation" / "zigux" / "freeze-map.md").read_text(encoding="utf-8")
-script_readme = (ROOT / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
-tests_readme = (ROOT / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
-doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
-review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
-loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
-atomic64_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-survey.md").read_text(encoding="utf-8")
-atomic64_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-atomic64-module-slice.md").read_text(encoding="utf-8")
-bitmap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-survey.md").read_text(encoding="utf-8")
-bitmap_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-bitmap-module-slice.md").read_text(encoding="utf-8")
-kretprobe_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-survey.md").read_text(encoding="utf-8")
-bitmap_manifest = (ROOT / "zigux" / "tests" / "runtime_bitmap_manifest.json").read_text(encoding="utf-8")
-bitmap_survey_test = (ROOT / "zigux" / "tests" / "runtime_bitmap_survey.zig").read_text(encoding="utf-8")
-kretprobe_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-kretprobe-module-slice.md").read_text(encoding="utf-8")
-kretprobe_manifest = (ROOT / "zigux" / "tests" / "runtime_kretprobe_manifest.json").read_text(encoding="utf-8")
-kretprobe_survey_test = (ROOT / "zigux" / "tests" / "runtime_kretprobe_survey.zig").read_text(encoding="utf-8")
-trace_events_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md").read_text(encoding="utf-8")
-trace_events_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md").read_text(encoding="utf-8")
-phase9_build = (ROOT / "zigux" / "tests" / "phase9_build.zig").read_text(encoding="utf-8")
-atomic64_manifest = (ROOT / "zigux" / "tests" / "runtime_atomic64_manifest.json").read_text(encoding="utf-8")
-atomic64_survey_test = (ROOT / "zigux" / "tests" / "runtime_atomic64_survey.zig").read_text(encoding="utf-8")
-loader_gap_survey_test = (ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig").read_text(encoding="utf-8")
-loader_gap_manifest = (ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json").read_text(encoding="utf-8")
-trace_events_manifest = (ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json").read_text(encoding="utf-8")
-trace_events_survey_test = (ROOT / "zigux" / "tests" / "runtime_trace_events_survey.zig").read_text(encoding="utf-8")
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def collect_missing_files(root: Path) -> list[str]:
+    return [rel_path for rel_path in REQUIRED_FILES if not (root / rel_path).exists()]
 
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
     "phase9-validate:",
+    "scripts/zigux/validate-phase9.py --self-test",
     "scripts/zigux/validate-phase9.py",
     "phase9-test:",
     "zigux/tests/phase9_build.zig",
@@ -100,6 +76,8 @@ required_make_markers = [
 ]
 
 required_workflow_markers = [
+    "Self-test Phase 9 runtime validator",
+    "python3 scripts/zigux/validate-phase9.py --self-test",
     "Validate Phase 9 runtime gates",
     "make -C zigux phase9-validate",
     "Run Phase 9 runtime helper tests",
@@ -108,6 +86,7 @@ required_workflow_markers = [
 
 required_script_readme_markers = [
     "validate-phase9.py",
+    "validate-phase9.py --self-test",
     "Phase 9 flow",
     "make -C zigux phase9-validate",
     "phase9_build.zig",
@@ -137,6 +116,7 @@ required_doc_readme_markers = [
     "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
     "Documentation/zigux/review-checklist.md",
     "the `Documentation/zigux/phase9-runtime-trace-events-{survey,module-slice}.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` bundle now keeps the `Documentation/zigux/freeze-map.md` boundary explicit",
+    "python3 scripts/zigux/validate-phase9.py --self-test",
     "python3 scripts/zigux/validate-phase9.py",
     "make -C zigux phase9-validate",
     "zigux/tests/phase9_build.zig",
@@ -534,107 +514,271 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
 ]
 
-missing_markers = []
+def required_marker_count() -> int:
+    return (
+        len(required_make_markers)
+        + len(required_workflow_markers)
+        + len(required_script_readme_markers)
+        + len(required_tests_readme_markers)
+        + len(required_doc_readme_markers)
+        + len(required_freeze_map_markers)
+        + len(required_review_checklist_markers)
+        + len(required_loader_gap_survey_markers)
+        + len(required_phase9_build_markers)
+        + len(forbidden_phase9_build_markers)
+        + len(required_loader_gap_survey_test_markers)
+        + len(required_loader_gap_manifest_markers)
+        + len(required_atomic64_survey_markers)
+        + len(required_atomic64_module_slice_markers)
+        + len(required_atomic64_manifest_markers)
+        + len(required_atomic64_survey_test_markers)
+        + len(required_bitmap_survey_markers)
+        + len(required_bitmap_module_slice_markers)
+        + len(required_bitmap_manifest_markers)
+        + len(required_bitmap_survey_test_markers)
+        + len(required_kretprobe_survey_markers)
+        + len(required_kretprobe_manifest_markers)
+        + len(required_kretprobe_survey_test_markers)
+        + 2
+        + len(required_trace_events_survey_markers)
+        + len(required_trace_events_module_slice_markers)
+        + len(required_trace_events_manifest_markers)
+        + len(required_trace_events_survey_test_markers)
+    )
 
-for marker in required_make_markers:
-    if marker not in makefile:
-        missing_markers.append(f"make:{marker}")
-for marker in required_workflow_markers:
-    if marker not in workflow:
-        missing_markers.append(f"workflow:{marker}")
-for marker in required_script_readme_markers:
-    if marker not in script_readme:
-        missing_markers.append(f"script_readme:{marker}")
-for marker in required_tests_readme_markers:
-    if marker not in tests_readme:
-        missing_markers.append(f"tests_readme:{marker}")
-for marker in required_doc_readme_markers:
-    if marker not in doc_readme:
-        missing_markers.append(f"doc_readme:{marker}")
-for marker in required_freeze_map_markers:
-    if marker not in freeze_map:
-        missing_markers.append(f"freeze_map:{marker}")
-for marker in required_review_checklist_markers:
-    if marker not in review_checklist:
-        missing_markers.append(f"review_checklist:{marker}")
-for marker in required_loader_gap_survey_markers:
-    if marker not in loader_gap_survey:
-        missing_markers.append(f"loader_gap_survey:{marker}")
-for marker in required_phase9_build_markers:
-    if marker not in phase9_build:
-        missing_markers.append(f"phase9_build:{marker}")
-for marker in forbidden_phase9_build_markers:
-    if marker in phase9_build:
-        missing_markers.append(f"phase9_build_forbidden:{marker}")
-for marker in required_loader_gap_survey_test_markers:
-    if marker not in loader_gap_survey_test:
-        missing_markers.append(f"loader_gap_survey_test:{marker}")
-for marker in required_loader_gap_manifest_markers:
-    if marker not in loader_gap_manifest:
-        missing_markers.append(f"loader_gap_manifest:{marker}")
-for marker in required_atomic64_survey_markers:
-    if marker not in atomic64_survey:
-        missing_markers.append(f"atomic64_survey:{marker}")
-for marker in required_atomic64_module_slice_markers:
-    if marker not in atomic64_module_slice:
-        missing_markers.append(f"atomic64_module_slice:{marker}")
-for marker in required_atomic64_manifest_markers:
-    if marker not in atomic64_manifest:
-        missing_markers.append(f"atomic64_manifest:{marker}")
-for marker in required_atomic64_survey_test_markers:
-    if marker not in atomic64_survey_test:
-        missing_markers.append(f"atomic64_survey_test:{marker}")
-for marker in required_bitmap_survey_markers:
-    if marker not in bitmap_survey:
-        missing_markers.append(f"bitmap_survey:{marker}")
-for marker in required_bitmap_module_slice_markers:
-    if marker not in bitmap_module_slice:
-        missing_markers.append(f"bitmap_module_slice:{marker}")
-for marker in required_bitmap_manifest_markers:
-    if marker not in bitmap_manifest:
-        missing_markers.append(f"bitmap_manifest:{marker}")
-for marker in required_bitmap_survey_test_markers:
-    if marker not in bitmap_survey_test:
-        missing_markers.append(f"bitmap_survey_test:{marker}")
-for marker in required_kretprobe_survey_markers:
-    if marker not in kretprobe_survey:
-        missing_markers.append(f"kretprobe_survey:{marker}")
-for marker in required_kretprobe_manifest_markers:
-    if marker not in kretprobe_manifest:
-        missing_markers.append(f"kretprobe_manifest:{marker}")
-for marker in required_kretprobe_survey_test_markers:
-    if marker not in kretprobe_survey_test:
-        missing_markers.append(f"kretprobe_survey_test:{marker}")
-for marker in [
-    "RuntimeKretprobeSummary",
-    "released_without_substrate",
-]:
-    if marker not in kretprobe_module_slice:
-        missing_markers.append(f"kretprobe_module_slice:{marker}")
-for marker in required_trace_events_survey_markers:
-    if marker not in trace_events_survey:
-        missing_markers.append(f"trace_events_survey:{marker}")
-for marker in required_trace_events_module_slice_markers:
-    if marker not in trace_events_module_slice:
-        missing_markers.append(f"trace_events_module_slice:{marker}")
-for marker in required_trace_events_manifest_markers:
-    if marker not in trace_events_manifest:
-        missing_markers.append(f"trace_events_manifest:{marker}")
-for marker in required_trace_events_survey_test_markers:
-    if marker not in trace_events_survey_test:
-        missing_markers.append(f"trace_events_survey_test:{marker}")
 
-if missing_markers:
-    print("PHASE9_VALIDATION=fail")
-    print("MISSING_PHASE9_MARKERS_START")
-    for marker in missing_markers:
-        print(marker)
-    print("MISSING_PHASE9_MARKERS_END")
-    sys.exit(1)
+def validate(root: Path) -> tuple[list[str], list[str]]:
+    missing_files = collect_missing_files(root)
+    if missing_files:
+        return missing_files, []
 
-print("PHASE9_VALIDATION=pass")
-print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
-print(
-    "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(forbidden_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_atomic64_survey_markers) + len(required_atomic64_module_slice_markers) + len(required_atomic64_manifest_markers) + len(required_atomic64_survey_test_markers) + len(required_bitmap_survey_markers) + len(required_bitmap_module_slice_markers) + len(required_bitmap_manifest_markers) + len(required_bitmap_survey_test_markers) + len(required_kretprobe_survey_markers) + len(required_kretprobe_manifest_markers) + len(required_kretprobe_survey_test_markers) + 2 + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
-)
+    makefile = read_text(root, "zigux/Makefile")
+    workflow = read_text(root, ".github/workflows/zigux-bootstrap.yml")
+    freeze_map = read_text(root, "Documentation/zigux/freeze-map.md")
+    script_readme = read_text(root, "scripts/zigux/README.md")
+    tests_readme = read_text(root, "zigux/tests/README.md")
+    doc_readme = read_text(root, "Documentation/zigux/README.md")
+    review_checklist = read_text(root, "Documentation/zigux/review-checklist.md")
+    loader_gap_survey = read_text(root, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")
+    atomic64_survey = read_text(root, "Documentation/zigux/phase9-runtime-atomic64-survey.md")
+    atomic64_module_slice = read_text(root, "Documentation/zigux/phase9-runtime-atomic64-module-slice.md")
+    bitmap_survey = read_text(root, "Documentation/zigux/phase9-runtime-bitmap-survey.md")
+    bitmap_module_slice = read_text(root, "Documentation/zigux/phase9-runtime-bitmap-module-slice.md")
+    kretprobe_survey = read_text(root, "Documentation/zigux/phase9-runtime-kretprobe-survey.md")
+    bitmap_manifest = read_text(root, "zigux/tests/runtime_bitmap_manifest.json")
+    bitmap_survey_test = read_text(root, "zigux/tests/runtime_bitmap_survey.zig")
+    kretprobe_module_slice = read_text(root, "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md")
+    kretprobe_manifest = read_text(root, "zigux/tests/runtime_kretprobe_manifest.json")
+    kretprobe_survey_test = read_text(root, "zigux/tests/runtime_kretprobe_survey.zig")
+    trace_events_survey = read_text(root, "Documentation/zigux/phase9-runtime-trace-events-survey.md")
+    trace_events_module_slice = read_text(root, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")
+    phase9_build = read_text(root, "zigux/tests/phase9_build.zig")
+    atomic64_manifest = read_text(root, "zigux/tests/runtime_atomic64_manifest.json")
+    atomic64_survey_test = read_text(root, "zigux/tests/runtime_atomic64_survey.zig")
+    loader_gap_survey_test = read_text(root, "zigux/tests/runtime_loader_gap_survey.zig")
+    loader_gap_manifest = read_text(root, "zigux/tests/runtime_loader_gap_manifest.json")
+    trace_events_manifest = read_text(root, "zigux/tests/runtime_trace_events_manifest.json")
+    trace_events_survey_test = read_text(root, "zigux/tests/runtime_trace_events_survey.zig")
+
+    missing_markers: list[str] = []
+
+    for marker in required_make_markers:
+        if marker not in makefile:
+            missing_markers.append(f"make:{marker}")
+    for marker in required_workflow_markers:
+        if marker not in workflow:
+            missing_markers.append(f"workflow:{marker}")
+    for marker in required_script_readme_markers:
+        if marker not in script_readme:
+            missing_markers.append(f"script_readme:{marker}")
+    for marker in required_tests_readme_markers:
+        if marker not in tests_readme:
+            missing_markers.append(f"tests_readme:{marker}")
+    for marker in required_doc_readme_markers:
+        if marker not in doc_readme:
+            missing_markers.append(f"doc_readme:{marker}")
+    for marker in required_freeze_map_markers:
+        if marker not in freeze_map:
+            missing_markers.append(f"freeze_map:{marker}")
+    for marker in required_review_checklist_markers:
+        if marker not in review_checklist:
+            missing_markers.append(f"review_checklist:{marker}")
+    for marker in required_loader_gap_survey_markers:
+        if marker not in loader_gap_survey:
+            missing_markers.append(f"loader_gap_survey:{marker}")
+    for marker in required_phase9_build_markers:
+        if marker not in phase9_build:
+            missing_markers.append(f"phase9_build:{marker}")
+    for marker in forbidden_phase9_build_markers:
+        if marker in phase9_build:
+            missing_markers.append(f"phase9_build_forbidden:{marker}")
+    for marker in required_loader_gap_survey_test_markers:
+        if marker not in loader_gap_survey_test:
+            missing_markers.append(f"loader_gap_survey_test:{marker}")
+    for marker in required_loader_gap_manifest_markers:
+        if marker not in loader_gap_manifest:
+            missing_markers.append(f"loader_gap_manifest:{marker}")
+    for marker in required_atomic64_survey_markers:
+        if marker not in atomic64_survey:
+            missing_markers.append(f"atomic64_survey:{marker}")
+    for marker in required_atomic64_module_slice_markers:
+        if marker not in atomic64_module_slice:
+            missing_markers.append(f"atomic64_module_slice:{marker}")
+    for marker in required_atomic64_manifest_markers:
+        if marker not in atomic64_manifest:
+            missing_markers.append(f"atomic64_manifest:{marker}")
+    for marker in required_atomic64_survey_test_markers:
+        if marker not in atomic64_survey_test:
+            missing_markers.append(f"atomic64_survey_test:{marker}")
+    for marker in required_bitmap_survey_markers:
+        if marker not in bitmap_survey:
+            missing_markers.append(f"bitmap_survey:{marker}")
+    for marker in required_bitmap_module_slice_markers:
+        if marker not in bitmap_module_slice:
+            missing_markers.append(f"bitmap_module_slice:{marker}")
+    for marker in required_bitmap_manifest_markers:
+        if marker not in bitmap_manifest:
+            missing_markers.append(f"bitmap_manifest:{marker}")
+    for marker in required_bitmap_survey_test_markers:
+        if marker not in bitmap_survey_test:
+            missing_markers.append(f"bitmap_survey_test:{marker}")
+    for marker in required_kretprobe_survey_markers:
+        if marker not in kretprobe_survey:
+            missing_markers.append(f"kretprobe_survey:{marker}")
+    for marker in required_kretprobe_manifest_markers:
+        if marker not in kretprobe_manifest:
+            missing_markers.append(f"kretprobe_manifest:{marker}")
+    for marker in required_kretprobe_survey_test_markers:
+        if marker not in kretprobe_survey_test:
+            missing_markers.append(f"kretprobe_survey_test:{marker}")
+    for marker in [
+        "RuntimeKretprobeSummary",
+        "released_without_substrate",
+    ]:
+        if marker not in kretprobe_module_slice:
+            missing_markers.append(f"kretprobe_module_slice:{marker}")
+    for marker in required_trace_events_survey_markers:
+        if marker not in trace_events_survey:
+            missing_markers.append(f"trace_events_survey:{marker}")
+    for marker in required_trace_events_module_slice_markers:
+        if marker not in trace_events_module_slice:
+            missing_markers.append(f"trace_events_module_slice:{marker}")
+    for marker in required_trace_events_manifest_markers:
+        if marker not in trace_events_manifest:
+            missing_markers.append(f"trace_events_manifest:{marker}")
+    for marker in required_trace_events_survey_test_markers:
+        if marker not in trace_events_survey_test:
+            missing_markers.append(f"trace_events_survey_test:{marker}")
+    return [], missing_markers
+
+
+def clone_fixture_root(destination_root: Path) -> None:
+    for rel_path in REQUIRED_FILES:
+        source = ROOT / rel_path
+        target = destination_root / rel_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+
+def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_files:
+        raise SystemExit(
+            f"phase9-self-test:{label}:unexpected_missing_files:{','.join(missing_files)}"
+        )
+    if expected_marker not in missing_markers:
+        actual = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(
+            f"phase9-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
+        )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase9_selftest_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        clone_fixture_root(tmp_root)
+
+        missing_files, missing_markers = validate(tmp_root)
+        if missing_files or missing_markers:
+            raise SystemExit(
+                "phase9-self-test:baseline_failed:"
+                f"files={','.join(missing_files) if missing_files else 'none'}:"
+                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+            )
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_self_test_hook",
+            tmp_root,
+            "make:scripts/zigux/validate-phase9.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        trace_events_survey_path = tmp_root / "Documentation/zigux/phase9-runtime-trace-events-survey.md"
+        original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
+        trace_events_survey_path.write_text(
+            original_trace_events_survey.replace(
+                "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+                "`PHASE9_SURVEYED_COMMIT=`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "trace_events_surveyed_commit_pin",
+            tmp_root,
+            "trace_events_survey:`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+        )
+
+    print("PHASE9_VALIDATOR_SELF_TEST=pass")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=3")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the shared Phase 9 runtime pilot review packet."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in validator drift checks against a temporary Phase 9 fixture tree.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    missing_files, missing_markers = validate(ROOT)
+    if missing_files:
+        print("PHASE9_VALIDATION=fail")
+        print("MISSING_PHASE9_FILES_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE9_FILES_END")
+        return 1
+    if missing_markers:
+        print("PHASE9_VALIDATION=fail")
+        print("MISSING_PHASE9_MARKERS_START")
+        for marker in missing_markers:
+            print(marker)
+        print("MISSING_PHASE9_MARKERS_END")
+        return 1
+
+    print("PHASE9_VALIDATION=pass")
+    print(f"PHASE9_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE9_REQUIRED_MARKER_COUNT={required_marker_count()}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
