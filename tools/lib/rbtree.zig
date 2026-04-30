@@ -672,6 +672,30 @@ pub fn iteratePostorder(root: *const Root) PostorderIterator {
     return PostorderIterator.init(root);
 }
 
+pub const PostorderSafeIterator = struct {
+    current: ?*Node,
+    next_node: ?*Node,
+
+    pub fn init(root: *const Root) PostorderSafeIterator {
+        const current = firstPostorder(root);
+        return .{
+            .current = current,
+            .next_node = if (current) |node| nextPostorder(node) else null,
+        };
+    }
+
+    pub fn next(self: *PostorderSafeIterator) ?*Node {
+        const node = self.current orelse return null;
+        self.current = self.next_node;
+        self.next_node = if (self.current) |next_current| nextPostorder(next_current) else null;
+        return node;
+    }
+};
+
+pub fn iteratePostorderSafe(root: *const Root) PostorderSafeIterator {
+    return PostorderSafeIterator.init(root);
+}
+
 fn expectValidSubtree(node: ?*Node) !usize {
     const current = node orelse return 1;
 
@@ -901,9 +925,10 @@ test "rbtree iteratePostorder streams the full postorder walk once" {
     }.compare;
 
     var entries = [_]Entry{
-        .{ .key = 2 },
-        .{ .key = 1 },
         .{ .key = 4 },
+        .{ .key = 2 },
+        .{ .key = 5 },
+        .{ .key = 1 },
         .{ .key = 3 },
     };
     var root = Root.init();
@@ -914,7 +939,7 @@ test "rbtree iteratePostorder streams the full postorder walk once" {
     try expectValidTree(&root);
 
     var iterator = iteratePostorder(&root);
-    var order: [4]i32 = undefined;
+    var order: [5]i32 = undefined;
     var count: usize = 0;
     while (iterator.next()) |node| {
         const entry: *const Entry = @fieldParentPtr("node", node);
@@ -922,9 +947,59 @@ test "rbtree iteratePostorder streams the full postorder walk once" {
         count += 1;
     }
 
-    try std.testing.expectEqual(@as(usize, 4), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 2 }, order[0..count]);
+    try std.testing.expectEqual(@as(usize, 5), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 2, 5, 4 }, order[0..count]);
     try std.testing.expectEqual(@as(?*Node, null), iterator.next());
+}
+
+test "rbtree iteratePostorderSafe caches the next node before invalidation" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 4 },
+        .{ .key = 2 },
+        .{ .key = 6 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+        .{ .key = 5 },
+        .{ .key = 7 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+    try expectValidTree(&root);
+
+    var iterator = iteratePostorderSafe(&root);
+    var order: [7]i32 = undefined;
+    var count: usize = 0;
+    while (iterator.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+
+        clearNode(@constCast(node));
+    }
+
+    try std.testing.expectEqual(@as(usize, 7), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 2, 5, 7, 6, 4 }, order[0..count]);
+    try std.testing.expectEqual(@as(?*Node, null), iterator.next());
+
+    for (&entries) |*entry| {
+        try std.testing.expect(emptyNode(&entry.node));
+    }
 }
 
 test "rbtree findAdd keeps the first duplicate and inserts new keys" {
