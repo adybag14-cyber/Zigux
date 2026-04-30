@@ -153,6 +153,15 @@ PHASE12_PACKET_MARKERS = {
     ),
 }
 SURVEY_NOTE_MARKERS = {
+    "phase12_libbpf_manifest.json": (
+        "## Rollback And Reversible Delivery",
+        "owner: `BPF Tooling Lane`",
+        "rollback owner: `BPF Tooling Lane`",
+        "fallback path: keep `tools/lib/bpf/libbpf.c` as the source of truth",
+        "phase12-libbpf-segment-survey-tests",
+        "phase12-libbpf-reviewability-tests",
+        "rollback drill: run `make -C zigux phase12-validate`",
+    ),
     "phase12_virtio_scsi_manifest.json": (
         "## Rollback And Reversible Delivery",
         "owner: `Storage Driver Lane`",
