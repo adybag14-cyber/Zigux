@@ -169,6 +169,7 @@ test "phase 7 parseIntArray stops at the first NUL and truncates wide values" {
 test "phase 7 parseIntArray reports missing integer input" {
     try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, ""));
     try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "words only"));
+    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "+,7"));
 }
 
 test "phase 7 parseIntArrayUser keeps count-bounded copy semantics explicit" {
