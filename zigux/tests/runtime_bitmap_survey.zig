@@ -95,7 +95,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_bitmap_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 6);
-    try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 10), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 6);
@@ -110,6 +110,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     var saw_exit_lifecycle = false;
     var saw_bounds_errors = false;
     var saw_zero_length_source_guards = false;
+    var saw_bit_list_guards = false;
     var saw_loader_request_surface = false;
     var saw_loader_build_leg = false;
     var saw_diff_fill_case = false;
@@ -253,6 +254,13 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
             try std.testing.expectEqualStrings("helper_contract", check.kind);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidSourceLifecycle") != null);
         }
+        if (std.mem.eql(u8, check.id, "bit-list-guards")) {
+            saw_bit_list_guards = true;
+            try std.testing.expectEqualStrings("input_validation", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "trailing or doubled separators") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "out-of-bounds bit lists") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
+        }
         if (std.mem.eql(u8, check.id, "loader-request-surface")) {
             saw_loader_request_surface = true;
             try std.testing.expectEqualStrings("runtime_loader_contract", check.kind);
@@ -381,6 +389,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_exit_lifecycle);
     try std.testing.expect(saw_bounds_errors);
     try std.testing.expect(saw_zero_length_source_guards);
+    try std.testing.expect(saw_bit_list_guards);
     try std.testing.expect(saw_loader_request_surface);
     try std.testing.expect(saw_loader_build_leg);
     try std.testing.expect(saw_diff_fill_case);
@@ -445,6 +454,7 @@ test "phase 9 runtime bitmap survey doc keeps the direct sample, sparse iteratio
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this bitmap packet pre-execution") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the bitmap loader handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`initFromBitList()` rejects trailing or doubled separators, rejects out-of-bounds bit lists, and blocks repeat parse initialization with `InvalidLifecycleTransition` once the first parse succeeds") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-sample-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the landed `phase9-build-gate`, including the direct `phase9-runtime-bitmap-loader-tests` shared-build leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this shared build now includes the direct `phase9-runtime-bitmap-sample-tests` and `phase9-runtime-bitmap-loader-tests` legs") != null);
