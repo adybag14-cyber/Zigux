@@ -665,7 +665,8 @@ for marker in [
     if marker not in hvc_slice_doc:
         missing.append(f"phase11_hvc_console_docs:slice:{marker}")
 for marker in [
-    "PHASE11_HVC_CONSOLE_STATUS=close_teardown_handoff_landed",
+    "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
+    f"reviewed against live `master` `{hvc_commit}`",
     "| final-close teardown handoff | `summarizeCloseTeardown()` keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, `tty_wait_until_sent()` intent, and final `port_initialized` clearing reviewable without claiming notifier callbacks or tty-core teardown timing |",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the initialized, uninitialized, and hung-up final-close teardown assertions inside the shared Phase 11 replay",
