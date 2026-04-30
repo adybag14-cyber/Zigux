@@ -4,9 +4,9 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 
 ## Status
 
-- `PHASE14_LANE_KEY=P14-L12`
+- `PHASE14_LANE_KEY=P14-L09`
 - `PHASE14_STATUS=active`
-- `PHASE14_SLICE=skbuff-validate-xmit-list-reset`
+- `PHASE14_SLICE=skbuff-validate-xmit-republish`
 - scope: the landed `net/core/skbuff_bridge.zig` boundary map plus its expanded lifetime audit outline, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `net/core/skbuff_bridge.zig`
@@ -37,7 +37,7 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - the bridge now records the exported tail-publication contract around `segs->prev`, the last-segment `gso_size` or `gso_segs` clamp, `tail->next`, and the nearby `validate_xmit_skb_list()` handoff so the lane names where segmented output becomes a published list without weakening the stay-in-C posture.
 - the bridge now records the `validate_xmit_skb_list()` consumer-side reset around `next = skb->next`, `skb_mark_not_on_list()`, `skb->prev = skb`, and `tail = skb->prev` so the lane names how single-skb and segmented outputs converge on one tail contract without weakening the stay-in-C posture.
 - the bridge now records the smaller `validate_xmit_skb_list()` republish handoff around `head = skb`, `tail->next = skb`, and `validate_xmit_skb()` drop pruning so the lane records how validated outputs are stitched back into one list before any wrapper claim approaches live packet lifetime behavior.
-- the next honest skbuff-facing step is the narrower `__dev_direct_xmit()` identity-drop follow-up around `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path so the lane records where the republished output is either accepted as the original skb or rejected without weakening the stay-in-C posture.
+- after the republish handoff lands, the remaining honest skbuff-facing work is stronger stay-in-C evidence around transmit-list ownership rather than another new wrapper seam.
 
 ## Recorded gaps
 
@@ -57,10 +57,9 @@ The current lane state is:
 - landed `phase14-skbuff-segs-prev-tail-publication-followup`
 - landed `phase14-skbuff-validate-xmit-list-reset-followup`
 - landed `phase14-skbuff-validate-xmit-republish-followup`
-- ready-next `phase14-skbuff-direct-xmit-identity-drop-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, and the republish handoff that stitches validated outputs back into one list, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, and the republish handoff that stitches validated outputs back into one list, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, transmit-list publication ownership, or a direct `net/core/skbuff.c` rewrite.
 
 ## Non-goals
 
@@ -84,4 +83,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 skbuff lane and add one tiny `__dev_direct_xmit()` identity-drop follow-up next, limited to `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path so the bridge records where the republished output is either accepted as the original skb or rejected before any wrapper leaves the current boundary-map-only posture.
+Keep the Phase 14 skbuff lane parked unless a directly coupled manifest, survey-note, bridge, or shared-smoke drift appears. The republish stitchback is recorded; any deeper follow-up now needs stronger stay-in-C evidence around transmit-list ownership instead of another wrapper claim.
