@@ -170,6 +170,43 @@ def run_self_test() -> int:
                 f"actual:{actual}"
             )
 
+        fake_make_path.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "\n"
+            "target = sys.argv[-1]\n"
+            "outputs = {\n"
+            "    'phase7-validate': [\n"
+            "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
+            "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
+            "    ],\n"
+            "    'phase7-test': [\n"
+            "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
+            "        'zig build test --build-file zigux/tests/build.zig',\n"
+            "    ],\n"
+            "    'phase7': [\n"
+            "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
+            "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
+            "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
+            "        'zig build test --build-file zigux/tests/build.zig',\n"
+            "    ],\n"
+            "}\n"
+            "for line in outputs.get(target, []):\n"
+            "    print(line)\n",
+            encoding="utf-8",
+        )
+        result = run_validator(tmp_root, env=fake_make_env)
+        if result.returncode == 0:
+            raise SystemExit("phase7-self-test:stale_wrapper_expansion:unexpected_pass")
+        if "phase7-test: unexpected wrapper expansion" not in result.stdout:
+            actual = result.stdout.strip() or "none"
+            raise SystemExit(
+                "phase7-self-test:stale_wrapper_expansion:expected_wrapper_failure:"
+                f"actual:{actual}"
+            )
+
         argv_split_survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         original_argv_split_survey = argv_split_survey_path.read_text(encoding="utf-8")
         argv_split_survey_path.write_text(
@@ -203,7 +240,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -573,6 +610,22 @@ expected_make_expansions = {
     ],
 }
 
+unexpected_make_expansions = {
+    "phase7-validate": [
+        "zig build test --build-file zigux/tests/build.zig",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+    ],
+    "phase7-test": [
+        "python3 scripts/zigux/validate-phase7.py --self-test",
+        "python3 scripts/zigux/validate-phase7.py",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "zig build test --build-file zigux/tests/build.zig",
+    ],
+    "phase7": [
+        "zig build test --build-file zigux/tests/build.zig",
+    ],
+}
+
 checks = [
     ("zigux/Makefile", makefile, required_make_markers),
     (".github/workflows/zigux-bootstrap.yml", workflow, required_workflow_markers),
@@ -743,9 +796,9 @@ if rbtree_manifest_shape_errors:
     print("PHASE7_RBTREE_MANIFEST_SHAPE_END")
     sys.exit(1)
 
-phase7_build_paths = set(re.findall(r'b\.path\("([^"]+)"\)', phase7_build))
+phase7_build_paths = set(re.findall(r'b\\.path\\("([^"]+)"\\)', phase7_build))
 for root_path, import_path in re.findall(
-    r'createImportedTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)",\s*"[^"]+",\s*"([^"]+)"',
+    r'createImportedTestRoot\\(\\s*b,\\s*target,\\s*optimize,\\s*"([^"]+)",\\s*"[^"]+",\\s*"([^"]+)"',
     phase7_build,
     re.S,
 ):
@@ -753,7 +806,7 @@ for root_path, import_path in re.findall(
     phase7_build_paths.add(import_path)
 
 for root_path in re.findall(
-    r'createStandaloneTestRoot\(\s*b,\s*target,\s*optimize,\s*"([^"]+)"',
+    r'createStandaloneTestRoot\\(\\s*b,\\s*target,\\s*optimize,\\s*"([^"]+)"',
     phase7_build,
     re.S,
 ):
@@ -807,8 +860,8 @@ if missing_run_labels:
     sys.exit(1)
 
 run_call_pattern = re.compile(
-    r'const\s+\w+\s*=\s*addTestRun\(\s*'
-    r'b,\s*"([^"]+)",\s*\w+,\s*(null|repo_root)\s*,?\s*\)',
+    r'const\\s+\\w+\\s*=\\s*addTestRun\\(\\s*'
+    r'b,\\s*"([^"]+)",\\s*\\w+,\\s*(null|repo_root)\\s*,?\\s*\\)',
     re.S,
 )
 actual_run_cwds = {label: cwd for label, cwd in run_call_pattern.findall(phase7_build)}
@@ -863,6 +916,20 @@ for target_name, expected_lines in expected_make_expansions.items():
         print("PHASE7_MAKE_WRAPPER_DRIFT_START")
         print(f"{target_name}: missing expected wrapper expansion")
         for line in missing_wrapper_lines:
+            print(line)
+        print("PHASE7_MAKE_WRAPPER_DRIFT_END")
+        sys.exit(1)
+
+    unexpected_wrapper_lines = [
+        line
+        for line in unexpected_make_expansions.get(target_name, [])
+        if line in wrapper_output
+    ]
+    if unexpected_wrapper_lines:
+        print("PHASE7_VALIDATION=fail")
+        print("PHASE7_MAKE_WRAPPER_DRIFT_START")
+        print(f"{target_name}: unexpected wrapper expansion")
+        for line in unexpected_wrapper_lines:
             print(line)
         print("PHASE7_MAKE_WRAPPER_DRIFT_END")
         sys.exit(1)
