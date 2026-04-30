@@ -24,6 +24,8 @@ FILES = [
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_parity_scorecard.json",
+    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_readiness_gate.zig",
 ]
@@ -236,6 +238,137 @@ else:
     for gap_id in expected_gaps:
         if gap_id not in seen_gap_ids:
             missing.append(f"manifest:remaining_gaps:missing:{gap_id}")
+
+scorecard_manifest = load_json("zigux/tests/phase15_parity_scorecard.json")
+if scorecard_manifest.get("phase") != "Phase 15":
+    missing.append("scorecard_manifest:phase")
+scorecard_lane_key = scorecard_manifest.get("lane_key")
+if scorecard_lane_key != "P15-L09":
+    missing.append("scorecard_manifest:lane_key")
+scorecard_commit = scorecard_manifest.get("surveyed_commit")
+if scorecard_commit != "90d95d183d1072f1e8a030eec05e1e60abf443ac":
+    missing.append("scorecard_manifest:surveyed_commit")
+
+scorecard_handoff = scorecard_manifest.get("handoff_evidence")
+if not isinstance(scorecard_handoff, dict):
+    missing.append("scorecard_manifest:handoff_evidence")
+else:
+    if scorecard_handoff.get("roadmap_source") != "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md#phase-15-full-parity-blockers-and-long-term-governance":
+        missing.append("scorecard_manifest:handoff_evidence:roadmap_source")
+    roadmap_requirements = scorecard_handoff.get("roadmap_requirements")
+    if roadmap_requirements != [
+        "freeze map",
+        "Architecture Council review process",
+        "parity scorecard",
+        "policy for code that remains in C indefinitely",
+    ]:
+        missing.append("scorecard_manifest:handoff_evidence:roadmap_requirements")
+    current_repo_handoff = scorecard_handoff.get("current_repo_handoff")
+    if not isinstance(current_repo_handoff, str):
+        missing.append("scorecard_manifest:handoff_evidence:current_repo_handoff")
+    else:
+        for phrase in [
+            "Documentation/zigux/README.md",
+            "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+            "make -C zigux phase15",
+            "shared bootstrap workflow replay",
+        ]:
+            if phrase not in current_repo_handoff:
+                missing.append(f"scorecard_manifest:handoff_evidence:current_repo_handoff:{phrase}")
+    maintenance_mode_next_step = scorecard_handoff.get("maintenance_mode_next_step")
+    if not isinstance(maintenance_mode_next_step, str):
+        missing.append("scorecard_manifest:handoff_evidence:maintenance_mode_next_step")
+    else:
+        for phrase in ["named reopen triggers", "deep-core blocker posture"]:
+            if phrase not in maintenance_mode_next_step:
+                missing.append(f"scorecard_manifest:handoff_evidence:maintenance_mode_next_step:{phrase}")
+
+scorecard_gap = scorecard_manifest.get("current_parity_tracking_gap")
+if not isinstance(scorecard_gap, dict):
+    missing.append("scorecard_manifest:current_parity_tracking_gap")
+else:
+    if scorecard_gap.get("roadmap_requirement") != "parity scorecard":
+        missing.append("scorecard_manifest:current_parity_tracking_gap:roadmap_requirement")
+    current_gap = scorecard_gap.get("current_gap")
+    if not isinstance(current_gap, str):
+        missing.append("scorecard_manifest:current_parity_tracking_gap:current_gap")
+    else:
+        for phrase in [
+            "lane identity",
+            "surveyed-master provenance",
+            "roadmap wording",
+            "replay-backed evidence packet",
+        ]:
+            if phrase not in current_gap:
+                missing.append(f"scorecard_manifest:current_parity_tracking_gap:current_gap:{phrase}")
+    repo_state = scorecard_gap.get("repo_state")
+    if not isinstance(repo_state, str):
+        missing.append("scorecard_manifest:current_parity_tracking_gap:repo_state")
+    else:
+        for phrase in [
+            "Documentation/zigux/README.md",
+            "phase15_build.zig",
+            "make -C zigux phase15",
+        ]:
+            if phrase not in repo_state:
+                missing.append(f"scorecard_manifest:current_parity_tracking_gap:repo_state:{phrase}")
+    closure_signal = scorecard_gap.get("closure_signal")
+    if not isinstance(closure_signal, str) or "parity-tracking gap" not in closure_signal:
+        missing.append("scorecard_manifest:current_parity_tracking_gap:closure_signal")
+    remaining_blocker = scorecard_gap.get("remaining_blocker")
+    if not isinstance(remaining_blocker, str) or "deep-core status-change blocker" not in remaining_blocker:
+        missing.append("scorecard_manifest:current_parity_tracking_gap:remaining_blocker")
+
+scorecard_repo_evidence = scorecard_manifest.get("repo_evidence")
+if not isinstance(scorecard_repo_evidence, dict):
+    missing.append("scorecard_manifest:repo_evidence")
+else:
+    for key in [
+        "freeze_map_present",
+        "review_checklist_present",
+        "phase15_review_process_note_present",
+        "phase15_indefinite_c_policy_note_present",
+        "phase15_readme_reviewability_present",
+        "phase15_scorecard_note_present",
+        "phase15_evidence_archive_templates_present",
+        "phase15_anchor_owner_tracking_present",
+        "phase15_scorecard_test_present",
+        "phase15_scorecard_manifest_present",
+        "phase15_build_present",
+        "phase15_make_target_present",
+        "phase15_workflow_replay_present",
+    ]:
+        if scorecard_repo_evidence.get(key) is not True:
+            missing.append(f"scorecard_manifest:repo_evidence:{key}")
+
+scorecard_gaps = scorecard_manifest.get("gaps")
+if not isinstance(scorecard_gaps, list):
+    missing.append("scorecard_manifest:gaps")
+else:
+    scorecard_gap_ids = {
+        gap.get("id")
+        for gap in scorecard_gaps
+        if isinstance(gap, dict) and isinstance(gap.get("id"), str)
+    }
+    for gap_id in [
+        "phase15-roadmap-handoff-evidence-followup",
+        "phase15-maintenance-mode-handoff-sync",
+        "phase15-scorecard-review-packet-field-sync",
+        "phase15-deep-core-status-change-blocker",
+    ]:
+        if gap_id not in scorecard_gap_ids:
+            missing.append(f"scorecard_manifest:gaps:{gap_id}")
+
+scorecard_metrics = scorecard_manifest.get("scorecard_metrics")
+if not isinstance(scorecard_metrics, dict):
+    missing.append("scorecard_manifest:scorecard_metrics")
+else:
+    if scorecard_metrics.get("landed_scorecard_gaps") != 19:
+        missing.append("scorecard_manifest:scorecard_metrics:landed_scorecard_gaps")
+    if scorecard_metrics.get("blocked_scorecard_gaps") != 1:
+        missing.append("scorecard_manifest:scorecard_metrics:blocked_scorecard_gaps")
+    if scorecard_metrics.get("repo_evidence_checks_green") != 15:
+        missing.append("scorecard_manifest:scorecard_metrics:repo_evidence_checks_green")
 
 review_process_manifest = load_json("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 if review_process_manifest.get("phase") != "Phase 15":
