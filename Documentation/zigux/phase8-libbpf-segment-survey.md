@@ -39,13 +39,14 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 
 ## Segment catalog
 
-The manifest currently records ten bounded segments:
+The manifest currently records eleven bounded segments:
 
 - `logging-version-and-errno`
 - `pin-path-helpers`
 - `cpu-mask-parsing`
 - `type-name-helpers`
 - `fdinfo-map-info-helpers`
+- `map-reuse-compatibility`
 - `file-path-and-handle-bridge`
 - `perf-buffer-online-cpu-routing`
 - `skeleton-population`
@@ -77,7 +78,7 @@ The current starter implementation stays deliberately bounded:
 - `file_path_handle_bridge.zig` ports the pure `/proc/<pid>/fdinfo/<fd>` path construction, a current-process convenience wrapper that mirrors libbpf's `getpid()`-based anchor, a `planTokenPreparation()` helper that keeps optional-versus-mandatory bpffs intent explicit around `bpf_object_prepare_token()`, a `classifyTokenPreparationFailure()` helper that keeps optional failure fallback versus mandatory failure behavior reviewable without claiming live token creation, and bounded `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` text parsing from `bpf_get_map_info_from_fdinfo()`
 - the file-path-handle helper now also exposes the reused-map-name chooser from `bpf_map__reuse_fd()`, preserving the original requested name only when the kernel-provided info name is exactly `BPF_OBJ_NAME_LEN - 1` bytes and matches the truncated prefix
 - the same helper now also exposes the bounded map reuse compatibility check from `bpf_object__reuse_map()`, including libbpf's DEVMAP readonly-prog exception, without claiming bpffs reopen flow, FD duplication, or close-on-replacement side effects
-- the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines, keeps missing fields zero-initialized, lets later duplicate fdinfo keys overwrite earlier values the same way libbpf's fallback does, and still keeps malformed values explicit for callers
+- the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines, keeps missing fields zero-initialized, lets later duplicate keys overwrite earlier values the same way libbpf's fallback does, and still keeps malformed values explicit for callers
 - the same helper now keeps empty-string token prevention, default `/sys/fs/bpf` optional probing, caller-provided mandatory token paths, and the `skip_optional_missing_delegation` versus `fail` split explicit without claiming real `open()`, `close()`, or `bpf_token_create()` behavior
 - the new helper still does not claim `fopen()`, `fgets()`, `fclose()`, pinned-object reopen flows, token creation lifecycle parity, or FD duplication and replacement side effects
 
