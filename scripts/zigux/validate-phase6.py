@@ -11,7 +11,7 @@ required_files = [
     ROOT / "scripts" / "zigux" / "validate-phase6.py",
     ROOT / "scripts" / "zigux" / "check-phase6-base64-c-parity.py",
     ROOT / "scripts" / "zigux" / "check-phase6-bsearch-c-parity.py",
-    ROOT / "scripts" / "README.md",
+    ROOT / "scripts" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "phase6-helper-parity-catalog.md",
     ROOT / "Documentation" / "zigux" / "phase6-base64-slice.md",
