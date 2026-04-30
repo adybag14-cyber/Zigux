@@ -1,4 +1,5 @@
 const std = @import("std");
+const current_surveyed_commit = "ba75bc5abc49c80e366570e64141f5339fa48509";
 
 const SurveySummary = struct {
     atomic64_test_c_lines: usize,
@@ -100,6 +101,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expectEqualStrings("P4-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
+    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_destinations[0]);

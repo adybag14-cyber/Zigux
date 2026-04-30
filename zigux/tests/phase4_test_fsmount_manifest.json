@@ -3,7 +3,7 @@
   "phase": "Phase 4",
   "owner": "Validation and Perf Team",
   "rollback_owner": "Validation and Perf Team",
-  "surveyed_commit": "3bc5720cd9aa4f85acd6f6b907d716a213b4c421",
+  "surveyed_commit": "ba75bc5abc49c80e366570e64141f5339fa48509",
   "anchor": "samples/vfs/test-fsmount.c",
   "roadmap_destinations": [
     "samples/zigux/test_fsmount.zig"

@@ -1,7 +1,7 @@
 {
   "lane_key": "P4-L01",
   "phase": "Phase 4",
-  "surveyed_commit": "1d98894fd1d07e6a14004187e3ec8f5285a39187",
+  "surveyed_commit": "ba75bc5abc49c80e366570e64141f5339fa48509",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/atomic64_diff.zig"

@@ -1,4 +1,5 @@
 const std = @import("std");
+const current_surveyed_commit = "ba75bc5abc49c80e366570e64141f5339fa48509";
 
 const SurveyedGate = struct {
     surface: []const u8,
@@ -59,10 +60,7 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
-    try std.testing.expectEqualStrings(
-        "81356ba2b96caf155f2c8788b3ede1fbb4c96d74",
-        manifest.surveyed_commit,
-    );
+    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.surveyed_gates.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.gaps.len);
 

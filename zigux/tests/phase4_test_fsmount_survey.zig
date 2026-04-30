@@ -1,4 +1,5 @@
 const std = @import("std");
+const current_surveyed_commit = "ba75bc5abc49c80e366570e64141f5339fa48509";
 
 const SurveySummary = struct {
     test_fsmount_c_lines: usize,
@@ -45,6 +46,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
+fn isLowerHexSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+    for (value) |byte| {
+        if (!std.ascii.isHex(byte) or std.ascii.isUpper(byte)) return false;
+    }
+    return true;
+}
+
 test "phase4 test_fsmount survey manifest records the landed survey packet and remaining sample gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -65,6 +74,8 @@ test "phase4 test_fsmount survey manifest records the landed survey packet and r
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.owner);
     try std.testing.expectEqualStrings("Validation and Perf Team", manifest.rollback_owner);
+    try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
+    try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/vfs/test-fsmount.c", manifest.anchor);
     try std.testing.expectEqualStrings("make M=samples/vfs", manifest.current_replay);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
