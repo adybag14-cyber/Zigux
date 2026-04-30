@@ -224,7 +224,7 @@ test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler
     try std.testing.expect(conflict.system_power_controller);
     try std.testing.expect(conflict.poweroff_handler_present);
     try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
-    try std.testing.expect(conflict.removeCallback_ready);
+    try std.testing.expect(conflict.remove_callback_ready);
     try std.testing.expect(conflict.watchdog_teardown_managed_by_devm);
     try std.testing.expect(conflict.remove_callback_scope_limited_to_poweroff_owner);
     try std.testing.expect(!conflict.clear_poweroff_handler_requested);
