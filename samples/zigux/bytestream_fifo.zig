@@ -357,3 +357,26 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
 }
+
+test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expectEqual(SampleStage.cold, sample.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+
+    try sample.init();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.init());
+
+    _ = try sample.runAnchorReplay();
+    try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+
+    try sample.exit();
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+}
