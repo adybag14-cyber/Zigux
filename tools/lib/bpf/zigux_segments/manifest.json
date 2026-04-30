@@ -1,7 +1,7 @@
 {
   "lane_key": "P8-L15",
   "phase": "Phase 8",
-  "surveyed_commit": "d7c67f13bab842e26bc2a1016c31722776b7fd3b",
+  "surveyed_commit": "47c633193a74d67e3955c57a11757de35b518ef2",
   "anchor": "tools/lib/bpf/libbpf.c",
   "survey_summary": {
     "libbpf_c_lines": 14771,
@@ -99,7 +99,7 @@
         "tools/lib/bpf/libbpf.c:4976-4994"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The proc fdinfo path construction, bounded map-info text parsing, and reused-map-name chooser inside bpf_map__reuse_fd() can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
+      "why_now": "The proc fdinfo path construction, bounded map-info text parsing including map_extra, and reused-map-name chooser inside bpf_map__reuse_fd() can land as pure helpers without claiming procfs fopen or fclose behavior, pinned-map reuse side effects, token lifecycle parity, or fd ownership."
     },
     {
       "id": "P8-L15-S11",
