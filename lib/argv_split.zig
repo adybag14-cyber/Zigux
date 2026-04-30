@@ -136,6 +136,8 @@ const whitespace_expected = [_][]const u8{
 
 const blank_expected = [_][]const u8{};
 
+const leading_nul_expected = [_][]const u8{};
+
 const nul_expected = [_][]const u8{
     "alpha",
     "beta",
@@ -179,6 +181,10 @@ test "argvSplit matches focused parity fixtures" {
     try expectFixture(.{
         .input = "  \t\n",
         .expected = &blank_expected,
+    });
+    try expectFixture(.{
+        .input = "\x00ignored tail",
+        .expected = &leading_nul_expected,
     });
     try expectFixture(.{
         .input = "alpha beta\x00ignored tail",
