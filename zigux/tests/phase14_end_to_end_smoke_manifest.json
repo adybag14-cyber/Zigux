@@ -61,7 +61,7 @@
       "surveyed_commit": "55f1f2ca5c047f33ad2f005515bb67974c1b74f9",
       "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
-      "ready_next_gap": "phase14-skbuff-validate-xmit-republish-followup",
+      "ready_next_gap": "",
       "blocked_gap": "phase14-skbuff-live-ownership-blocker"
     },
     {
