@@ -4,8 +4,8 @@ This document records the bounded kernel-integration validation matrix for the Z
 
 ## Status
 
-- `PHASE11_HVC_CONSOLE_STATUS=close_teardown_handoff_landed`
-- reviewed against live `master` `34d2750ba817c2cc9862df2b48c44a6155b300fe`
+- `PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed`
+- reviewed against live `master` `46ecd8c9c39d3add3bc762ab137686d6f23e1935`
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/tty/hvc/hvc_console.zig`
@@ -54,11 +54,11 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
 - the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane
-- this bounded worker-entry, sleep-handoff, drain-order, and hangup-disconnect evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
+- this bounded worker-entry, sleep-handoff, drain-order, hangup-disconnect, and remove-handoff evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until another comparably small host-free khvcd, notifier, or remove handoff actually lands
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not claim khvcd execution, sysrq, notifier callbacks, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
-- after this landed final-close teardown handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, or sysrq split actually lands so the lane keeps one truthful next step
+- after this landed `hvc_remove()` handoff, update this matrix, the slice note, the survey note, and the survey manifest together again only if a later host-free khvcd, notifier, or sysrq split actually lands so the lane keeps one truthful next step
