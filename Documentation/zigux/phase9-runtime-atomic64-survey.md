@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
-- `PHASE9_SURVEYED_COMMIT=5dab7ee45d2664801211fb9e2ccba28e1a127071`
+- `PHASE9_SURVEYED_COMMIT=0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` shared-build legs, landed sample-backed module starter, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, and the lane-level review note that keeps the remaining roadmap blocker explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
@@ -34,10 +34,14 @@ No parity scorecard entry or Architecture Council status-change request is attac
 ## Survey findings
 
 - `lib/atomic64_test.c` is present on `master` at 277 lines.
-- the current survey packet is pinned to `master` commit `5dab7ee45d2664801211fb9e2ccba28e1a127071`.
+- the current survey packet is pinned to `master` commit `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`.
 - the repo had zero `zigux/tests/runtime_*` files before this survey landed.
 - the repo had no `samples/zigux/` directory before this survey landed.
 - the repo had no `zigux/tests/phase9_build.zig` gate, no dedicated Phase 9 runtime note, and no dedicated atomic64 module-slice note before this survey landed.
+
+## Latest verification snapshot
+
+On inspected `master` commit `0b7d0fabb8871bdf2061b3fc566c53d1bea6213d`, the shared Phase 9 build replay still passed with the attached Zig toolchain via `zig build test --build-file zigux/tests/phase9_build.zig --summary all`, including the dedicated `phase9-runtime-atomic64-sample-tests`, `phase9-runtime-atomic64-loader-tests`, `phase9-runtime-atomic64-module-tests`, `phase9-runtime-atomic64-diff-tests`, and `phase9-runtime-atomic64-survey-tests` legs.
 
 ## Roadmap snapshot
 
