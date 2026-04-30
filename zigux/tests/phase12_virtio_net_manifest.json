@@ -1,7 +1,7 @@
 {
   "lane_key": "P12-L04",
   "phase": "Phase 12",
-  "surveyed_commit": "7779444ab1617e7d21224396c2de66fe8e9bd3d0",
+  "surveyed_commit": "c23f1e76c2c0cdb2526d252689e68cc4dbee505d",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
