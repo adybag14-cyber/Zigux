@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import tempfile
 from pathlib import Path
@@ -92,6 +93,7 @@ REQUIRED_FILES = [
     'scripts/zigux/check-artifact-diff-contract.py',
     'scripts/zigux/validate-phase4.py',
     'Documentation/zigux/artifact-diff.md',
+    'Documentation/zigux/phase4-gate-evidence.md',
     'Documentation/zigux/phase4-validation-matrix.md',
     'samples/kprobes/Makefile',
     'samples/kprobes/kprobe_example.c',
@@ -466,13 +468,48 @@ REQUIRED_BITMAP_DIFF_MARKERS = [
     'weight',
 ]
 
+REQUIRED_GATE_EVIDENCE_MARKERS = [
+    'PHASE4_EVIDENCE_MODE=github_connector_readback',
+    'PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions',
+    '## Exact Readback Evidence',
+    '## Current Conclusion',
+    'PHASE4_VALIDATION_MATRIX_BLOB_SHA=',
+    'PHASE4_VALIDATOR_BLOB_SHA=',
+    'PHASE4_BUILD_BLOB_SHA=',
+    'PHASE4_MAKEFILE_BLOB_SHA=',
+    'PHASE4_WORKFLOW_BLOB_SHA=',
+    'PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA=',
+    'PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=',
+    'PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=',
+]
+
+PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
+    'PHASE4_VALIDATION_MATRIX_BLOB_SHA': 'Documentation/zigux/phase4-validation-matrix.md',
+    'PHASE4_VALIDATOR_BLOB_SHA': 'scripts/zigux/validate-phase4.py',
+    'PHASE4_BUILD_BLOB_SHA': 'zigux/tests/phase4_build.zig',
+    'PHASE4_MAKEFILE_BLOB_SHA': 'zigux/Makefile',
+    'PHASE4_WORKFLOW_BLOB_SHA': '.github/workflows/zigux-bootstrap.yml',
+    'PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA': 'zigux/tests/phase4_test_fsmount_manifest.json',
+    'PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA': 'zigux/tests/phase4_perf_baseline_manifest.json',
+    'PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA': 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json',
+}
+
 
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding='utf-8')
 
 
+def read_bytes(root: Path, relative_path: str) -> bytes:
+    return (root / relative_path).read_bytes()
+
+
 def read_json(root: Path, relative_path: str) -> object:
     return json.loads(read_text(root, relative_path))
+
+
+def git_blob_sha1(data: bytes) -> str:
+    header = f'blob {len(data)}\0'.encode('utf-8')
+    return hashlib.sha1(header + data).hexdigest()
 
 
 def collect_missing_markers(text: str, prefix: str, markers: list[str]) -> list[str]:
@@ -707,6 +744,18 @@ def check_runtime_atomic64_manifest_alignment(manifest: object) -> list[str]:
     return missing
 
 
+def check_gate_evidence_alignment(root: Path, gate_evidence: str) -> list[str]:
+    missing = collect_missing_markers(
+        gate_evidence, 'phase4_gate_evidence', REQUIRED_GATE_EVIDENCE_MARKERS
+    )
+    for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
+        digest = git_blob_sha1(read_bytes(root, relative_path))
+        evidence_line = f'`{marker}={digest}`'
+        if evidence_line not in gate_evidence:
+            missing.append(f'phase4_gate_evidence:{marker}:{digest}')
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
@@ -716,6 +765,7 @@ def validate_root(root: Path) -> list[str]:
     workflow = read_text(root, '.github/workflows/zigux-bootstrap.yml')
     artifact_diff = read_text(root, 'scripts/zigux/artifact_diff.py')
     artifact_doc = read_text(root, 'Documentation/zigux/artifact-diff.md')
+    gate_evidence = read_text(root, 'Documentation/zigux/phase4-gate-evidence.md')
     tests_readme = read_text(root, 'zigux/tests/README.md')
     script_readme = read_text(root, 'scripts/zigux/README.md')
     doc_readme = read_text(root, 'Documentation/zigux/README.md')
@@ -737,6 +787,7 @@ def validate_root(root: Path) -> list[str]:
         collect_missing_markers(workflow, 'workflow', REQUIRED_WORKFLOW_MARKERS)
     )
     missing_markers.extend(collect_missing_markers(artifact_doc, 'doc', REQUIRED_DOC_MARKERS))
+    missing_markers.extend(check_gate_evidence_alignment(root, gate_evidence))
     for group_name, markers in REQUIRED_DOC_MARKER_GROUPS:
         for marker in markers:
             if marker not in artifact_doc:
@@ -1016,6 +1067,36 @@ def write_fixture_tree(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding='utf-8')
 
+    gate_evidence_lines = [
+        '# Phase 4 Gate Evidence',
+        '',
+        '## Status',
+        '',
+        '- `PHASE4_EVIDENCE_DATE=2026-04-30`',
+        '- `PHASE4_EVIDENCE_MODE=github_connector_readback`',
+        '- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`',
+    ]
+    for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
+        digest = git_blob_sha1(read_bytes(root, relative_path))
+        gate_evidence_lines.append(f'- `{marker}={digest}`')
+    gate_evidence_lines.extend(
+        [
+            '',
+            '## Exact Readback Evidence',
+            '',
+            '- synthetic fixture keeps the current Phase 4 rollback packet hashes explicit',
+            '',
+            '## Current Conclusion',
+            '',
+            'The synthetic Phase 4 rollback-ownership and lab-matrix packet is aligned.',
+            '',
+        ]
+    )
+    (root / 'Documentation/zigux/phase4-gate-evidence.md').write_text(
+        '\n'.join(gate_evidence_lines),
+        encoding='utf-8',
+    )
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix='zigux_validate_phase4_') as tmp_dir_str:
@@ -1067,6 +1148,22 @@ def run_self_test() -> int:
         ), missing
 
         write_fixture_tree(tmp_root)
+        gate_evidence = tmp_root / 'Documentation/zigux/phase4-gate-evidence.md'
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding='utf-8').replace(
+                'PHASE4_BUILD_BLOB_SHA=',
+                'PHASE4_BUILD_BLOB_SHA=broken',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert any(
+            marker.startswith('phase4_gate_evidence:PHASE4_BUILD_BLOB_SHA:')
+            for marker in missing
+        ), missing
+
+        write_fixture_tree(tmp_root)
         landed_fsmount = tmp_root / 'samples/zigux/test_fsmount.zig'
         landed_fsmount.parent.mkdir(parents=True, exist_ok=True)
         landed_fsmount.write_text('// synthetic landed sample\n', encoding='utf-8')
@@ -1096,6 +1193,8 @@ def required_marker_count() -> int:
         + len(REQUIRED_RUNTIME_ATOMIC64_MARKERS)
         + len(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
         + len(REQUIRED_BITMAP_DIFF_MARKERS)
+        + len(REQUIRED_GATE_EVIDENCE_MARKERS)
+        + len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)
         + sum(
             len(expectation.get('exact_check_markers', []))
             + (1 if expectation.get('rollback_evidence_gap') is not None else 0)
