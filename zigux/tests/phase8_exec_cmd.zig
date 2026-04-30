@@ -130,6 +130,32 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     );
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 
+    var root_env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer root_env.deinit();
+
+    var root_state = exec_cmd.ExecCmdState{};
+    defer root_state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&root_env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &root_env, &root_state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &root_state, "scripts");
+    try root_env.set("PATH", "/usr/bin");
+
+    const root_updated = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &root_env,
+        root_state,
+        config,
+        "/",
+    );
+    defer std.testing.allocator.free(root_updated);
+
+    try std.testing.expectEqualStrings(
+        "//tools/bin://scripts:/usr/bin",
+        root_updated,
+    );
+    try std.testing.expectEqualStrings(root_updated, root_env.get("PATH").?);
+
     var explicit_empty_env = exec_cmd.EnvMap.init(std.testing.allocator);
     defer explicit_empty_env.deinit();
 
