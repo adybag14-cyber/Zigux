@@ -115,9 +115,11 @@ This slice keeps the landed `kobject` sample reviewable by recording the exact l
    - `rg -n "samples/kobject/kobject-example.c|Phase 5" Documentation/zigux/phase5-kobject-sample-survey.md Documentation/zigux/review-checklist.md samples/zigux/README.md`
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
    - `find samples/zigux -maxdepth 1 -type f | sort`
-3. run the dedicated manifest-backed survey gate
+3. run the focused self-check that keeps the in-memory replay explicit
+   - `zig test samples/zigux/kobject_example.zig`
+4. run the dedicated manifest-backed survey gate
    - `zig test zigux/tests/phase5_kobject_example_survey.zig`
-4. run the exact bounded Phase 5 sample checks
+5. run the exact bounded Phase 5 sample checks
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals
