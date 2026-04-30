@@ -278,7 +278,7 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectClear(&wide_dst, bitmap_nbits - 1);
 
     bitmap.fill(&wide_dst, bitmap_nbits);
-    // test_copy full-width copy from a filled destination also drops stale tail bits
+    // test_copy filled-destination copies also drop stale tail bits
     copyFrom(&wide_dst, &wide_src, bitmap_nbits);
     try std.testing.expectEqual(@as(usize, 109), weight(&wide_dst, bitmap_nbits));
     try std.testing.expectEqual(@as(usize, 0), firstSet(&wide_dst, bitmap_nbits));
@@ -289,7 +289,7 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectClear(&wide_dst, bitmap_nbits - 1);
 
     bitmap.fill(&wide_dst, bitmap_nbits);
-    // test_copy full-width partial-word tail clearing at 109 bits keeps the stale tail visible through bit 1023
+    // test_copy 109-bit partial-tail replay keeps the stale tail visible through bit 1023
     copyFrom(&wide_dst, &wide_src, 109);
     try std.testing.expectEqual(@as(usize, 109), weight(wide_dst[0..bitmap.bitsToWords(109)], 109));
     try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
@@ -299,7 +299,7 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectSet(&wide_dst, bitmap_nbits - 1);
 
     bitmap.fill(&wide_dst, bitmap_nbits);
-    // test_copy full-width aligned-on-word-length at 97 bits keeps the stale tail visible through bit 1023
+    // test_copy 97-bit aligned-copy replay keeps the stale tail visible through bit 1023
     copyFrom(&wide_dst, &wide_src, 97);
     try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
     try expectPrintedList(&wide_dst, bitmap_nbits, "0-108,128-1023");
@@ -310,7 +310,7 @@ test "bitmap diff gate records exact bounded copy checks" {
     try expectSet(&wide_dst, bitmap_nbits - 1);
 
     bitmap.fill(&wide_dst, bitmap_nbits);
-    // test_copy_clear_tail full-width 109-bit replay keeps the stale tail contract explicit through bit 1023
+    // test_copy_clear_tail `bitmap.copyClearTail()` keeps the 109-bit cleared-tail contract explicit through bit 1023
     bitmap.copyClearTail(&wide_dst, &wide_src, 109);
     try std.testing.expectEqual(@as(usize, 109), weight(wide_dst[0..bitmap.bitsToWords(109)], 109));
     try std.testing.expectEqual(@as(usize, 109 + (bitmap_nbits - bits_per_long * 2)), weight(&wide_dst, bitmap_nbits));
@@ -373,13 +373,13 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     try std.testing.expectEqual(@as(usize, 50), findNthSet(&map, nth_nbits, 4));
     try std.testing.expectEqual(@as(usize, 60), findNthSet(&map, nth_nbits, 5));
     try std.testing.expectEqual(@as(usize, 80), findNthSet(&map, nth_nbits, 6));
-    // test_find_nth_bit full-width nth 7
+    // test_find_nth_bit full-width nth-7 and nth-8 outcomes
     try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, nth_nbits, 7));
     // test_find_nth_bit truncated-width nth 8 returns nbits
     try std.testing.expectEqual(nth_nbits, findNthSet(&map, nth_nbits, 8));
-    // test_find_nth_bit reduced-width cutoff still keeps bit 123 visible for nth 7
+    // test_find_nth_bit reduced-width replay still keeps bit 123 for nth 7
     try std.testing.expectEqual(@as(usize, 123), findNthSet(&map, nth_nbits - 1, 7));
-    // test_find_nth_bit reduced-width nth 8 returns the cutoff width
+    // test_find_nth_bit reduced-width replay returns the cutoff width for nth 8
     try std.testing.expectEqual(nth_nbits - 1, findNthSet(&map, nth_nbits - 1, 8));
 
     var truncated = map;
