@@ -209,6 +209,7 @@ test "phase13 devres manifest records the landed helper-first dma/scatterlist bo
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource_uc") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_ioremap_resource_wc") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-devicetree-iomap-planner")) {
