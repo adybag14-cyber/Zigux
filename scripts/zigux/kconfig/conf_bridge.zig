@@ -87,6 +87,11 @@ const ValidateExtraArgError = error{
     EmptyAllConfig,
 };
 
+const ParseRequestArgsError = ValidateExtraArgError || error{
+    InvalidArity,
+    UnsupportedMode,
+};
+
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
@@ -171,29 +176,52 @@ fn validateExtraArg(mode: Mode, extra_arg: ?[]const u8) ValidateExtraArgError!vo
     }
 }
 
+fn parseRequestArgs(args: []const []const u8) ParseRequestArgsError!Request {
+    if (args.len < 4 or args.len > 6) {
+        return error.InvalidArity;
+    }
+
+    var mode: Mode = .oldaskconfig;
+    var kconfig_index: usize = 1;
+
+    if (args.len >= 5) {
+        mode = Mode.parse(args[1]) orelse return error.UnsupportedMode;
+        kconfig_index = 2;
+    }
+
+    const extra_arg = if (args.len > kconfig_index + 3) args[kconfig_index + 3] else null;
+    try validateExtraArg(mode, extra_arg);
+
+    return .{
+        .mode = mode,
+        .kconfig = args[kconfig_index],
+        .config = args[kconfig_index + 1],
+        .arch = args[kconfig_index + 2],
+        .mode_arg = if (requiresModeArg(mode)) extra_arg.? else null,
+        .allconfig = if (supportsAllConfig(mode)) extra_arg else null,
+    };
+}
+
 pub fn main(init: std.process.Init) !void {
     const arena = init.arena.allocator();
     const io = init.io;
     const args = try init.minimal.args.toSlice(arena);
 
-    if (args.len < 5 or args.len > 6) {
-        var stderr_buffer: [160]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Usage: conf_bridge <mode> <Kconfig> <.config> <arch> [mode-arg|allconfig]\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    }
-
-    const mode = Mode.parse(args[1]) orelse {
-        var stderr_buffer: [160]u8 = undefined;
-        var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Error: unsupported kconfig mode\n");
-        try stderr_writer.interface.flush();
-        std.process.exit(1);
-    };
-
-    const extra_arg = if (args.len == 6) args[5] else null;
-    validateExtraArg(mode, extra_arg) catch |err| switch (err) {
+    const request = parseRequestArgs(args) catch |err| switch (err) {
+        error.InvalidArity => {
+            var stderr_buffer: [176]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Usage: conf_bridge [<mode>] <Kconfig> <.config> <arch> [mode-arg|allconfig]\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
+        error.UnsupportedMode => {
+            var stderr_buffer: [160]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll("Error: unsupported kconfig mode\n");
+            try stderr_writer.interface.flush();
+            std.process.exit(1);
+        },
         error.MissingModeArg => {
             var stderr_buffer: [160]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
@@ -223,19 +251,10 @@ pub fn main(init: std.process.Init) !void {
             std.process.exit(1);
         },
     };
-    const mode_arg = if (requiresModeArg(mode)) extra_arg.? else null;
-    const allconfig = if (supportsAllConfig(mode)) extra_arg else null;
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
-    try runConfBridge(&stdout_writer.interface, .{
-        .mode = mode,
-        .kconfig = args[2],
-        .config = args[3],
-        .arch = args[4],
-        .mode_arg = mode_arg,
-        .allconfig = allconfig,
-    });
+    try runConfBridge(&stdout_writer.interface, request);
     try stdout_writer.interface.flush();
 }
 
@@ -651,6 +670,50 @@ test "conf bridge rejects empty extra arguments" {
     try std.testing.expectError(error.EmptyModeArg, validateExtraArg(.savedefconfig, ""));
     try std.testing.expectError(error.EmptyAllConfig, validateExtraArg(.allnoconfig, ""));
     try std.testing.expectError(error.EmptyAllConfig, validateExtraArg(.randconfig, ""));
+}
+
+test "conf bridge defaults to oldaskconfig when mode is omitted" {
+    const args = [_][]const u8{
+        "conf_bridge",
+        "Kconfig",
+        ".config",
+        "x86_64",
+    };
+
+    const request = try parseRequestArgs(&args);
+    try std.testing.expectEqual(Mode.oldaskconfig, request.mode);
+    try std.testing.expectEqualStrings("Kconfig", request.kconfig);
+    try std.testing.expectEqualStrings(".config", request.config);
+    try std.testing.expectEqualStrings("x86_64", request.arch);
+    try std.testing.expect(request.mode_arg == null);
+    try std.testing.expect(request.allconfig == null);
+}
+
+test "conf bridge parses explicit mode arguments" {
+    const args = [_][]const u8{
+        "conf_bridge",
+        "defconfig",
+        "Kconfig",
+        "out/.config",
+        "arm64",
+        "arch/arm64/configs/defconfig",
+    };
+
+    const request = try parseRequestArgs(&args);
+    try std.testing.expectEqual(Mode.defconfig, request.mode);
+    try std.testing.expectEqualStrings("arch/arm64/configs/defconfig", request.mode_arg.?);
+}
+
+test "conf bridge rejects unsupported explicit modes" {
+    const args = [_][]const u8{
+        "conf_bridge",
+        "bogusmode",
+        "Kconfig",
+        ".config",
+        "x86_64",
+    };
+
+    try std.testing.expectError(error.UnsupportedMode, parseRequestArgs(&args));
 }
 
 test "conf bridge mode text and flag stay aligned with enum tags" {
