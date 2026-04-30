@@ -556,6 +556,7 @@ def validate_slices(
 ) -> list[str]:
     issues: list[str] = []
     catalog_entries = discover_phase3_slices(_phase3_paths_for_root(root))
+    validating_full_catalog = {entry.slug for entry in slices} == {entry.slug for entry in catalog_entries}
     for entry in slices:
         for path in (entry.doc_path, entry.dump_path, entry.expected_path, entry.harness_path):
             if not path.exists():
@@ -577,10 +578,10 @@ def validate_slices(
         issues.extend(f"slug-sanity: {issue.to_row()}" for issue in audit_phase3_slug_sanity(slices))
 
     if check_all_wrappers:
-        issues.extend(
-            f"doc-sync: {issue.to_row()}"
-            for issue in audit_phase3_doc_sync(catalog_entries, _phase3_paths_for_root(root))
-        )
+        for issue in audit_phase3_doc_sync(slices, _phase3_paths_for_root(root)):
+            if issue.code == "artifact-diff-phase3-stale" and not (check_artifact_diff or validating_full_catalog):
+                continue
+            issues.append(f"doc-sync: {issue.to_row()}")
     elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(
         catalog_entries, root / "Documentation/zigux/artifact-diff.md"
     ):
