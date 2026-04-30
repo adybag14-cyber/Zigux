@@ -69,6 +69,7 @@ review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").re
 docs_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
 ring_survey = (ROOT / "Documentation" / "zigux" / "phase10-virtio-ring-survey.md").read_text(encoding="utf-8")
 ring_survey_test = (ROOT / "zigux" / "tests" / "phase10_virtio_ring_survey.zig").read_text(encoding="utf-8")
+mmio_slice = (ROOT / "Documentation" / "zigux" / "phase10-virtio-mmio-slice.md").read_text(encoding="utf-8")
 makefile = (ROOT / "zigux" / "Makefile").read_text(encoding="utf-8")
 workflow = (ROOT / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
 phase10_ledger = (ROOT / "zigux-alpha" / "PHASE10_CLOSURE_LEDGER.md").read_text(encoding="utf-8")
@@ -202,6 +203,15 @@ required_ring_survey_markers = [
 required_ring_survey_test_markers = [
     'test "phase10 virtio ring survey manifest records the live queue-discipline and MMIO ladder through landed config-write" {',
 ]
+required_mmio_slice_markers = [
+    "PHASE10_SLICE=virtio-mmio-config-write-helper",
+    "in-memory config-write planning",
+    "phase10-mmio-lifecycle-and-irq-paths",
+]
+forbidden_stale_mmio_slice_markers = [
+    "PHASE10_SLICE=virtio-mmio-config-window-helper",
+    "add one small config-window write-planning helper next",
+]
 forbidden_stale_ring_markers = [
     "remaining queue-wrapper gap",
     "queue-wrapper gap",
@@ -234,11 +244,17 @@ for marker in required_ring_survey_markers:
 for marker in required_ring_survey_test_markers:
     if marker not in ring_survey_test:
         missing_markers.append(f"ring_survey_test:{marker}")
+for marker in required_mmio_slice_markers:
+    if marker not in mmio_slice:
+        missing_markers.append(f"mmio_slice:{marker}")
 for marker in forbidden_stale_ring_markers:
     if marker in ring_survey:
         missing_markers.append(f"ring_survey:stale_marker:{marker}")
     if marker in ring_survey_test:
         missing_markers.append(f"ring_survey_test:stale_marker:{marker}")
+for marker in forbidden_stale_mmio_slice_markers:
+    if marker in mmio_slice:
+        missing_markers.append(f"mmio_slice:stale_marker:{marker}")
 
 if manifest.get("phase") != "Phase 10":
     missing_markers.append("manifest:phase=Phase 10")
@@ -531,5 +547,5 @@ print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE10_CLOSURE_REQUIRED_MARKER_COUNT="
-    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers)}"
+    f"{len(required_closure_markers) + len(required_freeze_map_markers) + len(required_makefile_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_checklist_markers) + len(required_docs_readme_markers) + len(required_ring_survey_markers) + len(required_ring_survey_test_markers) + len(required_mmio_slice_markers)}"
 )
