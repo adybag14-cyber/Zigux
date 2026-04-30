@@ -110,6 +110,17 @@ fn parseFlagField(line: []const u8, destination: *u32) FilePathHandleBridgeError
     return true;
 }
 
+fn parseMapExtraField(line: []const u8, destination: *u64) FilePathHandleBridgeError!bool {
+    const value_text = fieldValue(line, "map_extra") orelse return false;
+    const trimmed_value = if (std.mem.startsWith(u8, value_text, "0x") or std.mem.startsWith(u8, value_text, "0X"))
+        value_text[2..]
+    else
+        value_text;
+    const base: u8 = if (trimmed_value.ptr == value_text.ptr) 10 else 16;
+    destination.* = std.fmt.parseUnsigned(u64, trimmed_value, base) catch return error.InvalidValue;
+    return true;
+}
+
 pub fn buildFdinfoPath(buffer: []u8, pid: u32, fd: i32) FilePathHandleBridgeError![]u8 {
     if (pid == 0) {
         return error.InvalidPid;
@@ -206,6 +217,7 @@ pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInf
         if (try parseDecimalField(line, "value_size", &info.value_size)) continue;
         if (try parseDecimalField(line, "max_entries", &info.max_entries)) continue;
         if (try parseFlagField(line, &info.map_flags)) continue;
+        if (try parseMapExtraField(line, &info.map_extra)) continue;
     }
 
     return info;
@@ -340,7 +352,8 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
             "key_size:\t8\n" ++
             "value_size:\t16\n" ++
             "max_entries:\t64\n" ++
-            "map_flags:\t0x400\n",
+            "map_flags:\t0x400\n" ++
+            "map_extra:\t17\n",
     );
 
     try std.testing.expectEqual(@as(u32, 2), info.map_type);
@@ -348,11 +361,13 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
     try std.testing.expectEqual(@as(u32, 16), info.value_size);
     try std.testing.expectEqual(@as(u32, 64), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0x400), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 17), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespace" {
     const info = try parseMapInfoFromFdinfo(
         "map_flags:   512\r\n" ++
+            "map_extra:\t0x20\r\n" ++
             "max_entries:\t128\r\n" ++
             "value_size:\t4\r\n" ++
             "key_size:\t 4\r\n" ++
@@ -364,13 +379,16 @@ test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespa
     try std.testing.expectEqual(@as(u32, 4), info.value_size);
     try std.testing.expectEqual(@as(u32, 128), info.max_entries);
     try std.testing.expectEqual(@as(u32, 512), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 0x20), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fallback" {
     const info = try parseMapInfoFromFdinfo(
         "map_type:\t1\n" ++
             "key_size:\t4\n" ++
+            "map_extra:\t5\n" ++
             "map_type:\t2\n" ++
+            "map_extra:\t9\n" ++
             "value_size:\t8\n",
     );
 
@@ -379,6 +397,7 @@ test "parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fall
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
     try std.testing.expectEqual(@as(u32, 0), info.max_entries);
     try std.testing.expectEqual(@as(u32, 0), info.map_flags);
+    try std.testing.expectEqual(@as(u64, 9), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo keeps malformed values explicit" {
@@ -388,6 +407,13 @@ test "parseMapInfoFromFdinfo keeps malformed values explicit" {
             "value_size:\t8\n" ++
             "max_entries:\t16\n" ++
             "map_flags:\t32\n",
+    ));
+    try std.testing.expectError(error.InvalidValue, parseMapInfoFromFdinfo(
+        "map_type:\t1\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t16\n" ++
+            "map_extra:\tnope\n",
     ));
 }
 
