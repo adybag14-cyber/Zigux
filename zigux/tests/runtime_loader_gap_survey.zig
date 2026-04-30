@@ -551,6 +551,8 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn releaseSharedRuntimeLoadWithoutSubstrate",
         "pub fn releaseWithoutSubstrate",
         "@import(\"runtime_loader\")",
+        "request.keepsStarterReplayContractExplicit()",
+        "released.keepsStarterReplayContractExplicit()",
         "request.keepsSharedHandoffContractExplicit()",
         "released.keepsSharedHandoffContractExplicit()",
         "request.keepsAllocatorInitFlowConsistent()",
@@ -565,6 +567,7 @@ test "runtime loader gap survey proves the shared request surface and existing l
         "pub fn waitingOnRuntimeSubstrate",
         "pub fn releasedWithoutSubstrate",
         "pub fn keepsAllocatorInitFlowConsistent",
+        "pub fn keepsStarterReplayContractExplicit",
         "pub fn keepsSharedHandoffContractExplicit",
     };
     const absent_command_env_surface = [_][]const u8{
