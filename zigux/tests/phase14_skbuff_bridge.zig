@@ -57,10 +57,10 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
-    try std.testing.expectEqualStrings("55f1f2ca5c047f33ad2f005515bb67974c1b74f9", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("f65e3d897847bf205198e5c47a41782085620579", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.skbuff_c_lines >= 7400);
     try std.testing.expect(manifest.survey_summary.skbuff_h_lines >= 5400);
@@ -75,7 +75,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -89,6 +89,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     var saw_tail_publication_audit = false;
     var saw_validate_xmit_audit = false;
     var saw_validate_xmit_followup = false;
+    var saw_direct_xmit_followup = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -178,6 +179,14 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tail->next = skb") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate_xmit_skb()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-direct-xmit-identity-drop-followup")) {
+            saw_direct_xmit_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__dev_direct_xmit()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb != orig_skb") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drop path") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -185,7 +194,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     }
 
     try std.testing.expectEqual(@as(usize, 14), landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_map);
     try std.testing.expect(saw_audit_outline);
@@ -196,6 +205,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expect(saw_tail_publication_audit);
     try std.testing.expect(saw_validate_xmit_audit);
     try std.testing.expect(saw_validate_xmit_followup);
+    try std.testing.expect(saw_direct_xmit_followup);
     try std.testing.expect(saw_blocker);
 }
 
@@ -247,8 +257,9 @@ test "phase14 skbuff bridge survey note records the active lane marker" {
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L09") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-validate-xmit-republish") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-skbuff-direct-xmit-identity-drop-followup") != null);
 }
