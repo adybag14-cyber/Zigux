@@ -34,6 +34,8 @@ This template reserves the Architecture Council packet path named by the Phase 1
 ## Blocker Disposition
 
 - latest blocker disposition: `blocked_no_bounded_scheduler_seam`
+- automatic return-to-blocked trigger: `missing review fields, stale evidence, contradictory scorecard state, or rollback-threshold drift returns this anchor to blocked review posture`
+- indefinite-C policy link: `Documentation/zigux/phase15-indefinite-c-policy.md`
 
 ## Discussion State
 
