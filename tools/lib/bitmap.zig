@@ -17,6 +17,10 @@ pub fn lastWordMask(nbits: usize) Word {
     return find_bit.lastWordMask(nbits);
 }
 
+pub fn bitmapSize(nbits: usize) usize {
+    return bitsToWords(nbits) * @sizeOf(Word);
+}
+
 fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
@@ -542,6 +546,11 @@ test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap" {
 test "bitmap allocation helpers size zero fill and reset optionals" {
     const allocator = std.testing.allocator;
     const nbits = bits_per_long + 5;
+
+    try std.testing.expectEqual(@as(usize, 0), bitmapSize(0));
+    try std.testing.expectEqual(@as(usize, @sizeOf(Word)), bitmapSize(1));
+    try std.testing.expectEqual(@as(usize, @sizeOf(Word)), bitmapSize(bits_per_long));
+    try std.testing.expectEqual(@as(usize, @sizeOf(Word) * 2), bitmapSize(nbits));
 
     var plain: ?[]Word = try bitmapAlloc(allocator, nbits);
     defer bitmapFree(allocator, &plain);
