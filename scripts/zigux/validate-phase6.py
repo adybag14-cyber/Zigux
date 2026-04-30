@@ -277,6 +277,7 @@ HEXDUMP_SLICE_MARKERS = [
     "direct nibble helper coverage for lowercase and uppercase hex digits",
     "direct byte-pack helper coverage for lowercase and uppercase output plus the short-buffer contract",
     "mixed-case hex digit decoding",
+    "`zig build hexdump-perf --build-file zigux/tests/phase6_build.zig`",
     "native-endian grouped output for 2, 4, and 8 byte cases",
     "fixtures.prepareExpectedLine(...)",
     "shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table",
