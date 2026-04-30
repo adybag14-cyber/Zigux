@@ -58,7 +58,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
-    try std.testing.expectEqualStrings("1b346dbd77659625fedfdc2a45f5016e391043f8", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("64f315b1e0536983ec5bdf620d720d10972d9551", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.workqueue_c_lines >= 8400);
     try std.testing.expect(manifest.survey_summary.workqueue_internal_h_lines >= 80);
@@ -80,7 +80,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=1b346dbd77659625fedfdc2a45f5016e391043f8") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=64f315b1e0536983ec5bdf620d720d10972d9551") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
