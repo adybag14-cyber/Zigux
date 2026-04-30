@@ -98,7 +98,7 @@ test "phase11 shared header parity manifest records the bounded layout checkpoin
     try std.testing.expectEqualStrings("P11-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", manifest.anchor);
-    try std.testing.expectEqualStrings("8733ce0d4e2e17ccf139a38a70fc745843c068a3", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("146c02658bbb7e1618f9a5a716ea47a112fad55c", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
     try std.testing.expect(manifest.survey_summary.phase11_build_inventory_present);
@@ -261,7 +261,7 @@ test "phase11 shared header parity survey keeps the header boundary explicit" {
         io_instance.io(),
         "drivers/tty/hvc/hvc_console.zig",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(40 * 1024),
     );
     defer std.testing.allocator.free(hvc_zig);
 
