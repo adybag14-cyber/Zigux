@@ -264,6 +264,9 @@ jobs:
       - name: Validate Phase 11 simple-driver bundle
         run: make -C zigux phase11-validate
 
+      - name: Run dedicated Phase 11 hvc_console survey
+        run: make -C zigux phase11-hvc-survey
+
       - name: Validate Phase 12 degraded-workflow bundle
         run: make -C zigux phase12-validate
 
