@@ -120,7 +120,10 @@ ABI_REQUIRED_SOURCE_MARKERS = {
     "zigux/helpers/interop_policy.zig": (
         "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy {",
         "pub fn recognizes(policy: abi.InteropPolicy) bool {",
+        "pub fn initializesOwnedState(self: DecodedInteropPolicy) bool {",
+        "pub fn requiresResetOnInit(self: DecodedInteropPolicy) bool {",
         'test "phase3 interop policy decoder keeps the boundary typed"',
+        'test "phase3 interop policy decoder keeps allocator init requirements explicit"',
         'test "phase3 interop policy decoder rejects invalid bytes and reserved bits"',
     ),
     "zigux/helpers/atomic.zig": (
