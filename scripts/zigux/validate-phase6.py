@@ -66,6 +66,8 @@ phase6_base64_perf = (ROOT / "zigux" / "tests" / "phase6_base64_perf.zig").read_
 phase6_bsearch = (ROOT / "zigux" / "tests" / "phase6_bsearch.zig").read_text(encoding="utf-8")
 phase6_bsearch_perf = (ROOT / "zigux" / "tests" / "phase6_bsearch_perf.zig").read_text(encoding="utf-8")
 phase6_bsearch_c_parity = (ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig").read_text(encoding="utf-8")
+phase6_bsearch_c_harness = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c").read_text(encoding="utf-8")
+phase6_bsearch_c_parity_script = (ROOT / "scripts" / "zigux" / "check-phase6-bsearch-c-parity.py").read_text(encoding="utf-8")
 phase6_bsearch_slice = (ROOT / "Documentation" / "zigux" / "phase6-bsearch-slice.md").read_text(encoding="utf-8")
 phase6_checksum_perf = (ROOT / "zigux" / "tests" / "phase6_checksum_perf.zig").read_text(encoding="utf-8")
 phase6_checksum_vectors = (ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig").read_text(encoding="utf-8")
@@ -232,6 +234,23 @@ required_phase6_bsearch_c_parity_markers = [
     'try writer.print("mutable-hit\\t21\\t{}\\n", .{mutable_values[3]});',
 ]
 
+required_phase6_bsearch_c_harness_markers = [
+    "static int compare_descending_u32(const void *key, const void *elt)",
+    'print_index_case("descending-hit", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
+    'print_index_case("descending-miss", key, descending_values, inline_bsearch(&key, descending_values, sizeof(descending_values) / sizeof(descending_values[0]), sizeof(descending_values[0]), compare_descending_u32));',
+    'print_duplicate_case("duplicate-hit-begin", key, inline_bsearch(&key, duplicate_at_beginning, sizeof(duplicate_at_beginning) / sizeof(duplicate_at_beginning[0]), sizeof(duplicate_at_beginning[0]), compare_u32));',
+    'printf("mutable-hit\\t21\\t%u\\n", mutable_values[3]);',
+]
+
+required_phase6_bsearch_c_parity_script_markers = [
+    'C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"',
+    'ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"',
+    'c_lines = sorted(c_run.stdout.strip().splitlines())',
+    'zig_lines = sorted(zig_run.stdout.strip().splitlines())',
+    'print("PHASE6_BSEARCH_C_PARITY=pass")',
+    'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
+]
+
 required_phase6_bsearch_slice_markers = [
     "duplicate-key found-or-null parity without claiming stable selection across beginning, middle, and end duplicate runs",
     "runtime-selected comparator function pointers preserve the same found-or-null behavior across ascending and descending sorted slices",
@@ -322,6 +341,8 @@ require_markers("phase6_base64_perf", phase6_base64_perf, required_phase6_base64
 require_markers("phase6_bsearch", phase6_bsearch, required_phase6_bsearch_markers, issues)
 require_markers("phase6_bsearch_perf", phase6_bsearch_perf, required_phase6_bsearch_perf_markers, issues)
 require_markers("phase6_bsearch_c_parity", phase6_bsearch_c_parity, required_phase6_bsearch_c_parity_markers, issues)
+require_markers("phase6_bsearch_c_harness", phase6_bsearch_c_harness, required_phase6_bsearch_c_harness_markers, issues)
+require_markers("phase6_bsearch_c_parity_script", phase6_bsearch_c_parity_script, required_phase6_bsearch_c_parity_script_markers, issues)
 require_markers("phase6_bsearch_slice", phase6_bsearch_slice, required_phase6_bsearch_slice_markers, issues)
 require_markers("phase6_checksum_perf", phase6_checksum_perf, required_phase6_checksum_perf_markers, issues)
 require_markers("phase6_checksum_vectors", phase6_checksum_vectors, required_phase6_checksum_vector_markers, issues)
