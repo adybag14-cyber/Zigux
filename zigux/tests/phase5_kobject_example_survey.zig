@@ -249,6 +249,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "initialized-only `exit()` path returns an `abandoned_before_registration` teardown summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-`exit()` `init()`, `registerAttributes()`, `showValue()`, and `storeValue()` calls all remain rejected") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Latest verification snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "run the focused self-check that keeps the in-memory replay explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test samples/zigux/kobject_example.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "1/2 phase5_kobject_example_survey.test.phase 5 kobject manifest records the exact bounded checks...OK") != null);
