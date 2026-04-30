@@ -60,6 +60,7 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 phase7_build = (ROOT / "zigux" / "tests" / "phase7_build.zig").read_text(encoding="utf-8")
 phase7_string_helpers_survey = (ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig").read_text(encoding="utf-8")
 phase7_cmdline_survey = (ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig").read_text(encoding="utf-8")
+phase7_cmdline_tests = (ROOT / "zigux" / "tests" / "phase7_cmdline.zig").read_text(encoding="utf-8")
 phase7_argv_split_doc = (ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md").read_text(encoding="utf-8")
 phase7_argv_split_manifest = json.loads(
     (ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json").read_text(encoding="utf-8")
@@ -206,6 +207,16 @@ required_phase7_cmdline_survey_markers = [
     "cannot import fixtures outside the helper module path",
 ]
 
+required_phase7_cmdline_test_markers = [
+    'const next_arg_vectors = @import("fixtures/phase7_cmdline_next_arg_vectors.zig");',
+    "phase 7 numeric helpers reject explicit leading plus signs to stay with cmdline.c simple_strtoull semantics",
+    "phase 7 getOption matches malformed-token classification from the Linux KUnit corpus",
+    "phase 7 getOption matches leading-integer pointer advance from the Linux KUnit corpus",
+    "phase 7 getOption matches trailing-integer pointer advance from the Linux KUnit corpus",
+    "phase 7 getOptions matches malformed-range counting from the Linux KUnit corpus",
+    'try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("+0x10", &index));',
+]
+
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
 ]
@@ -316,6 +327,7 @@ checks = [
     ("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers),
     ("zigux/tests/phase7_string_helpers_survey.zig", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),
     ("zigux/tests/phase7_cmdline_survey.zig", phase7_cmdline_survey, required_phase7_cmdline_survey_markers),
+    ("zigux/tests/phase7_cmdline.zig", phase7_cmdline_tests, required_phase7_cmdline_test_markers),
     ("Documentation/zigux/phase7-argv-split-slice.md", phase7_argv_split_doc, required_phase7_argv_split_doc_markers),
     ("zigux/tests/phase7_argv_split_survey.zig", phase7_argv_split_survey, required_phase7_argv_split_survey_markers),
     ("zigux/tests/phase7_argv_split.zig", phase7_argv_split_tests, required_phase7_argv_split_test_markers),
