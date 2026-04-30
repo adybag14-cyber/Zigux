@@ -9,6 +9,8 @@ This catalog records the exact read-only GitHub fallback coverage verified for t
 - verified_master_head: `7d653d8c5e57207763c07c1b1d020b514738c7f3`
 - verification_scope: commit-pinned raw file reads plus the three public tree entry points needed to inspect the bounded `virtio_scsi` lane
 
+This packet is archival rather than live-head truth. During the `P12-L10` docs audit, public `master` had already advanced to `745048713f8298d12300fd9c329ad965683abe78`, so the URLs, byte counts, and hashes below should be read as the last commit-pinned fallback evidence, not as the newest repo state. Exact head and hash refreshes belong to the dedicated fallback-evidence lanes.
+
 ## Tree entry points
 
 - `200` `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/scsi`
