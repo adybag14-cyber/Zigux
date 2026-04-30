@@ -56,7 +56,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
 
     const manifest = parsed.value;
     const expected_focus = expectedReplayFocus();
-    try std.testing.expectEqualStrings("P5-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -281,8 +281,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L04") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=8733ce0d4e2e17ccf139a38a70fc745843c068a3") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L01") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SURVEYED_COMMIT=b1497341686a03b8ba007fbe6ee0028b7bfa5f02") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fixed embedded 32-byte ring buffer") != null);
@@ -305,7 +305,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=8733ce0d4e2e17ccf139a38a70fc745843c068a3`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=b1497341686a03b8ba007fbe6ee0028b7bfa5f02`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, readme, "phase5-kfifo-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readme, "samples/zigux/README.md") != null);
