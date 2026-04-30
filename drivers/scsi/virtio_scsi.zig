@@ -162,6 +162,16 @@ pub const QueueDepthSummary = struct {
     uses_change_queue_depth: bool,
 };
 
+pub const RecoveryQueueDepthSummary = struct {
+    anchor: []const u8,
+    requested_depth: u32,
+    effective_can_queue: u32,
+    effective_cmd_per_lun: u32,
+    clamped_queue_depth: u32,
+    tracks_queue_depth: bool,
+    requires_change_queue_depth_restore: bool,
+};
+
 pub const IoQueueMapSummary = struct {
     anchor: []const u8,
     nr_maps: u16,
@@ -181,8 +191,10 @@ pub const VirtioScsiQueueLab = struct {
     last_layout: ?QueueLayoutSummary = null,
     last_probe_snapshot: ?ProbeSnapshot = null,
     last_host_limit_summary: ?HostLimitSummary = null,
+    last_queue_depth_summary: ?QueueDepthSummary = null,
     last_io_queue_map_summary: ?IoQueueMapSummary = null,
     frozen_layout: ?QueueLayoutSummary = null,
+    frozen_queue_depth_summary: ?QueueDepthSummary = null,
     transport_frozen: bool = false,
     recovery_generation: u16 = 0,
 
@@ -315,7 +327,7 @@ pub const VirtioScsiQueueLab = struct {
     pub fn captureQueueDepthSummary(self: *Self, request: QueueDepthRequest) !QueueDepthSummary {
         const host_limit = try self.captureHostLimitSummary(request.host_limit);
 
-        return .{
+        const summary = QueueDepthSummary{
             .anchor = descriptor().anchor,
             .requested_depth = request.requested_depth,
             .effective_can_queue = host_limit.effective_can_queue,
@@ -324,6 +336,8 @@ pub const VirtioScsiQueueLab = struct {
             .tracks_queue_depth = true,
             .uses_change_queue_depth = true,
         };
+        self.last_queue_depth_summary = summary;
+        return summary;
     }
 
     pub fn captureIoQueueMapSummary(
@@ -360,6 +374,7 @@ pub const VirtioScsiQueueLab = struct {
         const layout = self.last_layout orelse return error.QueueLayoutUnavailable;
         self.transport_frozen = true;
         self.frozen_layout = layout;
+        self.frozen_queue_depth_summary = self.last_queue_depth_summary;
 
         return .{
             .anchor = descriptor().anchor,
@@ -395,6 +410,23 @@ pub const VirtioScsiQueueLab = struct {
             .requires_control_queue_restore = true,
             .requires_event_queue_refill = true,
             .requires_request_queue_restore = true,
+        };
+    }
+
+    pub fn recoveryQueueDepthSummary(self: *const Self) !RecoveryQueueDepthSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const summary = self.frozen_queue_depth_summary orelse return error.QueueDepthSummaryUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_depth = summary.requested_depth,
+            .effective_can_queue = summary.effective_can_queue,
+            .effective_cmd_per_lun = summary.effective_cmd_per_lun,
+            .clamped_queue_depth = summary.clamped_queue_depth,
+            .tracks_queue_depth = summary.tracks_queue_depth,
+            .requires_change_queue_depth_restore = summary.uses_change_queue_depth,
         };
     }
 
@@ -434,7 +466,9 @@ pub const VirtioScsiQueueLab = struct {
         self.last_layout = null;
         self.last_probe_snapshot = null;
         self.last_host_limit_summary = null;
+        self.last_queue_depth_summary = null;
         self.last_io_queue_map_summary = null;
+        self.frozen_queue_depth_summary = null;
         self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
 
         return .{
