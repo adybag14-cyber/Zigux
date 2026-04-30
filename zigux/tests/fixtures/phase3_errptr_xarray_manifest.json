@@ -2,11 +2,13 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "errptr-xarray-value-interop",
-  "file_count": 4,
+  "file_count": 6,
   "files": [
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
     "zigux/tests/phase3_errptr_xarray_dump.zig",
-    "zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c"
+    "zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c",
+    "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "zigux/tests/fixtures/phase3_errptr_xarray/expected.json"
   ]
 }

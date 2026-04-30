@@ -3,7 +3,7 @@
 PHASE3_STATUS=active
 PHASE3_SLICE=dev-region-plan-interop
 PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py
-PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-dev-region.py
+PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug dev-region
 PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig
 
 Scope

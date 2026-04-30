@@ -2,11 +2,12 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "chrdev-complete-plan-interop",
-  "file_count": 4,
+  "file_count": 5,
   "files": [
     "zigux/helpers/chrdev_complete_plan.zig",
     "zigux/tests/phase3_chrdev_complete_dump.zig",
     "zigux/tests/fixtures/phase3_chrdev_complete/phase3_chrdev_complete_c_harness.c",
-    "zigux/tests/fixtures/phase3_chrdev_complete/expected.json"
+    "zigux/tests/fixtures/phase3_chrdev_complete/expected.json",
+    "Documentation/zigux/phase3-chrdev-complete-slice.md"
   ]
 }

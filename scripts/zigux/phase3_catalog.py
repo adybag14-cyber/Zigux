@@ -478,6 +478,47 @@ def rewrite_legacy_wrapper_docs(entries: list[Phase3Slice]) -> list[str]:
     return rewritten
 
 
+def rewrite_slice_manifests(entries: list[Phase3Slice]) -> list[str]:
+    rewritten: list[str] = []
+    for entry in entries:
+        if entry.manifest_path is None or not entry.manifest_path.exists():
+            continue
+
+        manifest = _load_manifest(entry.manifest_path)
+        if manifest is None:
+            continue
+
+        files = manifest.get("files")
+        if not isinstance(files, list):
+            files = []
+
+        existing_files = [rel for rel in files if isinstance(rel, str) and (entry.root / rel).exists()]
+        required_files = [
+            _rel(entry.doc_path, entry.root),
+            _rel(entry.dump_path, entry.root),
+            _rel(entry.expected_path, entry.root),
+            _rel(entry.harness_path, entry.root),
+        ]
+
+        updated_files = list(existing_files)
+        for rel in required_files:
+            if rel not in updated_files:
+                updated_files.append(rel)
+
+        updated_manifest = dict(manifest)
+        updated_manifest["files"] = updated_files
+        updated_manifest["file_count"] = len(updated_files)
+
+        updated_text = json.dumps(updated_manifest, indent=2) + "\n"
+        original_text = entry.manifest_path.read_text(encoding="utf-8")
+        if updated_text == original_text:
+            continue
+
+        entry.manifest_path.write_text(updated_text, encoding="utf-8", newline="\n")
+        rewritten.append(_rel(entry.manifest_path, entry.root))
+    return rewritten
+
+
 def rewrite_non_doc_legacy_wrapper_references(
     entries: list[Phase3Slice],
     paths: Phase3Paths = DEFAULT_PATHS,
@@ -984,6 +1025,24 @@ def run_self_test() -> int:
         ]
         updated_entries = discover_phase3_slices(paths)
         assert all(entry.interop_gate_mode == "shared-runner" for entry in updated_entries)
+        manifest_path = paths.fixtures_dir / "phase3_bitmap_cpumask" / "phase3_bitmap_cpumask_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["files"] = [
+            "zigux/tests/phase3_bitmap_cpumask_dump.zig",
+            "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
+        ]
+        manifest["file_count"] = len(manifest["files"])
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        rewritten_manifests = rewrite_slice_manifests(updated_entries)
+        assert any(path.endswith("phase3_bitmap_cpumask_manifest.json") for path in rewritten_manifests)
+        rewritten_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assert rewritten_manifest["file_count"] == 4
+        assert rewritten_manifest["files"] == [
+            "zigux/tests/phase3_bitmap_cpumask_dump.zig",
+            "zigux/tests/fixtures/phase3_bitmap_cpumask/phase3_bitmap_cpumask_c_harness.c",
+            "Documentation/zigux/phase3-bitmap-cpumask-slice.md",
+            "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
+        ]
 
         (paths.docs_dir / "phase3-index.md").write_text(
             "\n".join(
@@ -1088,6 +1147,11 @@ def main() -> int:
         help="Rewrite slice docs to use the shared Phase 3 runner gate.",
     )
     parser.add_argument(
+        "--rewrite-manifests",
+        action="store_true",
+        help="Refresh discovered Phase 3 manifest files so they list the current slice packet files.",
+    )
+    parser.add_argument(
         "--rewrite-non-doc-legacy-wrapper-references",
         action="store_true",
         help="Rewrite non-slice documentation references to use the shared Phase 3 runner gate.",
@@ -1107,6 +1171,10 @@ def main() -> int:
     if args.rewrite_legacy_wrapper_docs:
         rewritten = rewrite_legacy_wrapper_docs(entries)
         _print_rows("PHASE3_REWRITTEN_DOCS", rewritten)
+
+    if args.rewrite_manifests:
+        rewritten = rewrite_slice_manifests(entries)
+        _print_rows("PHASE3_REWRITTEN_MANIFESTS", rewritten)
 
     if args.rewrite_non_doc_legacy_wrapper_references:
         rewritten = rewrite_non_doc_legacy_wrapper_references(entries)
@@ -1142,6 +1210,7 @@ def main() -> int:
             args.audit_doc_sync,
             args.rewrite_artifact_diff_phase3_section,
             args.rewrite_legacy_wrapper_docs,
+            args.rewrite_manifests,
             args.rewrite_non_doc_legacy_wrapper_references,
             args.check_slug_sanity,
         )

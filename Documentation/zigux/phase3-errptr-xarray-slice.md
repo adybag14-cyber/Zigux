@@ -33,13 +33,13 @@ This gives Zigux a clean way to model common Linux boundary sentinels without pr
 - `python3 scripts/zigux/validate-phase3.py`
 
 2. check C-vs-Zig err_ptr/xarray parity
-- `python3 scripts/zigux/check-phase3-errptr-xarray.py`
+- `python3 scripts/zigux/run-phase3-checks.py --slug errptr-xarray`
 
 3. run the wider Phase 3 substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
-- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-errptr-xarray.py`
+- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug errptr-xarray`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 
 ## Interop rules

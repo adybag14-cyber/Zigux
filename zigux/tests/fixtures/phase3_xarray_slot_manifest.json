@@ -2,10 +2,12 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "xarray-slot-view-interop",
-  "file_count": 3,
+  "file_count": 5,
   "files": [
     "zigux/helpers/xarray_slot_view.zig",
     "zigux/tests/phase3_xarray_slot_dump.zig",
-    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c"
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c",
+    "Documentation/zigux/phase3-xarray-slot-slice.md",
+    "zigux/tests/fixtures/phase3_xarray_slot/expected.json"
   ]
 }
