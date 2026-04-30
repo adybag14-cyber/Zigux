@@ -34,7 +34,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L19", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |byte| {
@@ -85,6 +85,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "samples/zigux/README.md") != null and
             std.mem.indexOf(u8, prompt, "Documentation/zigux/README.md") != null and
             std.mem.indexOf(u8, prompt, "Documentation/zigux/review-checklist.md") != null and
+            std.mem.indexOf(u8, prompt, "approved payload-and-callback idiom") != null and
+            std.mem.indexOf(u8, prompt, "reviewable and repeatable") != null and
             std.mem.indexOf(u8, prompt, "Phase 9 runtime pilot") != null)
         {
             saw_docs_prompt = true;
@@ -303,7 +305,7 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L13") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L19") != null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -314,6 +316,8 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
         try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_line) != null);
     }
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 9 runtime pilot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved payload-and-callback idiom") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reviewable and repeatable") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact inspected `master` head") != null);
