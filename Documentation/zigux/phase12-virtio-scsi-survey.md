@@ -54,6 +54,14 @@ The survey manifest now records:
 
 This keeps the lane explicit without overstating progress: Zigux now has a bounded virtio_scsi queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map starters plus an exact raw fallback evidence packet, but it still does not claim command submission, event completion, TMF flow, SCSI-host registration, PM callback wiring, or DMA-backed virtqueue ownership.
 
+## Rollback And Reversible Delivery
+
+- owner: `Storage Driver Lane`
+- rollback owner: `Storage Driver Lane`
+- fallback path: keep `drivers/scsi/virtio_scsi.c` as the source of truth, keep the bounded `drivers/scsi/virtio_scsi.zig` queue-layout, recovery, probe snapshot, host-limit summary, queue-depth summary, and io-queue-map helpers reviewable in isolation, keep `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` pinned to the current inspected head for degraded readback, and drop the direct `phase12-virtio-scsi-tests` plus `phase12-virtio-scsi-survey-tests` entries out of `zigux/tests/phase12_build.zig` if the shared packet regresses.
+- reversible delivery evidence: this Phase 12 packet only adds one bounded `drivers/scsi/virtio_scsi.zig` starter, its paired `zigux/tests/phase12_virtio_scsi.zig` and `zigux/tests/phase12_virtio_scsi_survey.zig` review gates, the raw fallback catalog, and this survey note around the existing C anchor, so the lane can be narrowed again without inventing DMA-backed request ownership, `Scsi_Host` lifecycle parity, or blk-mq runtime claims.
+- rollback drill: run `make -C zigux phase12-validate`; if the virtio_scsi packet is the only failing slice, repair `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, or `zigux/tests/phase12_virtio_scsi_survey.zig` first when only the reviewability record drifted, otherwise remove the `phase12-virtio-scsi-tests` and `phase12-virtio-scsi-survey-tests` entries from `zigux/tests/phase12_build.zig`, keep `drivers/scsi/virtio_scsi.c` plus the bounded Zig starter unchanged, then rerun `make -C zigux phase12-validate` followed by `zig build test --build-file zigux/tests/phase12_build.zig --summary all` so the shared Phase 12 tranche stays truthful while the survey packet is repaired.
+
 ## Non-goals
 
 This survey slice does not claim:
