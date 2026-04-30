@@ -292,7 +292,7 @@ def run_self_test() -> int:
                 path.write_text("// ok\n", encoding="utf-8")
 
         (root / ABI_SLICE_REL).write_text("\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n", encoding="utf-8")
-        (root / EXPORT_UAPI_TEST_REL).write_text(
+        (root / EXPORT_UAPI_TEST_REL).writeText(
             "\n".join(REQUIRED_EXPORT_UAPI_TEST_SNIPPETS) + "\n",
             encoding="utf-8",
         )
@@ -352,7 +352,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
-        survey_path.writeText(
+        survey_path.write_text(
             "\n".join(
                 (
                     *REQUIRED_SURVEY_MARKERS,
