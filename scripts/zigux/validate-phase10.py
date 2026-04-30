@@ -89,6 +89,10 @@ FORBIDDEN_TESTS_README_MARKERS = [
 DOC_README_MARKERS = [
     "python3 scripts/zigux/validate-phase10.py",
     "make -C zigux phase10-validate",
+    "phase10-closure-evidence.md",
+    "same nine published Phase 10 docs named by the shared closure packet",
+    "phase10-virtio-core-survey.md",
+    "phase10-virtio-mmio-slice.md",
     "phase10-virtio-input-slice.md",
     "phase10-virtio-input-survey.md",
     "registration-preflight helper",
@@ -546,8 +550,25 @@ def run_self_test() -> int:
         )
         mmio_test_path.write_text(original_mmio_test, encoding="utf-8")
 
+        doc_readme_path = tmp_root / "Documentation/zigux/README.md"
+        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "same nine published Phase 10 docs named by the shared closure packet",
+                "same published Phase 10 docs",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_phase10_packet_note",
+            tmp_root,
+            "doc_readme:same nine published Phase 10 docs named by the shared closure packet",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
