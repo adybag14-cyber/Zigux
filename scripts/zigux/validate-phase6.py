@@ -290,7 +290,7 @@ HEXDUMP_SLICE_MARKERS = [
 
 CATALOG_MARKERS = [
     "- verified head: `",
-    "PHASE6_BASE64_C_PARITY_CASES=90",
+    "PHASE6_BASE64_C_PARITY_CASES=96",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "max_slowdown_pct = 150",
     "max_slowdown_pct = 175",
