@@ -35,6 +35,7 @@ The Phase 8 roadmap explicitly names `tools/lib/bpf/libbpf.c` as a tooling ancho
 The current starter slice covers:
 
 - `parse_cpu_mask_str()`-adjacent parsing for `N` and `N-M` fragments
+- `+N` and `+N-+M` signed-decimal token forms that libbpf's `%d` parsing already accepts, while still rejecting negative CPU indices
 - repeated comma and newline delimiter skipping for sysfs-style CPU mask strings
 - leading horizontal whitespace and carriage-return acceptance only where the C helper's `sscanf()` token parsing already consumes them, without widening into standalone whitespace-delimiter behavior
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
@@ -44,6 +45,7 @@ The current starter slice covers:
 The current tests check:
 
 - mixed single-value and ranged fragments
+- `+`-prefixed single-value and ranged fragments that stay non-negative
 - newline-terminated, repeated-delimiter, and leading-whitespace-at-token-start inputs
 - chunked reader input that splits ranges, delimiters, and leading `sscanf()`-style whitespace across buffer boundaries
 - sparse masks with unset gaps preserved

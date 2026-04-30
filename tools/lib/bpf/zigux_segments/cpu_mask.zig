@@ -33,6 +33,15 @@ fn isLeadingWhitespace(byte: u8) bool {
     return byte == ' ' or byte == '\t' or byte == '\x0b' or byte == '\x0c' or byte == '\r';
 }
 
+fn parseCpuIndex(token: []const u8) ParseCpuMaskError!usize {
+    const parsed = std.fmt.parseInt(isize, token, 10) catch return error.InvalidCpuRange;
+    if (parsed < 0) {
+        return error.InvalidCpuRange;
+    }
+
+    return std.math.cast(usize, parsed) orelse return error.InvalidCpuRange;
+}
+
 fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, end: usize } {
     if (token.len == 0) {
         return error.InvalidCpuRange;
@@ -45,8 +54,8 @@ fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, e
             return error.InvalidCpuRange;
         }
 
-        const start = std.fmt.parseUnsigned(usize, start_text, 10) catch return error.InvalidCpuRange;
-        const end = std.fmt.parseUnsigned(usize, end_text, 10) catch return error.InvalidCpuRange;
+        const start = try parseCpuIndex(start_text);
+        const end = try parseCpuIndex(end_text);
         if (start > end) {
             return error.InvalidCpuRange;
         }
@@ -54,7 +63,7 @@ fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, e
         return .{ .start = start, .end = end };
     }
 
-    const cpu = std.fmt.parseUnsigned(usize, token, 10) catch return error.InvalidCpuRange;
+    const cpu = try parseCpuIndex(token);
     return .{ .start = cpu, .end = cpu };
 }
 
@@ -178,10 +187,24 @@ test "parseCpuMaskString follows the C helper's delimiter loop and sscanf-style 
     try std.testing.expect(parsed.values[6]);
 }
 
+test "parseCpuMaskString accepts the C helper's signed decimal token syntax when values stay non-negative" {
+    const parsed = try parseCpuMaskString(std.testing.allocator, "+0,+2-+3,+5\n");
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 6), parsed.values.len);
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(!parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(!parsed.values[4]);
+    try std.testing.expect(parsed.values[5]);
+}
+
 test "parseCpuMaskString rejects empty and malformed ranges" {
     try std.testing.expectError(error.EmptyCpuRange, parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, ",\n\r"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "3-1"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "-1"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "x"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "1-"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "0-1,4 \n"));

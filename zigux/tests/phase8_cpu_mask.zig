@@ -38,6 +38,21 @@ test "phase 8 cpu mask starter slice keeps the C delimiter loop bounded while st
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,\t"));
 }
 
+test "phase 8 cpu mask starter slice accepts plus-prefixed CPU tokens like the live C helper" {
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "+0,+2-+3,+5\n");
+    defer parsed.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), cpu_mask.countPossibleCpus(parsed.values));
+    try std.testing.expect(parsed.values[0]);
+    try std.testing.expect(!parsed.values[1]);
+    try std.testing.expect(parsed.values[2]);
+    try std.testing.expect(parsed.values[3]);
+    try std.testing.expect(!parsed.values[4]);
+    try std.testing.expect(parsed.values[5]);
+
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "-1"));
+}
+
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     const ReaderState = struct {
         chunks: []const []const u8,
