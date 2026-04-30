@@ -1,7 +1,7 @@
 {
-  "lane_key": "P15-L12",
+  "lane_key": "P15-L07",
   "phase": "Phase 15",
-  "surveyed_commit": "7095a02f382e919b535b5e5c3fa8985ded58268e",
+  "surveyed_commit": "ef7b33b6922d05e5ef514fb4efa588316ce6dda8",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -20,10 +20,17 @@
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "docs_index_handoff_pointer_present": true,
-    "phase15_replay_green_on_current_master": true,
+    "phase15_replay_green_on_current_master": false,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
+    {
+      "id": "phase15-review-process-replay-drift",
+      "status": "blocked_on_shared_replay_drift",
+      "kind": "review_process",
+      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process.zig",
+      "why_now": "Current master no longer has a green shared Phase 15 replay because the Architecture Council review-process packet drifted internally: Documentation/zigux/phase15-architecture-council-review-process.md still names bounded lane P15-L08, zigux/tests/phase15_architecture_council_review_process_manifest.json now names P15-L11 with surveyed commit 09606ab3a477c4f3817ab4e00f699e4729c096d2, and zigux/tests/phase15_architecture_council_review_process.zig still expects P15-L08 with 7f4ee0a5eb4bd171e94c279d44b7818ce2ac6a7f."
+    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -33,7 +40,7 @@
     }
   ],
   "pending_next_steps": [
-    "Leave the tranche in maintenance mode unless the shared Phase 15 replay drifts again, a named reopen trigger fires, or the deep-core blocker posture changes enough to justify a narrower follow-up.",
-    "If one of those conditions becomes true, rerun the focused handoff guard plus the shared Phase 15 build before editing neighboring governance packets."
+    "Open a neighboring replay-repair lane that realigns Documentation/zigux/phase15-architecture-council-review-process.md, zigux/tests/phase15_architecture_council_review_process_manifest.json, and zigux/tests/phase15_architecture_council_review_process.zig around one current lane stamp and surveyed head; rerun zig build test --build-file zigux/tests/phase15_build.zig and make -C zigux phase15.",
+    "Return to this handoff lane only after the shared Phase 15 replay is green again on current master or the blocker list changes enough to justify a new parked-next-step synthesis."
   ]
 }
