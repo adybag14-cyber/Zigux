@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L03",
   "phase": "Phase 13",
-  "surveyed_commit": "b967ad6bc0f58c912232df1249217f0dbff9389f",
+  "surveyed_commit": "10d0915b81c307b48c93c49f6e54ba43d8ad8704",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -10,11 +10,11 @@
   ],
   "survey_summary": {
     "devres_c_lines": 399,
-    "previous_surveyed_commit": "26e5f8101d3546c7942c93757ecc3fdfaa6ee264",
+    "previous_surveyed_commit": "b967ad6bc0f58c912232df1249217f0dbff9389f",
     "devres_helper_sha256": "2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda",
     "devres_test_sha256": "7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476",
-    "devres_helper_matches_previous_surveyed_commit": false,
-    "devres_test_matches_previous_surveyed_commit": false,
+    "devres_helper_matches_previous_surveyed_commit": true,
+    "devres_test_matches_previous_surveyed_commit": true,
     "preexisting_phase13_build_present": true,
     "preexisting_phase13_make_target_present": true,
     "preexisting_devres_zig_present": true,
