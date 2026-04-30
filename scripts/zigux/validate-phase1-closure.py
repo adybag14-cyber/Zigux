@@ -97,6 +97,21 @@ def run_self_test() -> int:
         )
         closure_path.write_text(original_closure, encoding='utf-8')
 
+        closure_path.write_text(
+            original_closure.replace(
+                'PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps',
+                'PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'find_bit_alias_review',
+            tmp_root,
+            'closure:PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the same caller-selected bit windows and tail clamps',
+        )
+        closure_path.write_text(original_closure, encoding='utf-8')
+
         workflow_path = tmp_root / '.github' / 'workflows' / 'zigux-bootstrap.yml'
         original_workflow = workflow_path.read_text(encoding='utf-8')
         mutated_workflow = original_workflow.replace(
@@ -148,7 +163,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=5')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6')
     return 0
 
 
