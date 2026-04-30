@@ -191,7 +191,12 @@ BSEARCH_PERF_MARKERS = [
 
 BSEARCH_PARITY_SCRIPT_MARKERS = [
     'parser.add_argument("--self-test", action="store_true", help="Run built-in parity-script checks")',
+    'expect_system_exit(',
+    '"missing_harness",',
+    '"missing_runner",',
+    'sorted_lines("mutable-hit\\t21\\t21\\nascending-hit\\t34\\t4\\n")',
     'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
     'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
 
