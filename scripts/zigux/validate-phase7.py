@@ -60,6 +60,7 @@ doc_readme = (ROOT / "Documentation" / "zigux" / "README.md").read_text(encoding
 phase7_build = (ROOT / "zigux" / "tests" / "phase7_build.zig").read_text(encoding="utf-8")
 phase7_string_helpers_tests = (ROOT / "zigux" / "tests" / "phase7_string_helpers.zig").read_text(encoding="utf-8")
 phase7_string_helpers_survey = (ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig").read_text(encoding="utf-8")
+phase7_string_helpers_doc = (ROOT / "Documentation" / "zigux" / "phase7-string-helpers-slice.md").read_text(encoding="utf-8")
 phase7_cmdline_survey = (ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig").read_text(encoding="utf-8")
 phase7_cmdline_tests = (ROOT / "zigux" / "tests" / "phase7_cmdline.zig").read_text(encoding="utf-8")
 phase7_argv_split_doc = (ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md").read_text(encoding="utf-8")
@@ -210,6 +211,18 @@ required_phase7_string_helpers_test_markers = [
     "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe",
     "phase 7 string helper wrappers keep shared any-flag and C-string ownership rules",
+]
+
+required_phase7_string_helpers_doc_markers = [
+    "PHASE7_STATUS=landed",
+    "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_string_helpers_survey.zig",
+    "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig",
+    "small allocator-backed `parse_int_array()` and `parse_int_array_user()` starters",
+    "one log-safe `kstrdup_quotable()` duplication helper",
+    "one ownership-safe `kstrdup_and_replace()` duplication helper",
+    "one sequential string-array allocator plus teardown starter landed",
+    "shared deterministic escape fixtures under `zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig`",
 ]
 
 required_phase7_cmdline_survey_markers = [
@@ -363,6 +376,7 @@ checks = [
     ("zigux/tests/phase7_build.zig", phase7_build, required_phase7_build_markers),
     ("zigux/tests/phase7_string_helpers_survey.zig", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),
     ("zigux/tests/phase7_string_helpers.zig", phase7_string_helpers_tests, required_phase7_string_helpers_test_markers),
+    ("Documentation/zigux/phase7-string-helpers-slice.md", phase7_string_helpers_doc, required_phase7_string_helpers_doc_markers),
     ("zigux/tests/phase7_cmdline_survey.zig", phase7_cmdline_survey, required_phase7_cmdline_survey_markers),
     ("zigux/tests/phase7_cmdline.zig", phase7_cmdline_tests, required_phase7_cmdline_test_markers),
     ("Documentation/zigux/phase7-argv-split-slice.md", phase7_argv_split_doc, required_phase7_argv_split_doc_markers),
