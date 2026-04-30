@@ -141,6 +141,23 @@ def run_self_test() -> int:
             'bench:exact_checksums.PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM=3484000',
         )
 
+        bench_checker_path = tmp_root / 'scripts' / 'zigux' / 'check-phase1-bench.py'
+        original_bench_checker = bench_checker_path.read_text(encoding='utf-8')
+        bench_checker_path.write_text(
+            original_bench_checker.replace(
+                "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=6')",
+                "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=')",
+                1,
+            ),
+            encoding='utf-8',
+        )
+        expect_missing_marker(
+            'bench_checker_self_test_case_count',
+            tmp_root,
+            "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=6')",
+        )
+        bench_checker_path.write_text(original_bench_checker, encoding='utf-8')
+
         manifest_path = tmp_root / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json'
         original_manifest = manifest_path.read_text(encoding='utf-8')
         manifest = json.loads(original_manifest)
@@ -163,7 +180,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=7')
     return 0
 
 
