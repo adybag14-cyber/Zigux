@@ -85,6 +85,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     file_path_handle_bridge_root_module.addImport("file_path_handle_bridge", file_path_handle_bridge_module);
+    const bridge_boundary_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase8_bridge_boundary_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const libbpf_segments_root_module = b.createModule(.{
         .root_source_file = b.path("phase8_libbpf_segments.zig"),
         .target = target,
@@ -130,6 +135,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase8-file-path-handle-bridge-tests",
         .root_module = file_path_handle_bridge_root_module,
     });
+    const bridge_boundary_survey_tests = b.addTest(.{
+        .name = "phase8-bridge-boundary-survey-tests",
+        .root_module = bridge_boundary_survey_root_module,
+    });
     const libbpf_segments_tests = b.addTest(.{
         .name = "phase8-libbpf-segment-tests",
         .root_module = libbpf_segments_root_module,
@@ -146,6 +155,7 @@ pub fn build(b: *std.Build) void {
     const run_logging_tests = b.addRunArtifact(logging_tests);
     const run_pin_path_tests = b.addRunArtifact(pin_path_tests);
     const run_file_path_handle_bridge_tests = b.addRunArtifact(file_path_handle_bridge_tests);
+    const run_bridge_boundary_survey_tests = b.addRunArtifact(bridge_boundary_survey_tests);
     const run_libbpf_segments_tests = b.addRunArtifact(libbpf_segments_tests);
     const run_bpf_type_names_tests = b.addRunArtifact(bpf_type_names_tests);
 
@@ -157,6 +167,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_logging_tests.step);
     test_step.dependOn(&run_pin_path_tests.step);
     test_step.dependOn(&run_file_path_handle_bridge_tests.step);
+    test_step.dependOn(&run_bridge_boundary_survey_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
     test_step.dependOn(&run_bpf_type_names_tests.step);
 }
