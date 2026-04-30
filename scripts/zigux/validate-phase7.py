@@ -250,6 +250,12 @@ required_phase7_cmdline_test_markers = [
 
 required_phase7_argv_split_survey_markers = [
     "zigux/tests/phase7_argv_split_manifest.json",
+    "phase 7 argv_split survey manifest records the parked runtime leaf surface without an active follow-up",
+    'try std.testing.expectEqualStrings("a17b9729e71d9083a2c82b331e12342408298ef9", manifest.surveyed_commit);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "`argv_free()` via `argvFree()`") != null);',
 ]
 
 required_phase7_argv_split_doc_markers = [
@@ -416,6 +422,8 @@ if phase7_argv_split_manifest.get("lane_key") != "P7-L12":
     manifest_shape_errors.append("lane_key")
 if phase7_argv_split_manifest.get("phase") != "Phase 7":
     manifest_shape_errors.append("phase")
+if phase7_argv_split_manifest.get("surveyed_commit") != "a17b9729e71d9083a2c82b331e12342408298ef9":
+    manifest_shape_errors.append("surveyed_commit")
 if phase7_argv_split_manifest.get("anchor") != "lib/argv_split.c":
     manifest_shape_errors.append("anchor")
 if phase7_argv_split_manifest.get("roadmap_destinations") != ["lib/argv_split.zig"]:
