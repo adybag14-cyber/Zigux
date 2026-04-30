@@ -2,21 +2,23 @@ const std = @import("std");
 const Io = std.Io;
 const abi = @import("abi_bindings");
 
-fn writeLayoutPrefix(writer: anytype, comptime name: []const u8, size: usize, alignment: usize) !void {
+fn writeStructLayout(writer: anytype, comptime name: []const u8, comptime T: type, comma: bool) !void {
     try writer.writeAll("\"");
     try writer.writeAll(name);
     try writer.writeAll("\":{\"size\":");
-    try writer.print("{d}", .{size});
+    try writer.print("{d}", .{@sizeOf(T)});
     try writer.writeAll(",\"align\":");
-    try writer.print("{d}", .{alignment});
+    try writer.print("{d}", .{@alignOf(T)});
     try writer.writeAll(",\"offsets\":{");
-}
-
-fn writeOffset(writer: anytype, comptime name: []const u8, value: usize, comma: bool) !void {
-    try writer.writeAll("\"");
-    try writer.writeAll(name);
-    try writer.writeAll("\":");
-    try writer.print("{d}", .{value});
+    const fields = std.meta.fields(T);
+    inline for (fields, 0..) |field, index| {
+        try writer.writeAll("\"");
+        try writer.writeAll(field.name);
+        try writer.writeAll("\":");
+        try writer.print("{d}", .{@offsetOf(T, field.name)});
+        if (index + 1 < fields.len) try writer.writeAll(",");
+    }
+    try writer.writeAll("}}");
     if (comma) try writer.writeAll(",");
 }
 
@@ -39,31 +41,10 @@ pub fn main(init: std.process.Init) !void {
     try writer.writeAll(",\"unsafe_scope_raw_pointer_bridge\":");
     try writer.print("{d}", .{@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)});
     try writer.writeAll("},\"structs\":{");
-
-    try writeLayoutPrefix(writer, "zigux_boundary_header", @sizeOf(abi.BoundaryHeader), @alignOf(abi.BoundaryHeader));
-    try writeOffset(writer, "size", @offsetOf(abi.BoundaryHeader, "size"), true);
-    try writeOffset(writer, "abi_version", @offsetOf(abi.BoundaryHeader, "abi_version"), true);
-    try writeOffset(writer, "flags", @offsetOf(abi.BoundaryHeader, "flags"), false);
-    try writer.writeAll("}},");
-
-    try writeLayoutPrefix(writer, "zigux_export_status", @sizeOf(abi.ExportStatus), @alignOf(abi.ExportStatus));
-    try writeOffset(writer, "code", @offsetOf(abi.ExportStatus, "code"), true);
-    try writeOffset(writer, "facility", @offsetOf(abi.ExportStatus, "facility"), true);
-    try writeOffset(writer, "flags", @offsetOf(abi.ExportStatus, "flags"), false);
-    try writer.writeAll("}},");
-
-    try writeLayoutPrefix(writer, "zigux_mmio_range", @sizeOf(abi.MmioRange), @alignOf(abi.MmioRange));
-    try writeOffset(writer, "base_addr", @offsetOf(abi.MmioRange, "base_addr"), true);
-    try writeOffset(writer, "length", @offsetOf(abi.MmioRange, "length"), true);
-    try writeOffset(writer, "stride", @offsetOf(abi.MmioRange, "stride"), false);
-    try writer.writeAll("}},");
-
-    try writeLayoutPrefix(writer, "zigux_interop_policy", @sizeOf(abi.InteropPolicy), @alignOf(abi.InteropPolicy));
-    try writeOffset(writer, "panic_mode", @offsetOf(abi.InteropPolicy, "panic_mode"), true);
-    try writeOffset(writer, "allocator_mode", @offsetOf(abi.InteropPolicy, "allocator_mode"), true);
-    try writeOffset(writer, "unsafe_scope", @offsetOf(abi.InteropPolicy, "unsafe_scope"), true);
-    try writeOffset(writer, "reserved", @offsetOf(abi.InteropPolicy, "reserved"), false);
-    try writer.writeAll("}}}}\n");
-
-    try stdout_writer.interface.flush();
+    try writeStructLayout(writer, "zigux_boundary_header", abi.BoundaryHeader, true);
+    try writeStructLayout(writer, "zigux_export_status", abi.ExportStatus, true);
+    try writeStructLayout(writer, "zigux_mmio_range", abi.MmioRange, true);
+    try writeStructLayout(writer, "zigux_interop_policy", abi.InteropPolicy, false);
+    try writer.writeAll("}}\n");
+    try writer.flush();
 }
