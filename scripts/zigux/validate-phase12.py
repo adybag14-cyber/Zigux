@@ -110,6 +110,28 @@ CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 12 tooling path, do `scripts/zigux/check-phase12-build-inventory.py`, `zigux/tests/phase12_build.zig`, `zigux/tests/fixtures/phase12_build_inventory.json`, and the shared Phase 12 manifests still agree on the exact shared build inventory instead of leaving the replay shape implicit?",
     "if the change touches the shared Phase 12 libbpf snapshot packet, do `scripts/zigux/check-phase12-libbpf-snapshot.py`, `zigux/tests/fixtures/phase12_libbpf_snapshot.json`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, and `tools/lib/bpf/zigux_segments/manifest.json` still agree on the same bounded five-file reproducibility packet and exact surveyed commit instead of leaving repeat-run stability in run memory only?",
 ]
+PHASE12_PACKET_MARKERS = {
+    "phase12_nvme_pci_test": (
+        "phase12 nvme pci freezes queue planning across reset and restarts io numbering afterward",
+        "phase12 nvme pci prp shape helper records first-page offset and list bounds",
+        "phase12 nvme pci data pointer strategy selects prp, threshold sgl, and forced sgl paths",
+    ),
+    "phase12_nvme_pci_slice": (
+        "freezes queue planning during reset and clears planned I/O queue numbering only after reset completion",
+        "records one tiny PRP buffer-shape summary with first-page offset, rounded span, and page-list bound checks without claiming live PRP chaining or DMA mapping",
+        "records one tiny PRP-versus-SGL selection summary around admin-versus-I/O queues, page-gap forcing, user-command forcing, integrity-segment forcing, and average-segment threshold preference without claiming live descriptor allocation or DMA mapping",
+    ),
+    "phase12_virtio_scsi_test": (
+        "phase12 virtio scsi recovery queue plan mirrors the frozen topology",
+        "phase12 virtio scsi recovery io queue map summary mirrors the frozen topology",
+        "phase12 virtio scsi freeze blocks derived capture helpers until restore",
+    ),
+    "phase12_virtio_scsi_slice": (
+        "derives one restore-time queue reinitialization plan from the frozen control, event, default-request, and poll-request topology, blocks queue-depth capture while transport is still frozen, then clears the old queue snapshot so the next step must replan instead of pretending virtqueues stayed live",
+        "records one queue-depth summary that reuses the bounded host-limit snapshot to mirror `virtscsi_change_queue_depth()`, clamping a requested depth against effective `cmd_per_lun` while keeping `track_queue_depth` reviewable before any live `Scsi_Host` registration work",
+        "derives one recovery-time blk-mq queue-map restore summary from the frozen queue layout so the bounded default, read, and poll map counts plus their offsets remain reviewable across transport reset without claiming a live `map_queues` callback or CPU-affinity restore",
+    ),
+}
 BUILD_MARKERS = [
     "phase12-nvme-pci-tests",
     "phase12-nvme-pci-survey-tests",
@@ -423,6 +445,16 @@ if isinstance(expected_summary_line, str) and expected_summary_line not in docs_
     missing.append("docs_root_readme:phase12_expected_summary_line")
 if "`35/35`" in docs_root_readme:
     missing.append("docs_root_readme:stale_phase12_summary")
+
+for source_name, source_text, markers in [
+    ("phase12_nvme_pci_test", text("zigux/tests/phase12_nvme_pci.zig"), PHASE12_PACKET_MARKERS["phase12_nvme_pci_test"]),
+    ("phase12_nvme_pci_slice", text("Documentation/zigux/phase12-nvme-pci-slice.md"), PHASE12_PACKET_MARKERS["phase12_nvme_pci_slice"]),
+    ("phase12_virtio_scsi_test", text("zigux/tests/phase12_virtio_scsi.zig"), PHASE12_PACKET_MARKERS["phase12_virtio_scsi_test"]),
+    ("phase12_virtio_scsi_slice", text("Documentation/zigux/phase12-virtio-scsi-slice.md"), PHASE12_PACKET_MARKERS["phase12_virtio_scsi_slice"]),
+]:
+    for marker in markers:
+        if marker not in source_text:
+            missing.append(f"{source_name}:{marker}")
 
 starter_total = 0
 blocked_dma_total = 0
