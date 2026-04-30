@@ -734,6 +734,24 @@ test "stringGetSize formats bounded SI and binary sizes" {
 
     try std.testing.expectEqual(@as(usize, 7), stringGetSize(10, 512, STRING_UNITS_10, &out));
     try std.testing.expectEqualStrings("5.12 kB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(1100, 1, STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("1.10 kB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 8), stringGetSize(1100, 1, STRING_UNITS_2, &out));
+    try std.testing.expectEqualStrings("1.07 KiB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(3000, 1900, STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("5.70 MB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 8), stringGetSize(3000, 1900, STRING_UNITS_2, &out));
+    try std.testing.expectEqualStrings("5.44 MiB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 7), stringGetSize(std.math.maxInt(u64), 4096, STRING_UNITS_10, &out));
+    try std.testing.expectEqualStrings("75.6 ZB", cStringPrefix(&out));
+
+    try std.testing.expectEqual(@as(usize, 8), stringGetSize(std.math.maxInt(u64), 4096, STRING_UNITS_2, &out));
+    try std.testing.expectEqualStrings("64.0 ZiB", cStringPrefix(&out));
 }
 
 test "stringGetSize honors formatting flags and snprintf-style truncation" {
