@@ -4,6 +4,7 @@ const SurveySummary = struct {
     atomic64_test_c_lines: usize,
     runtime_atomic64_diff_lines: usize,
     roadmap_atomic64_diff_present: bool,
+    roadmap_atomic64_wrapper_targets_runtime_diff: bool,
     runtime_atomic64_diff_present: bool,
     post_selftest_replay_present: bool,
     phase4_build_present: bool,
@@ -102,6 +103,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(manifest.survey_summary.atomic64_test_c_lines >= 250);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_lines >= 200);
     try std.testing.expectEqual(true, manifest.survey_summary.roadmap_atomic64_diff_present);
+    try std.testing.expect(manifest.survey_summary.roadmap_atomic64_wrapper_targets_runtime_diff);
     try std.testing.expect(manifest.survey_summary.runtime_atomic64_diff_present);
     try std.testing.expect(manifest.survey_summary.post_selftest_replay_present);
     try std.testing.expect(manifest.survey_summary.phase4_build_present);
@@ -150,6 +152,13 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         64 * 1024,
     );
     defer std.testing.allocator.free(runtime_atomic64_diff);
+    const atomic64_diff = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/atomic64_diff.zig",
+        4 * 1024,
+    );
+    defer std.testing.allocator.free(atomic64_diff);
     const phase4_build = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -207,6 +216,11 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             };
             break :blk true;
         },
+        .roadmap_atomic64_wrapper_targets_runtime_diff = std.mem.indexOf(
+            u8,
+            atomic64_diff,
+            "@import(\"runtime_atomic64_diff.zig\")",
+        ) != null,
         .runtime_atomic64_diff_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate replays bounded atomic64_test.c") != null,
         .post_selftest_replay_present = std.mem.indexOf(u8, runtime_atomic64_diff, "runtime atomic64 diff gate keeps post-selftest replay explicit") != null,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "atomic64_diff.zig") != null and
@@ -289,6 +303,7 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "canonical entrypoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "@import(\"runtime_atomic64_diff.zig\")") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_atomic64_diff.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase4_build.zig") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate-phase4.py") != null);
