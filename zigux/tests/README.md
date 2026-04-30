@@ -17,6 +17,8 @@ Key entrypoints
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
 - `zigux/tests/phase4_test_fsmount_survey.zig`
 - `zigux/tests/phase4_test_fsmount_manifest.json`
+- `zigux/tests/phase4_perf_baseline_survey.zig`
+- `zigux/tests/phase4_perf_baseline_manifest.json`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase5_build.zig`
@@ -127,7 +129,7 @@ Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
-- keep the Phase 4 rollback-readiness packet reviewable through `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `scripts/zigux/validate-phase4.py`, and the current `make M=samples/vfs` C-anchor-only survey posture instead of treating the still-absent `samples/zigux/test_fsmount.zig` as landed
+- keep the Phase 4 rollback-readiness packet reviewable through `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_test_fsmount_survey.zig`, `zigux/tests/phase4_test_fsmount_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `scripts/zigux/validate-phase4.py`, the dedicated `make -C zigux phase4-perf-baseline-survey` replay, and the current `make M=samples/vfs` C-anchor-only survey posture instead of treating the still-absent `samples/zigux/test_fsmount.zig` as landed while `perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land` remains the published threshold posture
 - keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`, `scripts/zigux/validate-phase5.py`, `make -C zigux phase5-validate`, and the shared `samples/zigux/README.md` catalog instead of widening into ad hoc sample-local workflow rules or later Phase 9 runtime claims
 - refresh `Documentation/zigux/phase6-helper-parity-catalog.md` whenever the shipped Phase 6 helper inventory, perf entrypoints, fixtures, or shared slice notes change
 - keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules
