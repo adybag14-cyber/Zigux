@@ -433,6 +433,9 @@ required_trace_events_survey_markers = [
     "polling and event-loop substrate",
     "ring-buffer parity",
     "Architecture Council",
+    "`init_runs`",
+    "`selftest_runs`",
+    "`exit_runs`",
 ]
 
 required_trace_events_module_slice_markers = [
@@ -443,6 +446,9 @@ required_trace_events_module_slice_markers = [
     "polling-backed wake or dispatch behavior",
     "ring-buffer parity",
     "Architecture Council",
+    "`init_runs`",
+    "`selftest_runs`",
+    "`exit_runs`",
 ]
 
 required_trace_events_manifest_markers = [
@@ -460,6 +466,8 @@ required_trace_events_manifest_markers = [
     '"zigux_destination": "samples/zigux/runtime_trace_events_loader.zig"',
     "`kernel/trace/ring_buffer.c`",
     "Architecture Council",
+    '"id": "summary-run-counters"',
+    '"expected": "RuntimeTraceEventsSummary keeps init_runs, selftest_runs, and exit_runs machine-checkable across direct replay, selftest, and exit paths so diagnostics can distinguish startup, shipped selftest coverage, and completed teardown"',
 ]
 
 required_trace_events_survey_test_markers = [
@@ -469,12 +477,17 @@ required_trace_events_survey_test_markers = [
     'var saw_manifest_catalog = false;',
     'var saw_shared_build_catalog = false;',
     'var saw_freeze_map_catalog = false;',
+    'var saw_summary_run_counters = false;',
     'test "phase 9 runtime trace-events survey keeps the starter descriptor blocked on runtime substrate"',
     'const descriptor = sample.RuntimeTraceEventsSample.descriptor();',
     'try std.testing.expectEqualStrings("runtime_trace_events", descriptor.name);',
     'try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", descriptor.anchor);',
     'try std.testing.expect(descriptor.requires_runtime_substrate);',
     'try std.testing.expect(descriptor.provides_selftest_hook);',
+    'std.mem.eql(u8, check.id, "summary-run-counters")',
+    'std.mem.indexOf(u8, check.expected, "init_runs")',
+    'std.mem.indexOf(u8, check.expected, "selftest_runs")',
+    'std.mem.indexOf(u8, check.expected, "exit_runs")',
     'std.mem.eql(u8, gap.id, "runtime-trace-events-freeze-map-boundary")',
     'std.mem.eql(u8, entry.id, "runtime-trace-events-manifest")',
     'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_manifest.json")',
@@ -482,6 +495,12 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md")',
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
+    'std.mem.indexOf(u8, survey_doc, "`init_runs`")',
+    'std.mem.indexOf(u8, survey_doc, "`selftest_runs`")',
+    'std.mem.indexOf(u8, survey_doc, "`exit_runs`")',
+    'std.mem.indexOf(u8, module_doc, "`init_runs`")',
+    'std.mem.indexOf(u8, module_doc, "`selftest_runs`")',
+    'std.mem.indexOf(u8, module_doc, "`exit_runs`")',
     'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
 ]
 
