@@ -59,10 +59,12 @@ Focused local replays
 - verify the kretprobe survey packet directly from the repo root: `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
 - verify the trace-events survey packet directly from the repo root: `zig test zigux/tests/phase5_trace_events_sample_survey.zig`
 
-String-work boundary checks
+Helper-boundary checks
 - verify the current approved Phase 5 reference sample inventory still resolves to the four roadmap anchors only: `find samples/zigux -maxdepth 1 -type f | sort | rg '/(bytestream_fifo|kobject_example|kretprobe_example|trace_events_sample)\.zig$'`
 - verify the later `runtime_*` starters still stay cataloged separately from the approved Phase 5 anchors: `find samples/zigux -maxdepth 1 -type f | sort | rg '/runtime_.*\.zig$'`
 - verify no Phase 5 string sample has appeared under this sample root: `find samples/zigux -maxdepth 1 -type f | sort | rg '/.*string.*\.zig$'`
 - verify the shared docs still keep string-helper evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*string\\*|Phase 7 helper bundle|helper-only under \`lib/string_helpers.zig\`|phase7_string_helpers.zig|phase7_build.zig" Documentation/zigux/README.md Documentation/zigux/review-checklist.md Documentation/zigux/phase7-string-helpers-slice.md samples/zigux/README.md`
+- verify no Phase 5 cmdline sample has appeared under this sample root: `find samples/zigux -maxdepth 1 -type f | sort | rg '/.*cmdline.*\.zig$'`
+- verify the shared docs still keep cmdline evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*cmdline\\*|Phase 7 helper bundle|lib/cmdline.zig|phase7_cmdline.zig|phase7_build.zig" Documentation/zigux/README.md Documentation/zigux/review-checklist.md Documentation/zigux/phase7-cmdline-slice.md samples/zigux/README.md`
 - verify the four shipped Phase 5 sample packets still pass together: `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-- verify the shipped string-helper evidence still lives under the separate Phase 7 helper bundle and shared build gate: `python3 scripts/zigux/validate-phase7.py`
+- verify the shipped string-helper and cmdline evidence still live under the separate Phase 7 helper bundle and shared build gate: `python3 scripts/zigux/validate-phase7.py`

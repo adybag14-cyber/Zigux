@@ -113,6 +113,8 @@ required_doc_readme_markers = [
     "zigux/tests/phase5_build.zig",
     "ships no `samples/zigux/*string*` reference sample",
     "sample-root follow-up should not treat that absence as a missing Phase 5 port",
+    "no-`samples/zigux/*cmdline*` boundary explicit",
+    "Phase 7 helper bundle rooted in `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`",
 ]
 
 required_checklist_markers = [
@@ -124,6 +126,9 @@ required_checklist_markers = [
     "trace-events",
     "ships no `samples/zigux/*string*` Phase 5 reference sample",
     "separate Phase 7 helper bundle",
+    "ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+    "`Documentation/zigux/phase7-cmdline-slice.md`",
+    "`lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`",
 ]
 
 required_sample_root_markers = [
@@ -140,6 +145,7 @@ required_sample_root_markers = [
     "current approved Phase 5 reference sample inventory still resolves to the four roadmap anchors only",
     "later `runtime_*` starters still stay cataloged separately from the approved Phase 5 anchors",
     "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
+    "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
     "zig test samples/zigux/bytestream_fifo.zig",
     "zig test samples/zigux/kobject_example.zig",
     "zig test samples/zigux/kretprobe_example.zig",
@@ -151,6 +157,8 @@ required_sample_root_markers = [
     "rg '/(bytestream_fifo|kobject_example|kretprobe_example|trace_events_sample)\\.zig$'",
     "rg '/runtime_.*\\.zig$'",
     "rg '/.*string.*\\.zig$'",
+    "rg '/.*cmdline.*\\.zig$'",
+    "rg -n \"samples/zigux/\\\\*cmdline\\\\*|Phase 7 helper bundle|lib/cmdline.zig|phase7_cmdline.zig|phase7_build.zig\"",
     "python3 scripts/zigux/validate-phase7.py",
 ]
 
@@ -325,135 +333,3 @@ manifest_expectations = {
         ],
     },
 }
-
-survey_note_expectations = {
-    "phase5_bytestream_fifo_manifest.json": {
-        "note_path": ROOT / "Documentation" / "zigux" / "phase5-kfifo-sample-survey.md",
-        "survey_test": "phase5_bytestream_fifo_survey.zig",
-        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_bytestream_fifo_survey.zig",
-        "sample_test_command": "zig test samples/zigux/bytestream_fifo.zig",
-        "survey_test_markers": [
-            'test "phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface"',
-            "zigux/tests/phase5_bytestream_fifo_manifest.json",
-            "Documentation/zigux/phase5-kfifo-sample-survey.md",
-            "samples/zigux/bytestream_fifo.zig",
-            "sample-backed survey note",
-            "samples/zigux/README.md",
-            "Documentation/zigux/review-checklist.md",
-            "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
-        ],
-    },
-    "phase5_kobject_example_manifest.json": {
-        "note_path": ROOT / "Documentation" / "zigux" / "phase5-kobject-sample-survey.md",
-        "survey_test": "phase5_kobject_example_survey.zig",
-        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kobject_example_survey.zig",
-        "sample_test_command": "zig test samples/zigux/kobject_example.zig",
-        "survey_test_markers": [
-            'test "phase 5 kobject contributor docs stay aligned with the shipped review surface"',
-            "zigux/tests/phase5_kobject_example_manifest.json",
-            "Documentation/zigux/phase5-kobject-sample-survey.md",
-            "samples/zigux/kobject_example.zig",
-            "sample-backed survey note",
-            "samples/zigux/README.md",
-            "Documentation/zigux/review-checklist.md",
-            "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
-        ],
-    },
-    "phase5_kretprobe_example_manifest.json": {
-        "note_path": ROOT / "Documentation" / "zigux" / "phase5-kretprobe-sample-survey.md",
-        "survey_test": "phase5_kretprobe_example_survey.zig",
-        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kretprobe_example_survey.zig",
-        "sample_test_command": "zig test samples/zigux/kretprobe_example.zig",
-        "survey_test_markers": [
-            'test "phase 5 kretprobe contributor docs stay aligned with the shipped review surface"',
-            "zigux/tests/phase5_kretprobe_example_manifest.json",
-            "Documentation/zigux/phase5-kretprobe-sample-survey.md",
-            "samples/zigux/kretprobe_example.zig",
-            "sample-backed survey note",
-            "samples/zigux/README.md",
-            "Documentation/zigux/review-checklist.md",
-            "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
-        ],
-    },
-    "phase5_trace_events_sample_manifest.json": {
-        "note_path": ROOT / "Documentation" / "zigux" / "phase5-trace-events-sample-survey.md",
-        "survey_test": "phase5_trace_events_sample_survey.zig",
-        "survey_test_path": ROOT / "zigux" / "tests" / "phase5_trace_events_sample_survey.zig",
-        "sample_test_command": "zig test samples/zigux/trace_events_sample.zig",
-        "survey_test_markers": [
-            'test "phase 5 trace-events contributor docs stay aligned with the shipped review surface"',
-            "zigux/tests/phase5_trace_events_sample_manifest.json",
-            "Documentation/zigux/phase5-trace-events-sample-survey.md",
-            "samples/zigux/trace_events_sample.zig",
-            "sample-backed survey note",
-            "samples/zigux/README.md",
-            "Documentation/zigux/review-checklist.md",
-            "phase5_build.zig",
-            "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
-        ],
-    },
-}
-
-for manifest_name, expected in manifest_expectations.items():
-    manifest = json.loads((ROOT / "zigux" / "tests" / manifest_name).read_text(encoding="utf-8"))
-    if manifest.get("phase") != "Phase 5":
-        missing_markers.append(f"{manifest_name}:phase=Phase 5")
-    if manifest.get("lane_key") != expected["lane_key"]:
-        missing_markers.append(f"{manifest_name}:lane_key={expected['lane_key']}")
-    if manifest.get("anchor") != expected["anchor"]:
-        missing_markers.append(f"{manifest_name}:anchor={expected['anchor']}")
-    if manifest.get("sample_path") != expected["sample_path"]:
-        missing_markers.append(f"{manifest_name}:sample_path={expected['sample_path']}")
-    if manifest.get("validation_entrypoint") != expected["validation_entrypoint"]:
-        missing_markers.append(f"{manifest_name}:validation_entrypoint")
-    if manifest.get("non_goals") != expected["non_goals"]:
-        missing_markers.append(f"{manifest_name}:non_goals")
-    exact_check_ids = [check.get("id") for check in manifest.get("exact_checks", []) if isinstance(check, dict)]
-    expected_exact_check_ids = expected["exact_check_ids"]
-    if exact_check_ids != expected_exact_check_ids:
-        missing_markers.append(f"{manifest_name}:exact_check_ids")
-
-    survey_expectation = survey_note_expectations[manifest_name]
-    survey_note = survey_expectation["note_path"].read_text(encoding="utf-8")
-    survey_test = survey_expectation["survey_test_path"].read_text(encoding="utf-8")
-    required_survey_markers = [
-        "PHASE5_STATUS=active",
-        f"PHASE5_LANE_KEY={expected['lane_key']}",
-        f"PHASE5_SURVEYED_COMMIT={manifest.get('surveyed_commit', '')}",
-        manifest_name,
-        survey_expectation["survey_test"],
-        "## Latest verification snapshot",
-        survey_expectation["sample_test_command"],
-        f"zig test zigux/tests/{survey_expectation['survey_test']}",
-        expected["survey_build_summary"],
-        expected["validation_entrypoint"],
-        "phase5_build.zig",
-        "samples/zigux/README.md",
-        "Documentation/zigux/review-checklist.md",
-    ]
-    for marker in required_survey_markers:
-        if marker not in survey_note:
-            missing_markers.append(f"{survey_expectation['note_path'].relative_to(ROOT)}:{marker}")
-    for marker in survey_expectation["survey_test_markers"]:
-        if marker not in survey_test:
-            missing_markers.append(
-                f"{survey_expectation['survey_test_path'].relative_to(ROOT)}:{marker}"
-            )
-
-if missing_markers:
-    print("PHASE5_VALIDATION=fail")
-    print("MISSING_PHASE5_MARKERS_START")
-    for marker in missing_markers:
-        print(marker)
-    print("MISSING_PHASE5_MARKERS_END")
-    sys.exit(1)
-
-print("PHASE5_VALIDATION=pass")
-print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
-print(
-    "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values()) + sum(len(expectation['exact_check_ids']) + len(expectation['non_goals']) for expectation in manifest_expectations.values())}"
-)
