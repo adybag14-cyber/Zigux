@@ -24,7 +24,7 @@ pub const ModuleDescriptor = struct {
 
 pub const MainThreadPayload = struct {
     foo_bar_message: []const u8,
-    random_choice_message: usize,
+    random_choice_message: []const u8,
     vararg_array_length: usize,
     vararg_array_terminator_zero: bool,
     template_message: []const u8,
