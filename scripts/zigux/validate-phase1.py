@@ -231,6 +231,7 @@ MARKER_GROUPS = {
             '"PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM"',
             '"PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM"',
             '"PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"',
+            '"PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM"',
         ],
     ),
     "phase1_tests": (
