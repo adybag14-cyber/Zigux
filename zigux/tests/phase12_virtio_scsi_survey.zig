@@ -156,6 +156,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "7d653d8c5e57207763c07c1b1d020b514738c7f3") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_VALIDATION=fail") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Treat that validator miss list as archived cross-lane evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rather than as a claim about the live validator state on newer Phase 12 heads") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "review_checklist:if the change touches the shared Phase 12 libbpf snapshot packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_nvme_pci_manifest.json:lane_key") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_libbpf_snapshot_fixture:bytes:zigux/tests/phase12_libbpf_segments.zig") != null);
@@ -220,6 +222,11 @@ test "phase12 virtio_scsi survey manifest records the landed queue-depth summary
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_shared_build_result: `not replayed in this run because the attached Zig toolchain was unavailable`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "current_focused_survey_result: `not replayed in this run because the attached Zig toolchain was unavailable`") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "focused_survey_result: `All 1 tests passed.`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "This packet is archival rather than live-head truth.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "the URLs, byte counts, and hashes below should be read as the last commit-pinned fallback evidence, not as the newest repo state") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "These fields record the last bounded replay note captured for this pinned fallback packet.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "They are historical replay evidence, not live-head truth for newer `master` commits") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_catalog, "so treat any `PHASE12_VALIDATION=fail` marker or unavailable-toolchain note below as scoped to the exact replay head named here") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12_virtio_scsi_survey_module") != null);
