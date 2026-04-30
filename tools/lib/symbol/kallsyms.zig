@@ -728,7 +728,7 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
     );
 }
 
-test "kallsymsParse contents and path wrappers preserve the C-shaped callback contract and bounded names" {
+test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded names" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
