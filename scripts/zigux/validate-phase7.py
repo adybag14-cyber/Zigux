@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -57,13 +58,16 @@ def clone_fixture_root(destination_root: Path) -> None:
         shutil.copyfile(source, target)
 
 
-def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
+def run_validator(
+    root: Path, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(root / "scripts" / "zigux" / "validate-phase7.py")],
         cwd=str(root),
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
 
 
@@ -125,6 +129,47 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
+        fake_make_dir = tmp_root / "fake-bin"
+        fake_make_dir.mkdir()
+        fake_make_path = fake_make_dir / "make"
+        fake_make_path.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "\n"
+            "target = sys.argv[-1]\n"
+            "outputs = {\n"
+            "    'phase7-validate': [\n"
+            "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
+            "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
+            "    ],\n"
+            "    'phase7-test': [\n"
+            "        'zig build test --build-file zigux/tests/phase7_build.zig',\n"
+            "    ],\n"
+            "    'phase7': [\n"
+            "        'python3 scripts/zigux/validate-phase7.py --self-test',\n"
+            "        'python3 scripts/zigux/validate-phase7.py',\n"
+            "        'python3 scripts/zigux/check-phase7-rbtree-parity.py',\n"
+            "        'zig build test --build-file zigux/tests/phase7_build.zig --summary all',\n"
+            "    ],\n"
+            "}\n"
+            "for line in outputs.get(target, []):\n"
+            "    print(line)\n",
+            encoding="utf-8",
+        )
+        fake_make_path.chmod(0o755)
+        fake_make_env = os.environ.copy()
+        fake_make_env["PATH"] = f"{fake_make_dir}:{fake_make_env['PATH']}"
+        result = run_validator(tmp_root, env=fake_make_env)
+        if result.returncode == 0:
+            raise SystemExit("phase7-self-test:make_wrapper_drift:unexpected_pass")
+        if "phase7-test: missing expected wrapper expansion" not in result.stdout:
+            actual = result.stdout.strip() or "none"
+            raise SystemExit(
+                "phase7-self-test:make_wrapper_drift:expected_wrapper_failure:"
+                f"actual:{actual}"
+            )
+
         argv_split_survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         original_argv_split_survey = argv_split_survey_path.read_text(encoding="utf-8")
         argv_split_survey_path.write_text(
@@ -158,7 +203,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=4")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
