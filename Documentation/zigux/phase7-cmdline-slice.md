@@ -27,7 +27,7 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 ## Gates
 
 1. run the focused Zig module tests
-- `zig test lib/cmdline.zig`
+- `zig test --dep next_arg_vectors -Mroot=lib/cmdline.zig -Mnext_arg_vectors=zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
 
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
@@ -63,7 +63,7 @@ The current tests check:
 
 Review note:
 - this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
-- `zig test lib/cmdline.zig` keeps a mirrored `next_arg()` edge corpus beside `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` because helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change
+- both the helper-local cmdline test path and the shared `zigux/tests/phase7_cmdline.zig` gate now import the same `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` module, so `next_arg()` edge coverage has one canonical fixture source instead of mirrored local copies
 
 ## Non-goals
 
