@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "d7c67f13bab842e26bc2a1016c31722776b7fd3b";
+const current_surveyed_commit = "47c633193a74d67e3955c57a11757de35b518ef2";
 
 const CompanionFile = struct {
     path: []const u8,
@@ -181,6 +181,7 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
     try expectContains(fdinfo_segment.why_now, "fdinfo");
     try expectContains(fdinfo_segment.why_now, "path construction");
     try expectContains(fdinfo_segment.why_now, "text parsing");
+    try expectContains(fdinfo_segment.why_now, "map_extra");
 
     const map_reuse_segment = findSegmentBySlug(manifest.segments, "map-reuse-compatibility") orelse return error.MissingMapReuseSegment;
     try std.testing.expectEqualStrings("starter_landed", map_reuse_segment.status);
@@ -266,4 +267,17 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
     try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
     try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
+}
+
+test "phase 8 docs keep the bounded fdinfo map_extra parsing explicit" {
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try expectContains(survey_note, "`map_extra`");
+    try expectContains(survey_note, "`map_flags`, and `map_extra`");
+    try expectContains(survey_note, "explicit `map_flags` and `map_extra` bases");
 }
