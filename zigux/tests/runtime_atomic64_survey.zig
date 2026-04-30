@@ -466,9 +466,9 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
     const required_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L01`",
         "the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`",
-        "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations",
+        "a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`",
         "a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
-        "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker",
+        "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter or differential scaffolds",
     };
 
     for (required_markers) |marker| {
