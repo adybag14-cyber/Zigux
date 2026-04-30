@@ -238,7 +238,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_storage_contract);
-    try std.testing.expect(saw_transfer_counts);
+    try std.testing.expect(saw_transferCounts);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_preview_truncation);
     try std.testing.expect(saw_queue_only_reset);
@@ -297,6 +297,12 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const lane_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "PHASE5_LANE_KEY={s}",
+        .{manifest.lane_key},
+    );
+    defer std.testing.allocator.free(lane_marker);
     const surveyed_commit_marker = try std.fmt.allocPrint(
         std.testing.allocator,
         "PHASE5_SURVEYED_COMMIT={s}",
@@ -315,7 +321,7 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_bytestream_fifo_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase5_build.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-L04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reference-pattern list") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/zigux/README.md") != null);
