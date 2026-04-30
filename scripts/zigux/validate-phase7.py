@@ -224,6 +224,23 @@ def run_self_test() -> int:
         )
         argv_split_survey_path.write_text(original_argv_split_survey, encoding="utf-8")
 
+        cmdline_doc_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
+        original_cmdline_doc = cmdline_doc_path.read_text(encoding="utf-8")
+        cmdline_doc_path.write_text(
+            original_cmdline_doc.replace(
+                "exact bare-option matching for comma-delimited flags",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "cmdline_bare_option_review_surface",
+            tmp_root,
+            "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags",
+        )
+        cmdline_doc_path.write_text(original_cmdline_doc, encoding="utf-8")
+
         rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
         rbtree_survey_path.write_text(
@@ -262,7 +279,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
