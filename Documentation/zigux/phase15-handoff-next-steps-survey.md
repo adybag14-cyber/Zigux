@@ -34,8 +34,8 @@ Current `master` now carries much more than that starting point. The live repo a
 
 What this packet still needs to answer for future runs is narrower now:
 
-- what handoff gap is still genuinely open after the governance bundle landed and the scorecard-side maintenance packet added anchor owner tracking, reserved evidence archives, and the maintenance-mode handoff sync
-- what is the next honest bounded step without reopening new policy or deep-core implementation scope
+- whether the parked handoff still matches the current governance bundle
+- what the next honest bounded step is without reopening new policy or deep-core implementation scope
 
 This note exists to answer those questions directly and keep the Phase 15 tranche parked cleanly.
 
@@ -52,26 +52,17 @@ This note exists to answer those questions directly and keep the Phase 15 tranch
 
 ## Current Handoff Surface
 
-- `Documentation/zigux/phase15-freeze-map-governance.md` now records the current freeze-map governance posture and shared-bootstrap replay coverage
-- `Documentation/zigux/phase15-architecture-council-review-process.md` now records the required review packet, retained stay-in-C closeout state, and reopen-trigger catalog
+- `Documentation/zigux/phase15-freeze-map-governance.md` records the current freeze-map governance posture and shared-bootstrap replay coverage
+- `Documentation/zigux/phase15-architecture-council-review-process.md` records the required review packet, retained stay-in-C closeout state, and reopen-trigger catalog
 - `Documentation/zigux/phase15-parity-scorecard.md` records the four deep-core anchors, their owners, archive paths, retained stay-in-C closeout state, reopen-trigger catalog, and the aligned maintenance-mode handoff for the shared replay-covered governance packet
-- `Documentation/zigux/phase15-indefinite-c-policy.md` now records the explicit long-term stay-in-C posture and exception rules
-- `Documentation/zigux/phase15-readiness-gate-survey.md` records the landed governance bundle, the parked handoff, and that the full shared Phase 15 replay is currently red on current `master`
-- `zigux/tests/phase15_build.zig` now replays the dedicated handoff packet alongside the other Phase 15 governance tests
-- `Documentation/zigux/README.md` now points at this handoff packet so reviewers can open the parked-next-step synthesis from the top-level docs index while keeping the remaining broader replay drift explicit
+- `Documentation/zigux/phase15-indefinite-c-policy.md` records the explicit long-term stay-in-C posture and exception rules
+- `Documentation/zigux/phase15-readiness-gate-survey.md` records the landed governance bundle, the parked handoff, and that the full shared Phase 15 replay is green on current `master`
+- `zigux/tests/phase15_build.zig` replays the dedicated handoff packet alongside the other Phase 15 governance tests
+- `Documentation/zigux/README.md` points at this handoff packet so reviewers can open the parked-next-step synthesis from the top-level docs index while keeping the now-green shared Phase 15 replay and the remaining deep-core blocker posture explicit
+
+That means the current handoff packet is no longer waiting on review-process replay repair. The shared replay surface is green again, and the remaining handoff question is simply whether the deep-core blocker posture changes enough to justify reopening this parked synthesis.
 
 ## Open Handoff Gaps
-
-### Shared Replay Surface Drifted Again
-
-The current handoff packet is no longer waiting on new governance scaffolding, new shared workflow wiring, another docs-index pointer, or an adjacent scorecard policy starter. The honest open handoff gap on current `master` is narrower and more mechanical: the shared Phase 15 replay surface drifted internally inside the Architecture Council review-process packet.
-
-- `Documentation/zigux/phase15-architecture-council-review-process.md` still carries current bounded lane `P15-L08`
-- `zigux/tests/phase15_architecture_council_review_process_manifest.json` now carries lane key `P15-L11` and surveyed commit `09606ab3a477c4f3817ab4e00f699e4729c096d2`
-- `zigux/tests/phase15_architecture_council_review_process.zig` still expects lane key `P15-L08` and surveyed commit `7f4ee0a5eb4bd171e94c279d44b7818ce2ac6a7f`
-- `Documentation/zigux/README.md` already records that the parked handoff still has remaining broader replay drift on current `master`
-
-That means the honest next bounded step is not another new handoff packet. It is to repair the neighboring review-process replay packet and rerun the shared Phase 15 replay before trusting the parked maintenance-mode handoff again.
 
 ### Deep-Core Status Changes Still Blocked
 
@@ -82,16 +73,16 @@ The remaining longer-lived handoff gap is still the same blocker posture already
 - `kernel/rcu/tree.c`: still blocked because the published Phase 14 follow-up remains wider than the allowed RCU seam
 - `net/core/skbuff.c`: still blocked because the published Phase 14 follow-up remains wider than the allowed packet-lifetime boundary
 
-That means the Phase 15 tranche is governance-landed, but the parked handoff is not fully maintenance-mode trustworthy again until the neighboring replay drift is repaired, and it is still not status-change-ready after that because the deep-core blocker posture remains unchanged.
+That means the Phase 15 tranche is governance-landed and the parked handoff is maintenance-mode trustworthy again on current `master`, but it is still not status-change-ready because the deep-core blocker posture remains unchanged.
 
 ## Pending Next Steps
 
 The next honest bounded step around this lane is to keep the handoff narrow:
 
-1. open a neighboring replay-repair lane that realigns `Documentation/zigux/phase15-architecture-council-review-process.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig` around one current lane stamp and surveyed head, then rerun `zig build test --build-file zigux/tests/phase15_build.zig` plus `make -C zigux phase15`
-2. return to this handoff lane only after the shared Phase 15 replay is green again on current `master` or the blocker list changes enough to justify a new parked-next-step synthesis
+1. leave this handoff lane parked unless the shared Phase 15 replay drifts again or a named reopen trigger or deep-core blocker change makes a refreshed synthesis necessary
+2. rerun `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` before refreshing neighboring governance packets when either condition changes
 
-If neither condition is true, the right action is still not another new Phase 15 slice. The right action is to leave the tranche parked and keep this handoff note honest about the replay drift.
+If neither condition is true, the right action is still not another new Phase 15 slice. The right action is to leave the tranche parked and keep this handoff note honest about the now-green replay and the still-blocked deep-core status changes.
 
 ## Maintenance Handoff Contract
 
@@ -102,7 +93,7 @@ Trust the parked Phase 15 handoff only while all of the following stay true:
 3. the shared bootstrap workflow still runs `Run Phase 15 governance tests`
 4. the local replay path still runs through `zig build test --build-file zigux/tests/phase15_build.zig`
 5. the convenience replay path still runs through `make -C zigux phase15`
-6. the current replay-drift blocker and the deeper status-change blocker both stay explicit, with no new policy or implementation scope reopened silently inside the parked handoff packet
+6. the now-green shared replay posture, the named reopen triggers, and the deeper status-change blocker all stay explicit, with no new policy or implementation scope reopened silently inside the parked handoff packet
 
 If any one of those six conditions stops being true, this parked handoff must be refreshed before future Phase 15 maintenance claims can be trusted.
 
@@ -115,10 +106,9 @@ The current lane state is:
 - landed `phase15-handoff-next-steps-test`
 - landed `phase15-build-gate-handoff-next-steps`
 - landed `phase15-docs-index-handoff-pointer`
-- blocked `phase15-review-process-replay-drift`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight. Zigux still has one dedicated handoff packet that says the roadmap bundle is landed, the ledger anchor is still visible, the docs index points to the parked synthesis, the focused handoff guard still replays the parked note, the broader shared replay is currently red on current `master` because the review-process packet drifted internally, and the remaining longer-lived handoff gap after that repair is still the deeper blocker posture that prevents any status change.
+This keeps the lane tight. Zigux still has one dedicated handoff packet that says the roadmap bundle is landed, the ledger anchor is still visible, the docs index points to the parked synthesis, the focused handoff guard still replays the parked note, the broader shared replay is green on current `master`, and the remaining longer-lived handoff gap is still the deeper blocker posture that prevents any status change.
 
 ## Non-goals
 
@@ -139,4 +129,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Open the neighboring review-process replay-repair lane, rerun the focused handoff guard plus the shared `make -C zigux phase15` replay after that repair lands, and return to this parked-next-step synthesis only if the shared replay stays red or the deep-core blocker posture changes enough to justify a narrower follow-up.
+Keep this handoff lane parked unless the shared replay drifts, a named reopen trigger now fits the evidence packet, or the deep-core blocker posture changes enough to justify a narrower follow-up. When one of those conditions changes, rerun the focused handoff guard plus the shared `make -C zigux phase15` replay before refreshing this parked-next-step synthesis.
