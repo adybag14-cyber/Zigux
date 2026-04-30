@@ -26,6 +26,12 @@ FILES = [
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "Documentation/zigux/phase10-virtio-mmio-survey.md",
+    "drivers/virtio/virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
 ]
 
 MAKE_MARKERS = [
@@ -105,6 +111,38 @@ MODULE_SLICE_MARKERS = [
     "input core capability registration",
 ]
 
+MMIO_SLICE_MARKERS = [
+    "PHASE10_SLICE=virtio-mmio-config-write-helper",
+    "in-memory config-write planning",
+    "phase10-mmio-lifecycle-and-irq-paths",
+]
+
+MMIO_SURVEY_MARKERS = [
+    "phase10-mmio-config-write-helper",
+    "phase10-mmio-lifecycle-and-irq-paths",
+    "config-write planning helper",
+]
+
+MMIO_HELPER_MARKERS = [
+    "pub const ConfigWritePlanSummary = struct {",
+    "pub fn planConfigWrite(",
+    "pub fn snapshotConfigWindow(",
+    "pub fn acknowledgeInterrupt(self: *Self, bits: u32) !InterruptAckSummary {",
+]
+
+MMIO_TEST_MARKERS = [
+    'test "phase10 virtio mmio plans bounded config-window writes without side effects" {',
+    'test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {',
+]
+
+MMIO_SURVEY_TEST_MARKERS = [
+    'test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {',
+    'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
+]
+
 HELPER_MARKERS = [
     "pub const MultitouchSlotPlanSummary = struct {",
     "pub const TeardownPlanSummary = struct {",
@@ -175,9 +213,14 @@ for name, source, markers in [
     ("slice_doc", text("Documentation/zigux/phase10-virtio-input-slice.md"), SLICE_MARKERS),
     ("survey_doc", text("Documentation/zigux/phase10-virtio-input-survey.md"), SURVEY_MARKERS),
     ("module_slice", text("Documentation/zigux/phase10-virtio-input-module-slice.md"), MODULE_SLICE_MARKERS),
+    ("mmio_slice_doc", text("Documentation/zigux/phase10-virtio-mmio-slice.md"), MMIO_SLICE_MARKERS),
+    ("mmio_survey_doc", text("Documentation/zigux/phase10-virtio-mmio-survey.md"), MMIO_SURVEY_MARKERS),
     ("helper", text("drivers/virtio/virtio_input.zig"), HELPER_MARKERS),
+    ("mmio_helper", text("drivers/virtio/virtio_mmio.zig"), MMIO_HELPER_MARKERS),
     ("tests", text("zigux/tests/phase10_virtio_input.zig"), TEST_MARKERS),
+    ("mmio_tests", text("zigux/tests/phase10_virtio_mmio.zig"), MMIO_TEST_MARKERS),
     ("survey_test", text("zigux/tests/phase10_virtio_input_survey.zig"), SURVEY_TEST_MARKERS),
+    ("mmio_survey_test", text("zigux/tests/phase10_virtio_mmio_survey.zig"), MMIO_SURVEY_TEST_MARKERS),
 ]:
     for marker in markers:
         if marker not in source:
@@ -289,6 +332,90 @@ else:
         if "transport-backed queue callbacks" not in why_now:
             missing.append("manifest:blocked_gap:transport_callbacks")
 
+mmio_manifest = load_manifest("zigux/tests/phase10_virtio_mmio_manifest.json")
+if mmio_manifest.get("lane_key") != "P10-L18":
+    missing.append("mmio_manifest:lane_key=P10-L18")
+if mmio_manifest.get("phase") != "Phase 10":
+    missing.append("mmio_manifest:phase=Phase 10")
+if mmio_manifest.get("anchor") != "drivers/virtio/virtio_mmio.c":
+    missing.append("mmio_manifest:anchor=drivers/virtio/virtio_mmio.c")
+if not HEX40.fullmatch(str(mmio_manifest.get("surveyed_commit", ""))):
+    missing.append("mmio_manifest:surveyed_commit")
+
+if mmio_manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
+    missing.append("mmio_manifest:roadmap_destinations")
+
+mmio_survey_summary = mmio_manifest.get("survey_summary")
+if not isinstance(mmio_survey_summary, dict):
+    missing.append("mmio_manifest:survey_summary")
+else:
+    if mmio_survey_summary.get("preexisting_virtio_ring_zig_present") is not True:
+        missing.append("mmio_manifest:preexisting_virtio_ring_zig_present")
+    if mmio_survey_summary.get("preexisting_virtio_input_zig_present") is not True:
+        missing.append("mmio_manifest:preexisting_virtio_input_zig_present")
+    if mmio_survey_summary.get("preexisting_virtio_mmio_zig_present") is not True:
+        missing.append("mmio_manifest:preexisting_virtio_mmio_zig_present")
+
+mmio_gaps = mmio_manifest.get("gaps")
+if not isinstance(mmio_gaps, list) or len(mmio_gaps) < 18:
+    missing.append("mmio_manifest:gaps")
+else:
+    starter_count = 0
+    ready_count = 0
+    blocked_count = 0
+    for gap in mmio_gaps:
+        if not isinstance(gap, dict):
+            missing.append("mmio_manifest:gap_object")
+            continue
+        status = gap.get("status")
+        if status == "starter_landed":
+            starter_count += 1
+        elif status == "ready_next":
+            ready_count += 1
+        elif status == "blocked_on_risky_transport":
+            blocked_count += 1
+    if ready_count != 0:
+        missing.append(f"mmio_manifest:ready_next_count={ready_count}")
+    if blocked_count != 1:
+        missing.append(f"mmio_manifest:blocked_count={blocked_count}")
+    if starter_count < 17:
+        missing.append(f"mmio_manifest:starter_count={starter_count}")
+
+    expected_mmio_statuses = {
+        "phase10-virtio-mmio-survey-gate": "starter_landed",
+        "phase10-virtio-mmio-slice-note": "starter_landed",
+        "phase10-mmio-register-window-helper": "starter_landed",
+        "phase10-mmio-queue-register-helper": "starter_landed",
+        "phase10-mmio-queue-notify-helper": "starter_landed",
+        "phase10-mmio-queue-address-helper": "starter_landed",
+        "phase10-mmio-config-window-helper": "starter_landed",
+        "phase10-mmio-config-write-helper": "starter_landed",
+        "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
+    }
+    for gap_id, status in expected_mmio_statuses.items():
+        gap = find_gap(mmio_manifest, gap_id)
+        if gap is None:
+            missing.append(f"mmio_manifest:gap:{gap_id}")
+            continue
+        if gap.get("status") != status:
+            missing.append(f"mmio_manifest:gap_status:{gap_id}={gap.get('status')}")
+
+    config_write_gap = find_gap(mmio_manifest, "phase10-mmio-config-write-helper")
+    if config_write_gap is not None:
+        why_now = str(config_write_gap.get("why_now", ""))
+        if "config-write planning helper" not in why_now:
+            missing.append("mmio_manifest:config_write_gap:planning_helper")
+        if "byte, halfword, and word" not in why_now:
+            missing.append("mmio_manifest:config_write_gap:byte_halfword_word")
+
+    blocked_mmio_gap = find_gap(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths")
+    if blocked_mmio_gap is not None:
+        why_now = str(blocked_mmio_gap.get("why_now", ""))
+        if "interrupt acknowledgement" not in why_now:
+            missing.append("mmio_manifest:blocked_gap:interrupt_acknowledgement")
+        if "queue notify side effects" not in why_now:
+            missing.append("mmio_manifest:blocked_gap:queue_notify_side_effects")
+
 if missing:
     print("PHASE10_VALIDATION=fail")
     print("MISSING_PHASE10_MARKERS_START")
@@ -301,5 +428,5 @@ print("PHASE10_VALIDATION=pass")
 print(f"PHASE10_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOC_README_MARKERS) + len(SLICE_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_SLICE_MARKERS) + len(HELPER_MARKERS) + len(TEST_MARKERS) + len(SURVEY_TEST_MARKERS)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPT_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOC_README_MARKERS) + len(SLICE_MARKERS) + len(SURVEY_MARKERS) + len(MODULE_SLICE_MARKERS) + len(MMIO_SLICE_MARKERS) + len(MMIO_SURVEY_MARKERS) + len(HELPER_MARKERS) + len(MMIO_HELPER_MARKERS) + len(TEST_MARKERS) + len(MMIO_TEST_MARKERS) + len(SURVEY_TEST_MARKERS) + len(MMIO_SURVEY_TEST_MARKERS)}"
 )
