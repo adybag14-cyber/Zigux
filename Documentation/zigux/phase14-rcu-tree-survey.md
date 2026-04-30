@@ -29,7 +29,7 @@ The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.
 
 - `zigux/tests/`: `reviewable_survey_landed` via `zigux/tests/phase14_rcu_tree_survey.zig`, which keeps the RCU tree blocker and its survey package machine-checkable beside the rest of the Phase 14 gates.
 - `Documentation/zigux/`: `reviewable_survey_landed` via `Documentation/zigux/phase14-rcu-tree-survey.md`, which records the roadmap-vs-freeze comparison, the current checklist seams, and the current freeze-in-C blocker in one reviewable note.
-- `kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence` because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait or barrier APIs, NOCB offload, idle or dyntick watching transitions, quiescent-state propagation, and callback lifecycle behavior to the live Tree RCU state machine.
+- `kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence` because `kernel/rcu/tree.c` is still a freeze-in-C anchor and the current survey evidence still ties grace-period publication, expedited waits, public wait and callback-barrier APIs, NOCB offload, idle or dyntick watching transitions, quiescent-state propagation, CPU hotplug or callback migration, and callback lifecycle behavior to the live Tree RCU state machine.
 
 ## Survey findings
 
@@ -38,7 +38,7 @@ The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.
 - `kernel/rcu/update.c` remains a nearby consumer of the same RCU state machine, which makes a one-file bridge story misleading.
 - `Documentation/RCU/Design/Requirements/Requirements.rst` and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` reinforce that Tree RCU correctness depends on ordering and quiescent-state guarantees, not only on symbol cataloging.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, the workqueue bridge lane, the ring-buffer survey lane, and the skbuff bridge lane, so the highest-value non-overlapping RCU step is a survey package that records why the roadmap destination remains blocked.
-- the survey manifest now records a landed freeze-boundary checklist around grace-period sequence publication, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, idle or dyntick watching transitions that can force the core awake from an extended quiescent state, the quiescent-state propagation path that climbs the `rcu_node` hierarchy while also accelerating callbacks, the callback enqueue-plus-batch path that routes through per-CPU callback lists before invocation, and the public wait or callback-barrier APIs that still depend on live grace-period and callback-drain state.
+- the survey manifest now records a landed freeze-boundary checklist around grace-period sequence publication, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, idle or dyntick watching transitions that can force the core awake from an extended quiescent state, the quiescent-state propagation path that climbs the `rcu_node` hierarchy while also accelerating callbacks, the callback enqueue-plus-batch path that routes through per-CPU callback lists before invocation, the public wait or callback-barrier APIs that still depend on live grace-period and callback-drain state, and the CPU hotplug or callback-migration path that still shares masks, deferred wakeups, and callback-list ownership with the live Tree RCU core.
 
 ## Decision checklist
 
@@ -100,6 +100,16 @@ This run closes one narrower roadmap-boundary gap without changing the underlyin
 
 The net result is still survey-only: public wait, polling, and callback-barrier surfaces remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
+## CPU hotplug and callback migration follow-up
+
+This run closes one more bounded stay-in-C follow-up without changing the underlying freeze decision.
+
+- `rcutree_prepare_cpu()` is not just per-CPU setup glue. It seeds each incoming CPU's local grace-period view, callback-list state, IRQ-work bookkeeping, and `qsmaskinitnext` enrollment path so the hotplug boundary is still tied directly to the live `rcu_node` hierarchy.
+- `rcutree_report_cpu_starting()` and `rcutree_report_cpu_dead()` are also not thin online or offline wrappers. They update `qsmaskinitnext` and `expmaskinitnext` under the shared offline lock, publish CPU-started state, flush deferred NOCB wakeups, and may report a last quiescent state before a CPU leaves the hierarchy.
+- `rcutree_migrate_callbacks()` is still deeply coupled as well. It entrains barrier callbacks, merges segmented callback lists onto another CPU, advances callbacks under the destination `rcu_node` lock, and preserves wakeup or overload bookkeeping while an offline CPU hands off callback ownership.
+
+The net result is still survey-only: CPU hotplug enrollment, teardown, and callback migration remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
+
 ## Rollback threshold guardrail
 
 This run adds one narrow rollback-threshold guardrail so the lane cannot quietly drift from "blocked survey" into "bridge momentum."
@@ -138,6 +148,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-callback-offload-followup`
 - landed `phase14-rcu-tree-idle-watch-followup`
 - landed `phase14-rcu-tree-public-wait-and-barrier-followup`
+- landed `phase14-rcu-tree-cpu-hotplug-followup`
 - landed `phase14-rcu-tree-rollback-threshold-guardrail`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
@@ -155,6 +166,7 @@ This survey slice does not claim:
 - quiescent-state propagation parity
 - callback acceleration, callback invocation, or callback offload ownership
 - public wait, polling-cookie, or callback-barrier ownership
+- CPU hotplug enrollment, teardown, or callback-migration ownership
 
 ## Gates
 
@@ -166,4 +178,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, expedited waits, public wait and callback-barrier ownership, NOCB wakeup ownership, idle-watch transitions, quiescent-state propagation, callback enqueue, callback offload, deferred wakeup flushing, and the rollback threshold that would force any weak status-review attempt back to blocked freeze posture, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
+Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, expedited waits, public wait and callback-barrier ownership, NOCB wakeup ownership, idle-watch transitions, quiescent-state propagation, callback enqueue, callback offload, deferred wakeup flushing, CPU hotplug enrollment, callback migration, and the rollback threshold that would force any weak status-review attempt back to blocked freeze posture, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
