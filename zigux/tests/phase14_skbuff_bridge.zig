@@ -57,10 +57,10 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
-    try std.testing.expectEqualStrings("f65e3d897847bf205198e5c47a41782085620579", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("55f1f2ca5c047f33ad2f005515bb67974c1b74f9", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.skbuff_c_lines >= 7400);
     try std.testing.expect(manifest.survey_summary.skbuff_h_lines >= 5400);
@@ -172,7 +172,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-validate-xmit-republish-followup")) {
             saw_validate_xmit_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "head = skb") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tail->next = skb") != null);
@@ -184,8 +184,8 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_map);
     try std.testing.expect(saw_audit_outline);
@@ -216,11 +216,11 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
 
     try std.testing.expectEqual(@as(usize, 6), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), skbuff_bridge.SkbuffBridgeLab.stayInCDecisionCount());
-    try std.testing.expectEqual(@as(usize, 10), audit.checkpoints.len);
-    try std.testing.expectEqual(@as(usize, 10), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 10), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "tail->next = skb") != null);
+    try std.testing.expectEqual(@as(usize, 11), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 11), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 11), skbuff_bridge.SkbuffBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "validate_xmit_skb()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(), "transmit-list publication") != null);
     try std.testing.expectEqualStrings("shared-info-refcount-ownership", map.areas[4].id);
     try std.testing.expectEqualStrings("destructor-and-free-path", map.areas[5].id);
     try std.testing.expect(audit.checkpoints[0].guard == .header_write_requires_private_data);
@@ -232,6 +232,7 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[7].guard == .segmentation_checksum_data_offset_crossover);
     try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_contract);
     try std.testing.expect(audit.checkpoints[9].guard == .validate_xmit_list_consumer_reset_contract);
+    try std.testing.expect(audit.checkpoints[10].guard == .validate_xmit_list_republish_contract);
 }
 
 test "phase14 skbuff bridge survey note records the active lane marker" {
@@ -246,8 +247,8 @@ test "phase14 skbuff bridge survey note records the active lane marker" {
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L12") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-validate-xmit-list-reset") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L09") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-validate-xmit-republish") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
 }
