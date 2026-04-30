@@ -1,0 +1,376 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
+MAKEFILE_REL = "zigux/Makefile"
+ABI_SLICE_REL = "Documentation/zigux/phase3-abi-slice.md"
+MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+POLICY_UNSAFE_BUILD_REL = "zigux/tests/phase3_policy_unsafe_build.zig"
+POLICY_UNSAFE_TEST_REL = "zigux/tests/phase3_policy_unsafe.zig"
+LAYOUT_ASSERT_REL = "zigux/helpers/layout_assert.zig"
+PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
+ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
+INTEROP_POLICY_REL = "zigux/helpers/interop_policy.zig"
+UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
+MMIO_REL = "zigux/helpers/mmio.zig"
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+
+REQUIRED_SURVEY_MARKERS = (
+    "PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig",
+    "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
+    "PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed",
+    "PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig",
+    "PHASE3_PANIC_POLICY=explicit-modes-only",
+    "PHASE3_PANIC_POLICY_STATUS=interop-byte-decode-landed",
+    "PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig",
+    "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
+    "PHASE3_ALLOCATOR_POLICY_STATUS=interop-byte-decode-and-init-flow-landed",
+    "PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig",
+    "PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation",
+    "PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig",
+    "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
+    "PHASE3_MMIO_PATH=zigux/helpers/mmio.zig",
+    "PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig",
+    "PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer",
+)
+
+REQUIRED_SURVEY_SNIPPETS = (
+    "verified `master` head",
+    "zigux/helpers/layout_assert.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/interop_policy.zig",
+    "zigux/unsafe/narrow.zig",
+    "zigux/helpers/mmio.zig",
+    "zigux/tests/phase3_policy_unsafe_build.zig",
+    "zigux/tests/phase3_policy_unsafe.zig",
+    "typed interop-policy",
+)
+
+REQUIRED_SURVEY_PATHS = (
+    LAYOUT_ASSERT_REL,
+    PANIC_POLICY_REL,
+    ALLOCATOR_POLICY_REL,
+    INTEROP_POLICY_REL,
+    UNSAFE_NARROW_REL,
+    MMIO_REL,
+    POLICY_UNSAFE_BUILD_REL,
+    POLICY_UNSAFE_TEST_REL,
+    MANIFEST_REL,
+    ABI_SLICE_REL,
+)
+
+REQUIRED_MAKEFILE_SNIPPETS = (
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+)
+
+REQUIRED_LAYOUT_ASSERT_SNIPPETS = (
+    "pub fn assertInteropPolicyLayout() void {",
+    "pub fn assertMmioRangeLayout() void {",
+    'test "phase3 layout assertions cover canonical bindings"',
+)
+
+REQUIRED_PANIC_POLICY_SNIPPETS = (
+    "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode {",
+    "pub fn recognizesInteropPolicyByte(panic_mode: u8) bool {",
+    "pub fn canReturnPolicyByte(panic_mode: u8) bool {",
+    'test "phase3 panic policy stays explicit"',
+)
+
+REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
+    "pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode {",
+    "pub fn permitsGlobalFallbackPolicyByte(allocator_mode: u8) bool {",
+    "pub fn initializesOwnedStatePolicyByte(allocator_mode: u8) bool {",
+    "pub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool {",
+    'test "phase3 allocator policy stays explicit"',
+)
+
+REQUIRED_INTEROP_POLICY_SNIPPETS = (
+    "pub const DecodedInteropPolicy = struct {",
+    "pub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy {",
+    "pub fn recognizes(policy: abi.InteropPolicy) bool {",
+    'test "phase3 interop policy decoder keeps the boundary typed"',
+    'test "phase3 interop policy decoder rejects invalid bytes and reserved bits"',
+)
+
+REQUIRED_UNSAFE_SNIPPETS = (
+    "pub const UnsafeScopeTag = enum(u8) {",
+    "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+    "pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {",
+    "pub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T {",
+    "pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {",
+    'test "phase3 narrow unsafe interop policy decoding stays explicit"',
+    'test "phase3 scoped unsafe helpers require the declared scope"',
+)
+
+REQUIRED_MMIO_SNIPPETS = (
+    "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 {",
+    "pub fn write16Scoped(",
+    "pub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 {",
+    "pub fn write32Scoped(",
+    'test "phase3 mmio wrapper keeps declared scope explicit across widths"',
+    'test "phase3 mmio wrapper rejects misaligned scoped accesses"',
+)
+
+REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
+    'test "phase3 policy helpers stay ABI aligned"',
+    'test "phase3 policy decoder validates the whole interop record"',
+    'test "phase3 policy decoder rejects partial or reserved policy bytes"',
+    'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly"',
+    'test "phase3 policy gate enforces the declared unsafe scope"',
+)
+
+REQUIRED_ABI_SLICE_SNIPPETS = (
+    "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now verifies both successful whole-record decoding and rejection of partial or reserved policy bytes",
+    "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path",
+)
+
+SURVEYED_PACKET_PATHS = (
+    LAYOUT_ASSERT_REL,
+    PANIC_POLICY_REL,
+    ALLOCATOR_POLICY_REL,
+    INTEROP_POLICY_REL,
+    UNSAFE_NARROW_REL,
+    MMIO_REL,
+    POLICY_UNSAFE_BUILD_REL,
+    POLICY_UNSAFE_TEST_REL,
+    MANIFEST_REL,
+    ABI_SLICE_REL,
+)
+
+
+def _read_text(root: Path, rel: str, issues: list[str]) -> str:
+    path = root / rel
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{rel}")
+        return ""
+
+
+def _surveyed_commit_from_text(text: str) -> str | None:
+    prefix = "PHASE3_SURVEYED_COMMIT="
+    for line in text.splitlines():
+        stripped = line.strip().strip("- ").strip("`")
+        if stripped.startswith(prefix):
+            return stripped[len(prefix) :]
+    return None
+
+
+def _packet_drift_since_commit(root: Path, commit: str) -> list[str]:
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return []
+    result = subprocess.run(
+        ["git", "diff", "--name-only", commit, "HEAD", "--", *SURVEYED_PACKET_PATHS],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return [f"surveyed_commit_diff_error:{commit}"]
+    return [
+        f"surveyed_commit_packet_drift:{rel}"
+        for rel in result.stdout.splitlines()
+        if rel.strip()
+    ]
+
+
+def _check_snippets(text: str, snippets: tuple[str, ...], prefix: str, issues: list[str]) -> None:
+    for snippet in snippets:
+        if snippet not in text:
+            issues.append(f"{prefix}:{snippet}")
+
+
+def validate(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    survey = _read_text(root, SURVEY_REL, issues)
+    makefile = _read_text(root, MAKEFILE_REL, issues)
+    layout_assert = _read_text(root, LAYOUT_ASSERT_REL, issues)
+    panic_policy = _read_text(root, PANIC_POLICY_REL, issues)
+    allocator_policy = _read_text(root, ALLOCATOR_POLICY_REL, issues)
+    interop_policy = _read_text(root, INTEROP_POLICY_REL, issues)
+    unsafe_narrow = _read_text(root, UNSAFE_NARROW_REL, issues)
+    mmio = _read_text(root, MMIO_REL, issues)
+    policy_unsafe_test = _read_text(root, POLICY_UNSAFE_TEST_REL, issues)
+    abi_slice = _read_text(root, ABI_SLICE_REL, issues)
+
+    if survey:
+        _check_snippets(survey, REQUIRED_SURVEY_MARKERS, "missing_survey_marker", issues)
+        _check_snippets(survey, REQUIRED_SURVEY_SNIPPETS, "missing_survey_snippet", issues)
+        surveyed_commit = _surveyed_commit_from_text(survey)
+        if surveyed_commit is None:
+            issues.append("missing_surveyed_commit")
+        elif not HEX40.fullmatch(surveyed_commit):
+            issues.append(f"invalid_surveyed_commit:{surveyed_commit}")
+        else:
+            issues.extend(_packet_drift_since_commit(root, surveyed_commit))
+
+    for rel in REQUIRED_SURVEY_PATHS:
+        if not (root / rel).exists():
+            issues.append(f"missing_repo_path:{rel}")
+
+    if makefile:
+        _check_snippets(makefile, REQUIRED_MAKEFILE_SNIPPETS, "missing_makefile_snippet", issues)
+    if layout_assert:
+        _check_snippets(layout_assert, REQUIRED_LAYOUT_ASSERT_SNIPPETS, "missing_layout_assert_snippet", issues)
+    if panic_policy:
+        _check_snippets(panic_policy, REQUIRED_PANIC_POLICY_SNIPPETS, "missing_panic_policy_snippet", issues)
+    if allocator_policy:
+        _check_snippets(allocator_policy, REQUIRED_ALLOCATOR_POLICY_SNIPPETS, "missing_allocator_policy_snippet", issues)
+    if interop_policy:
+        _check_snippets(interop_policy, REQUIRED_INTEROP_POLICY_SNIPPETS, "missing_interop_policy_snippet", issues)
+    if unsafe_narrow:
+        _check_snippets(unsafe_narrow, REQUIRED_UNSAFE_SNIPPETS, "missing_unsafe_snippet", issues)
+    if mmio:
+        _check_snippets(mmio, REQUIRED_MMIO_SNIPPETS, "missing_mmio_snippet", issues)
+    if policy_unsafe_test:
+        _check_snippets(policy_unsafe_test, REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS, "missing_policy_unsafe_test_snippet", issues)
+    if abi_slice:
+        _check_snippets(abi_slice, REQUIRED_ABI_SLICE_SNIPPETS, "missing_abi_slice_snippet", issues)
+
+    return issues
+
+
+def _write(root: Path, rel: str, text: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_policy_unsafe_survey_") as tmp_dir_str:
+        root = Path(tmp_dir_str)
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join(
+                [
+                    "# Phase 3 Policy and Unsafe Boundary Survey",
+                    "",
+                    "- `PHASE3_SURVEYED_COMMIT=73c7501e5313adabdc0686dc686b621c394bb21f`",
+                    "- `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`",
+                    "- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`",
+                    "- `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`",
+                    "- `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`",
+                    "- `PHASE3_PANIC_POLICY=explicit-modes-only`",
+                    "- `PHASE3_PANIC_POLICY_STATUS=interop-byte-decode-landed`",
+                    "- `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`",
+                    "- `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`",
+                    "- `PHASE3_ALLOCATOR_POLICY_STATUS=interop-byte-decode-and-init-flow-landed`",
+                    "- `PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig`",
+                    "- `PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation`",
+                    "- `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`",
+                    "- `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`",
+                    "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`",
+                    "- `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`",
+                    "- `PHASE3_BOUNDARY_GAP=no-second-boundary-helper-consumes-decoded-policy-beyond-focused-replay`",
+                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-boundary-helper-needs-a-typed-interop-policy-consumer`",
+                    "",
+                    "This survey is pinned to verified `master` head `73c7501e5313adabdc0686dc686b621c394bb21f`.",
+                    "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig, and it keeps the typed interop-policy boundary explicit.",
+                    "",
+                ]
+            ),
+        )
+        _write(
+            root,
+            MAKEFILE_REL,
+            "scripts/zigux/validate-phase3-policy-unsafe-survey.py\nscripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test\n",
+        )
+        _write(
+            root,
+            LAYOUT_ASSERT_REL,
+            "pub fn assertInteropPolicyLayout() void {}\npub fn assertMmioRangeLayout() void {}\ntest \"phase3 layout assertions cover canonical bindings\" {}\n",
+        )
+        _write(
+            root,
+            PANIC_POLICY_REL,
+            "pub fn modeFromInteropPolicyByte(panic_mode: u8) ?abi.PanicMode { _ = panic_mode; }\npub fn recognizesInteropPolicyByte(panic_mode: u8) bool { _ = panic_mode; }\npub fn canReturnPolicyByte(panic_mode: u8) bool { _ = panic_mode; }\ntest \"phase3 panic policy stays explicit\" {}\n",
+        )
+        _write(
+            root,
+            ALLOCATOR_POLICY_REL,
+            "pub fn modeFromInteropPolicyByte(allocator_mode: u8) ?abi.AllocatorMode { _ = allocator_mode; }\npub fn permitsGlobalFallbackPolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\npub fn initializesOwnedStatePolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\npub fn requiresResetOnInitPolicyByte(allocator_mode: u8) bool { _ = allocator_mode; }\ntest \"phase3 allocator policy stays explicit\" {}\n",
+        )
+        _write(
+            root,
+            INTEROP_POLICY_REL,
+            "pub const DecodedInteropPolicy = struct {};\npub fn decode(policy: abi.InteropPolicy) DecodeError!DecodedInteropPolicy { _ = policy; }\npub fn recognizes(policy: abi.InteropPolicy) bool { _ = policy; }\ntest \"phase3 interop policy decoder keeps the boundary typed\" {}\ntest \"phase3 interop policy decoder rejects invalid bytes and reserved bits\" {}\n",
+        )
+        _write(
+            root,
+            UNSAFE_NARROW_REL,
+            "pub const UnsafeScopeTag = enum(u8) { none = 0, volatile_mmio = 1, raw_pointer_bridge = 2 };\npub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag { _ = unsafe_scope; _ = reserved; }\npub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T { _ = T; _ = scope; _ = base; _ = offset; }\npub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T { _ = T; _ = scope; _ = base; _ = len; }\npub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T { _ = T; _ = scope; _ = addr; }\ntest \"phase3 narrow unsafe interop policy decoding stays explicit\" {}\ntest \"phase3 scoped unsafe helpers require the declared scope\" {}\n",
+        )
+        _write(
+            root,
+            MMIO_REL,
+            "pub fn read16Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u16 { _ = scope; _ = base_addr; _ = offset; }\npub fn write16Scoped() void {}\npub fn read32Scoped(scope: narrow.UnsafeScopeTag, base_addr: usize, offset: usize) narrow.ScopeError!u32 { _ = scope; _ = base_addr; _ = offset; }\npub fn write32Scoped() void {}\ntest \"phase3 mmio wrapper keeps declared scope explicit across widths\" {}\ntest \"phase3 mmio wrapper rejects misaligned scoped accesses\" {}\n",
+        )
+        _write(
+            root,
+            POLICY_UNSAFE_TEST_REL,
+            "\n".join(
+                [
+                    'test "phase3 policy helpers stay ABI aligned" {}',
+                    'test "phase3 policy decoder validates the whole interop record" {}',
+                    'test "phase3 policy decoder rejects partial or reserved policy bytes" {}',
+                    'test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {}',
+                    'test "phase3 policy gate enforces the declared unsafe scope" {}',
+                    "",
+                ]
+            ),
+        )
+        _write(
+            root,
+            ABI_SLICE_REL,
+            "focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now verifies both successful whole-record decoding and rejection of partial or reserved policy bytes\nfocused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path\n",
+        )
+        _write(root, POLICY_UNSAFE_BUILD_REL, "// build file present\n")
+        _write(root, MANIFEST_REL, "{}\n")
+
+        issues = validate(root)
+        if issues:
+            print("PHASE3_POLICY_UNSAFE_SURVEY=fail")
+            for issue in issues:
+                print(issue)
+            return 1
+
+    print("PHASE3_POLICY_UNSAFE_SURVEY=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the dedicated Phase 3 policy and unsafe boundary survey.")
+    parser.add_argument("--self-test", action="store_true", help="Run isolated validator checks.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate(ROOT)
+    if issues:
+        print("PHASE3_POLICY_UNSAFE_SURVEY=fail")
+        for issue in issues:
+            print(issue)
+        return 1
+
+    print("PHASE3_POLICY_UNSAFE_SURVEY=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
