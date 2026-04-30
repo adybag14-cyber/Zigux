@@ -111,4 +111,5 @@ Phase 12 notes
 Phase 13 notes
 - `Documentation/zigux/phase13-roadmap-traceability.md` now maps the four shared-helper roadmap anchors `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, and `security/landlock/syscalls.c` to the live Zigux evidence so the current Phase 13 packet is visible from the docs root.
 - `Documentation/zigux/phase13-libfs-survey.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-survey.md` plus the four `zigux/tests/phase13_*_manifest.json` files now keep the current helper-first boundaries explicit instead of implying broader runtime parity.
-- `zigux/tests/phase13_build.zig`, `make -C zigux phase13`, and `make -C zigux phase13-validate` are the published shared replay path for the current Phase 13 packet.
+- `make -C zigux phase13-validate` is the current validator-first entrypoint for the shared Phase 13 release-discipline packet.
+- `zigux/tests/phase13_build.zig` and `make -C zigux phase13` remain the published shared replay path, but that replay is currently blocked on `master` because `zigux/tests/phase13_landlock_ruleset.zig` still ends with the `P13-L12` syntax error recorded by `Documentation/zigux/phase13-release-notes-survey.md`.
