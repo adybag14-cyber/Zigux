@@ -116,7 +116,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Any later move into live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny watchdog metadata summary for the Linux identity string, watchdog option flags, static timeout bounds, and bounded start or stop or get_timeleft or restart ops coverage") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff ownership reviewability") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing") != null);
 
