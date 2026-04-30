@@ -39,6 +39,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
@@ -67,7 +71,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqualStrings("40d20bc7880f228d2add1a6c73487db2df9571e4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("b967ad6bc0f58c912232df1249217f0dbff9389f", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.devres_c_lines >= 390);
     try std.testing.expectEqualStrings("26e5f8101d3546c7942c93757ecc3fdfaa6ee264", manifest.survey_summary.previous_surveyed_commit);
@@ -106,6 +110,24 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try std.testing.expect(!descriptor.touches_live_scatterlist);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
 
+    const devres_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/devres.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(devres_source);
+
+    try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "touches_live_dma"));
+    try std.testing.expectEqual(@as(usize, 2), std.mem.count(u8, devres_source, "touches_live_scatterlist"));
+    try expectNotContains(devres_source, "dmam_alloc_coherent");
+    try expectNotContains(devres_source, "dmam_free_coherent");
+    try expectNotContains(devres_source, "dma_map_resource");
+    try expectNotContains(devres_source, "dma_unmap_resource");
+    try expectNotContains(devres_source, "dma_map_sgtable");
+    try expectNotContains(devres_source, "struct scatterlist");
+    try expectNotContains(devres_source, "sg_table");
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase13-devres-survey.md",
@@ -117,7 +139,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "## Status");
     try expectContains(survey_note, "- `PHASE13_STATUS=active`");
     try expectContains(survey_note, "- `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`");
-    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=40d20bc7880f228d2add1a6c73487db2df9571e4`");
+    try expectContains(survey_note, "- `PHASE13_SURVEYED_COMMIT=b967ad6bc0f58c912232df1249217f0dbff9389f`");
     try expectContains(survey_note, "- product boundary:");
     try expectContains(survey_note, "- `lib/devres.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_devres_manifest.json`");
@@ -125,23 +147,7 @@ test "phase13 devres manifest records the current iomap/mmio safety surface and 
     try expectContains(survey_note, "adding the direct non-posted managed wrapper instead of staying byte-for-byte unchanged");
     try expectContains(survey_note, "sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda");
     try expectContains(survey_note, "sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476");
-
-    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase13-devres-slice.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(slice_note);
-
-    try expectContains(slice_note, "stays explicitly outside DMA-backed helpers and scatter-gather ownership");
-    try expectContains(slice_note, "`dmam_*`");
-    try expectContains(slice_note, "`dma_map_*`");
-    try expectContains(slice_note, "`dma_unmap_*`");
-    try expectContains(slice_note, "`dma_map_sgtable()`");
-    try expectContains(slice_note, "`struct scatterlist`");
-    try expectContains(slice_note, "`sg_table`");
-    try expectContains(slice_note, "`sg_*` traversal behavior");
+    try expectContains(survey_note, "only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
