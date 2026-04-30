@@ -122,7 +122,7 @@ MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 13, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L05", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
-    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 12, [], []),
+    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 13, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
 ALLOWED_STATUSES = {
@@ -290,6 +290,21 @@ def run_self_test() -> int:
         )
         hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
 
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expect(active_teardown.notifier_del_pending);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_close_teardown_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expect(active_teardown.notifier_del_pending);",
+        )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
         dw_test_path = tmp_root / "zigux/tests/phase11_dw_wdt.zig"
         original_dw_test = dw_test_path.read_text(encoding="utf-8")
         dw_test_path.write_text(
@@ -369,7 +384,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -569,12 +584,14 @@ hvc_test_text = text("zigux/tests/phase11_hvc_console.zig")
 for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
     "dedicated hvc survey replay is still separate from `zigux/tests/phase11_build.zig`",
+    "a tiny final-close teardown summary",
     "a khvcd worker-entry summary",
     "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free notifier or sysrq handoff; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.",
 ]:
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
 for marker in [
+    "adds a tiny final-close teardown summary that keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, and `tty_wait_until_sent()` intent reviewable without claiming notifier execution or tty-core teardown timing",
     "adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()`-adjacent close-wait ownership, notifier boundaries, and khvcd wakeup intent reviewable without claiming worker execution",
     "adds a tiny khvcd polling-contract summary that keeps notifier-driven versus polling-driven wakeups, bounded reschedule intent, and teardown-facing host-I/O boundaries reviewable without claiming worker execution",
     "adds a tiny khvcd worker-entry summary that keeps wake-before-sleep decisions, xmon-forced read polling, mutex-backed list walks, and timeout-backoff choices reviewable without claiming live worker execution",
@@ -587,8 +604,10 @@ for marker in [
     if marker not in hvc_slice_doc:
         missing.append(f"phase11_hvc_console_docs:slice:{marker}")
 for marker in [
-    "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
+    "PHASE11_HVC_CONSOLE_STATUS=close_teardown_handoff_landed",
+    "| final-close teardown handoff | `summarizeCloseTeardown()` keeps tty detachment, `HUPCL`-gated `dtr_rts` shutdown, `notifier_del` ownership, resize-work cancellation, `tty_wait_until_sent()` intent, and final `port_initialized` clearing reviewable without claiming notifier callbacks or tty-core teardown timing |",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
+    "`zigux/tests/phase11_hvc_console.zig` now keeps the initialized, uninitialized, and hung-up final-close teardown assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the worker-entry sleep and backoff assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the active-hangup and stale-hangup assertions inside the shared Phase 11 replay",
@@ -602,6 +621,8 @@ for marker in [
 for marker in [
     "khvcd timeout underflow is now pinned in the focused hvc replay",
     "timeout_ms = 0",
+    "final-close teardown sequencing is now pinned separately from the broader close-wait gate",
+    "active_teardown.notifier_del_pending",
     "`__hvc_poll()` hangup pressure is now pinned separately from the throttled and detached cases",
     "read_hangup_pending",
     "remove-time detached teardown is now pinned separately from the attached path",
@@ -610,6 +631,9 @@ for marker in [
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:failure_modes:{marker}")
 for marker in [
+    'test "phase11 hvc console keeps final-close teardown sequencing reviewable" {',
+    "    try std.testing.expect(active_teardown.notifier_del_pending);",
+    "    try std.testing.expect(!uninitialized_teardown.notifier_del_pending);",
     'test "phase11 hvc console keeps hvc_hangup disconnect boundaries reviewable" {',
     "    try std.testing.expect(active_hangup.notifier_hangup_pending);",
     "    try std.testing.expect(!stale_hangup.notifier_hangup_pending);",
