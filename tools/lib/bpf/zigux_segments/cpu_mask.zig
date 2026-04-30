@@ -230,7 +230,7 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-2,", "\r4", "\n6\n" },
+        .chunks = &.{ "+0-2,", "\n+4", ",6\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
