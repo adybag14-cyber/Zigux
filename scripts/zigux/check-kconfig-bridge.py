@@ -78,6 +78,46 @@ def supported_conf_modes_in_order(conf_bridge_path: Path = CONF_BRIDGE) -> list[
     return modes
 
 
+def supported_conf_modes_from_conf_c_in_order(conf_c_path: Path = ROOT / 'scripts' / 'kconfig' / 'conf.c') -> list[str]:
+    source = conf_c_path.read_text(encoding='utf-8')
+    match = re.search(r'static const struct option long_opts\[\] = \{(.*?)\n\};', source, re.S)
+    if not match:
+        raise SystemExit('failed to parse scripts/kconfig/conf.c long option surface')
+
+    modes = re.findall(
+        r'\{"([a-z0-9]+config)\",\s+(?:no_argument|required_argument),\s+&input_mode_opt,\s+([a-z0-9]+config)\}',
+        match.group(1),
+    )
+    if not modes:
+        raise SystemExit('failed to discover scripts/kconfig/conf.c modes')
+    return [enum_name for _option_name, enum_name in modes]
+
+
+def ensure_conf_bridge_matches_conf_c(
+    conf_bridge_path: Path = CONF_BRIDGE,
+    conf_c_path: Path = ROOT / 'scripts' / 'kconfig' / 'conf.c',
+) -> None:
+    bridge_modes = supported_conf_modes_in_order(conf_bridge_path)
+    conf_c_modes = supported_conf_modes_from_conf_c_in_order(conf_c_path)
+
+    missing = sorted(set(conf_c_modes) - set(bridge_modes))
+    if missing:
+        fail_check('MISSING_CONF_C_MODES', missing)
+
+    unexpected = sorted(set(bridge_modes) - set(conf_c_modes))
+    if unexpected:
+        fail_check('UNEXPECTED_CONF_BRIDGE_MODES', unexpected)
+
+    if bridge_modes != conf_c_modes:
+        fail_check(
+            'UNSORTED_CONF_BRIDGE_MODE_ORDER',
+            [
+                'bridge=' + ','.join(bridge_modes),
+                'conf_c=' + ','.join(conf_c_modes),
+            ],
+        )
+
+
 def ensure_manifest_matches_bridge_modes(cases: object, conf_bridge_path: Path = CONF_BRIDGE) -> None:
     bridge_modes = supported_conf_modes_in_order(conf_bridge_path)
     manifest = cases
@@ -278,17 +318,32 @@ def run_self_test() -> int:
         fixture_dir = tmp_dir / 'fixtures'
         fixture_dir.mkdir()
         conf_bridge_path = tmp_dir / 'conf_bridge.zig'
+        conf_c_path = tmp_dir / 'conf.c'
         conf_bridge_path.write_text(
             (
                 'pub const Mode = enum {\n'
                 '    oldaskconfig,\n'
-                '    defconfig,\n'
+                '    oldconfig,\n'
                 '    syncconfig,\n'
+                '    defconfig,\n'
                 '\n'
                 '    pub fn parse(input_text: []const u8) ?Mode {\n'
                 '        _ = input_text;\n'
                 '        return null;\n'
                 '    }\n'
+                '};\n'
+            ),
+            encoding='utf-8',
+            newline='\n',
+        )
+        conf_c_path.write_text(
+            (
+                'static const struct option long_opts[] = {\n'
+                '    {"oldaskconfig",  no_argument,       &input_mode_opt, oldaskconfig},\n'
+                '    {"oldconfig",     no_argument,       &input_mode_opt, oldconfig},\n'
+                '    {"syncconfig",    no_argument,       &input_mode_opt, syncconfig},\n'
+                '    {"defconfig",     required_argument, &input_mode_opt, defconfig},\n'
+                '    {NULL, 0, NULL, 0}\n'
                 '};\n'
             ),
             encoding='utf-8',
@@ -306,13 +361,12 @@ def run_self_test() -> int:
                     'expected': 'oldaskconfig_expected.json',
                 },
                 {
-                    'name': 'defconfig',
-                    'mode': 'defconfig',
+                    'name': 'oldconfig',
+                    'mode': 'oldconfig',
                     'kconfig': 'Kconfig',
-                    'config': 'out/.config',
-                    'arch': 'arm64',
-                    'mode_arg': 'arch/arm64/configs/defconfig',
-                    'expected': 'defconfig_expected.json',
+                    'config': 'old/.config',
+                    'arch': 'x86_64',
+                    'expected': 'oldconfig_expected.json',
                 },
                 {
                     'name': 'syncconfig',
@@ -321,6 +375,15 @@ def run_self_test() -> int:
                     'config': 'out/.config',
                     'arch': 'riscv64',
                     'expected': 'syncconfig_expected.json',
+                },
+                {
+                    'name': 'defconfig',
+                    'mode': 'defconfig',
+                    'kconfig': 'Kconfig',
+                    'config': 'out/.config',
+                    'arch': 'arm64',
+                    'mode_arg': 'arch/arm64/configs/defconfig',
+                    'expected': 'defconfig_expected.json',
                 },
             ],
             'confdata_cases': [
@@ -339,8 +402,9 @@ def run_self_test() -> int:
 
         for name in (
             'oldaskconfig_expected.json',
-            'defconfig_expected.json',
+            'oldconfig_expected.json',
             'syncconfig_expected.json',
+            'defconfig_expected.json',
             'alpha_expected.json',
             'beta_expected.json',
         ):
@@ -351,9 +415,26 @@ def run_self_test() -> int:
 
         cases = load_cases(fixture_dir)
         ensure_manifest_shape(cases)
+        ensure_conf_bridge_matches_conf_c(conf_bridge_path, conf_c_path)
         ensure_manifest_matches_bridge_modes(cases, conf_bridge_path)
         ensure_confdata_case_order_is_sorted(cases)
         ensure_manifest_is_deterministic(cases, fixture_dir)
+
+        mismatched_conf_c = conf_c_path.with_name('conf_mismatched.c')
+        mismatched_conf_c.write_text(
+            conf_c_path.read_text(encoding='utf-8').replace(
+                '    {"syncconfig",    no_argument,       &input_mode_opt, syncconfig},\n',
+                '',
+            ),
+            encoding='utf-8',
+            newline='\n',
+        )
+        assert capture_failure(ensure_conf_bridge_matches_conf_c, conf_bridge_path, mismatched_conf_c) == [
+            'KCONFIG_BRIDGE_DIFF=fail',
+            'UNEXPECTED_CONF_BRIDGE_MODES_START',
+            'syncconfig',
+            'UNEXPECTED_CONF_BRIDGE_MODES_END',
+        ]
 
         unsorted_conf_cases = json.loads(json.dumps(valid_cases))
         unsorted_conf_cases['conf_cases'][0], unsorted_conf_cases['conf_cases'][1] = (
@@ -363,8 +444,8 @@ def run_self_test() -> int:
         assert capture_failure(ensure_manifest_matches_bridge_modes, unsorted_conf_cases, conf_bridge_path) == [
             'KCONFIG_BRIDGE_DIFF=fail',
             'UNSORTED_CONF_CASE_ORDER_START',
-            'manifest=defconfig,oldaskconfig,syncconfig',
-            'expected=oldaskconfig,defconfig,syncconfig',
+            'manifest=oldconfig,oldaskconfig,syncconfig,defconfig',
+            'expected=oldaskconfig,oldconfig,syncconfig,defconfig',
             'UNSORTED_CONF_CASE_ORDER_END',
         ]
 
@@ -403,6 +484,7 @@ def main() -> int:
 
     cases = load_cases()
     ensure_manifest_shape(cases)
+    ensure_conf_bridge_matches_conf_c()
     ensure_manifest_matches_bridge_modes(cases)
     ensure_confdata_case_order_is_sorted(cases)
     ensure_manifest_is_deterministic(cases)
