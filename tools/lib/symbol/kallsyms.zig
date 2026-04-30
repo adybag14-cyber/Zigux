@@ -233,6 +233,47 @@ pub fn forEachParsedPath(
     try forEachParsedFile(allocator, io, file, scratch_buffer, process_context, process_symbol);
 }
 
+pub fn kallsymsParseContents(
+    contents: []const u8,
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+) !i32 {
+    const CallbackState = struct {
+        context: ?*anyopaque,
+        process_symbol: ProcessSymbolFn,
+        result: i32 = 0,
+
+        fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
+            var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
+            @memcpy(name_buffer[0..symbol.name.len], symbol.name);
+            name_buffer[symbol.name.len] = 0;
+
+            const callback_result = self.process_symbol(
+                self.context,
+                name_buffer[0..symbol.name.len :0],
+                symbol.symbol_type,
+                symbol.start,
+            );
+            if (callback_result != 0) {
+                self.result = callback_result;
+                return error.StopParsing;
+            }
+        }
+    };
+
+    var callback_state = CallbackState{
+        .context = context,
+        .process_symbol = process_symbol,
+    };
+
+    forEachParsedLine(contents, &callback_state, CallbackState.process) catch |err| switch (err) {
+        error.StopParsing => return callback_state.result,
+        else => return err,
+    };
+
+    return callback_state.result;
+}
+
 pub fn kallsymsParseInDir(
     allocator: std.mem.Allocator,
     io: std.Io,
@@ -687,7 +728,7 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
     );
 }
 
-test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded names" {
+test "kallsymsParse contents and path wrappers preserve the C-shaped callback contract and bounded names" {
     const CallbackState = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
@@ -731,6 +772,28 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
         }
     };
 
+    const contents =
+        "ffffffff81000000 T startup_64\n" ++
+        "garbage\n" ++
+        "ffffffff81000200 W weak_handler\n" ++
+        "ffffffff81000300 t ignored_after_stop\n";
+
+    var contents_state = CallbackState.init();
+    defer contents_state.deinit(std.testing.allocator);
+
+    const contents_result = try kallsymsParseContents(
+        contents,
+        &contents_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), contents_result);
+    try std.testing.expectEqual(@as(usize, 2), contents_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", contents_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", contents_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), contents_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), contents_state.starts.items[1]);
+
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
     const io = std.testing.io;
@@ -740,12 +803,7 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
         defer file.close(io);
         var writer_buffer: [128]u8 = undefined;
         var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
-        try writer.interface.writeAll(
-            "ffffffff81000000 T startup_64\n" ++
-                "garbage\n" ++
-                "ffffffff81000200 W weak_handler\n" ++
-                "ffffffff81000300 t ignored_after_stop\n",
-        );
+        try writer.interface.writeAll(contents);
         try writer.interface.flush();
     }
 
@@ -813,6 +871,22 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
         .{too_long_name},
     );
     defer std.testing.allocator.free(oversized_contents);
+
+    var oversized_contents_state = CallbackState.init();
+    defer oversized_contents_state.deinit(std.testing.allocator);
+
+    const oversized_contents_result = try kallsymsParseContents(
+        oversized_contents,
+        &oversized_contents_state,
+        CallbackState.collectWithoutStop,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), oversized_contents_result);
+    try std.testing.expectEqual(@as(usize, 1), oversized_contents_state.names.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), oversized_contents_state.names.items[0].len);
+    try std.testing.expect(std.mem.allEqual(u8, oversized_contents_state.names.items[0], 'b'));
+    try std.testing.expectEqual(@as(u8, 'T'), oversized_contents_state.symbol_types.items[0]);
+    try std.testing.expectEqual(@as(u64, 1), oversized_contents_state.starts.items[0]);
 
     {
         const file = try temp_dir.dir.createFile(io, "oversized-kallsyms.map", .{ .read = true, .truncate = true });
