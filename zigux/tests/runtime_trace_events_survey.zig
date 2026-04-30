@@ -3,8 +3,10 @@ const sample = @import("runtime_trace_events_sample");
 
 const SurveySummary = struct {
     trace_events_sample_c_lines: usize,
+    trace_events_sample_header_lines: usize,
     preexisting_runtime_trace_events_test_files: usize,
     preexisting_runtime_trace_events_sample_present: bool,
+    preexisting_trace_events_header_present: bool,
     runtime_trace_events_loader_present: bool,
     preexisting_phase9_build_present: bool,
     preexisting_runtime_trace_events_doc_present: bool,
@@ -104,16 +106,18 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", manifest.sample_path);
     try std.testing.expectEqualStrings("zig build test --build-file zigux/tests/phase9_build.zig --summary all", manifest.validation_entrypoint);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
+    try std.testing.expectEqual(@as(usize, 640), manifest.survey_summary.trace_events_sample_header_lines);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_trace_events_header_present);
     try std.testing.expect(!manifest.survey_summary.runtime_trace_events_loader_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_summary_surface_present);
-    try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.delivery_evidence_catalog.len);
     try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expect(manifest.gaps.len >= 5);
     try std.testing.expectEqual(@as(usize, 7), manifest.non_goals.len);
 
@@ -122,6 +126,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_loader_free_prompt = false;
+    var saw_header_boundary_prompt = false;
     var saw_freeze_map_prompt = false;
     var saw_ownership_prompt = false;
     var saw_descriptor_contract = false;
@@ -131,6 +136,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var saw_function_balance = false;
     var saw_selftest_family_order = false;
     var saw_failed_exit_rollback = false;
+    var saw_trace_header_boundary_check = false;
     var saw_freeze_map_boundary_check = false;
     var saw_loader_free_blocker_check = false;
     var saw_sample_module = false;
@@ -152,6 +158,9 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
         }
         if (std.mem.indexOf(u8, prompt, "module-slice note") != null) {
             saw_ownership_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "trace-events-sample.h") != null) {
+            saw_header_boundary_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "`kernel/trace/ring_buffer.c`") != null) {
             saw_freeze_map_prompt = true;
@@ -277,6 +286,13 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "payload literals intact") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "selftest-to-exit path resumes") != null);
         }
+        if (std.mem.eql(u8, check.id, "trace-header-boundary")) {
+            saw_trace_header_boundary_check = true;
+            try std.testing.expectEqualStrings("header_boundary", check.kind);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "trace-events-sample.h") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "640-line surveyed boundary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "generated tracepoint macro parity") != null);
+        }
         if (std.mem.eql(u8, check.id, "freeze-map-boundary")) {
             saw_freeze_map_boundary_check = true;
             try std.testing.expectEqualStrings("governance_surface", check.kind);
@@ -361,6 +377,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 2);
     try std.testing.expect(saw_loader_free_prompt);
+    try std.testing.expect(saw_header_boundary_prompt);
     try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_freeze_map_prompt);
     try std.testing.expect(saw_manifest_catalog);
@@ -375,6 +392,7 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expect(saw_function_balance);
     try std.testing.expect(saw_selftest_family_order);
     try std.testing.expect(saw_failed_exit_rollback);
+    try std.testing.expect(saw_trace_header_boundary_check);
     try std.testing.expect(saw_freeze_map_boundary_check);
     try std.testing.expect(saw_loader_free_blocker_check);
     try std.testing.expect(saw_sample_module);
@@ -430,6 +448,10 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/zigux/runtime_trace_events_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "trace-events loader test target") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "partial loader or scheduler-facing substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "samples/trace_events/trace-events-sample.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "header-side macro boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "640-line surveyed boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "generated tracepoint macro parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Study / Boundary Only") != null);
@@ -461,6 +483,10 @@ test "phase 9 runtime trace-events docs keep the task and event-loop substrate g
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "real kernel thread scheduling or timeout behavior") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "samples/zigux/runtime_trace_events_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "no trace-events loader target") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "samples/trace_events/trace-events-sample.h") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "header-side macro boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "640-line surveyed boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_doc, "generated tracepoint macro parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "thread creation") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "tracepoint-registration lifecycle wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_doc, "Documentation/zigux/freeze-map.md") != null);
