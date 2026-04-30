@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L16",
   "phase": "Phase 13",
-  "surveyed_commit": "798e2e37af2ed21fc23ce1a027c985c598a02d3f",
+  "surveyed_commit": "09229747ad125661be1d17d3d55d87ef11cd33e4",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
