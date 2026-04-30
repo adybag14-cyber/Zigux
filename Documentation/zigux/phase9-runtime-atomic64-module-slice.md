@@ -30,7 +30,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
 - a direct post-selftest mutation replay proof that `selftest_complete` still permits bounded counter replay and keeps `RuntimeAtomic64Summary` explicit until exit
 - the bounded guard-return trio from `lib/atomic64_test.c`: `add_unless`, `inc_not_zero`, and `dec_if_positive`
-- a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, `add_unless`, `inc_not_zero`, and `dec_if_positive` expectations
+- a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for bounded add, sub, bitwise, swap, compare-swap, and guard-return expectations drawn from `lib/atomic64_test.c`
 - a landed sample-side loader scaffold under `samples/zigux/runtime_atomic64_loader.zig` plus a shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`
 - dedicated Phase 9 tests, including direct `phase9-runtime-atomic64-sample-tests` and `phase9-runtime-atomic64-loader-tests` legs, and a `make -C zigux phase9` entry
 
@@ -52,4 +52,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed guard-path scaffolds.
+Stay in the Phase 9 runtime atomic64 lane and keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker, rather than reopening already-landed starter or differential scaffolds.
