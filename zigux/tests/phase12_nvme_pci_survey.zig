@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "3335e835a788c6977d58197bc96232f38751fd26";
+const current_surveyed_commit = "9dab85059c6f56865ef2f981d2303049775c5001";
 
 const SurveySummary = struct {
     nvme_pci_c_lines: usize,
@@ -108,7 +108,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase12-nvme-pci-pointer-selection-helper`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-planner plus PRP-shape plus pointer-selection starters") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "pointer-selection helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 51/51 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 53/53 tests passed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig fmt --check drivers/nvme/host/pci.zig") != null);
 
     var starter_landed_count: usize = 0;
