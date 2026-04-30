@@ -95,6 +95,7 @@ required_closure_markers = [
     'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
     'PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, whole-family, tail-window, and same-word start-mask checksums so helper-local scan regressions cannot hide behind a generic positive checksum',
     'PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM',
+    'PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS',
     'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
 ]
 required_workflow_markers = [
@@ -345,6 +346,12 @@ required_exact_checksums = {
     'PHASE1_BENCH_RBTREE_CHECKSUM': 1308000,
     'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM': 1384000,
 }
+required_iterations = {
+    'PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS': 20000,
+}
+for key, expected in required_iterations.items():
+    if bench_expectations.get('iterations', {}).get(key) != expected:
+        missing_markers.append(f'bench:iterations.{key}={expected}')
 for key, expected in required_exact_checksums.items():
     if exact_checksums.get(key) != expected:
         missing_markers.append(f'bench:exact_checksums.{key}={expected}')
