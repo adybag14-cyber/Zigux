@@ -6,7 +6,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-helper-iomap-mmio-safety-reviewability`
-- `PHASE13_SURVEYED_COMMIT=26e5f8101d3546c7942c93757ecc3fdfaa6ee264`
+- `PHASE13_SURVEYED_COMMIT=40d20bc7880f228d2add1a6c73487db2df9571e4`
 - scope: the landed `lib/devres.zig` helper slice, its dedicated Phase 13 tests and manifest, the shared Phase 13 build wiring, and the lane notes that keep the helper-only iomap/mmio safety surface and explicit DMA/scatterlist blockers pinned to the current repo state
 - product boundary:
   - `lib/devres.zig`
@@ -19,12 +19,12 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 
 Current repo state on `master`:
 
-- reviewed against live `master` `26e5f8101d3546c7942c93757ecc3fdfaa6ee264`
+- reviewed against live `master` `40d20bc7880f228d2add1a6c73487db2df9571e4`
 - `lib/devres.zig` already anchors a helper-first `DevresHelperLab` on `lib/devres.c`
-- compared against the earlier surveyed head `3f74e747aa08fd80bf4db8d7b085aa5293bb53ef`, the live `lib/devres.zig` helper surface is byte-for-byte unchanged on current `master` with `sha256 6343f013ad5ca0d9e4208ff119b3f34c10a0f4a1947f23618081eee40a86be17`
-- compared against that same earlier surveyed head, the live dedicated `zigux/tests/phase13_devres.zig` replay is also byte-for-byte unchanged with `sha256 d76ad9b32893079c91bd0b33f1be5f168fa9c3551ba3b5e6ea5428c796eb1826`
+- compared against the earlier surveyed head `26e5f8101d3546c7942c93757ecc3fdfaa6ee264`, the current helper packet now advances by adding the direct non-posted managed wrapper instead of staying byte-for-byte unchanged; the refreshed `lib/devres.zig` helper surface now hashes to `sha256 2bbad8cad014471312865a57a249412b29af4574d8a6918f8bb66f4948973eda`
+- compared against that same earlier surveyed head, the refreshed dedicated `zigux/tests/phase13_devres.zig` replay now hashes to `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476` because the focused Phase 13 replay now covers the direct non-posted wrapper too
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
-- `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, and `devm_ioremap_wc()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
+- `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - the current helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, so the Phase 13 packet remains outside DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
 - `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, but until this packet landed the DMA/scatterlist boundary posture was not recorded in the same manifest-backed survey shape as the other active Phase 13 anchors
 - `zigux/Makefile` and `zigux/tests/phase13_build.zig` already expose the shared Phase 13 replay entrypoints that this survey now joins
@@ -41,6 +41,7 @@ What is landed today:
 - the direct `devm_ioremap()` wrapper path that keeps the plain managed ioremap export explicit instead of leaving it implied by the internal lifetime helper
 - the `devm_ioremap_uc()` wrapper path and exact `devm_iounmap()` pointer-match release behavior
 - the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
+- the `devm_ioremap_np()` wrapper path so the direct non-posted managed mapping export is reviewable instead of being inferred only from the generic lifetime helper or from resource-flag fallback
 - managed `__devm_ioremap_resource()` planning around memory-resource validation, inclusive size calculation, pretty-name construction, request-region gating, remap cleanup, and non-posted fallback when the resource flags demand it
 - the adjacent `devm_ioremap_resource_wc()` wrapper path without widening into live write-combined mappings
 - `devm_of_iomap()` planning around translated resource selection, optional size reporting, and delegation into the managed-resource planner without walking a live device tree
