@@ -39,8 +39,11 @@ Without this matrix, the slice and survey named the right boundaries but did not
 - current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-- focused driver replay command:
-  - `zig test zigux/tests/phase11_dw_wdt.zig`
+- driver-local shared replay coverage:
+  - `phase11-dw-wdt-tests`
+  - `phase11-dw-wdt-survey-tests`
+- note:
+  - `zigux/tests/phase11_dw_wdt.zig` imports `dw_wdt` through `zigux/tests/phase11_build.zig`, so the truthful driver-test replay path stays the shared Phase 11 build wiring rather than a standalone `zig test` invocation
 - focused survey replay command:
   - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
 - focused validation script command:

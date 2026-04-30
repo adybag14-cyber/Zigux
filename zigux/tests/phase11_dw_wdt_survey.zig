@@ -120,7 +120,9 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "non-stoppable stop failure-mode boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "driver-local shared replay coverage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zigux/tests/phase11_dw_wdt.zig` imports `dw_wdt` through `zigux/tests/phase11_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "zig test zigux/tests/phase11_dw_wdt_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "python3 scripts/zigux/validate-phase11.py") != null);
 
@@ -375,7 +377,8 @@ test "phase11 dw_wdt notes stay pinned to the manifest commit and validation-mat
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Latest verification snapshot") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig build test --build-file zigux/tests/phase11_build.zig --summary all`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt.zig`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zig test zigux/tests/phase11_dw_wdt_survey.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`python3 scripts/zigux/validate-phase11.py`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE11_VALIDATION=pass`") != null);
