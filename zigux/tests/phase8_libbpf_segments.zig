@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const current_surveyed_commit = "47c633193a74d67e3955c57a11757de35b518ef2";
+const current_surveyed_commit = "67b920ba9ed638ea64a868898f63b58c796a4a94";
 
 const CompanionFile = struct {
     path: []const u8,
@@ -260,6 +260,10 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     );
     defer std.testing.allocator.free(cpu_mask_note);
 
+    try expectContains(
+        survey_note,
+        "- survey checkpoint: refreshed against inspected `master` head `" ++ current_surveyed_commit ++ "`",
+    );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "no standalone timer helper");
