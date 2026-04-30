@@ -44,7 +44,7 @@ The current parked slice covers:
 
 - absolute-versus-prefixed `system_path()` resolution
 - `get_argv_exec_path()` precedence across explicit path, environment path, and configured fallback, including the C helper's preserved explicit-empty exec-path sentinel
-- `extract_argv0_path()` splitting for directory-prefixed tool invocations
+- `extract_argv0_path()` splitting for directory-prefixed tool invocations, including directory-only and root-only empty-command sentinels that must not inject blank search-path segments
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization, including the inherited-empty-`PATH` trailing-`:` shape from the C helper, the skipped empty explicit exec-path segment when only `argv0_path` remains, and the root-cwd `//relative` output shape that the C helper preserves
 - a pure `choosePwdCwd()` helper that models the `get_pwd_cwd()` decision boundary when the caller proves whether `PWD` and `cwd` resolve to the same location and still ignores an explicitly empty `PWD`
@@ -59,7 +59,7 @@ The current tests check:
 
 - path fallback precedence stays stable, including the explicit-empty exec-path sentinel staying distinct from the configured fallback
 - relative search-path entries become absolute against the current working directory input
-- directory-prefixed `argv[0]` values split cleanly into path and command name, including the root-directory `/perf` shape preserving the C helper's empty `argv0_path` sentinel without injecting a blank search-path segment
+- directory-prefixed `argv[0]` values split cleanly into path and command name, including the directory-only `/tmp/` and root-only `/` empty-command sentinels plus the root-directory `/perf` shape preserving the C helper's empty `argv0_path` sentinel without injecting a blank search-path segment
 - the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned, including the inherited-empty-`PATH` trailing-`:` edge, the skipped empty explicit exec-path segment, the inherited-empty exec-path environment fallback to the configured path, and the root-cwd `//tools/bin://scripts` shape for relative entries
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd and still falls back cleanly when `PWD` is explicitly empty
 - the stat-identity helpers prefer `PWD` only when both injected identities match and fall back cleanly for mismatched or missing optional `PWD` stat input
