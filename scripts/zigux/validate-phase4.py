@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -266,6 +267,23 @@ PHASE4_SURVEY_MATRIX_EXPECTATIONS = {
     },
 }
 
+PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS = {
+    'lane_key': 'P4-L19',
+    'phase': 'Phase 4',
+    'owner': 'Validation and Perf Team',
+    'rollback_owner': 'Validation and Perf Team',
+    'anchor': 'samples/vfs/test-fsmount.c',
+    'roadmap_destinations': ['samples/zigux/test_fsmount.zig'],
+    'current_replay': 'make M=samples/vfs',
+    'survey_summary': {
+        'vfs_makefile_replay_present': True,
+        'zig_sample_present': False,
+        'phase4_build_present': True,
+        'phase4_validator_present': True,
+        'phase4_validation_matrix_present': True,
+    },
+}
+
 REQUIRED_ARTIFACT_DIFF_MARKERS = [
     'def emit_result(matched: bool, details: dict[str, object]) -> int:',
     'def run_self_test() -> int:',
@@ -365,6 +383,12 @@ REQUIRED_SAMPLE_VFS_SOURCE_MARKERS = [
 
 def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding='utf-8')
+
+
+def count_lines(text: str) -> int:
+    if not text:
+        return 0
+    return text.count('\n') if text.endswith('\n') else text.count('\n') + 1
 
 
 def collect_missing_markers(text: str, prefix: str, markers: list[str]) -> list[str]:
@@ -515,6 +539,61 @@ def check_survey_matrix_alignment(
     return missing
 
 
+def check_test_fsmount_manifest_alignment(
+    manifest_text: str,
+    sample_vfs_makefile: str,
+    sample_vfs_test_fsmount: str,
+    phase4_build: str,
+    phase4_matrix: str,
+    validator_text: str,
+) -> list[str]:
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError as exc:
+        return [f'phase4_test_fsmount_manifest:invalid_json:{exc.msg}']
+
+    missing = []
+    for key, expected in PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS.items():
+        if key == 'survey_summary':
+            continue
+        actual = manifest.get(key)
+        if actual != expected:
+            missing.append(f'phase4_test_fsmount_manifest:{key}:{expected}')
+
+    survey_summary = manifest.get('survey_summary')
+    if not isinstance(survey_summary, dict):
+        return missing + ['phase4_test_fsmount_manifest:survey_summary:object']
+
+    expected_summary = dict(PHASE4_TEST_FSMOUNT_MANIFEST_EXPECTATIONS['survey_summary'])
+    expected_summary['test_fsmount_c_lines'] = count_lines(sample_vfs_test_fsmount)
+    expected_summary['vfs_makefile_replay_present'] = (
+        'userprogs-always-y += test-fsmount' in sample_vfs_makefile
+    )
+    expected_summary['phase4_build_present'] = (
+        'phase4_test_fsmount_survey.zig' in phase4_build
+        and 'phase4-test-fsmount-survey-tests' in phase4_build
+    )
+    expected_summary['phase4_validator_present'] = (
+        'phase4_test_fsmount_manifest.json' in validator_text
+        and 'phase4_test_fsmount_survey.zig' in validator_text
+    )
+    expected_summary['phase4_validation_matrix_present'] = (
+        'phase4_test_fsmount_manifest.json' in phase4_matrix
+        and 'phase4-test-fsmount-survey-tests' in phase4_matrix
+        and 'make -C zigux phase4-test-fsmount-survey' in phase4_matrix
+        and 'c_anchor_only_until_test_fsmount_starter_lands' in phase4_matrix
+        and '`make M=samples/vfs`' in phase4_matrix
+        and 'C-anchor-only' in phase4_matrix
+    )
+
+    for key, expected in expected_summary.items():
+        actual = survey_summary.get(key)
+        if actual != expected:
+            missing.append(f'phase4_test_fsmount_manifest:survey_summary:{key}:{expected}')
+
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
@@ -533,6 +612,9 @@ def validate_root(root: Path) -> list[str]:
     runtime_atomic64_diff_survey = read_text(root, 'zigux/tests/phase4_runtime_atomic64_diff_survey.zig')
     runtime_atomic64_manifest = read_text(
         root, 'zigux/tests/phase4_runtime_atomic64_diff_manifest.json'
+    )
+    phase4_test_fsmount_manifest = read_text(
+        root, 'zigux/tests/phase4_test_fsmount_manifest.json'
     )
     bitmap_diff = read_text(root, 'zigux/tests/bitmap_diff.zig')
     sample_kprobes_makefile = read_text(root, 'samples/kprobes/Makefile')
@@ -631,6 +713,17 @@ def validate_root(root: Path) -> list[str]:
         missing_markers.extend(
             check_survey_matrix_alignment(phase4_matrix, lane_surface, expectation)
         )
+
+    missing_markers.extend(
+        check_test_fsmount_manifest_alignment(
+            phase4_test_fsmount_manifest,
+            sample_vfs_makefile,
+            sample_vfs_test_fsmount,
+            phase4_build,
+            phase4_matrix,
+            read_text(root, 'scripts/zigux/validate-phase4.py'),
+        )
+    )
 
     for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
         missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
@@ -803,7 +896,29 @@ def write_fixture_tree(root: Path) -> None:
         'zigux/tests/phase4_runtime_atomic64_diff_survey.zig': '\n'.join(REQUIRED_RUNTIME_ATOMIC64_SURVEY_MARKERS)
         + '\nroadmap_atomic64_diff_present = true\n',
         'zigux/tests/phase4_runtime_atomic64_diff_manifest.json': '{\n  "roadmap_atomic64_diff_present": true\n}\n',
-        'zigux/tests/phase4_test_fsmount_manifest.json': '{\n  "lane_key": "P4-L19"\n}\n',
+        'zigux/tests/phase4_test_fsmount_manifest.json': json.dumps(
+            {
+                'lane_key': 'P4-L19',
+                'phase': 'Phase 4',
+                'owner': 'Validation and Perf Team',
+                'rollback_owner': 'Validation and Perf Team',
+                'surveyed_commit': 'fixture-head',
+                'anchor': 'samples/vfs/test-fsmount.c',
+                'roadmap_destinations': ['samples/zigux/test_fsmount.zig'],
+                'current_replay': 'make M=samples/vfs',
+                'survey_summary': {
+                    'test_fsmount_c_lines': 4,
+                    'vfs_makefile_replay_present': True,
+                    'zig_sample_present': False,
+                    'phase4_build_present': True,
+                    'phase4_validator_present': False,
+                    'phase4_validation_matrix_present': True,
+                },
+                'gaps': [],
+            },
+            indent=2,
+        )
+        + '\n',
         'zigux/tests/phase4_test_fsmount_survey.zig': 'test "synthetic phase4 test_fsmount survey gate" {}\n',
         'zigux/tests/bitmap_diff.zig': '\n'.join(REQUIRED_BITMAP_DIFF_MARKERS) + '\n',
         'zigux/tests/phase4_build.zig': '\n'.join(REQUIRED_PHASE4_BUILD_MARKERS) + '\n',
@@ -865,7 +980,51 @@ def run_self_test() -> int:
         test_fsmount_manifest.unlink()
         missing = validate_root(tmp_root)
         assert 'file:zigux/tests/phase4_test_fsmount_manifest.json' in missing, missing
-        test_fsmount_manifest.write_text('{\n  "lane_key": "P4-L19"\n}\n', encoding='utf-8')
+        test_fsmount_manifest.write_text(
+            json.dumps(
+                {
+                    'lane_key': 'P4-L19',
+                    'phase': 'Phase 4',
+                    'owner': 'Validation and Perf Team',
+                    'rollback_owner': 'Validation and Perf Team',
+                    'surveyed_commit': 'fixture-head',
+                    'anchor': 'samples/vfs/test-fsmount.c',
+                    'roadmap_destinations': ['samples/zigux/test_fsmount.zig'],
+                    'current_replay': 'make M=samples/vfs',
+                    'survey_summary': {
+                        'test_fsmount_c_lines': 4,
+                        'vfs_makefile_replay_present': True,
+                        'zig_sample_present': False,
+                        'phase4_build_present': True,
+                        'phase4_validator_present': False,
+                        'phase4_validation_matrix_present': True,
+                    },
+                    'gaps': [],
+                },
+                indent=2,
+            )
+            + '\n',
+            encoding='utf-8',
+        )
+
+        manifest_without_rollback_owner = json.loads(
+            test_fsmount_manifest.read_text(encoding='utf-8')
+        )
+        del manifest_without_rollback_owner['rollback_owner']
+        test_fsmount_manifest.write_text(
+            json.dumps(manifest_without_rollback_owner, indent=2) + '\n',
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert (
+            'phase4_test_fsmount_manifest:rollback_owner:Validation and Perf Team'
+            in missing
+        ), missing
+        manifest_without_rollback_owner['rollback_owner'] = 'Validation and Perf Team'
+        test_fsmount_manifest.write_text(
+            json.dumps(manifest_without_rollback_owner, indent=2) + '\n',
+            encoding='utf-8',
+        )
 
         phase4_build = tmp_root / 'zigux/tests/phase4_build.zig'
         phase4_build.write_text(
