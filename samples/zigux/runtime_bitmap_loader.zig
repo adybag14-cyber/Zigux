@@ -259,3 +259,35 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     try std.testing.expectEqualStrings("zigux_runtime_bitmap_exit", released.exit_symbol);
     try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
 }
+
+test "runtime bitmap loader preserves an explicit shared command name" {
+    const plan = RuntimeBitmapLoadPlan{
+        .module_name = "runtime_bitmap",
+        .command_name = "perf-runtime-bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .handoff_stage = runtime_bitmap_sample.ModuleStage.selftest_complete,
+        .summary = .{
+            .first_set = 0,
+            .first_zero = 1,
+            .weight = 4,
+            .nbits = runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    const request = toSharedRequest(plan);
+    try std.testing.expectEqualStrings("perf-runtime-bitmap", request.command_name.?);
+    try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expectEqualStrings("perf-runtime-bitmap", released.command_name.?);
+    try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
