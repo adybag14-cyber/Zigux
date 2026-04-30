@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus five landed helper-first starter slices, one deferred resource boundary, one deferred interrupt-routing boundary, and one blocked object-model follow-on
-- survey checkpoint: refreshed against inspected `master` head `a8d9c2cbee28565f5b78a08f8a7c6cdcf95bcc8e`
+- survey checkpoint: refreshed against inspected `master` head `a6fab7a6b89bdd0d0ee3c0892eaab1ad264ecb89`
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
@@ -80,7 +80,7 @@ The current starter implementation stays deliberately bounded:
 - the same helper now also exposes the bounded map reuse compatibility check from `bpf_object__reuse_map()`, including libbpf's DEVMAP readonly-prog exception, without claiming bpffs reopen flow, FD duplication, or close-on-replacement side effects
 - the file-path-handle helper accepts reordered or whitespace-padded fdinfo lines, keeps missing fields zero-initialized, lets later duplicate keys overwrite earlier values the same way libbpf's fallback does, and still keeps malformed values explicit for callers
 - the same helper now keeps empty-string token prevention, default `/sys/fs/bpf` optional probing, caller-provided mandatory token paths, and the `skip_optional_missing_delegation` versus `fail` split explicit without claiming real `open()`, `close()`, or `bpf_token_create()` behavior
-- the new helper still does not claim `fopen()`, `fgets()`, `fclose()`, pinned-object reopen flows, token creation lifecycle parity, or FD duplication and replacement side effects
+- the new helper still does not claim `fopen()`, `fgets()`, `fclose()` ownership, `open()` or `close()` ownership, `bpf_obj_get()` reopen flows, `bpf_token_create()` handle lifecycle parity, or FD duplication and replacement side effects
 
 The current tests check:
 
@@ -122,7 +122,7 @@ The current tests check:
 
 ## Latest verification snapshot
 
-- verified against inspected `master` head `a8d9c2cbee28565f5b78a08f8a7c6cdcf95bcc8e`
+- verified against inspected `master` head `a6fab7a6b89bdd0d0ee3c0892eaab1ad264ecb89`
 - `zig test zigux/tests/phase8_libbpf_segments.zig`
   - all `6/6` focused libbpf segment tests passed
 - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
