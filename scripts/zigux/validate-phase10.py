@@ -108,10 +108,12 @@ MODULE_SLICE_MARKERS = [
 HELPER_MARKERS = [
     "pub const MultitouchSlotPlanSummary = struct {",
     "pub const TeardownPlanSummary = struct {",
+    "pub const RegistrationPreflightSummary = struct {",
     "pub const QueueCallbackPreflightSummary = struct {",
     "pub fn capabilitySetupSummary(self: *const Self) !CapabilitySetupSummary {",
     "pub fn multitouchSlotPlanSummary(self: *const Self) !MultitouchSlotPlanSummary {",
     "pub fn teardownPlanSummary(self: *const Self) TeardownPlanSummary {",
+    "pub fn registrationPreflightSummary(self: *const Self) !RegistrationPreflightSummary {",
     "pub fn queueCallbackPreflightSummary(self: *const Self) !QueueCallbackPreflightSummary {",
     "pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {",
     "pub fn reset(self: *Self) void {",
@@ -121,6 +123,8 @@ TEST_MARKERS = [
     'test "phase10 virtio input stages capability setup from config bitmaps and ABS metadata" {',
     'test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {',
     'test "phase10 virtio input teardown summary keeps reset cleanup and identity preservation explicit" {',
+    'test "phase10 virtio input records registration preflight once identity and capability intent are staged" {',
+    'test "phase10 virtio input registration preflight requires multitouch slot intent when multitouch is enabled" {',
     'test "phase10 virtio input records queue-callback preflight once registration and queue intent are staged" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
 ]
