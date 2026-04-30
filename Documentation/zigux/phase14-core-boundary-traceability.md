@@ -32,7 +32,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - survey note: `Documentation/zigux/phase14-skbuff-bridge-survey.md`
 - lane key: `P14-L12`
 - surveyed commit: `f65e3d897847bf205198e5c47a41782085620579`
-- ready-next gap: `phase14-skbuff-validate-xmit-republish-followup`
+- ready-next gap: `phase14-skbuff-direct-xmit-identity-drop-followup`
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
 - retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a reviewable boundary map around the `validate_xmit_skb_list()` reset or republish seam.
 
