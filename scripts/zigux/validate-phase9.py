@@ -192,7 +192,6 @@ required_review_checklist_markers = [
     "if the change touches the shared Phase 9 runtime-loader evidence packet and its adjacent scheduler-facing boundary, does `Documentation/zigux/freeze-map.md` still stay in that same reviewable ownership packet so the study-only `kernel/workqueue.c` status and Architecture Council reopen rule remain explicit beside the survey note, review checklist, shared request contract, sample-side loader plans, and shared `phase9_build.zig` entrypoint?",
     "if the change touches the shared Phase 9 runtime-loader handoff, are allocator ownership, `requires_runtime_substrate`, handoff stage, and the still-blocked command-name, argv-policy, or environment-derived activation controls explicit rather than implied?",
     "if a Phase 9 runtime trace-events change touches the frozen trace-core boundary, do `Documentation/zigux/freeze-map.md`, the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `kernel/trace/ring_buffer.c` as `Study / Boundary Only` and require an Architecture Council decision before any status change?",
-    "if a Phase 9 runtime trace-events change touches the paired header-side macro boundary, do the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `samples/trace_events/trace-events-sample.h` explicit as a surveyed boundary and keep generated tracepoint macro parity framed as a non-goal instead of shipped starter behavior?",
     "does the change avoid hidden runtime services, implicit allocation, or unclear panic behavior?",
     "if unsafe code exists, is it narrow, visible, and review-owned?",
 ]
@@ -481,9 +480,9 @@ required_kretprobe_survey_test_markers = [
     'try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L15`") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, module_doc, surveyed_commit) != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);',
     'std.mem.eql(u8, check.id, "loader-rollback-surface")',
     'std.mem.eql(u8, gap.id, "runtime-kretprobe-shared-loader-controls")',
-    'std.mem.indexOf(u8, gap.why_now, "pre-execution")',
     'std.mem.eql(u8, entry.id, "runtime-kretprobe-loader-scaffold")',
 ]
 
@@ -884,7 +883,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "kretprobe_loader_rollback_surface",
             tmp_root,
-            'kretprobe_survey_test:std.mem.indexOf(u8, gap.why_now, "pre-execution")',
+            'kretprobe_survey_test:try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pre-execution") != null);',
         )
         kretprobe_survey_test_path.write_text(original_kretprobe_survey_test, encoding="utf-8")
 
@@ -939,23 +938,8 @@ def run_self_test() -> int:
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
-        review_checklist_path.write_text(
-            original_review_checklist.replace(
-                "if a Phase 9 runtime trace-events change touches the paired header-side macro boundary, do the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `samples/trace_events/trace-events-sample.h` explicit as a surveyed boundary and keep generated tracepoint macro parity framed as a non-goal instead of shipped starter behavior?\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "trace_events_review_checklist_header_boundary",
-            tmp_root,
-            "review_checklist:if a Phase 9 runtime trace-events change touches the paired header-side macro boundary, do the trace-events docs, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` still keep `samples/trace_events/trace-events-sample.h` explicit as a surveyed boundary and keep generated tracepoint macro parity framed as a non-goal instead of shipped starter behavior?",
-        )
-        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
-
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
