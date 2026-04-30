@@ -18,7 +18,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full`
-- `PHASE3_MMIO_SCOPE=range-read16-read32-write16-write32-plus-scoped-read16-write16-read32-write32`
+- `PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
@@ -115,15 +115,15 @@ Whole-policy decode policy:
 
 Unsafe policy:
 - raw pointer and volatile access stay inside `zigux/unsafe/narrow.zig` and `zigux/helpers/mmio.zig`
-- `zigux/unsafe/narrow.zig` now mirrors that boundary with a local `UnsafeScopeTag` for `none`, `volatile_mmio`, and `raw_pointer_bridge`, plus explicit permit helpers, overflow-checked byte and span math, alignment checks on scoped entry points, and Zig tests
+- `zigux/unsafe/narrow.zig` now mirrors that boundary with a local `UnsafeScopeTag` for `none`, `volatile_mmio`, and `raw_pointer_bridge`, plus explicit permit helpers, alignment checks on scoped entry points, and Zig tests
 - new unsafe entry points must be justified and reviewed as boundary expansion
-- focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, overflow rejection, and declared-scope enforcement aligned on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
+- focused replay gate: `zigux/tests/phase3_policy_unsafe.zig` now keeps `layout_assert`, panic, allocator, whole-record interop-policy decoding, unsafe-byte decoding, and declared-scope enforcement aligned on its own compile-and-test path instead of relying only on the much broader `phase3_abi.zig` bundle
 - the validator self-test now proves that removing the narrow-unsafe misalignment guard marker fails the focused Phase 3 source audit before broader ABI replay runs
 
 Low-level wrapper survey:
 - atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, and `compareExchange`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state
-- MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read16`, `read32`, `write16`, and `write32`, plus scoped `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer, reject misaligned scoped addresses before pointer formation, and now share the canonical `MmioRange` layout assertions with the focused low-level wrapper gate through `zigux/helpers/layout_assert.zig`
+- MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `write8`, `write16`, and `write32`, plus scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32` entry points that keep volatile pointer formation routed back through the declared narrow unsafe layer, reject misaligned scoped addresses before pointer formation where the width requires it, and now share the canonical `MmioRange` layout assertions with the focused low-level wrapper gate through `zigux/helpers/layout_assert.zig`
 - focused replay gate: `zigux/tests/phase3_low_level_wrappers.zig` now keeps the atomic, barrier, MMIO, and scoped narrow-unsafe helper contract on its own compile-and-test path, while the dedicated `zigux/tests/phase3_policy_unsafe.zig` gate owns layout, panic, allocator, and interop-policy unsafe-byte decoding
 
 ## Boundary
