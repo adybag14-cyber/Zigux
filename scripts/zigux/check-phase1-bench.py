@@ -169,6 +169,29 @@ def run_self_test() -> int:
         ),
         ['PHASE1_BENCH_ALPHA', 'PHASE1_BENCH_ZETA'],
     )
+    bitmap_expectations = {
+        'status': 'pass',
+        'iterations': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS': 20000,
+        },
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
+        },
+        'checksums': [],
+    }
+    assert_equal(
+        'unexpected_bitmap_alias_metric',
+        unexpected_phase1_bench_keys(
+            {
+                'PHASE1_BENCH': 'pass',
+                'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS': '20000',
+                'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': '2260000',
+                'PHASE1_BENCH_BITMAP_ALIAS_CHECKSUM': '5',
+            },
+            bitmap_expectations,
+        ),
+        ['PHASE1_BENCH_BITMAP_ALIAS_CHECKSUM'],
+    )
     assert_equal('find_zig_explicit', find_zig('/tmp/zig-self-test'), '/tmp/zig-self-test')
     assert_equal('status_passthrough', parsed['PHASE1_BENCH'], 'pass')
 
@@ -222,7 +245,7 @@ def run_self_test() -> int:
         raise SystemExit('phase1-bench:self-test:invalid_reserved:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
-    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=10')
+    print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=11')
     return 0
 
 
