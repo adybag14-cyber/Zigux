@@ -27,6 +27,7 @@ FILES = [
     "Documentation/zigux/phase11-gpio-wdt-slice.md",
     "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-console-slice.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
@@ -134,6 +135,7 @@ SURVEY_SPECS = {
 }
 HVC_DOC_PATHS = {
     "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
+    "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
 }
 GPIO_WDT_DOC_PATHS = {
@@ -290,6 +292,7 @@ for name, (lane_key, anchor, gap_count, ready_ids, blocked_ids) in MANIFEST_SPEC
 hvc_manifest = load_manifest("phase11_hvc_console_manifest.json")
 hvc_commit = str(hvc_manifest.get("surveyed_commit", ""))
 hvc_survey_doc = text(HVC_DOC_PATHS["survey"])
+hvc_slice_doc = text(HVC_DOC_PATHS["slice"])
 hvc_matrix_doc = text(HVC_DOC_PATHS["matrix"])
 for marker in [
     f"reviewed against live `master` `{hvc_commit}`",
@@ -298,6 +301,17 @@ for marker in [
 ]:
     if marker not in hvc_survey_doc:
         missing.append(f"phase11_hvc_console_docs:survey:{marker}")
+for marker in [
+    "adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()`-adjacent close-wait ownership, notifier boundaries, and khvcd wakeup intent reviewable without claiming worker execution",
+    "adds a tiny khvcd polling-contract summary that keeps notifier-driven versus polling-driven wakeups, bounded reschedule intent, and teardown-facing host-I/O boundaries reviewable without claiming worker execution",
+    "adds a tiny khvcd sleep-and-reschedule handoff summary that keeps the pre-sleep kick check, the interruptible-state recheck, untimed schedule versus timed backoff selection, and running-state restore reviewable without claiming live worker execution",
+    "adds a tiny `hvc_hangup()` disconnect summary that keeps resize-cancel ordering, the stale-count guard, tty detach, outbuf clearing, and notifier-hangup boundaries reviewable without claiming notifier callback execution",
+    "adds a tiny `hvc_remove()` handoff summary that keeps console-lock slot clearing, the paired `vtermnos[]` and `cons_ops[]` release, `tty_port_put()` ordering, `tty_vhangup()` follow-through, and the keep-IRQ-until-hangup teardown boundary reviewable without claiming live console locking or IRQ teardown",
+    "This slice does not claim tty-driver registration, khvcd polling or execution, sysrq handling, notifier callback execution, hotplug discovery, or live hypervisor-backed reads and writes yet.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier or sysrq handoff becomes obvious; otherwise avoid widening straight into live khvcd worker behavior or host-backed teardown.",
+]:
+    if marker not in hvc_slice_doc:
+        missing.append(f"phase11_hvc_console_docs:slice:{marker}")
 for marker in [
     "PHASE11_HVC_CONSOLE_STATUS=remove_handoff_landed",
     "`zigux/tests/phase11_build.zig` continues to run `zigux/tests/phase11_hvc_console.zig` inside the shared Phase 11 starter replay",
