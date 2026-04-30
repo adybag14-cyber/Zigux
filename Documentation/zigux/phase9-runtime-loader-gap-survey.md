@@ -35,6 +35,7 @@ The live repo already reflects that split:
 - the full bounded Phase 6 leaf-helper set is landed
 - four Phase 9 runtime starter samples are landed under `samples/zigux/runtime_*`
 - three sample-side loader plans are landed under `samples/zigux/runtime_*_loader.zig`
+- the fourth Phase 9 pilot, `samples/zigux/runtime_trace_events.zig`, remains intentionally sample-only with no `samples/zigux/runtime_trace_events_loader.zig`
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
 
 the current survey packet is pinned to `master` commit `1d1b0a5174599ea732242ca44040b4c289c0af48`.
@@ -69,6 +70,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection and without-substrate rollback path into the shared runtime request surface
+- `zigux/tests/runtime_trace_events_manifest.json` owns the sample-only blocked trace-events loader boundary so the shared loader-gap packet does not treat that missing loader path as an accidental omission
 
 ## Current blocker posture
 
@@ -93,6 +95,14 @@ The current pilot-module evidence also carries an explicit rollback-without-subs
 - each landed sample-side loader can release its pending shared request without claiming runtime execution
 - each release path moves the shared handoff state from `waiting_on_runtime_substrate` to `released_without_substrate`
 - this is the current fallback path for the pre-execution packet, so rollback stays explicit even though there is still no real runtime loader
+
+The shared packet also needs one explicit sample-only boundary so repo reality stays readable:
+
+- `samples/zigux/runtime_trace_events.zig` is the fourth landed Phase 9 pilot sample, but there is still no `samples/zigux/runtime_trace_events_loader.zig`
+- that absence is intentional, not missing parity work, because `zigux/tests/runtime_trace_events_manifest.json` already records the `runtime-trace-events-substrate-handoff` blocker
+- that blocker stays tied to runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring
+- it also stays adjacent to `Documentation/zigux/freeze-map.md`, where `kernel/trace/ring_buffer.c` remains `Study / Boundary Only`
+- this shared loader-gap packet therefore treats trace-events as a sample-only blocked runtime pilot rather than counting it among the current loader-plan surfaces
 
 What is still missing is actual runtime execution behavior:
 
