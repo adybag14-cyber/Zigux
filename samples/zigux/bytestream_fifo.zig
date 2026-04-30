@@ -317,3 +317,43 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
 }
+
+test "bytestream fifo sample keeps helper boundaries explicit" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
+    try std.testing.expectEqual(@as(?u8, null), sample.skipByte());
+    try std.testing.expectEqual(@as(usize, 0), sample.enqueueSlice(&.{}));
+
+    var preview: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(usize, 0), sample.snapshotInto(preview[0..]));
+    try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview[0..]);
+
+    try sample.init();
+    try std.testing.expect(sample.pushByte(7));
+    try std.testing.expectEqual(@as(usize, 1), sample.count());
+    sample.reset();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    var value: u8 = 0;
+    while (value < 10) : (value += 1) {
+        try std.testing.expect(sample.pushByte(value));
+    }
+    var discard: [7]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, discard.len), sample.dequeueSlice(discard[0..]));
+    try std.testing.expectEqual(@as(usize, 2), sample.enqueueSlice(&.{ 0, 1 }));
+
+    var wraparound_preview: [8]u8 = [_]u8{0} ** 8;
+    try std.testing.expectEqual(@as(usize, wraparound_preview.len), sample.snapshotInto(wraparound_preview[0..]));
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, wraparound_preview[0..]);
+    try std.testing.expectEqual(@as(usize, 10), sample.count());
+
+    try sample.exit();
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+}
