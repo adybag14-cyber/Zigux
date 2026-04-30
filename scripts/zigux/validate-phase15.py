@@ -12,6 +12,7 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 FILES = [
     "scripts/zigux/validate-phase15.py",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
@@ -26,6 +27,15 @@ FILES = [
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_readiness_gate.zig",
+]
+
+README_MARKERS = [
+    "Phase 15 notes",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "shared `zig build test --build-file zigux/tests/phase15_build.zig` plus `make -C zigux phase15` replay path explicit",
+    "now-green shared Phase 15 replay on current `master`",
+    "unchanged deep-core blocker posture",
 ]
 
 MAKE_MARKERS = [
@@ -152,6 +162,7 @@ if missing_files:
 
 missing: list[str] = []
 for name, source, markers in [
+    ("docs_root", text("Documentation/zigux/README.md"), README_MARKERS),
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("survey", text("Documentation/zigux/phase15-readiness-gate-survey.md"), SURVEY_MARKERS),
@@ -162,6 +173,9 @@ for name, source, markers in [
     for marker in markers:
         if marker not in source:
             missing.append(f"{name}:{marker}")
+
+if "remaining broader replay drift on current `master`" in text("Documentation/zigux/README.md"):
+    missing.append("docs_root:stale:remaining broader replay drift on current `master`")
 
 manifest = load_json("zigux/tests/phase15_readiness_gate_manifest.json")
 if manifest.get("phase") != "Phase 15":
@@ -338,6 +352,6 @@ print("PHASE15_VALIDATION=pass")
 print(f"PHASE15_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE15_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
+    f"{len(README_MARKERS) + len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(BUILD_MARKERS)}"
 )
 print("PHASE15_REMAINING_BLOCKERS=phase15-deep-core-status-change-blocker")
