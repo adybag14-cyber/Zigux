@@ -50,7 +50,7 @@ The live repo already carries real helper code, dedicated tests, and shared repl
 What this record needs to say, in one place, is how to read that bundle today:
 
 - Phase 13 is active, not closed
-- the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`
+- the current tranche is reviewable through `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13`, but the shared Zig replay is currently red on `master`
 - the shared bootstrap workflow mirrors that same validator-first release path through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`, so release-facing reviewability is not hidden only in local commands
 - the validator helper itself is part of the published evidence packet through `scripts/zigux/README.md`, so the fast-check contract is documented alongside the release note instead of living only in the script and workflow wiring
 - `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` all already have manifest-backed survey packets
@@ -77,6 +77,12 @@ The current Phase 13 release-facing reading is:
 - `PHASE13_SHARED_MAKE_TARGET_PRESENT=yes`
 - `PHASE13_SHARED_REPLAY_STEP_COUNT=7`
 - `PHASE13_RELEASE_CLOSED=no`
+
+The current release packet also carries one active shared-replay blocker on `master`:
+
+- `python3 scripts/zigux/validate-phase13-release.py` and `make -C zigux phase13-validate` currently pass
+- `make -C zigux phase13-test` and `make -C zigux phase13` currently fail because `zigux/tests/phase13_landlock_ruleset.zig` ends with a syntax error at the current `P13-L12` ruleset packet tail (`expected statement, found 'EOF'`)
+- that failure belongs to the dedicated Landlock ruleset helper lane, so this release-note packet records it as an active tranche blocker instead of pretending the shared replay is green
 
 The current manifest lane ownership carried by the release packet is:
 
@@ -163,4 +169,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this Phase 13 release-discipline lane reopens, the next honest follow-up is to keep the shared release packet aligned while a dedicated helper-first `dmam_alloc_coherent()` or scatterlist planner packet lands separately, without widening this shared note into live DMA-backed helper or scatterlist ownership claims.
+If this Phase 13 release-discipline lane reopens, the next honest follow-up is to keep the shared release packet aligned while the dedicated `P13-L12` Landlock ruleset lane restores a green shared replay, and only then return to separate helper-first `dmam_alloc_coherent()` or scatterlist planner follow-up work without widening this shared note into live DMA-backed helper or scatterlist ownership claims.
