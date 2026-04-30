@@ -151,26 +151,30 @@ Phase 1 is only considered closed when all of the following are green:
 1. parity gate
 - `python3 scripts/zigux/check-phase1-parity.py`
 
-2. helper unit gate
+2. parity checker self-test
+- `python3 scripts/zigux/check-phase1-parity.py --self-test`
+
+3. helper unit gate
 - `zig build test --build-file zigux/tests/build.zig`
 
-3. helper benchmark smoke
+4. helper benchmark smoke
 - `zig build bench --build-file zigux/tests/build.zig`
 
-4. benchmark validation
+5. benchmark validation
 - `python3 scripts/zigux/check-phase1-bench.py`
 
-5. benchmark checker self-test
+6. benchmark checker self-test
 - `python3 scripts/zigux/check-phase1-bench.py --self-test`
 
-6. closure validation
+7. closure validation
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-7. workflow viability
+8. workflow viability
 - the bootstrap workflow must not rely on deprecated Node 20 action execution
 - the bootstrap workflow must pin current action releases where available
 
 - `PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py`
+- `PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test`
 - `PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig`
 - `PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig`
 - `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`
