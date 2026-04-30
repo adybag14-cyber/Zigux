@@ -521,6 +521,7 @@ def main() -> int:
         + len(CHECKSUM_SLICE_MARKERS)
         + len(HEXDUMP_TEST_MARKERS)
         + len(HEXDUMP_PERF_MARKERS)
+        + len(HEXDUMP_FIXTURE_MARKERS)
         + len(HEXDUMP_SLICE_MARKERS)
     )
 
