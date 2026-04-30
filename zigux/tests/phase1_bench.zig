@@ -392,7 +392,7 @@ fn listSortBench() struct { checksum: u64 } {
     return .{ .checksum = checksum };
 }
 
-fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64 } {
+fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64, cached_checksum: u64 } {
     const RbEntry = struct {
         key: i32,
         node: rbtree.Node = rbtree.Node.init(),
@@ -429,6 +429,7 @@ fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64 } {
 
     var checksum: u64 = 0;
     var duplicate_checksum: u64 = 0;
+    var cached_checksum: u64 = 0;
     var iter: usize = 0;
     while (iter < iterations_rbtree) : (iter += 1) {
         var entries = [_]RbEntry{
@@ -501,23 +502,23 @@ fn rbtreeBench() struct { checksum: u64, duplicate_checksum: u64 } {
         for (&cached_entries) |*entry| {
             _ = rbtree.addCached(&entry.node, &cached_root, duplicateLess);
             const leftmost_entry: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
-            duplicate_checksum +%= @intCast(leftmost_entry.key + @as(i32, @intCast(leftmost_entry.serial)));
+            cached_checksum +%= @intCast(leftmost_entry.key + @as(i32, @intCast(leftmost_entry.serial)));
         }
 
         rbtree.eraseCached(&cached_entries[0].node, &cached_root);
         const after_first_erase: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
-        duplicate_checksum +%= @intCast(after_first_erase.key + @as(i32, @intCast(after_first_erase.serial)));
+        cached_checksum +%= @intCast(after_first_erase.key + @as(i32, @intCast(after_first_erase.serial)));
 
         rbtree.eraseCached(&cached_entries[2].node, &cached_root);
         const after_second_erase: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
-        duplicate_checksum +%= @intCast(after_second_erase.key + @as(i32, @intCast(after_second_erase.serial)));
+        cached_checksum +%= @intCast(after_second_erase.key + @as(i32, @intCast(after_second_erase.serial)));
 
         rbtree.replaceNodeCached(&cached_entries[3].node, &cached_replacement.node, &cached_root);
         const after_replace: *const RbDuplicateEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
-        duplicate_checksum +%= @intCast(after_replace.key + @as(i32, @intCast(after_replace.serial)));
+        cached_checksum +%= @intCast(after_replace.key + @as(i32, @intCast(after_replace.serial)));
     }
 
-    return .{ .checksum = checksum, .duplicate_checksum = duplicate_checksum };
+    return .{ .checksum = checksum, .duplicate_checksum = duplicate_checksum, .cached_checksum = cached_checksum };
 }
 
 pub fn main(init: std.process.Init) !void {
@@ -552,6 +553,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(list_sort_result.checksum != 0);
     std.debug.assert(rbtree_result.checksum != 0);
     std.debug.assert(rbtree_result.duplicate_checksum != 0);
+    std.debug.assert(rbtree_result.cached_checksum != 0);
 
     try stdout_writer.interface.print("PHASE1_BENCH=pass\n", .{});
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS={d}\n", .{iterations_bitmap});
@@ -581,5 +583,6 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_ITERATIONS={d}\n", .{iterations_rbtree});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CHECKSUM={d}\n", .{rbtree_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM={d}\n", .{rbtree_result.duplicate_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM={d}\n", .{rbtree_result.cached_checksum});
     try stdout_writer.interface.flush();
 }
