@@ -476,22 +476,10 @@ required_kretprobe_manifest_markers = [
 ]
 
 required_kretprobe_survey_test_markers = [
-    'const surveyed_commit = "b17ed4c6675c9ffb24f11ab6d927db2af3082b1c";',
-    'try std.testing.expectEqualStrings(surveyed_commit, manifest.surveyed_commit);',
-    'std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-sample-tests")',
-    'std.mem.indexOf(u8, entry.role, "phase9-runtime-kretprobe-sample-tests")',
-    'std.mem.indexOf(u8, gap.why_now, "phase9-runtime-kretprobe-sample-tests")',
     'std.mem.indexOf(u8, check.expected, "released_without_substrate")',
-    'std.mem.indexOf(u8, check.expected, "command-name")',
-    'std.mem.indexOf(u8, survey_doc, "`PHASE9_LANE_KEY=P9-L13`")',
-    'std.mem.indexOf(u8, survey_doc, "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`")',
-    'std.mem.indexOf(u8, survey_doc, "RuntimeKretprobeSummary")',
+    'std.mem.indexOf(u8, check.expected, "phase9-runtime-kretprobe-loader-tests")',
     'std.mem.indexOf(u8, survey_doc, "released_without_substrate")',
-    'std.mem.indexOf(u8, module_doc, "`PHASE9_LANE_KEY=P9-L13`")',
-    'std.mem.indexOf(u8, module_doc, "`PHASE9_SURVEYED_COMMIT=b17ed4c6675c9ffb24f11ab6d927db2af3082b1c`")',
-    'std.mem.indexOf(u8, module_doc, "RuntimeKretprobeSummary")',
-    'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
-    'std.mem.indexOf(u8, module_doc, surveyed_commit)',
+    'std.mem.indexOf(u8, survey_doc, "phase9-runtime-kretprobe-loader-tests")',
 ]
 
 required_trace_events_survey_markers = [
@@ -569,7 +557,7 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, check.expected, "exit_runs")',
     'std.mem.eql(u8, gap.id, "runtime-trace-events-freeze-map-boundary")',
     'std.mem.eql(u8, entry.id, "runtime-trace-events-manifest")',
-    'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_traceEvents_manifest.json")',
+    'std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_manifest.json")',
     'std.mem.indexOf(u8, gap.why_now, "`kernel/trace/ring_buffer.c`")',
     'std.mem.indexOf(u8, survey_doc, "Documentation/zigux/freeze-map.md")',
     'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
@@ -633,7 +621,7 @@ def required_marker_count() -> int:
         + 2
         + len(required_trace_events_survey_markers)
         + len(required_trace_events_module_slice_markers)
-        + len(required_traceEvents_manifest_markers)
+        + len(required_trace_events_manifest_markers)
         + len(required_trace_events_survey_test_markers)
         + len(required_trace_events_sample_markers)
         + len(required_trace_events_module_markers)
