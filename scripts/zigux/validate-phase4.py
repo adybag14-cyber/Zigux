@@ -592,6 +592,42 @@ def check_gate_matrix_alignment(
     return missing
 
 
+def check_survey_matrix_alignment(
+    phase4_matrix: str, survey_path: str, expectation: dict[str, object]
+) -> list[str]:
+    row_prefix = f"| `{survey_path}` |"
+    row = next(
+        (line for line in phase4_matrix.splitlines() if line.startswith(row_prefix)),
+        '',
+    )
+    if not row:
+        return [f'phase4_matrix:missing_survey_row:{survey_path}']
+
+    missing = []
+    if expectation['owner'] not in row:
+        missing.append(f"phase4_matrix:survey_owner:{survey_path}:{expectation['owner']}")
+    if expectation['rollback_owner'] not in row:
+        missing.append(
+            f"phase4_matrix:survey_rollback_owner:{survey_path}:{expectation['rollback_owner']}"
+        )
+    for marker in expectation['bootstrap_ci_replay_markers']:
+        if marker not in row:
+            missing.append(f'phase4_matrix:survey_bootstrap:{survey_path}:{marker}')
+    for marker in expectation['local_lab_replay_markers']:
+        if marker not in row:
+            missing.append(f'phase4_matrix:survey_local_replay:{survey_path}:{marker}')
+    for marker in expectation['reversible_delivery_markers']:
+        if marker not in row:
+            missing.append(
+                f'phase4_matrix:survey_reversible_delivery:{survey_path}:{marker}'
+            )
+    if expectation['threshold_posture'] not in row:
+        missing.append(
+            f"phase4_matrix:survey_threshold_posture:{survey_path}:{expectation['threshold_posture']}"
+        )
+    return missing
+
+
 def check_roadmap_gap_alignment(
     phase4_matrix: str, item_name: str, expectation: dict[str, str]
 ) -> list[str]:
@@ -771,8 +807,15 @@ def validate_root(root: Path) -> list[str]:
             check_gate_matrix_alignment(phase4_matrix, gate_name, expectation)
         )
 
+    for survey_path, expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.items():
+        missing_markers.extend(
+            check_survey_matrix_alignment(phase4_matrix, survey_path, expectation)
+        )
+
     for item_name, expectation in ROADMAP_GAP_EXPECTATIONS.items():
         missing_markers.extend(check_roadmap_gap_alignment(phase4_matrix, item_name, expectation))
+        if (root / item_name).exists():
+            missing_markers.append(f'roadmap_gap:item_should_still_be_absent:{item_name}')
 
     return missing_markers
 
@@ -849,6 +892,20 @@ def build_phase4_matrix_fixture() -> str:
                 rollback_owner=expectation['rollback_owner'],
                 local_replay=' and '.join(expectation['local_replay_markers']),
                 reversible_delivery=expectation['reversible_delivery'],
+                threshold_posture=expectation['threshold_posture'],
+            )
+        )
+    for survey_path, expectation in PHASE4_SURVEY_MATRIX_EXPECTATIONS.items():
+        lines.append(
+            '| `{survey}` | survey gate | `{owner}` | `{rollback_owner}` | {bootstrap} | {local_replay} | {reversible_delivery} | `{threshold_posture}` |'.format(
+                survey=survey_path,
+                owner=expectation['owner'],
+                rollback_owner=expectation['rollback_owner'],
+                bootstrap=' and '.join(expectation['bootstrap_ci_replay_markers']),
+                local_replay=' and '.join(expectation['local_lab_replay_markers']),
+                reversible_delivery=' and '.join(
+                    expectation['reversible_delivery_markers']
+                ),
                 threshold_posture=expectation['threshold_posture'],
             )
         )
@@ -990,6 +1047,32 @@ def run_self_test() -> int:
         missing = validate_root(tmp_root)
         assert (
             'phase4_perf_baseline_manifest.survey_summary.benchmark_command_unapproved:False'
+            in missing
+        ), missing
+
+        write_fixture_tree(tmp_root)
+        phase4_matrix = tmp_root / 'Documentation/zigux/phase4-validation-matrix.md'
+        phase4_matrix.write_text(
+            phase4_matrix.read_text(encoding='utf-8').replace(
+                '| `zigux/tests/phase4_test_fsmount_survey.zig` | survey gate |',
+                '| `zigux/tests/phase4_test_fsmount_survey_missing.zig` | survey gate |',
+                1,
+            ),
+            encoding='utf-8',
+        )
+        missing = validate_root(tmp_root)
+        assert (
+            'phase4_matrix:missing_survey_row:zigux/tests/phase4_test_fsmount_survey.zig'
+            in missing
+        ), missing
+
+        write_fixture_tree(tmp_root)
+        landed_fsmount = tmp_root / 'samples/zigux/test_fsmount.zig'
+        landed_fsmount.parent.mkdir(parents=True, exist_ok=True)
+        landed_fsmount.write_text('// synthetic landed sample\n', encoding='utf-8')
+        missing = validate_root(tmp_root)
+        assert (
+            'roadmap_gap:item_should_still_be_absent:samples/zigux/test_fsmount.zig'
             in missing
         ), missing
 
