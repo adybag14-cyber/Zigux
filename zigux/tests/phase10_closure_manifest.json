@@ -101,7 +101,7 @@
       "mmio": "P10-L18"
     },
     "surveyed_commits": {
-      "core": "3e0311ff7c22b5a12ead4cae1c0cf2290df9b627",
+      "core": "3232d0c7296f86e9f5822d0f8b87030f79449c08",
       "ring": "800e2edfb5d2d0c80ac45ffee6630a6b13905d0d",
       "input": "62bd26b8ca60e51c66303ddaaa8dce1abed388e4",
       "mmio": "81356ba2b96caf155f2c8788b3ede1fbb4c96d74"
