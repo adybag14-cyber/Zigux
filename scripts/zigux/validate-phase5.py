@@ -332,6 +332,7 @@ survey_note_expectations = {
         "survey_test": "phase5_kobject_example_survey.zig",
         "survey_test_path": ROOT / "zigux" / "tests" / "phase5_kobject_example_survey.zig",
         "sample_test_command": "zig test samples/zigux/kobject_example.zig",
+        "build_summary": "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
         "survey_test_markers": [
             'test "phase 5 kobject contributor docs stay aligned with the shipped review surface"',
             "zigux/tests/phase5_kobject_example_manifest.json",
@@ -390,11 +391,11 @@ for manifest_name, expected in manifest_expectations.items():
         missing_markers.append(f"{manifest_name}:anchor={expected['anchor']}")
     if manifest.get("sample_path") != expected["sample_path"]:
         missing_markers.append(f"{manifest_name}:sample_path={expected['sample_path']}")
-    expected_validation_entrypoint = expected.get(
+    validation_entrypoint = expected.get(
         "validation_entrypoint",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
     )
-    if manifest.get("validation_entrypoint") != expected_validation_entrypoint:
+    if manifest.get("validation_entrypoint") != validation_entrypoint:
         missing_markers.append(f"{manifest_name}:validation_entrypoint")
     if manifest.get("non_goals") != expected["non_goals"]:
         missing_markers.append(f"{manifest_name}:non_goals")
@@ -415,9 +416,7 @@ for manifest_name, expected in manifest_expectations.items():
         "## Latest verification snapshot",
         survey_expectation["sample_test_command"],
         f"zig test zigux/tests/{survey_expectation['survey_test']}",
-        "Build Summary: 17/17 steps succeeded; 27/27 tests passed"
-        if manifest_name != "phase5_kobject_example_manifest.json"
-        else "Build Summary: 5/5 steps succeeded; 7/7 tests passed",
+        survey_expectation.get("build_summary", "Build Summary: 17/17 steps succeeded; 27/27 tests passed"),
         "phase5_build.zig",
         "samples/zigux/README.md",
         "Documentation/zigux/review-checklist.md",
