@@ -22,7 +22,7 @@
         "zigux/tests/phase6_base64_c_casegen.zig"
       ],
       "fixtures": [
-        "zigux/tests/fixtures/phase6_base64_vectors.zig",
+        "zigux/tests/phase6_base64_vectors.zig",
         "zigux/tests/fixtures/phase6_base64_c_harness.c"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
@@ -107,7 +107,9 @@
     "make -C zigux phase6-bsearch-perf",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-perf",
+    "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+    "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py"
   ]
 }
