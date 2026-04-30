@@ -1,6 +1,6 @@
 const std = @import("std");
 const cmdline = @import("cmdline");
-const next_arg_vectors = @import("fixtures/phase7_cmdline_next_arg_vectors.zig");
+const next_arg_vectors = @import("next_arg_vectors");
 
 fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
