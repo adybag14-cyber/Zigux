@@ -792,6 +792,7 @@ required_ledger_markers = [
     'feat(scripts/zigux): add bounded Phase 2 mk_elfconfig lane',
 ]
 required_workflow_markers = [
+    'scripts/basic/fixdep.c',
     'python3 scripts/zigux/validate-phase2.py',
     'python3 scripts/zigux/check-artifact-diff-contract.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
