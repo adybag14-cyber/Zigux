@@ -7,11 +7,14 @@ from pathlib import Path
 from phase3_catalog import Phase3Paths, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub, shared_runner_gate_for_slug
 from validate_phase3_core import (
+    ABI_POLICY_UNSAFE_SURVEY_CHECK_REL,
     ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
+    ABI_REQUIRED_MANIFEST_FILES,
     ABI_REQUIRED_SOURCE_MARKERS,
     select_slices,
     validate_export_uapi_boundary,
+    validate_policy_unsafe_boundary,
     validate_manifest,
     validate_slices,
     validate_source_markers,
@@ -141,6 +144,8 @@ def run_self_test() -> int:
             "PHASE3_MMIO_SCOPE=range-read8-read16-read32-write8-write16-write32-plus-scoped-read8-write8-read16-write16-read32-write32"
             in ABI_REQUIRED_DOC_MARKERS
         )
+        assert "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md" in ABI_REQUIRED_MANIFEST_FILES
+        assert ABI_POLICY_UNSAFE_SURVEY_CHECK_REL in ABI_REQUIRED_MANIFEST_FILES
         low_level_markers = ABI_REQUIRED_SOURCE_MARKERS["zigux/tests/phase3_low_level_wrappers.zig"]
         assert "atomic.fetchSub(u32, &value, 4, .seq_cst)" in low_level_markers
         assert "atomic.fetchOr(u32, &value, 0b1000, .seq_cst)" in low_level_markers
@@ -166,6 +171,25 @@ def run_self_test() -> int:
         )
         assert validate_export_uapi_boundary(root) == [
             "export-uapi-gate: missing_survey_marker:PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig"
+        ]
+
+        policy_unsafe_check = root / ABI_POLICY_UNSAFE_SURVEY_CHECK_REL
+        policy_unsafe_check.write_text(
+            "#!/usr/bin/env python3\nprint('PHASE3_POLICY_UNSAFE_SURVEY=pass')\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_policy_unsafe_boundary(root) == []
+        policy_unsafe_check.write_text(
+            "#!/usr/bin/env python3\n"
+            "print('PHASE3_POLICY_UNSAFE_SURVEY=fail')\n"
+            "print('missing_survey_marker:PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig')\n"
+            "raise SystemExit(1)\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_policy_unsafe_boundary(root) == [
+            "policy-unsafe-gate: missing_survey_marker:PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig"
         ]
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
