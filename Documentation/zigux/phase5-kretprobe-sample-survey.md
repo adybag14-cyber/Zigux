@@ -109,7 +109,11 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
    - `rg -n "samples/kprobes/kretprobe_example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 kretprobe lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "kretprobe|runtime_kretprobe"`
-3. run the exact bounded Phase 5 sample checks
+3. run the focused self-check that keeps the in-memory replay explicit
+   - `zig test samples/zigux/kretprobe_example.zig`
+4. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
+   - `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
+5. run the exact bounded Phase 5 sample checks
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals

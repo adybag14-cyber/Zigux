@@ -301,6 +301,8 @@ test "phase 5 bytestream fifo contributor docs stay aligned with the shipped rev
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "exactly seven review-focus areas") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`preview_truncation`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Build Summary: 17/17 steps succeeded; 27/27 tests passed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase5_bytestream_fifo_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "All 2 tests passed.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "surveyed_commit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "approved FIFO idiom is now pinned to `PHASE5_SURVEYED_COMMIT=8733ce0d4e2e17ccf139a38a70fc745843c068a3`") != null);

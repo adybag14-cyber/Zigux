@@ -116,6 +116,10 @@ The exact verification commands and observed results were:
 - `zig test samples/zigux/bytestream_fifo.zig`
   - observed result: `1/1 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
   - observed result: `All 1 tests passed.`
+- `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
+  - observed result: `1/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo manifest records the exact bounded checks...OK`
+  - observed result: `2/2 phase5_bytestream_fifo_survey.test.phase 5 bytestream fifo contributor docs stay aligned with the shipped review surface...OK`
+  - observed result: `All 2 tests passed.`
 - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
   - observed result: `Build Summary: 17/17 steps succeeded; 27/27 tests passed`
   - observed result: `phase5-bytestream-fifo-tests 5 pass (5 total)`
@@ -157,7 +161,13 @@ This slice keeps the `kfifo` survey aligned with the live Phase 5 sample set and
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
 - `find samples/zigux -maxdepth 1 -type f | sort`
 
-3. run the exact bounded Phase 5 sample checks
+3. run the focused self-check that keeps the in-memory FIFO replay explicit
+- `zig test samples/zigux/bytestream_fifo.zig`
+
+4. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
+- `zig test zigux/tests/phase5_bytestream_fifo_survey.zig`
+
+5. run the exact bounded Phase 5 sample checks
 - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals
