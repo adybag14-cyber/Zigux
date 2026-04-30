@@ -121,13 +121,6 @@ fn flushOutputPreservingPrimaryError(writer: anytype) void {
     writer.flush() catch {};
 }
 
-fn shouldNormalizeDependencyFileFailure(err: anyerror) bool {
-    return switch (err) {
-        error.OutOfMemory, error.StreamTooLong => false,
-        else => true,
-    };
-}
-
 const Processor = struct {
     io: std.Io,
     arena: std.heap.ArenaAllocator,
@@ -206,19 +199,32 @@ const Processor = struct {
     }
 
     fn readDependencyFile(self: *Processor, path: []const u8) ![]const u8 {
-        var file = Io.Dir.cwd().openFile(self.io, path, .{ .allow_directory = true }) catch |err| {
-            if (!shouldNormalizeDependencyFileFailure(err)) {
-                return err;
-            }
-            return self.rememberFileError(path, err, .open);
+        var file = Io.Dir.cwd().openFile(self.io, path, .{ .allow_directory = true }) catch |err| switch (err) {
+            error.FileNotFound,
+            error.AccessDenied,
+            error.IsDir,
+            error.NotDir,
+            error.NameTooLong,
+            error.BadPathName,
+            error.SymLinkLoop,
+            error.ProcessFdQuotaExceeded,
+            error.SystemFdQuotaExceeded,
+            error.DeviceBusy,
+            error.NoDevice,
+            error.FileTooBig,
+            => return self.rememberFileError(path, err, .open),
+            else => return err,
         };
         defer file.close(self.io);
 
-        _ = file.stat(self.io) catch |err| {
-            if (!shouldNormalizeDependencyFileFailure(err)) {
-                return err;
-            }
-            return self.rememberFileError(path, err, .stat);
+        _ = file.stat(self.io) catch |err| switch (err) {
+            error.AccessDenied,
+            error.PermissionDenied,
+            error.Streaming,
+            error.SystemResources,
+            error.Canceled,
+            error.Unexpected,
+            => return self.rememberFileError(path, err, .stat),
         };
 
         var reader = file.reader(self.io, &.{});
@@ -574,6 +580,53 @@ test "dep parsing keeps the first source across concatenated target entries" {
     );
 }
 
+test "dep parsing discards extra target tokens before the source colon" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "module.o module.symtypes module.mod: source.rmeta dep.so extra.rlib\n",
+        "module.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_module.o := source.rmeta\n\n" ++
+            "deps_module.o := \\\n" ++
+            "  dep.so \\\n" ++
+            "  extra.rlib \\\n" ++
+            "\n" ++
+            "module.o: $(deps_module.o)\n\n" ++
+            "$(deps_module.o):\n",
+        capture.list.items,
+    );
+}
+
 test "dep parsing unescapes escaped hash and colon tokens once" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -633,13 +686,6 @@ test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
     try std.testing.expectEqualStrings("File too large", describeFileReadError(error.FileTooBig));
-}
-
-test "dependency file failure normalization keeps runtime io errors on the C-style path" {
-    try std.testing.expect(shouldNormalizeDependencyFileFailure(error.PermissionDenied));
-    try std.testing.expect(shouldNormalizeDependencyFileFailure(error.Unexpected));
-    try std.testing.expect(!shouldNormalizeDependencyFileFailure(error.OutOfMemory));
-    try std.testing.expect(!shouldNormalizeDependencyFileFailure(error.StreamTooLong));
 }
 
 test "dependency file error messages keep C helper wording" {
