@@ -35,6 +35,7 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
 - the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`.
 - `samples/trace_events/trace-events-sample.h` is present on `master` at 640 lines.
+- the manifest-backed review packet now keeps `samples/trace_events/trace-events-sample.h` explicit as a header-side macro boundary with a 640-line surveyed boundary, so the active trace-events lane can point at the real header surface without turning it into a generated tracepoint macro parity claim.
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `zigux/tests/runtime_trace_events_module.zig`, `zigux/tests/runtime_trace_events_diff.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
@@ -61,6 +62,7 @@ The manifest-backed delivery packet now names which surface owns each part of th
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle entrypoint for the trace-events starter
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md` owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the survey packet
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` owns the landed starter surface summary, direct sample and diff gate posture, and the paired loader-free blocker restatement for the trace-events packet
+- `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` also owns the paired header-side macro boundary note for `samples/trace_events/trace-events-sample.h`
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/trace/ring_buffer.c` boundary and the Architecture Council reopen rule for trace-core status changes
 
 ## Recorded gaps
@@ -77,7 +79,8 @@ The manifest started as a survey-only inventory and now records:
 - the blocked `runtime-trace-events-freeze-map-boundary`
 - the still-blocked runtime substrate handoff
 - review prompts that keep the bounded summary surface, loader-free blocker, and freeze-map boundary explicit
-- exact checks for the descriptor contract, diagnostics summary, main-thread payload replay, function-callback registration balance, selftest family order, governance boundary, and loader-free blocker
+- review prompts that keep the `samples/trace_events/trace-events-sample.h` header-side macro boundary explicit without implying generated tracepoint macro parity
+- exact checks for the descriptor contract, diagnostics summary, main-thread payload replay, function-callback registration balance, selftest family order, failed-exit rollback, the header-side macro boundary, governance boundary, and loader-free blocker
 - non-goals that keep loadable-module, event-loop, ring-buffer, macro-generation, and full selftest parity claims out of scope
 
 This keeps the survey useful after the first starter slice lands without pretending that Zigux already has a loadable trace-events runtime module.
