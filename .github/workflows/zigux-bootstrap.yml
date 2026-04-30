@@ -235,6 +235,9 @@ jobs:
       - name: Validate Phase 9 runtime gates
         run: make -C zigux phase9-validate
 
+      - name: Self-test Phase 10 shared validator
+        run: python3 scripts/zigux/validate-phase10.py --self-test
+
       - name: Validate Phase 10 closure evidence
         run: make -C zigux phase10-validate
 
