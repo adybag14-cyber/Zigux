@@ -208,21 +208,78 @@ manifest_expectations = {
         "lane_key": "P5-L04",
         "anchor": "samples/kfifo/bytestream-example.c",
         "sample_path": "samples/zigux/bytestream_fifo.zig",
+        "exact_check_ids": [
+            "initial-fill-len",
+            "first-drain",
+            "second-drain-and-requeue",
+            "transfer-count-contract",
+            "skip-and-peek",
+            "snapshot-before-final-drain",
+            "fill-to-capacity",
+            "final-drain-sequence",
+            "storage-backing-contract",
+            "bounded-helper-behavior",
+            "preview-truncation",
+            "queue-only-reset",
+            "checked-focus-list",
+            "lifecycle-boundary",
+            "lifecycle-guards-and-counters",
+        ],
     },
     "phase5_kobject_example_manifest.json": {
         "lane_key": "P5-L11",
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
+        "exact_check_ids": [
+            "directory-name",
+            "attribute-order",
+            "attribute-mode",
+            "registration-step",
+            "static-name-no-uevent-boundary",
+            "pre-registration-boundary",
+            "initialized-exit-teardown",
+            "foo-roundtrip",
+            "shared-b-dispatch",
+            "parse-failure",
+            "exit-boundary",
+        ],
     },
     "phase5_kretprobe_example_manifest.json": {
         "lane_key": "P5-L17",
         "anchor": "samples/kprobes/kretprobe_example.c",
         "sample_path": "samples/zigux/kretprobe_example.zig",
+        "exact_check_ids": [
+            "default-symbol",
+            "pre-init-retargeting",
+            "skip-kernel-thread",
+            "private-data-shape",
+            "return-duration",
+            "timestamp-order-boundary",
+            "maxactive-budget",
+            "missed-summary",
+            "outstanding-instance-boundary",
+            "post-exit-rejection",
+        ],
     },
     "phase5_trace_events_sample_manifest.json": {
         "lane_key": "P5-L23",
         "anchor": "samples/trace_events/trace-events-sample.c",
         "sample_path": "samples/zigux/trace_events_sample.zig",
+        "exact_check_ids": [
+            "descriptor-anchor",
+            "message-and-string-shape",
+            "modulo-string-cycle",
+            "iteration-cues",
+            "array-and-sentinel-shape",
+            "bitmask-and-rel-loc",
+            "vararg-payload-path",
+            "event-family-counts",
+            "lifecycle-summary-counts",
+            "checked-focus-order",
+            "callback-registration-balance",
+            "single-registration-boundary",
+            "post-exit-rejection",
+        ],
     },
 }
 
@@ -309,6 +366,10 @@ for manifest_name, expected in manifest_expectations.items():
         missing_markers.append(f"{manifest_name}:sample_path={expected['sample_path']}")
     if manifest.get("validation_entrypoint") != "zig build test --build-file zigux/tests/phase5_build.zig --summary all":
         missing_markers.append(f"{manifest_name}:validation_entrypoint")
+    exact_check_ids = [check.get("id") for check in manifest.get("exact_checks", []) if isinstance(check, dict)]
+    expected_exact_check_ids = expected["exact_check_ids"]
+    if exact_check_ids != expected_exact_check_ids:
+        missing_markers.append(f"{manifest_name}:exact_check_ids")
 
     survey_expectation = survey_note_expectations[manifest_name]
     survey_note = survey_expectation["note_path"].read_text(encoding="utf-8")
@@ -348,5 +409,5 @@ print("PHASE5_VALIDATION=pass")
 print(f"PHASE5_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE5_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values())}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_checklist_markers) + len(required_sample_root_markers) + len(required_phase5_build_markers) + sum(9 + len(expectation['survey_test_markers']) for expectation in survey_note_expectations.values()) + sum(len(expectation['exact_check_ids']) for expectation in manifest_expectations.values())}"
 )
