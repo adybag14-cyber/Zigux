@@ -19,6 +19,144 @@
     "run_phase11_uapi_header_parity_survey_tests",
     "run_phase11_hvc_console_tests"
   ],
+  "module_root_source_files": [
+    {
+      "module": "abi_bindings_module",
+      "path": "../bindings/abi.zig"
+    },
+    {
+      "module": "layout_assert_module",
+      "path": "../helpers/layout_assert.zig"
+    },
+    {
+      "module": "gpio_wdt_module",
+      "path": "../../drivers/watchdog/gpio_wdt.zig"
+    },
+    {
+      "module": "phase11_gpio_wdt_module",
+      "path": "phase11_gpio_wdt.zig"
+    },
+    {
+      "module": "phase11_gpio_wdt_survey_module",
+      "path": "phase11_gpio_wdt_survey.zig"
+    },
+    {
+      "module": "bcm2835_wdt_module",
+      "path": "../../drivers/watchdog/bcm2835_wdt.zig"
+    },
+    {
+      "module": "phase11_bcm2835_wdt_module",
+      "path": "phase11_bcm2835_wdt.zig"
+    },
+    {
+      "module": "phase11_bcm2835_wdt_survey_module",
+      "path": "phase11_bcm2835_wdt_survey.zig"
+    },
+    {
+      "module": "dw_wdt_module",
+      "path": "../../drivers/watchdog/dw_wdt.zig"
+    },
+    {
+      "module": "phase11_dw_wdt_module",
+      "path": "phase11_dw_wdt.zig"
+    },
+    {
+      "module": "phase11_dw_wdt_survey_module",
+      "path": "phase11_dw_wdt_survey.zig"
+    },
+    {
+      "module": "phase11_uapi_header_parity_survey_module",
+      "path": "phase11_uapi_header_parity_survey.zig"
+    },
+    {
+      "module": "hvc_console_module",
+      "path": "../../drivers/tty/hvc/hvc_console.zig"
+    },
+    {
+      "module": "phase11_hvc_console_module",
+      "path": "phase11_hvc_console.zig"
+    },
+    {
+      "module": "phase11_hvc_console_survey_module",
+      "path": "phase11_hvc_console_survey.zig"
+    }
+  ],
+  "module_imports": [
+    {
+      "module": "layout_assert_module",
+      "import_name": "abi_bindings",
+      "imported_module": "abi_bindings_module"
+    },
+    {
+      "module": "phase11_gpio_wdt_module",
+      "import_name": "gpio_wdt",
+      "imported_module": "gpio_wdt_module"
+    },
+    {
+      "module": "phase11_bcm2835_wdt_module",
+      "import_name": "bcm2835_wdt",
+      "imported_module": "bcm2835_wdt_module"
+    },
+    {
+      "module": "phase11_dw_wdt_module",
+      "import_name": "dw_wdt",
+      "imported_module": "dw_wdt_module"
+    },
+    {
+      "module": "phase11_uapi_header_parity_survey_module",
+      "import_name": "layout_assert",
+      "imported_module": "layout_assert_module"
+    },
+    {
+      "module": "phase11_uapi_header_parity_survey_module",
+      "import_name": "hvc_console",
+      "imported_module": "hvc_console_module"
+    },
+    {
+      "module": "phase11_hvc_console_module",
+      "import_name": "hvc_console",
+      "imported_module": "hvc_console_module"
+    },
+    {
+      "module": "phase11_hvc_console_survey_module",
+      "import_name": "layout_assert",
+      "imported_module": "layout_assert_module"
+    }
+  ],
+  "test_root_modules": [
+    {
+      "test": "phase11-gpio-wdt-tests",
+      "root_module": "phase11_gpio_wdt_module"
+    },
+    {
+      "test": "phase11-gpio-wdt-survey-tests",
+      "root_module": "phase11_gpio_wdt_survey_module"
+    },
+    {
+      "test": "phase11-bcm2835-wdt-tests",
+      "root_module": "phase11_bcm2835_wdt_module"
+    },
+    {
+      "test": "phase11-bcm2835-wdt-survey-tests",
+      "root_module": "phase11_bcm2835_wdt_survey_module"
+    },
+    {
+      "test": "phase11-dw-wdt-tests",
+      "root_module": "phase11_dw_wdt_module"
+    },
+    {
+      "test": "phase11-dw-wdt-survey-tests",
+      "root_module": "phase11_dw_wdt_survey_module"
+    },
+    {
+      "test": "phase11-uapi-header-parity-survey-tests",
+      "root_module": "phase11_uapi_header_parity_survey_module"
+    },
+    {
+      "test": "phase11-hvc-console-tests",
+      "root_module": "phase11_hvc_console_module"
+    }
+  ],
   "forbidden_markers": [
     "phase11_hvc_console_survey_tests",
     "run_phase11_hvc_console_survey_tests.step"

@@ -11,6 +11,17 @@ ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase11-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
+BUILD_MODULE_RE = re.compile(
+    r'const ([A-Za-z0-9_]+) = b\.createModule\(\.\{\s*'
+    r'\.root_source_file = b\.path\("([^"]+)"\),',
+    re.S,
+)
+BUILD_IMPORT_RE = re.compile(r'([A-Za-z0-9_]+)\.addImport\("([^"]+)", ([A-Za-z0-9_]+)\);')
+BUILD_TEST_ROOT_MODULE_RE = re.compile(
+    r'\.name = "(phase11-[^"]+)",\s*'
+    r'\.root_module = ([A-Za-z0-9_]+),',
+    re.S,
+)
 
 FILES = [
     "scripts/zigux/check-phase11-build-inventory.py",
@@ -46,7 +57,10 @@ FILES = [
     "zigux/tests/phase11_dw_wdt_survey.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
+    "zigux/tests/phase11_gpio_wdt.zig",
     "zigux/tests/phase11_bcm2835_wdt.zig",
+    "zigux/tests/phase11_dw_wdt.zig",
+    "zigux/tests/phase11_hvc_console.zig",
     "zigux/tests/fixtures/phase11_build_inventory.json",
 ]
 
@@ -230,6 +244,59 @@ else:
     if actual_depend_steps != expected_depend_steps:
         missing.append("phase11_build_fixture:shared_test_depend_steps_mismatch")
 
+expected_module_roots = build_inventory.get("module_root_source_files")
+if not isinstance(expected_module_roots, list) or not all(
+    isinstance(item, dict)
+    and isinstance(item.get("module"), str)
+    and isinstance(item.get("path"), str)
+    for item in expected_module_roots
+):
+    missing.append("phase11_build_fixture:module_root_source_files")
+else:
+    actual_module_roots = [
+        {"module": module_name, "path": root_path}
+        for module_name, root_path in BUILD_MODULE_RE.findall(build_text)
+    ]
+    if actual_module_roots != expected_module_roots:
+        missing.append("phase11_build_fixture:module_root_source_files_mismatch")
+
+expected_module_imports = build_inventory.get("module_imports")
+if not isinstance(expected_module_imports, list) or not all(
+    isinstance(item, dict)
+    and isinstance(item.get("module"), str)
+    and isinstance(item.get("import_name"), str)
+    and isinstance(item.get("imported_module"), str)
+    for item in expected_module_imports
+):
+    missing.append("phase11_build_fixture:module_imports")
+else:
+    actual_module_imports = [
+        {
+            "module": module_name,
+            "import_name": import_name,
+            "imported_module": imported_module,
+        }
+        for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
+    ]
+    if actual_module_imports != expected_module_imports:
+        missing.append("phase11_build_fixture:module_imports_mismatch")
+
+expected_test_root_modules = build_inventory.get("test_root_modules")
+if not isinstance(expected_test_root_modules, list) or not all(
+    isinstance(item, dict)
+    and isinstance(item.get("test"), str)
+    and isinstance(item.get("root_module"), str)
+    for item in expected_test_root_modules
+):
+    missing.append("phase11_build_fixture:test_root_modules")
+else:
+    actual_test_root_modules = [
+        {"test": test_name, "root_module": root_module}
+        for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    ]
+    if actual_test_root_modules != expected_test_root_modules:
+        missing.append("phase11_build_fixture:test_root_modules_mismatch")
+
 expected_forbidden_markers = build_inventory.get("forbidden_markers")
 if expected_forbidden_markers != FORBIDDEN_BUILD_MARKERS:
     missing.append("phase11_build_fixture:forbidden_markers")
@@ -323,148 +390,3 @@ for marker in [
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:matrix:{marker}")
-
-gpio_survey_doc = text(GPIO_WDT_DOC_PATHS["survey"])
-gpio_slice_doc = text(GPIO_WDT_DOC_PATHS["slice"])
-gpio_matrix_doc = text(GPIO_WDT_DOC_PATHS["matrix"])
-for marker in [
-    "explicit `summarizeTeardown()` helper for eternal-ping disable ordering plus toggle-versus-level teardown fallout",
-    "teardown-facing stop-request outcomes, explicit teardown-summary disable ordering, registration handoff reporting, the metadata-only registration plan, and the first bounded register-device request summary",
-    "The next honest bounded step inside the same lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.",
-]:
-    if marker not in gpio_survey_doc:
-        missing.append(f"phase11_gpio_wdt_docs:survey:{marker}")
-for marker in [
-    "explicit `summarizeTeardown()` helper so eternal-ping disable ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable",
-    "distinguishes watchdog-core `nowayout` stop blocking from the driver's own `always-running` hardware behavior",
-    "registerDeviceCallSummary()` helper",
-    "Keep descriptor-backed preflight, reboot glue, and broader watchdog registration work blocked from this slice.",
-]:
-    if marker not in gpio_slice_doc:
-        missing.append(f"phase11_gpio_wdt_docs:slice:{marker}")
-for marker in [
-    "PHASE11_GPIO_WDT_STATUS=teardown_and_register_device_surface_landed",
-    "teardown-facing stop and failure-mode evidence",
-    "explicit disable-order teardown summary",
-    "register-device call surface",
-    "leave this helper parked unless a later lane can isolate another comparably small teardown or failure-mode split beside it",
-    "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
-    "zig test zigux/tests/phase11_gpio_wdt_survey.zig",
-    "phase11-gpio-wdt-survey-tests",
-]:
-    if marker not in gpio_matrix_doc:
-        missing.append(f"phase11_gpio_wdt_docs:matrix:{marker}")
-
-bcm_manifest = load_manifest("phase11_bcm2835_wdt_manifest.json")
-bcm_commit = str(bcm_manifest.get("surveyed_commit", ""))
-bcm_survey_doc = text(BCM2835_WDT_DOC_PATHS["survey"])
-bcm_slice_doc = text(BCM2835_WDT_DOC_PATHS["slice"])
-bcm_matrix_doc = text(BCM2835_WDT_DOC_PATHS["matrix"])
-bcm_test_doc = text("zigux/tests/phase11_bcm2835_wdt.zig")
-for marker in [
-    f"reviewed against live `master` `{bcm_commit}`",
-    "a tiny remove-time ownership summary",
-    "This lane is no longer survey-only, but the archival survey still keeps its original `P11-L05` identity",
-    "live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked until the lane carries an explicit hardware-validation plan",
-]:
-    if marker not in bcm_survey_doc:
-        missing.append(f"phase11_bcm2835_wdt_docs:survey:{marker}")
-for marker in [
-    "adds a tiny platform-registration and PM-base handoff summary",
-    "adds a tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it",
-    "This slice does not claim platform-driver registration, watchdog-core registration, MMIO access",
-    "The remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing",
-]:
-    if marker not in bcm_slice_doc:
-        missing.append(f"phase11_bcm2835_wdt_docs:slice:{marker}")
-for marker in [
-    "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed",
-    "platform registration and PM-base handoff",
-    "remove-time teardown boundary",
-    "phase11-bcm2835-wdt-tests",
-    "phase11-bcm2835-wdt-survey-tests",
-    "keep the remove-time teardown scope tied to the same later live platform decision",
-]:
-    if marker not in bcm_matrix_doc:
-        missing.append(f"phase11_bcm2835_wdt_docs:matrix:{marker}")
-for marker in [
-    'test "phase11 bcm2835_wdt keeps watchdog metadata and ops surface reviewable"',
-    'test "phase11 bcm2835_wdt registration summary records watchdog registration and poweroff ownership outcomes"',
-    'test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable"',
-    'test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it"',
-]:
-    if marker not in bcm_test_doc:
-        missing.append(f"phase11_bcm2835_wdt_tests:{marker}")
-
-dw_manifest = load_manifest("phase11_dw_wdt_manifest.json")
-dw_commit = str(dw_manifest.get("surveyed_commit", ""))
-dw_survey_doc = text(DW_WDT_DOC_PATHS["survey"])
-dw_slice_doc = text(DW_WDT_DOC_PATHS["slice"])
-dw_matrix_doc = text(DW_WDT_DOC_PATHS["matrix"])
-dw_preflight_marker = "timer-clock choice, optional APB clock presence, reset-control availability, and optional pretimeout-IRQ wiring"
-dw_resource_order_marker = "tclk, optional pclk, reset, irq, and registration sequencing"
-for marker in [
-    f"`master` `{dw_commit}`",
-    dw_preflight_marker,
-    dw_resource_order_marker,
-    "summarizeTeardownLifecycle()",
-    "phase11-dw-wdt-validation-matrix.md",
-    "Latest verification snapshot",
-    "`zig test zigux/tests/phase11_dw_wdt.zig`",
-    "`zig test zigux/tests/phase11_dw_wdt_survey.zig`",
-    "`python3 scripts/zigux/validate-phase11.py`",
-    "`PHASE11_VALIDATION=pass`",
-    "blocked on platform-driver scaffold work",
-]:
-    if marker not in dw_survey_doc:
-        missing.append(f"phase11_dw_wdt_docs:survey:{marker}")
-for marker in [
-    dw_preflight_marker,
-    dw_resource_order_marker,
-    "summarizeTeardownLifecycle()",
-    "blocked on platform-driver scaffold work",
-]:
-    if marker not in dw_slice_doc:
-        missing.append(f"phase11_dw_wdt_docs:slice:{marker}")
-for marker in [
-    "PHASE11_DW_WDT_STATUS=validation_matrix_landed",
-    "phase11-dw-wdt-tests",
-    "phase11-dw-wdt-survey-tests",
-    "fixed TOP timeout evidence",
-    "IRQ pretimeout bookkeeping",
-    "imported running-state handoff evidence",
-    "platform-resource ordering surface",
-    "stop and restart failure-mode boundary",
-    "summarizeTeardownLifecycle()",
-    "zig build test --build-file zigux/tests/phase11_build.zig --summary all",
-    "zig test zigux/tests/phase11_dw_wdt.zig",
-    "zig test zigux/tests/phase11_dw_wdt_survey.zig",
-    "python3 scripts/zigux/validate-phase11.py",
-]:
-    if marker not in dw_matrix_doc:
-        missing.append(f"phase11_dw_wdt_docs:matrix:{marker}")
-
-if starter_total != 54:
-    missing.append(f"phase11_bundle:starter_total={starter_total}")
-if ready_total != 1:
-    missing.append(f"phase11_bundle:ready_total={ready_total}")
-if blocked_total != 3:
-    missing.append(f"phase11_bundle:blocked_total={blocked_total}")
-
-if missing:
-    print("PHASE11_VALIDATION=fail")
-    print("MISSING_PHASE11_MARKERS_START")
-    for item in missing:
-        print(item)
-    print("MISSING_PHASE11_MARKERS_END")
-    sys.exit(1)
-
-print("PHASE11_VALIDATION=pass")
-print(f"PHASE11_REQUIRED_FILE_COUNT={len(FILES)}")
-print(f"PHASE11_REQUIRED_MARKER_COUNT={len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS)}")
-print(f"PHASE11_MANIFEST_COUNT={len(MANIFEST_SPECS)}")
-print(f"PHASE11_SHARED_BUILD_TEST_COUNT={len(expected_build_test_names)}")
-print(f"PHASE11_SHARED_BUILD_DEPEND_STEP_COUNT={len(expected_depend_steps)}")
-print(f"PHASE11_STARTER_STATUS_COUNT={starter_total}")
-print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
-print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
