@@ -347,6 +347,57 @@ test "phase11 dw_wdt timeout topology still rejects a custom array with no valid
     }));
 }
 
+test "phase11 dw_wdt remove handoff keeps unregister and reset-control teardown parity explicit" {
+    var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const unstoppable_summary = try unstoppable.summarizeRemoveHandoff(.{
+        .watchdog_running_before_remove = true,
+        .remove_interrupt_pending = true,
+    });
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", unstoppable_summary.anchor);
+    try std.testing.expect(!unstoppable_summary.reset_control_available);
+    try std.testing.expect(unstoppable_summary.debugfs_clear_requested);
+    try std.testing.expect(unstoppable_summary.unregister_device_requested);
+    try std.testing.expect(unstoppable_summary.remove_path_running_before_remove);
+    try std.testing.expect(unstoppable_summary.remove_path_running_after_remove);
+    try std.testing.expect(unstoppable_summary.remove_path_hardware_running_after_remove);
+    try std.testing.expect(!unstoppable_summary.remove_clears_enable_bit);
+    try std.testing.expect(!unstoppable_summary.remove_clears_interrupt_status);
+    try std.testing.expect(!unstoppable_summary.remove_asserts_reset_control);
+    try std.testing.expect(unstoppable_summary.remove_preserves_running_marker_without_reset);
+    try std.testing.expect(unstoppable_summary.remove_preserves_pending_interrupt_without_reset);
+
+    var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    const stoppable_summary = try stoppable.summarizeRemoveHandoff(.{
+        .watchdog_running_before_remove = true,
+        .remove_interrupt_pending = true,
+    });
+    try std.testing.expect(stoppable_summary.reset_control_available);
+    try std.testing.expect(stoppable_summary.debugfs_clear_requested);
+    try std.testing.expect(stoppable_summary.unregister_device_requested);
+    try std.testing.expect(stoppable_summary.remove_path_running_before_remove);
+    try std.testing.expect(!stoppable_summary.remove_path_running_after_remove);
+    try std.testing.expect(!stoppable_summary.remove_path_hardware_running_after_remove);
+    try std.testing.expect(stoppable_summary.remove_clears_enable_bit);
+    try std.testing.expect(stoppable_summary.remove_clears_interrupt_status);
+    try std.testing.expect(stoppable_summary.remove_asserts_reset_control);
+    try std.testing.expect(!stoppable_summary.remove_preserves_running_marker_without_reset);
+    try std.testing.expect(!stoppable_summary.remove_preserves_pending_interrupt_without_reset);
+
+    var quiet_unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const quiet_unstoppable_summary = try quiet_unstoppable.summarizeRemoveHandoff(.{
+        .watchdog_running_before_remove = false,
+        .remove_interrupt_pending = false,
+    });
+    try std.testing.expect(!quiet_unstoppable_summary.remove_path_running_before_remove);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_path_running_after_remove);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_path_hardware_running_after_remove);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_clears_enable_bit);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_clears_interrupt_status);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_asserts_reset_control);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_preserves_running_marker_without_reset);
+    try std.testing.expect(!quiet_unstoppable_summary.remove_preserves_pending_interrupt_without_reset);
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
