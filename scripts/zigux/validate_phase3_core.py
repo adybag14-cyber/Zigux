@@ -193,6 +193,16 @@ COMMON_DOC_MARKERS = (
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
 )
 
+
+def _phase3_paths_for_root(root: Path) -> Phase3Paths:
+    return Phase3Paths(
+        root=root,
+        docs_dir=root / "Documentation" / "zigux",
+        scripts_dir=root / "scripts" / "zigux",
+        tests_dir=root / "zigux" / "tests",
+        fixtures_dir=root / "zigux" / "tests" / "fixtures",
+    )
+
 ASSERT_RE = re.compile(r"assert(?:Size|Offset)\(abi\.([A-Za-z0-9_]+),")
 DUMP_LAYOUT_RE = re.compile(r'writeLayoutPrefix\(writer,\s*"([^"]+)"')
 DUMP_GENERIC_LAYOUT_RE = re.compile(r'writeStructLayout\(writer,\s*"([^"]+)"')
@@ -420,6 +430,7 @@ def validate_slices(
     zig_path: str | None,
 ) -> list[str]:
     issues: list[str] = []
+    catalog_entries = discover_phase3_slices(_phase3_paths_for_root(root))
     for entry in slices:
         for path in (entry.doc_path, entry.dump_path, entry.expected_path, entry.harness_path):
             if not path.exists():
@@ -439,8 +450,13 @@ def validate_slices(
         issues.extend(f"slug-sanity: {issue.to_row()}" for issue in audit_phase3_slug_sanity(slices))
 
     if check_all_wrappers:
-        issues.extend(f"doc-sync: {issue.to_row()}" for issue in audit_phase3_doc_sync(slices))
-    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(slices, root / "Documentation/zigux/artifact-diff.md"):
+        issues.extend(
+            f"doc-sync: {issue.to_row()}"
+            for issue in audit_phase3_doc_sync(catalog_entries, _phase3_paths_for_root(root))
+        )
+    elif check_artifact_diff and artifact_diff_phase3_section_needs_rewrite(
+        catalog_entries, root / "Documentation/zigux/artifact-diff.md"
+    ):
         issues.append("doc-sync: Documentation/zigux/artifact-diff.md Phase 3 section is stale")
 
     return issues
