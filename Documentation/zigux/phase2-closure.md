@@ -110,10 +110,11 @@ The bounded `fixdep` closure packet remains closed because both the shared artif
   `dep parsing keeps the first source across concatenated target entries`
   `dep parsing unescapes escaped hash and colon tokens once`
   `dependency file error messages keep C helper wording`
+  `missing dependency path is preserved for later error reporting`
   `output writer maps print and flush failures to fixdep output-write errors`
   `preserving a primary error ignores late output flush failures`
 
-- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, dependency-file-error, output-write, and primary-error-preservation unit anchors are required for closure`
+- `PHASE2_FIXDEP_EVIDENCE=artifact fixtures plus direct concatenated-target, escaped-token, dependency-file-error, missing-path-preservation, output-write, and primary-error-preservation unit anchors are required for closure`
 
 ## Genksyms Bridge Evidence
 
