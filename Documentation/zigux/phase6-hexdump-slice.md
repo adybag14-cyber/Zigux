@@ -9,11 +9,11 @@ This document records the bounded Phase 6 leaf-helper validation slice for Zigux
 - scope: first low-risk hexdump helper coverage only
 - lane posture: parked after the current parity surface cleared the bounded helper goal
 - product boundary:
-- `lib/hexdump.zig`
-- `zigux/tests/phase6_hexdump.zig`
-- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
-- `zigux/tests/phase6_build.zig`
-- `zigux/Makefile`
+  - `lib/hexdump.zig`
+  - `zigux/tests/phase6_hexdump.zig`
+  - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+  - `zigux/tests/phase6_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -34,6 +34,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `make -C zigux phase6`
 
 3. replay the hexdump perf sanity harness when reviewing formatter-cost drift
+- `zig build hexdump-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-hexdump-perf`
 
 ## Current parity surface
