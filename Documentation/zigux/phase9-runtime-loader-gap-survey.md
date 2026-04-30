@@ -6,6 +6,7 @@ This document records the shared boot/runtime loader gap that still separates th
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-loader-gap-survey`
+- `PHASE9_SURVEYED_COMMIT=0981b6b50f5f11c38b634fdc5658562ce2be423c`
 - scope: shared survey note, manifest-backed survey gate, explicit roadmap-boundary note for the mixed Phase 6 schedule wording, and a bounded shared runtime-loader request surface that keeps allocator plus init or exit handoff machine-checkable without claiming real runtime execution
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
@@ -34,6 +35,9 @@ The live repo already reflects that split:
 - four Phase 9 runtime starter samples are landed under `samples/zigux/runtime_*`
 - three sample-side loader plans are landed under `samples/zigux/runtime_*_loader.zig`
 - a shared `zigux/kernel/runtime_loader.zig` request surface now exists
+
+the current survey packet is pinned to `master` commit `0981b6b50f5f11c38b634fdc5658562ce2be423c`.
+This keeps later runtime-loader handoff or governance edits from silently drifting past this evidence note.
 
 This survey keeps the lane honest by recording what is now landed and what is still blocked instead of pretending that runtime scheduling, polling, or event-loop work should be pulled forward into Phase 6.
 
