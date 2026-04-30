@@ -346,18 +346,34 @@ survey_note_expectations = {
     "phase5_bytestream_fifo_manifest.json": {
         "path": "Documentation/zigux/phase5-kfifo-sample-survey.md",
         "summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "sample_test_command": "zig test samples/zigux/bytestream_fifo.zig",
+        "sample_test_result": "All 3 tests passed.",
+        "survey_test_command": "zig test zigux/tests/phase5_bytestream_fifo_survey.zig",
+        "survey_test_result": "All 2 tests passed.",
     },
     "phase5_kobject_example_manifest.json": {
         "path": "Documentation/zigux/phase5-kobject-sample-survey.md",
         "summary": "Build Summary: 17/17 steps succeeded; 27/27 tests passed",
+        "sample_test_command": "zig test samples/zigux/kobject_example.zig",
+        "sample_test_result": "All 2 tests passed.",
+        "survey_test_command": "zig test zigux/tests/phase5_kobject_example_survey.zig",
+        "survey_test_result": "All 2 tests passed.",
     },
     "phase5_kretprobe_example_manifest.json": {
         "path": "Documentation/zigux/phase5-kretprobe-sample-survey.md",
         "summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "sample_test_command": "zig test samples/zigux/kretprobe_example.zig",
+        "sample_test_result": "All 1 tests passed.",
+        "survey_test_command": "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
+        "survey_test_result": "All 2 tests passed.",
     },
     "phase5_trace_events_sample_manifest.json": {
         "path": "Documentation/zigux/phase5-trace-events-sample-survey.md",
         "summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "sample_test_command": "zig test samples/zigux/trace_events_sample.zig",
+        "sample_test_result": "All 4 tests passed.",
+        "survey_test_command": "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
+        "survey_test_result": "All 2 tests passed.",
     },
 }
 
@@ -435,9 +451,9 @@ def total_marker_count() -> int:
         marker_count += 6  # phase, lane, anchor, sample path, entrypoint, surveyed commit shape
         marker_count += len(spec["non_goals"])
         marker_count += len(spec["exact_check_ids"])
-        marker_count += 3  # review prompts list shape, lane marker sync, build-summary sync
+        marker_count += 3  # review prompts list shape, lane marker sync, surveyed-commit sync
         note_spec = survey_note_expectations[manifest_name]
-        marker_count += 1 if note_spec["summary"] else 0
+        marker_count += 5 if note_spec["summary"] else 0
     return marker_count
 
 
@@ -504,6 +520,14 @@ def validate_phase5(root: Path) -> dict[str, object]:
             missing.append(f"{label}:surveyed_commit_sync")
         if note_spec["summary"] not in survey_note:
             missing.append(f"{label}:survey_build_summary")
+        if note_spec["sample_test_command"] not in survey_note:
+            missing.append(f"{label}:sample_test_command")
+        if note_spec["sample_test_result"] not in survey_note:
+            missing.append(f"{label}:sample_test_result")
+        if note_spec["survey_test_command"] not in survey_note:
+            missing.append(f"{label}:survey_test_command")
+        if note_spec["survey_test_result"] not in survey_note:
+            missing.append(f"{label}:survey_test_result")
 
     return {"ok": not missing, "missing_files": [], "missing": missing}
 
@@ -580,8 +604,21 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=survey-note-sync-gap")
             return 1
 
+        manifest["surveyed_commit"] = SELF_TEST_HEAD
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        note_text = note_path.read_text(encoding="utf-8").replace(
+            "zig test samples/zigux/trace_events_sample.zig",
+            "zig test samples/zigux/trace_events_sample_missing.zig",
+        )
+        note_path.write_text(note_text, encoding="utf-8")
+        missing_evidence_result = validate_phase5(tmp_root)
+        if missing_evidence_result["ok"] or "phase5_trace_events_sample_manifest:sample_test_command" not in missing_evidence_result["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=survey-note-evidence-gap")
+            return 1
+
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=2")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
