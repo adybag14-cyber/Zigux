@@ -240,6 +240,23 @@ test "phase13 landlock ruleset roadmap traceability note records the release fol
     try std.testing.expect(std.mem.indexOf(u8, traceability_md, "still-blocked live Landlock tree-state, release ownership, and hierarchy-lifetime work") != null);
 }
 
+test "phase13 landlock ruleset slice note keeps insertion planning helper-only" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-ruleset-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "adds one in-memory `insert_rule()` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "does not claim live rule insertion, rb-tree mutation, object references") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "does not claim rb-tree mutation, object references, rule insertion") == null);
+}
+
 test "phase13 landlock ruleset creation planner rejects empty requests and records one bounded layer" {
     try std.testing.expectError(
         error.EmptyRuleset,
