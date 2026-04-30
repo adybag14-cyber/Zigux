@@ -433,8 +433,8 @@ required_kretprobe_survey_test_markers = [
 
 required_trace_events_survey_markers = [
     "Documentation/zigux/freeze-map.md",
-    "`PHASE9_SURVEYED_COMMIT=63d56ce33d49c8434f94a8d13b98e1d8384cfd37`",
-    "the current survey packet is pinned to `master` commit `63d56ce33d49c8434f94a8d13b98e1d8384cfd37`.",
+    "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
+    "the current survey packet is pinned to `master` commit `aa26a0ac29c7b690f8575c7b3004025df4716aaa`.",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "Delivery ownership map",
@@ -452,7 +452,7 @@ required_trace_events_survey_markers = [
 
 required_trace_events_module_slice_markers = [
     "Documentation/zigux/freeze-map.md",
-    "`PHASE9_SURVEYED_COMMIT=63d56ce33d49c8434f94a8d13b98e1d8384cfd37`",
+    "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
     "`kernel/trace/ring_buffer.c`",
     "Study / Boundary Only",
     "runtime task ownership or event-loop substrate parity",
@@ -765,7 +765,7 @@ def run_self_test() -> int:
         original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
         trace_events_survey_path.write_text(
             original_trace_events_survey.replace(
-                "`PHASE9_SURVEYED_COMMIT=63d56ce33d49c8434f94a8d13b98e1d8384cfd37`",
+                "`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
                 "`PHASE9_SURVEYED_COMMIT=`",
                 1,
             ),
@@ -774,7 +774,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "trace_events_surveyed_commit_pin",
             tmp_root,
-            "trace_events_survey:`PHASE9_SURVEYED_COMMIT=63d56ce33d49c8434f94a8d13b98e1d8384cfd37`",
+            "trace_events_survey:`PHASE9_SURVEYED_COMMIT=aa26a0ac29c7b690f8575c7b3004025df4716aaa`",
         )
         trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
 
